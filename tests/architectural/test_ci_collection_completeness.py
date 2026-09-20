@@ -54,6 +54,7 @@ def test_restored_windows_suite_runs_on_push_without_filter_match_live() -> None
 
     assert ("ci-windows.yml", "windows-critical") in active
 
+
 # Every ``_gate_coverage`` surface that reads or writes a frozen baseline. The
 # point of trap 1 is that this module reaches NONE of them.
 _BASELINE_SURFACES = frozenset(
@@ -106,24 +107,14 @@ def _module_aliases(tree: ast.Module) -> frozenset[str]:
     aliases: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
-            aliases.update(
-                alias.asname or alias.name
-                for alias in node.names
-                if alias.name == _GATE_COVERAGE_MODULE
-            )
+            aliases.update(alias.asname or alias.name for alias in node.names if alias.name == _GATE_COVERAGE_MODULE)
         elif isinstance(node, ast.Import):
-            aliases.update(
-                alias.asname
-                for alias in node.names
-                if alias.asname
-                and alias.name.split(".")[-1] == _GATE_COVERAGE_MODULE
-            )
+            aliases.update(alias.asname for alias in node.names if alias.asname and alias.name.split(".")[-1] == _GATE_COVERAGE_MODULE)
     while True:
         grown = {
             target.id
             for node in ast.walk(tree)
-            if isinstance(node, ast.Assign) and isinstance(node.value, ast.Name)
-            and node.value.id in aliases
+            if isinstance(node, ast.Assign) and isinstance(node.value, ast.Name) and node.value.id in aliases
             for target in node.targets
             if isinstance(target, ast.Name)
         } - aliases
@@ -148,11 +139,7 @@ def _import_reach(node: ast.ImportFrom) -> set[str]:
     """``from tests.architectural._gate_coverage import load_baseline``."""
     if (node.module or "").split(".")[-1] != _GATE_COVERAGE_MODULE:
         return set()
-    return {
-        f"import {alias.name}"
-        for alias in node.names
-        if alias.name in _BASELINE_SURFACES
-    }
+    return {f"import {alias.name}" for alias in node.names if alias.name in _BASELINE_SURFACES}
 
 
 def _getattr_reach(node: ast.Call, aliases: frozenset[str]) -> set[str]:
@@ -196,13 +183,7 @@ def _path_literal_reach(node: ast.AST) -> set[str]:
         operands = [node.left, node.right]
     else:
         return set()
-    return {
-        f"literal path {name}"
-        for operand in operands
-        for text in _string_parts(operand)
-        for name in _BASELINE_FILENAMES
-        if name in text
-    }
+    return {f"literal path {name}" for operand in operands for text in _string_parts(operand) for name in _BASELINE_FILENAMES if name in text}
 
 
 def _string_parts(node: ast.expr) -> list[str]:
@@ -216,11 +197,7 @@ def _string_parts(node: ast.expr) -> list[str]:
     if isinstance(node, ast.Constant):
         return [node.value] if isinstance(node.value, str) else []
     if isinstance(node, ast.JoinedStr):
-        return [
-            part.value
-            for part in node.values
-            if isinstance(part, ast.Constant) and isinstance(part.value, str)
-        ]
+        return [part.value for part in node.values if isinstance(part, ast.Constant) and isinstance(part.value, str)]
     return []
 
 
@@ -266,58 +243,27 @@ def baseline_reaches(source: str) -> set[str]:
 # mission exists to eliminate: a guard that LOOKS airtight and is not. Each
 # entry is a self-mutation of the module under test, expressed as source.
 _BASELINE_ESCAPES: dict[str, str] = {
-    "aliased attribute": (
-        "from tests.architectural import _gate_coverage as gc\n"
-        "gc.load_baseline()\n"
-    ),
-    "getattr indirection": (
-        "from tests.architectural import _gate_coverage as gc\n"
-        "getattr(gc, 'load_baseline')()\n"
-    ),
-    "direct symbol import": (
-        "from tests.architectural._gate_coverage import load_baseline\n"
-        "load_baseline()\n"
-    ),
-    "renamed module import": (
-        "import tests.architectural._gate_coverage as gate\n"
-        "gate.load_baseline()\n"
-    ),
-    "fully dotted access": (
-        "import tests.architectural._gate_coverage\n"
-        "tests.architectural._gate_coverage.load_baseline()\n"
-    ),
-    "rebound alias": (
-        "from tests.architectural import _gate_coverage as gc\n"
-        "sneaky = gc\n"
-        "sneaky.update_baseline()\n"
-    ),
-    "literal baseline path": (
-        "from pathlib import Path\n"
-        "Path('tests/architectural/_gate_coverage_baseline.json').read_text()\n"
-    ),
-    "literal path by joining": (
-        "from pathlib import Path\n"
-        "data = Path('tests/architectural') / '_gate_coverage_baseline.json'\n"
-    ),
+    "aliased attribute": ("from tests.architectural import _gate_coverage as gc\ngc.load_baseline()\n"),
+    "getattr indirection": ("from tests.architectural import _gate_coverage as gc\ngetattr(gc, 'load_baseline')()\n"),
+    "direct symbol import": ("from tests.architectural._gate_coverage import load_baseline\nload_baseline()\n"),
+    "renamed module import": ("import tests.architectural._gate_coverage as gate\ngate.load_baseline()\n"),
+    "fully dotted access": ("import tests.architectural._gate_coverage\ntests.architectural._gate_coverage.load_baseline()\n"),
+    "rebound alias": ("from tests.architectural import _gate_coverage as gc\nsneaky = gc\nsneaky.update_baseline()\n"),
+    "literal baseline path": ("from pathlib import Path\nPath('tests/architectural/_gate_coverage_baseline.json').read_text()\n"),
+    "literal path by joining": ("from pathlib import Path\ndata = Path('tests/architectural') / '_gate_coverage_baseline.json'\n"),
     # The two below defeated BOTH halves of trap 1 until review found them: the
     # static reader missed them, and the behavioural half never sees them because
     # they bypass the module whose attributes it sabotages.
-    "literal path as a keyword argument": (
-        "open(file='tests/architectural/_gate_coverage_baseline.json').read()\n"
-    ),
+    "literal path as a keyword argument": ("open(file='tests/architectural/_gate_coverage_baseline.json').read()\n"),
     "literal path inside an f-string": (
-        "from pathlib import Path\n"
-        "root = 'tests/architectural'\n"
-        "data = Path(f'{root}/_gate_coverage_baseline.json').read_text()\n"
+        "from pathlib import Path\nroot = 'tests/architectural'\ndata = Path(f'{root}/_gate_coverage_baseline.json').read_text()\n"
     ),
 }
 
 # Prose may name every surface it refuses to touch — that is the whole point of
 # reading the AST instead of grepping.
 _BASELINE_PROSE_ONLY = (
-    '"""Refuses to call load_baseline or read _gate_coverage_baseline.json."""\n'
-    "from tests.architectural import _gate_coverage as gc\n"
-    "gc.collect_universe()\n"
+    '"""Refuses to call load_baseline or read _gate_coverage_baseline.json."""\nfrom tests.architectural import _gate_coverage as gc\ngc.collect_universe()\n'
 )
 
 
@@ -326,13 +272,11 @@ _BASELINE_PROSE_ONLY = (
     sorted(_BASELINE_ESCAPES.items()),
 )
 def test_the_baseline_reach_checker_catches_every_known_escape(
-    shape: str, source: str,
+    shape: str,
+    source: str,
 ) -> None:
     """NFR-005 applied to the checker itself: each escape must be reported."""
-    assert baseline_reaches(source), (
-        f"the baseline-reach checker misses the {shape!r} escape, so trap 1 "
-        "could be walked around by rewriting one import line"
-    )
+    assert baseline_reaches(source), f"the baseline-reach checker misses the {shape!r} escape, so trap 1 could be walked around by rewriting one import line"
 
 
 def test_the_baseline_reach_checker_does_not_fire_on_prose() -> None:
@@ -355,8 +299,7 @@ def test_the_baseline_reach_checker_does_not_fire_on_prose() -> None:
         ("always() && needs.changes.outputs.cli == 'true'", False),
         ("always() && needs.changes.outputs.core_misc == 'true'", False),
         (
-            "always() && (needs.changes.outputs.cli == 'true' "
-            "|| github.event_name == 'push')",
+            "always() && (needs.changes.outputs.cli == 'true' || github.event_name == 'push')",
             True,
         ),
         ("always() && github.event_name == 'push'", True),
@@ -365,8 +308,7 @@ def test_the_baseline_reach_checker_does_not_fire_on_prose() -> None:
         ("needs.fast-tests-cli.result == 'success'", True),
         ("needs.kernel-tests.result != 'failure'", True),
         (
-            "${{ (always()) && "
-            "!contains(github.event.pull_request.labels.*.name, 'pr:deferred') }}",
+            "${{ (always()) && !contains(github.event.pull_request.labels.*.name, 'pr:deferred') }}",
             True,
         ),
         ("some.unmodelled.expression == 'true'", False),
@@ -379,7 +321,9 @@ def test_job_runs_under_push_with_no_group_active(
     """The activation truth table, including the fail-closed unknown-term case."""
     assert (
         gc.job_runs_under(
-            condition, event_name=gc.PUSH_EVENT, active_groups=frozenset(),
+            condition,
+            event_name=gc.PUSH_EVENT,
+            active_groups=frozenset(),
         )
         is expected
     )
@@ -389,10 +333,14 @@ def test_job_runs_under_honours_an_active_group() -> None:
     """A group-gated job runs once its group is active — the monotonicity premise."""
     condition = "always() && needs.changes.outputs.cli == 'true'"
     assert not gc.job_runs_under(
-        condition, event_name=gc.PUSH_EVENT, active_groups=frozenset(),
+        condition,
+        event_name=gc.PUSH_EVENT,
+        active_groups=frozenset(),
     )
     assert gc.job_runs_under(
-        condition, event_name=gc.PUSH_EVENT, active_groups=frozenset({"cli"}),
+        condition,
+        event_name=gc.PUSH_EVENT,
+        active_groups=frozenset({"cli"}),
     )
 
 
@@ -401,7 +349,9 @@ def test_label_guard_blocks_only_pull_requests() -> None:
     guard = "!contains(github.event.pull_request.labels.*.name, 'pr:skip-ci')"
     assert gc.job_runs_under(guard, event_name=gc.PUSH_EVENT, active_groups=frozenset())
     assert not gc.job_runs_under(
-        guard, event_name=gc.PULL_REQUEST_EVENT, active_groups=frozenset(),
+        guard,
+        event_name=gc.PULL_REQUEST_EVENT,
+        active_groups=frozenset(),
     )
 
 
@@ -416,7 +366,9 @@ def test_label_guard_blocks_only_pull_requests() -> None:
     ],
 )
 def test_split_top_level_respects_parentheses(
-    expr: str, operator: str, expected: list[str],
+    expr: str,
+    operator: str,
+    expected: list[str],
 ) -> None:
     assert gc.split_top_level(expr, operator) == expected
 

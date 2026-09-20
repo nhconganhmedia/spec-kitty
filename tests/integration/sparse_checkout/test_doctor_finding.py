@@ -31,6 +31,7 @@ from specify_cli.coordination import register_lane_sparse_checkout
 
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
+
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         cmd,
@@ -124,9 +125,7 @@ def _add_worktree(repo: Path, name: str) -> Path:
     return wt
 
 
-def test_doctor_clean_repo_no_sparse_finding(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_clean_repo_no_sparse_finding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A 3.x repo with no sparse state must not emit the finding."""
     repo = tmp_path / "clean"
     _init_bare_repo(repo)
@@ -143,9 +142,7 @@ def test_doctor_clean_repo_no_sparse_finding(
     assert "Legacy sparse-checkout state detected" not in result.stdout
 
 
-def test_doctor_sparse_primary_emits_finding(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_sparse_primary_emits_finding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Sparse-configured primary repo surfaces the finding with pattern info."""
     repo = tmp_path / "sparse"
     _init_bare_repo(repo)
@@ -172,9 +169,7 @@ def test_doctor_sparse_primary_emits_finding(
     assert "stale_claim" not in result.stdout
 
 
-def test_doctor_sparse_primary_and_worktrees_lists_all_paths(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_sparse_primary_and_worktrees_lists_all_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Primary + two inherited worktrees each appear in the finding."""
     repo = tmp_path / "sparse-wts"
     _init_bare_repo(repo)
@@ -196,9 +191,7 @@ def test_doctor_sparse_primary_and_worktrees_lists_all_paths(
     assert str(repo) in result.stdout
 
 
-def test_doctor_managed_lane_sparse_checkout_is_not_legacy_finding(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_managed_lane_sparse_checkout_is_not_legacy_finding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Managed lane sparse-checkout must not be remediated as legacy state."""
     repo = tmp_path / "managed"
     wt = _init_managed_lane_repo(repo)
@@ -217,9 +210,7 @@ def test_doctor_managed_lane_sparse_checkout_is_not_legacy_finding(
     assert str(wt) not in result.stdout
 
 
-def test_doctor_fix_plan_skips_managed_lane_sparse_checkout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_fix_plan_skips_managed_lane_sparse_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo = tmp_path / "mixed"
     wt = _init_managed_lane_repo(repo)
     _enable_sparse(repo, pattern="README.md\n")

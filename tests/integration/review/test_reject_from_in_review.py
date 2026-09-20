@@ -51,9 +51,7 @@ def in_review_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Pat
     # "main" as protected by default, so this real-git fixture needs the
     # override to let the review-cycle artifact's commit genuinely succeed --
     # mirrors ``tests/review/test_cycle.py``'s ``_unprotect_main`` idiom.
-    (repo / ".kittify" / "config.yaml").write_text(
-        "auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (repo / ".kittify" / "config.yaml").write_text("auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8")
 
     mission_slug = "001-reject-from-in-review"
     feature_dir = repo / "kitty-specs" / mission_slug
@@ -65,27 +63,23 @@ def in_review_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Pat
         encoding="utf-8",
     )
     (tasks_dir / "WP01-core.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Core\n"
-        "agent: reviewer\n"
-        "shell_pid: ''\n"
-        "subtasks:\n"
-        "- T001\n"
-        "dependencies: []\n"
-        "---\n\n# WP01\n",
+        "---\nwork_package_id: WP01\ntitle: Core\nagent: reviewer\nshell_pid: ''\nsubtasks:\n- T001\ndependencies: []\n---\n\n# WP01\n",
         encoding="utf-8",
     )
     for idx, lane in enumerate(
         [Lane.PLANNED, Lane.CLAIMED, Lane.IN_PROGRESS, Lane.FOR_REVIEW, Lane.IN_REVIEW],
         start=1,
     ):
-        from_lane = Lane.PLANNED if idx == 1 else [
-            Lane.PLANNED,
-            Lane.CLAIMED,
-            Lane.IN_PROGRESS,
-            Lane.FOR_REVIEW,
-        ][idx - 2]
+        from_lane = (
+            Lane.PLANNED
+            if idx == 1
+            else [
+                Lane.PLANNED,
+                Lane.CLAIMED,
+                Lane.IN_PROGRESS,
+                Lane.FOR_REVIEW,
+            ][idx - 2]
+        )
         append_event(
             feature_dir,
             StatusEvent(
@@ -302,6 +296,5 @@ def test_rollback_to_planned_supersedes_stale_review_override_slot(
     wp_state = status_payload["work_packages"]["WP01"]
     assert wp_state.get("lane") == "planned"
     assert wp_state.get("review") is None, (
-        "expected the stale approval-override 'review' slot to be superseded by "
-        f"the fresh rejection, but status.json still reports {wp_state.get('review')!r}"
+        f"expected the stale approval-override 'review' slot to be superseded by the fresh rejection, but status.json still reports {wp_state.get('review')!r}"
     )

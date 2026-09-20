@@ -5,6 +5,7 @@ caller is non-interactive; routing its gate through ``is_interactive`` means
 ``SPEC_KITTY_NON_INTERACTIVE`` now makes it exit with guidance instead of
 hanging on a silent stdin pipe.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,9 +30,7 @@ def test_prompt_candidate_selection_exits_when_non_interactive(
 ) -> None:
     monkeypatch.setenv("SPEC_KITTY_NON_INTERACTIVE", "1")
     # Guard: prove we exit BEFORE reaching the prompt, not because prompt failed.
-    monkeypatch.setattr(
-        intake.typer, "prompt", lambda *a, **k: pytest.fail("must not prompt")
-    )
+    monkeypatch.setattr(intake.typer, "prompt", lambda *a, **k: pytest.fail("must not prompt"))
 
     with pytest.raises(typer.Exit) as exc:
         intake._prompt_candidate_selection(_candidates())

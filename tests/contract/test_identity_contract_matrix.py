@@ -255,9 +255,7 @@ def test_surface_carries_identity(surface: ContractSurface) -> None:
     regression is immediately traceable.
     """
     payload = surface.builder()
-    assert isinstance(payload, dict), (
-        f"Surface {surface.name!r} produced non-dict payload: {type(payload).__name__}"
-    )
+    assert isinstance(payload, dict), f"Surface {surface.name!r} produced non-dict payload: {type(payload).__name__}"
     assert payload, f"Surface {surface.name!r} produced an empty payload"
 
     for key in surface.identity_locations:
@@ -270,10 +268,7 @@ def test_surface_carries_identity(surface: ContractSurface) -> None:
 
     for key in surface.ulid_equals:
         value = _dig(payload, key)
-        assert value == ULID_CANONICAL, (
-            f"Surface {surface.name!r} field {key!r} must equal the canonical "
-            f"ULID {ULID_CANONICAL!r}, got {value!r}"
-        )
+        assert value == ULID_CANONICAL, f"Surface {surface.name!r} field {key!r} must equal the canonical ULID {ULID_CANONICAL!r}, got {value!r}"
 
 
 def test_legacy_wp_status_event_without_mission_id_is_valid() -> None:
@@ -297,12 +292,6 @@ def test_legacy_wp_status_event_without_mission_id_is_valid() -> None:
         # No mission_id — legacy event.
     )
     payload = legacy_event.to_dict()
-    assert "mission_id" not in payload, (
-        "Legacy StatusEvent without mission_id must not synthesise a false value"
-    )
-    assert "legacy_aggregate_id" not in payload, (
-        "legacy_aggregate_id is only emitted when mission_id is present"
-    )
+    assert "mission_id" not in payload, "Legacy StatusEvent without mission_id must not synthesise a false value"
+    assert "legacy_aggregate_id" not in payload, "legacy_aggregate_id is only emitted when mission_id is present"
     assert payload["mission_slug"] == MISSION_SLUG
-
-

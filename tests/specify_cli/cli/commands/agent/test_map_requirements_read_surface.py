@@ -42,14 +42,7 @@ MID8 = MISSION_ID[:8]  # "01KVW9B0"
 MISSION_SLUG = f"gate-read-surface-completion-{MID8}"
 
 SPEC_MD_TEXT = "# Spec\n\n- **FR-001**: Do the thing.\n"
-WP01_PROMPT = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "owned_files: []\n"
-    "requirement_refs: []\n"
-    "---\n"
-    "# WP01\n"
-)
+WP01_PROMPT = "---\nwork_package_id: WP01\nowned_files: []\nrequirement_refs: []\n---\n# WP01\n"
 
 
 def _write_primary(repo_root: Path) -> Path:
@@ -100,6 +93,7 @@ def _patch_boundaries(
         f"{mod}._map_requirements_feature_dir",
         lambda *a, **k: coord_dir,
     )
+
     # read-side-seam-primary-primitive-closure-01KYKMMT WP08 (T035): the
     # ``primary_feature_dir_for_mission`` patch this block used to install
     # (for the spec.md read's PRIMARY anchor) is retired along with the
@@ -122,9 +116,7 @@ def _patch_boundaries(
     )
 
 
-def test_map_requirements_reads_wp_tasks_off_primary_under_coord_topology(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_map_requirements_reads_wp_tasks_off_primary_under_coord_topology(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The WP ``tasks/*.md`` read resolves PRIMARY, not the empty coord ``tasks/``.
 
     RED on pre-WP04 ``tasks.py`` (globs the empty coord ``tasks/`` → "Unknown WP

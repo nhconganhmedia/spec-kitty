@@ -107,18 +107,14 @@ def _me_response(
         "user_id": user_id,
         "email": email,
         "name": name,
-        "teams": teams
-        if teams is not None
-        else [{"id": "tm_acme", "name": "Acme", "role": "admin", "is_private_teamspace": False}],
+        "teams": teams if teams is not None else [{"id": "tm_acme", "name": "Acme", "role": "admin", "is_private_teamspace": False}],
     }
     if refresh_token_expires_at is not None:
         body["refresh_token_expires_at"] = refresh_token_expires_at
     return body
 
 
-def _mock_httpx_response(
-    status_code: int, json_body: object | None = None, text: str = ""
-):
+def _mock_httpx_response(status_code: int, json_body: object | None = None, text: str = ""):
     r = Mock(spec=httpx.Response)
     r.status_code = status_code
     r.text = text or (str(json_body) if json_body else "")
@@ -205,7 +201,6 @@ def _install_routed_client(post_routes, get_routes=None):
 
 
 class TestConstructor:
-
     def test_explicit_url_wins(self, monkeypatch):
         monkeypatch.setenv("SPEC_KITTY_SAAS_URL", "https://env.test")
         flow = DeviceCodeFlow(saas_base_url="https://explicit.test")
@@ -242,16 +237,13 @@ class TestConstructor:
 
 
 class TestRequestDeviceCode:
-
     @pytest.mark.asyncio
     async def test_happy_path(self):
         flow = DeviceCodeFlow(saas_base_url=_SAAS)
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
-            mock_client.post.return_value = _mock_httpx_response(
-                200, _device_response()
-            )
+            mock_client.post.return_value = _mock_httpx_response(200, _device_response())
 
             state = await flow._request_device_code()
 
@@ -271,9 +263,7 @@ class TestRequestDeviceCode:
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
-            mock_client.post.return_value = _mock_httpx_response(
-                500, {"error": "server_error"}, text="server error"
-            )
+            mock_client.post.return_value = _mock_httpx_response(500, {"error": "server_error"}, text="server error")
 
             with pytest.raises(AuthenticationError, match="HTTP 500"):
                 await flow._request_device_code()
@@ -286,9 +276,7 @@ class TestRequestDeviceCode:
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.post.side_effect = httpx.ConnectError("DNS failed")
 
-            with pytest.raises(
-                NetworkError, match="Network error requesting device code"
-            ):
+            with pytest.raises(NetworkError, match="Network error requesting device code"):
                 await flow._request_device_code()
 
     @pytest.mark.asyncio
@@ -301,9 +289,7 @@ class TestRequestDeviceCode:
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.post.return_value = _mock_httpx_response(200, bad)
 
-            with pytest.raises(
-                AuthenticationError, match="missing required field"
-            ):
+            with pytest.raises(AuthenticationError, match="missing required field"):
                 await flow._request_device_code()
 
 
@@ -313,26 +299,20 @@ class TestRequestDeviceCode:
 
 
 class TestPollTokenRequest:
-
     @pytest.mark.asyncio
     async def test_success_returns_parsed_body(self):
         flow = DeviceCodeFlow(saas_base_url=_SAAS)
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
-            mock_client.post.return_value = _mock_httpx_response(
-                200, _token_response()
-            )
+            mock_client.post.return_value = _mock_httpx_response(200, _token_response())
 
             body = await flow._poll_token_request("dc_xyz")
 
         assert body["access_token"] == "at_xyz"
         call_args = mock_client.post.call_args
         posted = call_args[1]["data"]
-        assert (
-            posted["grant_type"]
-            == "urn:ietf:params:oauth:grant-type:device_code"
-        )
+        assert posted["grant_type"] == "urn:ietf:params:oauth:grant-type:device_code"
         assert posted["device_code"] == "dc_xyz"
 
     @pytest.mark.asyncio
@@ -342,9 +322,7 @@ class TestPollTokenRequest:
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
-            mock_client.post.return_value = _mock_httpx_response(
-                400, {"error": "authorization_pending"}
-            )
+            mock_client.post.return_value = _mock_httpx_response(400, {"error": "authorization_pending"})
 
             body = await flow._poll_token_request("dc_xyz")
 
@@ -425,9 +403,7 @@ class TestPollTokenRequest:
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client_class.return_value.__aenter__.return_value = mock_client
-            mock_client.post.return_value = _mock_httpx_response(
-                502, {}, text="bad gateway"
-            )
+            mock_client.post.return_value = _mock_httpx_response(502, {}, text="bad gateway")
 
             with pytest.raises(AuthenticationError, match="HTTP 502"):
                 await flow._poll_token_request("dc_xyz")
@@ -440,9 +416,7 @@ class TestPollTokenRequest:
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.post.side_effect = httpx.ConnectError("no route")
 
-            with pytest.raises(
-                NetworkError, match="Network error polling for token"
-            ):
+            with pytest.raises(NetworkError, match="Network error polling for token"):
                 await flow._poll_token_request("dc_xyz")
 
 
@@ -452,7 +426,6 @@ class TestPollTokenRequest:
 
 
 class TestBuildSession:
-
     @pytest.mark.asyncio
     async def test_happy_path_uses_absolute_expires_at(self):
         flow = DeviceCodeFlow(saas_base_url=_SAAS)
@@ -477,9 +450,7 @@ class TestBuildSession:
         # WP05 assertion: auth_method is device_code, NOT authorization_code
         assert session.auth_method == "device_code"
         # Refresh expiry comes from the server verbatim (no clock math):
-        assert session.refresh_token_expires_at == datetime(
-            2099, 1, 1, tzinfo=UTC
-        )
+        assert session.refresh_token_expires_at == datetime(2099, 1, 1, tzinfo=UTC)
         # #176: the session records which endpoint minted it.
         assert session.issuer_url == _SAAS
 
@@ -524,12 +495,8 @@ class TestBuildSession:
 
         assert session.refresh_token_expires_at is not None
         delta = session.refresh_token_expires_at - before
-        assert timedelta(seconds=86400 - 5) <= delta <= timedelta(
-            seconds=86400 + 5
-        )
-        assert session.refresh_token_expires_at <= after + timedelta(
-            seconds=86400
-        )
+        assert timedelta(seconds=86400 - 5) <= delta <= timedelta(seconds=86400 + 5)
+        assert session.refresh_token_expires_at <= after + timedelta(seconds=86400)
 
     @pytest.mark.asyncio
     async def test_prefers_token_response_over_me_response(self):
@@ -547,9 +514,7 @@ class TestBuildSession:
 
             session = await flow._build_session(tokens)
 
-        assert session.refresh_token_expires_at == datetime(
-            2099, 6, 1, tzinfo=UTC
-        )
+        assert session.refresh_token_expires_at == datetime(2099, 6, 1, tzinfo=UTC)
 
     @pytest.mark.asyncio
     async def test_reads_from_me_response_when_token_missing_absolute(self):
@@ -565,17 +530,13 @@ class TestBuildSession:
 
             session = await flow._build_session(tokens)
 
-        assert session.refresh_token_expires_at == datetime(
-            2099, 1, 1, tzinfo=UTC
-        )
+        assert session.refresh_token_expires_at == datetime(2099, 1, 1, tzinfo=UTC)
 
     @pytest.mark.asyncio
     async def test_accepts_z_suffix_on_iso_string(self):
         """Both ``+00:00`` and ``Z`` suffixes must be accepted."""
         flow = DeviceCodeFlow(saas_base_url=_SAAS)
-        tokens = _token_response(
-            refresh_token_expires_at="2099-01-01T00:00:00Z"
-        )
+        tokens = _token_response(refresh_token_expires_at="2099-01-01T00:00:00Z")
         me = _me_response()
 
         with patch("httpx.AsyncClient") as mock_client_class:
@@ -585,9 +546,7 @@ class TestBuildSession:
 
             session = await flow._build_session(tokens)
 
-        assert session.refresh_token_expires_at == datetime(
-            2099, 1, 1, tzinfo=UTC
-        )
+        assert session.refresh_token_expires_at == datetime(2099, 1, 1, tzinfo=UTC)
 
     @pytest.mark.asyncio
     async def test_invalid_me_refresh_expiry_raises_authentication_error(self):
@@ -686,9 +645,7 @@ class TestBuildSession:
             mock_client_class.return_value.__aenter__.return_value = mock_client
             mock_client.get.side_effect = httpx.ConnectError("DNS failed")
 
-            with pytest.raises(
-                NetworkError, match="Network error fetching user info"
-            ):
+            with pytest.raises(NetworkError, match="Network error fetching user info"):
                 await flow._build_session(tokens)
 
     @pytest.mark.asyncio
@@ -713,7 +670,6 @@ class TestBuildSession:
 
 
 class TestLogin:
-
     @pytest.mark.asyncio
     async def test_full_happy_path(self):
         """End-to-end: device request -> poll -> me -> StoredSession."""
@@ -736,9 +692,7 @@ class TestLogin:
         assert session.email == "alice@example.com"
         assert session.auth_method == "device_code"
         assert session.access_token == "at_xyz"
-        assert session.refresh_token_expires_at == datetime(
-            2099, 1, 1, tzinfo=UTC
-        )
+        assert session.refresh_token_expires_at == datetime(2099, 1, 1, tzinfo=UTC)
 
         # The progress writer receives the verification URI and a formatted code.
         joined = "\n".join(progress_lines)
@@ -753,9 +707,7 @@ class TestLogin:
         """When SaaS returns verification_uri_complete, it is displayed too."""
         flow = DeviceCodeFlow(saas_base_url=_SAAS)
 
-        dev = _device_response(
-            verification_uri_complete=f"{_SAAS}/device?code=ABCD1234"
-        )
+        dev = _device_response(verification_uri_complete=f"{_SAAS}/device?code=ABCD1234")
         post_routes = {
             "/oauth/device": _mock_httpx_response(200, dev),
             "/oauth/token": _mock_httpx_response(200, _token_response()),
@@ -822,9 +774,7 @@ class TestLogin:
         def _token_post(_data):
             token_calls["count"] += 1
             if token_calls["count"] <= 2:
-                return _mock_httpx_response(
-                    400, {"error": "authorization_pending"}
-                )
+                return _mock_httpx_response(400, {"error": "authorization_pending"})
             return _mock_httpx_response(200, _token_response())
 
         post_routes = {
@@ -847,9 +797,7 @@ class TestLogin:
 
         post_routes = {
             "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": _mock_httpx_response(
-                400, {"error": "access_denied"}
-            ),
+            "/oauth/token": _mock_httpx_response(400, {"error": "access_denied"}),
         }
 
         with _install_routed_client(post_routes), pytest.raises(DeviceFlowDenied):
@@ -861,9 +809,7 @@ class TestLogin:
 
         post_routes = {
             "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": _mock_httpx_response(
-                400, {"error": "expired_token"}
-            ),
+            "/oauth/token": _mock_httpx_response(400, {"error": "expired_token"}),
         }
 
         with _install_routed_client(post_routes), pytest.raises(DeviceFlowExpired):
@@ -874,9 +820,7 @@ class TestLogin:
         flow = DeviceCodeFlow(saas_base_url=_SAAS)
 
         post_routes = {
-            "/oauth/device": _mock_httpx_response(
-                500, {"error": "server_error"}, text="down"
-            ),
+            "/oauth/device": _mock_httpx_response(500, {"error": "server_error"}, text="down"),
         }
 
         with _install_routed_client(post_routes), pytest.raises(AuthenticationError):
@@ -952,9 +896,7 @@ class TestAuthLoginHeadlessCliRunner:
         }
 
         # Also mock the storage backend so we don't write to the real auth store.
-        with _install_routed_client(post_routes, get_routes), patch(
-            "specify_cli.auth.secure_storage.SecureStorage.from_environment"
-        ) as mock_se:
+        with _install_routed_client(post_routes, get_routes), patch("specify_cli.auth.secure_storage.SecureStorage.from_environment") as mock_se:
             mock_storage = Mock()
             mock_storage.read.return_value = None
             mock_storage.write = Mock(return_value=None)
@@ -986,14 +928,10 @@ class TestAuthLoginHeadlessCliRunner:
 
         post_routes = {
             "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": _mock_httpx_response(
-                400, {"error": "access_denied"}
-            ),
+            "/oauth/token": _mock_httpx_response(400, {"error": "access_denied"}),
         }
 
-        with _install_routed_client(post_routes), patch(
-            "specify_cli.auth.secure_storage.SecureStorage.from_environment"
-        ) as mock_se:
+        with _install_routed_client(post_routes), patch("specify_cli.auth.secure_storage.SecureStorage.from_environment") as mock_se:
             mock_storage = Mock()
             mock_storage.read.return_value = None
             mock_storage.write = Mock(return_value=None)
@@ -1028,12 +966,15 @@ async def test_login_401_is_terminal_actionable_and_redacted(payload, expected, 
     if isinstance(payload, dict):
         payload = {**payload, "error_description": "untrusted-secret", "access_token": "untrusted-secret"}
     poll = Mock(return_value=_mock_httpx_response(401, payload))
-    with _install_routed_client(
-        {
-            "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": _Dynamic(poll),
-        }
-    ), pytest.raises(AuthenticationError) as caught:
+    with (
+        _install_routed_client(
+            {
+                "/oauth/device": _mock_httpx_response(200, _device_response()),
+                "/oauth/token": _Dynamic(poll),
+            }
+        ),
+        pytest.raises(AuthenticationError) as caught,
+    ):
         await DeviceCodeFlow(saas_base_url=_SAAS).login()
     assert expected in str(caught.value)
     assert "spec-kitty auth login --headless" in str(caught.value)
@@ -1069,12 +1010,15 @@ async def test_login_401_instruction_matches_what_the_message_carries(payload, i
     code.
     """
     poll = Mock(return_value=_mock_httpx_response(401, payload))
-    with _install_routed_client(
-        {
-            "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": _Dynamic(poll),
-        }
-    ), pytest.raises(AuthenticationError) as caught:
+    with (
+        _install_routed_client(
+            {
+                "/oauth/device": _mock_httpx_response(200, _device_response()),
+                "/oauth/token": _Dynamic(poll),
+            }
+        ),
+        pytest.raises(AuthenticationError) as caught,
+    ):
         await DeviceCodeFlow(saas_base_url=_SAAS).login()
     message = str(caught.value)
     assert instruction in message
@@ -1094,12 +1038,15 @@ async def test_login_401_non_json_body_reports_no_error_code():
         r.json = Mock(side_effect=ValueError("not JSON"))
         return r
 
-    with _install_routed_client(
-        {
-            "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": _Dynamic(_non_json_401),
-        }
-    ), pytest.raises(AuthenticationError) as caught:
+    with (
+        _install_routed_client(
+            {
+                "/oauth/device": _mock_httpx_response(200, _device_response()),
+                "/oauth/token": _Dynamic(_non_json_401),
+            }
+        ),
+        pytest.raises(AuthenticationError) as caught,
+    ):
         await DeviceCodeFlow(saas_base_url=_SAAS).login()
     message = str(caught.value)
     assert "(the response carried no error code)" in message
@@ -1112,12 +1059,15 @@ async def test_login_401_non_json_body_reports_no_error_code():
 async def test_login_non_json_401_is_terminal_and_redacted():
     response = _mock_httpx_response(401, text="untrusted-secret")
     response.json.side_effect = ValueError("untrusted-secret")
-    with _install_routed_client(
-        {
-            "/oauth/device": _mock_httpx_response(200, _device_response()),
-            "/oauth/token": response,
-        }
-    ), pytest.raises(AuthenticationError) as caught:
+    with (
+        _install_routed_client(
+            {
+                "/oauth/device": _mock_httpx_response(200, _device_response()),
+                "/oauth/token": response,
+            }
+        ),
+        pytest.raises(AuthenticationError) as caught,
+    ):
         await DeviceCodeFlow(saas_base_url=_SAAS).login()
     assert "spec-kitty auth login --headless" in str(caught.value)
     assert "untrusted-secret" not in str(caught.value)

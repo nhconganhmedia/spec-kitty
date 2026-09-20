@@ -29,12 +29,7 @@ DEFAULT_EXACT_DENYLIST = {
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Backfill and sync .all-contributorsrc from GitHub contributors and "
-            "merged PR authors."
-        )
-    )
+    parser = argparse.ArgumentParser(description=("Backfill and sync .all-contributorsrc from GitHub contributors and merged PR authors."))
     parser.add_argument(
         "--repo",
         default=os.environ.get("GITHUB_REPOSITORY"),
@@ -146,9 +141,7 @@ def load_contributors_api(repo: str, deny_pattern: re.Pattern[str]) -> set[str]:
     return result
 
 
-def load_merged_pr_authors(
-    repo: str, pr_limit: int, deny_pattern: re.Pattern[str]
-) -> set[str]:
+def load_merged_pr_authors(repo: str, pr_limit: int, deny_pattern: re.Pattern[str]) -> set[str]:
     payload = run_json(
         [
             "gh",

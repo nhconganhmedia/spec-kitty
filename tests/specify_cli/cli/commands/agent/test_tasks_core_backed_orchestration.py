@@ -107,9 +107,7 @@ def _map_fake_ports(anchor_dir: Path) -> tuple[TasksPorts, FakeFsReader, FakeCoo
     return TasksPorts(fs=fs, coord=coord, git=FakeGitOps(), render=FakeRender()), fs, coord
 
 
-def test_map_requirements_fold_routes_through_primary_anchor_dir(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_map_requirements_fold_routes_through_primary_anchor_dir(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """T030: the canonicalizer fold resolves via the ``FsReader.primary_anchor_dir``
     port (its named consumer), and a ``--no-auto-commit`` run never touches the
     coord ``commit_artifact`` seam."""
@@ -141,9 +139,7 @@ def test_map_requirements_fold_routes_through_primary_anchor_dir(
     assert "FR-001" in (feature_dir / "tasks" / "WP01-test.md").read_text(encoding="utf-8")
 
 
-def test_map_requirements_auto_commit_routes_via_commit_artifact(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_map_requirements_auto_commit_routes_via_commit_artifact(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """T030: an auto-commit run routes the WP-file commit through the coord
     ``commit_artifact`` capability, keyed ``WORK_PACKAGE_TASK`` with the WP file."""
     feature_dir = _build_map_fixture(tmp_path, _MISSION)
@@ -193,9 +189,7 @@ def test_map_req_coord_router_threads_target_branch() -> None:
     router = seam_coord_router(thread_target_branch=True, target_branch="wip-lane")
     handle = MissionHandle(repo_root=Path("/repo"), mission_slug=_MISSION)
 
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.commit_for_mission"
-    ) as mock_commit:
+    with patch("specify_cli.cli.commands.agent.tasks.commit_for_mission") as mock_commit:
         mock_commit.return_value.status = "committed"
         mock_commit.return_value.placement_ref = "primary"
         mock_commit.return_value.commit_hash = "0" * 40
@@ -261,14 +255,10 @@ def _build_status_fixture(tmp_path: Path, mission_slug: str, lanes: dict[str, st
 
 def _status_fake_ports() -> tuple[TasksPorts, FakeRender]:
     render = FakeRender()
-    return TasksPorts(
-        fs=FakeFsReader(), coord=FakeCoordCommitRouter(), git=FakeGitOps(), render=render
-    ), render
+    return TasksPorts(fs=FakeFsReader(), coord=FakeCoordCommitRouter(), git=FakeGitOps(), render=render), render
 
 
-def test_status_json_emits_via_render_json_envelope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_status_json_emits_via_render_json_envelope(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T031: the ``--json`` leg serialises the ``build_status_view`` aggregation
     through ``ports.render.json_envelope`` (recorded on the Fake)."""
     _build_status_fixture(tmp_path, _MISSION, {"WP01": "approved", "WP02": "planned"})
@@ -287,9 +277,7 @@ def test_status_json_emits_via_render_json_envelope(
     assert payload["progress_semantics"]  # WP05 view carried into the envelope
 
 
-def test_status_human_renders_board_via_render_human(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_status_human_renders_board_via_render_human(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T031: the human leg draws every board section through ``ports.render.human``
     and never touches the JSON-envelope arm."""
     _build_status_fixture(tmp_path, _MISSION, {"WP01": "approved", "WP02": "planned"})

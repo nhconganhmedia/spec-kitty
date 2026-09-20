@@ -30,6 +30,8 @@ from specify_cli.lanes.branch_naming import (
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 @pytest.mark.parametrize(
     ("slug", "expected"),
     [
@@ -117,7 +119,8 @@ def test_lane_branch_name_planning_lane_ignores_mission_id() -> None:
 
 def test_lane_branch_name_planning_with_explicit_base() -> None:
     result = lane_branch_name(
-        "083-foo", "lane-planning",
+        "083-foo",
+        "lane-planning",
         planning_base_branch="release/3.x",
         mission_id="01KNXQS9ATWWFXS3K5ZJ9E5008",
     )
@@ -174,9 +177,7 @@ def test_parse_legacy_branch(branch: str, expected_lane_id: str | None) -> None:
     slug, mid8_val, lane_id = result
     assert slug  # non-empty
     assert mid8_val is None  # legacy: no mid8
-    assert lane_id == expected_lane_id, (
-        f"Expected lane_id={expected_lane_id!r} for {branch!r}, got {lane_id!r}"
-    )
+    assert lane_id == expected_lane_id, f"Expected lane_id={expected_lane_id!r} for {branch!r}, got {lane_id!r}"
 
 
 # ---------------------------------------------------------------------------

@@ -26,9 +26,7 @@ class TestMissionHandleMatchesMetaLoadContract:
     name match exists).
     """
 
-    def test_missing_meta_returns_false_on_no_name_match(
-        self, tmp_path: Path
-    ) -> None:
+    def test_missing_meta_returns_false_on_no_name_match(self, tmp_path: Path) -> None:
         """Missing meta.json: _mission_handle_matches returns False (no raises)."""
         mission_dir = tmp_path / "kitty-specs" / "01KVRJ6P-cleanup"
         mission_dir.mkdir(parents=True)
@@ -38,9 +36,7 @@ class TestMissionHandleMatchesMetaLoadContract:
         result = _mission_handle_matches(mission_dir, "01KVRJ6P0000000000000000AB")
         assert result is False
 
-    def test_malformed_meta_returns_false_on_no_name_match(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_meta_returns_false_on_no_name_match(self, tmp_path: Path) -> None:
         """Malformed meta.json: _mission_handle_matches returns False (no raises).
 
         load_meta_or_empty absorbs malformed JSON to {} — the function continues

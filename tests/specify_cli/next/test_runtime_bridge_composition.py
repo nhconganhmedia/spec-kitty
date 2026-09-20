@@ -66,9 +66,7 @@ _KNOWN_ACTION_SEQUENCES: dict[str, list[str]] = {
 }
 
 
-def _mock_resolve_mission_type_context(
-    repo_root: object, *, mission_type: str | None = None, feature_dir: object = None
-) -> SimpleNamespace:
+def _mock_resolve_mission_type_context(repo_root: object, *, mission_type: str | None = None, feature_dir: object = None) -> SimpleNamespace:
     """Return the built-in action sequence for the given mission type.
 
     Used as an autouse fixture patch so integration tests don't need a live
@@ -178,9 +176,7 @@ def test_should_dispatch_fires_for_software_dev_composed_actions(
         return_value=SimpleNamespace(action_sequence=sw_actions),
     ):
         for action in sw_actions:
-            assert _should_dispatch_via_composition(
-                "software-dev", action, repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", action, repo_root=tmp_path) is True
 
 
 def test_should_dispatch_falls_through_for_unknown_mission_helper(
@@ -195,22 +191,14 @@ def test_should_dispatch_falls_through_for_unknown_mission_helper(
         side_effect=UnknownMissionTypeError("documentation"),
     ):
         for action in ("specify", "plan", "tasks", "implement", "review"):
-            assert (
-                _should_dispatch_via_composition(
-                    "documentation", action, repo_root=tmp_path
-                )
-                is False
-            )
+            assert _should_dispatch_via_composition("documentation", action, repo_root=tmp_path) is False
 
     with patch(
         "charter.activation.mission_type_profiles.resolve_mission_type_context",
         side_effect=UnknownMissionTypeError("other"),
     ):
         for action in ("specify", "plan", "tasks", "implement", "review"):
-            assert (
-                _should_dispatch_via_composition("other", action, repo_root=tmp_path)
-                is False
-            )
+            assert _should_dispatch_via_composition("other", action, repo_root=tmp_path) is False
 
 
 def test_should_dispatch_falls_through_for_unknown_step_id_helper(
@@ -225,12 +213,7 @@ def test_should_dispatch_falls_through_for_unknown_step_id_helper(
         return_value=SimpleNamespace(action_sequence=sw_actions),
     ):
         for step_id in ("accept", "merge", "bootstrap", "unknown_step"):
-            assert (
-                _should_dispatch_via_composition(
-                    "software-dev", step_id, repo_root=tmp_path
-                )
-                is False
-            )
+            assert _should_dispatch_via_composition("software-dev", step_id, repo_root=tmp_path) is False
 
 
 def test_normalize_collapses_legacy_tasks_step_ids() -> None:
@@ -346,9 +329,7 @@ def test_dispatch_falls_through_for_unknown_mission(tmp_path: Path) -> None:
     from charter.activation.mission_type_profiles import UnknownMissionTypeError
 
     # Pre-condition: the executor is never called when the predicate is False.
-    def _raise_unknown(
-        repo_root: object, *, mission_type: str | None = None, feature_dir: object = None
-    ) -> SimpleNamespace:
+    def _raise_unknown(repo_root: object, *, mission_type: str | None = None, feature_dir: object = None) -> SimpleNamespace:
         raise UnknownMissionTypeError(mission_type)
 
     with (
@@ -1822,11 +1803,7 @@ def _t027_write_org_pack_config(repo_root: Path, *, org_name: str, org_root: Pat
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        f"      - name: {org_name}\n"
-        f"        local_path: {org_root}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: {org_name}\n        local_path: {org_root}\n",
         encoding="utf-8",
     )
 
@@ -1843,9 +1820,7 @@ def _t027_write_meta(feature_dir: Path, mission_type: str) -> None:
     import json as _json
 
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        _json.dumps({"mission_type": mission_type}), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(_json.dumps({"mission_type": mission_type}), encoding="utf-8")
 
 
 def _t027_seed_approved_wp(feature_dir: Path, wp_id: str) -> None:
@@ -1910,9 +1885,7 @@ class TestAC10CustomFamilyOrgTierNextDecisionWalk:
 
     def _make_ctx(self, project_root: Path, feature_dir: Path, run_dir: Path) -> rb.DecideNextContext:
         run_dir.mkdir(parents=True, exist_ok=True)
-        run_ref = MissionRunRef(
-            run_id="run-qa-t027", run_dir=str(run_dir), mission_key="042-qa-mission"
-        )
+        run_ref = MissionRunRef(run_id="run-qa-t027", run_dir=str(run_dir), mission_key="042-qa-mission")
         return rb.DecideNextContext(
             agent="agent-x",
             mission_slug="042-qa-mission",
@@ -1930,9 +1903,7 @@ class TestAC10CustomFamilyOrgTierNextDecisionWalk:
             current_step_id="implement",
         )
 
-    def test_absent_blocking_artifact_blocks_the_real_decision_walk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_blocking_artifact_blocks_the_real_decision_walk(self, tmp_path: Path) -> None:
         project_root, feature_dir = self._make_project(tmp_path)
         ctx = self._make_ctx(project_root, feature_dir, tmp_path / "run")
 
@@ -1948,8 +1919,7 @@ class TestAC10CustomFamilyOrgTierNextDecisionWalk:
         assert decision.kind == DecisionKind.blocked
         assert decision.guard_failures != []
         assert any("qa-coverage.json" in failure for failure in decision.guard_failures), (
-            f"expected the org-tier manifest's declared filename in "
-            f"guard_failures, got {decision.guard_failures!r}"
+            f"expected the org-tier manifest's declared filename in guard_failures, got {decision.guard_failures!r}"
         )
 
     def test_artifact_created_advances_the_real_decision_walk(self, tmp_path: Path) -> None:

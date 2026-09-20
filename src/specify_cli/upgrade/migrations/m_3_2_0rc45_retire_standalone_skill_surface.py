@@ -69,11 +69,7 @@ def _managed_manifest_has_retired_entries(project_path: Path) -> bool:
     manifest = load_manifest(project_path)
     if manifest is None:
         return False
-    return any(
-        entry.skill_name in RETIRED_STANDALONE_SKILL_NAMES
-        or _path_contains_retired_skill(entry.installed_path)
-        for entry in manifest.entries
-    )
+    return any(entry.skill_name in RETIRED_STANDALONE_SKILL_NAMES or _path_contains_retired_skill(entry.installed_path) for entry in manifest.entries)
 
 
 def _command_manifest_has_retired_entries(project_path: Path) -> bool:
@@ -102,8 +98,7 @@ def _prune_managed_manifest(project_path: Path, *, dry_run: bool) -> tuple[list[
     removed = [
         entry.installed_path
         for entry in manifest.entries
-        if entry.skill_name in RETIRED_STANDALONE_SKILL_NAMES
-        or _path_contains_retired_skill(entry.installed_path)
+        if entry.skill_name in RETIRED_STANDALONE_SKILL_NAMES or _path_contains_retired_skill(entry.installed_path)
     ]
     if not removed:
         return changes, errors
@@ -113,10 +108,7 @@ def _prune_managed_manifest(project_path: Path, *, dry_run: bool) -> tuple[list[
         return changes, errors
 
     manifest.entries = [
-        entry
-        for entry in manifest.entries
-        if entry.skill_name not in RETIRED_STANDALONE_SKILL_NAMES
-        and not _path_contains_retired_skill(entry.installed_path)
+        entry for entry in manifest.entries if entry.skill_name not in RETIRED_STANDALONE_SKILL_NAMES and not _path_contains_retired_skill(entry.installed_path)
     ]
     try:
         save_manifest(manifest, project_path)
@@ -151,9 +143,7 @@ def _prune_command_manifest(project_path: Path, *, dry_run: bool) -> tuple[list[
         changes.extend(f"Would prune retired command skills manifest entry {path}" for path in sorted(removed))
         return changes, warnings, errors
 
-    manifest.entries = [
-        entry for entry in manifest.entries if not _path_contains_retired_skill(entry.path)
-    ]
+    manifest.entries = [entry for entry in manifest.entries if not _path_contains_retired_skill(entry.path)]
     try:
         manifest_store.save(project_path, manifest)
         changes.extend(f"Pruned retired command skills manifest entry {path}" for path in sorted(removed))

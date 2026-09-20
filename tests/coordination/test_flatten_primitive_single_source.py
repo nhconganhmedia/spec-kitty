@@ -81,30 +81,18 @@ def _clears_coordination_branch(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> b
     for node in ast.walk(fn):
         if isinstance(node, ast.Delete):
             for delete_key in _delete_subscript_keys(node):
-                if _matches_key(
-                    delete_key, literal=_COORD_BRANCH_LITERAL, name=_COORD_BRANCH_CONST_NAME
-                ):
+                if _matches_key(delete_key, literal=_COORD_BRANCH_LITERAL, name=_COORD_BRANCH_CONST_NAME):
                     return True
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "pop"
-        ):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "pop":
             pop_key = _pop_call_key(node)
-            if _matches_key(
-                pop_key, literal=_COORD_BRANCH_LITERAL, name=_COORD_BRANCH_CONST_NAME
-            ):
+            if _matches_key(pop_key, literal=_COORD_BRANCH_LITERAL, name=_COORD_BRANCH_CONST_NAME):
                 return True
     return False
 
 
 def _pops_topology(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     for node in ast.walk(fn):
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "pop"
-        ):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "pop":
             key = _pop_call_key(node)
             if _matches_key(key, literal=_TOPOLOGY_LITERAL, name=_TOPOLOGY_CONST_NAME):
                 return True
@@ -119,19 +107,13 @@ def _sets_flattened_true(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         if not (isinstance(value, ast.Constant) and value.value is True):
             continue
         for target in node.targets:
-            if isinstance(target, ast.Subscript) and _matches_key(
-                target.slice, literal=_FLATTENED_LITERAL, name=_FLATTENED_CONST_NAME
-            ):
+            if isinstance(target, ast.Subscript) and _matches_key(target.slice, literal=_FLATTENED_LITERAL, name=_FLATTENED_CONST_NAME):
                 return True
     return False
 
 
 def _is_full_three_mutation_flatten(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    return (
-        _clears_coordination_branch(fn)
-        and _pops_topology(fn)
-        and _sets_flattened_true(fn)
-    )
+    return _clears_coordination_branch(fn) and _pops_topology(fn) and _sets_flattened_true(fn)
 
 
 @dataclass(frozen=True)
@@ -154,9 +136,7 @@ def _scan_source_for_full_flatten(source: str, path: Path) -> list[_FlattenFindi
         return []
     findings: list[_FlattenFinding] = []
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _is_full_three_mutation_flatten(
-            node
-        ):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _is_full_three_mutation_flatten(node):
             findings.append(_FlattenFinding(path, node.name, node.lineno))
     return findings
 
@@ -202,8 +182,7 @@ def test_exactly_one_function_performs_the_full_coordination_flatten() -> None:
         "the primitive was deliberately relocated)."
     )
     assert owner.qualname == _EXPECTED_OWNER_QUALNAME, (
-        f"the sole three-mutation flatten function is named {owner.qualname!r}; "
-        f"expected {_EXPECTED_OWNER_QUALNAME!r}."
+        f"the sole three-mutation flatten function is named {owner.qualname!r}; expected {_EXPECTED_OWNER_QUALNAME!r}."
     )
 
 
@@ -217,11 +196,11 @@ _SYNTHETIC_REINLINE_SOURCE = (
     '    """A docstring merely mentioning coordination_branch/topology/flattened\n'
     "    must NOT be flagged -- only real code constructs count.\n"
     '    """\n'
-    "    # A comment quoting meta.pop(\"topology\") must NOT be flagged either.\n"
-    "    if \"coordination_branch\" in meta:\n"
-    "        del meta[\"coordination_branch\"]\n"
-    "    meta.pop(\"topology\", None)\n"
-    "    meta[\"flattened\"] = True\n"
+    '    # A comment quoting meta.pop("topology") must NOT be flagged either.\n'
+    '    if "coordination_branch" in meta:\n'
+    '        del meta["coordination_branch"]\n'
+    '    meta.pop("topology", None)\n'
+    '    meta["flattened"] = True\n'
     "    return meta\n"
 )
 
@@ -232,12 +211,9 @@ def test_scanner_flags_a_synthetic_reinline_of_the_mutation_set() -> None:
     Without this, a detector that never matches anything would make the main
     ratchet above pass vacuously even after a real 5th re-inline landed.
     """
-    findings = _scan_source_for_full_flatten(
-        _SYNTHETIC_REINLINE_SOURCE, Path("synthetic_reinline.py")
-    )
+    findings = _scan_source_for_full_flatten(_SYNTHETIC_REINLINE_SOURCE, Path("synthetic_reinline.py"))
     assert len(findings) == 1 and findings[0].qualname == "_sneaky_reinline", (
-        "scanner failed to flag a planted 3-mutation re-inline -- the guard "
-        f"would be vacuous. Findings: {findings!r}"
+        f"scanner failed to flag a planted 3-mutation re-inline -- the guard would be vacuous. Findings: {findings!r}"
     )
 
 
@@ -246,9 +222,7 @@ def test_synthetic_reinline_combined_with_the_real_owner_breaks_the_invariant() 
     'exactly one' invariant fail -- proving the guard is non-vacuous
     end-to-end (not just at the unit level of the scanner itself).
     """
-    synthetic_findings = _scan_source_for_full_flatten(
-        _SYNTHETIC_REINLINE_SOURCE, Path("synthetic_reinline.py")
-    )
+    synthetic_findings = _scan_source_for_full_flatten(_SYNTHETIC_REINLINE_SOURCE, Path("synthetic_reinline.py"))
     real_findings = _scan_repo_for_full_flatten()
 
     combined_count = len(real_findings) + len(synthetic_findings)
@@ -270,9 +244,9 @@ def test_scanner_ignores_prose_that_merely_quotes_the_pattern() -> None:
     prose_only_source = (
         "def _prose_only(meta):\n"
         '    """This function historically cleared coordination_branch, popped\n'
-        '    topology, and set flattened = True -- but no longer does any of it.\n'
+        "    topology, and set flattened = True -- but no longer does any of it.\n"
         '    """\n'
-        "    # meta.pop(\"topology\") and meta[\"flattened\"] = True are just words here.\n"
+        '    # meta.pop("topology") and meta["flattened"] = True are just words here.\n'
         "    return meta\n"
     )
     assert _scan_source_for_full_flatten(prose_only_source, Path("prose_only.py")) == []
@@ -285,22 +259,11 @@ def test_partial_mutation_functions_are_not_flagged() -> None:
     trips the guard.
     """
     coordination_branch_only = (
-        "def clear_coordination_metadata(meta):\n"
-        "    if \"coordination_branch\" in meta:\n"
-        "        del meta[\"coordination_branch\"]\n"
-        "    return meta\n"
+        'def clear_coordination_metadata(meta):\n    if "coordination_branch" in meta:\n        del meta["coordination_branch"]\n    return meta\n'
     )
-    assert (
-        _scan_source_for_full_flatten(coordination_branch_only, Path("partial.py")) == []
-    )
+    assert _scan_source_for_full_flatten(coordination_branch_only, Path("partial.py")) == []
 
     topology_and_flattened_only = (
-        "def _topology_backfill_write(meta, topology):\n"
-        "    meta[\"topology\"] = topology\n"
-        "    meta.setdefault(\"flattened\", False)\n"
-        "    return meta\n"
+        'def _topology_backfill_write(meta, topology):\n    meta["topology"] = topology\n    meta.setdefault("flattened", False)\n    return meta\n'
     )
-    assert (
-        _scan_source_for_full_flatten(topology_and_flattened_only, Path("partial2.py"))
-        == []
-    )
+    assert _scan_source_for_full_flatten(topology_and_flattened_only, Path("partial2.py")) == []

@@ -30,9 +30,7 @@ class TestCharterScopeEntryRootValidator:
     def test_relative_safe_path_is_accepted(self) -> None:
         from charter.activation.scope import CharterScopeConfig  # noqa: PLC0415
 
-        config = CharterScopeConfig.model_validate(
-            {"charter_scopes": [{"root": "packages/auth", "name": "auth"}]}
-        )
+        config = CharterScopeConfig.model_validate({"charter_scopes": [{"root": "packages/auth", "name": "auth"}]})
         assert config.charter_scopes[0].root == "packages/auth"
 
     @pytest.mark.parametrize(
@@ -53,9 +51,7 @@ class TestCharterScopeEntryRootValidator:
         from charter.activation.scope import CharterScopeConfig  # noqa: PLC0415
 
         with pytest.raises(ValidationError, match="(?i)absolute|\\.\\."):
-            CharterScopeConfig.model_validate(
-                {"charter_scopes": [{"root": evil_root}]}
-            )
+            CharterScopeConfig.model_validate({"charter_scopes": [{"root": evil_root}]})
 
     def test_empty_root_still_rejected(self) -> None:
         """The original non-empty check must still fire."""
@@ -99,14 +95,10 @@ class TestCharterScopeResolveDefenceInDepth:
 
         # The entry root "escape-link" looks relative and has no ``..``, so
         # the Pydantic validator passes.  After resolve(), it points outside.
-        config = CharterScopeConfig.model_validate(
-            {"charter_scopes": [{"root": "escape-link"}]}
-        )
+        config = CharterScopeConfig.model_validate({"charter_scopes": [{"root": "escape-link"}]})
 
         # Mock _load_charter_scope_config to return this config.
         from unittest.mock import patch  # noqa: PLC0415
 
-        with patch(
-            "charter.activation.scope._load_charter_scope_config", return_value=config
-        ), pytest.raises(CharterScopeConflict, match="(?i)outside|traversal"):
+        with patch("charter.activation.scope._load_charter_scope_config", return_value=config), pytest.raises(CharterScopeConflict, match="(?i)outside|traversal"):
             CharterScope.resolve(repo_root, feature_dir)

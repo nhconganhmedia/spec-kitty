@@ -53,14 +53,8 @@ def _frontmatter(path: Path) -> dict[str, str]:
     to one question. DocFX parses real YAML, so the gate must too.
     """
     text = path.read_text(encoding="utf-8")
-    assert FRONTMATTER_RE.match(text), (
-        f"{path.relative_to(REPO_ROOT)} must start with YAML front matter"
-    )
-    return {
-        key: value
-        for key, value in parse_frontmatter(text).items()
-        if isinstance(key, str) and isinstance(value, str)
-    }
+    assert FRONTMATTER_RE.match(text), f"{path.relative_to(REPO_ROOT)} must start with YAML front matter"
+    return {key: value for key, value in parse_frontmatter(text).items() if isinstance(key, str) and isinstance(value, str)}
 
 
 @pytest.mark.parametrize("path", _published_markdown_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
@@ -70,8 +64,7 @@ def test_published_pages_have_title_and_description(path: Path) -> None:
     description = metadata.get("description")
     assert description, f"{path.relative_to(REPO_ROOT)} missing description"
     assert MIN_DESCRIPTION_LENGTH <= len(description) <= MAX_DESCRIPTION_LENGTH, (
-        f"{path.relative_to(REPO_ROOT)} description length is off: {len(description)} "
-        f"(band {MIN_DESCRIPTION_LENGTH}-{MAX_DESCRIPTION_LENGTH})"
+        f"{path.relative_to(REPO_ROOT)} description length is off: {len(description)} (band {MIN_DESCRIPTION_LENGTH}-{MAX_DESCRIPTION_LENGTH})"
     )
 
 
@@ -101,7 +94,7 @@ def test_seo_postprocess_injects_static_metadata(tmp_path: Path) -> None:
     spec_dir = site / "kitty-specs" / "065-x"
     spec_dir.mkdir(parents=True)
     (spec_dir / "spec.html").write_text(
-        '<html><head><title>Feature 065 | Spec Kitty Documentation</title>'
+        "<html><head><title>Feature 065 | Spec Kitty Documentation</title>"
         '<meta name="description" content="Mission 065 spec."></head>'
         "<body><h1>Spec</h1></body></html>",
         encoding="utf-8",
@@ -115,7 +108,7 @@ def test_seo_postprocess_injects_static_metadata(tmp_path: Path) -> None:
     assert '<link rel="canonical" href="https://docs.spec-kitty.ai/">' in rendered
     assert 'property="og:title"' in rendered
     assert 'name="twitter:card"' in rendered
-    assert 'application/ld+json' in rendered
+    assert "application/ld+json" in rendered
 
     toc_rendered = (nested / "toc.html").read_text(encoding="utf-8")
     assert 'name="robots" content="noindex, follow"' in toc_rendered
@@ -132,9 +125,7 @@ def test_seo_postprocess_injects_static_metadata(tmp_path: Path) -> None:
     assert "Sitemap: https://docs.spec-kitty.ai/sitemap.xml" in robots
 
 
-def test_sitemap_lastmod_uses_utc_date_not_local(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sitemap_lastmod_uses_utc_date_not_local(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-011 (kernel-clock-single-door, WP14): ``write_sitemap``'s
     ``lastmod`` date is the door's aware-UTC ``now_utc().date()``, not a
     naive local ``date.today()``.

@@ -28,9 +28,7 @@ def _bare_call_violations(root: Path) -> tuple[int, dict[str, list[int]]]:
         lines = [
             node.lineno
             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "protected_branches"
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "protected_branches"
         ]
         if lines:
             violations[relative] = lines

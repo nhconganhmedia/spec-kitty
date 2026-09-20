@@ -51,10 +51,7 @@ def _scope_graph() -> DRGGraph:
         DRGNode(urn="procedure:p1", kind=NodeKind.PROCEDURE),
         DRGNode(urn="asset:a1", kind=NodeKind.ASSET),
     ]
-    edges = [
-        DRGEdge(source=_ACTION_URN, target=n.urn, relation=Relation.SCOPE)
-        for n in nodes[1:]
-    ]
+    edges = [DRGEdge(source=_ACTION_URN, target=n.urn, relation=Relation.SCOPE) for n in nodes[1:]]
     return DRGGraph(
         schema_version="1.0",
         generated_at="2026-07-29T00:00:00+00:00",
@@ -195,10 +192,7 @@ def test_delivered_equals_gate_intersect_reachable_through_real_pipeline() -> No
     # ACTIVATED kind, NOT activated → gated to empty.
     assert delivered.get("tactics", ()) == ()
     # ALL kind, ungated → delivered by reachability alone.
-    assert delivered.get("assets") == ("a1",), (
-        "asset must survive the gate (gate=ALL); an activated∩reachable reading "
-        "would ship asset_ids=[] forever"
-    )
+    assert delivered.get("assets") == ("a1",), "asset must survive the gate (gate=ALL); an activated∩reachable reading would ship asset_ids=[] forever"
 
 
 # ---------------------------------------------------------------------------
@@ -215,9 +209,7 @@ def test_governance_resolution_carries_asset_field() -> None:
     assert "assets" in field_names, "GovernanceResolution must carry assets, parallel to procedures"
     assert "procedures" in field_names
 
-    resolution = GovernanceResolution(
-        paradigms=[], directives=[], tools=[], template_set="x", metadata={}
-    )
+    resolution = GovernanceResolution(paradigms=[], directives=[], tools=[], template_set="x", metadata={})
     assert resolution.assets == []
 
 
@@ -252,25 +244,13 @@ def test_every_none_slot_kind_has_a_machine_checkable_stated_reason() -> None:
         _DELIVERY_REASON_BY_KIND,
     )
 
-    none_slot_kinds = {
-        kind
-        for kind, row in _ACTION_BUNDLE_DELIVERY_BY_KIND.items()
-        if row.slot is None
-    }
-    unexplained = sorted(
-        kind.value
-        for kind in none_slot_kinds
-        if not _DELIVERY_REASON_BY_KIND.get(kind, "").strip()
-    )
+    none_slot_kinds = {kind for kind, row in _ACTION_BUNDLE_DELIVERY_BY_KIND.items() if row.slot is None}
+    unexplained = sorted(kind.value for kind in none_slot_kinds if not _DELIVERY_REASON_BY_KIND.get(kind, "").strip())
     assert not unexplained, f"None-slot kinds lacking a stated reason: {unexplained}"
 
     # Non-vacuity: the reason map carries an entry ONLY for excluded kinds; a
     # stale reason for a kind that actually delivers to a slot is a defect.
-    stale = sorted(
-        kind.value
-        for kind in _DELIVERY_REASON_BY_KIND
-        if _ACTION_BUNDLE_DELIVERY_BY_KIND[kind].slot is not None
-    )
+    stale = sorted(kind.value for kind in _DELIVERY_REASON_BY_KIND if _ACTION_BUNDLE_DELIVERY_BY_KIND[kind].slot is not None)
     assert not stale, f"reason recorded for delivered (non-None) kinds: {stale}"
 
     # And the map covers exactly the None-slot kinds — no missing, no extra.
@@ -301,10 +281,7 @@ def _scope_graph_with_glossary() -> DRGGraph:
         DRGNode(urn="directive:d1", kind=NodeKind.DIRECTIVE),
         DRGNode(urn="glossary_pack:g1", kind=NodeKind.GLOSSARY_PACK),
     ]
-    edges = [
-        DRGEdge(source=_ACTION_URN, target=n.urn, relation=Relation.SCOPE)
-        for n in nodes[1:]
-    ]
+    edges = [DRGEdge(source=_ACTION_URN, target=n.urn, relation=Relation.SCOPE) for n in nodes[1:]]
     return DRGGraph(
         schema_version="1.0",
         generated_at="2026-07-29T00:00:00+00:00",

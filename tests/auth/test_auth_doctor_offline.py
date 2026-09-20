@@ -29,6 +29,7 @@ from specify_cli.cli.commands._auth_doctor import doctor_impl
 
 pytestmark = [pytest.mark.integration]
 
+
 def _make_session() -> StoredSession:
     now = now_utc()
     return StoredSession(
@@ -74,9 +75,7 @@ class _FakeTokenManager:
         return self._session
 
 
-def _patch_doctor_state(
-    monkeypatch: pytest.MonkeyPatch, *, lock_path: Path
-) -> None:
+def _patch_doctor_state(monkeypatch: pytest.MonkeyPatch, *, lock_path: Path) -> None:
     """Wire ``_auth_doctor``'s upstream calls to deterministic fakes."""
     session = _make_session()
     monkeypatch.setattr(
@@ -92,9 +91,7 @@ def _patch_doctor_state(
 # ---------------------------------------------------------------------------
 
 
-def test_no_outbound_http(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_no_outbound_http(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Default ``auth doctor`` makes ZERO non-127.0.0.1 outbound calls.
 
     Patches ``httpx.AsyncClient`` and ``urllib.request.urlopen`` to fail
@@ -108,9 +105,7 @@ def test_no_outbound_http(
         # Allow only 127.0.0.1 / localhost URLs.
         target = url if isinstance(url, str) else getattr(url, "full_url", "")
         if "127.0.0.1" not in target and "localhost" not in target:
-            raise AssertionError(
-                f"urllib.request.urlopen called against non-local URL: {target!r}"
-            )
+            raise AssertionError(f"urllib.request.urlopen called against non-local URL: {target!r}")
         # We don't expect any local calls to fire either in this fixture;
         # keep the local branch a no-op so this test stays robust to future
         # edits.
@@ -118,10 +113,7 @@ def test_no_outbound_http(
 
     class _FailingHTTPXClient:
         def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
-            raise AssertionError(
-                "httpx.AsyncClient instantiated during default auth doctor "
-                "invocation — C-007 violation"
-            )
+            raise AssertionError("httpx.AsyncClient instantiated during default auth doctor invocation — C-007 violation")
 
     # urllib patch — fails on any non-127.0.0.1 call.
     monkeypatch.setattr(urllib.request, "urlopen", _fail_urlopen)
@@ -148,9 +140,7 @@ def test_no_outbound_http(
 # ---------------------------------------------------------------------------
 
 
-def test_no_state_mutation_default(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_no_state_mutation_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """After a default invocation: no files removed, no processes terminated.
 
     Patches ``Path.unlink`` and the WP01 mutating primitive
@@ -161,15 +151,10 @@ def test_no_state_mutation_default(
     _patch_doctor_state(monkeypatch, lock_path=lock_path)
 
     def _fail_unlink(self: Path, *args, **kwargs):  # type: ignore[no-untyped-def]
-        raise AssertionError(
-            f"Path.unlink({self!r}) called on default doctor path — "
-            "FR-015 violation"
-        )
+        raise AssertionError(f"Path.unlink({self!r}) called on default doctor path — FR-015 violation")
 
     def _fail_force_release(*args, **kwargs):  # type: ignore[no-untyped-def]
-        raise AssertionError(
-            "force_release called on default doctor path — FR-015 violation"
-        )
+        raise AssertionError("force_release called on default doctor path — FR-015 violation")
 
     # psutil terminate/kill on the default path would be FR-015 violations.
     import psutil
@@ -179,16 +164,10 @@ def test_no_state_mutation_default(
             self._pid = pid
 
         def terminate(self) -> None:
-            raise AssertionError(
-                "psutil.Process.terminate called on default doctor path — "
-                "FR-015 violation"
-            )
+            raise AssertionError("psutil.Process.terminate called on default doctor path — FR-015 violation")
 
         def kill(self) -> None:
-            raise AssertionError(
-                "psutil.Process.kill called on default doctor path — "
-                "FR-015 violation"
-            )
+            raise AssertionError("psutil.Process.kill called on default doctor path — FR-015 violation")
 
     monkeypatch.setattr(_auth_doctor, "force_release", _fail_force_release)
     monkeypatch.setattr(psutil, "Process", _FailingProcess)

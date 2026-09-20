@@ -89,9 +89,7 @@ def test_scan_marks_registration_unknown_when_git_inventory_fails(
     report = doctor_husks.scan_workspace_husks(tmp_path)
 
     assert report.healthy is False
-    assert report.registration_error == (
-        "git worktree list --porcelain failed: fatal: broken worktree metadata"
-    )
+    assert report.registration_error == ("git worktree list --porcelain failed: fatal: broken worktree metadata")
     assert {entry.path: entry.registered for entry in report.husks} == {
         ".worktrees/husk": None,
     }

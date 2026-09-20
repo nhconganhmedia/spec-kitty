@@ -101,7 +101,10 @@ def _build_rebase_scenario(
 
     anchor_sha = subprocess.run(
         ["git", "rev-parse", "main"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
 
     # Planning branch: add kitty-specs/spec.md with planning_content
@@ -125,12 +128,12 @@ def _build_rebase_scenario(
     # Verify invariant: merge-base(lane HEAD, planning) == anchor, not planning tip
     mb = subprocess.run(
         ["git", "merge-base", "HEAD", "planning"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
-    assert mb == anchor_sha, (
-        f"Scenario invariant violated: expected merge-base == anchor ({anchor_sha!r}), "
-        f"got {mb!r}"
-    )
+    assert mb == anchor_sha, f"Scenario invariant violated: expected merge-base == anchor ({anchor_sha!r}), got {mb!r}"
 
     return repo, "planning"
 
@@ -166,10 +169,7 @@ class TestByteIdenticalNotFlagged:
 
         flagged = _list_wp_branch_mission_specs_changes(repo, planning)
 
-        assert flagged == [], (
-            f"False positive: byte-identical kitty-specs/ file was flagged after rebase. "
-            f"Flagged paths: {flagged!r}"
-        )
+        assert flagged == [], f"False positive: byte-identical kitty-specs/ file was flagged after rebase. Flagged paths: {flagged!r}"
 
     def test_t025_no_force_count_inflation_for_identical_file(self, tmp_path: Path) -> None:
         """T025: byte-identical file returns empty list (no force_count pressure).
@@ -177,15 +177,11 @@ class TestByteIdenticalNotFlagged:
         Confirms the content re-check produces an empty result, meaning no
         ``--force`` requirement is triggered for the false-positive case.
         """
-        repo, planning = _build_rebase_scenario(
-            tmp_path, lane_content="# Mission spec\n\nContent here.\n"
-        )
+        repo, planning = _build_rebase_scenario(tmp_path, lane_content="# Mission spec\n\nContent here.\n")
 
         flagged = _list_wp_branch_mission_specs_changes(repo, planning)
 
-        assert len(flagged) == 0, (
-            f"Expected empty list (no force_count inflation), got {flagged!r}"
-        )
+        assert len(flagged) == 0, f"Expected empty list (no force_count inflation), got {flagged!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -215,13 +211,8 @@ class TestGenuinelyDivergentStillFlagged:
 
         flagged = _list_wp_branch_mission_specs_changes(repo, planning)
 
-        assert len(flagged) > 0, (
-            "Guard neutered: genuinely-divergent kitty-specs/ file was NOT flagged. "
-            "The guard must retain its signal for real divergence."
-        )
-        assert any("spec.md" in p for p in flagged), (
-            f"Expected 'spec.md' among flagged paths, got {flagged!r}"
-        )
+        assert len(flagged) > 0, "Guard neutered: genuinely-divergent kitty-specs/ file was NOT flagged. The guard must retain its signal for real divergence."
+        assert any("spec.md" in p for p in flagged), f"Expected 'spec.md' among flagged paths, got {flagged!r}"
 
     def test_t026_mixed_files_only_divergent_flagged(self, tmp_path: Path) -> None:
         """T026 (extended): when one file is identical and one diverges, only the
@@ -236,7 +227,10 @@ class TestGenuinelyDivergentStillFlagged:
 
         anchor_sha = subprocess.run(
             ["git", "rev-parse", "main"],
-            cwd=repo, capture_output=True, text=True, check=True,
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
 
         # Planning branch: add two kitty-specs files
@@ -261,19 +255,18 @@ class TestGenuinelyDivergentStillFlagged:
         # Verify merge-base is the anchor
         mb = subprocess.run(
             ["git", "merge-base", "HEAD", "planning"],
-            cwd=repo, capture_output=True, text=True, check=True,
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
         assert mb == anchor_sha
 
         flagged = _list_wp_branch_mission_specs_changes(repo, "planning")
 
         flagged_names = [Path(p).name for p in flagged]
-        assert "plan.md" in flagged_names, (
-            f"Diverged file 'plan.md' should be flagged, got {flagged!r}"
-        )
-        assert "spec.md" not in flagged_names, (
-            f"Identical file 'spec.md' should NOT be flagged, got {flagged!r}"
-        )
+        assert "plan.md" in flagged_names, f"Diverged file 'plan.md' should be flagged, got {flagged!r}"
+        assert "spec.md" not in flagged_names, f"Identical file 'spec.md' should NOT be flagged, got {flagged!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -324,7 +317,10 @@ def _build_coord_inheritance_scenario(tmp_path: Path) -> tuple[Path, str, str]:
     _git(repo, "commit", "-q", "-m", "target: record this-mission planning commit")
     planning_sha = subprocess.run(
         ["git", "rev-parse", "target"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
 
     # Lane: forked from coord, then merges the recorded planning commit (#2993).
@@ -346,10 +342,7 @@ class TestCoordInheritanceNotFlagged:
 
         flagged = _list_wp_branch_mission_specs_changes(repo, coord)
 
-        assert flagged, (
-            "Scenario invariant: diffing against the coordination base ref must "
-            "surface the inherited/merged kitty-specs (the #3271 false positive)."
-        )
+        assert flagged, "Scenario invariant: diffing against the coordination base ref must surface the inherited/merged kitty-specs (the #3271 false positive)."
 
     def test_t028_planning_base_is_clean(self, tmp_path: Path) -> None:
         """The fix: basing the delta on the planning/target branch yields an empty
@@ -358,10 +351,7 @@ class TestCoordInheritanceNotFlagged:
 
         flagged = _list_wp_branch_mission_specs_changes(repo, target)
 
-        assert flagged == [], (
-            f"False positive: lane kitty-specs byte-identical to the planning "
-            f"branch were flagged. Flagged paths: {flagged!r}"
-        )
+        assert flagged == [], f"False positive: lane kitty-specs byte-identical to the planning branch were flagged. Flagged paths: {flagged!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -392,17 +382,13 @@ class TestOccurrenceMapException:
 
         # Lane writes ONLY its own occurrence map (DIRECTIVE_035 sweep upkeep).
         _git(repo, "checkout", "-q", "-b", "lane")
-        (repo / "kitty-specs" / "mission-x" / "occurrence_map.yaml").write_text(
-            "target: {}\n", encoding="utf-8"
-        )
+        (repo / "kitty-specs" / "mission-x" / "occurrence_map.yaml").write_text("target: {}\n", encoding="utf-8")
         _git(repo, "add", ".")
         _git(repo, "commit", "-q", "-m", "lane: keep occurrence map current")
 
         flagged = _list_wp_branch_mission_specs_changes(repo, "planning")
 
-        assert flagged == [], (
-            f"Occurrence map wrongly flagged as lane contamination: {flagged!r}"
-        )
+        assert flagged == [], f"Occurrence map wrongly flagged as lane contamination: {flagged!r}"
 
     def test_sibling_planning_artifact_still_flagged(self, tmp_path: Path) -> None:
         repo = _init_repo(tmp_path)
@@ -419,23 +405,15 @@ class TestOccurrenceMapException:
 
         # Lane writes its occurrence map AND edits spec.md (a real violation).
         _git(repo, "checkout", "-q", "-b", "lane")
-        (repo / "kitty-specs" / "mission-x" / "occurrence_map.yaml").write_text(
-            "target: {}\n", encoding="utf-8"
-        )
-        (repo / "kitty-specs" / "mission-x" / "spec.md").write_text(
-            "spec EDITED on lane\n", encoding="utf-8"
-        )
+        (repo / "kitty-specs" / "mission-x" / "occurrence_map.yaml").write_text("target: {}\n", encoding="utf-8")
+        (repo / "kitty-specs" / "mission-x" / "spec.md").write_text("spec EDITED on lane\n", encoding="utf-8")
         _git(repo, "add", ".")
         _git(repo, "commit", "-q", "-m", "lane: map + spec edit")
 
         flagged = _list_wp_branch_mission_specs_changes(repo, "planning")
 
-        assert any("spec.md" in p for p in flagged), (
-            f"Genuine spec.md edit on the lane must still be flagged, got {flagged!r}"
-        )
-        assert not any("occurrence_map.yaml" in p for p in flagged), (
-            f"Occurrence map must be excepted even alongside a real violation, got {flagged!r}"
-        )
+        assert any("spec.md" in p for p in flagged), f"Genuine spec.md edit on the lane must still be flagged, got {flagged!r}"
+        assert not any("occurrence_map.yaml" in p for p in flagged), f"Occurrence map must be excepted even alongside a real violation, got {flagged!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -493,9 +471,7 @@ def _build_coord_status_state_scenario(tmp_path: Path) -> tuple[Path, str, str]:
     coord_ks = repo / "kitty-specs" / "test-mission"
     coord_ks.mkdir(parents=True)
     (coord_ks / "status.events.jsonl").write_text(
-        '{"wp_id": "WP01", "to_lane": "planned"}\n'
-        '{"wp_id": "WP01", "to_lane": "claimed"}\n'
-        '{"wp_id": "WP01", "to_lane": "in_progress"}\n',
+        '{"wp_id": "WP01", "to_lane": "planned"}\n{"wp_id": "WP01", "to_lane": "claimed"}\n{"wp_id": "WP01", "to_lane": "in_progress"}\n',
         encoding="utf-8",
     )
     (coord_ks / "acceptance-matrix.json").write_text('{"WP01": []}\n', encoding="utf-8")
@@ -514,7 +490,10 @@ def _build_coord_status_state_scenario(tmp_path: Path) -> tuple[Path, str, str]:
     _git(repo, "commit", "-q", "-m", "planning: record this-mission spec + tasks")
     planning_sha = subprocess.run(
         ["git", "rev-parse", "planning"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
 
     # Lane: parented on coord (#1348 WP04), then FR-009-merges the recorded
@@ -532,9 +511,7 @@ class TestCoordPartitionInheritanceNotFlagged:
     can never be byte-identical to the planning tip (the file simply does not
     exist there)."""
 
-    def test_status_events_and_acceptance_matrix_are_not_flagged(
-        self, tmp_path: Path
-    ) -> None:
+    def test_status_events_and_acceptance_matrix_are_not_flagged(self, tmp_path: Path) -> None:
         """RED pre-fix / GREEN post-fix: the coord-inherited STATUS_STATE +
         ACCEPTANCE_MATRIX files must not be reported as lane contamination.
 
@@ -552,14 +529,8 @@ class TestCoordPartitionInheritanceNotFlagged:
 
         flagged = _list_wp_branch_mission_specs_changes(repo, planning)
 
-        assert not any("status.events.jsonl" in p for p in flagged), (
-            f"Coord-owned status.events.jsonl wrongly flagged as lane "
-            f"contamination: {flagged!r}"
-        )
-        assert not any("acceptance-matrix.json" in p for p in flagged), (
-            f"Coord-owned acceptance-matrix.json wrongly flagged as lane "
-            f"contamination: {flagged!r}"
-        )
+        assert not any("status.events.jsonl" in p for p in flagged), f"Coord-owned status.events.jsonl wrongly flagged as lane contamination: {flagged!r}"
+        assert not any("acceptance-matrix.json" in p for p in flagged), f"Coord-owned acceptance-matrix.json wrongly flagged as lane contamination: {flagged!r}"
         assert flagged == [], f"Expected no lane contamination, got {flagged!r}"
 
     def test_genuine_primary_artifact_edit_still_flagged(self, tmp_path: Path) -> None:
@@ -571,22 +542,16 @@ class TestCoordPartitionInheritanceNotFlagged:
 
         # A genuine lane-authored edit to a PRIMARY artifact, on top of the
         # same coord-parented + FR-009-merged topology.
-        (repo / "kitty-specs" / "test-mission" / "spec.md").write_text(
-            "# Spec EDITED on lane\n", encoding="utf-8"
-        )
+        (repo / "kitty-specs" / "test-mission" / "spec.md").write_text("# Spec EDITED on lane\n", encoding="utf-8")
         _git(repo, "add", ".")
         _git(repo, "commit", "-q", "-m", "lane: edit spec.md (real violation)")
 
         flagged = _list_wp_branch_mission_specs_changes(repo, planning)
 
-        assert any("spec.md" in p for p in flagged), (
-            f"Genuine spec.md edit on the lane must still be flagged, got {flagged!r}"
-        )
+        assert any("spec.md" in p for p in flagged), f"Genuine spec.md edit on the lane must still be flagged, got {flagged!r}"
         assert not any("status.events.jsonl" in p for p in flagged), (
-            f"Coord-owned status.events.jsonl must stay excepted even "
-            f"alongside a real violation, got {flagged!r}"
+            f"Coord-owned status.events.jsonl must stay excepted even alongside a real violation, got {flagged!r}"
         )
         assert not any("acceptance-matrix.json" in p for p in flagged), (
-            f"Coord-owned acceptance-matrix.json must stay excepted even "
-            f"alongside a real violation, got {flagged!r}"
+            f"Coord-owned acceptance-matrix.json must stay excepted even alongside a real violation, got {flagged!r}"
         )

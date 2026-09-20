@@ -14,6 +14,7 @@ input-assertion (supplied-vs-signal mismatch fails closed). The ``mission_id`` i
 a production-shaped 26-char ULID (NFR-002 / realistic-test-data) — never a short
 stand-in.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -67,11 +68,7 @@ def _branch_ref(coordination_branch: str | None) -> BranchRefFragment:
 
 
 def _resolve(topology: MissionTopology, **kwargs: object) -> MissionExecutionContext:
-    coordination_branch = (
-        _COORD_BRANCH
-        if topology in (MissionTopology.COORD, MissionTopology.LANES_WITH_COORD)
-        else None
-    )
+    coordination_branch = _COORD_BRANCH if topology in (MissionTopology.COORD, MissionTopology.LANES_WITH_COORD) else None
     return resolve_context_for_mission(
         _MISSION_ID,
         topology,
@@ -104,14 +101,9 @@ def test_projects_context_for_every_topology(topology: MissionTopology) -> None:
     assert context.artifact_placement is not None
     # DoD-(a): the absolute per-topology routing pin (FR-001b) — the over-collapse
     # mutant-killer that a leg-vs-leg differential cannot catch.
-    assert (
-        routes_through_coordination(topology) is _EXPECTED_ROUTES_COORD[topology]
-    )
+    assert routes_through_coordination(topology) is _EXPECTED_ROUTES_COORD[topology]
     # One CommitTarget shared by branch_ref + artifact_placement (C-PLACE-1).
-    assert (
-        context.artifact_placement.placement_ref
-        is context.branch_ref.destination_ref
-    )
+    assert context.artifact_placement.placement_ref is context.branch_ref.destination_ref
 
 
 @pytest.mark.parametrize("topology", _COORD_CELLS)

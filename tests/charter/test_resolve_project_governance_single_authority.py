@@ -137,9 +137,7 @@ def _patch_catalog(monkeypatch: pytest.MonkeyPatch) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_journey_six_apply_five_activated_directives_sources_from_activation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_journey_six_apply_five_activated_directives_sources_from_activation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """After apply-5 + compile, ``resolve_project_governance`` resolves exactly
     the 5 activated directives, with ``directives_source`` naming the
     activation source — NOT the retired catalog-fallback."""
@@ -163,9 +161,7 @@ def test_journey_six_apply_five_activated_directives_sources_from_activation(
 # ---------------------------------------------------------------------------
 
 
-def test_bare_project_with_no_activation_key_keeps_catalog_default(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_bare_project_with_no_activation_key_keeps_catalog_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A project with no ``.kittify/config.yaml`` at all (``activated_directives``
     is ``None``, three-state) must still see the built-in catalog default —
     NOT an empty list. A naive ``sorted(activated or frozenset())`` /
@@ -183,9 +179,7 @@ def test_bare_project_with_no_activation_key_keeps_catalog_default(
     # "bare" with respect to directive activation.
     kittify_dir = tmp_path / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
     result = resolve_project_governance(tmp_path)
 
@@ -204,9 +198,7 @@ def test_bare_project_with_no_activation_key_keeps_catalog_default(
 # ---------------------------------------------------------------------------
 
 
-def test_activated_directives_explicit_empty_list_opts_out_not_catalog_default(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_activated_directives_explicit_empty_list_opts_out_not_catalog_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``activated_directives: []`` (key present, explicitly empty) is a
     deliberate opt-out: resolved directives must be ``[]``, sourced from
     the activation state — NEVER the catalog default."""

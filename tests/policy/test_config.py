@@ -13,6 +13,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestDefaults:
     def test_all_defaults(self):
         config = PolicyConfig()
@@ -71,11 +72,7 @@ class TestLoadFromYaml:
 
     def test_partial_policy_section(self, tmp_path):
         (tmp_path / ".kittify").mkdir()
-        (tmp_path / ".kittify" / "config.yaml").write_text(
-            "policy:\n"
-            "  risk:\n"
-            "    mode: block\n"
-        )
+        (tmp_path / ".kittify" / "config.yaml").write_text("policy:\n  risk:\n    mode: block\n")
         config = load_policy_config(tmp_path)
         assert config.risk.mode == "block"
         # Unspecified sections get defaults

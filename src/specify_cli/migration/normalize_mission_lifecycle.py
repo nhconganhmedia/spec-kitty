@@ -60,10 +60,7 @@ def _needs_derived_refresh(feature_dir: Path, derived_dir: Path) -> bool:
         return False
 
     events_mtime = events_path.stat().st_mtime
-    return any(
-        events_mtime > path.stat().st_mtime
-        for path in (status_path, progress_path, lifecycle_path)
-    )
+    return any(events_mtime > path.stat().st_mtime for path in (status_path, progress_path, lifecycle_path))
 
 
 def _load_meta_for_normalization(
@@ -71,6 +68,7 @@ def _load_meta_for_normalization(
     result: NormalizeMissionLifecycleResult,
 ) -> dict[str, Any] | None:
     from specify_cli.core.paths import load_meta_fail_closed, MissionMetaReadError
+
     try:
         meta = load_meta_fail_closed(feature_dir)
     except (OSError, MissionMetaReadError) as exc:
@@ -107,6 +105,7 @@ def _apply_identity_normalization(
 
     if not dry_run and (backfill.action == "wrote" or backfill.number_coerced):
         from specify_cli.core.paths import load_meta_fail_closed
+
         meta = load_meta_fail_closed(feature_dir) or meta
 
     return meta, refresh_derived
@@ -125,9 +124,7 @@ def _normalize_event_log(
     mission_id = meta.get("mission_id")
     if mission_id and (feature_dir / "tasks").is_dir():
         if dry_run:
-            result.actions.append(
-                "Would backfill missing WP identity fields before rebuilding the event log"
-            )
+            result.actions.append("Would backfill missing WP identity fields before rebuilding the event log")
         else:
             backfill_wp_ids(feature_dir, str(mission_id))
             result.actions.append("Backfilled missing WP identity fields")
@@ -148,10 +145,7 @@ def _normalize_event_log(
         result.warnings.extend(rebuild.warnings)
         return None
 
-    result.actions.append(
-        "Rebuilt status.events.jsonl "
-        f"({rebuild.events_generated} synthetic events, {rebuild.events_corrected} corrected)"
-    )
+    result.actions.append(f"Rebuilt status.events.jsonl ({rebuild.events_generated} synthetic events, {rebuild.events_corrected} corrected)")
     result.warnings.extend(rebuild.warnings)
     return True
 
@@ -231,11 +225,7 @@ def normalize_repo(
             results.append(result)
             continue
 
-        refresh_derived = (
-            refresh_derived
-            or event_refresh
-            or _needs_derived_refresh(feature_dir, derived_dir)
-        )
+        refresh_derived = refresh_derived or event_refresh or _needs_derived_refresh(feature_dir, derived_dir)
         _finalize_lifecycle_projection(
             feature_dir,
             derived_dir,

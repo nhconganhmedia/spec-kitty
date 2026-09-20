@@ -1,4 +1,5 @@
 """Tests for ``spec-kitty intake`` — including the ``--auto`` flag (T006-T009)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -80,9 +81,7 @@ def test_auto_single_match_writes_brief(intake_app: typer.Typer, tmp_path: Path)
     assert source_path.exists(), "brief-source.yaml should be created"
 
     source_data = yaml.safe_load(source_path.read_text(encoding="utf-8"))
-    assert source_data.get("source_agent") == "opencode", (
-        f"Expected source_agent='opencode' in brief-source.yaml, got: {source_data}"
-    )
+    assert source_data.get("source_agent") == "opencode", f"Expected source_agent='opencode' in brief-source.yaml, got: {source_data}"
 
 
 # ---------------------------------------------------------------------------
@@ -168,9 +167,7 @@ def test_auto_with_path_arg_exits_1(intake_app: typer.Typer, tmp_path: Path) -> 
     mock_sources = [("opencode", "opencode", ["opencode-plan.md"])]
 
     with patched_intake_command_environment(tmp_path, mock_sources):
-        result = runner.invoke(
-            intake_app, [str(plan), "--auto"], catch_exceptions=False
-        )
+        result = runner.invoke(intake_app, [str(plan), "--auto"], catch_exceptions=False)
 
     assert result.exit_code == 1
     # Must not have created .kittify/
@@ -194,9 +191,7 @@ def test_manual_intake_no_source_agent(intake_app: typer.Typer, tmp_path: Path) 
     source_path = tmp_path / ".kittify" / BRIEF_SOURCE_FILENAME
     assert source_path.exists()
     source_data = yaml.safe_load(source_path.read_text(encoding="utf-8"))
-    assert "source_agent" not in source_data, (
-        f"source_agent should NOT appear in manual intake; got: {source_data}"
-    )
+    assert "source_agent" not in source_data, f"source_agent should NOT appear in manual intake; got: {source_data}"
 
 
 # ---------------------------------------------------------------------------
@@ -227,9 +222,7 @@ def test_show_works_after_auto_changes(intake_app: typer.Typer, tmp_path: Path) 
 # ---------------------------------------------------------------------------
 
 
-def test_auto_tty_valid_selection_ingests_correct_file(
-    intake_app: typer.Typer, tmp_path: Path
-) -> None:
+def test_auto_tty_valid_selection_ingests_correct_file(intake_app: typer.Typer, tmp_path: Path) -> None:
     """TTY --auto: entering a valid number ingests the chosen candidate."""
     _make_plan_file(tmp_path, "plan-a.md", content="# Plan A")
     _make_plan_file(tmp_path, "plan-b.md", content="# Plan B")
@@ -248,15 +241,11 @@ def test_auto_tty_valid_selection_ingests_correct_file(
     brief = (tmp_path / ".kittify" / MISSION_BRIEF_FILENAME).read_text(encoding="utf-8")
     assert "Plan B" in brief
 
-    source_data = yaml.safe_load(
-        (tmp_path / ".kittify" / BRIEF_SOURCE_FILENAME).read_text(encoding="utf-8")
-    )
+    source_data = yaml.safe_load((tmp_path / ".kittify" / BRIEF_SOURCE_FILENAME).read_text(encoding="utf-8"))
     assert source_data.get("source_agent") == "agent-b"
 
 
-def test_auto_tty_non_numeric_input_exits_1(
-    intake_app: typer.Typer, tmp_path: Path
-) -> None:
+def test_auto_tty_non_numeric_input_exits_1(intake_app: typer.Typer, tmp_path: Path) -> None:
     """TTY --auto: non-numeric selection exits 1 with an error message."""
     _make_plan_file(tmp_path, "plan-a.md")
     _make_plan_file(tmp_path, "plan-b.md")
@@ -272,9 +261,7 @@ def test_auto_tty_non_numeric_input_exits_1(
     assert not (tmp_path / ".kittify" / MISSION_BRIEF_FILENAME).exists()
 
 
-def test_auto_tty_out_of_range_number_exits_1(
-    intake_app: typer.Typer, tmp_path: Path
-) -> None:
+def test_auto_tty_out_of_range_number_exits_1(intake_app: typer.Typer, tmp_path: Path) -> None:
     """TTY --auto: a number outside the valid range exits 1."""
     _make_plan_file(tmp_path, "plan-a.md")
     _make_plan_file(tmp_path, "plan-b.md")
@@ -290,9 +277,7 @@ def test_auto_tty_out_of_range_number_exits_1(
     assert not (tmp_path / ".kittify" / MISSION_BRIEF_FILENAME).exists()
 
 
-def test_auto_tty_zero_input_exits_1(
-    intake_app: typer.Typer, tmp_path: Path
-) -> None:
+def test_auto_tty_zero_input_exits_1(intake_app: typer.Typer, tmp_path: Path) -> None:
     """TTY --auto: selection of 0 (below valid range) exits 1."""
     _make_plan_file(tmp_path, "plan-a.md")
     _make_plan_file(tmp_path, "plan-b.md")
@@ -308,9 +293,7 @@ def test_auto_tty_zero_input_exits_1(
     assert not (tmp_path / ".kittify" / MISSION_BRIEF_FILENAME).exists()
 
 
-def test_manual_intake_of_packet_writes_sidecar_overlay(
-    intake_app: typer.Typer, tmp_path: Path
-) -> None:
+def test_manual_intake_of_packet_writes_sidecar_overlay(intake_app: typer.Typer, tmp_path: Path) -> None:
     """A v1 packet overlays provenance fields; hash remains SHA-256 of raw content."""
     packet = (
         "---\n"

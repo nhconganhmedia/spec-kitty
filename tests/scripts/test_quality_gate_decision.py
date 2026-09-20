@@ -41,9 +41,7 @@ _QUARANTINE_JOB = "quarantine-visibility"
 
 
 def _load_script_module() -> ModuleType:
-    spec = importlib.util.spec_from_file_location(
-        "quality_gate_decision", _SCRIPT_PATH
-    )
+    spec = importlib.util.spec_from_file_location("quality_gate_decision", _SCRIPT_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot build an import spec for {_SCRIPT_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -128,17 +126,13 @@ def _run_main(
 # ---------------------------------------------------------------------------
 
 
-def test_all_success_passes(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_all_success_passes(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     exit_code, out, _err = _run_main(_payload(), monkeypatch, capsys)
     assert exit_code == 0
     assert "| Job |" in out
 
 
-def test_legitimately_skipped_filter_false_is_ok(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_legitimately_skipped_filter_false_is_ok(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     # `merge` filter is false, so fast-tests-merge skipping is legitimate.
     payload["needs"]["fast-tests-merge"] = "skipped"
@@ -152,9 +146,7 @@ def test_legitimately_skipped_filter_false_is_ok(
 # ---------------------------------------------------------------------------
 
 
-def test_improperly_skipped_mapped_suite_fails_naming_job(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_improperly_skipped_mapped_suite_fails_naming_job(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     # `sync` filter matched but the job never ran; no full-run, not draft.
     payload["needs"]["fast-tests-sync"] = "skipped"
@@ -182,9 +174,7 @@ def test_full_run_supersede_makes_skip_ok(
 # ---------------------------------------------------------------------------
 
 
-def test_draft_exempt_skip_is_ok(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_draft_exempt_skip_is_ok(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["needs"]["integration-tests-core-misc"] = "skipped"
     payload["pr_is_draft"] = "true"
@@ -192,9 +182,7 @@ def test_draft_exempt_skip_is_ok(
     assert exit_code == 0
 
 
-def test_draft_gated_job_skipped_on_ready_pr_fails(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_draft_gated_job_skipped_on_ready_pr_fails(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["needs"]["integration-tests-core-misc"] = "skipped"
     payload["pr_is_draft"] = "false"
@@ -266,9 +254,7 @@ def test_quarantine_visibility_in_input_is_loud_error(
 # ---------------------------------------------------------------------------
 
 
-def test_summary_table_includes_every_job_with_verdict(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_summary_table_includes_every_job_with_verdict(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["needs"]["fast-tests-sync"] = "skipped"  # one FAIL row
     _exit_code, out, _err = _run_main(payload, monkeypatch, capsys)
@@ -286,9 +272,7 @@ def test_summary_table_includes_every_job_with_verdict(
 # ---------------------------------------------------------------------------
 
 
-def test_release_required_job_must_succeed_when_release_changed(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_release_required_job_must_succeed_when_release_changed(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["changes"]["release"] = "true"
     # skipped is normally OK for an always-run job, but not when release-required.
@@ -298,9 +282,7 @@ def test_release_required_job_must_succeed_when_release_changed(
     assert "build-wheel" in out
 
 
-def test_release_arm_inactive_when_release_unchanged(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_release_arm_inactive_when_release_unchanged(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["changes"]["release"] = "false"
     payload["needs"]["build-wheel"] = "skipped"
@@ -313,22 +295,15 @@ def test_release_arm_inactive_when_release_unchanged(
 # ---------------------------------------------------------------------------
 
 
-def test_needs_accepts_github_native_object_shape(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_needs_accepts_github_native_object_shape(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     # `toJSON(needs)` yields job -> {"result": ..., "outputs": {...}}.
-    payload["needs"] = {
-        job: {"result": result, "outputs": {}}
-        for job, result in payload["needs"].items()
-    }
+    payload["needs"] = {job: {"result": result, "outputs": {}} for job, result in payload["needs"].items()}
     exit_code, _out, _err = _run_main(payload, monkeypatch, capsys)
     assert exit_code == 0
 
 
-def test_unknown_group_reference_is_contract_error(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_unknown_group_reference_is_contract_error(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["job_groups"]["fast-tests-sync"] = ["phantom_group"]
     exit_code, _out, err = _run_main(payload, monkeypatch, capsys)
@@ -336,9 +311,7 @@ def test_unknown_group_reference_is_contract_error(
     assert "phantom_group" in err
 
 
-def test_invalid_result_value_is_contract_error(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_invalid_result_value_is_contract_error(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     payload = _payload()
     payload["needs"]["lint"] = "sucess"  # typo'd result must not pass silently
     exit_code, _out, err = _run_main(payload, monkeypatch, capsys)
@@ -346,9 +319,7 @@ def test_invalid_result_value_is_contract_error(
     assert "lint" in err
 
 
-def test_malformed_json_is_contract_error(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_malformed_json_is_contract_error(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     monkeypatch.setattr(sys, "stdin", io.StringIO("{not json"))
     exit_code = int(QGD.main([]))
     _captured = capsys.readouterr()
@@ -364,7 +335,4 @@ def test_script_hardcodes_no_job_group_table() -> None:
     source = _SCRIPT_PATH.read_text(encoding="utf-8")
     # The only job name the script may know is the C-005 tripwire target.
     for forbidden in ("fast-tests-", "integration-tests-", "e2e-cross-cutting"):
-        assert forbidden not in source, (
-            f"quality_gate_decision.py must consume the job set as data "
-            f"(Decision 8); found hardcoded job name fragment {forbidden!r}"
-        )
+        assert forbidden not in source, f"quality_gate_decision.py must consume the job set as data (Decision 8); found hardcoded job name fragment {forbidden!r}"

@@ -34,6 +34,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _member(user_id: int, display_name: str) -> AudienceMember:
     return {
         "user_id": user_id,

@@ -83,9 +83,7 @@ _EVENT_SLOTS: frozenset[str] = frozenset(_RUNTIME_SLOTS)
 #: Their removal from ``WP_FIELD_ORDER`` is the DEFERRED IC-08 post-cutover
 #: reduction — tolerated here, NOT a dual-home authority (the frontmatter copy
 #: is a mirror, the snapshot is the authority; arm 1 proves it).
-_TOLERATED_MIGRATION_WINDOW_SLOTS: frozenset[str] = frozenset(
-    {"subtasks", "assignee", "agent", "shell_pid", "shell_pid_created_at"}
-)
+_TOLERATED_MIGRATION_WINDOW_SLOTS: frozenset[str] = frozenset({"subtasks", "assignee", "agent", "shell_pid", "shell_pid_created_at"})
 
 
 def _feature_with_divergent_frontmatter(tmp_path: Path) -> tuple[Path, Path]:
@@ -116,13 +114,7 @@ def _feature_with_divergent_frontmatter(tmp_path: Path) -> tuple[Path, Path]:
     )
     wp_file = tasks_dir / "WP01-core.md"
     wp_file.write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Core\n"
-        "agent: frontmatter-agent\n"
-        "assignee: frontmatter-assignee\n"
-        "shell_pid: '11111'\n"
-        "---\n\n# WP01\n",
+        "---\nwork_package_id: WP01\ntitle: Core\nagent: frontmatter-agent\nassignee: frontmatter-assignee\nshell_pid: '11111'\n---\n\n# WP01\n",
         encoding="utf-8",
     )
     return feature_dir, wp_file
@@ -240,16 +232,14 @@ def test_no_field_is_dual_homed_static_and_event() -> None:
 
     unexpected = dual_homed - _TOLERATED_MIGRATION_WINDOW_SLOTS
     assert not unexpected, (
-        "field(s) dual-homed in BOTH the static authored schema (WP_FIELD_ORDER) "
-        f"and the event-sourced slot set — a #2093 split-brain: {sorted(unexpected)}"
+        f"field(s) dual-homed in BOTH the static authored schema (WP_FIELD_ORDER) and the event-sourced slot set — a #2093 split-brain: {sorted(unexpected)}"
     )
 
     # The eviction targets must be gone from the static schema (bites on a
     # regression that re-authors them).
     for evicted in ("tracker_refs", "notes", "review"):
         assert evicted not in static_schema, (
-            f"{evicted!r} is event-sourced (FR-006/SC-004/FR-009) and must NOT be "
-            "re-listed in WP_FIELD_ORDER (dual-home regression)"
+            f"{evicted!r} is event-sourced (FR-006/SC-004/FR-009) and must NOT be re-listed in WP_FIELD_ORDER (dual-home regression)"
         )
 
     # The tolerated set is a genuine subset of the event slots (guards a typo
@@ -389,19 +379,9 @@ def _reads_verdict_field(tree: ast.AST) -> bool:
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and _is_extract_scalar_verdict_call_generic(node):
             return True
-        if (
-            isinstance(node, ast.Attribute)
-            and node.attr == "verdict"
-            and isinstance(node.value, ast.Call)
-        ):
+        if isinstance(node, ast.Attribute) and node.attr == "verdict" and isinstance(node.value, ast.Call):
             func = node.value.func
-            call_name = (
-                func.attr
-                if isinstance(func, ast.Attribute)
-                else func.id
-                if isinstance(func, ast.Name)
-                else None
-            )
+            call_name = func.attr if isinstance(func, ast.Attribute) else func.id if isinstance(func, ast.Name) else None
             if call_name in _REVIEW_CYCLE_LOAD_CALLS:
                 return True
     return False
@@ -494,11 +474,7 @@ def _derive_reader_authority_modules(root: Path) -> set[str]:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except SyntaxError:
             continue
-        if (
-            _reads_dynamic_field_via_extract_scalar(tree)
-            or _reads_dynamic_field_via_attribute_access(tree)
-            or _reads_review_cycle_verdict_via_glob(tree)
-        ):
+        if _reads_dynamic_field_via_extract_scalar(tree) or _reads_dynamic_field_via_attribute_access(tree) or _reads_review_cycle_verdict_via_glob(tree):
             derived.add(path.relative_to(root).as_posix())
     return derived
 
@@ -531,8 +507,7 @@ def test_phase1_gate_is_deleted_from_the_status_facade() -> None:
     predicate; re-adding it (a resurrected dual-write reader gate) turns this
     red."""
     assert not hasattr(_status_facade, "phase1_snapshot_authority_active"), (
-        "the phase-1 dual-write authority gate was resurrected on the status "
-        "facade — the reader path must have ZERO frontmatter-authority gate (SC-002)"
+        "the phase-1 dual-write authority gate was resurrected on the status facade — the reader path must have ZERO frontmatter-authority gate (SC-002)"
     )
     assert "phase1_snapshot_authority_active" not in getattr(_status_facade, "__all__", [])
 
@@ -616,11 +591,7 @@ def test_detector_flags_dashboard_style_frontmatter_attribute_read() -> None:
     assert _reads_dynamic_field_via_attribute_access(ast.parse(poison)) is True
 
     # The ``module.read_wp_frontmatter(...).field`` method-call form is also RED.
-    poison_method = (
-        "import m\n"
-        "def f(front):\n"
-        "    return m.read_wp_frontmatter(front).assignee\n"
-    )
+    poison_method = "import m\ndef f(front):\n    return m.read_wp_frontmatter(front).assignee\n"
     assert _reads_dynamic_field_via_attribute_access(ast.parse(poison_method)) is True
 
     # Mirror control: a snapshot-sourced read is GREEN — the extension keys on the
@@ -640,25 +611,13 @@ def test_detector_flags_review_cycle_glob_verdict_frontmatter_read() -> None:
     ``extract_scalar(..., "verdict")``, or glob + ``.from_file(...).verdict`` /
     ``.latest(...).verdict``) is flagged RED; a module that globs WITHOUT
     reading verdict (cycle numbering), or reads an unrelated field, is GREEN."""
-    poison_extract = (
-        "def f(wp_dir):\n"
-        "    cycles = sorted(wp_dir.glob('review-cycle-*.md'))\n"
-        "    return extract_scalar(cycles[-1].read_text(), 'verdict')\n"
-    )
+    poison_extract = "def f(wp_dir):\n    cycles = sorted(wp_dir.glob('review-cycle-*.md'))\n    return extract_scalar(cycles[-1].read_text(), 'verdict')\n"
     assert _reads_review_cycle_verdict_via_glob(ast.parse(poison_extract)) is True
 
-    poison_from_file = (
-        "def f(wp_dir):\n"
-        "    candidates = wp_dir.glob('review-cycle-*.md')\n"
-        "    return ReviewCycleArtifact.from_file(candidates[-1]).verdict\n"
-    )
+    poison_from_file = "def f(wp_dir):\n    candidates = wp_dir.glob('review-cycle-*.md')\n    return ReviewCycleArtifact.from_file(candidates[-1]).verdict\n"
     assert _reads_review_cycle_verdict_via_glob(ast.parse(poison_from_file)) is True
 
-    poison_latest = (
-        "def f(wp_dir):\n"
-        "    _ = wp_dir.glob('review-cycle-*.md')\n"
-        "    return ReviewCycleArtifact.latest(wp_dir).verdict\n"
-    )
+    poison_latest = "def f(wp_dir):\n    _ = wp_dir.glob('review-cycle-*.md')\n    return ReviewCycleArtifact.latest(wp_dir).verdict\n"
     assert _reads_review_cycle_verdict_via_glob(ast.parse(poison_latest)) is True
 
     # Glob-only control (cycle numbering, existence check): GREEN.
@@ -673,11 +632,7 @@ def test_detector_flags_review_cycle_glob_verdict_frontmatter_read() -> None:
     # squad #1 control: the KEPT content loaders' legitimate attribute access
     # (``.body``/``.cycle_number``, never ``.verdict``) stays GREEN even when
     # co-located with a glob in the same function.
-    kept_content_loader = (
-        "def f(wp_dir):\n"
-        "    _ = wp_dir.glob('review-cycle-*.md')\n"
-        "    return ReviewCycleArtifact.latest(wp_dir).cycle_number\n"
-    )
+    kept_content_loader = "def f(wp_dir):\n    _ = wp_dir.glob('review-cycle-*.md')\n    return ReviewCycleArtifact.latest(wp_dir).cycle_number\n"
     assert _reads_review_cycle_verdict_via_glob(ast.parse(kept_content_loader)) is False
 
 

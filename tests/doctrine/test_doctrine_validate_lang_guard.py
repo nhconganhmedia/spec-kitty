@@ -59,9 +59,7 @@ def _write_tactic(tmp_path: Path, token: str) -> Path:
     # Use a safe filename for tokens like 'ANY' (uppercase)
     safe_name = token.lower().replace(" ", "-")
     artifact = tmp_path / f"test-{safe_name}-guard.tactic.yaml"
-    artifact.write_text(
-        _TACTIC_TEMPLATE.format(token=token), encoding="utf-8"
-    )
+    artifact.write_text(_TACTIC_TEMPLATE.format(token=token), encoding="utf-8")
     return artifact
 
 
@@ -85,19 +83,11 @@ def test_validate_rejects_applies_to_languages_any(tmp_path: Path) -> None:
     result = runner.invoke(app, ["validate", str(artifact)])
 
     assert result.exit_code != 0, (
-        "Expected non-zero exit code but got 0.  "
-        "Pre-fix: validate silently passes [any] as it satisfies list[str].  "
-        f"Full output:\n{result.output}"
+        f"Expected non-zero exit code but got 0.  Pre-fix: validate silently passes [any] as it satisfies list[str].  Full output:\n{result.output}"
     )
-    assert "any" in result.output.lower(), (
-        f"Expected 'any' mention in error output.  Full output:\n{result.output}"
-    )
-    assert (
-        "omit" in result.output.lower()
-        or "always-applicable" in result.output.lower()
-    ), (
-        "Expected actionable remediation hint ('omit' or 'always-applicable') "
-        f"in output.  Full output:\n{result.output}"
+    assert "any" in result.output.lower(), f"Expected 'any' mention in error output.  Full output:\n{result.output}"
+    assert "omit" in result.output.lower() or "always-applicable" in result.output.lower(), (
+        f"Expected actionable remediation hint ('omit' or 'always-applicable') in output.  Full output:\n{result.output}"
     )
 
 
@@ -115,14 +105,9 @@ def test_validate_rejects_applies_to_languages_all(tmp_path: Path) -> None:
 
     result = runner.invoke(app, ["validate", str(artifact)])
 
-    assert result.exit_code != 0, (
-        "Expected non-zero exit code but got 0.  "
-        f"Full output:\n{result.output}"
-    )
+    assert result.exit_code != 0, f"Expected non-zero exit code but got 0.  Full output:\n{result.output}"
     # The message must mention the sentinel token class
-    assert "any" in result.output.lower() or "all" in result.output.lower(), (
-        f"Expected token mention in error output.  Full output:\n{result.output}"
-    )
+    assert "any" in result.output.lower() or "all" in result.output.lower(), f"Expected token mention in error output.  Full output:\n{result.output}"
 
 
 # ---------------------------------------------------------------------------
@@ -136,10 +121,7 @@ def test_validate_rejects_applies_to_languages_any_uppercase(tmp_path: Path) -> 
 
     result = runner.invoke(app, ["validate", str(artifact)])
 
-    assert result.exit_code != 0, (
-        "Expected non-zero exit for 'ANY' (case-insensitive guard).  "
-        f"Full output:\n{result.output}"
-    )
+    assert result.exit_code != 0, f"Expected non-zero exit for 'ANY' (case-insensitive guard).  Full output:\n{result.output}"
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +138,4 @@ def test_validate_accepts_legitimate_language_token(tmp_path: Path) -> None:
 
     result = runner.invoke(app, ["validate", str(artifact)])
 
-    assert result.exit_code == 0, (
-        "Expected exit 0 for a valid language token 'python'.  "
-        f"Full output:\n{result.output}"
-    )
+    assert result.exit_code == 0, f"Expected exit 0 for a valid language token 'python'.  Full output:\n{result.output}"

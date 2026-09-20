@@ -167,9 +167,7 @@ def _resolve_layered_roster(repo_root: Path) -> Mapping[str, object]:
 
     pack_context = PackContext.from_config(repo_root)
     mission_types_dirs = (MissionTemplateRepository.default_missions_root() / "mission_types",)
-    roster: Mapping[str, object] = resolve_layered_mission_types(
-        mission_types_dirs, pack_context
-    )
+    roster: Mapping[str, object] = resolve_layered_mission_types(mission_types_dirs, pack_context)
     return roster
 
 
@@ -178,9 +176,7 @@ def _resolve_layered_roster(repo_root: Path) -> Mapping[str, object]:
 # ---------------------------------------------------------------------------
 
 
-def _classify_present_key(
-    raw_val: object, *, registered: list[str], roster: Mapping[str, object]
-) -> tuple[str | None, MissionTypeStateLabel]:
+def _classify_present_key(raw_val: object, *, registered: list[str], roster: Mapping[str, object]) -> tuple[str | None, MissionTypeStateLabel]:
     """Classify a mission whose ``meta.json`` HAS a ``mission_type`` key.
 
     A present-but-blank/null/non-string value classifies as ``typeless``
@@ -209,9 +205,7 @@ def _classify_absent_key(raw_legacy: object) -> tuple[str | None, MissionTypeSta
     return None, "typeless"
 
 
-def classify_mission_type(
-    feature_dir: Path, *, registered: list[str], roster: Mapping[str, object]
-) -> MissionTypeState:
+def classify_mission_type(feature_dir: Path, *, registered: list[str], roster: Mapping[str, object]) -> MissionTypeState:
     """Classify a single mission directory into one of the six FR-008 states.
 
     Reads ``meta.json`` from *feature_dir* via the shared fail-closed reader,
@@ -241,9 +235,7 @@ def classify_mission_type(
         raw = load_meta_fail_closed(feature_dir) or {}
         if "mission_type" in raw:
             raw_val = raw["mission_type"]
-            resolved_key, state = _classify_present_key(
-                raw_val, registered=registered, roster=roster
-            )
+            resolved_key, state = _classify_present_key(raw_val, registered=registered, roster=roster)
             mission_type_raw = raw_val if isinstance(raw_val, str) else None
         else:
             resolved_key, state = _classify_absent_key(raw.get("mission"))
@@ -349,16 +341,12 @@ def summarize_mission_types(states: list[MissionTypeState]) -> dict[str, object]
 # ---------------------------------------------------------------------------
 
 
-def _scope_to_mission(
-    all_states: list[MissionTypeState], mission: str
-) -> list[MissionTypeState]:
+def _scope_to_mission(all_states: list[MissionTypeState], mission: str) -> list[MissionTypeState]:
     """Filter states to a single mission slug."""
     return [s for s in all_states if s.slug == mission]
 
 
-def _compute_fail_on(
-    fail_on: str | None, all_states: list[MissionTypeState]
-) -> tuple[set[str], bool]:
+def _compute_fail_on(fail_on: str | None, all_states: list[MissionTypeState]) -> tuple[set[str], bool]:
     """Parse ``--fail-on`` states and determine whether the gate is triggered.
 
     Rejects any token that is not one of the six FR-008 state names via
@@ -371,10 +359,7 @@ def _compute_fail_on(
     fail_on_states = {s.strip() for s in fail_on.split(",") if s.strip()}
     unknown = sorted(fail_on_states - set(_ALL_STATES))
     if unknown:
-        raise typer.BadParameter(
-            f"unknown --fail-on state(s): {', '.join(unknown)}; "
-            f"valid states are: {', '.join(_ALL_STATES)}"
-        )
+        raise typer.BadParameter(f"unknown --fail-on state(s): {', '.join(unknown)}; valid states are: {', '.join(_ALL_STATES)}")
     fail_on_triggered = any(s.state in fail_on_states for s in all_states)
     return fail_on_states, fail_on_triggered
 
@@ -392,9 +377,7 @@ def _build_mission_type_json(
     }
 
 
-def _print_mission_type_summary_table(
-    all_states: list[MissionTypeState], summary: dict[str, object]
-) -> None:
+def _print_mission_type_summary_table(all_states: list[MissionTypeState], summary: dict[str, object]) -> None:
     """Print the per-state count table (extracted to keep callers <=15 CC)."""
     counts_dict: dict[str, int] = summary["counts"]  # type: ignore[assignment]
     total = len(all_states)
@@ -430,15 +413,10 @@ def _print_mission_type_human(
     _print_mission_type_summary_table(all_states, summary)
 
     if fail_on_triggered:
-        console.print(
-            f"[bold red]FAIL:[/bold red] --fail-on {fail_on!r} triggered "
-            f"(one or more missions in: {', '.join(sorted(fail_on_states))})"
-        )
+        console.print(f"[bold red]FAIL:[/bold red] --fail-on {fail_on!r} triggered (one or more missions in: {', '.join(sorted(fail_on_states))})")
 
 
-def run_mission_type_audit(
-    repo_root: Path, json_output: bool, mission: str | None, fail_on: str | None
-) -> None:
+def run_mission_type_audit(repo_root: Path, json_output: bool, mission: str | None, fail_on: str | None) -> None:
     """Entry point for ``doctor mission-type`` — mirrors ``run_identity_audit``'s
     exact exit-code contract.
 

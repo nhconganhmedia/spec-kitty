@@ -109,22 +109,24 @@ def test_apply_prunes_managed_and_command_manifests(tmp_path: Path) -> None:
     )
     save_manifest(managed, tmp_path)
 
-    command_manifest = SkillsManifest(entries=[
-        ManifestEntry(
-            path=stale_rel,
-            content_hash=_HASH,
-            agents=("codex",),
-            installed_at=_INSTALLED_AT,
-            spec_kitty_version=_VERSION,
-        ),
-        ManifestEntry(
-            path=current_rel,
-            content_hash=_HASH,
-            agents=("codex",),
-            installed_at=_INSTALLED_AT,
-            spec_kitty_version=_VERSION,
-        ),
-    ])
+    command_manifest = SkillsManifest(
+        entries=[
+            ManifestEntry(
+                path=stale_rel,
+                content_hash=_HASH,
+                agents=("codex",),
+                installed_at=_INSTALLED_AT,
+                spec_kitty_version=_VERSION,
+            ),
+            ManifestEntry(
+                path=current_rel,
+                content_hash=_HASH,
+                agents=("codex",),
+                installed_at=_INSTALLED_AT,
+                spec_kitty_version=_VERSION,
+            ),
+        ]
+    )
     manifest_store.save(tmp_path, command_manifest)
 
     result = RetireStandaloneSkillSurfaceMigration().apply(tmp_path)
@@ -150,7 +152,4 @@ def test_migration_is_registered_by_auto_discovery() -> None:
     MigrationRegistry.clear()
     auto_discover_migrations()
 
-    assert (
-        "3.2.0rc45_retire_standalone_skill_surface"
-        in MigrationRegistry._migrations
-    )
+    assert "3.2.0rc45_retire_standalone_skill_surface" in MigrationRegistry._migrations

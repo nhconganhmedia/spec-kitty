@@ -443,9 +443,7 @@ def test_setup_plan_uses_single_loaded_meta_snapshot_when_file_changes_after_rea
     # authority, so ``resolve_mission_type_context`` fails closed without this.
     kittify_dir = tmp_path / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     template_src = tmp_path / "configured-plan.md"
     template_src.write_text("CONFIGURED PLAN", encoding="utf-8")
     load_calls = 0
@@ -526,9 +524,7 @@ def test_setup_plan_resolves_template_context_from_primary_planning_surface(
     # authority, so ``resolve_mission_type_context`` fails closed without this.
     kittify_dir = tmp_path / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     template_src = tmp_path / "configured-plan.md"
     template_src.write_text("CONFIGURED PLAN", encoding="utf-8")
     configured_calls: list[tuple[str, Path, ResolvedMissionType]] = []
@@ -804,9 +800,7 @@ def test_documentation_wiring_runs_both_documentation_phases(monkeypatch: pytest
     assert generators == [generator]
 
 
-def test_documentation_wiring_on_coord_husk_writes_gap_analysis_to_primary(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_documentation_wiring_on_coord_husk_writes_gap_analysis_to_primary(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """T024 (WP04 review, WP08 T039 nice-to-have): a documentation mission whose
     coordination worktree is a HUSK (materialised, no ``meta.json``) still
     anchors ``gap-analysis.md`` on the PRIMARY dir, never the husk.
@@ -835,23 +829,18 @@ def test_documentation_wiring_on_coord_husk_writes_gap_analysis_to_primary(
 
     captured: dict[str, object] = {}
 
-    def _capture_gap_analysis(
-        primary_dir_arg: Path, *args: object, **kwargs: object
-    ) -> str:
+    def _capture_gap_analysis(primary_dir_arg: Path, *args: object, **kwargs: object) -> str:
         captured["primary_dir_arg"] = primary_dir_arg
         return "gap-analysis.md"
 
     monkeypatch.setattr(seam, "_run_documentation_gap_analysis", _capture_gap_analysis)
     monkeypatch.setattr(seam, "_detect_and_configure_generators", lambda *a, **k: [])
 
-    gap, _generators = seam._run_documentation_wiring(
-        mission_slug, tmp_path, target_branch="main", json_output=True
-    )
+    gap, _generators = seam._run_documentation_wiring(mission_slug, tmp_path, target_branch="main", json_output=True)
 
     assert gap == "gap-analysis.md"
     assert captured["primary_dir_arg"] == primary_dir, (
-        "gap-analysis.md's write target must be the PRIMARY dir, never the "
-        f"coord husk {coord_dir} — got {captured['primary_dir_arg']}"
+        f"gap-analysis.md's write target must be the PRIMARY dir, never the coord husk {coord_dir} — got {captured['primary_dir_arg']}"
     )
     assert captured["primary_dir_arg"] != coord_dir
 

@@ -60,8 +60,7 @@ def test_stale_lanes_json_fallback_claim_is_absent() -> None:
         "raises MissingLanesError when lanes.json is absent)."
     )
     assert _STALE_LEGACY_FRAMING not in text, (
-        f"AGENTS.md still uses the stale {_STALE_LEGACY_FRAMING!r} framing for "
-        "the lanes.json-absent case; there is no legacy fallback to describe."
+        f"AGENTS.md still uses the stale {_STALE_LEGACY_FRAMING!r} framing for the lanes.json-absent case; there is no legacy fallback to describe."
     )
 
 
@@ -69,13 +68,9 @@ def test_corrected_lanes_json_contract_is_present() -> None:
     """The real, fail-closed contract must be documented in its place."""
     text = _agents_md_text()
     assert "MissingLanesError" in text, (
-        "AGENTS.md should name MissingLanesError as the fail-closed outcome "
-        "when lanes.json is absent (src/specify_cli/lanes/persistence.py)."
+        "AGENTS.md should name MissingLanesError as the fail-closed outcome when lanes.json is absent (src/specify_cli/lanes/persistence.py)."
     )
-    assert "require" in text and "lanes.json" in text, (
-        "AGENTS.md should state that lanes.json is required (no fallback), "
-        "not merely referenced."
-    )
+    assert "require" in text and "lanes.json" in text, "AGENTS.md should state that lanes.json is required (no fallback), not merely referenced."
 
 
 def test_bare_wp_placeholder_token_survives() -> None:
@@ -85,6 +80,5 @@ def test_bare_wp_placeholder_token_survives() -> None:
     """
     text = _agents_md_text()
     assert "spec-kitty implement WP##" in text, (
-        "the legitimate `spec-kitty implement WP##` usage should remain "
-        "documented; this guard must not over-match and strip it."
+        "the legitimate `spec-kitty implement WP##` usage should remain documented; this guard must not over-match and strip it."
     )

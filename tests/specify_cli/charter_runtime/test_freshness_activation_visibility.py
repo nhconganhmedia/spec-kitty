@@ -100,9 +100,7 @@ def test_activation_parity_mechanism_retired() -> None:
     assert not hasattr(freshness_computer, "_PARITY_DRIFT_REMEDIATION")
 
 
-def test_compute_freshness_never_calls_consistency_check(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_compute_freshness_never_calls_consistency_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Behavioural companion to the structural pin above: even if a caller
     imports ``run_consistency_check`` independently, ``compute_freshness``
     itself never invokes it — the read-path is decoupled from the retired
@@ -110,10 +108,7 @@ def test_compute_freshness_never_calls_consistency_check(
     import charter.activation.consistency_check as consistency_check_module
 
     def _must_not_be_called(*args: object, **kwargs: object) -> None:
-        raise AssertionError(
-            "compute_freshness must not invoke run_consistency_check "
-            "(#2759 parity read retired by consolidate-charter-bundle WP06)"
-        )
+        raise AssertionError("compute_freshness must not invoke run_consistency_check (#2759 parity read retired by consolidate-charter-bundle WP06)")
 
     monkeypatch.setattr(consistency_check_module, "run_consistency_check", _must_not_be_called)
 
@@ -172,14 +167,10 @@ def test_reconcile_after_edit_returns_to_fresh_via_resynthesize_shaped_stamp(tmp
     from charter.bundle import compute_bundle_content_hash
 
     charter_yaml_path = _seed_fresh_synthesized_repo(tmp_path)
-    charter_yaml_path.write_text(
-        charter_yaml_path.read_text(encoding="utf-8") + "# first edit\n", encoding="utf-8"
-    )
+    charter_yaml_path.write_text(charter_yaml_path.read_text(encoding="utf-8") + "# first edit\n", encoding="utf-8")
     assert _synthesized_drg_state(tmp_path) == "stale"
 
-    charter_yaml_path.write_text(
-        charter_yaml_path.read_text(encoding="utf-8") + "# second edit\n", encoding="utf-8"
-    )
+    charter_yaml_path.write_text(charter_yaml_path.read_text(encoding="utf-8") + "# second edit\n", encoding="utf-8")
     assert _synthesized_drg_state(tmp_path) == "stale"  # still stale after a second, unstamped edit
 
     real_hash = compute_bundle_content_hash(tmp_path)

@@ -580,11 +580,7 @@ def _write_org_pack_config(repo_root: Path, *, pack_name: str, local_path: Path)
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        f"      - name: {pack_name}\n"
-        f"        local_path: {local_path}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: {pack_name}\n        local_path: {local_path}\n",
         encoding="utf-8",
     )
 
@@ -773,13 +769,7 @@ def test_declared_but_broken_org_pack_still_warns_in_doctrine_resolver(
     acme_one = tmp_path / "acme-one"
     acme_two = tmp_path / "acme-two"
     (kittify / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: acme\n"
-        f"        local_path: {acme_one}\n"
-        "      - name: acme\n"
-        f"        local_path: {acme_two}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: acme\n        local_path: {acme_one}\n      - name: acme\n        local_path: {acme_two}\n",
         encoding="utf-8",
     )
 

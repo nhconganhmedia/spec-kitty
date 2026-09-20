@@ -100,9 +100,7 @@ def _write_project_step(
     display_name: str = "Project Step",
 ) -> Path:
     """Write a step.yaml in the project-layer layout under *repo_root*."""
-    step_dir = (
-        repo_root / ".kittify" / "overrides" / "mission-steps" / mission_type_id / step_id
-    )
+    step_dir = repo_root / ".kittify" / "overrides" / "mission-steps" / mission_type_id / step_id
     step_dir.mkdir(parents=True, exist_ok=True)
     (step_dir / "step.yaml").write_text(
         f"id: {step_id}\ndisplay_name: {display_name!r}\nstep_type: agent\nprompt_template: prompt.md\n",
@@ -258,9 +256,7 @@ class TestOrgLayer:
         assert step is not None
         assert step.title == "Built-in"
 
-    def test_builtin_pack_root_in_pack_roots_does_not_double_resolve(
-        self, tmp_path: Path
-    ) -> None:
+    def test_builtin_pack_root_in_pack_roots_does_not_double_resolve(self, tmp_path: Path) -> None:
         """Regression: built-in pack root in pack_roots must NOT shadow the built-in layer.
 
         When ``PackContext.pack_roots`` includes the parent of the built-in
@@ -343,9 +339,7 @@ class TestProjectLayer:
 class TestCompoundKeyIsolation:
     """A shadow for software-dev/review must NOT affect documentation/review."""
 
-    def test_software_dev_shadow_does_not_affect_documentation(
-        self, tmp_path: Path
-    ) -> None:
+    def test_software_dev_shadow_does_not_affect_documentation(self, tmp_path: Path) -> None:
         """Core compound-key isolation invariant (FR-012).
 
         An org shadow for (software-dev, review) must leave
@@ -375,9 +369,7 @@ class TestCompoundKeyIsolation:
         assert doc_step is not None
         assert doc_step.title == "Built-in Doc Review"
 
-    def test_project_shadow_for_one_mission_type_does_not_leak(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_shadow_for_one_mission_type_does_not_leak(self, tmp_path: Path) -> None:
         builtin_root = tmp_path / "builtin"
         repo_root = tmp_path / "project"
 
@@ -514,9 +506,7 @@ class TestSharedResolveAllForMissionTypeCache:
     def teardown_method(self) -> None:
         MissionStepRepository.cache_clear()
 
-    def _spy_walks(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> list[str]:
+    def _spy_walks(self, monkeypatch: pytest.MonkeyPatch) -> list[str]:
         """Patch the cache-miss path and return the list it appends mission_type_ids to."""
         walk_calls: list[str] = []
         original_uncached = MissionStepRepository._resolve_all_for_mission_type_uncached
@@ -529,14 +519,10 @@ class TestSharedResolveAllForMissionTypeCache:
             walk_calls.append(mission_type_id)
             return original_uncached(self, mission_type_id, pack_context)  # type: ignore[arg-type]
 
-        monkeypatch.setattr(
-            MissionStepRepository, "_resolve_all_for_mission_type_uncached", _spy
-        )
+        monkeypatch.setattr(MissionStepRepository, "_resolve_all_for_mission_type_uncached", _spy)
         return walk_calls
 
-    def test_repeated_calls_across_instances_share_one_walk(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repeated_calls_across_instances_share_one_walk(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_step(tmp_path, "software-dev", "specify")
         _write_step(tmp_path, "software-dev", "plan")
         walk_calls = self._spy_walks(monkeypatch)
@@ -554,9 +540,7 @@ class TestSharedResolveAllForMissionTypeCache:
 
         assert walk_calls == ["software-dev"]
 
-    def test_cache_clear_forces_a_rewalk(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_cache_clear_forces_a_rewalk(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_step(tmp_path, "software-dev", "specify")
         walk_calls = self._spy_walks(monkeypatch)
         repo = MissionStepRepository(builtin_steps_root=tmp_path)
@@ -567,9 +551,7 @@ class TestSharedResolveAllForMissionTypeCache:
 
         assert walk_calls == ["software-dev", "software-dev"]
 
-    def test_distinct_mission_type_id_is_a_distinct_cache_entry(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_distinct_mission_type_id_is_a_distinct_cache_entry(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_step(tmp_path, "software-dev", "specify")
         _write_step(tmp_path, "documentation", "discover")
         walk_calls = self._spy_walks(monkeypatch)
@@ -581,9 +563,7 @@ class TestSharedResolveAllForMissionTypeCache:
 
         assert walk_calls == ["software-dev", "documentation"]
 
-    def test_distinct_builtin_root_is_a_distinct_cache_entry(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_distinct_builtin_root_is_a_distinct_cache_entry(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         root_a = tmp_path / "a"
         root_b = tmp_path / "b"
         _write_step(root_a, "software-dev", "specify", display_name="A")
@@ -600,9 +580,7 @@ class TestSharedResolveAllForMissionTypeCache:
         assert result_a["specify"].title == "A"
         assert result_b["specify"].title == "B"
 
-    def test_two_consumers_of_the_same_key_share_one_walk(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_two_consumers_of_the_same_key_share_one_walk(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Mirrors the real production shape post-cutover (FR-002): the
         retained ``action_sequence`` overlay and the projected ``template_set``
         slot both resolve steps for the same ``(mission_type, pack_context)``
@@ -612,15 +590,11 @@ class TestSharedResolveAllForMissionTypeCache:
         repo = MissionStepRepository(builtin_steps_root=tmp_path)
 
         # Consumer 1: the action_sequence overlay's resolution shape.
-        steps_for_action_sequence = repo.resolve_all_for_mission_type(
-            "software-dev", pack_context=None
-        )
+        steps_for_action_sequence = repo.resolve_all_for_mission_type("software-dev", pack_context=None)
         # Consumer 2: the template_set slot's resolution shape (a separate
         # call, potentially from a different MissionStepRepository instance
         # in production -- MissionStepRepository.default() is not memoised).
-        steps_for_template_set = MissionStepRepository(
-            builtin_steps_root=tmp_path
-        ).resolve_all_for_mission_type("software-dev", pack_context=None)
+        steps_for_template_set = MissionStepRepository(builtin_steps_root=tmp_path).resolve_all_for_mission_type("software-dev", pack_context=None)
 
         assert walk_calls == ["software-dev"]
         assert steps_for_action_sequence == steps_for_template_set

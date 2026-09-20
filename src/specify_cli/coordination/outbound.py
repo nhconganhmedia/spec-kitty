@@ -113,9 +113,7 @@ def _send_to_saas(
         actor=event.actor,
         mission_slug=mission_slug,
         mission_id=event.mission_id,
-        metadata=WPStatusChangeMetadata.from_status_event(
-            event, policy_metadata=event.policy_metadata
-        ),
+        metadata=WPStatusChangeMetadata.from_status_event(event, policy_metadata=event.policy_metadata),
         ensure_daemon=ensure_sync_daemon,
         # The emitting checkout root, so the Zeitgeist bridge resolves relay
         # credentials from it instead of the process cwd (#125).

@@ -162,9 +162,7 @@ def _git_commit_all(repo: Path, message: str) -> None:
 
 
 def _git_status_porcelain(repo: Path) -> str:
-    result = subprocess.run(
-        ["git", "status", "--porcelain"], cwd=repo, capture_output=True, text=True, check=True
-    )
+    result = subprocess.run(["git", "status", "--porcelain"], cwd=repo, capture_output=True, text=True, check=True)
     return result.stdout
 
 
@@ -194,9 +192,7 @@ def _seed_synthesized_and_gone_stale(tmp_path: Path) -> Path:
     return tmp_path / _GRAPH_PATH_SUFFIX
 
 
-def _make_heal_subprocess_fake(
-    tmp_path: Path, seen_calls: list[list[str]]
-) -> Any:
+def _make_heal_subprocess_fake(tmp_path: Path, seen_calls: list[list[str]]) -> Any:
     """Fake ``subprocess.run`` that lets real ``git`` calls through and, for
     ``spec-kitty charter synthesize``, invokes the REAL library entry point
     in-process (``mode=SynthesizeMode.preserve`` -- exactly what the CLI
@@ -227,9 +223,7 @@ def _make_heal_subprocess_fake(
 # ---------------------------------------------------------------------------
 
 
-def test_authoring_only_edit_heals_non_destructively_and_clears_stale(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_authoring_only_edit_heals_non_destructively_and_clears_stale(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     graph_path = _seed_synthesized_and_gone_stale(tmp_path)
     graph_before = _load_graph(graph_path)
     nodes_before = len(graph_before.get("nodes", []))
@@ -256,9 +250,7 @@ def test_authoring_only_edit_heals_non_destructively_and_clears_stale(
     assert compute_freshness(tmp_path).synthesized_drg.state == "fresh"
 
 
-def test_second_invocation_after_heal_is_not_re_blocked(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_second_invocation_after_heal_is_not_re_blocked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A repo that just healed must not re-trigger the refresh sequence."""
     _seed_synthesized_and_gone_stale(tmp_path)
 
@@ -274,9 +266,7 @@ def test_second_invocation_after_heal_is_not_re_blocked(
     second = run_charter_preflight(tmp_path, auto_refresh=True)
 
     assert second.passed is True
-    assert second.auto_refresh_applied is False, (
-        "a healed repo must not even attempt a second refresh (no re-trigger loop)"
-    )
+    assert second.auto_refresh_applied is False, "a healed repo must not even attempt a second refresh (no re-trigger loop)"
     drg = next(c for c in second.checks if c.name == "synthesized_drg")
     assert drg.state == "fresh"
     assert len(seen_calls) == calls_after_first_heal, "second invocation shelled out again"
@@ -298,9 +288,7 @@ def _seed_needs_refresh_repo(tmp_path: Path) -> None:
     _git_commit_all(tmp_path, "seed")
 
 
-def test_orphaned_backing_artifact_at_boundary_still_refuses(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_orphaned_backing_artifact_at_boundary_still_refuses(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-014: an orphan-refusal from ``charter synthesize`` (exit 1) must
     surface as an actionable ``blocked_reason`` -- the boundary never
     coerces this into ``passed=True`` just because the heal is otherwise
@@ -334,9 +322,7 @@ def test_orphaned_backing_artifact_at_boundary_still_refuses(
     assert "orphan" in result.blocked_reason.lower()
 
 
-def test_unparseable_overlay_at_boundary_still_refuses(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_unparseable_overlay_at_boundary_still_refuses(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-007: an unparseable on-disk doctrine overlay (``DRGLoadError``)
     makes ``charter synthesize`` exit non-zero -- the boundary surfaces that
     as a refusal too, never a silently-coerced pass."""
@@ -351,10 +337,7 @@ def test_unparseable_overlay_at_boundary_still_refuses(
                 args=cmd,
                 returncode=1,
                 stdout="",
-                stderr=(
-                    "Refused: the on-disk doctrine overlay could not be parsed. "
-                    "No write was made.\n"
-                ),
+                stderr=("Refused: the on-disk doctrine overlay could not be parsed. No write was made.\n"),
             )
         return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
@@ -377,9 +360,7 @@ def test_unparseable_overlay_at_boundary_still_refuses(
 # ---------------------------------------------------------------------------
 
 
-def test_references_parity_hook_is_installed_and_invoked_after_a_successful_heal(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_references_parity_hook_is_installed_and_invoked_after_a_successful_heal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _seed_synthesized_and_gone_stale(tmp_path)
 
     seen_calls: list[list[str]] = []
@@ -471,9 +452,7 @@ def _invoke_generate_in_process(repo: Path, argv: list[str]) -> subprocess.Compl
     )
 
 
-def _make_real_heal_subprocess_fake(
-    tmp_path: Path, seen_calls: list[list[str]]
-) -> Any:
+def _make_real_heal_subprocess_fake(tmp_path: Path, seen_calls: list[list[str]]) -> Any:
     """Like ``_make_heal_subprocess_fake``, but ``spec-kitty charter
     generate`` also routes to the REAL in-process command (not a no-op
     stub) -- the fix for MAJOR-3's masking coverage gap."""
@@ -530,9 +509,7 @@ def _seed_real_generated_and_gone_stale(tmp_path: Path) -> None:
     assert _git_status_porcelain(tmp_path) == ""  # clean going into auto_refresh (FR-008)
 
 
-def test_references_parity_heal_recompiles_with_real_generate_and_stays_manifest_coherent(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_references_parity_heal_recompiles_with_real_generate_and_stays_manifest_coherent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """MAJOR-1/MAJOR-3: the boundary heal on a stale, non-``built_in_only``
     repo must pass end to end with a REAL ``generate`` -- not a stubbed
     no-op. Before the manifest-coherent fix, this reproduces MAJOR-1
@@ -573,7 +550,5 @@ def test_references_parity_heal_recompiles_with_real_generate_and_stays_manifest
     seen_calls.clear()
     second = run_charter_preflight(tmp_path, auto_refresh=True)
     assert second.passed is True
-    assert second.auto_refresh_applied is False, (
-        "a genuinely-healed repo must not re-trigger the refresh sequence"
-    )
+    assert second.auto_refresh_applied is False, "a genuinely-healed repo must not re-trigger the refresh sequence"
     assert seen_calls == [], "second invocation shelled out again"

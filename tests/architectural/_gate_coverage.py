@@ -176,15 +176,10 @@ def _normalize_conjunct(text: str) -> str:
 
 
 def _full_ci_block_conjuncts() -> frozenset[str]:
-    return frozenset(
-        f"!contains(github.event.pull_request.labels.*.name,'{label}')"
-        for label in FULL_CI_BLOCK_LABELS
-    )
+    return frozenset(f"!contains(github.event.pull_request.labels.*.name,'{label}')" for label in FULL_CI_BLOCK_LABELS)
 
 
-def gate_is_always_on_modulo_full_ci_block(
-    if_value: str | None, *, require_always: bool
-) -> bool:
+def gate_is_always_on_modulo_full_ci_block(if_value: str | None, *, require_always: bool) -> bool:
     """Whether a job runs unconditionally EXCEPT for the full-CI-block labels.
 
     Accepts either an absent ``if:`` (truly unconditional) or an ``if:`` whose
@@ -220,13 +215,12 @@ def gate_is_always_on_modulo_full_ci_block(
     labels_ok = seen_labels in (frozenset(), label_conjuncts)
     return labels_ok and (has_always or not require_always)
 
+
 # ``--flag [value]`` tokens a runner may carry between itself and the command
 # word. The optional value is a quoted or bare token that is not the ``pytest``
 # command word itself, so ``uv run --frozen pytest`` and
 # ``coverage run --source src -m pytest`` both keep ``pytest`` as the command.
-_FLAG_TOKENS = (
-    r"(?:\s+--\S+(?:\s+'[^']*'|\s+\"[^\"]*\"|\s+(?!pytest\b)\S+)?)*"
-)
+_FLAG_TOKENS = r"(?:\s+--\S+(?:\s+'[^']*'|\s+\"[^\"]*\"|\s+(?!pytest\b)\S+)?)*"
 
 # Runner prefixes that may precede the literal ``pytest`` command token. After
 # stripping leading env-assignments and these, a real pytest *command* segment
@@ -260,9 +254,7 @@ _PREFIX_RE = re.compile(
     # #4367 runner spellings: a coverage runner, the poetry-family runners, and
     # the X-virtual-frame-buffer / coreutils wrappers that legitimately precede
     # the command word. ``timeout`` consumes its mandatory DURATION argument.
-    r"|coverage\s+run" + _FLAG_TOKENS +
-    r"|(?:poetry|pdm|hatch|pipenv)\s+run" + _FLAG_TOKENS +
-    r"|xvfb-run(?:\s+-\S+)*"
+    r"|coverage\s+run" + _FLAG_TOKENS + r"|(?:poetry|pdm|hatch|pipenv)\s+run" + _FLAG_TOKENS + r"|xvfb-run(?:\s+-\S+)*"
     r"|timeout\s+\d+(?:\.\d+)?[a-zA-Z]?(?:\s+-\S+)*"
     r")\s+",
 )
@@ -786,7 +778,10 @@ def suite_invocations(
     if payload is not None:
         # The whole line IS the wrapper: nothing else on it can run anything.
         return suite_invocations(
-            payload, makefile=makefile, repo_root=root, _scripts_seen=_scripts_seen,
+            payload,
+            makefile=makefile,
+            repo_root=root,
+            _scripts_seen=_scripts_seen,
         )
     found: list[SuiteInvocation] = []
     for segment in _SEGMENT_SPLIT_RE.split(logical_line):
@@ -805,7 +800,10 @@ def suite_invocations(
         found.extend(_make_indirection(command, makefile))
         found.extend(
             _script_indirection(
-                command, makefile=makefile, repo_root=root, seen=_scripts_seen,
+                command,
+                makefile=makefile,
+                repo_root=root,
+                seen=_scripts_seen,
             ),
         )
     return found
@@ -841,12 +839,7 @@ def parse_workflow(path: Path, *, makefile: Path | None = None) -> list[Gate]:
                             paths=list(invocation.paths),
                             ignores=list(invocation.ignores),
                             marker_expr=invocation.marker_expr,
-                            via=invocation.via
-                            or (
-                                _VIA_ACTION.format(name=action_name)
-                                if action_name
-                                else None
-                            ),
+                            via=invocation.via or (_VIA_ACTION.format(name=action_name) if action_name else None),
                         ),
                     )
     return gates
@@ -1042,11 +1035,7 @@ def _job_run_text(job: dict[str, Any]) -> str:
     Un-substituted: ``${{ }}`` expressions are kept, because the relation
     reads (``needs.<job>.result``, ...) live inside them.
     """
-    return "\n".join(
-        str(step["run"])
-        for step in job.get("steps") or []
-        if isinstance(step, dict) and "run" in step
-    )
+    return "\n".join(str(step["run"]) for step in job.get("steps") or [] if isinstance(step, dict) and "run" in step)
 
 
 def _parse_filter_groups(jobs: dict[str, Any]) -> dict[str, tuple[str, ...]]:
@@ -1170,17 +1159,15 @@ def _splice_step_level_actions(
     spliced: list[Any] = []
     for step in steps:
         uses = step.get("uses") if isinstance(step, dict) else None
-        action_path = (
-            _composite_action_path(uses, actions_dir)
-            if isinstance(uses, str) and uses.startswith(_LOCAL_ACTION_PREFIX)
-            else None
-        )
+        action_path = _composite_action_path(uses, actions_dir) if isinstance(uses, str) and uses.startswith(_LOCAL_ACTION_PREFIX) else None
         if action_path is not None and action_path not in seen:
             action_data = yaml.safe_load(action_path.read_text(encoding="utf-8")) or {}
             inner = (action_data.get("runs") or {}).get("steps")
             if isinstance(inner, list):
                 for inner_step in _splice_step_level_actions(
-                    inner, actions_dir, seen | {action_path},
+                    inner,
+                    actions_dir,
+                    seen | {action_path},
                 ):
                     tagged = dict(inner_step) if isinstance(inner_step, dict) else inner_step
                     if isinstance(tagged, dict):
@@ -1233,10 +1220,7 @@ def _splice_local_uses(data: dict[str, Any], workflows_dir: Path) -> dict[str, A
             target_jobs = target.get("jobs") or {}
             # Single-purpose assumption made load-bearing: flattening multiple
             # delegate jobs into one caller key would conflate their markers/coverage.
-            assert len(target_jobs) == 1, (
-                f"reusable workflow {called} must define exactly one job to splice "
-                f"into caller {name!r}; found {sorted(target_jobs)}"
-            )
+            assert len(target_jobs) == 1, f"reusable workflow {called} must define exactly one job to splice into caller {name!r}; found {sorted(target_jobs)}"
             delegate_steps: list[Any] = []
             for delegate_job in target_jobs.values():
                 if isinstance(delegate_job, dict):
@@ -1244,7 +1228,9 @@ def _splice_local_uses(data: dict[str, Any], workflows_dir: Path) -> dict[str, A
             merged = dict(job)
             merged["steps"] = list(job.get("steps") or []) + delegate_steps
         merged["steps"] = _splice_step_level_actions(
-            list(merged.get("steps") or []), actions_dir, frozenset(),
+            list(merged.get("steps") or []),
+            actions_dir,
+            frozenset(),
         )
         spliced[name] = merged
     resolved = dict(data)
@@ -1263,9 +1249,7 @@ def load_spliced_workflow(path: Path) -> dict[str, Any]:
     caller with no ``steps:`` and mis-model it (missing timeouts,
     ``KeyError: 'steps'``, dropped gates).
     """
-    return _splice_local_uses(
-        yaml.safe_load(path.read_text(encoding="utf-8")), path.parent
-    )
+    return _splice_local_uses(yaml.safe_load(path.read_text(encoding="utf-8")), path.parent)
 
 
 def _trigger_tuple(on_section: dict[str, Any], event: str, key: str) -> tuple[str, ...]:
@@ -1285,19 +1269,10 @@ def load_workflow_model(path: Path) -> WorkflowModel:
     return WorkflowModel(
         path=path,
         job_needs={name: _job_needs_tuple(job) for name, job in jobs.items()},
-        needs_result_reads={
-            name: frozenset(_NEEDS_RESULT_RE.findall(text))
-            for name, text in run_texts.items()
-        },
-        job_gating_groups={
-            name: frozenset(_FILTER_OUTPUT_RE.findall(str(job.get("if") or "")))
-            for name, job in jobs.items()
-        },
+        needs_result_reads={name: frozenset(_NEEDS_RESULT_RE.findall(text)) for name, text in run_texts.items()},
+        job_gating_groups={name: frozenset(_FILTER_OUTPUT_RE.findall(str(job.get("if") or ""))) for name, job in jobs.items()},
         filter_groups=_parse_filter_groups(jobs),
-        cov_targets={
-            name: frozenset(_COV_TARGET_RE.findall(text))
-            for name, text in run_texts.items()
-        },
+        cov_targets={name: frozenset(_COV_TARGET_RE.findall(text)) for name, text in run_texts.items()},
         diff_cover_critical_paths=_diff_cover_critical_paths(
             "\n".join(run_texts.values()),
         ),
@@ -1358,11 +1333,7 @@ def discover_pytest_workflows(workflows_dir: Path | None = None) -> frozenset[st
     """
     directory = workflows_dir or WORKFLOWS_DIR
     candidates = sorted(directory.glob("*.yml")) + sorted(directory.glob("*.yaml"))
-    return frozenset(
-        path.name
-        for path in candidates
-        if parse_workflow(path) and not _is_reusable_only(path)
-    )
+    return frozenset(path.name for path in candidates if parse_workflow(path) and not _is_reusable_only(path))
 
 
 def _is_reusable_only(path: Path) -> bool:
@@ -1481,11 +1452,7 @@ def analyze(
     selection evaluator itself (:class:`CompiledGate`) is unchanged and shared,
     so there is exactly one selection engine (D-044).
     """
-    selected = (
-        gates
-        if active_jobs is None
-        else [g for g in gates if (g.workflow, g.job) in active_jobs]
-    )
+    selected = gates if active_jobs is None else [g for g in gates if (g.workflow, g.job) in active_jobs]
     compiled = [CompiledGate(g) for g in selected]
     orphan_nodeids: list[str] = []
     orphan_files: set[str] = set()
@@ -1621,11 +1588,7 @@ def normalize_condition(text: str) -> str:
     match = _EXPRESSION_WRAPPER_RE.match(condition)
     if match:
         condition = match.group("inner").strip()
-    while (
-        condition.startswith("(")
-        and condition.endswith(")")
-        and _is_balanced(condition[1:-1])
-    ):
+    while condition.startswith("(") and condition.endswith(")") and _is_balanced(condition[1:-1]):
         condition = condition[1:-1].strip()
     return condition
 
@@ -1670,19 +1633,15 @@ def job_runs_under(
         return True
     disjuncts = split_top_level(condition, _OR)
     if len(disjuncts) > 1:
-        return any(
-            job_runs_under(part, event_name=event_name, active_groups=active_groups)
-            for part in disjuncts
-        )
+        return any(job_runs_under(part, event_name=event_name, active_groups=active_groups) for part in disjuncts)
     conjuncts = split_top_level(condition, _AND)
     if len(conjuncts) > 1:
-        return all(
-            job_runs_under(part, event_name=event_name, active_groups=active_groups)
-            for part in conjuncts
-        )
+        return all(job_runs_under(part, event_name=event_name, active_groups=active_groups) for part in conjuncts)
     if condition.startswith("(") and condition.endswith(")") and _is_balanced(condition[1:-1]):
         return job_runs_under(
-            condition[1:-1], event_name=event_name, active_groups=active_groups,
+            condition[1:-1],
+            event_name=event_name,
+            active_groups=active_groups,
         )
     return _atom_runs_under(condition, event_name=event_name, active_groups=active_groups)
 
@@ -1711,7 +1670,9 @@ def active_job_keys(
             continue
         for job, if_value in model.job_if.items():
             if job_runs_under(
-                if_value, event_name=event_name, active_groups=active_groups,
+                if_value,
+                event_name=event_name,
+                active_groups=active_groups,
             ):
                 active.add((name, job))
     # NOTE: ``uses:`` reusable-workflow delegation needs no resolution here — the
@@ -1737,7 +1698,9 @@ def main_push_active_jobs(
     """
     resolved = models if models is not None else load_workflow_models()
     return active_job_keys(
-        resolved, event_name=PUSH_EVENT, active_groups=frozenset(),
+        resolved,
+        event_name=PUSH_EVENT,
+        active_groups=frozenset(),
     )
 
 
@@ -1872,7 +1835,13 @@ def collect_job_nodeids(gate: Gate, repo_root: Path | None = None) -> list[str]:
     if gate.marker_expr:
         args += ["-m", gate.marker_expr]
     result = subprocess.run(
-        args, cwd=repo, env=env, capture_output=True, text=True, timeout=900, check=False,
+        args,
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=900,
+        check=False,
     )
     if result.returncode not in _COLLECT_OK_CODES:
         raise RuntimeError(
@@ -1891,11 +1860,7 @@ def collect_job_nodeids(gate: Gate, repo_root: Path | None = None) -> list[str]:
     # and checkout-portable. Applied identically in freeze and compare (both go
     # through this function), so the two sides stay consistent.
     repo_prefix = f"{repo}{os.sep}"
-    return sorted(
-        line.strip().replace(repo_prefix, "")
-        for line in result.stdout.splitlines()
-        if _NODEID_LINE_RE.match(line.strip())
-    )
+    return sorted(line.strip().replace(repo_prefix, "") for line in result.stdout.splitlines() if _NODEID_LINE_RE.match(line.strip()))
 
 
 # ---------------------------------------------------------------------------
@@ -2005,41 +1970,51 @@ _COMPOSITE_ROUTING: dict[str, _CompositeRoute] = {
     # auth_audit_git -> existing ``auth-audit-git`` integration shard.
     "auth": ("auth_audit_git", "auth-audit-git", ("tests/auth",)),
     "audit": (
-        "auth_audit_git", "auth-audit-git",
+        "auth_audit_git",
+        "auth-audit-git",
         ("tests/audit", "tests/specify_cli/audit"),
     ),
     "git": (
-        "auth_audit_git", "auth-audit-git",
+        "auth_audit_git",
+        "auth-audit-git",
         ("tests/git", "tests/git_ops", "tests/specify_cli/git"),
     ),
     # lifecycle -> ``specify-cli-heavy`` (heavy marker adds ``and not slow``).
     "migration": (
-        "lifecycle", "specify-cli-heavy",
+        "lifecycle",
+        "specify-cli-heavy",
         ("tests/migration", "tests/specify_cli/migration"),
     ),
     "invocation": (
-        "lifecycle", "specify-cli-heavy",
+        "lifecycle",
+        "specify-cli-heavy",
         ("tests/invocation", "tests/specify_cli/invocation"),
     ),
     "compat": ("lifecycle", "specify-cli-heavy", ("tests/specify_cli/compat",)),
     "distribution": (
-        "lifecycle", "specify-cli-heavy", ("tests/specify_cli/distribution",),
+        "lifecycle",
+        "specify-cli-heavy",
+        ("tests/specify_cli/distribution",),
     ),
     "template": ("lifecycle", "specify-cli-heavy", ("tests/test_template",)),
     # agent_surface -> ``specify-cli-rest``.
     "orchestrator_api": (
-        "agent_surface", "specify-cli-rest", ("tests/specify_cli/orchestrator_api",),
+        "agent_surface",
+        "specify-cli-rest",
+        ("tests/specify_cli/orchestrator_api",),
     ),
     "tracker": ("agent_surface", "specify-cli-rest", ("tests/tracker",)),
     "dossier": (
-        "agent_surface", "specify-cli-rest",
+        "agent_surface",
+        "specify-cli-rest",
         ("tests/dossier", "tests/specify_cli/dossier"),
     ),
     "bulk_edit": ("agent_surface", "specify-cli-rest", ("tests/specify_cli/bulk_edit",)),
     "skills": ("agent_surface", "specify-cli-rest", ("tests/specify_cli/skills",)),
     # closeout -> ``misc``.
     "retrospective": (
-        "closeout", "misc",
+        "closeout",
+        "misc",
         (
             "tests/retrospective",
             "tests/specify_cli/retrospect",
@@ -2047,7 +2022,9 @@ _COMPOSITE_ROUTING: dict[str, _CompositeRoute] = {
         ),
     ),
     "readiness": (
-        "closeout", "misc", ("tests/readiness", "tests/specify_cli/readiness"),
+        "closeout",
+        "misc",
+        ("tests/readiness", "tests/specify_cli/readiness"),
     ),
     "decisions": ("closeout", "misc", ("tests/specify_cli/decisions",)),
     "doc_analysis": ("closeout", "misc", ()),
@@ -2069,7 +2046,9 @@ _COMPOSITE_ROUTING: dict[str, _CompositeRoute] = {
     # platform -> ``specify-cli-rest``.
     "workspace": ("platform", "specify-cli-rest", ("tests/specify_cli/workspace",)),
     "session_presence": (
-        "platform", "specify-cli-rest", ("tests/specify_cli/session_presence",),
+        "platform",
+        "specify-cli-rest",
+        ("tests/specify_cli/session_presence",),
     ),
     "mission_v1": ("platform", "specify-cli-rest", ("tests/specify_cli/mission_v1",)),
     "mission_loader": ("platform", "specify-cli-rest", ("tests/unit/mission_loader",)),
@@ -2084,9 +2063,7 @@ _COMPOSITE_ROUTING: dict[str, _CompositeRoute] = {
 
 def load_workflow_models() -> dict[str, WorkflowModel]:
     """Parse every restored suite-running workflow into ``name -> WorkflowModel``."""
-    return {
-        name: load_workflow_model(WORKFLOWS_DIR / name) for name in WORKFLOW_FILES
-    }
+    return {name: load_workflow_model(WORKFLOWS_DIR / name) for name in WORKFLOW_FILES}
 
 
 def _group_is_src_backed(globs: Sequence[str]) -> bool:
@@ -2428,28 +2405,14 @@ def same_tier_shard_counts(
     this counts *within* a tier, where the invariant is uniqueness (``<= 1``),
     not intentional overlap.
     """
-    tiered_gates: list[tuple[CompiledGate, str]] = [
-        (CompiledGate(gate), tier)
-        for gate in gates
-        if (tier := _gate_tier(gate)) is not None
-    ]
-    return {
-        test["nodeid"]: shard_counts_for_test(test, tiered_gates)
-        for test in universe
-    }
+    tiered_gates: list[tuple[CompiledGate, str]] = [(CompiledGate(gate), tier) for gate in gates if (tier := _gate_tier(gate)) is not None]
+    return {test["nodeid"]: shard_counts_for_test(test, tiered_gates) for test in universe}
 
 
 def _selected_nodeids(gates: Sequence[Gate], universe: Sequence[TestRecord]) -> frozenset[str]:
     """Node-ids any of ``gates`` selects, evaluated over ``universe``."""
     compiled = [CompiledGate(g) for g in gates]
-    return frozenset(
-        test["nodeid"]
-        for test in universe
-        if any(
-            cg.selects(test["relpath"], test["nodeid"], set(test["markers"]))
-            for cg in compiled
-        )
-    )
+    return frozenset(test["nodeid"] for test in universe if any(cg.selects(test["relpath"], test["nodeid"], set(test["markers"])) for cg in compiled))
 
 
 def cross_job_disjoint_selection(
@@ -2534,11 +2497,11 @@ def build_census(t_loc: int = T_LOC, repo_root: Path = REPO_ROOT) -> dict[str, A
 def _emit_census() -> int:
     census = build_census()
     CENSUS_PATH.write_text(
-        json.dumps(census, indent=2) + "\n", encoding="utf-8",
+        json.dumps(census, indent=2) + "\n",
+        encoding="utf-8",
     )
     print(
-        f"census written: {len(census['worklist'])} worklist dirs, "
-        f"{len(census['arch_blind_groups'])} arch-blind groups -> {CENSUS_PATH}",
+        f"census written: {len(census['worklist'])} worklist dirs, {len(census['arch_blind_groups'])} arch-blind groups -> {CENSUS_PATH}",
     )
     return 0
 
@@ -2554,9 +2517,7 @@ def _verify_census() -> int:
         print(f"census is STALE in {stale} — re-run --emit-census")
         return 1
     print(
-        f"census fresh: {len(live['worklist'])} worklist dirs, "
-        f"{len(live['mapped_dirs'])} mapped dirs, "
-        f"{len(live['arch_blind_groups'])} arch-blind groups",
+        f"census fresh: {len(live['worklist'])} worklist dirs, {len(live['mapped_dirs'])} mapped dirs, {len(live['arch_blind_groups'])} arch-blind groups",
     )
     return 0
 
@@ -2626,9 +2587,7 @@ def gates_for_target(gates: Sequence[Gate], target: BaselineTarget) -> list[Gate
     workflow was restructured and the target's job no longer parses to any
     gate — a stale ``BASELINE_TARGETS`` entry must be fixed, not ignored.
     """
-    matches = [
-        g for g in gates if g.workflow == target.workflow and g.job == target.job
-    ]
+    matches = [g for g in gates if g.workflow == target.workflow and g.job == target.job]
     if not matches:
         raise RuntimeError(
             f"baseline target {target.slug!r} resolved to 0 gates for "
@@ -2664,7 +2623,8 @@ def write_baseline_nodeids(target: BaselineTarget, nodeids: Iterable[str]) -> No
     BASELINES_DIR.mkdir(parents=True, exist_ok=True)
     body = "\n".join(sorted(nodeids))
     _baseline_path(target).write_text(
-        _baseline_header(target) + "\n" + body + "\n", encoding="utf-8",
+        _baseline_header(target) + "\n" + body + "\n",
+        encoding="utf-8",
     )
 
 

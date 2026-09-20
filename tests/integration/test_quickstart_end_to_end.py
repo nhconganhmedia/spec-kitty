@@ -101,9 +101,7 @@ def _write_charter_and_metadata(repo: Path) -> None:
         encoding="utf-8",
     )
     for name in ("governance.yaml", "directives.yaml", "references.yaml"):
-        (charter_dir / name).write_text(
-            "schema_version: '1'\n", encoding="utf-8"
-        )
+        (charter_dir / name).write_text("schema_version: '1'\n", encoding="utf-8")
 
 
 def _write_built_in_only_manifest(repo: Path) -> None:
@@ -189,16 +187,11 @@ def _parse_json_stdout(stdout: str) -> dict[str, Any]:
 
 
 class TestStep1_FreshnessAndLint:
-    def test_step1_charter_status_json_has_freshness_shape(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step1_charter_status_json_has_freshness_shape(self, tmp_path: Path) -> None:
         _seed_minimum_repo(tmp_path)
 
         result = _invoke_charter(tmp_path, "status", "--json")
-        assert result.exit_code == 0, (
-            f"charter status failed: exit={result.exit_code} "
-            f"stdout={result.stdout!r} exc={result.exception!r}"
-        )
+        assert result.exit_code == 0, f"charter status failed: exit={result.exit_code} stdout={result.stdout!r} exc={result.exception!r}"
 
         payload = _parse_json_stdout(result.stdout)
         assert "freshness" in payload, payload.keys()
@@ -215,9 +208,7 @@ class TestStep1_FreshnessAndLint:
             assert "last_change" in sub, f"{sub_name} missing last_change"
             assert "remediation" in sub, f"{sub_name} missing remediation"
 
-    def test_step1_charter_lint_runs_on_fresh_checkout(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step1_charter_lint_runs_on_fresh_checkout(self, tmp_path: Path) -> None:
         """``charter lint`` is invokable on a freshly-cloned repo.
 
         The quickstart promises ``graph_state="built_in_only"`` from the
@@ -234,10 +225,7 @@ class TestStep1_FreshnessAndLint:
         result = _invoke_charter(tmp_path, "lint", "--json")
         # Lint may report findings (non-zero exit isn't a smoke failure); the
         # assertion is that it produced a parseable JSON payload.
-        assert result.stdout.strip(), (
-            f"charter lint produced no JSON: exit={result.exit_code} "
-            f"stdout={result.stdout!r} exc={result.exception!r}"
-        )
+        assert result.stdout.strip(), f"charter lint produced no JSON: exit={result.exit_code} stdout={result.stdout!r} exc={result.exception!r}"
         parsed = _parse_json_stdout(result.stdout)
         assert isinstance(parsed, dict), parsed
 
@@ -248,9 +236,7 @@ class TestStep1_FreshnessAndLint:
 
 
 class TestStep2_PreflightBlocksAndAutoRefresh:
-    def test_step2_preflight_json_blocks_with_reason(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step2_preflight_json_blocks_with_reason(self, tmp_path: Path) -> None:
         """No manifest -> ``synthesized_drg`` missing -> preflight blocks."""
         _seed_minimum_repo(tmp_path)
         _write_charter_and_metadata(tmp_path)
@@ -259,10 +245,7 @@ class TestStep2_PreflightBlocksAndAutoRefresh:
         result = _invoke_charter(tmp_path, "preflight", "--json")
 
         # Per contract, blocked-without-strict still exits 0.
-        assert result.exit_code == 0, (
-            f"preflight unexpectedly failed: exit={result.exit_code} "
-            f"stdout={result.stdout!r} exc={result.exception!r}"
-        )
+        assert result.exit_code == 0, f"preflight unexpectedly failed: exit={result.exit_code} stdout={result.stdout!r} exc={result.exception!r}"
         payload = _parse_json_stdout(result.stdout)
         assert payload["passed"] is False, payload
         assert payload["blocked_reason"] is not None, payload
@@ -270,15 +253,9 @@ class TestStep2_PreflightBlocksAndAutoRefresh:
         # the canonical remediation command (per the contract).
         reason = payload["blocked_reason"]
         assert isinstance(reason, str) and reason, reason
-        assert (
-            "synthesized_drg" in reason
-            or "synthesize" in reason
-            or "charter status" in reason
-        ), reason
+        assert "synthesized_drg" in reason or "synthesize" in reason or "charter status" in reason, reason
 
-    def test_step2_preflight_auto_refresh_records_actions(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step2_preflight_auto_refresh_records_actions(self, tmp_path: Path) -> None:
         """``--auto-refresh`` produces ``auto_refresh_applied=True`` and an
         actions list.
 
@@ -292,14 +269,9 @@ class TestStep2_PreflightBlocksAndAutoRefresh:
         _write_charter_and_metadata(tmp_path)
         # Repo is clean (no git init -> empty porcelain output anyway).
 
-        result = _invoke_charter(
-            tmp_path, "preflight", "--auto-refresh", "--json"
-        )
+        result = _invoke_charter(tmp_path, "preflight", "--auto-refresh", "--json")
         # Non-strict block still exits 0.
-        assert result.exit_code == 0, (
-            f"preflight --auto-refresh failed: exit={result.exit_code} "
-            f"stdout={result.stdout!r} exc={result.exception!r}"
-        )
+        assert result.exit_code == 0, f"preflight --auto-refresh failed: exit={result.exit_code} stdout={result.stdout!r} exc={result.exception!r}"
 
         payload = _parse_json_stdout(result.stdout)
         # Contract: ``auto_refresh_applied`` and ``auto_refresh_actions``
@@ -334,9 +306,7 @@ class TestStep2_PreflightBlocksAndAutoRefresh:
 
 
 class TestStep3_SynthesizePostCondition:
-    def test_step3_built_in_only_state_is_recognised_by_freshness(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step3_built_in_only_state_is_recognised_by_freshness(self, tmp_path: Path) -> None:
         """Quickstart Step 3 post-condition: after synthesize either
         ``graph.yaml`` exists OR the manifest reports ``built_in_only=true``.
 
@@ -404,9 +374,7 @@ def _has_built_in_doctrine() -> bool:
 
 
 class TestStep4_PackValidatorVocabulary:
-    def test_step4a_same_id_advisory_uses_reworded_message(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step4a_same_id_advisory_uses_reworded_message(self, tmp_path: Path) -> None:
         """Step 4 setup: same-ID with NO intent -> reworded advisory."""
         if not _has_built_in_doctrine():
             pytest.skip("shipped doctrine not on disk in this environment")
@@ -416,25 +384,15 @@ class TestStep4_PackValidatorVocabulary:
         _write_pack_tactic(tmp_path, artifact_id=_BUILT_IN_TACTIC_ID)
         result = validate_pack(tmp_path)
 
-        matched = [
-            a
-            for a in result.advisories
-            if a.artifact_id == _BUILT_IN_TACTIC_ID
-            and a.category == "same_id_collision"
-        ]
-        assert matched, (
-            f"Same-ID collision MUST emit an advisory. "
-            f"Saw: {result.advisories}"
-        )
+        matched = [a for a in result.advisories if a.artifact_id == _BUILT_IN_TACTIC_ID and a.category == "same_id_collision"]
+        assert matched, f"Same-ID collision MUST emit an advisory. Saw: {result.advisories}"
         # Message must mention field-merge and recommend both intent fields.
         msg = matched[0].message
         assert "field-merge" in msg, msg
         assert f"enhances: {_BUILT_IN_TACTIC_ID}" in msg, msg
         assert f"overrides: {_BUILT_IN_TACTIC_ID}" in msg, msg
 
-    def test_step4b_inline_enhances_is_rejected_after_hard_cutover(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step4b_inline_enhances_is_rejected_after_hard_cutover(self, tmp_path: Path) -> None:
         """Inline ``enhances`` is retired; DRG fragment edges own relationships."""
         if not _has_built_in_doctrine():
             pytest.skip("shipped doctrine not on disk in this environment")
@@ -450,15 +408,11 @@ class TestStep4_PackValidatorVocabulary:
 
         assert result.ok is False
         assert any(
-            issue.artifact_id == _BUILT_IN_TACTIC_ID
-            and issue.category == "schema_invalid"
-            and "Retired relationship field(s) 'enhances'" in issue.message
+            issue.artifact_id == _BUILT_IN_TACTIC_ID and issue.category == "schema_invalid" and "Retired relationship field(s) 'enhances'" in issue.message
             for issue in result.errors
         ), result.errors
 
-    def test_step4b_unknown_enhances_target_errors(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step4b_unknown_enhances_target_errors(self, tmp_path: Path) -> None:
         """``enhances: <bogus-id>`` -> hard ``unknown_target`` ERROR (FR-012)."""
         if not _has_built_in_doctrine():
             pytest.skip("shipped doctrine not on disk in this environment")
@@ -473,16 +427,9 @@ class TestStep4_PackValidatorVocabulary:
         result = validate_pack(tmp_path)
 
         assert result.ok is False, result.advisories
-        unknown = [
-            e for e in result.errors if e.category == "unknown_target"
-        ]
-        assert unknown, (
-            f"Unknown enhances target MUST produce unknown_target error. "
-            f"Saw: {result.errors}"
-        )
-        assert "totally-bogus-built-in-id-zzz" in unknown[0].message, (
-            unknown[0].message
-        )
+        unknown = [e for e in result.errors if e.category == "unknown_target"]
+        assert unknown, f"Unknown enhances target MUST produce unknown_target error. Saw: {result.errors}"
+        assert "totally-bogus-built-in-id-zzz" in unknown[0].message, unknown[0].message
 
 
 # ---------------------------------------------------------------------------
@@ -491,9 +438,7 @@ class TestStep4_PackValidatorVocabulary:
 
 
 _FORBIDDEN_LAYER_LABEL = "shipped"
-_LAYER_LABEL_KEYS = frozenset(
-    {"source", "layer", "provenance", "layer_label"}
-)
+_LAYER_LABEL_KEYS = frozenset({"source", "layer", "provenance", "layer_label"})
 
 
 def _iter_layer_label_values(payload: Any):
@@ -509,9 +454,7 @@ def _iter_layer_label_values(payload: Any):
 
 
 class TestStep5_NoShippedLayerLabel:
-    def test_step5_charter_status_json_has_no_shipped_layer_label(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step5_charter_status_json_has_no_shipped_layer_label(self, tmp_path: Path) -> None:
         _seed_minimum_repo(tmp_path)
         _write_charter_and_metadata(tmp_path)
         _write_built_in_only_manifest(tmp_path)
@@ -520,19 +463,10 @@ class TestStep5_NoShippedLayerLabel:
         assert result.exit_code == 0, result.stdout
         payload = _parse_json_stdout(result.stdout)
 
-        violations = [
-            v
-            for v in _iter_layer_label_values(payload)
-            if v == _FORBIDDEN_LAYER_LABEL
-        ]
-        assert violations == [], (
-            f"charter status --json emitted forbidden layer label "
-            f"{_FORBIDDEN_LAYER_LABEL!r}; payload keys: {payload.keys()}"
-        )
+        violations = [v for v in _iter_layer_label_values(payload) if v == _FORBIDDEN_LAYER_LABEL]
+        assert violations == [], f"charter status --json emitted forbidden layer label {_FORBIDDEN_LAYER_LABEL!r}; payload keys: {payload.keys()}"
 
-    def test_step5_preflight_json_has_no_shipped_layer_label(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step5_preflight_json_has_no_shipped_layer_label(self, tmp_path: Path) -> None:
         _seed_minimum_repo(tmp_path)
         _write_charter_and_metadata(tmp_path)
         _write_built_in_only_manifest(tmp_path)
@@ -541,19 +475,10 @@ class TestStep5_NoShippedLayerLabel:
         assert result.exit_code == 0, result.stdout
         payload = _parse_json_stdout(result.stdout)
 
-        violations = [
-            v
-            for v in _iter_layer_label_values(payload)
-            if v == _FORBIDDEN_LAYER_LABEL
-        ]
-        assert violations == [], (
-            f"charter preflight --json emitted forbidden layer label "
-            f"{_FORBIDDEN_LAYER_LABEL!r}; payload: {payload}"
-        )
+        violations = [v for v in _iter_layer_label_values(payload) if v == _FORBIDDEN_LAYER_LABEL]
+        assert violations == [], f"charter preflight --json emitted forbidden layer label {_FORBIDDEN_LAYER_LABEL!r}; payload: {payload}"
 
-    def test_step5_pack_validate_json_has_no_shipped_layer_label(
-        self, tmp_path: Path
-    ) -> None:
+    def test_step5_pack_validate_json_has_no_shipped_layer_label(self, tmp_path: Path) -> None:
         """``pack validate --json`` must not surface ``"shipped"``."""
         if not _has_built_in_doctrine():
             pytest.skip("shipped doctrine not on disk in this environment")
@@ -576,12 +501,5 @@ class TestStep5_NoShippedLayerLabel:
         assert captured, "pack validate produced no JSON"
 
         parsed = json.loads(captured)
-        violations = [
-            v
-            for v in _iter_layer_label_values(parsed)
-            if v == _FORBIDDEN_LAYER_LABEL
-        ]
-        assert violations == [], (
-            f"pack validate --json emitted forbidden layer label "
-            f"{_FORBIDDEN_LAYER_LABEL!r}; payload: {parsed}"
-        )
+        violations = [v for v in _iter_layer_label_values(parsed) if v == _FORBIDDEN_LAYER_LABEL]
+        assert violations == [], f"pack validate --json emitted forbidden layer label {_FORBIDDEN_LAYER_LABEL!r}; payload: {parsed}"

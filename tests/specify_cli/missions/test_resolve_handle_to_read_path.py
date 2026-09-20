@@ -57,13 +57,7 @@ def _write_primary_meta(repo_root: Path, slug: str, meta: dict[str, object]) -> 
 
 def _make_coord_mission_dir(repo_root: Path, slug: str, mid8: str) -> Path:
     """Materialise the real ``.worktrees/<slug>-<mid8>-coord/...`` mission dir."""
-    coord_dir = (
-        repo_root
-        / ".worktrees"
-        / f"{slug}-{mid8}-coord"
-        / "kitty-specs"
-        / f"{slug}-{mid8}"
-    )
+    coord_dir = repo_root / ".worktrees" / f"{slug}-{mid8}-coord" / "kitty-specs" / f"{slug}-{mid8}"
     coord_dir.mkdir(parents=True)
     return coord_dir
 
@@ -108,9 +102,7 @@ class TestResolveHandleToReadPath:
 
         assert result == coord_dir
 
-    def test_c_declared_but_unmaterialized_coord_returns_primary(
-        self, tmp_path: Path
-    ) -> None:
+    def test_c_declared_but_unmaterialized_coord_returns_primary(self, tmp_path: Path) -> None:
         """(c) #1718 trap: coord DECLARED but NOT on disk + bare slug → PRIMARY.
 
         The primary ``meta.json`` both declares a ``coordination_branch`` AND
@@ -133,14 +125,9 @@ class TestResolveHandleToReadPath:
 
         result = resolve_handle_to_read_path(tmp_path, SLUG)
 
-        assert result == primary_dir, (
-            "#1718: a declared-but-unmaterialised coord must resolve PRIMARY "
-            f"(expected {primary_dir}, got {result})."
-        )
+        assert result == primary_dir, f"#1718: a declared-but-unmaterialised coord must resolve PRIMARY (expected {primary_dir}, got {result})."
 
-    def test_d_traversal_handle_raises_before_composition(
-        self, tmp_path: Path
-    ) -> None:
+    def test_d_traversal_handle_raises_before_composition(self, tmp_path: Path) -> None:
         """(d) a traversal handle is rejected at ``assert_safe_path_segment``.
 
         The guard fires FIRST (FR-004), before any ``kitty-specs`` join, so the
@@ -150,9 +137,7 @@ class TestResolveHandleToReadPath:
         with pytest.raises(ValueError):
             resolve_handle_to_read_path(tmp_path, "../../etc/passwd")
 
-    def test_e_declared_coord_no_derivable_mid8_fails_closed(
-        self, tmp_path: Path
-    ) -> None:
+    def test_e_declared_coord_no_derivable_mid8_fails_closed(self, tmp_path: Path) -> None:
         """(e) coord DECLARED + no derivable mid8 → fail-closed typed raise (M5).
 
         A bare slug (no ``-<mid8>`` tail) whose primary ``meta.json`` declares a
@@ -176,9 +161,7 @@ class TestResolveHandleToReadPath:
         assert exc_info.value.mission_slug == SLUG
         assert exc_info.value.mid8 == ""
 
-    def test_require_exists_forwarded_raises_on_absence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_require_exists_forwarded_raises_on_absence(self, tmp_path: Path) -> None:
         """``require_exists=True`` forwards to the resolver: genuine absence RAISES.
 
         Load-bearing for WP04's equivalence-matrix re-point (coord-empty /

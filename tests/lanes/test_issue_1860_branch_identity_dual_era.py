@@ -61,16 +61,10 @@ class TestComposeDualEra:
     """The fail-closed composer resolves both eras, rejects only unresolvable."""
 
     def test_legacy_compose_resolves(self):
-        assert (
-            mission_branch_name_required("042-foo", None)
-            == "kitty/mission-042-foo"
-        )
+        assert mission_branch_name_required("042-foo", None) == "kitty/mission-042-foo"
 
     def test_modern_compose_with_id_resolves(self):
-        assert (
-            mission_branch_name_required("foo", _MODERN_ID)
-            == "kitty/mission-foo-01KNXQS9"
-        )
+        assert mission_branch_name_required("foo", _MODERN_ID) == "kitty/mission-foo-01KNXQS9"
 
     def test_unresolvable_modern_fails_closed(self):
         # The single genuinely-wrong case: modern slug, no id, no mid8 tail.
@@ -122,24 +116,16 @@ class TestRecoveryComposeDualEra:
 
         feature_dir = tmp_path / "foo"
         feature_dir.mkdir()
-        (feature_dir / "meta.json").write_text(
-            json.dumps({"mission_id": _MODERN_ID}), encoding="utf-8"
-        )
+        (feature_dir / "meta.json").write_text(json.dumps({"mission_id": _MODERN_ID}), encoding="utf-8")
         # No lanes.json → falls through to fail-closed compose using meta id.
-        assert (
-            _resolve_mission_branch(feature_dir, "foo")
-            == "kitty/mission-foo-01KNXQS9"
-        )
+        assert _resolve_mission_branch(feature_dir, "foo") == "kitty/mission-foo-01KNXQS9"
 
     def test_legacy_slug_without_meta_resolves(self, tmp_path):
         from specify_cli.lanes.recovery import _resolve_mission_branch
 
         feature_dir = tmp_path / "042-foo"
         feature_dir.mkdir()  # no meta.json
-        assert (
-            _resolve_mission_branch(feature_dir, "042-foo")
-            == "kitty/mission-042-foo"
-        )
+        assert _resolve_mission_branch(feature_dir, "042-foo") == "kitty/mission-042-foo"
 
     def test_unresolvable_modern_recovery_fails_closed(self, tmp_path):
         from specify_cli.lanes.recovery import _resolve_mission_branch
@@ -160,12 +146,7 @@ class TestManifestDiscoveryDualEra:
 
         class _Result:
             returncode = 0
-            stdout = (
-                "  kitty/mission-foo-01KNXQS9-lane-a\n"
-                "  kitty/mission-042-bar-lane-a\n"
-                "  042-legacy-feature\n"
-                "  main\n"
-            )
+            stdout = "  kitty/mission-foo-01KNXQS9-lane-a\n  kitty/mission-042-bar-lane-a\n  042-legacy-feature\n  main\n"
 
         def _fake_run(*args, **kwargs):  # noqa: ANN002, ANN003
             return _Result()

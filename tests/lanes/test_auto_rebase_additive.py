@@ -30,9 +30,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _run(cmd: list[str], cwd: Path, *, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd, cwd=str(cwd), capture_output=True, text=True, check=check
-    )
+    return subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, check=check)
 
 
 def _init_repo(tmp_path: Path) -> Path:
@@ -43,14 +41,7 @@ def _init_repo(tmp_path: Path) -> Path:
     _run(["git", "config", "user.email", "test@spec-kitty"], repo)
     _run(["git", "config", "user.name", "test"], repo)
     # Seed with a pyproject.toml.
-    seed = (
-        "[project]\n"
-        'name = "demo"\n'
-        "dependencies = [\n"
-        '  "alpha",\n'
-        '  "bravo",\n'
-        "]\n"
-    )
+    seed = '[project]\nname = "demo"\ndependencies = [\n  "alpha",\n  "bravo",\n]\n'
     (repo / "pyproject.toml").write_text(seed)
     _run(["git", "add", "pyproject.toml"], repo)
     _run(["git", "commit", "-m", "seed"], repo)
@@ -77,7 +68,7 @@ def _make_lane_worktree(repo: Path, mission_slug: str, lane_id: str, branch: str
 
 
 def _write_pyproject(path: Path, deps: list[str]) -> None:
-    body = "[project]\nname = \"demo\"\ndependencies = [\n"
+    body = '[project]\nname = "demo"\ndependencies = [\n'
     for d in deps:
         body += f'  "{d}",\n'
     body += "]\n"
@@ -204,9 +195,7 @@ class TestAutoRebaseAdditive:
         # Lane B's branch with a different additive change.
         branch_b = f"kitty/mission-{mission_slug}-lane-a"
         worktree_b = _make_lane_worktree(repo, mission_slug, "lane-a", branch_b)
-        _write_pyproject(
-            worktree_b / "pyproject.toml", ["alpha", "bravo", "delta"]
-        )
+        _write_pyproject(worktree_b / "pyproject.toml", ["alpha", "bravo", "delta"])
         _run(["git", "add", "pyproject.toml"], worktree_b)
         _run(["git", "config", "user.email", "test@spec-kitty"], worktree_b)
         _run(["git", "config", "user.name", "test"], worktree_b)
@@ -237,9 +226,7 @@ class TestAutoRebaseAdditive:
             assert expected in names, f"expected {expected} in {names}"
 
         # Verify a merge commit landed with the expected message format.
-        log = _run(
-            ["git", "log", "-1", "--pretty=%s"], worktree_b, check=False
-        )
+        log = _run(["git", "log", "-1", "--pretty=%s"], worktree_b, check=False)
         assert log.returncode == 0
         assert "auto-rebase(lane=lane-a)" in log.stdout
         assert "R-PYPROJECT-DEPS-UNION" in log.stdout
@@ -307,10 +294,7 @@ class TestAutoRebaseAdditive:
         )
 
         assert report.succeeded is True, report.halt_reason
-        events = [
-            json.loads(line)
-            for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()
-        ]
+        events = [json.loads(line) for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()]
         assert [event["event_id"] for event in events] == [
             "01AAA000000000000000000001",
             "01BBB000000000000000000002",
@@ -319,15 +303,9 @@ class TestAutoRebaseAdditive:
         assert status["event_count"] == 2
         assert status["work_packages"]["WP08"]["lane"] == "in_progress"
         assert (worktree_b / task_rel).read_text(encoding="utf-8") == "# WP08\ncoordination copy\n"
-        assert json.loads((worktree_b / lanes_rel).read_text(encoding="utf-8")) == {
-            "coordination": True
-        }
+        assert json.loads((worktree_b / lanes_rel).read_text(encoding="utf-8")) == {"coordination": True}
 
-        rule_ids = {
-            classification.resolution.rule_id
-            for classification in report.classifications
-            if hasattr(classification.resolution, "rule_id")
-        }
+        rule_ids = {classification.resolution.rule_id for classification in report.classifications if hasattr(classification.resolution, "rule_id")}
         assert "R-STATUS-EVENTS-JSONL-UNION" in rule_ids
         assert "R-STATUS-JSON-REMATERIALIZE" in rule_ids
         assert "R-COORDINATION-ARTIFACT-THEIRS" in rule_ids
@@ -339,9 +317,7 @@ class TestAutoRebaseAdditive:
         repo = _init_repo(tmp_path)
         mission_slug = "1968-modify-delete"
         mission_branch = f"kitty/mission-{mission_slug}"
-        status_events_rel = (
-            Path("kitty-specs") / mission_slug / "status.events.jsonl"
-        )
+        status_events_rel = Path("kitty-specs") / mission_slug / "status.events.jsonl"
         base_event = _status_event(
             "01AAA000000000000000000001",
             at="2026-06-15T04:00:00Z",
@@ -392,10 +368,13 @@ class TestAutoRebaseAdditive:
         assert "pre-existing lane-side deletion" in report.halt_reason
         assert _run(["git", "rev-parse", "HEAD"], worktree_b).stdout.strip() == pre_sync_head
         assert not (worktree_b / status_events_rel).exists()
-        assert "status.events.jsonl" not in _run(
-            ["git", "status", "--porcelain"],
-            worktree_b,
-        ).stdout
+        assert (
+            "status.events.jsonl"
+            not in _run(
+                ["git", "status", "--porcelain"],
+                worktree_b,
+            ).stdout
+        )
 
     def test_status_events_coordination_delete_conflict_fails_closed(
         self,
@@ -404,9 +383,7 @@ class TestAutoRebaseAdditive:
         repo = _init_repo(tmp_path)
         mission_slug = "1968-coordination-delete"
         mission_branch = f"kitty/mission-{mission_slug}"
-        status_events_rel = (
-            Path("kitty-specs") / mission_slug / "status.events.jsonl"
-        )
+        status_events_rel = Path("kitty-specs") / mission_slug / "status.events.jsonl"
         base_event = _status_event(
             "01AAA000000000000000000001",
             at="2026-06-15T04:00:00Z",
@@ -456,18 +433,18 @@ class TestAutoRebaseAdditive:
         assert report.halt_reason is not None
         assert "refusing status.events.jsonl deletion conflict" in report.halt_reason
         assert _run(["git", "rev-parse", "HEAD"], worktree_b).stdout.strip() == pre_sync_head
-        events = [
-            json.loads(line)
-            for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()
-        ]
+        events = [json.loads(line) for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()]
         assert [event["event_id"] for event in events] == [
             "01AAA000000000000000000001",
             "01CCC000000000000000000003",
         ]
-        assert "status.events.jsonl" not in _run(
-            ["git", "status", "--porcelain"],
-            worktree_b,
-        ).stdout
+        assert (
+            "status.events.jsonl"
+            not in _run(
+                ["git", "status", "--porcelain"],
+                worktree_b,
+            ).stdout
+        )
 
     def test_sparse_status_events_delete_conflict_reapplies_sparse_checkout(
         self,
@@ -551,10 +528,13 @@ class TestAutoRebaseAdditive:
         assert _run(["git", "rev-parse", "HEAD"], worktree_b).stdout.strip() == pre_sync_head
         assert not (worktree_b / status_events_rel).exists()
         assert not (worktree_b / status_json_rel).exists()
-        assert "status.events.jsonl" not in _run(
-            ["git", "status", "--porcelain"],
-            worktree_b,
-        ).stdout
+        assert (
+            "status.events.jsonl"
+            not in _run(
+                ["git", "status", "--porcelain"],
+                worktree_b,
+            ).stdout
+        )
 
     def test_sparse_status_json_uses_index_status_events_when_hidden(
         self,
@@ -646,9 +626,7 @@ class TestAutoRebaseAdditive:
         )
 
         assert report.succeeded is True, report.halt_reason
-        committed_status = json.loads(
-            _run(["git", "show", f"HEAD:{status_json_rel.as_posix()}"], worktree_b).stdout
-        )
+        committed_status = json.loads(_run(["git", "show", f"HEAD:{status_json_rel.as_posix()}"], worktree_b).stdout)
         committed_events = [
             json.loads(line)
             for line in _run(
@@ -750,19 +728,14 @@ class TestAutoRebaseAdditive:
         )
 
         assert report.succeeded is True, report.halt_reason
-        rule_ids = [
-            getattr(classification.resolution, "rule_id", None)
-            for classification in report.classifications
-        ]
+        rule_ids = [getattr(classification.resolution, "rule_id", None) for classification in report.classifications]
         assert rule_ids == [
             "R-STATUS-EVENTS-JSONL-UNION",
             "R-STATUS-JSON-REMATERIALIZE",
         ]
         subject = _run(["git", "log", "-1", "--pretty=%s"], worktree_b).stdout.strip()
         assert subject.startswith("auto-rebase(lane=lane-a): 2 conflicts resolved")
-        committed_status = json.loads(
-            _run(["git", "show", f"HEAD:{status_json_rel.as_posix()}"], worktree_b).stdout
-        )
+        committed_status = json.loads(_run(["git", "show", f"HEAD:{status_json_rel.as_posix()}"], worktree_b).stdout)
         assert committed_status["event_count"] == 3
         assert sorted(committed_status["work_packages"]) == ["WP01", "WP02", "WP03"]
         assert not (worktree_b / status_events_rel).exists()
@@ -928,10 +901,7 @@ class TestAutoRebaseAdditive:
 
         assert report.succeeded is True, report.halt_reason
         committed_status = json.loads((worktree_b / status_json_rel).read_text(encoding="utf-8"))
-        committed_events = [
-            json.loads(line)
-            for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()
-        ]
+        committed_events = [json.loads(line) for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()]
         assert [event["event_id"] for event in committed_events] == [
             "01AAA000000000000000000001",
             "01BBB000000000000000000002",
@@ -1073,10 +1043,7 @@ class TestAutoRebaseAdditive:
 
         assert report.succeeded is True, report.halt_reason
         committed_status = json.loads((worktree_b / status_json_rel).read_text(encoding="utf-8"))
-        committed_events = [
-            json.loads(line)
-            for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()
-        ]
+        committed_events = [json.loads(line) for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()]
         assert [event["event_id"] for event in committed_events] == [
             "01AAA000000000000000000001",
             "01BBB000000000000000000002",
@@ -1094,9 +1061,7 @@ class TestAutoRebaseAdditive:
         repo = _init_repo(tmp_path)
         fake_bin = tmp_path / "fake-bin"
         fake_bin.mkdir()
-        fake_spec_kitty = fake_bin / (
-            "spec-kitty.cmd" if sys.platform == "win32" else "spec-kitty"
-        )
+        fake_spec_kitty = fake_bin / ("spec-kitty.cmd" if sys.platform == "win32" else "spec-kitty")
         if sys.platform == "win32":
             fake_spec_kitty.write_text("@echo off\r\nexit /b 0\r\n", encoding="utf-8")
         else:
@@ -1172,10 +1137,7 @@ class TestAutoRebaseAdditive:
         )
 
         assert report.succeeded is True, report.halt_reason
-        committed_events = [
-            json.loads(line)
-            for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()
-        ]
+        committed_events = [json.loads(line) for line in (worktree_b / status_events_rel).read_text(encoding="utf-8").splitlines()]
         assert [event["event_id"] for event in committed_events] == [
             "01AAA000000000000000000001",
             "01BBB000000000000000000002",
@@ -1277,9 +1239,7 @@ class TestAutoRebaseAdditive:
         )
 
         assert report.succeeded is True, report.halt_reason
-        committed_status = json.loads(
-            _run(["git", "show", f"HEAD:{status_json_rel.as_posix()}"], worktree_b).stdout
-        )
+        committed_status = json.loads(_run(["git", "show", f"HEAD:{status_json_rel.as_posix()}"], worktree_b).stdout)
         committed_events = [
             json.loads(line)
             for line in _run(
@@ -1515,10 +1475,13 @@ class TestAutoRebaseAdditive:
         assert _run(["git", "rev-parse", "HEAD"], worktree_b).stdout.strip() == pre_sync_head
         assert (worktree_b / status_events_rel).exists()
         assert (worktree_b / status_json_rel).exists()
-        assert "status.events.jsonl" not in _run(
-            ["git", "status", "--porcelain"],
-            worktree_b,
-        ).stdout
+        assert (
+            "status.events.jsonl"
+            not in _run(
+                ["git", "status", "--porcelain"],
+                worktree_b,
+            ).stdout
+        )
 
 
 class TestAutoRebaseSemanticConflict:
@@ -1533,16 +1496,12 @@ class TestAutoRebaseSemanticConflict:
         _run(["git", "branch", mission_branch, "main"], repo)
         _run(["git", "checkout", mission_branch], repo)
         (repo / "src").mkdir(parents=True, exist_ok=True)
-        (repo / "src" / "flags.py").write_text(
-            "def enabled():\n    return False\n"
-        )
+        (repo / "src" / "flags.py").write_text("def enabled():\n    return False\n")
         _run(["git", "add", "src/flags.py"], repo)
         _run(["git", "commit", "-m", "mission: add flags"], repo)
 
         # Modify on mission branch.
-        (repo / "src" / "flags.py").write_text(
-            "def enabled():\n    # Mission's preferred body\n    return False\n"
-        )
+        (repo / "src" / "flags.py").write_text("def enabled():\n    # Mission's preferred body\n    return False\n")
         _run(["git", "add", "src/flags.py"], repo)
         _run(["git", "commit", "-m", "mission: modify flags"], repo)
         _run(["git", "checkout", "main"], repo)
@@ -1553,9 +1512,7 @@ class TestAutoRebaseSemanticConflict:
         _run(["git", "config", "user.email", "test@spec-kitty"], worktree_b)
         _run(["git", "config", "user.name", "test"], worktree_b)
         (worktree_b / "src").mkdir(parents=True, exist_ok=True)
-        (worktree_b / "src" / "flags.py").write_text(
-            "def enabled():\n    # Lane's preferred body\n    return True\n"
-        )
+        (worktree_b / "src" / "flags.py").write_text("def enabled():\n    # Lane's preferred body\n    return True\n")
         _run(["git", "add", "src/flags.py"], worktree_b)
         _run(["git", "commit", "-m", "lane: modify flags"], worktree_b)
 
@@ -1572,10 +1529,7 @@ class TestAutoRebaseSemanticConflict:
         assert report.succeeded is False
         assert report.halt_reason is not None
         # The default rule's reason mentions the unmatched path.
-        assert (
-            "no classifier rule matched" in report.halt_reason
-            or "src/flags.py" in report.halt_reason
-        )
+        assert "no classifier rule matched" in report.halt_reason or "src/flags.py" in report.halt_reason
 
         # Lane B worktree must be clean (merge --abort ran).
         status = _run(["git", "status", "--porcelain"], worktree_b)

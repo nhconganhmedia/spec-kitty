@@ -177,9 +177,7 @@ class CodeReadingCollector:
         "unknown" ``CodeSignals`` instance rather than propagating them.
         """
         if not self._repo_root.exists():
-            raise CodeReadingError(
-                f"Repository root does not exist: {self._repo_root}"
-            )
+            raise CodeReadingError(f"Repository root does not exist: {self._repo_root}")
 
         try:
             return self._detect()
@@ -193,13 +191,9 @@ class CodeReadingCollector:
     def _detect(self) -> CodeSignals:
         scan = self._scan_tree()
 
-        language = self._detect_language(
-            scan.indicator_files, scan.ts_files, scan.js_files
-        )
+        language = self._detect_language(scan.indicator_files, scan.ts_files, scan.js_files)
         frameworks = self._detect_frameworks(scan.indicator_files)
-        test_fws = self._detect_test_frameworks(
-            scan.indicator_files, scan.test_files, language
-        )
+        test_fws = self._detect_test_frameworks(scan.indicator_files, scan.test_files, language)
         stack_id = self._build_stack_id(language, frameworks, test_fws)
 
         # representative files (5 source + 5 test)
@@ -239,15 +233,11 @@ class CodeReadingCollector:
                 continue
 
             # Prune excluded directories in-place so os.walk skips them
-            dirnames[:] = [
-                d for d in dirnames if d not in EXCLUDED_DIRS
-            ]
+            dirnames[:] = [d for d in dirnames if d not in EXCLUDED_DIRS]
 
             for filename in filenames:
                 abs_path = os.path.join(dirpath, filename)
-                rel_path = os.path.relpath(abs_path, root_str).replace(
-                    os.sep, "/"
-                )
+                rel_path = os.path.relpath(abs_path, root_str).replace(os.sep, "/")
 
                 # Track indicator filenames for language/framework detection
                 indicator_files.add(filename)

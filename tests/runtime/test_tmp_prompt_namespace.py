@@ -80,9 +80,7 @@ class TestPromptTmpDir:
 
 class TestPromptBuilderNamespaced:
     def test_write_to_temp_is_namespaced(self, tmp_path: Path) -> None:
-        path = _write_to_temp(
-            "implement", "WP01", "content", agent="claude", mission_slug="042-feat", repo_root=tmp_path
-        )
+        path = _write_to_temp("implement", "WP01", "content", agent="claude", mission_slug="042-feat", repo_root=tmp_path)
         try:
             _assert_under_namespace(path, tmp_path)
             # Return-contract: consumers read the returned path directly.

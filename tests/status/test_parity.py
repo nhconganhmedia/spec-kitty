@@ -460,9 +460,7 @@ class TestReducerDeterminism:
         # All active/display lane counts should be zero (NON_DISPLAY_LANES excluded)
         for lane in Lane:
             if lane in NON_DISPLAY_LANES:
-                assert lane.value not in snap_a.summary, (
-                    f"{lane.value} must not appear in the summary (non-display invariant)"
-                )
+                assert lane.value not in snap_a.summary, f"{lane.value} must not appear in the summary (non-display invariant)"
             else:
                 assert snap_a.summary[lane.value] == 0
 

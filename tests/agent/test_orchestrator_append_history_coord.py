@@ -46,21 +46,11 @@ COORD_BRANCH = f"kitty/mission-{MISSION_DIRNAME}"
 # here (FR-003), so it is a NON-protected feature branch the operator is on.
 TARGET_BRANCH = "feat/hist-target"
 
-_WP_FILE = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: Test WP01\n"
-    "dependencies: []\n"
-    "---\n\n"
-    "# WP01\n\n"
-    "## Activity Log\n"
-)
+_WP_FILE = "---\nwork_package_id: WP01\ntitle: Test WP01\ndependencies: []\n---\n\n# WP01\n\n## Activity Log\n"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 @pytest.fixture
@@ -149,8 +139,7 @@ def test_append_history_emits_note_annotation_wp_file_unchanged(coord_repo: Path
         text=True,
     )
     assert "Starting implementation" not in coord_show.stdout, (
-        "WP-prompt edit leaked onto the coordination branch -- append-history "
-        "must no longer write the WP file at all (WP08 / FR-007)."
+        "WP-prompt edit leaked onto the coordination branch -- append-history must no longer write the WP file at all (WP08 / FR-007)."
     )
 
     # The annotation itself lands in the coordination worktree's STATUS

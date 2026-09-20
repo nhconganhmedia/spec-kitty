@@ -64,7 +64,7 @@ runner = CliRunner()
 # Full 26-character Crockford base-32 ULID (production-shaped).
 _FULL_ULID: str = "01KVJPEQ7M3K8N2QXR4VBZ9HCD"
 # The 8-character mid8 disambiguator.
-_MID8: str = _FULL_ULID[:8]          # "01KVJPEQ"
+_MID8: str = _FULL_ULID[:8]  # "01KVJPEQ"
 # The bare human slug (no mid8 suffix — this is what the operator types).
 _BARE_SLUG: str = "e2e-coord-proof"
 # The canonical ``<slug>-<mid8>`` directory name used for the coord worktree.
@@ -104,6 +104,7 @@ _COORD_STATUS_EVENT_ID_2: str = "01KVJPEQ7M0000000000000002"  # claimed → in_p
 # ---------------------------------------------------------------------------
 # Shared fixture builder
 # ---------------------------------------------------------------------------
+
 
 def _build_coord_fresh_mission(repo_root: Path) -> Path:
     """Materialise a coord-fresh mission on disk; return the COORD mission dir.
@@ -216,6 +217,7 @@ def _build_coord_fresh_mission(repo_root: Path) -> Path:
 # T022a — agent tasks status (MANDATORY headline proof)
 # ---------------------------------------------------------------------------
 
+
 class TestAgentTasksStatusCoordResolution:
     """T022a: ``agent tasks status --mission <bare-slug>`` resolves the coord dir.
 
@@ -259,9 +261,7 @@ class TestAgentTasksStatusCoordResolution:
             captured["resolved"] = result
             return result
 
-        workspace = SimpleNamespace(
-            execution_mode="code_change", resolution_kind="lane_workspace"
-        )
+        workspace = SimpleNamespace(execution_mode="code_change", resolution_kind="lane_workspace")
         with (
             setup_mocked_env(
                 tmp_path,
@@ -279,10 +279,7 @@ class TestAgentTasksStatusCoordResolution:
             )
 
         # The CLI must have called the seam and received the coord dir.
-        assert "resolved" in captured, (
-            "resolve_handle_to_read_path was never called — "
-            "the CLI did not route through the seam"
-        )
+        assert "resolved" in captured, "resolve_handle_to_read_path was never called — the CLI did not route through the seam"
         resolved_dir = captured["resolved"]
 
         # Core coord assertion: the seam returned the COORD dir, not the primary.
@@ -293,18 +290,14 @@ class TestAgentTasksStatusCoordResolution:
             f"  Got:                {resolved_dir}\n"
             f"  Primary (must NOT): {primary_dir}"
         )
-        assert resolved_dir != primary_dir, (
-            "Resolved dir equals the PRIMARY checkout — coord was not selected"
-        )
+        assert resolved_dir != primary_dir, "Resolved dir equals the PRIMARY checkout — coord was not selected"
 
         # Observable-behavior assertions (squad: born-green-framing). Proving the
         # seam is CALLED is not enough — ``status()`` must actually CONSUME the
         # resolved dirs.  (a) exit_code 0: a status() that fell into the not-found
         # ``Exit(1)`` branch (empty tasks dir or unresolved feature_dir) is caught here.
         assert result.exit_code == 0, (
-            "agent tasks status did NOT exit 0 — status() did not consume the "
-            f"resolved dirs.\n  stdout: {result.stdout}\n"
-            f"  exc: {result.exception!r}"
+            f"agent tasks status did NOT exit 0 — status() did not consume the resolved dirs.\n  stdout: {result.stdout}\n  exc: {result.exception!r}"
         )
         # (b) per-leg signal (#2115/#2106, C-001 — WP03): the tasks/ ENUMERATION
         # leg routes to PRIMARY, so the WP LIST reflects the primary tasks/ dir.
@@ -335,13 +328,8 @@ class TestAgentTasksStatusCoordResolution:
         # catching the regression that the spy-return assertion alone cannot.
         output_data = json.loads(result.stdout)
         wp_list = output_data.get("work_packages", [])
-        wp01_data = next(
-            (wp for wp in wp_list if wp.get("id") == _PRIMARY_ONLY_WP), None
-        )
-        assert wp01_data is not None, (
-            f"{_PRIMARY_ONLY_WP!r} must appear in JSON 'work_packages'.\n"
-            f"  work_packages: {wp_list}\n  stdout: {result.stdout}"
-        )
+        wp01_data = next((wp for wp in wp_list if wp.get("id") == _PRIMARY_ONLY_WP), None)
+        assert wp01_data is not None, f"{_PRIMARY_ONLY_WP!r} must appear in JSON 'work_packages'.\n  work_packages: {wp_list}\n  stdout: {result.stdout}"
         assert wp01_data.get("lane") == "in_progress", (
             f"WP01 lane must be 'in_progress' from COORD events — "
             f"got {wp01_data.get('lane')!r}.\n"
@@ -364,9 +352,7 @@ class TestAgentTasksStatusCoordResolution:
             captured["resolved"] = result
             return result
 
-        workspace = SimpleNamespace(
-            execution_mode="code_change", resolution_kind="lane_workspace"
-        )
+        workspace = SimpleNamespace(execution_mode="code_change", resolution_kind="lane_workspace")
         with (
             setup_mocked_env(
                 tmp_path,
@@ -384,14 +370,13 @@ class TestAgentTasksStatusCoordResolution:
             )
 
         assert "resolved" in captured, "resolve_handle_to_read_path not called"
-        assert captured["resolved"] == coord_dir, (
-            f"Full handle resolved {captured['resolved']!r} instead of coord dir {coord_dir!r}"
-        )
+        assert captured["resolved"] == coord_dir, f"Full handle resolved {captured['resolved']!r} instead of coord dir {coord_dir!r}"
 
 
 # ---------------------------------------------------------------------------
 # T022b — agent context (via _find_feature_directory)
 # ---------------------------------------------------------------------------
+
 
 class TestAgentContextCoordResolution:
     """T022b: ``agent context._find_feature_directory`` resolves the coord dir.
@@ -409,9 +394,7 @@ class TestAgentContextCoordResolution:
         coord_dir = _build_coord_fresh_mission(tmp_path)
         primary_dir = tmp_path / "kitty-specs" / _BARE_SLUG
 
-        resolved = _find_feature_directory(
-            tmp_path, tmp_path, explicit_mission=_BARE_SLUG
-        )
+        resolved = _find_feature_directory(tmp_path, tmp_path, explicit_mission=_BARE_SLUG)
 
         # Must be the coord dir, not the primary.
         assert resolved == coord_dir, (
@@ -428,18 +411,15 @@ class TestAgentContextCoordResolution:
 
         coord_dir = _build_coord_fresh_mission(tmp_path)
 
-        resolved = _find_feature_directory(
-            tmp_path, tmp_path, explicit_mission=_MISSION_DIR
-        )
+        resolved = _find_feature_directory(tmp_path, tmp_path, explicit_mission=_MISSION_DIR)
 
-        assert resolved == coord_dir, (
-            f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
-        )
+        assert resolved == coord_dir, f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
 
 
 # ---------------------------------------------------------------------------
 # T022c — agent mission (via _find_feature_directory)
 # ---------------------------------------------------------------------------
+
 
 class TestAgentMissionCoordResolution:
     """T022c: ``agent mission._find_feature_directory`` resolves the coord dir.
@@ -455,9 +435,7 @@ class TestAgentMissionCoordResolution:
         coord_dir = _build_coord_fresh_mission(tmp_path)
         primary_dir = tmp_path / "kitty-specs" / _BARE_SLUG
 
-        resolved = _find_feature_directory(
-            tmp_path, tmp_path, explicit_feature=_BARE_SLUG
-        )
+        resolved = _find_feature_directory(tmp_path, tmp_path, explicit_feature=_BARE_SLUG)
 
         assert resolved == coord_dir, (
             f"Bare slug resolved primary instead of coord dir.\n"
@@ -473,18 +451,15 @@ class TestAgentMissionCoordResolution:
 
         coord_dir = _build_coord_fresh_mission(tmp_path)
 
-        resolved = _find_feature_directory(
-            tmp_path, tmp_path, explicit_feature=_MISSION_DIR
-        )
+        resolved = _find_feature_directory(tmp_path, tmp_path, explicit_feature=_MISSION_DIR)
 
-        assert resolved == coord_dir, (
-            f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
-        )
+        assert resolved == coord_dir, f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
 
 
 # ---------------------------------------------------------------------------
 # T022d — decision verify (via resolve_handle_to_read_path directly)
 # ---------------------------------------------------------------------------
+
 
 class TestDecisionCoordResolution:
     """T022d: ``decision.cmd_verify`` routes through the seam to the coord dir.
@@ -522,14 +497,13 @@ class TestDecisionCoordResolution:
 
         resolved = resolve_handle_to_read_path(tmp_path, _MISSION_DIR)
 
-        assert resolved == coord_dir, (
-            f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
-        )
+        assert resolved == coord_dir, f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
 
 
 # ---------------------------------------------------------------------------
 # T022e — acceptance._status_read_feature_dir (coord resolution)
 # ---------------------------------------------------------------------------
+
 
 class TestAcceptanceCoordResolution:
     """T022e: ``acceptance._status_read_feature_dir`` resolves the coord dir.
@@ -583,14 +557,13 @@ class TestAcceptanceCoordResolution:
 
         resolved = _status_read_feature_dir(tmp_path, _MISSION_DIR, primary_dir)
 
-        assert resolved == coord_dir, (
-            f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
-        )
+        assert resolved == coord_dir, f"Full handle resolved {resolved!r} instead of coord dir {coord_dir!r}"
 
 
 # ---------------------------------------------------------------------------
 # T024 — traversal rejection (FR-004, NFR-002)
 # ---------------------------------------------------------------------------
+
 
 class TestTraversalRejection:
     """T024: traversal handles are rejected before any path composition.
@@ -601,9 +574,7 @@ class TestTraversalRejection:
     """
 
     @pytest.mark.parametrize("handle", ["../etc", "a/b", "../sneaky"])
-    def test_traversal_handle_raises_value_error(
-        self, tmp_path: Path, handle: str
-    ) -> None:
+    def test_traversal_handle_raises_value_error(self, tmp_path: Path, handle: str) -> None:
         """A ``/`` or leading ``..`` in the handle raises ValueError (no path composed)."""
         from specify_cli.missions._read_path_resolver import resolve_handle_to_read_path
 
@@ -611,9 +582,7 @@ class TestTraversalRejection:
             resolve_handle_to_read_path(tmp_path, handle)
 
     @pytest.mark.parametrize("handle", ["../etc", "a/b"])
-    def test_context_find_feature_directory_rejects_traversal(
-        self, tmp_path: Path, handle: str
-    ) -> None:
+    def test_context_find_feature_directory_rejects_traversal(self, tmp_path: Path, handle: str) -> None:
         """``agent context._find_feature_directory`` rejects traversal payloads."""
         from mission_runtime import ActionContextError
         from specify_cli.cli.commands.agent.context import _find_feature_directory
@@ -624,9 +593,7 @@ class TestTraversalRejection:
             _find_feature_directory(tmp_path, tmp_path, explicit_mission=handle)
 
     @pytest.mark.parametrize("handle", ["../etc", "a/b"])
-    def test_mission_find_feature_directory_rejects_traversal(
-        self, tmp_path: Path, handle: str
-    ) -> None:
+    def test_mission_find_feature_directory_rejects_traversal(self, tmp_path: Path, handle: str) -> None:
         """``agent mission._find_feature_directory`` rejects traversal payloads."""
         from mission_runtime import ActionContextError
         from specify_cli.cli.commands.agent.mission import _find_feature_directory

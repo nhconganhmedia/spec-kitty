@@ -22,6 +22,8 @@ def _disable_emit_side_effects(monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status.emit as status_emit
 
     monkeypatch.setattr(status_emit, "_saas_fan_out", lambda *args, **kwargs: None)
+
+
 from tests.status.conftest import seed_wp_to_planned as _seed_wp
 
 
@@ -71,9 +73,7 @@ def test_status_emit_success_includes_contract_fields(
     assert output["wp_id"] == "WP01"
     assert output["work_package_id"] == "WP01"
     assert output["to_lane"] == "claimed"
-    assert output["status_events_path"] == str(
-        repo_with_mission / "kitty-specs" / "017-test-feature" / "status.events.jsonl"
-    )
+    assert output["status_events_path"] == str(repo_with_mission / "kitty-specs" / "017-test-feature" / "status.events.jsonl")
 
 
 @patch("specify_cli.cli.commands.agent.status.locate_project_root")
@@ -119,7 +119,5 @@ def test_status_emit_readback_failure_uses_structured_diagnostic(
     assert output["work_package_id"] == "WP01"
     assert output["wp_id"] == "WP01"
     assert output["to_lane"] == "claimed"
-    assert output["status_events_path"] == str(
-        repo_with_mission / "kitty-specs" / "017-test-feature" / "status.events.jsonl"
-    )
+    assert output["status_events_path"] == str(repo_with_mission / "kitty-specs" / "017-test-feature" / "status.events.jsonl")
     assert "persistence verification failed" in output["error"]

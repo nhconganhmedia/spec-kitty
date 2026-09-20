@@ -87,17 +87,13 @@ def _expected_coord_dir(repo: Path) -> Path:
 
 
 @pytest.mark.parametrize("handle", [SLUG, COMPOSED], ids=["bare", "composed"])
-def test_status_read_resolves_coord_dir_for_both_handle_forms(
-    backfilled_coord_repo: Path, handle: str
-) -> None:
+def test_status_read_resolves_coord_dir_for_both_handle_forms(backfilled_coord_repo: Path, handle: str) -> None:
     """BOTH handle forms must land on the materialized coord dir that EXISTS.
 
     Pre-fix, the composed handle answered ``kitty-specs/<slug>-<mid8>`` stamped
     PRIMARY — a path that is not on disk.
     """
-    resolved = resolve_artifact_surface(
-        backfilled_coord_repo, handle, MissionArtifactKind.STATUS_STATE
-    )
+    resolved = resolve_artifact_surface(backfilled_coord_repo, handle, MissionArtifactKind.STATUS_STATE)
 
     assert resolved.path == _expected_coord_dir(backfilled_coord_repo)
     assert resolved.surface_kind is TopologySurface.COORD
@@ -108,13 +104,9 @@ def test_seam_is_idempotent_under_its_own_canonical_output(
     backfilled_coord_repo: Path,
 ) -> None:
     """``read_dir`` fed the canonical name it produced returns the SAME path."""
-    first = resolve_artifact_surface(
-        backfilled_coord_repo, SLUG, MissionArtifactKind.STATUS_STATE
-    )
+    first = resolve_artifact_surface(backfilled_coord_repo, SLUG, MissionArtifactKind.STATUS_STATE)
     # Feed the seam the mission-dir NAME it just emitted.
-    second = resolve_artifact_surface(
-        backfilled_coord_repo, first.path.name, MissionArtifactKind.STATUS_STATE
-    )
+    second = resolve_artifact_surface(backfilled_coord_repo, first.path.name, MissionArtifactKind.STATUS_STATE)
 
     assert second.path == first.path
     assert second.surface_kind is first.surface_kind
@@ -129,9 +121,7 @@ def test_primary_partition_read_lands_on_the_bare_primary_dir(
     literal-composed ``kitty-specs/<slug>-<mid8>``, which is not on disk either.
     """
     for handle in (SLUG, COMPOSED):
-        resolved = resolve_artifact_surface(
-            backfilled_coord_repo, handle, MissionArtifactKind.PRIMARY_METADATA
-        )
+        resolved = resolve_artifact_surface(backfilled_coord_repo, handle, MissionArtifactKind.PRIMARY_METADATA)
         assert resolved.path == backfilled_coord_repo / "kitty-specs" / SLUG
         assert resolved.surface_kind is TopologySurface.PRIMARY
 
@@ -148,12 +138,7 @@ def test_recovery_declines_a_coincidental_mid8_shaped_tail(
     bogus = f"{SLUG}-0ZZZZZZZ"  # well-formed mid8 shape, wrong identity
     composed_dir = backfilled_coord_repo / "kitty-specs" / bogus
 
-    assert (
-        _backfilled_primary_dir(
-            backfilled_coord_repo, bogus, composed_dir, resolver=None
-        )
-        is None
-    )
+    assert _backfilled_primary_dir(backfilled_coord_repo, bogus, composed_dir, resolver=None) is None
 
 
 def test_recovery_is_a_noop_when_the_composed_primary_dir_exists(
@@ -168,9 +153,7 @@ def test_recovery_is_a_noop_when_the_composed_primary_dir_exists(
     composed_dir = repo / "kitty-specs" / COMPOSED
     _write_meta(composed_dir, mission_id=MISSION_ID, slug=SLUG)
 
-    assert (
-        _backfilled_primary_dir(repo, COMPOSED, composed_dir, resolver=None) is None
-    )
+    assert _backfilled_primary_dir(repo, COMPOSED, composed_dir, resolver=None) is None
 
 
 def test_recovery_declines_a_handle_with_no_mid8_tail(
@@ -179,9 +162,4 @@ def test_recovery_declines_a_handle_with_no_mid8_tail(
     """No parseable mid8 tail → nothing to un-compose, caller's answer stands."""
     missing = backfilled_coord_repo / "kitty-specs" / "no-tail-here"
 
-    assert (
-        _backfilled_primary_dir(
-            backfilled_coord_repo, "no-tail-here", missing, resolver=None
-        )
-        is None
-    )
+    assert _backfilled_primary_dir(backfilled_coord_repo, "no-tail-here", missing, resolver=None) is None

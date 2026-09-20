@@ -18,6 +18,7 @@ from specify_cli.calibration.inequality import InequalityResult, assert_inequali
 
 pytestmark = [pytest.mark.integration]
 
+
 class TestExactMatch:
     def test_exact_match_holds(self) -> None:
         scope = frozenset({"directive:D001", "tactic:T001"})

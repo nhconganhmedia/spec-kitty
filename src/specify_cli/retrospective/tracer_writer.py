@@ -102,10 +102,7 @@ def _require_actor(actor: str) -> str:
     """Guard non-blank attribution (#2960 / I-T2). Returns the stripped actor."""
     stripped = actor.strip() if actor else ""
     if not stripped:
-        raise TracerAttributionError(
-            "tracer-append requires a non-empty --actor; a blank actor would "
-            "silently blank attribution on the persisted finding (#2960)."
-        )
+        raise TracerAttributionError("tracer-append requires a non-empty --actor; a blank actor would silently blank attribution on the persisted finding (#2960).")
     return stripped
 
 
@@ -113,18 +110,11 @@ def _category_filename(category: str) -> str:
     try:
         return TRACER_CATEGORIES[category]
     except KeyError:
-        raise TracerCategoryError(
-            f"Unknown tracer category {category!r}; expected one of "
-            f"{sorted(TRACER_CATEGORIES)}"
-        ) from None
+        raise TracerCategoryError(f"Unknown tracer category {category!r}; expected one of {sorted(TRACER_CATEGORIES)}") from None
 
 
 def _default_header(category: str) -> str:
-    return (
-        f"# Tracer: {category}\n\n"
-        "One entry per finding: `YYYY-MM-DD · actor · <text>`.\n\n"
-        "---\n"
-    )
+    return f"# Tracer: {category}\n\nOne entry per finding: `YYYY-MM-DD · actor · <text>`.\n\n---\n"
 
 
 def _format_entry_line(*, entry_date: date, actor: str, entry: str) -> str:
@@ -141,9 +131,7 @@ def _append_entry(content: str, entry_line: str) -> str:
     return f"{trimmed}\n\n{entry_line}\n"
 
 
-def _read_current_coord_content(
-    repo_root: Path, mission_slug: str, filename: str
-) -> str:
+def _read_current_coord_content(repo_root: Path, mission_slug: str, filename: str) -> str:
     """Read the CURRENT coord-resolved category file, or "" when absent.
 
     Routes through ``read_dir(MissionArtifactKind.TRACER_FILE)`` -- a plain
@@ -156,9 +144,7 @@ def _read_current_coord_content(
     target as a structured refusal.
     """
     try:
-        traces_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.TRACER_FILE
-        )
+        traces_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.TRACER_FILE)
     except _NO_EXISTING_CONTENT_EXCEPTIONS:
         return ""
     category_path = traces_dir / _TRACES_DIRNAME / filename
@@ -250,11 +236,7 @@ def append_tracer_finding(
 
     current_content = _read_current_coord_content(repo_root, mission_slug, filename)
     base_content = current_content or _default_header(category)
-    merged_content = (
-        base_content
-        if _entry_present(base_content, entry_line)
-        else _append_entry(base_content, entry_line)
-    )
+    merged_content = base_content if _entry_present(base_content, entry_line) else _append_entry(base_content, entry_line)
 
     local_path = _local_staging_path(repo_root, mission_slug, filename)
 

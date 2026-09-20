@@ -36,7 +36,6 @@ def _lineage_drg(*pairs: tuple[str, str]) -> DRGGraph:
     )
 
 
-
 @pytest.fixture
 def inheritance_repo(tmp_path: Path) -> AgentProfileRepository:
     shipped = tmp_path / "built-in"
@@ -133,9 +132,7 @@ specialization:
         encoding="utf-8",
     )
 
-    repo = AgentProfileRepository(
-        built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("orphan", "missing-parent"))
-    )
+    repo = AgentProfileRepository(built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("orphan", "missing-parent")))
 
     with pytest.raises(KeyError, match="missing-parent"):
         repo.resolve_profile("orphan")
@@ -167,9 +164,7 @@ specialization:
         encoding="utf-8",
     )
 
-    repo = AgentProfileRepository(
-        built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("a", "b"), ("b", "a"))
-    )
+    repo = AgentProfileRepository(built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("a", "b"), ("b", "a")))
 
     with pytest.raises(ValueError, match="Cycle detected"):
         repo.resolve_profile("a")
@@ -360,9 +355,7 @@ specialization:
         encoding="utf-8",
     )
 
-    repo = AgentProfileRepository(
-        built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("orphan", "nonexistent-parent"))
-    )
+    repo = AgentProfileRepository(built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("orphan", "nonexistent-parent")))
 
     with pytest.raises(KeyError, match="nonexistent-parent"):
         repo.resolve_profile("orphan")
@@ -413,9 +406,7 @@ def test_resolved_specialist_profiles_include_base_tactic_references(
             continue
 
         base = shipped_repo.resolve_profile(base_id)
-        base_tactic_ids = {
-            ref.id for ref in base.tactic_references
-        }
+        base_tactic_ids = {ref.id for ref in base.tactic_references}
         if not base_tactic_ids:
             continue
 
@@ -429,10 +420,7 @@ def test_resolved_specialist_profiles_include_base_tactic_references(
                 f"verify 'tactic-references' is in _LIST_FIELDS in repository.py"
             )
 
-    assert not violations, (
-        f"Found {len(violations)} tactic inheritance violation(s):\n"
-        + "\n".join(f"  - {v}" for v in violations)
-    )
+    assert not violations, f"Found {len(violations)} tactic inheritance violation(s):\n" + "\n".join(f"  - {v}" for v in violations)
 
 
 @pytest.mark.doctrine
@@ -524,17 +512,11 @@ tactic-references:
         encoding="utf-8",
     )
 
-    repo = AgentProfileRepository(
-        built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("specialist-impl", "base-impl"))
-    )
+    repo = AgentProfileRepository(built_in_dir=shipped, project_dir=None, drg=_lineage_drg(("specialist-impl", "base-impl")))
     resolved = repo.resolve_profile("specialist-impl")
 
     merged_tactic_ids = {ref.id for ref in resolved.tactic_references}
 
-    assert "base-tactic" in merged_tactic_ids, (
-        "base-tactic must survive union merge — check that tactic-references is in _LIST_FIELDS"
-    )
-    assert "specialist-tactic" in merged_tactic_ids, (
-        "specialist-tactic must be in merged profile"
-    )
+    assert "base-tactic" in merged_tactic_ids, "base-tactic must survive union merge — check that tactic-references is in _LIST_FIELDS"
+    assert "specialist-tactic" in merged_tactic_ids, "specialist-tactic must be in merged profile"
     assert [ref.id for ref in resolved.tactic_references].count("base-tactic") == 1

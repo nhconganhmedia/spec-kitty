@@ -83,7 +83,4 @@ def redact(mapping: Mapping[str, str]) -> list[RedactedVar]:
         One :class:`RedactedVar` per entry in *mapping*, values redacted
         per the allowlist above.
     """
-    return [
-        RedactedVar(name=name, present=True, value=value if name in _PRINTABLE_VARS else None)
-        for name, value in mapping.items()
-    ]
+    return [RedactedVar(name=name, present=True, value=value if name in _PRINTABLE_VARS else None) for name, value in mapping.items()]

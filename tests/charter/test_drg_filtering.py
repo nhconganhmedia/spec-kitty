@@ -61,10 +61,18 @@ pytestmark = [pytest.mark.unit]
 def _pc(**kw) -> PackContext:
     """Construct a hermetic PackContext for per-artifact-ID gate tests."""
     defaults: dict = {
-        "activated_kinds": frozenset({
-            "directives", "tactics", "styleguides", "toolguides",
-            "paradigms", "procedures", "agent_profiles", "mission_step_contracts",
-        }),
+        "activated_kinds": frozenset(
+            {
+                "directives",
+                "tactics",
+                "styleguides",
+                "toolguides",
+                "paradigms",
+                "procedures",
+                "agent_profiles",
+                "mission_step_contracts",
+            }
+        ),
         "activated_mission_types": frozenset({"software-dev", "documentation"}),
         "pack_roots": (Path("."),),
         "org_pack_names": (),
@@ -104,7 +112,8 @@ class TestNodeIsActivatedPerArtifactIdGate:
     def test_non_listed_id_filtered(self):
         """An artifact whose ID is not in the activated set is blocked."""
         assert not _node_is_activated(
-            "directive", "dir-blocked",
+            "directive",
+            "dir-blocked",
             _pc(),
             {"directive": frozenset({"directive:dir-ok"})},
         )
@@ -112,7 +121,8 @@ class TestNodeIsActivatedPerArtifactIdGate:
     def test_listed_id_passes(self):
         """An artifact whose ID is in the activated set passes."""
         assert _node_is_activated(
-            "directive", "dir-ok",
+            "directive",
+            "dir-ok",
             _pc(),
             {"directive": frozenset({"directive:dir-ok"})},
         )
@@ -120,7 +130,8 @@ class TestNodeIsActivatedPerArtifactIdGate:
     def test_none_passes_all(self):
         """Resolved set ``None`` for this kind (key absent from config) → all IDs pass."""
         assert _node_is_activated(
-            "directive", "any-id",
+            "directive",
+            "any-id",
             _pc(),
             {"directive": None},
         )
@@ -128,7 +139,8 @@ class TestNodeIsActivatedPerArtifactIdGate:
     def test_empty_frozenset_blocks_all(self):
         """An explicit empty resolved set (key present, nothing activated) → no IDs pass."""
         assert not _node_is_activated(
-            "directive", "dir-any",
+            "directive",
+            "dir-any",
             _pc(),
             {"directive": frozenset()},
         )
@@ -136,7 +148,8 @@ class TestNodeIsActivatedPerArtifactIdGate:
     def test_empty_artifact_id_bypasses(self):
         """Malformed URN with empty ID → default-allow (bypass per-artifact gate)."""
         assert _node_is_activated(
-            "directive", "",
+            "directive",
+            "",
             _pc(),
             {"directive": frozenset({"directive:dir-only"})},
         )
@@ -170,11 +183,19 @@ class TestNodeIsActivatedPerArtifactIdGate:
         added to ``activated_kinds``, the kind-level gate passes (per-artifact
         gating below is still governed by ``activated_anti_patterns``)."""
         ctx = _pc(
-            activated_kinds=frozenset({
-                "directives", "tactics", "styleguides", "toolguides",
-                "paradigms", "procedures", "agent_profiles",
-                "mission_step_contracts", "anti_patterns",
-            }),
+            activated_kinds=frozenset(
+                {
+                    "directives",
+                    "tactics",
+                    "styleguides",
+                    "toolguides",
+                    "paradigms",
+                    "procedures",
+                    "agent_profiles",
+                    "mission_step_contracts",
+                    "anti_patterns",
+                }
+            ),
         )
         assert _node_is_activated("anti_pattern", "force-push-shared-branch", ctx, {})
 
@@ -188,11 +209,19 @@ class TestNodeIsActivatedPerArtifactIdGate:
         resolved map already holds direct/canonical ids, unwrapped.
         """
         ctx = _pc(
-            activated_kinds=frozenset({
-                "directives", "tactics", "styleguides", "toolguides",
-                "paradigms", "procedures", "agent_profiles",
-                "mission_step_contracts", "anti_patterns",
-            }),
+            activated_kinds=frozenset(
+                {
+                    "directives",
+                    "tactics",
+                    "styleguides",
+                    "toolguides",
+                    "paradigms",
+                    "procedures",
+                    "agent_profiles",
+                    "mission_step_contracts",
+                    "anti_patterns",
+                }
+            ),
         )
         resolved = {"anti_pattern": frozenset({"anti_pattern:ok-smell"})}
         assert _node_is_activated("anti_pattern", "ok-smell", ctx, resolved)
@@ -246,9 +275,7 @@ class TestFilterGraphByActivationPerArtifactId:
         kind is absent from ``_SINGULAR_TO_PLURAL``) — they must survive
         ``filter_graph_by_activation`` unconditionally, not be silently
         dropped or raise."""
-        template_node = DRGNode(
-            urn="template:my-mission/onboarding", kind=NodeKind.TEMPLATE, label="Onboarding"
-        )
+        template_node = DRGNode(urn="template:my-mission/onboarding", kind=NodeKind.TEMPLATE, label="Onboarding")
         asset_node = DRGNode(urn="asset:widget-icon", kind=NodeKind.ASSET, label="Widget icon")
         g = _graph([template_node, asset_node])
 
@@ -287,11 +314,19 @@ class TestFilterGraphByActivationPerArtifactId:
         g = _graph([smell])
 
         ctx = _pc(
-            activated_kinds=frozenset({
-                "directives", "tactics", "styleguides", "toolguides",
-                "paradigms", "procedures", "agent_profiles",
-                "mission_step_contracts", "anti_patterns",
-            }),
+            activated_kinds=frozenset(
+                {
+                    "directives",
+                    "tactics",
+                    "styleguides",
+                    "toolguides",
+                    "paradigms",
+                    "procedures",
+                    "agent_profiles",
+                    "mission_step_contracts",
+                    "anti_patterns",
+                }
+            ),
             activated_anti_patterns=frozenset({"force-push-shared-branch"}),
         )
         filtered = filter_graph_by_activation(g, ctx)

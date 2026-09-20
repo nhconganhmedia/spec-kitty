@@ -65,7 +65,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 # ULID event IDs — real Crockford base32 format (26 chars, per styleguide)
 # ---------------------------------------------------------------------------
 
-_COORD_EVENT_ID_PLANNED = "01KW2E7AFC0000000000000010"   # planned (initial seed)
+_COORD_EVENT_ID_PLANNED = "01KW2E7AFC0000000000000010"  # planned (initial seed)
 _COORD_EVENT_ID_FOR_REVIEW = "01KW2E7AFC0000000000000020"  # for_review (T017 test)
 
 
@@ -177,12 +177,8 @@ class TestPreviewClaimableWpForMissionRoutesToPrimary:
 
         # --- RED anchor: pre-fix resolver returns coord husk (no tasks/) ---
         pre_fix_dir = resolve_feature_dir_for_mission(ctx.repo, ctx.slug)
-        assert pre_fix_dir == ctx.coord_feature_dir, (
-            "Pre-fix resolver must return the coord husk (RED anchor)"
-        )
-        assert not (pre_fix_dir / "tasks").is_dir(), (
-            "tasks/ must be absent from coord husk (proves test was RED pre-WP04)"
-        )
+        assert pre_fix_dir == ctx.coord_feature_dir, "Pre-fix resolver must return the coord husk (RED anchor)"
+        assert not (pre_fix_dir / "tasks").is_dir(), "tasks/ must be absent from coord husk (proves test was RED pre-WP04)"
         # Pre-WP04 behaviour: function returned None — husk has no tasks/.
         # After WP04: tasks/ found on primary → result is a ClaimablePreview.
 
@@ -231,10 +227,7 @@ class TestPreviewClaimableWpForMissionRoutesToPrimary:
         # Flat topology: tasks/ exists on primary = the only dir.
         # The valid fixture event records the WP as claimed.
         assert result is not None
-        assert result.selection_reason == "all_wps_in_progress", (
-            "Flat topology: selection_reason must reflect the claimed WP.\n"
-            f"  Got: {result.selection_reason!r}"
-        )
+        assert result.selection_reason == "all_wps_in_progress", f"Flat topology: selection_reason must reflect the claimed WP.\n  Got: {result.selection_reason!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -279,12 +272,8 @@ class TestFindFirstForReviewWpRoutesToPrimary:
 
         # --- RED anchor: pre-fix resolver returns coord husk (no tasks/) ---
         pre_fix_dir = resolve_feature_dir_for_mission(ctx.repo, ctx.slug)
-        assert pre_fix_dir == ctx.coord_feature_dir, (
-            "Pre-fix resolver must return the coord husk (RED anchor)"
-        )
-        assert not (pre_fix_dir / "tasks").is_dir(), (
-            "tasks/ must be absent from coord husk (proves test was RED pre-WP04)"
-        )
+        assert pre_fix_dir == ctx.coord_feature_dir, "Pre-fix resolver must return the coord husk (RED anchor)"
+        assert not (pre_fix_dir / "tasks").is_dir(), "tasks/ must be absent from coord husk (proves test was RED pre-WP04)"
 
         # Seed valid for_review event on coord husk.
         _write_coord_for_review_event(ctx)
@@ -319,10 +308,7 @@ class TestFindFirstForReviewWpRoutesToPrimary:
 
         result = _find_first_for_review_wp(ctx.repo, ctx.slug)
 
-        assert result is None, (
-            f"Flat topology with no for_review WPs must return None.\n"
-            f"  Got: {result!r}"
-        )
+        assert result is None, f"Flat topology with no for_review WPs must return None.\n  Got: {result!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -377,12 +363,8 @@ class TestResolveReviewContextRoutesLanesToPrimary:
 
         # --- RED anchor: pre-fix resolver returns coord husk (no lanes.json) ---
         pre_fix_dir = candidate_feature_dir_for_mission(ctx.repo, ctx.slug)
-        assert pre_fix_dir == ctx.coord_feature_dir, (
-            "Pre-fix resolver must return the coord husk (RED anchor)"
-        )
-        assert not (pre_fix_dir / "lanes.json").exists(), (
-            "lanes.json must be absent from coord husk (proves test was RED)"
-        )
+        assert pre_fix_dir == ctx.coord_feature_dir, "Pre-fix resolver must return the coord husk (RED anchor)"
+        assert not (pre_fix_dir / "lanes.json").exists(), "lanes.json must be absent from coord husk (proves test was RED)"
 
         # Write a COMPLETE, parseable lanes.json to the PRIMARY dir.
         # (The fixture writes a minimal lanes.json that lacks computed_at/computed_from,
@@ -407,9 +389,7 @@ class TestResolveReviewContextRoutesLanesToPrimary:
                 }
             ],
         }
-        (ctx.primary_feature_dir / "lanes.json").write_text(
-            json.dumps(_complete_lanes, indent=2), encoding="utf-8"
-        )
+        (ctx.primary_feature_dir / "lanes.json").write_text(json.dumps(_complete_lanes, indent=2), encoding="utf-8")
 
         # Create a workspace_path that exists (required by the guard check).
         workspace_path = tmp_path / "workspace"
@@ -502,29 +482,17 @@ class TestReviewCommandRoutesGraphToPrimary:
 
         # --- RED anchor: pre-fix reads from coord husk ---
         pre_fix_dir = resolve_feature_dir_for_mission(ctx.repo, ctx.slug)
-        assert pre_fix_dir == ctx.coord_feature_dir, (
-            "Pre-fix resolver must return coord husk (RED anchor)"
-        )
+        assert pre_fix_dir == ctx.coord_feature_dir, "Pre-fix resolver must return coord husk (RED anchor)"
         pre_fix_graph = build_dependency_graph(pre_fix_dir)
-        assert pre_fix_graph == {}, (
-            f"Pre-fix: coord husk has no tasks/ → empty graph.\n"
-            f"  Got: {pre_fix_graph}"
-        )
+        assert pre_fix_graph == {}, f"Pre-fix: coord husk has no tasks/ → empty graph.\n  Got: {pre_fix_graph}"
 
         # --- POST-FIX: planning seam routes to PRIMARY ---
-        planning_dir = resolve_planning_read_dir(
-            ctx.repo, ctx.slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-        )
+        planning_dir = resolve_planning_read_dir(ctx.repo, ctx.slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
         assert planning_dir == ctx.primary_feature_dir, (
-            f"resolve_planning_read_dir(WORK_PACKAGE_TASK) must return primary dir.\n"
-            f"  Expected: {ctx.primary_feature_dir}\n"
-            f"  Got:      {planning_dir}"
+            f"resolve_planning_read_dir(WORK_PACKAGE_TASK) must return primary dir.\n  Expected: {ctx.primary_feature_dir}\n  Got:      {planning_dir}"
         )
         post_fix_graph = build_dependency_graph(planning_dir)
-        assert "WP01" in post_fix_graph, (
-            f"PRIMARY tasks/WP01.md must be discoverable by build_dependency_graph.\n"
-            f"  Graph: {post_fix_graph}"
-        )
+        assert "WP01" in post_fix_graph, f"PRIMARY tasks/WP01.md must be discoverable by build_dependency_graph.\n  Graph: {post_fix_graph}"
 
     def test_c008_baseline_stays_on_coord_aware_resolver(
         self,
@@ -556,9 +524,7 @@ class TestReviewCommandRoutesGraphToPrimary:
         baseline_path = rv_feature_dir / "tasks" / _rv_wp_slug / "baseline-tests.json"
         # Assert the path is anchored under the COORD dir (not primary).
         assert str(baseline_path).startswith(str(ctx.coord_feature_dir)), (
-            f"C-008: baseline-tests.json must be anchored under coord dir.\n"
-            f"  Coord dir    : {ctx.coord_feature_dir}\n"
-            f"  Baseline path: {baseline_path}"
+            f"C-008: baseline-tests.json must be anchored under coord dir.\n  Coord dir    : {ctx.coord_feature_dir}\n  Baseline path: {baseline_path}"
         )
 
 
@@ -648,7 +614,5 @@ class TestDiscoveryBackwardCompatibleSplit:
         # Verify coord husk file path contains the event we seeded.
         coord_content = ctx.status_events_path.read_text(encoding="utf-8")
         assert _COORD_EVENT_ID_PLANNED in coord_content, (
-            f"Coord husk events file must contain the planned event we seeded.\n"
-            f"  status_events_path: {ctx.status_events_path}\n"
-            f"  Content: {coord_content[:200]}"
+            f"Coord husk events file must contain the planned event we seeded.\n  status_events_path: {ctx.status_events_path}\n  Content: {coord_content[:200]}"
         )

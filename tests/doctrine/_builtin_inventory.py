@@ -98,10 +98,7 @@ def _fragment_node_count(fragment_name: str) -> int:
 
 def file_backed_node_count() -> int:
     """Number of shipped source files across the one-file-per-node kinds."""
-    return sum(
-        len(list(PACK_ROOT.glob(pattern)))
-        for pattern in FILE_BACKED_NODE_GLOBS.values()
-    )
+    return sum(len(list(PACK_ROOT.glob(pattern))) for pattern in FILE_BACKED_NODE_GLOBS.values())
 
 
 def structural_node_count() -> int:
@@ -162,6 +159,4 @@ def builtin_glossary_term_count(pack_id: str = "spec-kitty-core") -> int:
         data = _YAML.load(path.read_text(encoding="utf-8"))
         if data.get("id") == pack_id:
             return len(data.get("terms") or [])
-    raise AssertionError(
-        f"no built-in glossary pack with id {pack_id!r} under {PACK_ROOT}"
-    )
+    raise AssertionError(f"no built-in glossary pack with id {pack_id!r} under {PACK_ROOT}")

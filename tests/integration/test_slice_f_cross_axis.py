@@ -14,6 +14,7 @@ All three axes must work together without interfering with each other.
 
 covers: FR-300 (broader) — expected GREEN at: WP12 final commit
 """
+
 from __future__ import annotations
 
 import json
@@ -27,14 +28,7 @@ import yaml
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[2]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 
 # ---------------------------------------------------------------------------
@@ -106,16 +100,12 @@ def tmp_complex_setup(tmp_path: Path) -> Path:
 
     auth_root = tmp_path / "packages" / "auth"
     (auth_root / ".kittify" / "charter").mkdir(parents=True)
-    (auth_root / ".kittify" / "charter" / "charter.md").write_text(
-        "# Auth package charter\n"
-    )
+    (auth_root / ".kittify" / "charter" / "charter.md").write_text("# Auth package charter\n")
     (auth_root / "some" / "deep" / "dir").mkdir(parents=True)
 
     web_root = tmp_path / "packages" / "web"
     (web_root / ".kittify" / "charter").mkdir(parents=True)
-    (web_root / ".kittify" / "charter" / "charter.md").write_text(
-        "# Web package charter\n"
-    )
+    (web_root / ".kittify" / "charter" / "charter.md").write_text("# Web package charter\n")
 
     # Axis 3: mission with custom workflow_id
     mission_dir = tmp_path / "kitty-specs" / "demo-mission-01CROSS"
@@ -161,12 +151,8 @@ def test_org_pack_in_monorepo_with_custom_workflow(tmp_complex_setup: Path) -> N
 
     # ---- Axis 1: three-layer DRG ----------------------------------------
     fragments = load_org_drg(tmp_complex_setup)
-    assert len(fragments) >= 1, (
-        "Axis 1 failure: expected at least one DRG fragment from the org pack"
-    )
-    assert fragments[0].pack_name == "example-org", (
-        f"Axis 1 failure: wrong pack name {fragments[0].pack_name!r}"
-    )
+    assert len(fragments) >= 1, "Axis 1 failure: expected at least one DRG fragment from the org pack"
+    assert fragments[0].pack_name == "example-org", f"Axis 1 failure: wrong pack name {fragments[0].pack_name!r}"
 
     built_in = DRGGraph(
         schema_version="1.0",
@@ -175,9 +161,7 @@ def test_org_pack_in_monorepo_with_custom_workflow(tmp_complex_setup: Path) -> N
         nodes=[],
         edges=[],
     )
-    merged = merge_three_layers(
-        built_in=built_in, org_fragments=fragments, project=None
-    )
+    merged = merge_three_layers(built_in=built_in, org_fragments=fragments, project=None)
     assert merged is not None, "Axis 1 failure: merge_three_layers returned None"
 
     # ---- Axis 2: CharterScope monorepo resolution ------------------------
@@ -185,13 +169,9 @@ def test_org_pack_in_monorepo_with_custom_workflow(tmp_complex_setup: Path) -> N
 
     deep_auth_path = tmp_complex_setup / "packages" / "auth" / "some" / "deep" / "dir"
     scope = CharterScope.resolve(tmp_complex_setup, deep_auth_path)
-    assert scope is not None, (
-        "Axis 2 failure: CharterScope.resolve returned None for deep auth path"
-    )
+    assert scope is not None, "Axis 2 failure: CharterScope.resolve returned None for deep auth path"
     # The resolved scope should correspond to the auth package
-    assert scope.name == "auth", (
-        f"Axis 2 failure: expected scope name 'auth', got {scope.name!r}"
-    )
+    assert scope.name == "auth", f"Axis 2 failure: expected scope name 'auth', got {scope.name!r}"
 
     # ---- Axis 3: composable workflow next-action -------------------------
     from runtime.next._internal_runtime.planner import (  # noqa: PLC0415
@@ -204,8 +184,7 @@ def test_org_pack_in_monorepo_with_custom_workflow(tmp_complex_setup: Path) -> N
         current_action="plan",
     )
     assert result.next_action == "design-review", (
-        f"Axis 3 failure: expected 'design-review' for our-team-design-first "
-        f"workflow at action='plan', got {result.next_action!r}"
+        f"Axis 3 failure: expected 'design-review' for our-team-design-first workflow at action='plan', got {result.next_action!r}"
     )
 
     # ---- Cross-axis invariant: loading DRG did not disturb workflow ------
@@ -215,10 +194,7 @@ def test_org_pack_in_monorepo_with_custom_workflow(tmp_complex_setup: Path) -> N
         mission_dir=mission_dir,
         current_action="plan",
     )
-    assert result2.next_action == result.next_action, (
-        "Cross-axis failure: resolve_next_workflow_action is not idempotent "
-        "after org-pack DRG loading"
-    )
+    assert result2.next_action == result.next_action, "Cross-axis failure: resolve_next_workflow_action is not idempotent after org-pack DRG loading"
 
 
 def test_org_pack_drg_does_not_affect_default_workflow(
@@ -252,10 +228,7 @@ def test_org_pack_drg_does_not_affect_default_workflow(
         current_action="plan",
     )
     # Default workflow: plan → tasks (not design-review)
-    assert result.next_action == "tasks", (
-        f"Cross-axis isolation failure: Axis 1 DRG load altered default "
-        f"workflow; expected 'tasks', got {result.next_action!r}"
-    )
+    assert result.next_action == "tasks", f"Cross-axis isolation failure: Axis 1 DRG load altered default workflow; expected 'tasks', got {result.next_action!r}"
 
 
 def test_monorepo_scope_resolution_does_not_affect_drg(
@@ -272,14 +245,8 @@ def test_monorepo_scope_resolution_does_not_affect_drg(
 
     # Axis 1 operation: DRG fragment count must be stable
     fragments = load_org_drg(tmp_complex_setup)
-    assert len(fragments) >= 1, (
-        "Cross-axis isolation failure: CharterScope resolution altered DRG "
-        "fragment list"
-    )
-    assert fragments[0].pack_name == "example-org", (
-        f"Cross-axis isolation failure: DRG pack_name changed after scope "
-        f"resolution; got {fragments[0].pack_name!r}"
-    )
+    assert len(fragments) >= 1, "Cross-axis isolation failure: CharterScope resolution altered DRG fragment list"
+    assert fragments[0].pack_name == "example-org", f"Cross-axis isolation failure: DRG pack_name changed after scope resolution; got {fragments[0].pack_name!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -354,11 +321,13 @@ def test_governance_context_production_path_uses_monorepo_charter(
     captured_scope_roots: list[Path] = []
 
     def _capturing_build_charter_context(
-        resolved_root: Path, **kwargs  # type: ignore[no-untyped-def]
+        resolved_root: Path,
+        **kwargs,  # type: ignore[no-untyped-def]
     ) -> CharterContextResult:
         captured_scope_roots.append(resolved_root)
         # Return a minimal stub so the rest of the pipeline proceeds.
         from charter.activation.context import build_charter_context  # noqa: PLC0415
+
         try:
             return build_charter_context(resolved_root, **kwargs)
         except Exception:

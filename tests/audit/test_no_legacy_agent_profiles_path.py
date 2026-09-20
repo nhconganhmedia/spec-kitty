@@ -32,9 +32,7 @@ ACTIVE_CODEBASE_PATHS: tuple[Path, ...] = (
 # keeps the guard focused on genuine source references.
 # (This comment intentionally avoids the contiguous hyphenated literal so the
 # guard does not flag itself.)
-_GENERATED_EXCLUSIONS: frozenset[Path] = frozenset(
-    {REPO_ROOT / "docs" / "development" / "3-2-docs-retrieval-index.yaml"}
-)
+_GENERATED_EXCLUSIONS: frozenset[Path] = frozenset({REPO_ROOT / "docs" / "development" / "3-2-docs-retrieval-index.yaml"})
 
 # Curated docs that name the live GitHub domain label literally called
 # "agent" + "-" + "profiles" (the "Agent profile system" label in the issue
@@ -45,9 +43,7 @@ _GENERATED_EXCLUSIONS: frozenset[Path] = frozenset(
 # source-path references.
 # (This comment intentionally avoids the contiguous hyphenated literal so the
 # guard does not flag itself.)
-_LEGITIMATE_LABEL_REFERENCES: frozenset[Path] = frozenset(
-    {REPO_ROOT / "docs" / "development" / "how-to" / "manage-issue-tracker.md"}
-)
+_LEGITIMATE_LABEL_REFERENCES: frozenset[Path] = frozenset({REPO_ROOT / "docs" / "development" / "how-to" / "manage-issue-tracker.md"})
 
 _EXCLUDED_FILES: frozenset[Path] = _GENERATED_EXCLUSIONS | _LEGITIMATE_LABEL_REFERENCES
 
@@ -73,20 +69,12 @@ def _active_codebase_files() -> list[Path]:
 
 def test_legacy_agent_profiles_directory_removed() -> None:
     """The old hyphenated doctrine directory must stay deleted."""
-    assert not LEGACY_PATH.exists(), (
-        "Legacy doctrine path reintroduced: "
-        f"{LEGACY_PATH.relative_to(REPO_ROOT)}"
-    )
+    assert not LEGACY_PATH.exists(), f"Legacy doctrine path reintroduced: {LEGACY_PATH.relative_to(REPO_ROOT)}"
 
 
 def test_no_legacy_agent_profiles_path_literals_in_active_codebase() -> None:
     """The active codebase must not mention the removed hyphenated path."""
     violations = [
-        path.relative_to(REPO_ROOT).as_posix()
-        for path in _active_codebase_files()
-        if LEGACY_DIRNAME in path.read_text(encoding="utf-8", errors="ignore")
+        path.relative_to(REPO_ROOT).as_posix() for path in _active_codebase_files() if LEGACY_DIRNAME in path.read_text(encoding="utf-8", errors="ignore")
     ]
-    assert violations == [], (
-        f"Found legacy {LEGACY_DIRNAME!r} path references in active codebase files: "
-        + ", ".join(violations)
-    )
+    assert violations == [], f"Found legacy {LEGACY_DIRNAME!r} path references in active codebase files: " + ", ".join(violations)

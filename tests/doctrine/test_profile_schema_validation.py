@@ -10,8 +10,8 @@ from charter.offering.agent_profiles.validation import (
     is_agent_profile_file,
     validate_agent_profile_yaml,
 )
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 @pytest.fixture

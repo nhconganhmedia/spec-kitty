@@ -140,10 +140,7 @@ class TestDetectDependencyConflicts:
         # KEY ASSERTION: the conflict is surfaced loudly with both sides quoted
         # and an explicit resolve instruction — never silently overwritten.
         assert len(errors) == 1
-        assert errors[0] == (
-            "WP02: frontmatter has ['WP01'], tasks.md parsed ['WP09']. "
-            "Resolve the disagreement in tasks.md or WP frontmatter before finalizing."
-        )
+        assert errors[0] == ("WP02: frontmatter has ['WP01'], tasks.md parsed ['WP09']. Resolve the disagreement in tasks.md or WP frontmatter before finalizing.")
 
     def test_missing_existing_meta_defaults_to_no_deps(self) -> None:
         # No frontmatter entry at all -> treated as empty -> no conflict.
@@ -230,15 +227,11 @@ class TestComputeWpFrontmatterUpdates:
         _write_wp(tasks_dir, "WP01")
         _write_wp(tasks_dir, "WP02")
         _write_wp(tasks_dir, "WP03")
-        plan = compute_wp_frontmatter_updates(
-            {"WP03": ["WP01"], "WP01": [], "WP02": ["WP01"]}, tasks_dir
-        )
+        plan = compute_wp_frontmatter_updates({"WP03": ["WP01"], "WP01": [], "WP02": ["WP01"]}, tasks_dir)
         # modified WPs follow the sorted iteration order.
         assert plan.modified_wps == ["WP02", "WP03"]
 
-    def test_unreadable_file_in_loop_emits_warning_and_skips(
-        self, tasks_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unreadable_file_in_loop_emits_warning_and_skips(self, tasks_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # A matching WP file exists but read_wp_frontmatter raises -> warn+skip.
         _write_wp(tasks_dir, "WP02")
 
@@ -315,9 +308,7 @@ class TestLaneHelpers:
         )
         assert _wp_lane_from_status_events([event], "WP01") == Lane.CLAIMED
 
-    def test_read_transactional_wp_lane_delegates_to_events(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_read_transactional_wp_lane_delegates_to_events(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.status import StatusEvent
 
         event = StatusEvent(

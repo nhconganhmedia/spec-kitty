@@ -63,13 +63,10 @@ def _add_dependent_wp(feature_dir: Path, repo: Path) -> None:
     """
     tasks_dir = feature_dir / "tasks"
     (tasks_dir / "WP02.md").write_text(
-        "---\nwork_package_id: WP02\ntitle: WP02 dependent\n"
-        "dependencies:\n- WP01\nsubtasks: []\n---\n# WP02\n",
+        "---\nwork_package_id: WP02\ntitle: WP02 dependent\ndependencies:\n- WP01\nsubtasks: []\n---\n# WP02\n",
         encoding="utf-8",
     )
-    subprocess.run(
-        ["git", "-C", str(repo), "add", "."], check=True, capture_output=True
-    )
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True, capture_output=True)
     subprocess.run(
         ["git", "-C", str(repo), "commit", "-m", "test: add WP02 dependent"],
         check=True,
@@ -100,8 +97,7 @@ def test_coord_risk_gate_reads_primary_lanes_not_husk(
     # BEFORE the fix: read off the husk → None → SKIP. This assertion is the
     # red→green signal.
     assert risk.verdict == GateVerdict.PASS, (
-        "Risk gate must evaluate real PRIMARY lanes.json on a coord mission, "
-        f"not SKIP off the coord husk. Got {risk.verdict}: {risk.details}"
+        f"Risk gate must evaluate real PRIMARY lanes.json on a coord mission, not SKIP off the coord husk. Got {risk.verdict}: {risk.details}"
     )
 
 

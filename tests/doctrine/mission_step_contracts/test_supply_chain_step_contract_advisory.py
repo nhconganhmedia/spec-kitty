@@ -45,9 +45,7 @@ class TestSecurityStagesDelegateToSupplyChainTactic:
     """Each software-dev action's security stage delegates to the new tactic."""
 
     @pytest.mark.parametrize("action", ["plan", "implement", "review"])
-    def test_security_stage_delegates_to_supply_chain_tactic(
-        self, repo: MissionStepContractRepository, action: str
-    ) -> None:
+    def test_security_stage_delegates_to_supply_chain_tactic(self, repo: MissionStepContractRepository, action: str) -> None:
         contract = repo.get_by_action("software-dev", action)
         assert contract is not None, f"No shipped step contract for software-dev/{action}"
 
@@ -56,13 +54,9 @@ class TestSecurityStagesDelegateToSupplyChainTactic:
         assert stage is not None, f"{action}: missing step '{stage_id}'"
 
         assert stage.delegates_to is not None, f"{action}/{stage_id}: no delegates_to"
-        assert stage.delegates_to.kind == ArtifactKind.TACTIC, (
-            f"{action}/{stage_id}: expected delegation kind TACTIC, "
-            f"got {stage.delegates_to.kind}"
-        )
+        assert stage.delegates_to.kind == ArtifactKind.TACTIC, f"{action}/{stage_id}: expected delegation kind TACTIC, got {stage.delegates_to.kind}"
         assert _EXPECTED_TACTIC_CANDIDATE in stage.delegates_to.candidates, (
-            f"{action}/{stage_id}: expected candidate '{_EXPECTED_TACTIC_CANDIDATE}' "
-            f"in {stage.delegates_to.candidates}"
+            f"{action}/{stage_id}: expected candidate '{_EXPECTED_TACTIC_CANDIDATE}' in {stage.delegates_to.candidates}"
         )
 
 
@@ -80,31 +74,18 @@ class TestNoFailClosedGateAnywhereInShippedContracts:
         contracts: list[MissionStepContract] = repo.list_all()
         assert len(contracts) > 0, "Expected at least one shipped step contract"
 
-        fail_closed = [
-            (contract.id, gate.on_transition)
-            for contract in contracts
-            for gate in contract.gates
-            if not gate.fail_open
-        ]
+        fail_closed = [(contract.id, gate.on_transition) for contract in contracts for gate in contract.gates if not gate.fail_open]
         assert fail_closed == [], (
-            f"Fail-closed gate(s) found in shipped contracts: {fail_closed}. "
-            "The supply-chain security layer must remain advisory-only in v1 "
-            "-- no new hard gate."
+            f"Fail-closed gate(s) found in shipped contracts: {fail_closed}. The supply-chain security layer must remain advisory-only in v1 -- no new hard gate."
         )
 
     @pytest.mark.parametrize("action", ["plan", "implement"])
-    def test_software_dev_action_gained_no_gates(
-        self, repo: MissionStepContractRepository, action: str
-    ) -> None:
+    def test_software_dev_action_gained_no_gates(self, repo: MissionStepContractRepository, action: str) -> None:
         contract = repo.get_by_action("software-dev", action)
         assert contract is not None
-        assert contract.gates == [], (
-            f"{action}: expected no gates block, got {contract.gates!r}"
-        )
+        assert contract.gates == [], f"{action}: expected no gates block, got {contract.gates!r}"
 
-    def test_review_gate_is_unchanged_and_still_fail_open(
-        self, repo: MissionStepContractRepository
-    ) -> None:
+    def test_review_gate_is_unchanged_and_still_fail_open(self, repo: MissionStepContractRepository) -> None:
         contract = repo.get_by_action("software-dev", "review")
         assert contract is not None
 
@@ -112,6 +93,5 @@ class TestNoFailClosedGateAnywhereInShippedContracts:
         # and if the surviving gate's transition or fail-open posture drifts.
         gate_fail_open_by_transition = {gate.on_transition: gate.fail_open for gate in contract.gates}
         assert gate_fail_open_by_transition == {"in_progress->for_review": True}, (
-            f"Expected exactly one fail-open gate on in_progress->for_review, "
-            f"got {contract.gates!r}"
+            f"Expected exactly one fail-open gate on in_progress->for_review, got {contract.gates!r}"
         )

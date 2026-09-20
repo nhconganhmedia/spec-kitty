@@ -70,9 +70,7 @@ def bare_project_root(tmp_path: Path) -> Path:
     project_root = tmp_path / "project"
     kittify = project_root / ".kittify"
     kittify.mkdir(parents=True)
-    (kittify / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return project_root
 
 
@@ -99,9 +97,7 @@ def test_doctor_doctrine_reports_full_health(bare_project_root: Path) -> None:
     profile_health = payload["profile_health"]
     assert profile_health["healthy"] is True
 
-    builtin_pack = next(
-        p for p in profile_health["packs"] if p["layer"] == "builtin"
-    )
+    builtin_pack = next(p for p in profile_health["packs"] if p["layer"] == "builtin")
     # 25/25 profiles valid, skipped/invalid profiles empty.
     assert builtin_pack["discovered_count"] == EXPECTED_PROFILE_COUNT
     assert builtin_pack["valid_count"] == EXPECTED_PROFILE_COUNT
@@ -164,27 +160,18 @@ def test_clean_install_resolves_full_built_in_graph(
         [
             str(python),
             "-c",
-            (
-                "from charter.offering.drg.loader import load_built_in_graph; "
-                "g = load_built_in_graph(); "
-                "print(len(g.nodes), len(g.edges))"
-            ),
+            ("from charter.offering.drg.loader import load_built_in_graph; g = load_built_in_graph(); print(len(g.nodes), len(g.edges))"),
         ],
         capture_output=True,
         text=True,
         check=False,
     )
-    assert result.returncode == 0, (
-        f"clean-install load_built_in_graph() failed:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"clean-install load_built_in_graph() failed:\n{result.stderr}"
     node_count, edge_count = (int(part) for part in result.stdout.split())
     expected_nodes = shipped_builtin_node_count()
     assert node_count == expected_nodes, (
-        f"clean-install node count {node_count} != inventory-derived "
-        f"{expected_nodes}: the wheel dropped or added a shipped artifact "
-        f"({result.stdout!r})"
+        f"clean-install node count {node_count} != inventory-derived {expected_nodes}: the wheel dropped or added a shipped artifact ({result.stdout!r})"
     )
     assert edge_count >= node_count, (
-        f"clean-install edge floor breached: {edge_count} edges < {node_count} "
-        f"nodes -- a degenerate/empty graph resolved ({result.stdout!r})"
+        f"clean-install edge floor breached: {edge_count} edges < {node_count} nodes -- a degenerate/empty graph resolved ({result.stdout!r})"
     )

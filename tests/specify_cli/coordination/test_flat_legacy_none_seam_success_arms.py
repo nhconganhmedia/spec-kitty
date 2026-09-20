@@ -36,9 +36,7 @@ class TestFlatLegacyNoneAtSeamReachesSuccessArms:
     def _git(repo: Path, *args: str) -> str:
         import subprocess
 
-        return subprocess.run(
-            ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-        ).stdout.strip()
+        return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
     def _init_repo(self, repo: Path, *, branch: str) -> None:
         repo.mkdir()
@@ -50,9 +48,7 @@ class TestFlatLegacyNoneAtSeamReachesSuccessArms:
         self._git(repo, "add", "seed.txt")
         self._git(repo, "commit", "-q", "-m", "initial")
 
-    def test_flat_legacy_placement_ref_none_commits_successfully_755(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_flat_legacy_placement_ref_none_commits_successfully_755(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         import json
 
         from specify_cli.cli.commands.implement import (
@@ -135,6 +131,5 @@ class TestFlatLegacyNoneAtSeamReachesSuccessArms:
         )
 
         assert calls == [(planning_branch, [spec_rel])], (
-            "a flat/legacy mission's placement_ref=None must reach the 755 "
-            "SUCCESS arm (C-004 strangler), not the narrow-triple fail-close"
+            "a flat/legacy mission's placement_ref=None must reach the 755 SUCCESS arm (C-004 strangler), not the narrow-triple fail-close"
         )

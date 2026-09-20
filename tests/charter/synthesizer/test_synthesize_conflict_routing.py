@@ -89,9 +89,7 @@ def _write_overlay(staging_dir: Path, graph: DRGGraph) -> None:
     doctrine_dir.mkdir(parents=True, exist_ok=True)
     graph_path = doctrine_dir / "graph.yaml"
 
-    nodes_data = [
-        {"urn": n.urn, "kind": n.kind.value, **({"label": n.label} if n.label else {})} for n in graph.nodes
-    ]
+    nodes_data = [{"urn": n.urn, "kind": n.kind.value, **({"label": n.label} if n.label else {})} for n in graph.nodes]
     edges_data = [{"source": e.source, "target": e.target, "relation": e.relation.value} for e in graph.edges]
     payload = {
         "schema_version": graph.schema_version,
@@ -286,9 +284,7 @@ class TestUnrelatedErrorsStillRaiseAlongsideSuppressedConflicts:
         with pytest.raises(ProjectDRGValidationError) as exc_info:
             validate(tmp_path, shipped, conflicts=(conflict,))
         assert any("Cycle" in e or "cycle" in e for e in exc_info.value.errors)
-        assert not any("retired-legacy-tactic" in e for e in exc_info.value.errors), (
-            "suppressed preserved-dangling conflict leaked into the surfaced errors"
-        )
+        assert not any("retired-legacy-tactic" in e for e in exc_info.value.errors), "suppressed preserved-dangling conflict leaked into the surfaced errors"
 
 
 # ---------------------------------------------------------------------------
@@ -354,9 +350,7 @@ def _inject_legacy_node_with_duplicate_edge(tmp_path: Path) -> None:
     doctrine_dir = tmp_path / ".kittify" / "doctrine"
     graph_path = doctrine_dir / "graph.yaml"
     graph = _load_graph(graph_path)
-    graph["nodes"].append(
-        {"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"}
-    )
+    graph["nodes"].append({"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"})
     duplicate_edge = {
         "source": _LEGACY_URN,
         "target": "directive:DIRECTIVE_003",
@@ -377,9 +371,7 @@ def _inject_legacy_node_with_dangling_edge(tmp_path: Path) -> None:
     doctrine_dir = tmp_path / ".kittify" / "doctrine"
     graph_path = doctrine_dir / "graph.yaml"
     graph = _load_graph(graph_path)
-    graph["nodes"].append(
-        {"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"}
-    )
+    graph["nodes"].append({"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"})
     graph.setdefault("edges", []).append(
         {
             "source": _LEGACY_URN,

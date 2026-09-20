@@ -125,10 +125,7 @@ def test_already_materialized_workspace_is_consumed_without_re_resolution(
 
     assert workspace.exists  # same resolved contract, consumed not rebuilt
     assert resolve_calls == [], "single resolution path must not re-resolve"
-    assert self_heal_calls == [True], (
-        "an exists=True retry must re-enter self-heal (#3281 FR-005), "
-        "not silently no-op"
-    )
+    assert self_heal_calls == [True], "an exists=True retry must re-enter self-heal (#3281 FR-005), not silently no-op"
 
 
 def test_create_then_consume_resolved_context_no_no_workspace_error(
@@ -159,9 +156,7 @@ def test_create_then_consume_resolved_context_no_no_workspace_error(
         # top_level_implement materializes the worktree at the ALREADY-RESOLVED
         # path. It does not change the resolved identity.
         workspace.worktree_path.mkdir(parents=True)
-        (workspace.worktree_path / ".git").write_text(
-            "gitdir: /real/gitdir\n", encoding="utf-8"
-        )
+        (workspace.worktree_path / ".git").write_text("gitdir: /real/gitdir\n", encoding="utf-8")
 
     def _self_heal() -> None:  # pragma: no cover - must not be called
         raise AssertionError("self-heal is only for the exists=True (reuse) path")
@@ -169,10 +164,7 @@ def test_create_then_consume_resolved_context_no_no_workspace_error(
     _ensure_workspace_materialized(workspace, "WP05", _create, _self_heal)
 
     assert workspace.exists, "the materialized resolved workspace must report exists"
-    assert re_resolution_calls == [], (
-        "post-create verification must consume the resolved context, "
-        "not re-resolve via a second authority"
-    )
+    assert re_resolution_calls == [], "post-create verification must consume the resolved context, not re-resolve via a second authority"
 
 
 def test_husk_workspace_is_blocked_not_recreated(tmp_path: Path) -> None:
@@ -240,6 +232,7 @@ def test_stale_exists_workspace_reenters_self_heal_not_create(
     dedicated idempotent self-heal always re-enters to bring a stale
     worktree's ancestry up to date."
     """
+
     def _must_not_resolve(*_a: object, **_k: object) -> None:
         raise AssertionError("must not re-resolve")
 
@@ -254,9 +247,7 @@ def test_stale_exists_workspace_reenters_self_heal_not_create(
     workspace = _build_real_lane_topology(tmp_path, materialize_git=True)
 
     def _create() -> None:  # pragma: no cover - must not be called
-        raise AssertionError(
-            "create must not run when the workspace already exists (#1832)"
-        )
+        raise AssertionError("create must not run when the workspace already exists (#1832)")
 
     self_heal_calls: list[bool] = []
 
@@ -268,7 +259,4 @@ def test_stale_exists_workspace_reenters_self_heal_not_create(
 
     _ensure_workspace_materialized(workspace, "WP05", _create, _self_heal)
 
-    assert self_heal_calls == [True], (
-        "a retry over an existing (possibly stale) lane worktree must "
-        "re-enter self-heal — the #3281 retry-short-circuit defect"
-    )
+    assert self_heal_calls == [True], "a retry over an existing (possibly stale) lane worktree must re-enter self-heal — the #3281 retry-short-circuit defect"

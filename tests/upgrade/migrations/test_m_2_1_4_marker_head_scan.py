@@ -41,11 +41,7 @@ def test_recognizes_marker_after_yaml_frontmatter(tmp_path: Path, expected_marke
     """New layout (frontmatter on line 1, marker on line 4) must be detected."""
     target = tmp_path / "new_layout.md"
     target.write_text(
-        "---\n"
-        "description: Demo Command\n"
-        "---\n"
-        f"{expected_marker}\n"
-        "Body.\n",
+        f"---\ndescription: Demo Command\n---\n{expected_marker}\nBody.\n",
         encoding="utf-8",
     )
     assert _file_has_current_version_marker(target) is True
@@ -55,11 +51,7 @@ def test_rejects_stale_version(tmp_path: Path) -> None:
     """A marker for a *different* version is treated as stale."""
     target = tmp_path / "stale.md"
     target.write_text(
-        "---\n"
-        "description: Demo Command\n"
-        "---\n"
-        "<!-- spec-kitty-command-version: 0.0.1-stale -->\n"
-        "Body.\n",
+        "---\ndescription: Demo Command\n---\n<!-- spec-kitty-command-version: 0.0.1-stale -->\nBody.\n",
         encoding="utf-8",
     )
     assert _file_has_current_version_marker(target) is False
@@ -77,10 +69,7 @@ def test_rejects_user_authored_file(tmp_path: Path) -> None:
     """No marker anywhere → not generated."""
     target = tmp_path / "user.md"
     target.write_text(
-        "---\n"
-        "description: A custom user command\n"
-        "---\n"
-        "Do my custom thing.\n",
+        "---\ndescription: A custom user command\n---\nDo my custom thing.\n",
         encoding="utf-8",
     )
     assert _file_has_current_version_marker(target) is False
@@ -182,16 +171,13 @@ def test_apply_rewrites_preexisting_read_only_command_file(tmp_path: Path) -> No
     templates_dir = tmp_path / "command-templates"
     templates_dir.mkdir()
     for cmd in PROMPT_DRIVEN_COMMANDS:
-        (templates_dir / f"{cmd}.md").write_text(
-            f"# {cmd} workflow\n" + "Step details.\n" * 20, encoding="utf-8"
-        )
+        (templates_dir / f"{cmd}.md").write_text(f"# {cmd} workflow\n" + "Step details.\n" * 20, encoding="utf-8")
 
     rendered = "<!-- spec-kitty-command-version: 9.9.9-test -->\n# specify\nfresh content\n"
 
     with (
         patch(
-            "specify_cli.upgrade.migrations.m_2_1_4_enforce_command_file_state"
-            "._get_runtime_command_templates_dir",
+            "specify_cli.upgrade.migrations.m_2_1_4_enforce_command_file_state._get_runtime_command_templates_dir",
             return_value=templates_dir,
         ),
         patch(

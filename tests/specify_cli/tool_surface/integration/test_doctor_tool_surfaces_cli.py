@@ -24,13 +24,7 @@ pytestmark = [pytest.mark.integration]
 _REPO_ROOT = Path(__file__).resolve()
 while not (_REPO_ROOT / "pyproject.toml").exists():
     _REPO_ROOT = _REPO_ROOT.parent
-_SCHEMA_PATH = (
-    _REPO_ROOT
-    / "kitty-specs"
-    / "tool-surface-contract-01KV2K2P"
-    / "contracts"
-    / "doctor-tool-surfaces-output.schema.json"
-)
+_SCHEMA_PATH = _REPO_ROOT / "kitty-specs" / "tool-surface-contract-01KV2K2P" / "contracts" / "doctor-tool-surfaces-output.schema.json"
 
 
 def _schema() -> dict[str, object]:
@@ -59,9 +53,7 @@ def test_doctor_tool_surfaces_runs_with_no_tools(tmp_path: Path) -> None:
 
 def test_doctor_tool_surfaces_kind_filter(tmp_path: Path) -> None:
     project = write_controlled_project(tmp_path)
-    result = run_spec_kitty(
-        "doctor", "tool-surfaces", "--kind", "command-skill", "--json", cwd=project
-    )
+    result = run_spec_kitty("doctor", "tool-surfaces", "--kind", "command-skill", "--json", cwd=project)
     payload = result.json()
     jsonschema.validate(payload, _schema())
     kinds = {entry["kind"] for entry in payload["surfaces"]}
@@ -72,9 +64,7 @@ def test_doctor_tool_surfaces_kind_filter(tmp_path: Path) -> None:
 
 def test_doctor_tool_surfaces_finding_when_missing(tmp_path: Path) -> None:
     project = write_controlled_project(tmp_path)
-    result = run_spec_kitty(
-        "doctor", "tool-surfaces", "--kind", "command-skill", "--json", cwd=project
-    )
+    result = run_spec_kitty("doctor", "tool-surfaces", "--kind", "command-skill", "--json", cwd=project)
     payload = result.json()
     codes = {f["code"] for f in payload["findings"]}
     assert "generated-surface-missing" in codes
@@ -100,9 +90,7 @@ def test_doctor_tool_surfaces_reports_doctrine_when_manifest_absent(
     assert payload["ok"] is False
     assert payload["summary"]["surfaces"] > 0
     assert {entry["kind"] for entry in payload["surfaces"]} == {"doctrine_skill"}
-    assert {finding["code"] for finding in payload["findings"]} == {
-        "generated-surface-missing"
-    }
+    assert {finding["code"] for finding in payload["findings"]} == {"generated-surface-missing"}
 
 
 def test_doctor_tool_surfaces_fix_rebuilds_plan_before_reporting(
@@ -139,9 +127,7 @@ def test_doctor_tool_surfaces_fix_rebuilds_plan_before_reporting(
 
 def test_doctor_tool_surfaces_tool_filter(tmp_path: Path) -> None:
     project = write_controlled_project(tmp_path, agents=["codex", "claude"])
-    result = run_spec_kitty(
-        "doctor", "tool-surfaces", "--tool", "codex", "--json", cwd=project
-    )
+    result = run_spec_kitty("doctor", "tool-surfaces", "--tool", "codex", "--json", cwd=project)
     payload = result.json()
     jsonschema.validate(payload, _schema())
     assert payload["configured_tools"] == ["codex"]
@@ -149,9 +135,7 @@ def test_doctor_tool_surfaces_tool_filter(tmp_path: Path) -> None:
 
 def test_unknown_kind_token_is_rejected(tmp_path: Path) -> None:
     project = write_controlled_project(tmp_path)
-    result = run_spec_kitty(
-        "doctor", "tool-surfaces", "--kind", "bogus-kind", "--json", cwd=project
-    )
+    result = run_spec_kitty("doctor", "tool-surfaces", "--kind", "bogus-kind", "--json", cwd=project)
     assert result.returncode == 2
     payload = result.json()
     assert payload["ok"] is False
@@ -198,9 +182,7 @@ def test_doctor_tool_surfaces_plugin_manifest_kind(tmp_path: Path) -> None:
 def test_migration_compat_still_passes(tmp_path: Path) -> None:
     """doctor skills --json schema is unchanged (re-run the compat assertion)."""
     fixtures = Path(__file__).parent / "fixtures"
-    baseline = json.loads(
-        (fixtures / "doctor_skills_baseline.json").read_text(encoding="utf-8")
-    )
+    baseline = json.loads((fixtures / "doctor_skills_baseline.json").read_text(encoding="utf-8"))
     from ._compat_support import schema_shape
 
     project = write_controlled_project(tmp_path)

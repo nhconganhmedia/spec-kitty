@@ -83,10 +83,7 @@ def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
         check=False,
     )
     if result.returncode != 0:
-        raise AssertionError(
-            f"git {' '.join(args)} failed in {cwd}: "
-            f"{result.stderr.strip() or result.stdout.strip()}"
-        )
+        raise AssertionError(f"git {' '.join(args)} failed in {cwd}: {result.stderr.strip() or result.stdout.strip()}")
     return result
 
 
@@ -261,8 +258,7 @@ def test_genuine_meta_edit_no_longer_blocks_when_residue_routed(tmp_path: Path) 
         check=False,
     ).stdout.strip()
     assert advanced == new_sha, (
-        "post-WP13, a genuine meta.json edit is toolchain churn for a caller "
-        "that injects is_toolchain_generated_churn; the advance must succeed."
+        "post-WP13, a genuine meta.json edit is toolchain churn for a caller that injects is_toolchain_generated_churn; the advance must succeed."
     )
 
 

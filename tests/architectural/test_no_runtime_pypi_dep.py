@@ -29,6 +29,7 @@ removed with the file. Points 1-2 (the pyproject.toml dependency shape and the
 sub-process import probe) never read a workflow file and stay as the
 authoritative FR-025 guard.
 """
+
 from __future__ import annotations
 
 import os
@@ -95,8 +96,7 @@ def test_pyproject_optional_dep_groups_do_not_smuggle_runtime_into_production() 
     assert not offenders, (
         "pyproject.toml smuggles spec-kitty-runtime into a production "
         "optional-dependency group. Dev-only groups "
-        f"({sorted(_DEV_OPTIONAL_GROUPS)}) are permitted. Offenders:\n  "
-        + "\n  ".join(offenders)
+        f"({sorted(_DEV_OPTIONAL_GROUPS)}) are permitted. Offenders:\n  " + "\n  ".join(offenders)
     )
 
 
@@ -151,9 +151,7 @@ def test_cli_next_decision_imports_without_spec_kitty_runtime() -> None:
     # host venv is shared across worktrees.
     env = os.environ.copy()
     existing_pythonpath = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = (
-        f"{_SRC}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else str(_SRC)
-    )
+    env["PYTHONPATH"] = f"{_SRC}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else str(_SRC)
     result = subprocess.run(
         [sys.executable, "-c", snippet],
         capture_output=True,
@@ -168,6 +166,4 @@ def test_cli_next_decision_imports_without_spec_kitty_runtime() -> None:
         f"stderr:\n{result.stderr}\n"
         "FR-025 requires the production code path to be runtime-package-free."
     )
-    assert "OK" in result.stdout, (
-        f"Sub-process did not print OK marker; stdout={result.stdout!r}"
-    )
+    assert "OK" in result.stdout, f"Sub-process did not print OK marker; stdout={result.stdout!r}"

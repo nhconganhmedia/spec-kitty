@@ -120,9 +120,7 @@ def test_normalize_migration_per_artifact_plus_coarse_keys_set_equal_to_authorit
         _per_artifact_activation_keys,
     )
 
-    assert frozenset(_per_artifact_activation_keys()) | frozenset(
-        _COARSE_ACTIVATION_KEYS
-    ) == _authority()
+    assert frozenset(_per_artifact_activation_keys()) | frozenset(_COARSE_ACTIVATION_KEYS) == _authority()
 
 
 # ---------------------------------------------------------------------------
@@ -243,10 +241,7 @@ def test_finalize_migration_carries_activated_glossary_packs_end_to_end(
     )
 
     config_data = _load_yaml(tmp_path / ".kittify" / "config.yaml")
-    assert "activated_glossary_packs" not in config_data, (
-        "activated_glossary_packs must be relocated OFF config.yaml once "
-        "folded onto charter.yaml (INV-2)."
-    )
+    assert "activated_glossary_packs" not in config_data, "activated_glossary_packs must be relocated OFF config.yaml once folded onto charter.yaml (INV-2)."
 
 
 def test_finalize_migration_relocates_glossary_pack_onto_existing_charter_yaml(

@@ -102,9 +102,7 @@ def _write_mission(
     }
     if coordination_branch is not None:
         meta["coordination_branch"] = coordination_branch
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
     return feature_dir
 
 
@@ -172,9 +170,7 @@ def build_primary(tmp_path: Path) -> PrimaryTopology:
     """A plain (non-worktree, non-submodule) spec-kitty repo on ``main``."""
     repo = tmp_path / "primary-checkout"
     _init_repo(repo)
-    feature_dir = _write_mission(
-        repo, mission_id=PRIMARY_MISSION_ID, slug=PRIMARY_MISSION_SLUG
-    )
+    feature_dir = _write_mission(repo, mission_id=PRIMARY_MISSION_ID, slug=PRIMARY_MISSION_SLUG)
     _run_git(repo, "add", "-A")
     _run_git(repo, "commit", "-q", "-m", "kittify + mission")
     return PrimaryTopology(
@@ -253,9 +249,7 @@ def build_submodule(tmp_path: Path) -> SubmoduleTopology:
     child_source = tmp_path / "mission-repo-source"
     _init_repo(parent)
     _init_repo(child_source)
-    feature_dir_in_source = _write_mission(
-        child_source, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG
-    )
+    feature_dir_in_source = _write_mission(child_source, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG)
     assert feature_dir_in_source  # constructed for clarity
     _run_git(child_source, "add", "-A")
     _run_git(child_source, "commit", "-q", "-m", "kittify + mission")
@@ -273,9 +267,7 @@ def build_submodule(tmp_path: Path) -> SubmoduleTopology:
 
     submodule = parent / "mission-repo"
     if not (submodule / ".kittify" / "config.yaml").exists():
-        _write_mission(
-            submodule, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG
-        )
+        _write_mission(submodule, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG)
     feature_dir = submodule / KITTY_SPECS / SUBMODULE_MISSION_SLUG
     return SubmoduleTopology(
         superproject_root=parent,

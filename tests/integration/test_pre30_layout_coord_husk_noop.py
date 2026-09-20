@@ -44,9 +44,7 @@ def _assert_carries_status_payload(ctx: CoordTopologyContext) -> None:
     non-empty AND its ``status.events.jsonl`` actually carries an event line.
     """
     husk_dir = ctx.coord_feature_dir
-    assert list(husk_dir.iterdir()), (
-        f"empty-dir trap: husk {husk_dir} is empty — the no-op proof would be vacuous"
-    )
+    assert list(husk_dir.iterdir()), f"empty-dir trap: husk {husk_dir} is empty — the no-op proof would be vacuous"
     assert ctx.status_events_path.exists(), "husk must carry status.events.jsonl"
     payload = ctx.status_events_path.read_text(encoding="utf-8").strip()
     assert payload, "husk status.events.jsonl must carry a real event line"
@@ -73,9 +71,7 @@ def test_check_pre30_layout_noop_on_status_only_husk(
     result = check_pre30_layout(husk_dir)
 
     assert result is None, "check_pre30_layout must return None on the no-op path"
-    assert set(husk_dir.rglob("*")) == before, (
-        "check_pre30_layout mutated the STATUS-only husk tree (no-op violated)"
-    )
+    assert set(husk_dir.rglob("*")) == before, "check_pre30_layout mutated the STATUS-only husk tree (no-op violated)"
 
 
 def test_check_pre30_layout_noop_on_tasks_present_non_legacy_husk(
@@ -96,15 +92,11 @@ def test_check_pre30_layout_noop_on_tasks_present_non_legacy_husk(
     husk_tasks_dir = husk_dir / "tasks"
     assert husk_tasks_dir.is_dir()
     assert list(husk_tasks_dir.glob("WP*.md")), "husk tasks/ must carry a WP .md file"
-    assert not any(child.is_dir() for child in husk_tasks_dir.iterdir()), (
-        "husk tasks/ must carry no legacy lane subdirs"
-    )
+    assert not any(child.is_dir() for child in husk_tasks_dir.iterdir()), "husk tasks/ must carry no legacy lane subdirs"
     assert is_legacy_format(husk_dir) is False
 
     before = set(husk_dir.rglob("*"))
     result = check_pre30_layout(husk_dir)
 
     assert result is None, "check_pre30_layout must return None on the no-op path"
-    assert set(husk_dir.rglob("*")) == before, (
-        "check_pre30_layout mutated the tasks-present husk tree (no-op violated)"
-    )
+    assert set(husk_dir.rglob("*")) == before, "check_pre30_layout mutated the tasks-present husk tree (no-op violated)"

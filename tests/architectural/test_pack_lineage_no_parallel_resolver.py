@@ -69,11 +69,7 @@ def calls_resolve_extends_order(tree: ast.AST) -> bool:
 
 
 def _is_accumulator_call(node: ast.AST) -> bool:
-    return (
-        isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Attribute)
-        and node.func.attr in _ACCUMULATOR_CALLS
-    )
+    return isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in _ACCUMULATOR_CALLS
 
 
 def _body_has_accumulation(nodes: list[ast.stmt]) -> bool:
@@ -85,10 +81,7 @@ def _body_has_accumulation(nodes: list[ast.stmt]) -> bool:
 
 
 def _function_calls_itself(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    return any(
-        isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == func.name
-        for node in ast.walk(func)
-    )
+    return any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == func.name for node in ast.walk(func))
 
 
 def find_order_producing_traversals(tree: ast.Module) -> list[str]:
@@ -115,10 +108,7 @@ def find_order_producing_traversals(tree: ast.Module) -> list[str]:
         if calls_resolve_extends_order(node):
             continue
 
-        has_while_accumulation = any(
-            isinstance(inner, ast.While) and _body_has_accumulation(inner.body)
-            for inner in ast.walk(node)
-        )
+        has_while_accumulation = any(isinstance(inner, ast.While) and _body_has_accumulation(inner.body) for inner in ast.walk(node))
         is_recursive_accumulator = _function_calls_itself(node) and _body_has_accumulation(node.body)
 
         if has_while_accumulation or is_recursive_accumulator:
@@ -207,8 +197,7 @@ def test_guard_flags_injected_second_walker(source: str) -> None:
     """An injected second walker IS flagged -- the guard is not vacuous."""
     tree = ast.parse(source)
     assert find_order_producing_traversals(tree), (
-        f"Expected the guard to flag an injected second walker in:\n{source}\n"
-        "but it found nothing -- the ratchet would be vacuous."
+        f"Expected the guard to flag an injected second walker in:\n{source}\nbut it found nothing -- the ratchet would be vacuous."
     )
 
 

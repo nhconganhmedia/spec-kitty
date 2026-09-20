@@ -51,10 +51,7 @@ _PACKS = _REPO_ROOT / "packs" / "built-in"
 DIRECTIVE_PATH = _PACKS / "directives" / "042-common-docs.directive.yaml"
 STYLEGUIDE_PATH = _PACKS / "styleguides" / "common-docs.styleguide.yaml"
 FRESHNESS_STYLEGUIDE_PATH = _PACKS / "styleguides" / "docs-freshness-sla.styleguide.yaml"
-TACTIC_PATHS = {
-    name: _PACKS / "tactics" / f"common-docs-{name}.tactic.yaml"
-    for name in ("curation", "write", "scaffold")
-}
+TACTIC_PATHS = {name: _PACKS / "tactics" / f"common-docs-{name}.tactic.yaml" for name in ("curation", "write", "scaffold")}
 
 #: The reserved never-retire lifecycle value under test.
 RESERVED = "durable"
@@ -75,9 +72,7 @@ _LINT_ASSET_PATH = _resolve_lint_asset_path()
 
 def _load_lint_module() -> ModuleType:
     """Load the structural-lint asset by file path (it is not a package)."""
-    spec = importlib.util.spec_from_file_location(
-        "docs_structural_lint_durable_asset", _LINT_ASSET_PATH
-    )
+    spec = importlib.util.spec_from_file_location("docs_structural_lint_durable_asset", _LINT_ASSET_PATH)
     if spec is None or spec.loader is None:  # pragma: no cover - defensive
         raise RuntimeError(f"cannot load lint asset from {_LINT_ASSET_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -93,9 +88,7 @@ check_frontmatter_contract = _lint.check_frontmatter_contract
 check_point_in_time_placement = _lint.check_point_in_time_placement
 
 
-def _write(
-    path: Path, *, frontmatter: dict[str, Any] | None = None, body: str = "# Body\n"
-) -> None:
+def _write(path: Path, *, frontmatter: dict[str, Any] | None = None, body: str = "# Body\n") -> None:
     """Write a docs page, optionally with a YAML frontmatter block."""
     path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
@@ -161,20 +154,14 @@ def test_directive_and_enum_vocabularies_agree_and_include_durable() -> None:
 
 def test_durable_propagated_to_styleguide_and_all_tactics() -> None:
     """``durable`` reaches the styleguide vocabulary prose and all three tactics."""
-    assert RESERVED in _styleguide_vocab_prose(), (
-        "common-docs styleguide controlled-vocabulary prose omits 'durable'"
-    )
+    assert RESERVED in _styleguide_vocab_prose(), "common-docs styleguide controlled-vocabulary prose omits 'durable'"
     for name, path in TACTIC_PATHS.items():
-        assert RESERVED in path.read_text(encoding="utf-8"), (
-            f"common-docs-{name} tactic restatement omits 'durable'"
-        )
+        assert RESERVED in path.read_text(encoding="utf-8"), f"common-docs-{name} tactic restatement omits 'durable'"
 
 
 def test_durable_is_documented_never_stale_in_freshness_sla() -> None:
     """The freshness-SLA styleguide records that durable pages are never aged out."""
-    assert RESERVED in FRESHNESS_STYLEGUIDE_PATH.read_text(encoding="utf-8"), (
-        "docs-freshness-sla styleguide does not mention the durable never-stale policy"
-    )
+    assert RESERVED in FRESHNESS_STYLEGUIDE_PATH.read_text(encoding="utf-8"), "docs-freshness-sla styleguide does not mention the durable never-stale policy"
 
 
 # --- (c) never point-in-time — GREEN-on-base regression guard ----------------

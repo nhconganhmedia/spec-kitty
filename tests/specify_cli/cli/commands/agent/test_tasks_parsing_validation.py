@@ -94,8 +94,6 @@ def _write_malformed_issue_matrix(feature_dir: Path) -> None:
     )
 
 
-
-
 def _make_subproc(returncode: int = 0, stdout: str = "") -> MagicMock:
     m = MagicMock()
     m.returncode = returncode
@@ -117,40 +115,82 @@ class _FakeWorkspace:
 
 
 def test_self_review_fallback_guard_full_matrix() -> None:
-    assert _self_review_fallback_option_error(
-        enabled=False, target_lane="approved", force=False,
-        intended_reviewer="codex", failure_reason=None,
-    ) == "--intended-reviewer/--reviewer-failure-reason require --self-review-fallback."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=False,
+            target_lane="approved",
+            force=False,
+            intended_reviewer="codex",
+            failure_reason=None,
+        )
+        == "--intended-reviewer/--reviewer-failure-reason require --self-review-fallback."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=False, target_lane="approved", force=False,
-        intended_reviewer=None, failure_reason=None,
-    ) is None
+    assert (
+        _self_review_fallback_option_error(
+            enabled=False,
+            target_lane="approved",
+            force=False,
+            intended_reviewer=None,
+            failure_reason=None,
+        )
+        is None
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True, target_lane="for_review", force=True,
-        intended_reviewer="codex", failure_reason="exit 1",
-    ) == "--self-review-fallback is only valid when approving or marking done."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="for_review",
+            force=True,
+            intended_reviewer="codex",
+            failure_reason="exit 1",
+        )
+        == "--self-review-fallback is only valid when approving or marking done."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True, target_lane="approved", force=False,
-        intended_reviewer="codex", failure_reason="exit 1",
-    ) == "--self-review-fallback requires --force so force_count records the independence override."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="approved",
+            force=False,
+            intended_reviewer="codex",
+            failure_reason="exit 1",
+        )
+        == "--self-review-fallback requires --force so force_count records the independence override."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True, target_lane="approved", force=True,
-        intended_reviewer=" ", failure_reason="exit 1",
-    ) == "--self-review-fallback requires --intended-reviewer <agent>."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="approved",
+            force=True,
+            intended_reviewer=" ",
+            failure_reason="exit 1",
+        )
+        == "--self-review-fallback requires --intended-reviewer <agent>."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True, target_lane="approved", force=True,
-        intended_reviewer="codex", failure_reason=" ",
-    ) == "--self-review-fallback requires --reviewer-failure-reason <reason>."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="approved",
+            force=True,
+            intended_reviewer="codex",
+            failure_reason=" ",
+        )
+        == "--self-review-fallback requires --reviewer-failure-reason <reason>."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True, target_lane="done", force=True,
-        intended_reviewer="codex", failure_reason="exit 1",
-    ) is None
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="done",
+            force=True,
+            intended_reviewer="codex",
+            failure_reason="exit 1",
+        )
+        is None
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -229,9 +269,7 @@ def test_issue_matrix_blocker_surfaces_deferred_without_handle_rule(
     (feature_dir / "spec.md").write_text("Fix Priivacy-ai/spec-kitty issue #1582.\n", encoding="utf-8")
 
     # Prose-only evidence_ref with no '#NNN' or 'Follow-up:' substring.
-    _write_issue_matrix_json(
-        feature_dir, "deferred-with-followup", evidence_ref="deferred pending triage"
-    )
+    _write_issue_matrix_json(feature_dir, "deferred-with-followup", evidence_ref="deferred pending triage")
     blocker = _issue_matrix_approval_blocker(feature_dir)
     assert blocker is not None
     assert "Row for issue '#1582'" in blocker
@@ -536,9 +574,7 @@ def test_get_latest_review_cycle_verdict_missing_frontmatter(tmp_path: Path) -> 
         f"{_TASKS_PARSING_VALIDATION}.event_sourced_review_result",
         return_value=ReviewResultLookup(slot_present=True, result=None),
     ):
-        _apply_wp_review_verdict_flag(
-            wp, wp_id="WP01", feature_dir=tmp_path, stale_verdicts=stale_verdicts
-        )
+        _apply_wp_review_verdict_flag(wp, wp_id="WP01", feature_dir=tmp_path, stale_verdicts=stale_verdicts)
 
     assert wp["_damaged_verdict"] is True
     assert stale_verdicts and stale_verdicts[0]["damaged"] is True
@@ -565,9 +601,7 @@ def _append_review_result_event(
             actor="reviewer-renata",
             force=False,
             execution_mode="worktree",
-            review_result=ReviewResult(
-                reviewer="reviewer-renata", verdict=verdict, reference="review-cycle://demo/WP01/review-cycle-1.md"
-            ),
+            review_result=ReviewResult(reviewer="reviewer-renata", verdict=verdict, reference="review-cycle://demo/WP01/review-cycle-1.md"),
         ),
     )
 
@@ -649,7 +683,7 @@ def test_validate_research_artifacts_blocks_research_commit_format(tmp_path: Pat
     assert guidance is not None
     text = "\n".join(guidance)
     assert "Blocking: 1 uncommitted file(s) owned by WP01" in text
-    assert 'research(WP01)' in text
+    assert "research(WP01)" in text
     assert "move-task WP01 --to for_review" in text
 
 
@@ -870,12 +904,15 @@ def test_check_implementation_commit_present_ok(tmp_path: Path) -> None:
         "specify_cli.cli.commands.agent.tasks_parsing_validation.lane_has_commit_beyond_base",
         return_value=True,
     ):
-        assert _check_implementation_commit_present(
-            worktree_path=tmp_path,
-            check_branch="main",
-            wp_id="WP01",
-            target_lane="for_review",
-        ) is None
+        assert (
+            _check_implementation_commit_present(
+                worktree_path=tmp_path,
+                check_branch="main",
+                wp_id="WP01",
+                target_lane="for_review",
+            )
+            is None
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1078,7 +1115,7 @@ def test_check_branch_currency_reports_non_ledger_count(tmp_path: Path) -> None:
     dominated by orchestrator ledger commits."""
     responses = [
         _make_subproc(0, "88\n"),  # raw behind count
-        _make_subproc(0, "2\n"),   # non-ledger count (pathspec-excluded)
+        _make_subproc(0, "2\n"),  # non-ledger count (pathspec-excluded)
     ]
     with patch("subprocess.run", side_effect=responses):
         guidance = _check_branch_currency(
@@ -1099,8 +1136,8 @@ def test_check_branch_currency_count_failure_falls_back_to_raw_count(tmp_path: P
     """#3940: when the non-ledger count cannot be determined, the message
     stays conservative and reports the raw behind count."""
     responses = [
-        _make_subproc(0, "88\n"),   # raw behind count
-        _make_subproc(128, ""),     # non-ledger count fails
+        _make_subproc(0, "88\n"),  # raw behind count
+        _make_subproc(128, ""),  # non-ledger count fails
     ]
     with patch("subprocess.run", side_effect=responses):
         guidance = _check_branch_currency(

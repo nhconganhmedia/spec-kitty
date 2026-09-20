@@ -178,10 +178,7 @@ def _make_git_repo(parent: Path) -> Path:
 
 def _write_wp_task(tasks_dir: Path, wp_id: str) -> None:
     """Write a minimal WP task file to *tasks_dir*."""
-    content = (
-        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} fixture task\n"
-        f"subtasks: []\n---\n# {wp_id}\n"
-    )
+    content = f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} fixture task\nsubtasks: []\n---\n# {wp_id}\n"
     (tasks_dir / f"{wp_id}.md").write_text(content, encoding="utf-8")
 
 
@@ -212,9 +209,7 @@ def _write_lanes_json(feature_dir: Path, *, slug: str, mission_id: str) -> None:
         "computed_from": "coord-topology-fixture",
         "planning_artifact_wps": [],
     }
-    (feature_dir / "lanes.json").write_text(
-        json.dumps(payload, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "lanes.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def _write_meta(
@@ -243,9 +238,7 @@ def _write_meta(
     }
     if coordination_branch is not None:
         meta["coordination_branch"] = coordination_branch
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 
 def _status_event_line(
@@ -279,9 +272,7 @@ def _status_event_line(
 # ---------------------------------------------------------------------------
 
 
-def _build_coord_topology(
-    tmp_path: Path, *, write_husk_meta: bool, write_husk_tasks: bool = False
-) -> CoordTopologyContext:
+def _build_coord_topology(tmp_path: Path, *, write_husk_meta: bool, write_husk_tasks: bool = False) -> CoordTopologyContext:
     """Materialise a post-#2106 coordination-topology mission (FR-014 / FR-009 / FR-007).
 
     ONE divergence definition shared by the base (STATUS-only husk) fixture, the
@@ -436,24 +427,16 @@ def _build_coord_topology(
     #    triad (FR-009 / T001).
     if write_husk_tasks:
         husk_tasks_dir = coord_mission_dir / "tasks"
-        assert husk_tasks_dir.is_dir(), (
-            "FR-007 variant invariant violated: coord husk must carry tasks/"
-        )
-        assert list(husk_tasks_dir.glob("WP*.md")), (
-            "FR-007 variant invariant violated: husk tasks/ must carry a WP .md file"
-        )
+        assert husk_tasks_dir.is_dir(), "FR-007 variant invariant violated: coord husk must carry tasks/"
+        assert list(husk_tasks_dir.glob("WP*.md")), "FR-007 variant invariant violated: husk tasks/ must carry a WP .md file"
         assert not any(child.is_dir() for child in husk_tasks_dir.iterdir()), (
             "FR-007 variant invariant violated: husk tasks/ must carry NO legacy "
             "lane subdirs (planned/doing/for_review/done) — it must classify "
             "NON-legacy via is_legacy_format"
         )
     else:
-        assert not (coord_mission_dir / "tasks").exists(), (
-            "Fixture invariant violated: coord husk must not carry tasks/"
-        )
-    assert not (coord_mission_dir / "lanes.json").exists(), (
-        "Fixture invariant violated: coord husk must not carry lanes.json"
-    )
+        assert not (coord_mission_dir / "tasks").exists(), "Fixture invariant violated: coord husk must not carry tasks/"
+    assert not (coord_mission_dir / "lanes.json").exists(), "Fixture invariant violated: coord husk must not carry lanes.json"
     if write_husk_meta:
         # HARD divergence triad (asserted BEFORE any routed-path drive): the husk
         # lacks lanes.json + tasks/ (above), AND its meta carries the sentinel id
@@ -462,18 +445,13 @@ def _build_coord_topology(
         assert coord_husk_meta_path is not None
         husk_meta = json.loads(coord_husk_meta_path.read_text(encoding="utf-8"))
         assert husk_meta["mission_id"] == SENTINEL_HUSK_MISSION_ID, (
-            "Sentinel triad violated: husk meta mission_id must be the sentinel "
-            f"{SENTINEL_HUSK_MISSION_ID!r}, got {husk_meta['mission_id']!r}."
+            f"Sentinel triad violated: husk meta mission_id must be the sentinel {SENTINEL_HUSK_MISSION_ID!r}, got {husk_meta['mission_id']!r}."
         )
         assert husk_meta["mission_id"] != mission_id, (
-            "Sentinel triad violated: husk meta mission_id must DIFFER from the "
-            f"resolved PRIMARY id {mission_id!r} (else the identity proof is "
-            "non-falsifiable)."
+            f"Sentinel triad violated: husk meta mission_id must DIFFER from the resolved PRIMARY id {mission_id!r} (else the identity proof is non-falsifiable)."
         )
     elif not write_husk_tasks:
-        assert not (coord_mission_dir / "meta.json").exists(), (
-            "Fixture invariant violated: base coord husk must not carry meta.json"
-        )
+        assert not (coord_mission_dir / "meta.json").exists(), "Fixture invariant violated: base coord husk must not carry meta.json"
 
     return CoordTopologyContext(
         repo=repo,
@@ -528,9 +506,7 @@ def coord_topology_mission_tasks_husk(tmp_path: Path) -> CoordTopologyContext:
     classify NON-legacy, so :func:`check_pre30_layout` is a clean no-op against it
     (FR-007(b) / SC-004). WP04 is the SOLE consumer of this variant.
     """
-    return _build_coord_topology(
-        tmp_path, write_husk_meta=False, write_husk_tasks=True
-    )
+    return _build_coord_topology(tmp_path, write_husk_meta=False, write_husk_tasks=True)
 
 
 @pytest.fixture()
@@ -653,9 +629,7 @@ def assert_status_from_coord(
     )
     content = events_path.read_text(encoding="utf-8")
     assert _COORD_EVENT_MARKER in content, (
-        f"Coord marker absent in {events_path}.\n"
-        f"  Marker expected : {_COORD_EVENT_MARKER!r}\n"
-        "Wrong-leg read: the events file content looks like the primary decoy."
+        f"Coord marker absent in {events_path}.\n  Marker expected : {_COORD_EVENT_MARKER!r}\nWrong-leg read: the events file content looks like the primary decoy."
     )
     assert _DECOY_EVENT_MARKER not in content, (
         f"Primary DECOY marker found in {events_path}.\n"

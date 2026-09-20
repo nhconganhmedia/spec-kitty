@@ -97,9 +97,7 @@ class TestLegacyBackwardCompat:
         assert omap is not None
         assert omap.structural_targets == []
 
-    def test_legacy_map_structural_validation_unchanged(
-        self, tmp_path: Path
-    ) -> None:
+    def test_legacy_map_structural_validation_unchanged(self, tmp_path: Path) -> None:
         _write(tmp_path, _legacy_map_data())
         omap = load_occurrence_map(tmp_path)
         assert omap is not None
@@ -124,9 +122,7 @@ class TestLegacyBackwardCompat:
         result = validate_against_schema(_legacy_map_data())
         assert result.valid, result.errors
 
-    def test_null_structural_targets_is_treated_as_legacy(
-        self, tmp_path: Path
-    ) -> None:
+    def test_null_structural_targets_is_treated_as_legacy(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = None
         _write(tmp_path, data)
@@ -142,9 +138,7 @@ class TestLegacyBackwardCompat:
 
 
 class TestStructuralTargetsParsing:
-    def test_structural_targets_block_parsed_into_entries(
-        self, tmp_path: Path
-    ) -> None:
+    def test_structural_targets_block_parsed_into_entries(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = [
             {
@@ -180,9 +174,7 @@ class TestStructuralTargetsParsing:
 
 
 class TestStructuralTargetsValidation:
-    def test_valid_structural_targets_block_validates_and_gates(
-        self, tmp_path: Path
-    ) -> None:
+    def test_valid_structural_targets_block_validates_and_gates(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = [
             {"path": "src/specify_cli/bulk_edit/gate.py", "reason": "refactor"},
@@ -195,9 +187,7 @@ class TestStructuralTargetsValidation:
         assert check_admissibility(omap).valid is True
         assert validate_against_schema(data).valid is True
 
-    def test_structural_target_missing_path_is_rejected(
-        self, tmp_path: Path
-    ) -> None:
+    def test_structural_target_missing_path_is_rejected(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = [{"reason": "missing path"}]
         _write(tmp_path, data)
@@ -206,13 +196,9 @@ class TestStructuralTargetsValidation:
 
         result = validate_occurrence_map(omap)
         assert result.valid is False
-        assert any(
-            "path" in e and "structural_targets[0]" in e for e in result.errors
-        )
+        assert any("path" in e and "structural_targets[0]" in e for e in result.errors)
 
-    def test_structural_targets_not_a_list_is_rejected(
-        self, tmp_path: Path
-    ) -> None:
+    def test_structural_targets_not_a_list_is_rejected(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = {"path": "src/a.py"}
         _write(tmp_path, data)
@@ -221,9 +207,7 @@ class TestStructuralTargetsValidation:
 
         result = validate_occurrence_map(omap)
         assert result.valid is False
-        assert any(
-            "structural_targets" in e and "list" in e for e in result.errors
-        )
+        assert any("structural_targets" in e and "list" in e for e in result.errors)
 
     def test_schema_rejects_structural_target_without_path(self) -> None:
         data = _legacy_map_data()
@@ -264,9 +248,7 @@ class TestStructuralTargetNarrownessInvariant:
             "src/**",
         ],
     )
-    def test_broad_path_is_rejected_at_validation(
-        self, tmp_path: Path, bad_path: str
-    ) -> None:
+    def test_broad_path_is_rejected_at_validation(self, tmp_path: Path, bad_path: str) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = [{"path": bad_path, "reason": "refactor"}]
         _write(tmp_path, data)
@@ -275,9 +257,7 @@ class TestStructuralTargetNarrownessInvariant:
 
         result = validate_occurrence_map(omap)
         assert result.valid is False
-        assert any(
-            "structural_targets[0]" in e and "path" in e for e in result.errors
-        )
+        assert any("structural_targets[0]" in e and "path" in e for e in result.errors)
 
     @pytest.mark.parametrize(
         "good_path",
@@ -286,9 +266,7 @@ class TestStructuralTargetNarrownessInvariant:
             "src/specify_cli/bulk_edit/*.py",
         ],
     )
-    def test_narrow_path_is_accepted_at_validation(
-        self, tmp_path: Path, good_path: str
-    ) -> None:
+    def test_narrow_path_is_accepted_at_validation(self, tmp_path: Path, good_path: str) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = [{"path": good_path, "reason": "refactor"}]
         _write(tmp_path, data)
@@ -299,9 +277,7 @@ class TestStructuralTargetNarrownessInvariant:
         assert result.valid is True, result.errors
         assert validate_against_schema(data).valid is True
 
-    def test_missing_reason_is_rejected_at_validation(
-        self, tmp_path: Path
-    ) -> None:
+    def test_missing_reason_is_rejected_at_validation(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
         data["structural_targets"] = [{"path": "src/foo/bar.py"}]
         _write(tmp_path, data)
@@ -310,9 +286,7 @@ class TestStructuralTargetNarrownessInvariant:
 
         result = validate_occurrence_map(omap)
         assert result.valid is False
-        assert any(
-            "structural_targets[0]" in e and "reason" in e for e in result.errors
-        )
+        assert any("structural_targets[0]" in e and "reason" in e for e in result.errors)
 
     def test_empty_reason_is_rejected_at_validation(self, tmp_path: Path) -> None:
         data = _legacy_map_data()
@@ -323,9 +297,7 @@ class TestStructuralTargetNarrownessInvariant:
 
         result = validate_occurrence_map(omap)
         assert result.valid is False
-        assert any(
-            "structural_targets[0]" in e and "reason" in e for e in result.errors
-        )
+        assert any("structural_targets[0]" in e and "reason" in e for e in result.errors)
 
     def test_schema_rejects_structural_target_without_reason(self) -> None:
         data = _legacy_map_data()
@@ -346,10 +318,7 @@ def _map_with_structural_targets(
         "target": {"term": "oldName", "operation": "rename"},
         "categories": copy.deepcopy(ALL_EIGHT_CATEGORIES),
         "exceptions": [],
-        "structural_targets": [
-            {"path": t.path, **({"reason": t.reason} if t.reason else {})}
-            for t in targets
-        ],
+        "structural_targets": [{"path": t.path, **({"reason": t.reason} if t.reason else {})} for t in targets],
     }
     return OccurrenceMap(
         target_term="oldName",
@@ -383,20 +352,14 @@ class TestStructuralTargetDiffExemption:
         # Deliberately NOT a bare directory (rejected at validation, see
         # TestStructuralTargetNarrownessInvariant) -- an extension-bounded
         # glob is the narrow, validator-accepted way to cover several files.
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path="src/specify_cli/bulk_edit/*.py")]
-        )
+        omap = _map_with_structural_targets([StructuralTarget(path="src/specify_cli/bulk_edit/*.py")])
         a = assess_file("src/specify_cli/bulk_edit/diff_check.py", omap)
         assert a.violation is False
         assert a.source == "structural-target"
 
     def test_check_diff_compliance_passes_with_structural_target(self) -> None:
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")]
-        )
-        result = check_diff_compliance(
-            ["src/specify_cli/bulk_edit/gate.py"], omap
-        )
+        omap = _map_with_structural_targets([StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")])
+        result = check_diff_compliance(["src/specify_cli/bulk_edit/gate.py"], omap)
         assert result.passed is True
 
     # -----------------------------------------------------------------
@@ -405,9 +368,7 @@ class TestStructuralTargetDiffExemption:
     # -----------------------------------------------------------------
 
     def test_undeclared_do_not_change_file_still_blocks(self) -> None:
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")]
-        )
+        omap = _map_with_structural_targets([StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")])
         # A sibling .py file not named as a structural target still
         # classifies as code_symbols (do_not_change) and violates.
         a = assess_file("src/specify_cli/bulk_edit/other_module.py", omap)
@@ -417,9 +378,7 @@ class TestStructuralTargetDiffExemption:
     def test_check_diff_compliance_blocks_mixed_diff_with_undeclared_file(
         self,
     ) -> None:
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")]
-        )
+        omap = _map_with_structural_targets([StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")])
         result = check_diff_compliance(
             [
                 "src/specify_cli/bulk_edit/gate.py",  # declared -> ok
@@ -428,9 +387,7 @@ class TestStructuralTargetDiffExemption:
             omap,
         )
         assert result.passed is False
-        assert any(
-            "other_module.py" in e for e in result.errors
-        )
+        assert any("other_module.py" in e for e in result.errors)
 
     def test_no_structural_targets_declared_still_blocks(self) -> None:
         # A map with an EMPTY structural_targets block behaves exactly like
@@ -461,28 +418,18 @@ class TestStructuralTargetExemptionVisibility:
                 )
             ]
         )
-        result = check_diff_compliance(
-            ["src/specify_cli/bulk_edit/gate.py"], omap
-        )
+        result = check_diff_compliance(["src/specify_cli/bulk_edit/gate.py"], omap)
         assert result.passed is True
-        assert any(
-            "src/specify_cli/bulk_edit/gate.py" in w
-            and "New helper function, not a bulk-occurrence edit" in w
-            for w in result.warnings
-        )
+        assert any("src/specify_cli/bulk_edit/gate.py" in w and "New helper function, not a bulk-occurrence edit" in w for w in result.warnings)
 
     def test_no_structural_target_warning_when_exemption_does_not_fire(
         self,
     ) -> None:
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")]
-        )
+        omap = _map_with_structural_targets([StructuralTarget(path="src/specify_cli/bulk_edit/gate.py")])
         # gate.py is NOT part of this diff -- no exemption fires, so no
         # structural-target warning should appear (only the plain
         # do_not_change violation for the undeclared file).
-        result = check_diff_compliance(
-            ["src/specify_cli/bulk_edit/other_module.py"], omap
-        )
+        result = check_diff_compliance(["src/specify_cli/bulk_edit/other_module.py"], omap)
         assert result.passed is False
         assert not any("structural-target" in w for w in result.warnings)
 
@@ -500,37 +447,25 @@ class TestStructuralTargetExemptionVisibility:
 
 class TestStructuralTargetConsumptionPointRevalidation:
     @pytest.mark.parametrize("broad_path", ["src", "src/**/*.py", "**/*.py"])
-    def test_broad_target_built_directly_grants_no_exemption(
-        self, broad_path: str
-    ) -> None:
+    def test_broad_target_built_directly_grants_no_exemption(self, broad_path: str) -> None:
         # Bypasses validate_occurrence_map entirely -- constructs the
         # OccurrenceMap by hand, exactly as a hand-edited-after-finalize
         # occurrence_map.yaml (or one written by a pre-hardening version)
         # would be loaded. _structural_target_for must still refuse it.
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path=broad_path, reason="looks legitimate")]
-        )
-        assert _structural_target_for(
-            "src/specify_cli/bulk_edit/gate.py", omap
-        ) is None
+        omap = _map_with_structural_targets([StructuralTarget(path=broad_path, reason="looks legitimate")])
+        assert _structural_target_for("src/specify_cli/bulk_edit/gate.py", omap) is None
 
     @pytest.mark.parametrize("broad_path", ["src", "src/**/*.py", "**/*.py"])
-    def test_broad_target_does_not_exempt_do_not_change_file_from_review(
-        self, broad_path: str
-    ) -> None:
+    def test_broad_target_does_not_exempt_do_not_change_file_from_review(self, broad_path: str) -> None:
         # End-to-end through assess_file/check_diff_compliance: a do_not_change
         # .py file must still block, not silently pass, even though the map
         # carries a (validation-bypassing) blanket-looking structural target.
-        omap = _map_with_structural_targets(
-            [StructuralTarget(path=broad_path, reason="looks legitimate")]
-        )
+        omap = _map_with_structural_targets([StructuralTarget(path=broad_path, reason="looks legitimate")])
         a = assess_file("src/specify_cli/bulk_edit/gate.py", omap)
         assert a.violation is True
         assert a.source != "structural-target"
 
-        result = check_diff_compliance(
-            ["src/specify_cli/bulk_edit/gate.py"], omap
-        )
+        result = check_diff_compliance(["src/specify_cli/bulk_edit/gate.py"], omap)
         assert result.passed is False
 
     def test_is_narrow_structural_path_rejects_recursive_glob_directly(

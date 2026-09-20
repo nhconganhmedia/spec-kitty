@@ -105,9 +105,7 @@ def _scan_occurrences(lines: list[str], closing_idx: int) -> dict[str, list[KeyO
             continue
         key = match.group(1)
         value = match.group(2).strip()
-        seen.setdefault(key, []).append(
-            KeyOccurrence(line_index=idx, value=value, is_empty=value in _EMPTY_SCALARS)
-        )
+        seen.setdefault(key, []).append(KeyOccurrence(line_index=idx, value=value, is_empty=value in _EMPTY_SCALARS))
     return seen
 
 
@@ -186,9 +184,7 @@ def _removal_is_safe(lines: list[str], idx: int, closing_idx: int) -> bool:
     return _TOP_LEVEL_KEY_RE.match(lines[next_idx]) is not None
 
 
-def _assert_repaired_frontmatter_valid(
-    path: Path, repaired_lines: list[str], original_closing_idx: int, removed: set[int]
-) -> None:
+def _assert_repaired_frontmatter_valid(path: Path, repaired_lines: list[str], original_closing_idx: int, removed: set[int]) -> None:
     """Re-parse the repaired frontmatter with duplicate keys forbidden.
 
     Guarantees the planned output is valid YAML *and* free of residual duplicate
@@ -202,9 +198,7 @@ def _assert_repaired_frontmatter_valid(
     try:
         yaml.load(body)
     except Exception as exc:  # ruamel raises subclasses of YAMLError / DuplicateKeyError
-        raise DuplicateKeyRepairError(
-            f"{path}: repaired frontmatter is still invalid YAML: {exc}"
-        ) from exc
+        raise DuplicateKeyRepairError(f"{path}: repaired frontmatter is still invalid YAML: {exc}") from exc
 
 
 def plan_artifact_repair(path: Path, text: str) -> ArtifactRepairPlan | None:
@@ -230,10 +224,7 @@ def plan_artifact_repair(path: Path, text: str) -> ArtifactRepairPlan | None:
             if occurrence.line_index == survivor.line_index:
                 continue
             if not _removal_is_safe(lines, occurrence.line_index, closing_idx):
-                raise DuplicateKeyRepairError(
-                    f"{path}: cannot safely repair duplicate key {key!r} at line "
-                    f"{occurrence.line_index + 1} (non-scalar occurrence)."
-                )
+                raise DuplicateKeyRepairError(f"{path}: cannot safely repair duplicate key {key!r} at line {occurrence.line_index + 1} (non-scalar occurrence).")
             remove.add(occurrence.line_index)
 
     repaired_lines = [line for index, line in enumerate(lines) if index not in remove]

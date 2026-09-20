@@ -53,9 +53,7 @@ _MISSION_ID = "01KW2E7CFC0000000000000001"
 _MID8 = "01KW2E7C"
 
 
-def _status_event(
-    slug: str, wp_id: str, event_id: str, from_lane: str, to_lane: str
-) -> str:
+def _status_event(slug: str, wp_id: str, event_id: str, from_lane: str, to_lane: str) -> str:
     """Return one reducible JSONL status-event line (no wrong-leg probe marker)."""
     return json.dumps(
         {
@@ -161,9 +159,7 @@ def multi_wp_coord_mission(tmp_path: Path) -> tuple[Path, str, Path, Path]:
         _status_event(slug, "WP01", "01KW2E7C0000000000000000A2", "claimed", "in_progress"),
         _status_event(slug, "WP02", "01KW2E7C0000000000000000B1", "planned", "claimed"),
     ]
-    (coord_feature_dir / "status.events.jsonl").write_text(
-        "\n".join(coord_lines) + "\n", encoding="utf-8"
-    )
+    (coord_feature_dir / "status.events.jsonl").write_text("\n".join(coord_lines) + "\n", encoding="utf-8")
 
     # Divergence precondition: the coord husk carries NO tasks/ or lanes.json —
     # those stay PRIMARY-only, so a PRIMARY-vs-coord routing bug is falsifiable.
@@ -173,9 +169,7 @@ def multi_wp_coord_mission(tmp_path: Path) -> tuple[Path, str, Path, Path]:
     return repo, slug, primary_feature_dir, coord_feature_dir
 
 
-def _reroute_status_leg_to_primary(
-    monkeypatch: pytest.MonkeyPatch, primary_feature_dir: Path
-) -> None:
+def _reroute_status_leg_to_primary(monkeypatch: pytest.MonkeyPatch, primary_feature_dir: Path) -> None:
     """Re-route ONLY the ``STATUS_STATE`` seam read back to PRIMARY (pre-fix behavior).
 
     Simulates the pre-#2698 code, which resolved the per-WP lane off the PRIMARY
@@ -215,17 +209,13 @@ def test_handoff_renders_true_per_wp_lane_from_coord_husk(
     lanes = {entry.wp_id: entry.lane for entry in topo.entries}
 
     # PRIMARY-partition legs unaffected: both WPs materialize from PRIMARY tasks/lanes.
-    assert set(lanes) == {"WP01", "WP02"}, (
-        "the multi-WP topology must materialize both WPs from the PRIMARY tasks/lanes"
-    )
+    assert set(lanes) == {"WP01", "WP02"}, "the multi-WP topology must materialize both WPs from the PRIMARY tasks/lanes"
     # AFTER-fix truth: the per-WP lane comes from the coord husk STATUS surface.
     assert lanes["WP01"] == "in_progress", (
         f"WP01 lane must resolve the coord husk STATUS ('in_progress'); got {lanes['WP01']!r} "
         "(stale 'planned' ⇒ the lane read hit the PRIMARY status surface, the #2698 bug)"
     )
-    assert lanes["WP02"] == "claimed", (
-        f"WP02 lane must resolve the coord husk STATUS ('claimed'); got {lanes['WP02']!r}"
-    )
+    assert lanes["WP02"] == "claimed", f"WP02 lane must resolve the coord husk STATUS ('claimed'); got {lanes['WP02']!r}"
     assert lanes["WP01"] != "planned" and lanes["WP02"] != "planned"
 
     # --- Executed revert→stale: re-route the STATUS leg back to PRIMARY. ---
@@ -257,7 +247,4 @@ def test_flat_topology_lane_read_is_unchanged(
     topo = materialize_worktree_topology(ctx.repo, ctx.slug)
     lanes = {entry.wp_id: entry.lane for entry in topo.entries}
 
-    assert lanes == {"WP01": "claimed"}, (
-        f"flat-topology lane read must resolve the single-surface STATUS ('claimed'); "
-        f"got {lanes!r}"
-    )
+    assert lanes == {"WP01": "claimed"}, f"flat-topology lane read must resolve the single-surface STATUS ('claimed'); got {lanes!r}"

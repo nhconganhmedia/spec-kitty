@@ -171,9 +171,7 @@ def _detect_artifact_conflicts(
                 artifact_id = _read_id(artifact_file)
                 if artifact_id is None:
                     continue
-                seen.setdefault(plural, {}).setdefault(artifact_id, []).append(
-                    (pack_name, artifact_file)
-                )
+                seen.setdefault(plural, {}).setdefault(artifact_id, []).append((pack_name, artifact_file))
                 last_owner.setdefault(plural, {})[artifact_id] = (pack, artifact_file)
 
     for plural, id_map in seen.items():
@@ -265,9 +263,7 @@ def assemble_pack(
         An :class:`AssemblyResult` summarising the operation.
     """
     if not input_packs:
-        result = AssemblyResult(
-            ok=False, errors=["no input packs provided"]
-        )
+        result = AssemblyResult(ok=False, errors=["no input packs provided"])
         _maybe_write_conflicts(conflicts_out, result)
         return result
 
@@ -296,10 +292,7 @@ def assemble_pack(
             if not force:
                 result = AssemblyResult(
                     ok=False,
-                    errors=[
-                        f"output directory {output_dir} exists and is non-empty; "
-                        "use --force to overwrite"
-                    ],
+                    errors=[f"output directory {output_dir} exists and is non-empty; use --force to overwrite"],
                 )
                 _maybe_write_conflicts(conflicts_out, result)
                 return result
@@ -307,9 +300,7 @@ def assemble_pack(
                 result = AssemblyResult(
                     ok=False,
                     errors=[
-                        f"refusing to delete non-pack output directory {output_dir}; "
-                        "with --force, the directory must contain a recognisable "
-                        "pack-manifest.yaml"
+                        f"refusing to delete non-pack output directory {output_dir}; with --force, the directory must contain a recognisable pack-manifest.yaml"
                     ],
                 )
                 _maybe_write_conflicts(conflicts_out, result)
@@ -320,9 +311,7 @@ def assemble_pack(
         output_dir.mkdir(parents=True)
 
     # Copy artifact files.
-    artifacts_written = _copy_artifacts(
-        input_packs, output_dir, last_owner, force=force
-    )
+    artifacts_written = _copy_artifacts(input_packs, output_dir, last_owner, force=force)
 
     # Copy DRG fragments (re-numbered to preserve global alphabetical order).
     drg_written = _copy_drg_fragments(fragments_by_pack, output_dir, force=force)
@@ -344,9 +333,7 @@ def assemble_pack(
             artifacts_written=0,
             conflicts=all_conflicts if force else [],
             errors=[
-                "assembled pack failed validation: "
-                + "; ".join(issue.message for issue in validation.errors[:3])
-                + ("; ..." if len(validation.errors) > 3 else "")
+                "assembled pack failed validation: " + "; ".join(issue.message for issue in validation.errors[:3]) + ("; ..." if len(validation.errors) > 3 else "")
             ],
         )
         _maybe_write_conflicts(conflicts_out, result)
@@ -571,18 +558,14 @@ def _copy_drg_fragments(
                 pruned = _document_dict(pruned_graph)
                 import yaml as pyyaml
 
-                dest.write_text(
-                    pyyaml.safe_dump(pruned, sort_keys=False), encoding="utf-8"
-                )
+                dest.write_text(pyyaml.safe_dump(pruned, sort_keys=False), encoding="utf-8")
             else:
                 shutil.copy2(fragment, dest)
             count += 1
     return count
 
 
-def _merge_org_charters_to_output(
-    input_packs: list[Path], output_dir: Path
-) -> None:
+def _merge_org_charters_to_output(input_packs: list[Path], output_dir: Path) -> None:
     """Merge ``org-charter.yaml`` from input packs into ``output_dir``.
 
     Skipped silently if no input pack provides one or if the OrgCharterPolicy
@@ -671,9 +654,7 @@ def _merge_org_charters(
         return None
 
 
-def _maybe_write_conflicts(
-    conflicts_out: Path | None, result: AssemblyResult
-) -> None:
+def _maybe_write_conflicts(conflicts_out: Path | None, result: AssemblyResult) -> None:
     """Write ``result.conflicts`` to *conflicts_out* as JSON when requested."""
     if conflicts_out is None:
         return
@@ -706,28 +687,15 @@ def render_assembly_result(
         return
 
     if result.ok:
-        print(
-            f"Assembled {len(input_packs)} pack"
-            f"{'s' if len(input_packs) != 1 else ''} → "
-            f"{output_dir}/ ({result.artifacts_written} artifacts)"
-        )
+        print(f"Assembled {len(input_packs)} pack{'s' if len(input_packs) != 1 else ''} → {output_dir}/ ({result.artifacts_written} artifacts)")
         for conflict in result.conflicts:
-            print(
-                f"⚠ advisory: last-pack-wins for {conflict.artifact_type}/"
-                f"{conflict.artifact_id} from "
-                f"{conflict.conflicting_packs[-1]}"
-            )
+            print(f"⚠ advisory: last-pack-wins for {conflict.artifact_type}/{conflict.artifact_id} from {conflict.conflicting_packs[-1]}")
         return
 
     for conflict in result.conflicts:
         names = " and ".join(repr(n) for n in conflict.conflicting_packs)
-        print(
-            f"✗ Conflict: artifact id {conflict.artifact_id!r} "
-            f"({conflict.artifact_type}) declared in {names}"
-        )
+        print(f"✗ Conflict: artifact id {conflict.artifact_id!r} ({conflict.artifact_type}) declared in {names}")
     for err in result.errors:
         print(f"✗ {err}")
     if result.conflicts:
-        print(
-            "Resolve conflicts and re-run, or use --force to let last pack win."
-        )
+        print("Resolve conflicts and re-run, or use --force to let last pack win.")

@@ -64,9 +64,7 @@ class TestBuildPromptOrError:
         assert error is None
         assert os.path.exists(path)
 
-    def test_non_wp_step_gets_composition_marker_when_no_template(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_wp_step_gets_composition_marker_when_no_template(self, tmp_path: Path) -> None:
         """Non-WP steps with no file template get a composition marker, not a block.
 
         Workflow-inserted steps (e.g. ``design-review``) and global-runtime steps
@@ -133,9 +131,7 @@ class TestBuildPromptOrError:
         assert error is not None
         assert "did not materialize" in error
 
-    def test_returns_error_when_path_stat_raises_oserror(
-        self, tmp_path: Path
-    ) -> None:
+    def test_returns_error_when_path_stat_raises_oserror(self, tmp_path: Path) -> None:
         """Exercise decision.py:521-522 — Path.exists() OSError branch.
 
         On some platforms Path.exists() can raise OSError (PermissionError,
@@ -260,10 +256,7 @@ def test_unresolvable_prompt_yields_structured_blocked(tmp_path: Path, step_id: 
     """When prompt resolution fails, the response MUST be `blocked` with a non-empty `reason`."""
     from runtime.next.runtime_bridge import _map_runtime_decision
 
-    error_msg = (
-        f"prompt resolution failed for action '{step_id}': "
-        f"FileNotFoundError: no template"
-    )
+    error_msg = f"prompt resolution failed for action '{step_id}': FileNotFoundError: no template"
     with (
         patch(
             "runtime.next.runtime_bridge._state_to_action",
@@ -415,16 +408,9 @@ def test_third_state_does_not_exist(tmp_path: Path) -> None:
 
         # Forbidden combination: issued step with no resolvable prompt.
         is_issued_step = decision.kind == DecisionKind.step
-        has_resolvable_prompt = (
-            decision.prompt_file is not None
-            and decision.prompt_file != ""
-            and os.path.exists(decision.prompt_file)
-        )
+        has_resolvable_prompt = decision.prompt_file is not None and decision.prompt_file != "" and os.path.exists(decision.prompt_file)
         if is_issued_step:
-            assert has_resolvable_prompt, (
-                f"WP06 invariant violated: kind={decision.kind!r}, "
-                f"prompt_file={decision.prompt_file!r}"
-            )
+            assert has_resolvable_prompt, f"WP06 invariant violated: kind={decision.kind!r}, prompt_file={decision.prompt_file!r}"
         else:
             assert decision.kind == DecisionKind.blocked
             assert decision.reason

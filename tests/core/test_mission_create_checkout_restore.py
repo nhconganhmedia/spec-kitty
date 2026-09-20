@@ -191,9 +191,7 @@ def test_restore_helper_switches_back_and_deletes_new_branches(tmp_path: Path) -
     assert _coordination_branches(tmp_path) == []
 
 
-def test_meta_json_commit_hard_failure_raises_and_restores_git_state(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_meta_json_commit_hard_failure_raises_and_restores_git_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-001 / NFR-003 (primary mission-type call site, mission_creation.py:767).
 
     A hard git failure while committing ``meta.json`` must propagate out of
@@ -235,9 +233,7 @@ def test_meta_json_commit_hard_failure_raises_and_restores_git_state(
     # rejects) surfacing from inside the meta.json commit call -- the RAW
     # ``safe_commit``-shaped error, with no step-name prefix (production adds
     # that itself; see the docstring above).
-    boom = RuntimeError(
-        f"safe_commit: git commit failed in {tmp_path} for destination_ref='main': pre-commit hook rejected (exit 1)"
-    )
+    boom = RuntimeError(f"safe_commit: git commit failed in {tmp_path} for destination_ref='main': pre-commit hook rejected (exit 1)")
 
     def _explode(*_args: object, **_kwargs: object) -> None:
         raise boom
@@ -300,9 +296,7 @@ def test_restore_helper_preserves_pre_existing_coordination_branches(tmp_path: P
     assert new not in remaining
 
 
-def test_meta_json_commit_hard_failure_message_names_step_and_git_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_meta_json_commit_hard_failure_message_names_step_and_git_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """NFR-001 / Acceptance Scenario 2: the raised exception's message names
     the failing step ("meta.json commit") AND surfaces the underlying git
     error text, so a calling agent can distinguish this failure from any
@@ -338,10 +332,7 @@ def test_meta_json_commit_hard_failure_message_names_step_and_git_error(
     _init_git_repo(tmp_path)
     # RAW underlying error, shaped exactly like ``safe_commit``'s own
     # RuntimeError -- no "meta.json commit failed" prefix baked in here.
-    boom = RuntimeError(
-        f"safe_commit: git commit failed in {tmp_path} for destination_ref='main': "
-        "fatal: unable to write new index file (disk full)"
-    )
+    boom = RuntimeError(f"safe_commit: git commit failed in {tmp_path} for destination_ref='main': fatal: unable to write new index file (disk full)")
 
     def _explode(*_args: object, **_kwargs: object) -> None:
         raise boom
@@ -367,9 +358,7 @@ def test_meta_json_commit_hard_failure_message_names_step_and_git_error(
     assert "unable to write new index file" in str(exc_info.value.__cause__)
 
 
-def test_meta_json_commit_empty_changeset_surfaces_typed_already_exists(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_meta_json_commit_empty_changeset_surfaces_typed_already_exists(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#3861: a genuine empty-changeset refusal at the scaffold commit (a
     byte-identical scaffold already committed -- the duplicate-mission
     signature the WP03 tracer observed) is re-raised as the TYPED

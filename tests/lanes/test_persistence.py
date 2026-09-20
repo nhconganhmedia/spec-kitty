@@ -118,13 +118,7 @@ def test_resolve_lanes_dir_coord_path_differs_from_primary_path(tmp_path: Path) 
     """
     # Simulate a coord topology: primary in the main checkout, coord in .worktrees.
     primary_feature_dir = tmp_path / "kitty-specs" / "write-side-coord-01kv9w0x"
-    coord_feature_dir = (
-        tmp_path
-        / ".worktrees"
-        / "write-side-coord-01kv9w0x-01kv9w0x-coord"
-        / "kitty-specs"
-        / "write-side-coord-01kv9w0x"
-    )
+    coord_feature_dir = tmp_path / ".worktrees" / "write-side-coord-01kv9w0x-01kv9w0x-coord" / "kitty-specs" / "write-side-coord-01kv9w0x"
     primary_feature_dir.mkdir(parents=True)
     coord_feature_dir.mkdir(parents=True)
 

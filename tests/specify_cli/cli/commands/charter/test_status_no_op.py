@@ -209,14 +209,9 @@ class TestCharterStatusNoOp:
         _collect_charter_sync_status(charter_repo)
         after = _git_porcelain(charter_repo)
 
-        assert after == before, (
-            "working tree changed after _collect_charter_sync_status; "
-            f"new/modified entries:\n{after!r}"
-        )
+        assert after == before, f"working tree changed after _collect_charter_sync_status; new/modified entries:\n{after!r}"
 
-    def test_charter_status_does_not_write_entity_pages(
-        self, charter_repo: Path
-    ) -> None:
+    def test_charter_status_does_not_write_entity_pages(self, charter_repo: Path) -> None:
         """No entity-page files appear in the compiled/glossary dir after status.
 
         Captured-red: FAILS on unmodified _status_collectors.py because
@@ -235,8 +230,7 @@ class TestCharterStatusNoOp:
         pages_after = set(entity_dir.glob("*.md")) if entity_dir.exists() else set()
         new_pages = pages_after - pages_before
         assert not new_pages, (
-            "entity-page files appeared after _collect_charter_sync_status "
-            f"(collector must not call generate_all): {sorted(p.name for p in new_pages)}"
+            f"entity-page files appeared after _collect_charter_sync_status (collector must not call generate_all): {sorted(p.name for p in new_pages)}"
         )
 
 
@@ -264,12 +258,8 @@ class TestCharterStatusHashJsonSafe:
         current_hash = result["current_hash"]
         stored_hash = result["stored_hash"]
 
-        assert isinstance(current_hash, str | type(None)), (
-            f"current_hash is not a str: {type(current_hash)}"
-        )
-        assert isinstance(stored_hash, str | type(None)), (
-            f"stored_hash is not a str: {type(stored_hash)}"
-        )
+        assert isinstance(current_hash, str | type(None)), f"current_hash is not a str: {type(current_hash)}"
+        assert isinstance(stored_hash, str | type(None)), f"stored_hash is not a str: {type(stored_hash)}"
 
     def test_full_status_payload_json_round_trips(self, charter_repo: Path) -> None:
         """The full status dict round-trips through json.dumps without error."""

@@ -37,6 +37,7 @@ def _assert_no_absolute_path_leak(detail: str | None, leaked_path: Path) -> None
     assert str(leaked_path) not in detail
     assert leaked_path.name not in detail
 
+
 def _write_json(path: Path, data: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, sort_keys=True, indent=2) + "\n", encoding="utf-8")
@@ -61,10 +62,7 @@ def _codes(findings: list) -> list[str]:
 
 def test_oserror_detail_preserves_non_path_message() -> None:
     """Message-only OSError details without paths should not be erased."""
-    assert (
-        format_exception_detail(OSError("network share unavailable"))
-        == "OSError: network share unavailable"
-    )
+    assert format_exception_detail(OSError("network share unavailable")) == "OSError: network share unavailable"
 
 
 def test_oserror_detail_redacts_absolute_paths_with_spaces() -> None:
@@ -103,10 +101,7 @@ def test_oserror_detail_redacts_posix_edge_paths() -> None:
 
 def test_oserror_detail_does_not_redact_non_path_slashes_or_urls() -> None:
     """Slash commands and URLs are stable messages, not local path evidence."""
-    assert (
-        format_exception_detail(OSError("open /help or https://example.com/path/file"))
-        == "OSError: open /help or https://example.com/path/file"
-    )
+    assert format_exception_detail(OSError("open /help or https://example.com/path/file")) == "OSError: open /help or https://example.com/path/file"
 
 
 # Minimal valid ULID
@@ -192,9 +187,7 @@ def test_meta_classifier_corrupt_json(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("payload", ["[]", '"x"', "42", "true", "null"])
-def test_meta_classifier_non_object_json_returns_corrupt_json(
-    tmp_path: Path, payload: str
-) -> None:
+def test_meta_classifier_non_object_json_returns_corrupt_json(tmp_path: Path, payload: str) -> None:
     """Valid non-object meta.json → CORRUPT_JSON finding, not a crash."""
     (tmp_path / "meta.json").write_text(payload, encoding="utf-8")
     findings = classify_meta_json(tmp_path)
@@ -234,10 +227,7 @@ def test_meta_classifier_unreadable_file_reports_cannot_read_not_non_object(
     assert len(findings) == 1
     assert findings[0].code == "CORRUPT_JSON"
     assert findings[0].detail != "top-level JSON value must be an object"
-    assert findings[0].detail == (
-        "cannot read meta.json: [Errno 13] Permission denied: "
-        f"'{path}'"
-    )
+    assert findings[0].detail == (f"cannot read meta.json: [Errno 13] Permission denied: '{path}'")
 
 
 def test_meta_classifier_non_utf8_reports_cannot_read_not_non_object(
@@ -294,10 +284,7 @@ def test_meta_classifier_coordination_keys_not_unknown_shape(tmp_path: Path) -> 
     findings = classify_meta_json(tmp_path)
     unknown_details = [f.detail or "" for f in findings if f.code == "UNKNOWN_SHAPE"]
     offenders = [key for key in coord_keys if any(key in d for d in unknown_details)]
-    assert offenders == [], (
-        f"coordination keys wrongly flagged UNKNOWN_SHAPE: {offenders} "
-        f"(all UNKNOWN_SHAPE details: {unknown_details})"
-    )
+    assert offenders == [], f"coordination keys wrongly flagged UNKNOWN_SHAPE: {offenders} (all UNKNOWN_SHAPE details: {unknown_details})"
 
 
 # ---------------------------------------------------------------------------
@@ -349,9 +336,7 @@ def test_status_events_read_oserror_detail_is_deterministic(
     assert flag is True
     assert len(findings) == 1
     assert findings[0].code == "CORRUPT_JSONL"
-    assert findings[0].detail == (
-        "could not read file: PermissionError: [Errno 13] Permission denied"
-    )
+    assert findings[0].detail == ("could not read file: PermissionError: [Errno 13] Permission denied")
     _assert_no_absolute_path_leak(findings[0].detail, path)
 
 
@@ -397,9 +382,7 @@ def test_status_events_read_oserror_strerror_path_is_redacted(
     findings, flag = classify_status_events_jsonl(tmp_path)
 
     assert flag is True
-    assert findings[0].detail == (
-        "could not read file: OSError: [Errno 5] failed reading <path>"
-    )
+    assert findings[0].detail == ("could not read file: OSError: [Errno 5] failed reading <path>")
     _assert_no_absolute_path_leak(findings[0].detail, path)
 
 
@@ -433,9 +416,7 @@ def test_status_events_valid_actor_formats(tmp_path: Path) -> None:
     """Various valid actor formats should not produce ACTOR_DRIFT."""
     for actor in ("claude", "finalize-tasks", "migration", "human", "user", "claude:opus"):
         row = {**_MODERN_EVENT, "actor": actor}
-        (tmp_path / "status.events.jsonl").write_text(
-            json.dumps(row, sort_keys=True) + "\n", encoding="utf-8"
-        )
+        (tmp_path / "status.events.jsonl").write_text(json.dumps(row, sort_keys=True) + "\n", encoding="utf-8")
         findings, _ = classify_status_events_jsonl(tmp_path)
         drift = [f for f in findings if f.code == "ACTOR_DRIFT"]
         assert drift == [], f"Unexpected ACTOR_DRIFT for actor={actor!r}"
@@ -469,9 +450,7 @@ def test_status_json_corrupt_json(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("payload", ["[]", '"x"', "42", "true", "null"])
-def test_status_json_non_object_json_returns_corrupt_json(
-    tmp_path: Path, payload: str
-) -> None:
+def test_status_json_non_object_json_returns_corrupt_json(tmp_path: Path, payload: str) -> None:
     """Valid non-object status.json → CORRUPT_JSON finding, not a crash."""
     (tmp_path / "status.json").write_text(payload, encoding="utf-8")
     findings = classify_status_json(tmp_path)
@@ -501,9 +480,7 @@ def test_status_json_read_oserror_detail_is_deterministic(
 
     assert len(findings) == 1
     assert findings[0].code == "CORRUPT_JSON"
-    assert findings[0].detail == (
-        "could not read file: PermissionError: [Errno 13] Permission denied"
-    )
+    assert findings[0].detail == ("could not read file: PermissionError: [Errno 13] Permission denied")
     _assert_no_absolute_path_leak(findings[0].detail, path)
 
 
@@ -525,9 +502,7 @@ def test_snapshot_drift_detected(tmp_path: Path) -> None:
         "work_packages": {"WP01": {"lane": "planned"}},
         "summary": {"total": 1, "by_lane": {}},
     }
-    (tmp_path / "status.json").write_text(
-        json.dumps(status_data, sort_keys=True, indent=2) + "\n", encoding="utf-8"
-    )
+    (tmp_path / "status.json").write_text(json.dumps(status_data, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     # No status.events.jsonl → reducer produces empty snapshot
     findings = classify_status_json(tmp_path)
     drift = [f for f in findings if f.code == "SNAPSHOT_DRIFT"]
@@ -555,10 +530,7 @@ def test_status_json_reducer_oserror_detail_is_deterministic(
 
     drift = [f for f in findings if f.code == "SNAPSHOT_DRIFT"]
     assert len(drift) == 1
-    assert drift[0].detail == (
-        "reducer raised during drift check: FileNotFoundError: "
-        "[Errno 2] No such file or directory"
-    )
+    assert drift[0].detail == ("reducer raised during drift check: FileNotFoundError: [Errno 2] No such file or directory")
     _assert_no_absolute_path_leak(drift[0].detail, path)
 
 
@@ -582,9 +554,7 @@ def test_status_json_reducer_oserror_strerror_path_is_redacted(
 
     drift = [f for f in findings if f.code == "SNAPSHOT_DRIFT"]
     assert len(drift) == 1
-    assert drift[0].detail == (
-        "reducer raised during drift check: OSError: failed reading <path>"
-    )
+    assert drift[0].detail == ("reducer raised during drift check: OSError: failed reading <path>")
     _assert_no_absolute_path_leak(drift[0].detail, path)
 
 
@@ -689,9 +659,7 @@ def test_status_json_terminal_mission_drift_is_warning_not_blocker(
     status_path = tmp_path / "status.json"
     persisted = json.loads(status_path.read_text(encoding="utf-8"))
     persisted["event_count"] = persisted["event_count"] + 1
-    status_path.write_text(
-        json.dumps(persisted, sort_keys=True, indent=2) + "\n", encoding="utf-8"
-    )
+    status_path.write_text(json.dumps(persisted, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
     findings = classify_status_json(tmp_path)
 
@@ -730,9 +698,7 @@ def test_status_json_active_mission_drift_stays_hard_blocker(
     status_path = tmp_path / "status.json"
     persisted = json.loads(status_path.read_text(encoding="utf-8"))
     persisted["event_count"] = persisted["event_count"] + 1
-    status_path.write_text(
-        json.dumps(persisted, sort_keys=True, indent=2) + "\n", encoding="utf-8"
-    )
+    status_path.write_text(json.dumps(persisted, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
     findings = classify_status_json(tmp_path)
 
@@ -793,9 +759,7 @@ def test_mission_events_read_oserror_detail_is_deterministic(
 
     assert len(findings) == 1
     assert findings[0].code == "CORRUPT_JSONL"
-    assert findings[0].detail == (
-        "could not read file: PermissionError: [Errno 13] Permission denied"
-    )
+    assert findings[0].detail == ("could not read file: PermissionError: [Errno 13] Permission denied")
     _assert_no_absolute_path_leak(findings[0].detail, path)
 
 
@@ -829,9 +793,7 @@ def test_shared_jsonl_classifiers_read_oserror_detail_is_deterministic(
 
     assert len(findings) == 1
     assert findings[0].code == "CORRUPT_JSONL"
-    assert findings[0].detail == (
-        "could not read file: PermissionError: [Errno 13] Permission denied"
-    )
+    assert findings[0].detail == ("could not read file: PermissionError: [Errno 13] Permission denied")
     _assert_no_absolute_path_leak(findings[0].detail, path)
 
 
@@ -1018,15 +980,7 @@ def test_wp_files_terminal_lane_with_evidence(tmp_path: Path) -> None:
     """WP file with terminal lane AND evidence → no MISSING_EVIDENCE."""
     tasks_dir = tmp_path / "tasks"
     tasks_dir.mkdir()
-    content = (
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Test WP\n"
-        "dependencies: []\n"
-        "lane: done\n"
-        "evidence: some evidence value\n"
-        "---\n\n# Body\n"
-    )
+    content = "---\nwork_package_id: WP01\ntitle: Test WP\ndependencies: []\nlane: done\nevidence: some evidence value\n---\n\n# Body\n"
     (tasks_dir / "WP01.md").write_text(content, encoding="utf-8")
     findings = classify_wp_files(tmp_path)
     missing = [f for f in findings if f.code == "MISSING_EVIDENCE"]
@@ -1037,14 +991,7 @@ def test_wp_files_legacy_key_in_frontmatter(tmp_path: Path) -> None:
     """WP file with feature_slug in frontmatter → LEGACY_KEY finding."""
     tasks_dir = tmp_path / "tasks"
     tasks_dir.mkdir()
-    content = (
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Test WP\n"
-        "dependencies: []\n"
-        "feature_slug: old-feature\n"
-        "---\n\n# Body\n"
-    )
+    content = "---\nwork_package_id: WP01\ntitle: Test WP\ndependencies: []\nfeature_slug: old-feature\n---\n\n# Body\n"
     (tasks_dir / "WP01.md").write_text(content, encoding="utf-8")
     findings = classify_wp_files(tmp_path)
     assert "LEGACY_KEY" in _codes(findings)

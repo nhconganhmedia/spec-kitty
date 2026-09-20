@@ -129,9 +129,7 @@ def _write_explicit_code_change_wp(feature_dir: Path, wp_id: str = "WP01") -> No
     (feature_dir / "tasks" / f"{wp_id}.md").write_text(content, encoding="utf-8")
 
 
-def _write_complete_lanes_json(
-    feature_dir: Path, *, slug: str, mission_id: str
-) -> None:
+def _write_complete_lanes_json(feature_dir: Path, *, slug: str, mission_id: str) -> None:
     """Write a lanes.json with all required fields (computed_at, computed_from).
 
     The fixture's _write_lanes_json omits computed_at/computed_from; LanesManifest
@@ -157,9 +155,7 @@ def _write_complete_lanes_json(
         "computed_from": "wp05-test-fixture",
         "planning_artifact_wps": [],
     }
-    (feature_dir / "lanes.json").write_text(
-        json.dumps(payload, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "lanes.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def _write_parseable_status_events(feature_dir: Path, slug: str) -> None:
@@ -224,9 +220,7 @@ def _save_workspace_context(repo: Path, slug: str, lane_branch: str) -> None:
         lane_branch=lane_branch,
         worktree_path=f".worktrees/{workspace_name}",
     )
-    (workspaces_dir / f"{workspace_name}.json").write_text(
-        json.dumps(ctx_data, indent=2), encoding="utf-8"
-    )
+    (workspaces_dir / f"{workspace_name}.json").write_text(json.dumps(ctx_data, indent=2), encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -275,10 +269,7 @@ class TestBuildNormalizedWpIndex:
         )
         assert result["WP01"].metadata.execution_mode == "code_change"
         # Path must come from PRIMARY (not coord husk).
-        assert str(ctx.primary_feature_dir) in str(result["WP01"].path), (
-            f"WP01 path {result['WP01'].path} should be under PRIMARY "
-            f"{ctx.primary_feature_dir}."
-        )
+        assert str(ctx.primary_feature_dir) in str(result["WP01"].path), f"WP01 path {result['WP01'].path} should be under PRIMARY {ctx.primary_feature_dir}."
 
 
 # ---------------------------------------------------------------------------
@@ -387,9 +378,7 @@ class TestResolveActiveWpForBranchMixedSplit:
             "Before WP05 the tasks read goes to the coord husk (no tasks/ dir) → "
             "ACTIVE_WP_METADATA_MISSING. After routing it reads from PRIMARY."
         )
-        assert result.wp_id == "WP01", (
-            f"Expected wp_id='WP01', got {result.wp_id!r}."
-        )
+        assert result.wp_id == "WP01", f"Expected wp_id='WP01', got {result.wp_id!r}."
 
     def test_status_leg_stays_coord_for_in_progress(
         self,
@@ -561,9 +550,7 @@ class TestResolveFeatureWorktreeLanesFromPrimary:
 
         ctx = coord_topology_mission
         # Corrupt the primary lanes.json to prove it IS read (raises CorruptLanesError).
-        (ctx.primary_feature_dir / "lanes.json").write_text(
-            "NOT VALID JSON {{{{", encoding="utf-8"
-        )
+        (ctx.primary_feature_dir / "lanes.json").write_text("NOT VALID JSON {{{{", encoding="utf-8")
         clear_workspace_resolution_caches()
 
         with pytest.raises(CorruptLanesError):
@@ -592,10 +579,7 @@ class TestResolveFeatureWorktreeLanesFromPrimary:
         # No lane worktrees exist → None returned (lanes.json read but no path on disk).
         result = resolve_feature_worktree(ctx.repo, ctx.slug)
 
-        assert result is None, (
-            f"Expected None (no lane worktree on disk), got {result!r}.\n"
-            "The lanes.json is read from PRIMARY but no lane-a worktree was created."
-        )
+        assert result is None, f"Expected None (no lane worktree on disk), got {result!r}.\nThe lanes.json is read from PRIMARY but no lane-a worktree was created."
 
 
 # ---------------------------------------------------------------------------
@@ -706,7 +690,4 @@ class TestLocateWorkPackageReadsFromPrimary:
 
         assert wp is not None
         # The path must come from PRIMARY (not the coord husk).
-        assert str(ctx.primary_feature_dir) in str(wp.path), (
-            f"WorkPackage path {wp.path} should be under PRIMARY "
-            f"{ctx.primary_feature_dir}."
-        )
+        assert str(ctx.primary_feature_dir) in str(wp.path), f"WorkPackage path {wp.path} should be under PRIMARY {ctx.primary_feature_dir}."

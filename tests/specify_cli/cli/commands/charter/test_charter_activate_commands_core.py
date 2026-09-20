@@ -49,9 +49,7 @@ def project_root(tmp_path: Path) -> Path:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     return tmp_path
 
 
@@ -199,9 +197,7 @@ def _write_candidate_mission_type_yaml(
         lines.extend(f"  - {step}" for step in action_sequence)
     if extends is not None:
         lines.append(f"extends: {extends}")
-    (mission_types_dir / f"{mission_type_id}.yaml").write_text(
-        "\n".join(lines) + "\n", encoding="utf-8"
-    )
+    (mission_types_dir / f"{mission_type_id}.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _write_org_pack_activation_config(
@@ -236,9 +232,7 @@ class TestActivateMissionTypeEmptyActionSequenceGate:
     fixture per the SK-81 methodological trap above.
     """
 
-    def test_empty_action_sequence_refuses_activation_without_mutating_config(
-        self, tmp_path: Path
-    ) -> None:
+    def test_empty_action_sequence_refuses_activation_without_mutating_config(self, tmp_path: Path) -> None:
         org_root = tmp_path / "org-pack"
         _write_candidate_mission_type_yaml(org_root, "qa", action_sequence=None)
         project_root = _write_org_pack_activation_config(
@@ -263,9 +257,7 @@ class TestActivateMissionTypeEmptyActionSequenceGate:
         assert "org" in result.output
         assert config_path.read_bytes() == before_bytes
 
-    def test_extends_fallback_non_empty_parent_activates_successfully(
-        self, tmp_path: Path
-    ) -> None:
+    def test_extends_fallback_non_empty_parent_activates_successfully(self, tmp_path: Path) -> None:
         """AC4/FR-005: a candidate whose own ``action_sequence`` is empty
         but whose single-level ``extends`` parent resolves non-empty
         activates successfully.
@@ -280,12 +272,8 @@ class TestActivateMissionTypeEmptyActionSequenceGate:
         commit.
         """
         org_root = tmp_path / "org-pack"
-        _write_candidate_mission_type_yaml(
-            org_root, "parent", action_sequence=["specify", "plan"]
-        )
-        _write_candidate_mission_type_yaml(
-            org_root, "qa", action_sequence=None, extends="parent"
-        )
+        _write_candidate_mission_type_yaml(org_root, "parent", action_sequence=["specify", "plan"])
+        _write_candidate_mission_type_yaml(org_root, "qa", action_sequence=None, extends="parent")
         project_root = _write_org_pack_activation_config(
             tmp_path,
             org_root=org_root,

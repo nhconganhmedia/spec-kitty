@@ -124,6 +124,5 @@ def test_audit_from_worktree_anchors_on_primary(tmp_path: Path, monkeypatch: pyt
 
     expected = resolve_canonical_root(coord)
     assert captured["root"] == expected == primary_root, (
-        "audit must anchor on the canonical primary root (matching --fix), "
-        f"got {captured.get('root')!r}; expected {primary_root!r}"
+        f"audit must anchor on the canonical primary root (matching --fix), got {captured.get('root')!r}; expected {primary_root!r}"
     )

@@ -24,19 +24,14 @@ pytestmark = [pytest.mark.unit]
 
 
 def _writer_keys() -> frozenset[str]:
-    return frozenset(MissionMetaRequired.__annotations__) | frozenset(
-        MissionMetaOptional.__annotations__
-    )
+    return frozenset(MissionMetaRequired.__annotations__) | frozenset(MissionMetaOptional.__annotations__)
 
 
 def test_every_writer_key_is_a_known_audit_key() -> None:
     """Writer keys ⊆ audit known keys — the anti-drift invariant (NFR-004)."""
     audit_keys = KNOWN_TOP_LEVEL_KEYS_BY_ARTIFACT["meta.json"]
     missing = _writer_keys() - audit_keys
-    assert missing == set(), (
-        "meta.json writer schema keys missing from the audit shape registry "
-        f"(would be reported as UNKNOWN_SHAPE): {sorted(missing)}"
-    )
+    assert missing == set(), f"meta.json writer schema keys missing from the audit shape registry (would be reported as UNKNOWN_SHAPE): {sorted(missing)}"
 
 
 def test_coordination_write_path_keys_are_known_audit_keys() -> None:

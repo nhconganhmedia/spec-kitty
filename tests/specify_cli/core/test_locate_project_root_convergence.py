@@ -78,9 +78,7 @@ def _make_worktree(worktree_path: Path, main_repo: Path) -> Path:
 class TestConvergenceEnvVar:
     """All three entries must return the same Path when SPECIFY_REPO_ROOT is set."""
 
-    def test_env_root_all_three_entries_agree(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_env_root_all_three_entries_agree(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Divergent input: SPECIFY_REPO_ROOT points at a directory that is NOT
         the walk-up .kittify root.  An entry ignoring the env var would return
         the ambient (walk-up) root — not the env-var root.  All three must return
@@ -113,12 +111,9 @@ class TestConvergenceEnvVar:
         # Must be the env-var root (not the ambient walk-up root).
         expected = explicit_root.resolve()
         assert result_paths == expected, (
-            f"Expected SPECIFY_REPO_ROOT={explicit_root!r} to be returned; "
-            f"got {result_paths!r}.  Entry ignoring env var would return {ambient.resolve()!r}."
+            f"Expected SPECIFY_REPO_ROOT={explicit_root!r} to be returned; got {result_paths!r}.  Entry ignoring env var would return {ambient.resolve()!r}."
         )
-        assert result_paths != ambient.resolve(), (
-            "All three entries must return the env-var root, NOT the ambient walk-up root."
-        )
+        assert result_paths != ambient.resolve(), "All three entries must return the env-var root, NOT the ambient walk-up root."
 
 
 # ---------------------------------------------------------------------------
@@ -129,9 +124,7 @@ class TestConvergenceEnvVar:
 class TestConvergenceWorktreeGitFile:
     """All three entries must follow the worktree .git pointer to the main repo."""
 
-    def test_worktree_start_all_three_entries_agree(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_worktree_start_all_three_entries_agree(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Divergent input: start is inside a worktree directory.
 
         A simple-walk implementation (not following the .git pointer) would return
@@ -160,13 +153,9 @@ class TestConvergenceWorktreeGitFile:
         # Must be the MAIN repo root — not the worktree root.
         expected = main_repo.resolve()
         assert result_paths == expected, (
-            f"Expected main repo {expected!r}; got {result_paths!r}. "
-            f"A simple-walk resolver would return the worktree root "
-            f"{worktree.resolve()!r} instead."
+            f"Expected main repo {expected!r}; got {result_paths!r}. A simple-walk resolver would return the worktree root {worktree.resolve()!r} instead."
         )
-        assert result_paths != worktree.resolve(), (
-            "All three entries must return the MAIN repo root, not the worktree root."
-        )
+        assert result_paths != worktree.resolve(), "All three entries must return the MAIN repo root, not the worktree root."
 
 
 # ---------------------------------------------------------------------------
@@ -177,9 +166,7 @@ class TestConvergenceWorktreeGitFile:
 class TestConvergenceKittifyWalk:
     """.kittify walk: all three entries must return the same root."""
 
-    def test_kittify_walk_all_three_entries_agree(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_kittify_walk_all_three_entries_agree(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Baseline: start in a nested subdirectory; .kittify is in the ancestor.
 
         The divergent element here is the start directory being nested: a resolver
@@ -209,9 +196,7 @@ class TestConvergenceKittifyWalk:
         )
 
         expected = repo_root.resolve()
-        assert result_paths == expected, (
-            f"Expected repo root {expected!r} from nested start; got {result_paths!r}."
-        )
+        assert result_paths == expected, f"Expected repo root {expected!r} from nested start; got {result_paths!r}."
 
 
 # ---------------------------------------------------------------------------
@@ -242,10 +227,7 @@ class TestPinnedNoArgSignature:
         ]:
             param = sig.parameters.get("start")
             assert param is not None, f"{name} must have a 'start' parameter."
-            assert param.default is None, (
-                f"{name} 'start' parameter must default to None "
-                f"(benign no-arg call semantics). Got: {param.default!r}"
-            )
+            assert param.default is None, f"{name} 'start' parameter must default to None (benign no-arg call semantics). Got: {param.default!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -288,10 +270,8 @@ class TestDeferredImportShimIntegrity:
         src = inspect.getsource(resolver_module.locate_project_root)
 
         assert "for candidate in" not in src, (
-            "project_resolver.locate_project_root must NOT contain the walk-up loop. "
-            "All walk logic must live in paths.py. Duplicate found in source:\n" + src
+            "project_resolver.locate_project_root must NOT contain the walk-up loop. All walk logic must live in paths.py. Duplicate found in source:\n" + src
         )
         assert 'os.getenv("SPECIFY_REPO_ROOT")' not in src, (
-            "project_resolver.locate_project_root must NOT read SPECIFY_REPO_ROOT itself. "
-            "That belongs in paths.py. Source:\n" + src
+            "project_resolver.locate_project_root must NOT read SPECIFY_REPO_ROOT itself. That belongs in paths.py. Source:\n" + src
         )

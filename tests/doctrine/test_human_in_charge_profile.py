@@ -58,9 +58,7 @@ def test_kanban_shows_hic_marker(tmp_path: Path) -> None:
     # --- pre-built repo path ---
     pre_built = AgentProfileRepository(built_in_dir=_SHIPPED_DIR)
     marker_prebuilt = _get_hic_marker("human-in-charge", repo_root, repo=pre_built)
-    assert "👤" in marker_prebuilt, (
-        f"Expected '👤' marker for human-in-charge (pre-built), got: {repr(marker_prebuilt)}"
-    )
+    assert "👤" in marker_prebuilt, f"Expected '👤' marker for human-in-charge (pre-built), got: {repr(marker_prebuilt)}"
 
     # Non-sentinel profiles should return empty string (both paths)
     assert _get_hic_marker("generic-agent", repo_root) == ""
@@ -88,15 +86,10 @@ def test_hic_marker_survives_narrowed_activation(tmp_path: Path) -> None:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "activated_agent_profiles:\n  - architect-alphonso\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("activated_agent_profiles:\n  - architect-alphonso\n", encoding="utf-8")
 
     from specify_cli.cli.commands.agent.tasks_status_cmd import _get_hic_marker
 
     marker = _get_hic_marker("human-in-charge", tmp_path)
 
-    assert marker == "👤 ", (
-        f"Expected the human-in-charge marker to survive narrowed activation, "
-        f"got: {marker!r}"
-    )
+    assert marker == "👤 ", f"Expected the human-in-charge marker to survive narrowed activation, got: {marker!r}"

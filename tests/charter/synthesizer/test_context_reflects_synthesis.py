@@ -20,6 +20,7 @@ from charter.activation.synthesizer import FixtureAdapter, SynthesisRequest, Syn
 
 pytestmark = [pytest.mark.unit]
 
+
 @pytest.fixture
 def fixture_root() -> Path:
     return Path(__file__).parent.parent / "fixtures" / "synthesizer"
@@ -52,9 +53,7 @@ def synthesis_request() -> SynthesisRequest:
         "styleguides": {},
     }
     drg_snapshot: dict[str, Any] = {
-        "nodes": [
-            {"urn": "directive:DIRECTIVE_003", "kind": "directive"}
-        ],
+        "nodes": [{"urn": "directive:DIRECTIVE_003", "kind": "directive"}],
         "edges": [],
         "schema_version": "1",
     }
@@ -91,11 +90,7 @@ def _project_directive_ids(service: Any) -> set[str]:
     """
     raw_repository = getattr(service, "raw_repository", None)
     directives_repo = raw_repository("directives") if callable(raw_repository) else service.directives
-    return {
-        directive.id
-        for directive in directives_repo.list_all()
-        if directive.id.startswith("PROJECT_")
-    }
+    return {directive.id for directive in directives_repo.list_all() if directive.id.startswith("PROJECT_")}
 
 
 def test_no_project_root_before_synthesis(tmp_path: Path) -> None:
@@ -125,9 +120,7 @@ def test_compiler_service_reflects_project_directives_after_synthesis(
     # this test's own subject (post-synthesis project-directive visibility).
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
     before_ids = _project_directive_ids(_default_doctrine_service(tmp_path))
     assert before_ids == set()

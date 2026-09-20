@@ -195,10 +195,7 @@ def _project_version() -> str:
     # (this file has a single top-level ``version = "..."``).
     match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
     if match is None:
-        raise RuntimeError(
-            f"Could not parse version from {pyproject}; "
-            "expected a top-level `version = \"X.Y.Z\"` line."
-        )
+        raise RuntimeError(f'Could not parse version from {pyproject}; expected a top-level `version = "X.Y.Z"` line.')
     return match.group(1)
 
 
@@ -233,10 +230,7 @@ def test_migration_chain_is_consistent_and_uninterrupted(
     auto_discover_migrations()
 
     migrations = MigrationRegistry.get_all()
-    assert migrations, (
-        "MigrationRegistry is empty after auto_discover_migrations(); "
-        "expected at least one migration to register."
-    )
+    assert migrations, "MigrationRegistry is empty after auto_discover_migrations(); expected at least one migration to register."
 
     # Build the chain as (migration_id, from_version, target_version)
     # rows. The first migration's FROM is OLDEST_SUPPORTED_VERSION;
@@ -261,10 +255,7 @@ def test_migration_chain_is_consistent_and_uninterrupted(
         if idx == 0:
             # Seed step: only assert monotonicity.
             if cur < prev:
-                failures.append(
-                    f"Seed step (index 0) moves backward at "
-                    f"{mig_id}: {from_v_str} -> {to_v_str}"
-                )
+                failures.append(f"Seed step (index 0) moves backward at {mig_id}: {from_v_str} -> {to_v_str}")
             continue
         step = _classify_step(prev, cur)
 
@@ -273,11 +264,7 @@ def test_migration_chain_is_consistent_and_uninterrupted(
             # siblings within one release cut. No-op.
             continue
         if step == "backward":
-            failures.append(
-                f"Chain moves backward at index {idx} "
-                f"({mig_id}): {from_v_str} -> {to_v_str}\n"
-                f"{_format_chain_excerpt(chain, idx)}"
-            )
+            failures.append(f"Chain moves backward at index {idx} ({mig_id}): {from_v_str} -> {to_v_str}\n{_format_chain_excerpt(chain, idx)}")
             continue
         if step in ("patch-bump", "minor-bump", "major-bump"):
             continue
@@ -308,10 +295,7 @@ def test_migration_chain_is_consistent_and_uninterrupted(
                 f"{_format_chain_excerpt(chain, idx)}"
             )
 
-    assert not failures, (
-        "Migration chain integrity violations:\n\n"
-        + "\n\n".join(failures)
-    )
+    assert not failures, "Migration chain integrity violations:\n\n" + "\n\n".join(failures)
 
 
 def test_migration_chain_does_not_exceed_current_project_version() -> None:

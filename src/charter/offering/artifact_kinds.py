@@ -47,6 +47,7 @@ class MissionTypeNotAnArtifactKind(ValueError):
     branch, instead of treating mission-type as an unknown token.
     """
 
+
 _PLURALS: dict[str, str] = {
     "directive": "directives",
     "tactic": "tactics",
@@ -220,17 +221,13 @@ class ArtifactKind(StrEnum):
         normalized = token.strip().lower().replace("-", "_")
         if normalized == MISSION_TYPE_TOKEN.replace("-", "_"):
             raise MissionTypeNotAnArtifactKind(
-                "'mission-type' is part of the charter kind universe but is not "
-                "an ArtifactKind; route it through the mission-tier handler."
+                "'mission-type' is part of the charter kind universe but is not an ArtifactKind; route it through the mission-tier handler."
             )
         for member in cls:
             if member.value == normalized:
                 return member
         valid = ", ".join(member.operator_token for member in cls)
-        raise ValueError(
-            f"Unknown artifact kind token {token!r}. "
-            f"Valid operator tokens: {valid}."
-        )
+        raise ValueError(f"Unknown artifact kind token {token!r}. Valid operator tokens: {valid}.")
 
 
 #: Canonical set of :class:`ArtifactKind` members that are never eligible for
@@ -244,20 +241,16 @@ class ArtifactKind(StrEnum):
 #: ``rejects`` edges. This is the **single** canonical exclusion set —
 #: downstream modules (``org_pack_loader.py``, the charter cascade) must
 #: import this rather than re-declaring their own exclusion list.
-_NON_AUGMENTATION_ELIGIBLE_KINDS: frozenset[ArtifactKind] = frozenset(
-    {ArtifactKind.TEMPLATE, ArtifactKind.ASSET, ArtifactKind.ANTI_PATTERN}
-)
+_NON_AUGMENTATION_ELIGIBLE_KINDS: frozenset[ArtifactKind] = frozenset({ArtifactKind.TEMPLATE, ArtifactKind.ASSET, ArtifactKind.ANTI_PATTERN})
 
 
 #: Charter kind universe: the non-excluded artifact operator tokens + the
 #: special ``mission-type`` token. Members of :data:`_NON_AUGMENTATION_ELIGIBLE_KINDS`
 #: (``template``, ``asset``, ``anti_pattern``) resolve specially and are *not*
 #: listed here.
-CHARTER_KIND_TOKENS: tuple[str, ...] = tuple(
-    member.operator_token
-    for member in ArtifactKind
-    if member not in _NON_AUGMENTATION_ELIGIBLE_KINDS
-) + (MISSION_TYPE_TOKEN,)
+CHARTER_KIND_TOKENS: tuple[str, ...] = tuple(member.operator_token for member in ArtifactKind if member not in _NON_AUGMENTATION_ELIGIBLE_KINDS) + (
+    MISSION_TYPE_TOKEN,
+)
 
 
 #: The runtime-managed kinds whose **project-tier overlay** directory is the
@@ -336,18 +329,11 @@ CHARTER_ACTIVATABLE_KINDS: frozenset[ArtifactKind] = frozenset(ArtifactKind) - {
 #: Derived singular→plural map over the charter-activatable kinds (10 entries).
 #: Ordered by :class:`ArtifactKind` declaration so downstream first-match
 #: semantics (e.g. ``_infer_kind``) are stable.
-CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL: dict[str, str] = {
-    kind.value: kind.plural
-    for kind in ArtifactKind
-    if kind in CHARTER_ACTIVATABLE_KINDS
-}
+CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL: dict[str, str] = {kind.value: kind.plural for kind in ArtifactKind if kind in CHARTER_ACTIVATABLE_KINDS}
 
 #: Derived plural→singular inverse of
 #: :data:`CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL`.
-CHARTER_ACTIVATABLE_PLURAL_TO_SINGULAR: dict[str, str] = {
-    plural: singular
-    for singular, plural in CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL.items()
-}
+CHARTER_ACTIVATABLE_PLURAL_TO_SINGULAR: dict[str, str] = {plural: singular for singular, plural in CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL.items()}
 
 __all__ = [
     "ArtifactKind",

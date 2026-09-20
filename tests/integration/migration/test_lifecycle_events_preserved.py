@@ -117,15 +117,11 @@ def _emit_decision_mirror(tmp_path: Path, mission_dir: Path) -> str:
         mission_slug="m",
         step_id="plan.q1",
     )
-    emit_decision_opened(
-        tmp_path, "m", decision_id=_DECISION_ID, entry=entry, actor="claude"
-    )
+    emit_decision_opened(tmp_path, "m", decision_id=_DECISION_ID, entry=entry, actor="claude")
     return _find_event_id(mission_event_log_path(mission_dir), DECISION_POINT_OPENED)
 
 
-def _write_mission(
-    tmp_path: Path, *, with_decision: bool
-) -> tuple[Path, Path, set[str], str | None]:
+def _write_mission(tmp_path: Path, *, with_decision: bool) -> tuple[Path, Path, set[str], str | None]:
     """Seed a mission whose event log is built via canonical producers.
 
     Returns ``(mission_dir, log, lifecycle_event_ids, decision_event_id)``.
@@ -150,11 +146,7 @@ def _find_event_id(log: Path, event_type: str) -> str:
 
 
 def _event_ids(text: str) -> set[str]:
-    return {
-        json.loads(line)["event_id"]
-        for line in text.splitlines()
-        if line.strip()
-    }
+    return {json.loads(line)["event_id"] for line in text.splitlines() if line.strip()}
 
 
 def test_lifecycle_only_log_is_fully_preserved(tmp_path: Path) -> None:
@@ -175,9 +167,7 @@ def test_lifecycle_only_log_is_fully_preserved(tmp_path: Path) -> None:
 def test_lifecycle_preserved_decision_mirror_pruned(tmp_path: Path) -> None:
     """Mixed log: lifecycle events preserved; the DecisionPoint mirror is pruned
     (its canonical store is decisions/), and the log is not emptied."""
-    mission_dir, log, lifecycle_ids, decision_id = _write_mission(
-        tmp_path, with_decision=True
-    )
+    mission_dir, log, lifecycle_ids, decision_id = _write_mission(tmp_path, with_decision=True)
     assert decision_id is not None
 
     result = _repair_mission(tmp_path, mission_dir, run_id="mixed")
@@ -245,9 +235,7 @@ def test_retrospective_event_name_row_is_preserved(tmp_path: Path) -> None:
 def test_retrospective_row_preserved_decision_mirror_pruned(tmp_path: Path) -> None:
     """Mixed log with all three preserved classes + a prunable Decision mirror:
     lifecycle + retrospective survive; only the DecisionPoint mirror is pruned."""
-    mission_dir, log, lifecycle_ids, decision_id = _write_mission(
-        tmp_path, with_decision=True
-    )
+    mission_dir, log, lifecycle_ids, decision_id = _write_mission(tmp_path, with_decision=True)
     assert decision_id is not None
     retro_id = _emit_retrospective_completed(mission_dir)
 
@@ -313,9 +301,7 @@ def test_annotation_row_is_preserved(tmp_path: Path) -> None:
     result = _repair_mission(tmp_path, mission_dir, run_id="annotation")
 
     assert result.status != "error", result.validation_errors
-    assert not any(
-        "missing required to_lane" in err for err in result.validation_errors
-    ), "an annotation row must never be asked for a to_lane it cannot have"
+    assert not any("missing required to_lane" in err for err in result.validation_errors), "an annotation row must never be asked for a to_lane it cannot have"
     assert result.quarantined_rows == 0
     surviving = _event_ids(log.read_text(encoding="utf-8"))
     assert annotation_id in surviving, "the annotation row must survive repair"
@@ -326,9 +312,7 @@ def test_annotation_row_is_preserved(tmp_path: Path) -> None:
 def test_annotation_preserved_decision_mirror_pruned(tmp_path: Path) -> None:
     """Mixed log with all four preserved classes + a prunable Decision mirror:
     lifecycle + retrospective + annotation survive; only the mirror is pruned."""
-    mission_dir, log, lifecycle_ids, decision_id = _write_mission(
-        tmp_path, with_decision=True
-    )
+    mission_dir, log, lifecycle_ids, decision_id = _write_mission(tmp_path, with_decision=True)
     assert decision_id is not None
     retro_id = _emit_retrospective_completed(mission_dir)
     annotation_id = _emit_inner_state_annotation(mission_dir)

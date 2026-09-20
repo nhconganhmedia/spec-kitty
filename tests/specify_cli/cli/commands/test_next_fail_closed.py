@@ -108,46 +108,26 @@ def _invoke_next_query(
 class TestNextFailClosedHumanMode:
     """spec-kitty next --mission <bad-handle> must exit 1 with a human-readable error."""
 
-    def test_exit_code_is_1_for_missing_mission(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        exit_code, _ = _invoke_next_query(
-            "no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch
-        )
+    def test_exit_code_is_1_for_missing_mission(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        exit_code, _ = _invoke_next_query("no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch)
         assert exit_code == 1, f"Expected exit code 1, got {exit_code}"
 
-    def test_output_contains_mission_not_found(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        exit_code, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch
-        )
-        assert "Mission not found" in output, (
-            f"Expected 'Mission not found' in output:\n{output}"
-        )
+    def test_output_contains_mission_not_found(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        exit_code, output = _invoke_next_query("no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch)
+        assert "Mission not found" in output, f"Expected 'Mission not found' in output:\n{output}"
         assert exit_code == 1
 
     def test_output_contains_handle(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        _, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch
-        )
-        assert "no-such-mission-xyz" in output, (
-            f"Expected handle 'no-such-mission-xyz' in output:\n{output}"
-        )
+        _, output = _invoke_next_query("no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch)
+        assert "no-such-mission-xyz" in output, f"Expected handle 'no-such-mission-xyz' in output:\n{output}"
 
-    def test_output_contains_remediation_hint(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        _, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch
-        )
+    def test_output_contains_remediation_hint(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _, output = _invoke_next_query("no-such-mission-xyz", json_output=False, monkeypatch=monkeypatch)
         # #4723: 'spec-kitty mission list' enumerates mission TYPES, never
         # real mission handles, so it cannot reveal a colliding pair of
         # missions — the hint now points at 'spec-kitty doctor topology',
         # which enumerates every mission's real handle.
-        assert "spec-kitty doctor topology" in output, (
-            f"Expected remediation hint in output:\n{output}"
-        )
+        assert "spec-kitty doctor topology" in output, f"Expected remediation hint in output:\n{output}"
 
 
 # ---------------------------------------------------------------------------
@@ -158,48 +138,28 @@ class TestNextFailClosedHumanMode:
 class TestNextFailClosedJsonMode:
     """spec-kitty next --mission <bad-handle> --json must exit 1 with structured JSON."""
 
-    def test_exit_code_is_1_in_json_mode(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        exit_code, _ = _invoke_next_query(
-            "no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch
-        )
+    def test_exit_code_is_1_in_json_mode(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        exit_code, _ = _invoke_next_query("no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch)
         assert exit_code == 1, f"Expected exit code 1 in JSON mode, got {exit_code}"
 
-    def test_json_has_error_code_mission_not_found(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        exit_code, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch
-        )
+    def test_json_has_error_code_mission_not_found(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        exit_code, output = _invoke_next_query("no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch)
         payload = json.loads(output)
-        assert payload.get("error_code") == "MISSION_NOT_FOUND", (
-            f"Expected error_code=MISSION_NOT_FOUND; got: {payload}"
-        )
+        assert payload.get("error_code") == "MISSION_NOT_FOUND", f"Expected error_code=MISSION_NOT_FOUND; got: {payload}"
         assert exit_code == 1
 
     def test_json_has_handle(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        _, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch
-        )
+        _, output = _invoke_next_query("no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch)
         payload = json.loads(output)
-        assert payload.get("handle") == "no-such-mission-xyz", (
-            f"Expected handle='no-such-mission-xyz'; got: {payload}"
-        )
+        assert payload.get("handle") == "no-such-mission-xyz", f"Expected handle='no-such-mission-xyz'; got: {payload}"
 
     def test_json_has_result_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        _, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch
-        )
+        _, output = _invoke_next_query("no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch)
         payload = json.loads(output)
-        assert payload.get("result") == "error", (
-            f"Expected result='error'; got: {payload}"
-        )
+        assert payload.get("result") == "error", f"Expected result='error'; got: {payload}"
 
     def test_json_has_remediation(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        _, output = _invoke_next_query(
-            "no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch
-        )
+        _, output = _invoke_next_query("no-such-mission-xyz", json_output=True, monkeypatch=monkeypatch)
         payload = json.loads(output)
         assert "remediation" in payload, f"Expected 'remediation' key; got: {payload}"
         # #4723: see the human-mode assertion above for why this points at

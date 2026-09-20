@@ -89,9 +89,7 @@ class TestNoOrgRoot:
         assert service._org_dirs("directives") == []
         assert service._org_roots == []
 
-    def test_repositories_load_without_error_when_no_org_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repositories_load_without_error_when_no_org_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Service with no org roots and empty shipped dir loads cleanly."""
         # Use an isolated (empty) packs root so we don't pick up the real
         # shipped directives.
@@ -150,9 +148,7 @@ class TestOrgRootMissingOnDisk:
         # _org_dirs still returns the path (existence check is repo's responsibility)
         assert service._org_dirs("directives") == [nonexistent / "directives"]
 
-    def test_repository_loads_without_error_for_nonexistent_org_dir(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repository_loads_without_error_for_nonexistent_org_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """DirectiveRepository handles a non-existent org_dir gracefully."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         _write_yaml(
@@ -167,9 +163,7 @@ class TestOrgRootMissingOnDisk:
         directive = service.directives.get("DIRECTIVE_001")
         assert directive is not None
 
-    def test_shipped_artifacts_accessible_when_org_dir_missing(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_shipped_artifacts_accessible_when_org_dir_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Shipped items load normally even when org dir does not exist on disk."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         _write_yaml(
@@ -186,9 +180,7 @@ class TestOrgRootMissingOnDisk:
 class TestOrgRootArtifactsResolved:
     """When the org dir contains valid artifacts they are merged above shipped."""
 
-    def test_org_directive_visible_via_service(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_org_directive_visible_via_service(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         packs_root = _packs_root(monkeypatch, tmp_path)
         org_root = tmp_path / "org-root"
 
@@ -210,9 +202,7 @@ class TestOrgRootArtifactsResolved:
         assert org_directive.title == "Org Title"
         assert service.directives.get_provenance("DIRECTIVE_ORG") == "org"
 
-    def test_org_overrides_built_in_directive(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_org_overrides_built_in_directive(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         packs_root = _packs_root(monkeypatch, tmp_path)
         org_root = tmp_path / "org-root"
 
@@ -232,9 +222,7 @@ class TestOrgRootArtifactsResolved:
         assert directive.title == "Org Override"
         assert service.directives.get_provenance("DIRECTIVE_001") == "org"
 
-    def test_project_overrides_org(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_project_overrides_org(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         packs_root = _packs_root(monkeypatch, tmp_path)
         org_root = tmp_path / "org-root"
         project_root = tmp_path / "project-root"
@@ -259,9 +247,7 @@ class TestOrgRootArtifactsResolved:
         assert directive.title == "Project Override"
         assert service.directives.get_provenance("DIRECTIVE_001") == "project"
 
-    def test_cache_is_invalidated_between_service_instances(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_cache_is_invalidated_between_service_instances(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Two separate service instances with the same paths produce independent caches."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         org_root = tmp_path / "org-root"
@@ -284,9 +270,7 @@ class TestOrgRootArtifactsResolved:
 class TestDeterminism:
     """Identical inputs produce identical resolved sets on repeated accesses."""
 
-    def test_same_inputs_produce_identical_sets(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_same_inputs_produce_identical_sets(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         packs_root = _packs_root(monkeypatch, tmp_path)
         org_root = tmp_path / "org-root"
 
@@ -317,9 +301,7 @@ class TestDeterminism:
         second = service.directives
         assert first is second
 
-    def test_org_roots_empty_matches_no_org_roots_behavior(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_org_roots_empty_matches_no_org_roots_behavior(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """org_roots=[] is equivalent to not passing org_roots at all."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         _write_yaml(
@@ -339,9 +321,7 @@ class TestDeterminism:
 class TestMultiplePackPrecedence:
     """Multiple org packs merge in declaration order; later packs override earlier (FR-006, C-004, Scenario 2)."""
 
-    def test_later_pack_overrides_earlier_for_same_id(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_later_pack_overrides_earlier_for_same_id(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When two org packs declare the same directive ID, the later pack wins."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         pack_a = tmp_path / "pack-a"
@@ -367,9 +347,7 @@ class TestMultiplePackPrecedence:
         assert directive.title == "Pack B"
         assert service.directives.get_provenance("DIRECTIVE_001") == "org"
 
-    def test_distinct_artifacts_from_each_pack_all_visible(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_distinct_artifacts_from_each_pack_all_visible(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Distinct artifacts from each org pack are unioned into the resolved set."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         pack_security = tmp_path / "pack-security"
@@ -396,9 +374,7 @@ class TestMultiplePackPrecedence:
         assert service.directives.get_provenance("DIRECTIVE_COMP") == "org"
         assert service.directives.get_provenance("DIRECTIVE_001") == "builtin"
 
-    def test_three_pack_chain_last_wins(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_three_pack_chain_last_wins(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """With three packs declaring the same ID, the third pack wins (declaration order = precedence)."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         pack1 = tmp_path / "pack1"
@@ -421,9 +397,7 @@ class TestMultiplePackPrecedence:
         assert directive is not None
         assert directive.title == "Third"
 
-    def test_project_layer_still_overrides_all_org_packs(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_project_layer_still_overrides_all_org_packs(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """The project layer keeps full-replace precedence over every org pack."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         pack_a = tmp_path / "pack-a"
@@ -457,9 +431,7 @@ class TestMultiplePackPrecedence:
         assert directive.title == "Project"
         assert service.directives.get_provenance("DIRECTIVE_001") == "project"
 
-    def test_missing_pack_on_disk_does_not_break_others(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_missing_pack_on_disk_does_not_break_others(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A non-existent pack path is silently skipped; remaining packs still resolve."""
         packs_root = _packs_root(monkeypatch, tmp_path)
         pack_real = tmp_path / "pack-real"

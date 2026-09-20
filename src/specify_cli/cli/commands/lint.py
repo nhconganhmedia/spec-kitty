@@ -73,11 +73,7 @@ def _run_mypy(path: Path, project_root: Path) -> list[str]:
         if mypy_proc.returncode != 0:
             raw_output = mypy_proc.stdout.strip() or mypy_proc.stderr.strip()
             if raw_output:
-                return [
-                    line
-                    for line in raw_output.splitlines()
-                    if not _MYPY_SUMMARY_RE.match(line)
-                ]
+                return [line for line in raw_output.splitlines() if not _MYPY_SUMMARY_RE.match(line)]
     except FileNotFoundError:
         return ["mypy not found in PATH. Please install it with 'pip install mypy'."]
     return []

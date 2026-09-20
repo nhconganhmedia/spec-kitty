@@ -65,10 +65,7 @@ def _body_lines(profile: AgentProfile) -> list[str]:
         f"- Primary focus: {spec.primary_focus}",
         f"- Avoidance boundary: {spec.avoidance_boundary or '(none declared)'}",
         "",
-        (
-            "_Projected from Spec Kitty agent profile "
-            f"`{profile.profile_id}`; do not edit by hand._"
-        ),
+        (f"_Projected from Spec Kitty agent profile `{profile.profile_id}`; do not edit by hand._"),
         "",
     ]
 

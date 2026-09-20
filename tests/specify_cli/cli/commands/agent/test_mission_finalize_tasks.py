@@ -52,28 +52,17 @@ def _write_meta(feature_dir: Path, **fields: object) -> None:
 
 def test_resolve_from_meta_prefers_target_branch() -> None:
     """target_branch wins over merge_target_branch when both present."""
-    assert (
-        resolve_planning_branch_from_meta(
-            {"target_branch": "main", "merge_target_branch": "develop"}
-        )
-        == "main"
-    )
+    assert resolve_planning_branch_from_meta({"target_branch": "main", "merge_target_branch": "develop"}) == "main"
 
 
 def test_resolve_from_meta_falls_back_to_merge_target_branch() -> None:
     """merge_target_branch is read when target_branch is absent."""
-    assert (
-        resolve_planning_branch_from_meta({"merge_target_branch": "develop"})
-        == "develop"
-    )
+    assert resolve_planning_branch_from_meta({"merge_target_branch": "develop"}) == "develop"
 
 
 def test_resolve_from_meta_strips_whitespace() -> None:
     """Surrounding whitespace is trimmed (defensive against hand-edits)."""
-    assert (
-        resolve_planning_branch_from_meta({"target_branch": "  main\n"})
-        == "main"
-    )
+    assert resolve_planning_branch_from_meta({"target_branch": "  main\n"}) == "main"
 
 
 def test_resolve_from_meta_raises_on_missing_fields() -> None:
@@ -161,9 +150,7 @@ def test_resolve_planning_branch_override_wins(tmp_path: Path) -> None:
     """The --target-branch CLI override beats meta.json (legacy escape hatch)."""
     feature_dir = tmp_path / "kitty-specs" / "demo-feature-01J6XW9K"
     _write_meta(feature_dir, target_branch="main")
-    resolved = _resolve_planning_branch(
-        tmp_path, feature_dir, target_branch_override="develop"
-    )
+    resolved = _resolve_planning_branch(tmp_path, feature_dir, target_branch_override="develop")
     assert resolved == "develop"
 
 
@@ -171,9 +158,7 @@ def test_resolve_planning_branch_override_empty_falls_back(tmp_path: Path) -> No
     """Empty / whitespace override is treated as absent — meta.json wins."""
     feature_dir = tmp_path / "kitty-specs" / "demo-feature-01J6XW9K"
     _write_meta(feature_dir, target_branch="main")
-    resolved = _resolve_planning_branch(
-        tmp_path, feature_dir, target_branch_override="  "
-    )
+    resolved = _resolve_planning_branch(tmp_path, feature_dir, target_branch_override="  ")
     assert resolved == "main"
 
 
@@ -201,9 +186,7 @@ def test_resolve_planning_branch_legacy_override_succeeds(tmp_path: Path) -> Non
         json.dumps({"mission_slug": "demo-feature-01J6XW9K"}),
         encoding="utf-8",
     )
-    resolved = _resolve_planning_branch(
-        tmp_path, feature_dir, target_branch_override="main"
-    )
+    resolved = _resolve_planning_branch(tmp_path, feature_dir, target_branch_override="main")
     assert resolved == "main"
 
 

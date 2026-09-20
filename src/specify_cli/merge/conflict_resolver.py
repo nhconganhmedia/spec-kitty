@@ -79,10 +79,7 @@ def classify_conflict(file_path: str) -> ConflictType:
     """
     # Derived / runtime files should be gitignored — flag as error if seen
     normalized = to_posix(file_path)
-    if (
-        normalized.startswith(".kittify/derived/")
-        or normalized.startswith(".kittify/runtime/")
-    ):
+    if normalized.startswith(".kittify/derived/") or normalized.startswith(".kittify/runtime/"):
         return ConflictType.UNEXPECTED_DERIVED
 
     # Canonical event log — append-merge
@@ -95,19 +92,12 @@ def classify_conflict(file_path: str) -> ConflictType:
         or normalized == "meta.json"
         or normalized.endswith("/status.json")
         or normalized == "status.json"
-        or (
-            normalized.startswith(".kittify/")
-            and normalized.endswith(".json")
-        )
+        or (normalized.startswith(".kittify/") and normalized.endswith(".json"))
     ):
         return ConflictType.OWNED_METADATA
 
     # WP prompt files (frontmatter markdown under kitty-specs/*/tasks/)
-    if (
-        f"{KITTY_SPECS_DIR}/" in normalized
-        and "/tasks/" in normalized
-        and normalized.endswith(".md")
-    ):
+    if f"{KITTY_SPECS_DIR}/" in normalized and "/tasks/" in normalized and normalized.endswith(".md"):
         return ConflictType.OWNED_METADATA
 
     # Everything else requires manual resolution
@@ -220,10 +210,7 @@ def resolve_owned_conflicts(
         conflict_type = classify_conflict(file_path)
 
         if conflict_type == ConflictType.UNEXPECTED_DERIVED:
-            result.errors.append(
-                f"UNEXPECTED_DERIVED: {file_path!r} appeared as a merge conflict "
-                "but should be gitignored. Check .gitignore configuration."
-            )
+            result.errors.append(f"UNEXPECTED_DERIVED: {file_path!r} appeared as a merge conflict but should be gitignored. Check .gitignore configuration.")
             continue
 
         if conflict_type == ConflictType.HUMAN_AUTHORED:
@@ -244,8 +231,6 @@ def resolve_owned_conflicts(
             result.resolved.append(file_path)
 
         except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
-            result.errors.append(
-                f"Failed to auto-resolve {file_path!r}: {exc}"
-            )
+            result.errors.append(f"Failed to auto-resolve {file_path!r}: {exc}")
 
     return result

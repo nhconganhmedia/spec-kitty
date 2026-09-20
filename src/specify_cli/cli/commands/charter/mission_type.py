@@ -113,9 +113,7 @@ def resolve_mission_type_source_layer(mission_type_id: str, repo_root: Path) -> 
     mission_types_dirs, pack_context = _layered_lookup_inputs(repo_root)
     return cast(
         str,
-        resolve_action_sequence_layer(
-            mission_type_id, mission_types_dirs=mission_types_dirs, pack_context=pack_context
-        ),
+        resolve_action_sequence_layer(mission_type_id, mission_types_dirs=mission_types_dirs, pack_context=pack_context),
     )
 
 

@@ -65,7 +65,7 @@ def test_ignores_rows_inside_code_fence() -> None:
 - [x] T008 outside fence
 """
     result = uncheck_wp_section_subtask_rows(tasks, "WP04")
-    assert "- [x] T007 inside fence" in result   # preserved
+    assert "- [x] T007 inside fence" in result  # preserved
     assert "- [ ] T008 outside fence" in result  # unchecked
 
 
@@ -81,8 +81,8 @@ def test_heading_with_dependency_mention_does_not_reenter_dep_section() -> None:
 - [x] T002 Also done
 """
     result = uncheck_wp_section_subtask_rows(tasks, "WP01")
-    assert "- [ ] T001" in result   # WP01 row unchecked
-    assert "- [x] T002" in result   # WP03 row left alone
+    assert "- [ ] T001" in result  # WP01 row unchecked
+    assert "- [x] T002" in result  # WP03 row left alone
 
 
 def test_uppercase_x_also_unchecked() -> None:

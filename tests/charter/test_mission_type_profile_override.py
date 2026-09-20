@@ -34,9 +34,7 @@ from charter.offering.missions.mission_type_repository import builtin_mission_ty
 
 pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 
-_SHIPPED_MISSIONS_ROOT = (
-    Path(__file__).resolve().parents[2] / "packs" / "built-in" / "missions"
-)
+_SHIPPED_MISSIONS_ROOT = Path(__file__).resolve().parents[2] / "packs" / "built-in" / "missions"
 
 
 # ---------------------------------------------------------------------------
@@ -68,9 +66,7 @@ def _git_init_minimal(repo_root: Path) -> None:
     # under test.
     kittify = repo_root / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -106,10 +102,7 @@ class TestShippedProfilesHonourInvariant:
         repo = MissionTypeProfileRepository()
         for mission_type in builtin_mission_type_ids():
             profile = repo.get(mission_type)
-            assert profile is not None, (
-                f"shipped profile for {mission_type!r} did not load — the "
-                "governance-profile.yaml is missing or mis-keyed."
-            )
+            assert profile is not None, f"shipped profile for {mission_type!r} did not load — the governance-profile.yaml is missing or mis-keyed."
             assert profile.id == profile.mission_type == mission_type
 
     def test_software_dev_yaml_carries_raw_id(self) -> None:
@@ -119,11 +112,7 @@ class TestShippedProfilesHonourInvariant:
         omits it cannot be shadowed by a project override.  software-dev is the
         template WP06/07/08 mirror.
         """
-        raw = YAML(typ="safe").load(
-            (_SHIPPED_MISSIONS_ROOT / "software-dev" / "governance-profile.yaml").read_text(
-                encoding="utf-8"
-            )
-        )
+        raw = YAML(typ="safe").load((_SHIPPED_MISSIONS_ROOT / "software-dev" / "governance-profile.yaml").read_text(encoding="utf-8"))
         assert raw["id"] == "software-dev"
 
 
@@ -147,9 +136,7 @@ class TestProjectOverrideRidesTheOverlay:
             },
         )
 
-    def test_project_field_wins_and_absent_fields_fall_through(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_field_wins_and_absent_fields_fall_through(self, tmp_path: Path) -> None:
         built_in = tmp_path / "built-in"
         project = tmp_path / "project"
         self._shipped_profile(built_in)
@@ -166,9 +153,7 @@ class TestProjectOverrideRidesTheOverlay:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DoctrineLayerCollisionWarning)
-            repo = MissionTypeProfileRepository(
-                built_in_dir=built_in, project_dir=project
-            )
+            repo = MissionTypeProfileRepository(built_in_dir=built_in, project_dir=project)
 
         profile = repo.get("software-dev")
         assert profile is not None
@@ -212,9 +197,7 @@ class TestProjectOverrideRidesTheOverlay:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            repo = MissionTypeProfileRepository(
-                built_in_dir=built_in, project_dir=project
-            )
+            repo = MissionTypeProfileRepository(built_in_dir=built_in, project_dir=project)
 
         profile = repo.get("software-dev")
         assert profile is not None
@@ -256,9 +239,7 @@ class TestOrgLayerPrecedence:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DoctrineLayerCollisionWarning)
-            repo = MissionTypeProfileRepository(
-                built_in_dir=built_in, org_dirs=[org], project_dir=project
-            )
+            repo = MissionTypeProfileRepository(built_in_dir=built_in, org_dirs=[org], project_dir=project)
 
         profile = repo.get("software-dev")
         assert profile is not None
@@ -304,9 +285,7 @@ class TestOverrideRidesResolverEndToEnd:
     """A real project override at .kittify/... wins through the resolver seam."""
 
     @pytest.mark.git_repo
-    def test_project_override_wins_and_warns_through_resolver(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_override_wins_and_warns_through_resolver(self, tmp_path: Path) -> None:
         _git_init_minimal(tmp_path)
         override_dir = tmp_path / ".kittify" / "doctrine" / "mission_types" / "software-dev"
         _write_profile(

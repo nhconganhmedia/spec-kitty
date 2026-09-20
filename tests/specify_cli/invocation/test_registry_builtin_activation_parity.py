@@ -157,8 +157,7 @@ def test_excluded_builtin_absent_from_routing_and_context(tmp_path: Path) -> Non
     # all — so asserting against its return value proves "the profile
     # resolved" (R3's actual intent) without depending on prose shape.
     assert _load_agent_profile(_ACTIVATED_BUILTIN, tmp_path) is not None, (
-        f"{_ACTIVATED_BUILTIN!r} must resolve via the activation-aware "
-        "resolver build_charter_context uses internally"
+        f"{_ACTIVATED_BUILTIN!r} must resolve via the activation-aware resolver build_charter_context uses internally"
     )
     # Still exercise the full `build_charter_context` render path for the
     # activated builtin as a smoke check (must not raise) — this is the

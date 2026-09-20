@@ -29,13 +29,15 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir.mkdir(parents=True)
 
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-            "friendly_name": "Test Mission",
-            "mission_number": None,
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+                "friendly_name": "Test Mission",
+                "mission_number": None,
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text("# Spec\n", encoding="utf-8")
@@ -46,9 +48,7 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
 
 
 @pytest.mark.integration
-def test_default_flow_generator_failure_emits_capture_failed(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_default_flow_generator_failure_emits_capture_failed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Generator raises → RetrospectureCaptureFailed emitted → callback re-raises.
 
     The facilitator callback MUST:
@@ -89,10 +89,7 @@ def test_default_flow_generator_failure_emits_capture_failed(
     events_raw = events_path.read_text(encoding="utf-8").splitlines()
     events = [json.loads(line) for line in events_raw if line.strip()]
     failed_events = [e for e in events if e.get("type") == "RetrospectiveCaptureFailed"]
-    assert failed_events, (
-        f"Expected RetrospectiveCaptureFailed event after generator failure; "
-        f"got event types: {[e.get('type') for e in events]}"
-    )
+    assert failed_events, f"Expected RetrospectiveCaptureFailed event after generator failure; got event types: {[e.get('type') for e in events]}"
 
     failed = failed_events[0]
     assert failed.get("policy_source"), "policy_source must be non-empty on CaptureFailed"

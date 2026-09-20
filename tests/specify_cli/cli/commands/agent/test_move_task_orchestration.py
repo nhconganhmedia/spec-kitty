@@ -152,9 +152,7 @@ def _fake_ports(feature_dir: Path) -> tuple[TasksPorts, FakeCoordCommitRouter]:
         write_dir=feature_dir,
         status_result=CommitStatusResult(event=None, skipped=False),
     )
-    ports = TasksPorts(
-        fs=FakeFsReader(), coord=coord, git=FakeGitOps(), render=FakeRender()
-    )
+    ports = TasksPorts(fs=FakeFsReader(), coord=coord, git=FakeGitOps(), render=FakeRender())
     return ports, coord
 
 
@@ -221,9 +219,7 @@ def test_no_auto_commit_move_uses_commit_status_only(tmp_path: Path) -> None:
     assert coord.artifact_calls == []
 
 
-def test_auto_commit_move_is_event_only_no_primary_wp_file_commit(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_auto_commit_move_is_event_only_no_primary_wp_file_commit(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Post-cutover (#2816/IC-04, event-only): an auto-commit move emits the hop
     via ``commit_status`` but routes NO ``WORK_PACKAGE_TASK`` primary commit — the
     WP file carries no runtime state (byte-stable) so there is nothing to commit.
@@ -274,17 +270,10 @@ def test_fr010_move_task_coord_status_dir_stays_on_coord_husk(tmp_path: Path) ->
     # A PRIMARY-partition kind would resolve a DIFFERENT dir under coord topology —
     # the status read must never be collapsed onto it (guard against a wholesale
     # repoint). On this flat fixture the STATUS partition stays path-equal to the husk.
-    assert (
-        resolve_planning_read_dir(
-            tmp_path, _MISSION, kind=MissionArtifactKind.STATUS_STATE
-        )
-        == coord_husk
-    )
+    assert resolve_planning_read_dir(tmp_path, _MISSION, kind=MissionArtifactKind.STATUS_STATE) == coord_husk
 
 
-def test_coord_skip_arm_suppresses_commit_artifact(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_coord_skip_arm_suppresses_commit_artifact(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The coord skip-exit-0 arm (``skip_primary``) emits the hop on ``commit_status``
     but suppresses the primary ``commit_artifact`` call and reports the skip envelope
     — the fall-through control shape, NOT an early exit."""
@@ -369,25 +358,19 @@ def test_wp06_t028_rollback_to_planned_is_fully_reimplementable(tmp_path: Path) 
     emit_inner_state_changed(
         feature_dir,
         "WP01",
-        WPInnerStateDelta(
-            subtasks={"T001": Lane.DONE, "T002": Lane.DONE, "T003": Lane.DONE}
-        ),
+        WPInnerStateDelta(subtasks={"T001": Lane.DONE, "T002": Lane.DONE, "T003": Lane.DONE}),
         actor="test",
         mission_slug=_MISSION,
         at="2026-01-01T00:00:05+00:00",
     )
     before = materialize(feature_dir).work_packages.get("WP01", {}).get("subtasks") or {}
-    assert before and all(str(s) == str(Lane.DONE) for s in before.values()), (
-        f"positive control: roster must be fully done before the rollback; got {before!r}"
-    )
+    assert before and all(str(s) == str(Lane.DONE) for s in before.values()), f"positive control: roster must be fully done before the rollback; got {before!r}"
 
     tasks_md = feature_dir / "tasks.md"
     tasks_hash_before = hash_content(tasks_md.read_text(encoding="utf-8"))
     wp_hash_before = hash_content(wp_file.read_text(encoding="utf-8"))
 
-    coord = FakeCoordCommitRouter(
-        write_dir=feature_dir, status_result=CommitStatusResult(event=None, skipped=False)
-    )
+    coord = FakeCoordCommitRouter(write_dir=feature_dir, status_result=CommitStatusResult(event=None, skipped=False))
     # planning_read_dir must resolve the real on-disk feature_dir so the
     # subtask-reset roster read can find tasks.md (mirrors production wiring).
     ports = TasksPorts(
@@ -412,16 +395,10 @@ def test_wp06_t028_rollback_to_planned_is_fully_reimplementable(tmp_path: Path) 
     after = materialize(feature_dir).work_packages.get("WP01", {}).get("subtasks") or {}
     assert after, "rollback did not emit a subtasks reset"
     assert set(after) == {"T001", "T002", "T003"}, f"reset roster mismatch: {after!r}"
-    assert all(str(s) == str(Lane.PLANNED) for s in after.values()), (
-        f"rollback must reset every WP01 subtask to planned; got {after!r}"
-    )
+    assert all(str(s) == str(Lane.PLANNED) for s in after.values()), f"rollback must reset every WP01 subtask to planned; got {after!r}"
     # Event-only (AC-5): the reset rewrote NEITHER the WP file NOR tasks.md.
-    assert hash_content(tasks_md.read_text(encoding="utf-8")) == tasks_hash_before, (
-        "rollback rewrote tasks.md bytes (must be event-only at flag ON)"
-    )
-    assert hash_content(wp_file.read_text(encoding="utf-8")) == wp_hash_before, (
-        "rollback rewrote tasks/WP01.md bytes (must be event-only at flag ON)"
-    )
+    assert hash_content(tasks_md.read_text(encoding="utf-8")) == tasks_hash_before, "rollback rewrote tasks.md bytes (must be event-only at flag ON)"
+    assert hash_content(wp_file.read_text(encoding="utf-8")) == wp_hash_before, "rollback rewrote tasks/WP01.md bytes (must be event-only at flag ON)"
     # The tasks.md checkboxes are intentionally still [x] (byte-stable) — the
     # reset lives in the snapshot, not the file.
     assert "- [x] T001" in tasks_md.read_text(encoding="utf-8")
@@ -504,15 +481,18 @@ def test_agent_ownership_real_owner_mismatch_still_refuses_at_orchestrator_level
     _seed_claim_then_progress(feature_dir, "WP01", claim_actor="codex")
     ports, _coord = _fake_ports(feature_dir)
 
-    with setup_mocked_env(
-        tmp_path,
-        mission_slug=_MISSION,
-        target_branch="wip-lane",
-        extra_patches={
-            "_validate_ready_for_review": (True, []),
-            "_check_unchecked_subtasks": [],
-        },
-    ), pytest.raises(typer.Exit):
+    with (
+        setup_mocked_env(
+            tmp_path,
+            mission_slug=_MISSION,
+            target_branch="wip-lane",
+            extra_patches={
+                "_validate_ready_for_review": (True, []),
+                "_check_unchecked_subtasks": [],
+            },
+        ),
+        pytest.raises(typer.Exit),
+    ):
         _do_move_task(
             _MoveTaskArgs(
                 task_id="WP01",

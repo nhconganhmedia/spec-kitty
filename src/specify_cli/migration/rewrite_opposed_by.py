@@ -276,11 +276,7 @@ def _classify_entry(
 
     resolved_as_declared = (target_type, target_id) in registry
     conflicting_type = next(
-        (
-            other_type
-            for other_type in _ARTIFACT_SUFFIXES
-            if other_type != target_type and (other_type, target_id) in registry
-        ),
+        (other_type for other_type in _ARTIFACT_SUFFIXES if other_type != target_type and (other_type, target_id) in registry),
         None,
     )
 
@@ -295,13 +291,9 @@ def _classify_entry(
                 f"{source_file}: opposed_by target {target_type}:{target_id} "
                 f"(from {source_type}:{source_id}) is ambiguous -- "
                 + (
-                    f"id {target_id!r} also exists as a {conflicting_type} "
-                    "artifact in this pack"
+                    f"id {target_id!r} also exists as a {conflicting_type} artifact in this pack"
                     if resolved_as_declared
-                    else (
-                        f"no {target_type} artifact named {target_id!r} exists, "
-                        f"but a {conflicting_type} artifact with that id does"
-                    )
+                    else (f"no {target_type} artifact named {target_id!r} exists, but a {conflicting_type} artifact with that id does")
                 )
                 + ". Unclear whether this is a mistyped peer reference or a "
                 "coincidentally-named anti-pattern -- resolve manually "
@@ -394,10 +386,7 @@ def _write_graph(pack_root: Path, artifact_type: str, graph: DRGGraph) -> None:
 
 
 def _edge_exists(graph: DRGGraph, edge: DRGEdge) -> bool:
-    return any(
-        e.source == edge.source and e.target == edge.target and e.relation == edge.relation
-        for e in graph.edges
-    )
+    return any(e.source == edge.source and e.target == edge.target and e.relation == edge.relation for e in graph.edges)
 
 
 def _apply_entry_to_graphs(graphs: dict[str, DRGGraph], entry: RewrittenEntry) -> None:
@@ -414,13 +403,9 @@ def _apply_entry_to_graphs(graphs: dict[str, DRGGraph], entry: RewrittenEntry) -
         target_urn = f"anti_pattern:{entry.target_id}"
         graph = graphs[entry.source_type]
         if not any(n.urn == target_urn for n in graph.nodes):
-            graph.nodes.append(
-                DRGNode(urn=target_urn, kind=NodeKind.ANTI_PATTERN, tags=["anti-pattern"])
-            )
+            graph.nodes.append(DRGNode(urn=target_urn, kind=NodeKind.ANTI_PATTERN, tags=["anti-pattern"]))
             entry.created_anti_pattern_node = True
-        edge = DRGEdge(
-            source=source_urn, target=target_urn, relation=Relation.REJECTS, reason=entry.reason
-        )
+        edge = DRGEdge(source=source_urn, target=target_urn, relation=Relation.REJECTS, reason=entry.reason)
         if not _edge_exists(graph, edge):
             graph.edges.append(edge)
         return
@@ -472,9 +457,7 @@ def rewrite_opposed_by_pack(pack_root: Path, *, dry_run: bool = False) -> Rewrit
     result = RewriteResult(pack_root=pack_root, dry_run=dry_run)
     registry = _build_artifact_registry(pack_root)
 
-    graphs: dict[str, DRGGraph] = {
-        artifact_type: _load_graph(pack_root, artifact_type) for artifact_type in _ARTIFACT_SUFFIXES
-    }
+    graphs: dict[str, DRGGraph] = {artifact_type: _load_graph(pack_root, artifact_type) for artifact_type in _ARTIFACT_SUFFIXES}
     touched_kinds: set[str] = set()
     yaml_rt = _make_yaml()
 

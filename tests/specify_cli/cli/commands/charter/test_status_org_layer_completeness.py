@@ -40,14 +40,7 @@ import pytest
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[5]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 
 @pytest.fixture
@@ -82,9 +75,7 @@ def test_collect_org_layer_status_reports_a_dangling_org_endpoint(
 
     fragment = tmp_repo_with_org_pack / "example_org" / "drg" / "fragment.yaml"
     fragment.write_text(
-        fragment.read_text(encoding="utf-8").replace(
-            "styleguide:plain-language", "styleguide:plain-languagee"
-        ),
+        fragment.read_text(encoding="utf-8").replace("styleguide:plain-language", "styleguide:plain-languagee"),
         encoding="utf-8",
     )
 
@@ -93,8 +84,7 @@ def test_collect_org_layer_status_reports_a_dangling_org_endpoint(
     errors = result["errors"]
     assert isinstance(errors, list)
     assert any("styleguide:plain-languagee" in e for e in errors), (
-        "charter status must name the offending token in its structured "
-        f"errors channel — the one machine-readable signal it has; got {errors}"
+        f"charter status must name the offending token in its structured errors channel — the one machine-readable signal it has; got {errors}"
     )
 
 
@@ -142,6 +132,4 @@ def test_collect_org_layer_status_surfaces_a_failed_merge_check(
 
     errors = result["errors"]
     assert isinstance(errors, list)
-    assert any("merge exploded" in e for e in errors), (
-        f"the operator must learn the check did not run; got {errors}"
-    )
+    assert any("merge exploded" in e for e in errors), f"the operator must learn the check did not run; got {errors}"

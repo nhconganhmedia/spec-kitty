@@ -138,12 +138,8 @@ def test_scan_module_declares_no_except_syntaxerror_handler(tmp_path: Path) -> N
                 return None
         """,
     )
-    control_hits = scan.find_except_handlers(
-        scan.parse_module(control_path), exception="SyntaxError"
-    )
-    assert control_hits == {_lineno_of(control_path, "# the-shape")}, (
-        "a control returning set() proves nothing"
-    )
+    control_hits = scan.find_except_handlers(scan.parse_module(control_path), exception="SyntaxError")
+    assert control_hits == {_lineno_of(control_path, "# the-shape")}, "a control returning set() proves nothing"
 
 
 def test_scan_module_carries_no_subprocess_and_no_git_surface(tmp_path: Path) -> None:
@@ -240,7 +236,7 @@ def test_find_write_sites_is_one_implementation_parameterised_by_key(tmp_path: P
     assert {(s.lineno, s.form) for s in scan.find_write_sites(tree, key="HOME")} == home_expected
 
 
-_EIGHT_VALUE_FORMS = '''
+_EIGHT_VALUE_FORMS = """
 import os
 from pathlib import Path
 
@@ -257,7 +253,7 @@ def probe(tmp_path, monkeypatch, dynamic_key):
     v_concat = str(tmp_path) + "/home"
     v_name_keyed = dynamic_key
     v_dynamic = compute_home_somehow()
-'''
+"""
 
 
 @pytest.mark.parametrize(
@@ -300,7 +296,7 @@ def test_resolve_value_returns_none_and_none_matches_nothing(tmp_path: Path, bin
 # T003 — the keyer, discover(), and the identity/attribution separation
 # ---------------------------------------------------------------------------
 
-_MEMBER_TREE = '''
+_MEMBER_TREE = """
 import os
 
 import pytest
@@ -347,7 +343,7 @@ def test_outermost_attribution_wins(tmp_path, monkeypatch):
         monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))  # M5 the :1165 shape
 
     _run_once()
-'''
+"""
 
 
 def _member_tree(tmp_path: Path) -> tuple[Path, Path]:
@@ -460,10 +456,7 @@ def test_kind_distribution_over_the_real_tree_mechanises_c004() -> None:
     # test_kind_distribution_mechanises_c004_at_the_keyed_def above, whose synthetic M5-shaped
     # tree still forces `keyed != innermost`.
 
-    print(
-        "[reported, not asserted] keyed-vs-innermost transfer: "
-        f"{keyed['test-body'] - innermost['test-body']}; keyed={keyed}; innermost={innermost}"
-    )
+    print(f"[reported, not asserted] keyed-vs-innermost transfer: {keyed['test-body'] - innermost['test-body']}; keyed={keyed}; innermost={innermost}")
 
 
 # `test_home_partition_over_the_real_tree_matches_the_published_distribution` was REMOVED here and
@@ -471,7 +464,7 @@ def test_kind_distribution_over_the_real_tree_mechanises_c004() -> None:
 # dropped: A=27/B1=11/B2=2 is a CENSUS claim, and only WP05 can see both `discover()` and `E`.
 
 
-_PARTITION_TREE = '''
+_PARTITION_TREE = """
 import os
 
 import pytest
@@ -498,7 +491,7 @@ def partition_b2(tmp_path, monkeypatch):
 def partition_other(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))  # P-other member site
     monkeypatch.setenv("HOME", str(tmp_path / "elsewhere"))
-'''
+"""
 
 
 def test_home_partition_is_produced_for_every_member_with_one_example_each(
@@ -520,7 +513,7 @@ def test_home_partition_is_produced_for_every_member_with_one_example_each(
     assert by_line[_lineno_of(path, "# P-other member site")].home_partition == "other"
 
 
-_COLLIDING_TREE = '''
+_COLLIDING_TREE = """
 import pytest
 
 
@@ -528,7 +521,7 @@ import pytest
 def twin_sites(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))
-'''
+"""
 
 
 def test_discover_raises_on_two_members_sharing_a_byte_identical_triple(tmp_path: Path) -> None:
@@ -583,7 +576,7 @@ INLINE_EXPECTED: frozenset[str] = frozenset(
 #: on the wrong line.
 SHAPE_MARKER = "# the-shape"
 
-_SKH_VALUE_CONTROL = '''
+_SKH_VALUE_CONTROL = """
 import os
 
 import pytest
@@ -592,9 +585,9 @@ import pytest
 @pytest.fixture
 def pinned(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", {expression})  # the-shape
-'''
+"""
 
-_HOME_VALUE_CONTROL = '''
+_HOME_VALUE_CONTROL = """
 import os
 
 import pytest
@@ -603,51 +596,47 @@ import pytest
 @pytest.fixture
 def pinned(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", {expression})  # the-shape
-'''
+"""
 
 #: ``id -> synthetic source containing exactly one instance of the shape``. **The set of shipped
 #: controls is the QUADRUPLE's fourth operand**, so it is derived from this mapping and never
 #: written twice.
 _CONTROLS: dict[str, str] = {
-    "SKH-SETDEFAULT": '''
+    "SKH-SETDEFAULT": """
         import os
 
 
         def probe(tmp_path, monkeypatch):
             os.environ.setdefault("SPEC_KITTY_HOME", str(tmp_path / "home"))  # the-shape
-    ''',
-    "SKH-BARE-SETENV": '''
+    """,
+    "SKH-BARE-SETENV": """
         def probe(tmp_path, monkeypatch):
             setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))  # the-shape
-    ''',
-    "SKH-VAL-OSPATHJOIN": _SKH_VALUE_CONTROL.format(
-        expression='os.path.join(str(tmp_path), "home")'
-    ),
+    """,
+    "SKH-VAL-OSPATHJOIN": _SKH_VALUE_CONTROL.format(expression='os.path.join(str(tmp_path), "home")'),
     "SKH-VAL-PERCENT": _SKH_VALUE_CONTROL.format(expression='"%s/home" % str(tmp_path)'),
     "SKH-VAL-FORMAT": _SKH_VALUE_CONTROL.format(expression='"{}/home".format(str(tmp_path))'),
     "SKH-VAL-CONCAT": _SKH_VALUE_CONTROL.format(expression='str(tmp_path) + "/home"'),
-    "HOME-SETDEFAULT": '''
+    "HOME-SETDEFAULT": """
         import os
 
 
         def probe(tmp_path, monkeypatch):
             os.environ.setdefault("HOME", str(tmp_path / "home"))  # the-shape
-    ''',
-    "HOME-VAL-OSPATHJOIN": _HOME_VALUE_CONTROL.format(
-        expression='os.path.join(str(tmp_path), "home")'
-    ),
+    """,
+    "HOME-VAL-OSPATHJOIN": _HOME_VALUE_CONTROL.format(expression='os.path.join(str(tmp_path), "home")'),
     "HOME-VAL-PERCENT": _HOME_VALUE_CONTROL.format(expression='"%s/home" % str(tmp_path)'),
     "HOME-VAL-FORMAT": _HOME_VALUE_CONTROL.format(expression='"{}/home".format(str(tmp_path))'),
     "HOME-VAL-CONCAT": _HOME_VALUE_CONTROL.format(expression='str(tmp_path) + "/home"'),
-    "SCOPE-EXPLICIT": '''
+    "SCOPE-EXPLICIT": """
         import pytest
 
 
         @pytest.fixture(scope="session")
         def pinned(tmp_path, monkeypatch):  # the-shape
             monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))
-    ''',
-    "PARTITION-OTHER": '''
+    """,
+    "PARTITION-OTHER": """
         import pytest
 
 
@@ -655,18 +644,18 @@ _CONTROLS: dict[str, str] = {
         def pinned(tmp_path, monkeypatch):
             monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))  # the-shape
             monkeypatch.setenv("HOME", str(tmp_path / "elsewhere"))
-    ''',
-    "WITHITEM-VALUE-REF": '''
+    """,
+    "WITHITEM-VALUE-REF": """
         import pytest
 
 
         def probe(tmp_path, monkeypatch):
             with open_home_root(tmp_path) as bound_home:
                 monkeypatch.setenv("SPEC_KITTY_HOME", str(bound_home))  # the-shape
-    ''',
-    "SC-002b": '''
+    """,
+    "SC-002b": """
         RUNTIME_HOME_ENV = "SPEC_KITTY_HOME"  # the-shape
-    ''',
+    """,
 }
 
 #: The fourth operand: the ids of the controls this module actually ships.
@@ -732,25 +721,17 @@ def test_the_home_enumeration_limb_is_not_registered_as_inert() -> None:
     assert not {limb for limb in scan.INERT_LIMBS if limb == "HOME-ENUMERATION"}
     unfiltered = scan.enumerate_py_files(TESTS_ROOT)
     sites = {
-        (path.relative_to(TESTS_ROOT).as_posix(), site.lineno)
-        for path in unfiltered
-        for site in scan.find_write_sites(scan.parse_module(path), key=scan.HOME_KEY)
+        (path.relative_to(TESTS_ROOT).as_posix(), site.lineno) for path in unfiltered for site in scan.find_write_sites(scan.parse_module(path), key=scan.HOME_KEY)
     }
     assert sites, "a limb registered inert must be measured, not assumed"
-    print(
-        f"[reported, not asserted] unfiltered HOME write sites: {len(sites)} "
-        f"in {len({relpath for relpath, _ in sites})} files"
-    )
+    print(f"[reported, not asserted] unfiltered HOME write sites: {len(sites)} in {len({relpath for relpath, _ in sites})} files")
     # The B1/B2 "repinner" members used to be asserted non-empty over the real tree. Every such
     # member's file was deleted with the sync transport (issue #5), so the real-tree set measures
     # EMPTY and the surviving members are exactly E, partition A. The classifier's non-A arms stay
     # exercised on the synthetic trees in this package (`_MEMBER_TREE`, `_PARTITION_TREE`); a
     # future real B1/B2 member reds t023's discovered-class equality until the artefacts catch up.
     repinners = {m.key for m in scan.discover(TESTS_ROOT) if m.home_partition != "A"}
-    assert repinners == set(), (
-        "a non-A member appeared without its census/tombstone paperwork -- regenerate the home-pin "
-        f"artefacts: {sorted(repinners)}"
-    )
+    assert repinners == set(), f"a non-A member appeared without its census/tombstone paperwork -- regenerate the home-pin artefacts: {sorted(repinners)}"
 
 
 def test_fr010_runtime_home_alias_is_measured_inert_and_refused_on_both_limbs() -> None:
@@ -835,10 +816,7 @@ def test_sc002b_publishes_its_denominator() -> None:
         occurrences |= scan.literal_key_occurrences(root)
     files = {relpath for relpath, _ in occurrences}
     assert occurrences, "a population of 0 with no denominator cannot be audited"
-    print(
-        f"[reported, not asserted] literal 'SPEC_KITTY_HOME' constants: {len(occurrences)} "
-        f"in {len(files)} files"
-    )
+    print(f"[reported, not asserted] literal 'SPEC_KITTY_HOME' constants: {len(occurrences)} in {len(files)} files")
 
 
 def test_this_module_never_parses_outside_the_seam() -> None:
@@ -851,7 +829,7 @@ def test_this_module_never_parses_outside_the_seam() -> None:
 # T005 — render_census / render_baseline and the one regeneration entry
 # ---------------------------------------------------------------------------
 
-_THREE_MEMBERS = '''
+_THREE_MEMBERS = """
 import pytest
 
 
@@ -868,7 +846,7 @@ def second(tmp_path, monkeypatch):
 
 def test_third(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", f"{tmp_path}/home")  # C3
-'''
+"""
 
 FROZEN_SHA = "5d49d31ed6505627d98d8f95d8502c9bf6a2f5ac"
 
@@ -878,10 +856,7 @@ def _three_members(tmp_path: Path) -> set[scan.Member]:
     path = _materialise(root, "test_three_members.py", _THREE_MEMBERS)
     relpath, source = path.relative_to(root).as_posix(), path.read_text(encoding="utf-8")
     members = scan.discover(root)
-    assert {member.key for member in members} == {
-        scan.member_key(relpath, source, _lineno_of(path, marker))
-        for marker in ("# C1", "# C2", "# C3")
-    }
+    assert {member.key for member in members} == {scan.member_key(relpath, source, _lineno_of(path, marker)) for marker in ("# C1", "# C2", "# C3")}
     return members
 
 
@@ -1030,7 +1005,7 @@ def test_main_demonstrates_the_exempt_module_absent(tmp_path: Path) -> None:
 #: A synthetic `E`, shaped exactly like WP03's: **fixed arity by type**, so a third entry is a
 #: `mypy --strict` error. It derives its keys by calling `discover()` on the same root rather
 #: than embedding literals, so the control works at 3 members, at 40 and at 42 alike.
-_EXEMPT_MODULE_TEMPLATE = '''
+_EXEMPT_MODULE_TEMPLATE = """
 from pathlib import Path
 
 from tests.architectural._home_pin_scan import Exempt, discover
@@ -1042,7 +1017,7 @@ E: tuple[Exempt, Exempt] = (
     Exempt(_MEMBERS[0].key, "synthetic canonical owner"),
     Exempt(_MEMBERS[1].key, "synthetic retained-pin probe"),
 )
-'''
+"""
 
 
 def _census_keys(path: Path) -> set[scan.MemberKey]:
@@ -1051,9 +1026,7 @@ def _census_keys(path: Path) -> set[scan.MemberKey]:
 
 
 @pytest.mark.parametrize("case", ["synthetic-tree", "real-tree"])
-def test_main_with_an_exempt_module_keeps_e_out_of_the_census(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str
-) -> None:
+def test_main_with_an_exempt_module_keeps_e_out_of_the_census(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str) -> None:
     """**The positive control that was missing, and its absence is why the defect shipped.**
 
     The only `main()` test ran with `--exempt-module` ABSENT, so the flag's effect on the census
@@ -1079,18 +1052,20 @@ def test_main_with_an_exempt_module_keeps_e_out_of_the_census(
     census_out = tmp_path / "out" / f"census_{case}.yaml"
     baseline_out = tmp_path / "out" / f"baseline_{case}.yaml"
     argv = [
-        "--root", str(root),
-        "--frozen-at-sha", FROZEN_SHA,
-        "--census-out", str(census_out),
-        "--baseline-out", str(baseline_out),
+        "--root",
+        str(root),
+        "--frozen-at-sha",
+        FROZEN_SHA,
+        "--census-out",
+        str(census_out),
+        "--baseline-out",
+        str(baseline_out),
     ]
 
     assert scan.main([*argv, "--exempt-module", module_name]) == 0
     with_exempt = _census_keys(census_out)
 
-    exempt_keys: set[scan.MemberKey] = {
-        entry.key for entry in importlib.import_module(module_name).E
-    }
+    exempt_keys: set[scan.MemberKey] = {entry.key for entry in importlib.import_module(module_name).E}
     discovered = {member.key for member in scan.discover(root)}
     assert exempt_keys <= discovered, "the control is vacuous unless E is drawn from real members"
 
@@ -1138,7 +1113,7 @@ def test_the_shipped_regeneration_command_names_every_flag_it_needs() -> None:
 # T026(1) — the fragility register, and the census note derived FROM it
 # ---------------------------------------------------------------------------
 
-_FRAGILE_TREE = '''
+_FRAGILE_TREE = """
 import pytest
 
 
@@ -1150,7 +1125,7 @@ def test_fragile_member(tmp_path, monkeypatch):
 @pytest.fixture
 def sturdy_member(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))  # F2 both params referenced
-'''
+"""
 
 
 def test_fragility_register_names_only_members_held_by_an_unused_silhouette_parameter(
@@ -1164,9 +1139,7 @@ def test_fragility_register_names_only_members_held_by_an_unused_silhouette_para
     relpath, source = path.relative_to(root).as_posix(), path.read_text(encoding="utf-8")
 
     register = scan.fragility_register(root)
-    assert {row.key for row in register} == {
-        scan.member_key(relpath, source, _lineno_of(path, "# F1 held by an unused monkeypatch"))
-    }
+    assert {row.key for row in register} == {scan.member_key(relpath, source, _lineno_of(path, "# F1 held by an unused monkeypatch"))}
     # The sturdy member IS discovered and is NOT registered, or the register is a no-op.
     assert {member.key for member in scan.discover(root)} > {row.key for row in register}
 
@@ -1186,10 +1159,7 @@ def test_fragility_register_over_the_real_tree_is_a_subset_of_the_class() -> Non
     assert keys <= {member.key for member in scan.discover(TESTS_ROOT)}
     for row in register:
         assert scan.normalise_params(row.unused_silhouette_params) & scan.SILHOUETTE
-    print(
-        "[reported, not asserted] fragility register: "
-        + repr(sorted((r.relpath, r.lineno, sorted(r.unused_silhouette_params)) for r in register))
-    )
+    print("[reported, not asserted] fragility register: " + repr(sorted((r.relpath, r.lineno, sorted(r.unused_silhouette_params)) for r in register)))
 
 
 def test_the_census_fragility_note_names_the_fragile_rows_via_the_generator(tmp_path: Path) -> None:
@@ -1203,9 +1173,7 @@ def test_the_census_fragility_note_names_the_fragile_rows_via_the_generator(tmp_
     register = scan.fragility_register(root)
     members = scan.discover(root)
 
-    document = yaml.safe_load(
-        scan.render_census(members, sha=FROZEN_SHA, owed_to="#3121", fragility=register)
-    )
+    document = yaml.safe_load(scan.render_census(members, sha=FROZEN_SHA, owed_to="#3121", fragility=register))
     note = document["header"]["fragility_note"]
     assert register, "a note derived from an empty register would assert nothing"
     for row in register:

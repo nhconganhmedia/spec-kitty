@@ -29,27 +29,12 @@ from charter.offering.missions.mission_type_repository import (
 
 pytestmark = [pytest.mark.fast, pytest.mark.doctrine, pytest.mark.corpus]
 
-_SHIPPED_MISSION_TYPES_DIR = (
-    Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "missions" / "mission_types"
-)
+_SHIPPED_MISSION_TYPES_DIR = Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "missions" / "mission_types"
 _SHIPPED_IDS = ("documentation", "plan", "research", "software-dev")
 
-_SYNTHETIC_ANALYSIS_YAML = (
-    "schema_version: 1\n"
-    "id: analysis\n"
-    'display_name: "Analysis"\n'
-    "action_sequence:\n"
-    "  - specify\n"
-    "  - plan\n"
-)
+_SYNTHETIC_ANALYSIS_YAML = 'schema_version: 1\nid: analysis\ndisplay_name: "Analysis"\naction_sequence:\n  - specify\n  - plan\n'
 
-_MISMATCHED_ID_YAML = (
-    "schema_version: 1\n"
-    "id: totally-different-id\n"
-    'display_name: "Broken"\n'
-    "action_sequence:\n"
-    "  - specify\n"
-)
+_MISMATCHED_ID_YAML = 'schema_version: 1\nid: totally-different-id\ndisplay_name: "Broken"\naction_sequence:\n  - specify\n'
 
 
 @pytest.fixture(autouse=True)
@@ -79,9 +64,7 @@ def _patch_default_root(monkeypatch: pytest.MonkeyPatch, root: Path) -> None:
 class TestSyntheticTypePickup:
     """SC-001: a synthetic mission-type YAML is picked up universally."""
 
-    def test_synthetic_analysis_type_is_included(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_synthetic_analysis_type_is_included(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         for shipped_yaml in _SHIPPED_MISSION_TYPES_DIR.glob("*.yaml"):
             shutil.copy(shipped_yaml, tmp_path / shipped_yaml.name)
         (tmp_path / "analysis.yaml").write_text(_SYNTHETIC_ANALYSIS_YAML, encoding="utf-8")
@@ -95,9 +78,7 @@ class TestSyntheticTypePickup:
         assert result == tuple(sorted(result))
         assert set(result) == {*_SHIPPED_IDS, "analysis"}
 
-    def test_synthetic_type_test_does_not_mutate_real_mission_types_dir(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_synthetic_type_test_does_not_mutate_real_mission_types_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         before = sorted(p.name for p in _SHIPPED_MISSION_TYPES_DIR.glob("*.yaml"))
 
         (tmp_path / "analysis.yaml").write_text(_SYNTHETIC_ANALYSIS_YAML, encoding="utf-8")
@@ -138,9 +119,7 @@ class TestUnpatchedBuiltinAccessors:
 class TestLoudFailTransitivity:
     """A MissionTypeRepository construction error propagates through the accessor."""
 
-    def test_id_stem_mismatch_raises_through_accessor(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_id_stem_mismatch_raises_through_accessor(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         (tmp_path / "correct-name.yaml").write_text(_MISMATCHED_ID_YAML, encoding="utf-8")
 
         _patch_default_root(monkeypatch, tmp_path)

@@ -102,10 +102,7 @@ def main() -> int:
     oracle_failed = partial_final_observed and timeout_count == publication_count == 1
     print(f"immutable_base={IMMUTABLE_BASE}")
     print("base_topology_verified=fixed lock encloses complete direct-to-final build")
-    print(
-        "fault=compress fixed lock timeout/build duration from 60s/>90s to "
-        f"{LOCK_TIMEOUT_SECONDS}s/{BUILD_DELAY_SECONDS}s; heartbeat absent"
-    )
+    print(f"fault=compress fixed lock timeout/build duration from 60s/>90s to {LOCK_TIMEOUT_SECONDS}s/{BUILD_DELAY_SECONDS}s; heartbeat absent")
     print("worker_topology=2 spawned OS processes; waiter starts after live builder enters Act")
     print(f"partial_final_observed={str(partial_final_observed).lower()}")
     print(f"outcomes={recorded}")

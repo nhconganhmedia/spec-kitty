@@ -35,8 +35,13 @@ from ._builder import (
 from ..operations import ApplyConsent, AssessmentInputs, Diagnostic, OperationRoot, OwnerAssessment
 from .model import BundleObservation, StagedFile
 from .projection import (
-    confined_output, json_bytes, observe_bundle_path, observe_tree,
-    prepare_staging, read_observed_file, staging_root,
+    confined_output,
+    json_bytes,
+    observe_bundle_path,
+    observe_tree,
+    prepare_staging,
+    read_observed_file,
+    staging_root,
 )
 
 # Codex plugin manifest lives under ``.codex-plugin/`` (not ``.claude-plugin/``).
@@ -66,8 +71,7 @@ _AUTHOR_NAME = "Spec Kitty"
 
 # Install instructions emitted after marketplace.json is written.
 _INSTALL_HINT = (
-    "  To install: codex plugin marketplace add dist/spec-kitty-plugins/codex/marketplace.json\n"
-    "  Or:         codex plugin install dist/spec-kitty-plugins/codex"
+    "  To install: codex plugin marketplace add dist/spec-kitty-plugins/codex/marketplace.json\n  Or:         codex plugin install dist/spec-kitty-plugins/codex"
 )
 
 
@@ -119,16 +123,14 @@ class CodexBundleProjector:
             companions, observations, directories = self._companions(directory, root)
             manifest = self._manifest_payload(version, any(Path(f.path).name == _MCP_JSON_NAME for f in companions))
             files += companions + (
-                StagedFile((directory / _MANIFEST_DIR / _MANIFEST_NAME).relative_to(root.path).as_posix(),
-                           json_bytes(manifest, legacy=True), manifest=True),
-                StagedFile((directory / "marketplace.json").relative_to(root.path).as_posix(),
-                           json_bytes(self._marketplace_payload(), legacy=True), manifest=True),
+                StagedFile((directory / _MANIFEST_DIR / _MANIFEST_NAME).relative_to(root.path).as_posix(), json_bytes(manifest, legacy=True), manifest=True),
+                StagedFile((directory / "marketplace.json").relative_to(root.path).as_posix(), json_bytes(self._marketplace_payload(), legacy=True), manifest=True),
             )
-            return prepare_staging(inputs, files, (directory,), observations, suppliers=(commands,), version=version,
-                                   supporting_dirs=directories)
+            return prepare_staging(inputs, files, (directory,), observations, suppliers=(commands,), version=version, supporting_dirs=directories)
         except (OSError, ValueError, BuildError) as exc:
-            return OwnerAssessment("plugin_bundle", root, complete=False, consent=consent,
-                                   diagnostics=(Diagnostic("bundle_input_invalid", "plugin_bundle", "error", str(exc)),))
+            return OwnerAssessment(
+                "plugin_bundle", root, complete=False, consent=consent, diagnostics=(Diagnostic("bundle_input_invalid", "plugin_bundle", "error", str(exc)),)
+            )
 
     @staticmethod
     def _companions(directory: Path, root: OperationRoot) -> tuple[tuple[StagedFile, ...], tuple[BundleObservation, ...], tuple[tuple[str, int], ...]]:
@@ -157,11 +159,15 @@ class CodexBundleProjector:
                 observations.append(observed)
                 if observed.state.kind == "directory":
                     assert observed.state.mode is not None
-                    directories.append(((directory / "hooks" / observed.path.relative_to(hooks)).relative_to(root.path).as_posix(),
-                                        observed.state.mode))
+                    directories.append(((directory / "hooks" / observed.path.relative_to(hooks)).relative_to(root.path).as_posix(), observed.state.mode))
                 if observed.state.kind == "file":
-                    files.append(StagedFile((directory / "hooks" / observed.path.relative_to(hooks)).relative_to(root.path).as_posix(),
-                                            read_observed_file(observed), observed.state.mode or 0o644))
+                    files.append(
+                        StagedFile(
+                            (directory / "hooks" / observed.path.relative_to(hooks)).relative_to(root.path).as_posix(),
+                            read_observed_file(observed),
+                            observed.state.mode or 0o644,
+                        )
+                    )
         return tuple(files), tuple(observations), tuple(directories)
 
     # ------------------------------------------------------------------
@@ -198,43 +204,30 @@ class CodexBundleProjector:
         # T025: forbidden keys must be absent.
         found_forbidden = _FORBIDDEN_KEYS & set(manifest)
         if found_forbidden:
-            raise BuildError(
-                f"Codex plugin.json must NOT contain: {sorted(found_forbidden)}"
-            )
+            raise BuildError(f"Codex plugin.json must NOT contain: {sorted(found_forbidden)}")
 
         # Required top-level scalar fields.
         for key in _REQUIRED_SCALAR_FIELDS:
             if not manifest.get(key):
-                raise BuildError(
-                    f"Codex plugin.json missing required field: {key!r}"
-                )
+                raise BuildError(f"Codex plugin.json missing required field: {key!r}")
 
         # author.name (nested).
         author = manifest.get("author")
         if not isinstance(author, dict) or not author.get("name"):
-            raise BuildError(
-                "Codex plugin.json missing required field: 'author.name'"
-            )
+            raise BuildError("Codex plugin.json missing required field: 'author.name'")
 
         # interface.displayName and interface.shortDescription (nested).
         iface = manifest.get("interface")
         if not isinstance(iface, dict):
-            raise BuildError(
-                "Codex plugin.json missing required field: 'interface'"
-            )
+            raise BuildError("Codex plugin.json missing required field: 'interface'")
         for sub in _REQUIRED_INTERFACE_FIELDS:
             if not iface.get(sub):
-                raise BuildError(
-                    f"Codex plugin.json missing required field: 'interface.{sub}'"
-                )
+                raise BuildError(f"Codex plugin.json missing required field: 'interface.{sub}'")
 
         # shortDescription length guard.
         short_desc = iface.get("shortDescription", "")
         if isinstance(short_desc, str) and len(short_desc) > _SHORT_DESCRIPTION_MAX_LEN:
-            raise BuildError(
-                f"Codex plugin.json 'interface.shortDescription' exceeds "
-                f"{_SHORT_DESCRIPTION_MAX_LEN} characters."
-            )
+            raise BuildError(f"Codex plugin.json 'interface.shortDescription' exceeds {_SHORT_DESCRIPTION_MAX_LEN} characters.")
 
     # ------------------------------------------------------------------
     # Marketplace catalog

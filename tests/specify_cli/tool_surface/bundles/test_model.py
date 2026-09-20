@@ -20,9 +20,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 
 def _entry(kind: ToolSurfaceKind, rel: str) -> BundleEntry:
-    return BundleEntry(
-        surface_kind=kind, source_path=Path("/p") / rel, bundle_relative_path=rel
-    )
+    return BundleEntry(surface_kind=kind, source_path=Path("/p") / rel, bundle_relative_path=rel)
 
 
 def test_dataclasses_are_frozen() -> None:
@@ -41,9 +39,7 @@ def test_plugin_bundle_kinds_collects_distinct_kinds() -> None:
         ),
         manifest_path=Path("/p/.claude-plugin/plugin.json"),
     )
-    assert bundle.kinds() == frozenset(
-        {ToolSurfaceKind.COMMAND_SKILL, ToolSurfaceKind.AGENT_PROFILE}
-    )
+    assert bundle.kinds() == frozenset({ToolSurfaceKind.COMMAND_SKILL, ToolSurfaceKind.AGENT_PROFILE})
 
 
 def test_bundle_validation_result_passed() -> None:
@@ -58,9 +54,7 @@ def test_bundle_validation_result_passed() -> None:
 
 
 def test_bundle_validation_result_failed_with_missing() -> None:
-    finding = make_finding(
-        "bundle-component-missing", "error", "missing command skills"
-    )
+    finding = make_finding("bundle-component-missing", "error", "missing command skills")
     result = BundleValidationResult(
         passed=False,
         missing_surfaces=(finding,),

@@ -107,13 +107,10 @@ def _setup_mission(tmp_path: Path, *, matrix: str | None) -> Path:
     )
     for wp_id in ("WP01", "WP02"):
         (tasks_dir / f"{wp_id}-test.md").write_text(
-            f'---\nwork_package_id: "{wp_id}"\ntitle: "Test {wp_id}"\n'
-            f"requirement_refs:\n  - FR-001\ndependencies: []\n---\n\n# {wp_id}\n",
+            f'---\nwork_package_id: "{wp_id}"\ntitle: "Test {wp_id}"\nrequirement_refs:\n  - FR-001\ndependencies: []\n---\n\n# {wp_id}\n',
             encoding="utf-8",
         )
-    (feature_dir / "meta.json").write_text(
-        json.dumps({"mission_slug": _MISSION_SLUG}), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps({"mission_slug": _MISSION_SLUG}), encoding="utf-8")
     if matrix is not None:
         (feature_dir / "issue-matrix.md").write_text(matrix, encoding="utf-8")
     return feature_dir
@@ -122,20 +119,14 @@ def _setup_mission(tmp_path: Path, *, matrix: str | None) -> Path:
 def _common_patches(tmp_path: Path) -> dict[str, MagicMock]:
     """Patch the heavy finalize collaborators (git / events / bootstrap / commit)."""
     feature_dir = tmp_path / "kitty-specs" / _MISSION_SLUG
-    fake_commit = CommitRouterResult(
-        status="committed", placement_ref="main", commit_hash="abc1234"
-    )
+    fake_commit = CommitRouterResult(status="committed", placement_ref="main", commit_hash="abc1234")
     return {
         f"{MODULE}.locate_project_root": MagicMock(return_value=tmp_path),
         f"{MODULE}._find_feature_directory": MagicMock(return_value=feature_dir),
         f"{MODULE}._resolve_planning_branch": MagicMock(return_value="main"),
         f"{MODULE}._ensure_branch_checked_out": MagicMock(),
-        f"{MODULE}.bootstrap_canonical_state": MagicMock(
-            return_value=_make_bootstrap_result()
-        ),
-        "specify_cli.coordination.commit_router.commit_for_mission": MagicMock(
-            return_value=fake_commit
-        ),
+        f"{MODULE}.bootstrap_canonical_state": MagicMock(return_value=_make_bootstrap_result()),
+        "specify_cli.coordination.commit_router.commit_for_mission": MagicMock(return_value=fake_commit),
         f"{MODULE}.run_command": MagicMock(return_value=(0, "abc1234", "")),
         # Leak #1 (mission integration-boundary-01KW0PBE) removed the module-level
         # ``emit_mission_created`` import from core.mission_creation; the MissionCreated
@@ -149,9 +140,7 @@ def _common_patches(tmp_path: Path) -> dict[str, MagicMock]:
     }
 
 
-def _run_finalize(
-    patches: dict[str, MagicMock], *, extra: dict[str, object] | None = None
-) -> int:
+def _run_finalize(patches: dict[str, MagicMock], *, extra: dict[str, object] | None = None) -> int:
     """Drive the real ``finalize_tasks`` callable; return its exit code (0 = no raise)."""
     from specify_cli.cli.commands.agent.mission import finalize_tasks
 
@@ -172,9 +161,7 @@ def _clean(captured: str) -> str:
     return _ANSI_RE.sub("", captured)
 
 
-def test_finalize_advisory_flags_malformed_matrix_and_does_not_block(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_finalize_advisory_flags_malformed_matrix_and_does_not_block(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A malformed matrix is advisory-flagged at finalize AND finalize still succeeds."""
     _setup_mission(tmp_path, matrix=_MALFORMED_MATRIX)
 
@@ -188,9 +175,7 @@ def test_finalize_advisory_flags_malformed_matrix_and_does_not_block(
     assert exit_code == 0
 
 
-def test_finalize_is_silent_for_valid_matrix(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_finalize_is_silent_for_valid_matrix(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A schema-valid matrix produces no advisory and finalize succeeds."""
     _setup_mission(tmp_path, matrix=_VALID_MATRIX)
 
@@ -220,9 +205,7 @@ def test_finalize_invokes_the_shared_validate_issue_matrix_engine(
         calls.append(path)
         return real_engine(path)
 
-    exit_code = _run_finalize(
-        _common_patches(tmp_path), extra={REVIEW_ENGINE: _spy}
-    )
+    exit_code = _run_finalize(_common_patches(tmp_path), extra={REVIEW_ENGINE: _spy})
 
     assert calls == [feature_dir / "issue-matrix.md"]
     assert exit_code == 0
@@ -237,15 +220,11 @@ def test_finalize_lint_never_blocks_even_if_engine_raises(
     def _boom(_path: Path) -> object:
         raise RuntimeError("engine exploded")
 
-    exit_code = _run_finalize(
-        _common_patches(tmp_path), extra={REVIEW_ENGINE: _boom}
-    )
+    exit_code = _run_finalize(_common_patches(tmp_path), extra={REVIEW_ENGINE: _boom})
     assert exit_code == 0
 
 
-def test_finalize_lint_validates_a_json_only_mission(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_finalize_lint_validates_a_json_only_mission(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """C1 fold (write-side-seam-matrix-tracer-01KYP3MH WP05): a mission with
     ONLY ``issue-matrix.json`` (no ``.md``) must still be linted -- the prior
     ``.md``-only ``.exists()`` precheck returned early for exactly this case,

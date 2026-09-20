@@ -45,35 +45,19 @@ def test_coordination_residue_path_filter_is_specific_to_coord_artifacts() -> No
     residue authority now matches the COORD partition only: issue-matrix, status
     events, acceptance-matrix.
     """
-    assert is_coord_residue_churn(
-        "kitty-specs/demo/issue-matrix.md", mission_slug="demo"
-    )
-    assert is_coord_residue_churn(
-        "kitty-specs/demo/status.events.jsonl", mission_slug="demo"
-    )
-    assert is_coord_residue_churn(
-        "kitty-specs/demo/acceptance-matrix.json", mission_slug="demo"
-    )
+    assert is_coord_residue_churn("kitty-specs/demo/issue-matrix.md", mission_slug="demo")
+    assert is_coord_residue_churn("kitty-specs/demo/status.events.jsonl", mission_slug="demo")
+    assert is_coord_residue_churn("kitty-specs/demo/acceptance-matrix.json", mission_slug="demo")
     # The re-partitioned PRIMARY kinds are NOT coordination residue (the WP01
     # correctness change + the FR-003 analysis-report re-home): their home is the
     # primary surface.
-    assert not is_coord_residue_churn(
-        "kitty-specs/demo/analysis-report.md", mission_slug="demo"
-    )
-    assert not is_coord_residue_churn(
-        "kitty-specs/demo/plan.md", mission_slug="demo"
-    )
-    assert not is_coord_residue_churn(
-        "kitty-specs/demo/tasks/WP01.md", mission_slug="demo"
-    )
-    assert not is_coord_residue_churn(
-        "kitty-specs/demo/spec.md", mission_slug="demo"
-    )
+    assert not is_coord_residue_churn("kitty-specs/demo/analysis-report.md", mission_slug="demo")
+    assert not is_coord_residue_churn("kitty-specs/demo/plan.md", mission_slug="demo")
+    assert not is_coord_residue_churn("kitty-specs/demo/tasks/WP01.md", mission_slug="demo")
+    assert not is_coord_residue_churn("kitty-specs/demo/spec.md", mission_slug="demo")
     # Mission-isolation negative control (still valid): another mission's residue
     # never counts as this mission's residue.
-    assert not is_coord_residue_churn(
-        "kitty-specs/other/issue-matrix.md", mission_slug="demo"
-    )
+    assert not is_coord_residue_churn("kitty-specs/other/issue-matrix.md", mission_slug="demo")
 
 
 def test_planning_source_docs_are_not_coordination_residue() -> None:
@@ -93,23 +77,15 @@ def test_planning_source_docs_are_not_coordination_residue() -> None:
         "kitty-specs/demo/checklists/",
         "kitty-specs/demo/tasks/",
     ):
-        assert not is_coord_residue_churn(
-            primary_path, mission_slug="demo"
-        ), primary_path
+        assert not is_coord_residue_churn(primary_path, mission_slug="demo"), primary_path
 
     # Negative controls — genuine non-residue paths must still block:
     #  - a real source edit is never mission residue
     #  - an unknown mission file is not in the residue authority
     #  - another mission's coord doc is not THIS mission's residue
-    assert not is_coord_residue_churn(
-        "src/specify_cli/foo.py", mission_slug="demo"
-    )
-    assert not is_coord_residue_churn(
-        "kitty-specs/demo/notes-scratch.md", mission_slug="demo"
-    )
-    assert not is_coord_residue_churn(
-        "kitty-specs/other/issue-matrix.md", mission_slug="demo"
-    )
+    assert not is_coord_residue_churn("src/specify_cli/foo.py", mission_slug="demo")
+    assert not is_coord_residue_churn("kitty-specs/demo/notes-scratch.md", mission_slug="demo")
+    assert not is_coord_residue_churn("kitty-specs/other/issue-matrix.md", mission_slug="demo")
 
 
 # --------------------------------------------------------------------------- #
@@ -126,9 +102,7 @@ def test_kind_is_coordination_residue_coord_topology_is_owned() -> None:
     classify a placement-kind artifact's stale primary copy as coordination residue.
     """
     for topology in (MissionTopology.COORD, MissionTopology.LANES_WITH_COORD):
-        assert kind_is_coordination_residue(
-            MissionArtifactKind.ISSUE_MATRIX, topology
-        ), topology.value
+        assert kind_is_coordination_residue(MissionArtifactKind.ISSUE_MATRIX, topology), topology.value
 
 
 def test_kind_is_coordination_residue_flat_topology_is_not_owned() -> None:
@@ -142,9 +116,7 @@ def test_kind_is_coordination_residue_flat_topology_is_not_owned() -> None:
     pinned: the routing decision reads the topology, not a synthetic ``.kind``.
     """
     for topology in (MissionTopology.SINGLE_BRANCH, MissionTopology.LANES):
-        assert not kind_is_coordination_residue(
-            MissionArtifactKind.ISSUE_MATRIX, topology
-        ), topology.value
+        assert not kind_is_coordination_residue(MissionArtifactKind.ISSUE_MATRIX, topology), topology.value
 
 
 def test_kind_is_coordination_residue_primary_metadata_never_residue() -> None:
@@ -156,6 +128,4 @@ def test_kind_is_coordination_residue_primary_metadata_never_residue() -> None:
     topology negative control above with a kind negative control so neither axis can
     be silently widened.
     """
-    assert not kind_is_coordination_residue(
-        MissionArtifactKind.PRIMARY_METADATA, MissionTopology.COORD
-    )
+    assert not kind_is_coordination_residue(MissionArtifactKind.PRIMARY_METADATA, MissionTopology.COORD)

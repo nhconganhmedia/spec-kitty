@@ -91,9 +91,7 @@ def _assert_actionable(message: str) -> None:
 
 @pytest.mark.parametrize("model_cls, sample", CONTENT_KIND_MATRIX)
 @pytest.mark.parametrize("field", ["enhances", "overrides"])
-def test_content_kind_rejects_retired_field(
-    model_cls: type, sample: dict[str, Any], field: str
-) -> None:
+def test_content_kind_rejects_retired_field(model_cls: type, sample: dict[str, Any], field: str) -> None:
     """Each content kind rejects ``enhances``/``overrides`` with a clear,
     fragment-pointing error (not a bare ``extra_forbidden``)."""
     with pytest.raises(ValidationError) as exc_info:
@@ -102,9 +100,7 @@ def test_content_kind_rejects_retired_field(
 
 
 @pytest.mark.parametrize("model_cls, sample", CONTENT_KIND_MATRIX)
-def test_content_kind_clean_sample_still_loads(
-    model_cls: type, sample: dict[str, Any]
-) -> None:
+def test_content_kind_clean_sample_still_loads(model_cls: type, sample: dict[str, Any]) -> None:
     """The cutover does not break artifacts that never used the fields."""
     instance = model_cls(**sample)
     assert not hasattr(instance, "enhances")
@@ -132,9 +128,7 @@ _AGENT_SCHEMA_SAMPLE: dict[str, Any] = {
 }
 
 
-@pytest.mark.parametrize(
-    "field", ["specializes_from", "specializes-from", "enhances", "overrides"]
-)
+@pytest.mark.parametrize("field", ["specializes_from", "specializes-from", "enhances", "overrides"])
 def test_agent_profile_domain_rejects_retired_field(field: str) -> None:
     """``AgentProfile`` (runtime domain model) rejects lineage/augmentation
     fields with the actionable, fragment-pointing message."""
@@ -143,9 +137,7 @@ def test_agent_profile_domain_rejects_retired_field(field: str) -> None:
     _assert_actionable(str(exc_info.value))
 
 
-@pytest.mark.parametrize(
-    "field", ["specializes_from", "specializes-from", "enhances", "overrides"]
-)
+@pytest.mark.parametrize("field", ["specializes_from", "specializes-from", "enhances", "overrides"])
 def test_agent_profile_schema_rejects_retired_field(field: str) -> None:
     """``AgentProfileSchema`` (schema-generation model) rejects the same set."""
     with pytest.raises(ValidationError) as exc_info:
@@ -172,14 +164,7 @@ def test_legacy_field_pack_fixture_is_rejected() -> None:
 
     from pathlib import Path
 
-    fixture = (
-        Path(__file__).parent
-        / "fixtures"
-        / "relationship_packs"
-        / "legacy-field-pack"
-        / "profiles"
-        / "legacy-specialist.agent.yaml"
-    )
+    fixture = Path(__file__).parent / "fixtures" / "relationship_packs" / "legacy-field-pack" / "profiles" / "legacy-specialist.agent.yaml"
     data = yaml.safe_load(fixture.read_text(encoding="utf-8"))
     with pytest.raises(ValidationError) as exc_info:
         AgentProfile(**data)

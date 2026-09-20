@@ -187,11 +187,7 @@ def find_latest_unpaired_started(
         unpaired = list(group.started)[-deficit:]
         candidates.extend(unpaired)
 
-    candidates = [
-        r for r in candidates
-        if (agent is None or r.agent == agent)
-        and (mission_id is None or r.mission_id == mission_id)
-    ]
+    candidates = [r for r in candidates if (agent is None or r.agent == agent) and (mission_id is None or r.mission_id == mission_id)]
     if not candidates:
         return None
     # Return the latest by ``at``; fall back to insertion order on ties.
@@ -245,13 +241,15 @@ def doctor_orphan_report(repo_root: Path) -> dict[str, object]:
     for group in orphans:
         deficit = len(group.started) - len(group.completions)
         for started_record in list(group.started)[-deficit:]:
-            orphan_entries.append({
-                "canonical_action_id": started_record.canonical_action_id,
-                "agent": started_record.agent,
-                "mission_id": started_record.mission_id,
-                "wp_id": started_record.wp_id,
-                "started_at": _format_at(started_record.at),
-            })
+            orphan_entries.append(
+                {
+                    "canonical_action_id": started_record.canonical_action_id,
+                    "agent": started_record.agent,
+                    "mission_id": started_record.mission_id,
+                    "wp_id": started_record.wp_id,
+                    "started_at": _format_at(started_record.at),
+                }
+            )
     return {
         "orphan_count": len(orphan_entries),
         "orphans": orphan_entries,
@@ -280,10 +278,7 @@ def make_canonical_action_id(mission_step: str, action_name: str) -> str:
     step = (mission_step or "").strip()
     action = (action_name or "").strip()
     if not step or not action:
-        raise ValueError(
-            f"canonical_action_id requires non-empty mission_step and action_name, "
-            f"got mission_step={mission_step!r} action_name={action_name!r}"
-        )
+        raise ValueError(f"canonical_action_id requires non-empty mission_step and action_name, got mission_step={mission_step!r} action_name={action_name!r}")
     return f"{step}::{action}"
 
 

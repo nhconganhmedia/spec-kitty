@@ -9,6 +9,7 @@ These tests exercise :func:`specify_cli.intake.scanner.read_brief` and
 * A simulated 6 MB STDIN input is rejected without buffering the
   entire payload.
 """
+
 from __future__ import annotations
 
 import io
@@ -64,9 +65,7 @@ def test_50mb_file_rejected_with_bounded_memory(tmp_path):
     # whatever pytest already had loaded.  Fudge factor: 0.5 × cap on
     # top of 1.5 × cap to absorb getrusage rounding.
     delta = rss_after - rss_before
-    assert delta < int(1.5 * cap) + cap, (
-        f"RSS delta {delta} exceeds 1.5×cap {int(1.5 * cap)} + slack {cap}"
-    )
+    assert delta < int(1.5 * cap) + cap, f"RSS delta {delta} exceeds 1.5×cap {int(1.5 * cap)} + slack {cap}"
 
 
 def test_4mb_file_accepted(tmp_path):

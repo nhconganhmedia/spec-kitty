@@ -82,10 +82,7 @@ def test_non_git_repository_is_undeterminable(
             "type": "dead_code_undeterminable",
             "diagnostic_code": "MISSION_REVIEW_DEAD_CODE_UNDETERMINABLE",
             "reason": "git diff failed",
-            "remediation": (
-                "Verify the baseline commit and Git repository, then rerun "
-                "`spec-kitty review`."
-            ),
+            "remediation": ("Verify the baseline commit and Git repository, then rerun `spec-kitty review`."),
         }
     ]
     assert "MISSION_REVIEW_DEAD_CODE_UNDETERMINABLE" in output
@@ -103,10 +100,7 @@ def test_unsupported_non_python_change_is_undeterminable(tmp_path: Path) -> None
     findings, output = scan(repo_root, baseline)
 
     assert findings[0]["type"] == "dead_code_undeterminable"
-    assert (
-        findings[0]["reason"]
-        == "changed source set contains no supported Python files"
-    )
+    assert findings[0]["reason"] == "changed source set contains no supported Python files"
     assert "0 unreferenced public symbols" not in output
 
 
@@ -171,12 +165,7 @@ def test_supported_symbol_result_set_matches_posix_baseline(tmp_path: Path) -> N
     _git(repo_root, "commit", "-qm", "add caller")
     baseline = _git(repo_root, "rev-parse", "HEAD").stdout.strip()
     (source_dir / "module.py").write_text(
-        "def PublicUsed() -> None:\n"
-        "    return None\n\n"
-        "def PublicUntrackedUsed() -> None:\n"
-        "    return None\n\n"
-        "class PublicDead:\n"
-        "    pass\n",
+        "def PublicUsed() -> None:\n    return None\n\ndef PublicUntrackedUsed() -> None:\n    return None\n\nclass PublicDead:\n    pass\n",
         encoding="utf-8",
     )
     # Keep this caller untracked: legacy ``grep -r src/`` included it, and the
@@ -203,9 +192,7 @@ def test_supported_symbol_result_set_matches_posix_baseline(tmp_path: Path) -> N
 
     findings, output = scan(repo_root, baseline)
 
-    assert findings == [
-        {"type": "dead_code", "symbol": "PublicDead", "file": "src/module.py"}
-    ]
+    assert findings == [{"type": "dead_code", "symbol": "PublicDead", "file": "src/module.py"}]
     assert "1 unreferenced public symbol(s)" in output
 
 
@@ -307,9 +294,7 @@ def test_real_post_merge_cli_uses_git_as_only_path_executable(tmp_path: Path) ->
         encoding="utf-8",
     )
     (mission_dir / "issue-matrix.md").write_text(
-        "| issue | verdict | evidence_ref |\n"
-        "|---|---|---|\n"
-        "| #2987 | fixed | WP02 regression test |\n",
+        "| issue | verdict | evidence_ref |\n|---|---|---|\n| #2987 | fixed | WP02 regression test |\n",
         encoding="utf-8",
     )
     _git(repo_root, "add", ".")

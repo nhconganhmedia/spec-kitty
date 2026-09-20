@@ -188,21 +188,14 @@ class TestVerbatimBodies:
     """Existing headings render their body verbatim under a ``### <heading>`` line."""
 
     def test_terminology_canon_body_surfaces_verbatim_when_present(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_ALL_SECTIONS, action="implement"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_ALL_SECTIONS, action="implement")
         assert critical_section_header("implement") in result
         assert "### Terminology Canon" in result
         # The literal body text must survive intact (whitespace + bullets).
-        assert (
-            "The canonical term for a unit of governed work is **Mission**"
-            in result
-        )
+        assert "The canonical term for a unit of governed work is **Mission**" in result
 
     def test_fenced_markdown_headings_do_not_truncate_section_body(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_FENCED_MARKDOWN_HEADINGS, action="implement"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_FENCED_MARKDOWN_HEADINGS, action="implement")
 
         body = _rendered_section_body(result, "Regression Vigilance")
 
@@ -212,9 +205,7 @@ class TestVerbatimBodies:
         assert "This is the next section" not in body
 
     def test_fenced_section_heading_example_does_not_spoof_section_start(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_FENCED_SECTION_HEADING_EXAMPLE, action="implement"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_FENCED_SECTION_HEADING_EXAMPLE, action="implement")
 
         body = _rendered_section_body(result, "Regression Vigilance")
 
@@ -224,9 +215,7 @@ class TestVerbatimBodies:
         assert "check terminology alignment" not in body
 
     def test_unbalanced_fence_does_not_swallow_following_sections(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_UNBALANCED_FENCE, action="implement"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_UNBALANCED_FENCE, action="implement")
 
         body = _rendered_section_body(result, "Regression Vigilance")
 
@@ -302,9 +291,7 @@ class TestMissingSectionFetchStanza:
     """Missing headings degrade to the fetch + when-doing stanza."""
 
     def test_missing_section_emits_fetch_stanza(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITHOUT_REGRESSION_VIGILANCE, action="implement"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITHOUT_REGRESSION_VIGILANCE, action="implement")
         # The selector slug matches the kebab-cased heading.
         assert "section:regression-vigilance" in result
         # The when-doing clause is exactly the contract phrase.
@@ -318,21 +305,15 @@ class TestActionSectionSets:
     """The set of critical sections is action-scoped."""
 
     def test_action_implement_uses_implement_section_set(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_ALL_SECTIONS, action="implement"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_ALL_SECTIONS, action="implement")
         for heading in ("Terminology Canon", "Code Review Checklist", "Regression Vigilance"):
             assert f"### {heading}" in result
 
     def test_action_review_uses_review_section_set(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_ALL_SECTIONS, action="review"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_ALL_SECTIONS, action="review")
         for heading in ("Terminology Canon", "Code Review Checklist", "Regression Vigilance"):
             assert f"### {heading}" in result
 
     def test_unknown_action_emits_no_section(self) -> None:
-        result = render_critical_section_bodies(
-            _CHARTER_WITH_ALL_SECTIONS, action="unknown-action"
-        )
+        result = render_critical_section_bodies(_CHARTER_WITH_ALL_SECTIONS, action="unknown-action")
         assert result == ""

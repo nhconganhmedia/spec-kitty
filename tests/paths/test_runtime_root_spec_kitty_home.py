@@ -11,6 +11,7 @@ Platform dispatch is forced by monkeypatching ``windows_paths._current_platform`
 default is made deterministic by stubbing ``platformdirs.user_data_dir`` so the
 tests are stable on any host OS.
 """
+
 from __future__ import annotations
 
 import platformdirs
@@ -34,9 +35,7 @@ def _force_platform(monkeypatch: pytest.MonkeyPatch, platform: str) -> None:
     monkeypatch.setattr(windows_paths, "_current_platform", lambda: platform)
 
 
-def _stub_windows_data_dir(
-    monkeypatch: pytest.MonkeyPatch, value: str = WIN_DATA_DIR
-) -> None:
+def _stub_windows_data_dir(monkeypatch: pytest.MonkeyPatch, value: str = WIN_DATA_DIR) -> None:
     """Make the Windows ``platformdirs`` default deterministic on any host."""
     monkeypatch.setattr(platformdirs, "user_data_dir", lambda *_a, **_kw: value)
 
@@ -52,9 +51,7 @@ def _pin_home(monkeypatch: pytest.MonkeyPatch, home: Path) -> None:
 
 
 @pytest.mark.parametrize("platform", PLATFORMS)
-def test_spec_kitty_home_overrides_base_on_all_platforms(
-    monkeypatch: pytest.MonkeyPatch, platform: str, tmp_path: Path
-) -> None:
+def test_spec_kitty_home_overrides_base_on_all_platforms(monkeypatch: pytest.MonkeyPatch, platform: str, tmp_path: Path) -> None:
     """Set env ⇒ base is the env path verbatim, regardless of platform."""
     _force_platform(monkeypatch, platform)
     # Stub the Windows default too, to prove the env branch wins before it.
@@ -68,9 +65,7 @@ def test_spec_kitty_home_overrides_base_on_all_platforms(
     assert root.platform == platform
 
 
-def test_spec_kitty_home_is_used_verbatim_not_suffixed(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_spec_kitty_home_is_used_verbatim_not_suffixed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The env path is the base directly — ``.spec-kitty`` is NOT appended."""
     _force_platform(monkeypatch, "linux")
     base = tmp_path / "skhome"
@@ -82,9 +77,7 @@ def test_spec_kitty_home_is_used_verbatim_not_suffixed(
     assert root.base.name != ".spec-kitty"
 
 
-def test_distinct_env_values_yield_distinct_bases(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_distinct_env_values_yield_distinct_bases(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Isolation guarantee G1: different env values ⇒ different bases."""
     _force_platform(monkeypatch, "linux")
 
@@ -102,9 +95,7 @@ def test_distinct_env_values_yield_distinct_bases(
 
 
 @pytest.mark.parametrize("platform", PLATFORMS)
-def test_empty_spec_kitty_home_falls_through(
-    monkeypatch: pytest.MonkeyPatch, platform: str, tmp_path: Path
-) -> None:
+def test_empty_spec_kitty_home_falls_through(monkeypatch: pytest.MonkeyPatch, platform: str, tmp_path: Path) -> None:
     """Empty string is falsy ⇒ resolves to the platform default."""
     _force_platform(monkeypatch, platform)
     _stub_windows_data_dir(monkeypatch)
@@ -126,9 +117,7 @@ def test_empty_spec_kitty_home_falls_through(
 
 
 @pytest.mark.parametrize("platform", PLATFORMS)
-def test_unset_spec_kitty_home_uses_platform_default(
-    monkeypatch: pytest.MonkeyPatch, platform: str, tmp_path: Path
-) -> None:
+def test_unset_spec_kitty_home_uses_platform_default(monkeypatch: pytest.MonkeyPatch, platform: str, tmp_path: Path) -> None:
     """Unset env ⇒ POSIX ``~/.spec-kitty``; win32 platformdirs base."""
     _force_platform(monkeypatch, platform)
     _stub_windows_data_dir(monkeypatch)
@@ -149,9 +138,7 @@ def test_unset_spec_kitty_home_uses_platform_default(
 # ---------------------------------------------------------------------------
 
 
-def test_derived_dirs_inherit_env_base(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_derived_dirs_inherit_env_base(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """All derived dirs are ``base`` joined with their fixed suffix."""
     _force_platform(monkeypatch, "darwin")
     base = tmp_path / "skhome"
@@ -167,9 +154,7 @@ def test_derived_dirs_inherit_env_base(
     assert root.cache_dir == base / "cache"
 
 
-def test_runtime_root_remains_frozen(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_runtime_root_remains_frozen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """RuntimeRoot stays an immutable frozen dataclass (T002)."""
     import dataclasses
 
@@ -202,9 +187,7 @@ def _assert_no_dirs_created(root: RuntimeRoot) -> None:
         assert not path.exists(), f"{path} was created — resolution is not pure"
 
 
-def test_resolution_creates_no_directories_with_env_set(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolution_creates_no_directories_with_env_set(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """With HOME and SPEC_KITTY_HOME at fresh temp dirs, nothing is created."""
     _force_platform(monkeypatch, "linux")
     fake_home = tmp_path / "home"
@@ -224,9 +207,7 @@ def test_resolution_creates_no_directories_with_env_set(
     assert not fake_home.exists()
 
 
-def test_resolution_creates_no_directories_with_default(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolution_creates_no_directories_with_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The default (env-unset) branch is equally pure — no dirs created."""
     _force_platform(monkeypatch, "linux")
     fake_home = tmp_path / "home"

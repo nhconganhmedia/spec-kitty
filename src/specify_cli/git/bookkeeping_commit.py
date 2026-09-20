@@ -174,9 +174,7 @@ def _commit_bookkeeping(
     )
 
 
-def _resolve_bookkeeping_commit_target(
-    repo_root: Path, mission_slug: str, branch: str | None, kind: MissionArtifactKind
-) -> CommitTarget:
+def _resolve_bookkeeping_commit_target(repo_root: Path, mission_slug: str, branch: str | None, kind: MissionArtifactKind) -> CommitTarget:
     """Resolve this surface's commit target via the placement port (FR-003).
 
     ``kind`` selects the partition: ``PRIMARY_METADATA`` resolves the primary
@@ -193,6 +191,4 @@ def _resolve_bookkeeping_commit_target(
     ``ActionContextError`` (fail-closed — never silently degrades to a null
     ref).
     """
-    return resolve_write_target_or_degrade(
-        repo_root, mission_slug, kind=kind, degrade_ref=branch
-    )
+    return resolve_write_target_or_degrade(repo_root, mission_slug, kind=kind, degrade_ref=branch)

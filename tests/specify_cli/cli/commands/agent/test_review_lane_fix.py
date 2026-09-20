@@ -4,6 +4,7 @@ T016/T017/T018/T019: Verify is_review_claimed detection for new canonical shape
 (IN_REVIEW) and legacy shape (IN_PROGRESS + review_ref), plus JSONL backward
 compatibility and execution_context detection parity.
 """
+
 import pytest
 from pathlib import Path
 from types import SimpleNamespace
@@ -15,6 +16,7 @@ from specify_cli.status.models import Lane, StatusEvent
 # ---------------------------------------------------------------------------
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
 
 def _make_event(to_lane: Lane, review_ref: str | None = None, wp_id: str = "WP01") -> StatusEvent:
     """Build a minimal StatusEvent for testing detection logic."""
@@ -66,6 +68,7 @@ def _is_review_claimed_execution_context(events: list[StatusEvent], wp_id: str =
 # T016: is_review_claimed detection — new canonical shape (IN_REVIEW)
 # ---------------------------------------------------------------------------
 
+
 class TestIsReviewClaimedNewShape:
     """Verify the new canonical IN_REVIEW shape is recognized as review-claimed."""
 
@@ -93,6 +96,7 @@ class TestIsReviewClaimedNewShape:
 # ---------------------------------------------------------------------------
 # T017: is_review_claimed detection — legacy shape (IN_PROGRESS + review_ref)
 # ---------------------------------------------------------------------------
+
 
 class TestIsReviewClaimedLegacyShape:
     """Verify the legacy IN_PROGRESS + review_ref shape is still recognized."""
@@ -134,6 +138,7 @@ class TestIsReviewClaimedLegacyShape:
 # T018: execution_context.py lane-entry check covers IN_REVIEW
 # ---------------------------------------------------------------------------
 
+
 class TestExecutionContextInReviewEntry:
     """execution_context._resolve_wp_id review path must find IN_REVIEW WPs."""
 
@@ -171,6 +176,7 @@ class TestExecutionContextInReviewEntry:
 # ---------------------------------------------------------------------------
 # T019: Legacy JSONL event log compatibility
 # ---------------------------------------------------------------------------
+
 
 class TestLegacyJsonlCompatibility:
     """Historical event logs with in_progress + review_ref must remain readable."""

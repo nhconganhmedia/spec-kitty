@@ -132,10 +132,7 @@ def _run_doctrine_json(repo_root: Path) -> tuple[int, dict[str, object]]:
     try:
         payload = json.loads(result.output)
     except json.JSONDecodeError as exc:  # pragma: no cover - failure diagnostic
-        pytest.fail(
-            f"doctor doctrine --json did not produce valid JSON: {exc}\n"
-            f"output: {result.output!r}"
-        )
+        pytest.fail(f"doctor doctrine --json did not produce valid JSON: {exc}\noutput: {result.output!r}")
     return result.exit_code, payload
 
 
@@ -165,19 +162,13 @@ def test_unsanctioned_org_override_is_flagged(tmp_path: Path) -> None:
     org_drg = _org_drg(payload)
     overrides = org_drg.get("unsanctioned_overrides", [])
     assert isinstance(overrides, list) and overrides, (
-        "expected a non-empty unsanctioned_overrides finding for the unlisted "
-        f"built-in override, got org_drg={org_drg!r}"
+        f"expected a non-empty unsanctioned_overrides finding for the unlisted built-in override, got org_drg={org_drg!r}"
     )
-    assert any(
-        isinstance(o, dict) and o.get("urn") == _BUILT_IN_DIRECTIVE_URN
-        for o in overrides
-    ), f"expected {_BUILT_IN_DIRECTIVE_URN} in findings: {overrides!r}"
+    assert any(isinstance(o, dict) and o.get("urn") == _BUILT_IN_DIRECTIVE_URN for o in overrides), f"expected {_BUILT_IN_DIRECTIVE_URN} in findings: {overrides!r}"
 
     profile_health = payload.get("profile_health")
     assert isinstance(profile_health, dict)
-    assert profile_health.get("healthy") is False, (
-        "an unsanctioned built-in override must flip healthy=false"
-    )
+    assert profile_health.get("healthy") is False, "an unsanctioned built-in override must flip healthy=false"
     assert exit_code == 1, f"expected RC=1, got {exit_code}: {payload!r}"
 
 
@@ -190,14 +181,10 @@ def test_sanctioned_org_override_is_cleared(tmp_path: Path) -> None:
     exit_code, payload = _run_doctrine_json(tmp_path)
 
     org_drg = _org_drg(payload)
-    assert org_drg.get("unsanctioned_overrides", []) == [], (
-        "a sanctioned override must NOT be flagged"
-    )
+    assert org_drg.get("unsanctioned_overrides", []) == [], "a sanctioned override must NOT be flagged"
     profile_health = payload.get("profile_health")
     assert isinstance(profile_health, dict)
-    assert profile_health.get("healthy") is True, (
-        "with the override sanctioned (and no other defects) the report is healthy"
-    )
+    assert profile_health.get("healthy") is True, "with the override sanctioned (and no other defects) the report is healthy"
     assert exit_code == 0, f"expected RC=0, got {exit_code}: {payload!r}"
 
 
@@ -218,9 +205,7 @@ def test_no_org_packs_output_unchanged(tmp_path: Path) -> None:
     exit_code, payload = _run_doctrine_json(tmp_path)
 
     org_drg = _org_drg(payload)
-    assert "unsanctioned_overrides" not in org_drg, (
-        "the unsanctioned-override key must not appear without org packs (NFR-001)"
-    )
+    assert "unsanctioned_overrides" not in org_drg, "the unsanctioned-override key must not appear without org packs (NFR-001)"
     assert org_drg.get("configured_packs", []) == []
     assert exit_code == 0, f"expected RC=0 for a built-in-only repo, got {exit_code}"
 
@@ -257,14 +242,10 @@ def test_adjudicate_org_overrides_flags_unlisted_directive(tmp_path: Path) -> No
         schema_version="1.0",
         generated_at="2026-06-01T00:00:00Z",
         generated_by="unit-test",
-        nodes=[
-            DRGNode(urn="directive:DIRECTIVE_001", kind=NodeKind.DIRECTIVE, label="Built-in")
-        ],
+        nodes=[DRGNode(urn="directive:DIRECTIVE_001", kind=NodeKind.DIRECTIVE, label="Built-in")],
         edges=[],
     )
-    merged = merge_three_layers(
-        built_in=built_in, org_fragments=[_override_fragment("directives")], project=None
-    )
+    merged = merge_three_layers(built_in=built_in, org_fragments=[_override_fragment("directives")], project=None)
     built_in_urns = frozenset(n.urn for n in built_in.nodes)
 
     findings = _adjudicate_org_overrides(merged, built_in_urns, tmp_path)
@@ -283,14 +264,10 @@ def test_adjudicate_org_overrides_clears_sanctioned_directive(tmp_path: Path) ->
         schema_version="1.0",
         generated_at="2026-06-01T00:00:00Z",
         generated_by="unit-test",
-        nodes=[
-            DRGNode(urn="directive:DIRECTIVE_001", kind=NodeKind.DIRECTIVE, label="Built-in")
-        ],
+        nodes=[DRGNode(urn="directive:DIRECTIVE_001", kind=NodeKind.DIRECTIVE, label="Built-in")],
         edges=[],
     )
-    merged = merge_three_layers(
-        built_in=built_in, org_fragments=[_override_fragment("directives")], project=None
-    )
+    merged = merge_three_layers(built_in=built_in, org_fragments=[_override_fragment("directives")], project=None)
     built_in_urns = frozenset(n.urn for n in built_in.nodes)
     _write_allowlist(tmp_path, reason="org tightened this directive")
 

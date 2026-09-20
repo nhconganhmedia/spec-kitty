@@ -51,10 +51,7 @@ _MODULE = "specify_cli.cli.commands.agent.tasks_move_task"
 
 def test_do_move_task_param_count_at_or_under_ceiling() -> None:
     params = inspect.signature(_do_move_task).parameters
-    assert len(params) <= 13, (
-        f"_do_move_task has {len(params)} parameters — must stay <=13 "
-        "(the parameter-object ceiling, T033/#2649)."
-    )
+    assert len(params) <= 13, f"_do_move_task has {len(params)} parameters — must stay <=13 (the parameter-object ceiling, T033/#2649)."
 
 
 def test_do_move_task_accepts_move_task_args_param_object() -> None:
@@ -106,9 +103,7 @@ def test_rollback_subtask_reset_uses_authored_frontmatter_roster(tmp_path: Path)
         encoding="utf-8",
     )
     st = SimpleNamespace(main_repo_root=tmp_path, mission_slug="demo", task_id="WP01")
-    ports = SimpleNamespace(
-        fs=SimpleNamespace(planning_read_dir=lambda _handle, *, kind: feature_dir)
-    )
+    ports = SimpleNamespace(fs=SimpleNamespace(planning_read_dir=lambda _handle, *, kind: feature_dir))
 
     assert _mt_rollback_subtasks_reset(st, ports) == {
         "T001": Lane.PLANNED,
@@ -140,9 +135,7 @@ def test_build_claim_review_override_defaults_release_and_resets_subtasks(
         encoding="utf-8",
     )
     st = SimpleNamespace(main_repo_root=tmp_path, mission_slug="demo", task_id="WP01")
-    ports = SimpleNamespace(
-        fs=SimpleNamespace(planning_read_dir=lambda _handle, *, kind: feature_dir)
-    )
+    ports = SimpleNamespace(fs=SimpleNamespace(planning_read_dir=lambda _handle, *, kind: feature_dir))
 
     additions = _build_claim_review_override(st, ports)
 
@@ -173,9 +166,7 @@ def test_build_claim_review_override_release_marker_independent_of_existing_fiel
         encoding="utf-8",
     )
     st = SimpleNamespace(main_repo_root=tmp_path, mission_slug="demo", task_id="WP01")
-    ports = SimpleNamespace(
-        fs=SimpleNamespace(planning_read_dir=lambda _handle, *, kind: feature_dir)
-    )
+    ports = SimpleNamespace(fs=SimpleNamespace(planning_read_dir=lambda _handle, *, kind: feature_dir))
 
     additions = _build_claim_review_override(st, ports)
 
@@ -184,9 +175,7 @@ def test_build_claim_review_override_release_marker_independent_of_existing_fiel
     assert additions["review"] == ReviewOverride(at="", actor="", wp_id="", reason="")
 
 
-def test_runtime_state_persistence_error_propagates(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_runtime_state_persistence_error_propagates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A move cannot report success when its authoritative annotation is lost."""
     import specify_cli.coordination.status_transition as status_transition_module
 
@@ -198,9 +187,7 @@ def test_runtime_state_persistence_error_propagates(
     # seam (which commits on a coord topology, delegates to the uncommitted
     # ``emit_inner_state_changed`` otherwise). The propagation contract is unchanged;
     # only the intercept point moves to the new seam.
-    monkeypatch.setattr(
-        status_transition_module, "emit_inner_state_changed_transactional", _fail
-    )
+    monkeypatch.setattr(status_transition_module, "emit_inner_state_changed_transactional", _fail)
     st = SimpleNamespace(
         claim_emitted=False,
         agent="codex",

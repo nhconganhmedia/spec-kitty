@@ -155,6 +155,7 @@ class TestInactiveBaselineEquivalence:
         # render — defends NFR-001 in spirit even if synthesis ever drifted.
         assert "REASONS Guidance" not in rendered
 
+
 # =============================================================================
 # TestActiveTemplatesContainBlock — FR-014
 # =============================================================================

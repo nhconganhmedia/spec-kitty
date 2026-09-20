@@ -52,10 +52,7 @@ def _write_mission_type_roster(built_in_root: Path, mission_type: str, *, action
     mission_types_dir = built_in_root / "mission_types"
     mission_types_dir.mkdir(parents=True, exist_ok=True)
     (mission_types_dir / f"{mission_type}.yaml").write_text(
-        f"schema_version: 1\n"
-        f"id: {mission_type}\n"
-        f'display_name: "Synthetic Mission Type"\n'
-        f"action_sequence:\n  - {action}\n",
+        f'schema_version: 1\nid: {mission_type}\ndisplay_name: "Synthetic Mission Type"\naction_sequence:\n  - {action}\n',
         encoding="utf-8",
     )
 
@@ -108,9 +105,7 @@ def kittify_project(tmp_path: Path) -> Path:
     project_root = tmp_path / "project"
     kittify = project_root / ".kittify"
     kittify.mkdir(parents=True)
-    (kittify / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return project_root
 
 
@@ -130,9 +125,7 @@ def _invoke_doctrine_json(project_root: Path, built_in_root: Path) -> tuple[int,
     return result.exit_code, payload
 
 
-def test_doctor_doctrine_json_rc1_on_synthetic_cross_grain_collision(
-    kittify_project: Path, tmp_path: Path
-) -> None:
+def test_doctor_doctrine_json_rc1_on_synthetic_cross_grain_collision(kittify_project: Path, tmp_path: Path) -> None:
     """A built-in type/action URN collision flips `doctor doctrine --json` to RC=1."""
     built_in_root = tmp_path / "colliding-built-in"
     _write_colliding_tree(
@@ -155,9 +148,7 @@ def test_doctor_doctrine_json_rc1_on_synthetic_cross_grain_collision(
     assert any("099-fake-directive" in str(err) for err in org_drg.get("errors", []))
 
 
-def test_doctor_doctrine_human_renders_loud_collision_line(
-    kittify_project: Path, tmp_path: Path
-) -> None:
+def test_doctor_doctrine_human_renders_loud_collision_line(kittify_project: Path, tmp_path: Path) -> None:
     """The human (non-``--json``) surface prints a loud cross-grain block too."""
     built_in_root = tmp_path / "colliding-built-in-human"
     _write_colliding_tree(
@@ -184,9 +175,7 @@ def test_doctor_doctrine_human_renders_loud_collision_line(
     assert "099-fake-directive-human" in result.output
 
 
-def test_doctor_doctrine_json_rc0_on_disjoint_builtin_tree(
-    kittify_project: Path, tmp_path: Path
-) -> None:
+def test_doctor_doctrine_json_rc0_on_disjoint_builtin_tree(kittify_project: Path, tmp_path: Path) -> None:
     """A disjoint synthetic built-in tree leaves the report healthy (RC=0, no finding)."""
     built_in_root = tmp_path / "clean-built-in"
     _write_disjoint_tree(built_in_root, mission_type="twin-type-clean", action="implement")

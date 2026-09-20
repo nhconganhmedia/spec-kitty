@@ -158,9 +158,7 @@ class TestReBakeGate:
     only the built-in-relative REST matters, never the resolved absolute root.
     """
 
-    def test_token_is_identical_regardless_of_which_env_value_resolved_the_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_token_is_identical_regardless_of_which_env_value_resolved_the_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         root_a = tmp_path / "packs_a"
         (root_a / "built-in" / "paradigms").mkdir(parents=True)
         source_a = root_a / "built-in" / "paradigms" / "example.paradigm.yaml"
@@ -198,12 +196,8 @@ class TestUnavailableBuiltInInstall:
             Path("/opt/spec-kitty-cli/src/kernel/paths.py"),
         )
 
-    def test_falls_through_to_repo_relative_when_root_unresolvable(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setattr(
-            provenance_module, "get_built_in_pack_root", self._raise_sibling_not_found
-        )
+    def test_falls_through_to_repo_relative_when_root_unresolvable(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(provenance_module, "get_built_in_pack_root", self._raise_sibling_not_found)
 
         project_root = tmp_path / "operator-config-ergonomics"
         source = project_root / ".kittify" / "doctrine" / "local.directive.yaml"
@@ -214,12 +208,8 @@ class TestUnavailableBuiltInInstall:
 
         assert result == ".kittify/doctrine/local.directive.yaml"
 
-    def test_falls_through_to_absolute_without_project_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setattr(
-            provenance_module, "get_built_in_pack_root", self._raise_sibling_not_found
-        )
+    def test_falls_through_to_absolute_without_project_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(provenance_module, "get_built_in_pack_root", self._raise_sibling_not_found)
 
         source = tmp_path / "org-packs" / "acme-directives" / "release-gate.directive.yaml"
         source.parent.mkdir(parents=True)
@@ -229,12 +219,8 @@ class TestUnavailableBuiltInInstall:
 
         assert result == str(source.resolve())
 
-    def test_is_built_in_pack_path_false_when_root_unresolvable(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setattr(
-            provenance_module, "get_built_in_pack_root", self._raise_sibling_not_found
-        )
+    def test_is_built_in_pack_path_false_when_root_unresolvable(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(provenance_module, "get_built_in_pack_root", self._raise_sibling_not_found)
 
         source = tmp_path / "org-packs" / "acme-directives" / "release-gate.directive.yaml"
         source.parent.mkdir(parents=True)

@@ -351,18 +351,12 @@ def assert_partition_invariant() -> None:
     """
     overlap = _PRIMARY_ARTIFACT_KINDS & _PLACEMENT_ARTIFACT_KINDS
     if overlap:
-        raise AssertionError(
-            "P-1 violated: kind(s) classified in BOTH partitions: "
-            f"{sorted(kind.value for kind in overlap)}"
-        )
+        raise AssertionError(f"P-1 violated: kind(s) classified in BOTH partitions: {sorted(kind.value for kind in overlap)}")
     covered = _PRIMARY_ARTIFACT_KINDS | _PLACEMENT_ARTIFACT_KINDS
     all_kinds = frozenset(MissionArtifactKind)
     if covered != all_kinds:
         missing = all_kinds - covered
-        raise AssertionError(
-            "P-1 violated: kind(s) classified in NEITHER partition: "
-            f"{sorted(kind.value for kind in missing)}"
-        )
+        raise AssertionError(f"P-1 violated: kind(s) classified in NEITHER partition: {sorted(kind.value for kind in missing)}")
 
 
 def assert_surface_totality(handled: frozenset[TopologySurface]) -> None:
@@ -387,16 +381,10 @@ def assert_surface_totality(handled: frozenset[TopologySurface]) -> None:
     all_surfaces = frozenset(TopologySurface)
     missing = all_surfaces - handled
     if missing:
-        raise AssertionError(
-            "Phantom TopologySurface member(s) with no translation: "
-            f"{sorted(member.value for member in missing)}"
-        )
+        raise AssertionError(f"Phantom TopologySurface member(s) with no translation: {sorted(member.value for member in missing)}")
     surplus = handled - all_surfaces
     if surplus:
-        raise AssertionError(
-            "Translation entry for non-member surface(s): "
-            f"{sorted(str(member) for member in surplus)}"
-        )
+        raise AssertionError(f"Translation entry for non-member surface(s): {sorted(str(member) for member in surplus)}")
 
 
 def is_primary_artifact_kind(kind: MissionArtifactKind) -> bool:
@@ -471,9 +459,7 @@ def _artifact_kind_for_path(
     # match the glob (``baseline-tests.json``, ``WP*.md`` when nested -- not a
     # real shape today but defensive) falls through unchanged to the
     # directory-kind fallback, exactly as before this WP.
-    if mission_rel_parts[0] == "tasks" and fnmatch.fnmatch(
-        mission_rel_parts[-1], _REVIEW_CYCLE_FILENAME_GLOB
-    ):
+    if mission_rel_parts[0] == "tasks" and fnmatch.fnmatch(mission_rel_parts[-1], _REVIEW_CYCLE_FILENAME_GLOB):
         return MissionArtifactKind.REVIEW_CYCLE
 
     return _COORD_RESIDUE_DIRS.get(mission_rel_parts[0])

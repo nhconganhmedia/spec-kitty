@@ -57,9 +57,7 @@ __all__ = [
 #:   packs' per-kind keys here would fight that migration's contract instead
 #:   of composing with it. Mirrors the special-case comment style in
 #:   ``charter.activation.charter_yaml_io._ACTIVATION_KEYS``.
-_NON_PACK_ACTIVATION_KEYS: frozenset[str] = frozenset(
-    {"mission_type_activations", "activated_glossary_packs"}
-)
+_NON_PACK_ACTIVATION_KEYS: frozenset[str] = frozenset({"mission_type_activations", "activated_glossary_packs"})
 
 #: The per-kind activation keys a charter pack may populate. DERIVED from
 #: ``charter.activation.pack_manager.YAML_KEY_MAP`` (the canonical charter-kind ->
@@ -70,9 +68,7 @@ _NON_PACK_ACTIVATION_KEYS: frozenset[str] = frozenset(
 #: for what is deliberately excluded and why; today's result is byte-identical
 #: to the previous hand-written eight-key tuple (guarded by
 #: ``tests/specify_cli/test_charter_pack_registry.py``).
-PER_KIND_ACTIVATION_KEYS: tuple[str, ...] = tuple(
-    key for key in YAML_KEY_MAP.values() if key not in _NON_PACK_ACTIVATION_KEYS
-)
+PER_KIND_ACTIVATION_KEYS: tuple[str, ...] = tuple(key for key in YAML_KEY_MAP.values() if key not in _NON_PACK_ACTIVATION_KEYS)
 
 #: The full set of ``config.yaml`` keys a charter pack may populate.
 ACTIVATION_KEYS: tuple[str, ...] = (
@@ -91,10 +87,7 @@ _PACKS_DIR: Path = Path(__file__).parent.parent / "charter" / "activation" / "pa
 #: description. Both packs live at ``src/charter/activation/packs/<name>.yaml``.
 BUILTIN_PACKS: dict[str, str] = {
     "default": "Activates every built-in artifact across every charter kind.",
-    "minimal": (
-        "A small, curated starting baseline: 5 directives, 2 tactics, "
-        "the software-dev mission type."
-    ),
+    "minimal": ("A small, curated starting baseline: 5 directives, 2 tactics, the software-dev mission type."),
 }
 
 
@@ -103,10 +96,7 @@ class UnknownPackError(ValueError):
 
     def __init__(self, name: str) -> None:
         self.name = name
-        super().__init__(
-            f"Unknown built-in charter pack '{name}'. "
-            f"Valid packs: {', '.join(sorted(BUILTIN_PACKS))}"
-        )
+        super().__init__(f"Unknown built-in charter pack '{name}'. Valid packs: {', '.join(sorted(BUILTIN_PACKS))}")
 
 
 def resolve_builtin_pack_path(name: str) -> Path:
@@ -127,9 +117,7 @@ def resolve_builtin_pack_path(name: str) -> Path:
     path = _PACKS_DIR / f"{name}.yaml"
     if not path.exists():
         raise FileNotFoundError(
-            f"Built-in charter pack '{name}' is registered but its shipped "
-            f"file is missing at {path}. This indicates a broken spec-kitty "
-            "install."
+            f"Built-in charter pack '{name}' is registered but its shipped file is missing at {path}. This indicates a broken spec-kitty install."
         )
     return path
 

@@ -55,13 +55,7 @@ pytestmark = [pytest.mark.doctrine, pytest.mark.integration]
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCRIPT = _REPO_ROOT / "scripts" / "generate_schemas.py"
-_COMMON_DOCS_STYLEGUIDE = (
-    _REPO_ROOT
-    / "packs"
-    / "built-in"
-    / "styleguides"
-    / "common-docs.styleguide.yaml"
-)
+_COMMON_DOCS_STYLEGUIDE = _REPO_ROOT / "packs" / "built-in" / "styleguides" / "common-docs.styleguide.yaml"
 
 
 def test_check_exits_zero_on_the_reconciled_tree() -> None:
@@ -80,10 +74,7 @@ def test_check_exits_zero_on_the_reconciled_tree() -> None:
         check=False,
     )
 
-    assert result.returncode == 0, (
-        f"generate_schemas.py --check failed (exit {result.returncode}):\n"
-        f"{result.stdout}\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"generate_schemas.py --check failed (exit {result.returncode}):\n{result.stdout}\n{result.stderr}"
 
 
 @pytest.mark.parametrize("stem", ["paradigm", "tactic", "procedure", "styleguide"])
@@ -112,9 +103,7 @@ def test_structural_lint_config_is_emitted_with_its_full_contract() -> None:
     definitions = schema["definitions"]
 
     assert "structural_lint_config" in schema["properties"]
-    assert schema["properties"]["structural_lint_config"] == {
-        "$ref": "#/definitions/structural_lint_config"
-    }
+    assert schema["properties"]["structural_lint_config"] == {"$ref": "#/definitions/structural_lint_config"}
 
     lint_config_def = definitions["structural_lint_config"]
     assert lint_config_def["additionalProperties"] is False
@@ -206,9 +195,7 @@ def test_paradigm_reference_rename_ref_target_resolves() -> None:
 
     assert "paradigm_reference" in schema["definitions"]
     assert "reference" not in schema["definitions"]
-    assert schema["properties"]["references"]["items"] == {
-        "$ref": "#/definitions/paradigm_reference"
-    }
+    assert schema["properties"]["references"]["items"] == {"$ref": "#/definitions/paradigm_reference"}
 
 
 def test_mission_step_template_ref_is_emitted() -> None:
@@ -222,9 +209,7 @@ def test_mission_step_template_ref_is_emitted() -> None:
     definitions = schema["definitions"]
 
     assert "mission_step_template_ref" in definitions
-    assert definitions["mission_step"]["properties"]["template"] == {
-        "$ref": "#/definitions/mission_step_template_ref"
-    }
+    assert definitions["mission_step"]["properties"]["template"] == {"$ref": "#/definitions/mission_step_template_ref"}
     assert set(definitions["mission_step_template_ref"]["required"]) == {
         "artifact_key",
         "template_file",

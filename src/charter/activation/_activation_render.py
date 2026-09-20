@@ -122,9 +122,7 @@ _ACTION_PROSE: dict[str, str] = {
 #: repo); ``anti_patterns`` is inert here — :func:`_infer_kind` reads it via
 #: ``getattr(service, prop, None)`` and there is no ``service.anti_patterns``
 #: repo, so it simply never matches.
-_KIND_TO_PROPERTY: dict[str, str] = {
-    plural: plural for plural in CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL.values()
-}
+_KIND_TO_PROPERTY: dict[str, str] = {plural: plural for plural in CHARTER_ACTIVATABLE_SINGULAR_TO_PLURAL.values()}
 
 
 def render_activation_stanza(
@@ -238,18 +236,10 @@ def _render_when_clause(
     # Action label: fine-grained tokens get prose-mapped; ALLOWED_ACTIONS
     # verbs are used verbatim; wildcards fall back to the runtime
     # action.
-    action_label = (
-        _action_label_for(action)
-        if declared_action is None or declared_action in _WILDCARD_TOKENS
-        else _action_label_for(declared_action)
-    )
+    action_label = _action_label_for(action) if declared_action is None or declared_action in _WILDCARD_TOKENS else _action_label_for(declared_action)
 
     # Mission-type qualifier: dropped on wildcard / absent.
-    qualifier = (
-        ""
-        if declared_mt in (None, *_WILDCARD_TOKENS)
-        else f" in a {declared_mt} mission"
-    )
+    qualifier = "" if declared_mt in (None, *_WILDCARD_TOKENS) else f" in a {declared_mt} mission"
 
     return f"are about to {action_label}{qualifier}"
 

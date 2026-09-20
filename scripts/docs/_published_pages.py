@@ -173,10 +173,7 @@ def resolve_published_pages(
         expected count.
     """
     config_path = docfx_config if docfx_config is not None else docs_root / DEFAULT_DOCFX_CONFIG_NAME
-    entries = tuple(
-        _build_content_entry(raw, docs_root=docs_root)
-        for raw in _load_content_entries(config_path)
-    )
+    entries = tuple(_build_content_entry(raw, docs_root=docs_root) for raw in _load_content_entries(config_path))
 
     candidates: set[Path] = set()
     for entry in entries:
@@ -201,9 +198,7 @@ def resolve_published_pages(
 def _load_content_entries(config_path: Path) -> list[Mapping[str, Any]]:
     """Read ``build.content[]`` from ``config_path``. Never falls back."""
     if not config_path.is_file():
-        raise FileNotFoundError(
-            f"DocFX configuration {config_path} not found; the published page set has no authority to read"
-        )
+        raise FileNotFoundError(f"DocFX configuration {config_path} not found; the published page set has no authority to read")
     try:
         payload = json.loads(config_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError, UnicodeDecodeError) as exc:
@@ -227,17 +222,13 @@ def _build_content_entry(raw: Mapping[str, Any], *, docs_root: Path) -> _Content
     content list but is navigation, not a page.
     """
     src = str(raw.get("src") or _CURRENT_DIR).strip("/") or _CURRENT_DIR
-    markdown_globs = tuple(
-        pattern for pattern in _string_list(raw.get("files")) if pattern.endswith(_MARKDOWN_SUFFIX)
-    )
+    markdown_globs = tuple(pattern for pattern in _string_list(raw.get("files")) if pattern.endswith(_MARKDOWN_SUFFIX))
     return _ContentEntry(
         base=docs_root if src == _CURRENT_DIR else docs_root / src,
         rel_prefix="" if src == _CURRENT_DIR else f"{src}/",
         includes=tuple(_docfx_glob_to_regex(pattern) for pattern in markdown_globs),
         excludes=tuple(_docfx_glob_to_regex(pattern) for pattern in _string_list(raw.get("exclude"))),
-        globs=tuple(
-            pattern if src == _CURRENT_DIR else f"{src}/{pattern}" for pattern in markdown_globs
-        ),
+        globs=tuple(pattern if src == _CURRENT_DIR else f"{src}/{pattern}" for pattern in markdown_globs),
     )
 
 
@@ -277,10 +268,7 @@ def _vacuity_error(
     least``); the surrounding sentence and the ``globs were`` provenance are constant
     so a third raise site (the per-glob guard) cannot drift the message shape.
     """
-    return ValueError(
-        f"Published page set resolved from {config_path} {detail}; "
-        f"globs were {list(source_globs)}"
-    )
+    return ValueError(f"Published page set resolved from {config_path} {detail}; globs were {list(source_globs)}")
 
 
 def _assert_each_glob_nonvacuous(
@@ -339,10 +327,7 @@ def _assert_non_vacuous(
         raise _vacuity_error(
             config_path=config_path,
             source_globs=source_globs,
-            detail=(
-                f"collapsed (violates I-02): observed {observed} page(s), "
-                f"expected at least {MINIMUM_EXPECTED_PAGES}"
-            ),
+            detail=(f"collapsed (violates I-02): observed {observed} page(s), expected at least {MINIMUM_EXPECTED_PAGES}"),
         )
 
 

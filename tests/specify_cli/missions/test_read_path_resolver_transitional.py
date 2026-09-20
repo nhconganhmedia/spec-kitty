@@ -38,8 +38,7 @@ def _seed_primary(tmp_path: Path) -> Path:
     primary = tmp_path / "kitty-specs" / _MISSION_DIR
     primary.mkdir(parents=True)
     (primary / "meta.json").write_text(
-        '{"coordination_branch": "kitty/mission-demo-feature-01ABCDEF",'
-        ' "mission_slug": "demo-feature-01ABCDEF"}',
+        '{"coordination_branch": "kitty/mission-demo-feature-01ABCDEF", "mission_slug": "demo-feature-01ABCDEF"}',
         encoding="utf-8",
     )
     (primary / "status.events.jsonl").write_text("", encoding="utf-8")
@@ -53,10 +52,7 @@ def test_resolve_reads_primary_when_coord_declared_but_not_materialized(
     primary = _seed_primary(tmp_path)
     # No .worktrees/<mission>-coord/ exists.
     resolved = resolve_mission_read_path(tmp_path, _SLUG, _MID8, require_exists=True)
-    assert resolved == primary, (
-        "a coord_branch declared in meta.json but with no materialized worktree "
-        "must read the primary checkout, not fail closed (#1718)"
-    )
+    assert resolved == primary, "a coord_branch declared in meta.json but with no materialized worktree must read the primary checkout, not fail closed (#1718)"
 
 
 def test_resolve_reads_primary_when_coord_worktree_materialized_but_empty(
@@ -75,7 +71,4 @@ def test_resolve_reads_primary_when_coord_worktree_materialized_but_empty(
     coord_root = CoordinationWorkspace.worktree_path(tmp_path, _SLUG, _MID8)
     coord_root.mkdir(parents=True)  # worktree materialized, but no mission dir inside
     resolved = resolve_mission_read_path(tmp_path, _SLUG, _MID8, require_exists=True)
-    assert resolved == primary, (
-        "a materialized-but-empty coord worktree must resolve to the PRIMARY "
-        "checkout (WP05 Option B / #1716), not fail closed"
-    )
+    assert resolved == primary, "a materialized-but-empty coord worktree must resolve to the PRIMARY checkout (WP05 Option B / #1716), not fail closed"

@@ -203,11 +203,13 @@ def _read_slug_from_meta(mission_dir: Path) -> str | None:
 # Internal: proposal-lifecycle event reader
 # ---------------------------------------------------------------------------
 
-_PROPOSAL_EVENTS = frozenset({
-    "retrospective.proposal.generated",
-    "retrospective.proposal.applied",
-    "retrospective.proposal.rejected",
-})
+_PROPOSAL_EVENTS = frozenset(
+    {
+        "retrospective.proposal.generated",
+        "retrospective.proposal.applied",
+        "retrospective.proposal.rejected",
+    }
+)
 
 
 def _read_proposal_events(
@@ -271,6 +273,7 @@ def _classify_gaps_finding(target_kind: str, target_urn: str) -> str:
 # ---------------------------------------------------------------------------
 # Internal: top-N sort helper
 # ---------------------------------------------------------------------------
+
 
 def _top_n_target_counts(counter: dict[str, int], limit: int) -> list[TargetCount]:
     items = sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
@@ -373,9 +376,7 @@ def _resolve_summary_record_path(project_path: Path, mission_dir: Path) -> Path:
     # Back-compat: legacy in-registry record path keyed by mission_id.
     mission_id = meta.get("mission_id")
     if mission_id:
-        legacy_registry: Path = (
-            legacy_registry_record_dir(project_path, mission_id) / RETROSPECTIVE_FILENAME
-        )
+        legacy_registry: Path = legacy_registry_record_dir(project_path, mission_id) / RETROSPECTIVE_FILENAME
         if legacy_registry.exists():
             return legacy_registry
     return in_place
@@ -438,11 +439,7 @@ def build_summary(
             # load_meta_or_empty (post-#2091 silent contract) absorbs a missing
             # or malformed meta.json to {}, matching the prior try/except-pass.
             meta = load_meta_or_empty(mission_dir)
-            mission_started_at: str | None = (
-                meta.get("mission_started_at")
-                or meta.get("created_at")
-                or meta.get("started_at")
-            )
+            mission_started_at: str | None = meta.get("mission_started_at") or meta.get("created_at") or meta.get("started_at")
 
             if mission_started_at and _is_legacy(mission_started_at):
                 legacy_no_retro_count += 1
@@ -495,6 +492,7 @@ def build_summary(
             # Try to extract mission_id from raw YAML for the error entry
             try:
                 from ruamel.yaml import YAML as _YAML
+
                 _yaml = _YAML(typ="safe")
                 raw = _yaml.load(retro_path.read_text(encoding="utf-8"))
                 if isinstance(raw, dict):
@@ -709,6 +707,7 @@ def classify_mission_record(feature_dir: Path) -> MissionRecordState:
     if record_path.exists():
         try:
             from ruamel.yaml import YAML as _YAML
+
             _yaml = _YAML(typ="safe")
             raw = _yaml.load(record_path.read_text(encoding="utf-8"))
             if isinstance(raw, dict):
@@ -726,12 +725,7 @@ def classify_mission_record(feature_dir: Path) -> MissionRecordState:
             if status == "completed":
                 # Completed but no findings_status field — treat as has_findings
                 # if any findings/proposals exist, else ran_no_findings.
-                has_any = bool(
-                    list(pydantic_record.helped)
-                    + list(pydantic_record.not_helpful)
-                    + list(pydantic_record.gaps)
-                    + list(pydantic_record.proposals)
-                )
+                has_any = bool(list(pydantic_record.helped) + list(pydantic_record.not_helpful) + list(pydantic_record.gaps) + list(pydantic_record.proposals))
                 return "has_findings" if has_any else "ran_no_findings"
         except Exception:
             pass

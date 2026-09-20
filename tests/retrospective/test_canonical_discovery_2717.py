@@ -82,9 +82,7 @@ def _seed_kitty_specs_mission(project: Path) -> Path:
     """A real mission instance whose record lives under kitty-specs/<slug>/."""
     mission_dir = project / "kitty-specs" / MISSION_SLUG
     mission_dir.mkdir(parents=True, exist_ok=True)
-    (mission_dir / "retrospective.yaml").write_text(
-        _completed_yaml(MISSION_ID, MISSION_SLUG), encoding="utf-8"
-    )
+    (mission_dir / "retrospective.yaml").write_text(_completed_yaml(MISSION_ID, MISSION_SLUG), encoding="utf-8")
     return mission_dir
 
 
@@ -107,9 +105,7 @@ class TestCanonicalInstanceIterator:
 
         # No discovered path may live under the .kittify support/registry tree.
         for path in yielded:
-            assert ".kittify" not in path.parts, (
-                f"support/registry path scanned as a mission: {path}"
-            )
+            assert ".kittify" not in path.parts, f"support/registry path scanned as a mission: {path}"
 
     def test_skips_kitty_specs_dirs_without_meta_or_record(self, tmp_path: Path) -> None:
         (tmp_path / "kitty-specs" / "not-a-mission").mkdir(parents=True)
@@ -156,9 +152,7 @@ class TestBuildSummaryDiscoversCanonicalRecords:
         # Record lives ONLY in the legacy in-registry location.
         registry_dir = tmp_path / ".kittify" / "missions" / LEGACY_MISSION_ID
         registry_dir.mkdir(parents=True, exist_ok=True)
-        (registry_dir / "retrospective.yaml").write_text(
-            _completed_yaml(LEGACY_MISSION_ID, LEGACY_SLUG), encoding="utf-8"
-        )
+        (registry_dir / "retrospective.yaml").write_text(_completed_yaml(LEGACY_MISSION_ID, LEGACY_SLUG), encoding="utf-8")
 
         snapshot = build_summary(project_path=tmp_path)
 

@@ -59,8 +59,14 @@ def test_auto_retry_noop_when_recursion_guard_set(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("SPEC_KITTY_AUTORETRY", "1")
     # Returns without raising / re-invoking.
     seam._maybe_auto_retry_in_worktree(
-        tmp_path, "001-demo", "main", "merge",
-        push=False, dry_run=False, keep_branch=False, keep_worktree=False,
+        tmp_path,
+        "001-demo",
+        "main",
+        "merge",
+        push=False,
+        dry_run=False,
+        keep_branch=False,
+        keep_worktree=False,
     )
 
 
@@ -70,8 +76,14 @@ def test_auto_retry_noop_when_on_mission_branch(monkeypatch: pytest.MonkeyPatch,
 
     monkeypatch.setattr(mission_mod, "_get_current_branch", lambda _r: "001-demo")
     seam._maybe_auto_retry_in_worktree(
-        tmp_path, "001-demo", "main", "merge",
-        push=False, dry_run=False, keep_branch=False, keep_worktree=False,
+        tmp_path,
+        "001-demo",
+        "main",
+        "merge",
+        push=False,
+        dry_run=False,
+        keep_branch=False,
+        keep_worktree=False,
     )
 
 
@@ -82,8 +94,14 @@ def test_auto_retry_requires_mission_off_branch(monkeypatch: pytest.MonkeyPatch,
     monkeypatch.setattr(mission_mod, "_get_current_branch", lambda _r: "main")
     with pytest.raises(RuntimeError, match="Auto-retry requires --mission"):
         seam._maybe_auto_retry_in_worktree(
-            tmp_path, None, "main", "merge",
-            push=False, dry_run=False, keep_branch=False, keep_worktree=False,
+            tmp_path,
+            None,
+            "main",
+            "merge",
+            push=False,
+            dry_run=False,
+            keep_branch=False,
+            keep_worktree=False,
         )
 
 
@@ -95,8 +113,14 @@ def test_auto_retry_raises_when_worktree_missing(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(mission_mod, "_find_feature_worktree", lambda _r, _s: None)
     with pytest.raises(RuntimeError, match="Could not find worktree"):
         seam._maybe_auto_retry_in_worktree(
-            tmp_path, "001-demo", "main", "merge",
-            push=False, dry_run=False, keep_branch=False, keep_worktree=False,
+            tmp_path,
+            "001-demo",
+            "main",
+            "merge",
+            push=False,
+            dry_run=False,
+            keep_branch=False,
+            keep_worktree=False,
         )
 
 
@@ -153,8 +177,13 @@ def test_delegate_inverts_keep_flags(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(mission_mod, "top_level_merge", _fake_merge)
     seam._delegate_to_top_level_merge(
-        "001-demo", "main", "merge",
-        push=True, dry_run=False, keep_branch=True, keep_worktree=False,
+        "001-demo",
+        "main",
+        "merge",
+        push=True,
+        dry_run=False,
+        keep_branch=True,
+        keep_worktree=False,
     )
     # keep_branch=True → delete_branch=False; keep_worktree=False → remove_worktree=True
     assert captured["delete_branch"] is False
@@ -217,7 +246,12 @@ def test_delegate_propagates_typer_exit(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr(mission_mod, "top_level_merge", _exit)
     with pytest.raises(typer.Exit) as exc:
         seam._delegate_to_top_level_merge(
-            "001-demo", "main", "merge",
-            push=False, dry_run=False, keep_branch=False, keep_worktree=False,
+            "001-demo",
+            "main",
+            "merge",
+            push=False,
+            dry_run=False,
+            keep_branch=False,
+            keep_worktree=False,
         )
     assert exc.value.exit_code == 3

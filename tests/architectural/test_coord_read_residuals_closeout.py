@@ -76,6 +76,7 @@ from tests.architectural._gate_read_callshape import (
     _read_call_first_arg,
     callshape_violations,
 )
+
 pytestmark = pytest.mark.architectural
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -228,9 +229,7 @@ def _rel(path: Path) -> str:
     return path.relative_to(_REPO_ROOT).as_posix()
 
 
-def _functions_in_family(
-    pkg_dirs: tuple[Path, ...], files: tuple[Path, ...]
-) -> list[tuple[str, ast.FunctionDef | ast.AsyncFunctionDef, ast.Module]]:
+def _functions_in_family(pkg_dirs: tuple[Path, ...], files: tuple[Path, ...]) -> list[tuple[str, ast.FunctionDef | ast.AsyncFunctionDef, ast.Module]]:
     """Every ``(rel_path, function, module)`` in *pkg_dirs* plus the standalone *files*.
 
     The enclosing :class:`ast.Module` is carried so the live scan can pass
@@ -285,11 +284,7 @@ def _count_read_call_sites(
     total = 0
     for _rel_path, func, _module in _functions_in_family(pkg_dirs, files):
         for node in ast.walk(func):
-            if (
-                isinstance(node, ast.Call)
-                and _call_func_name(node) in read_funcs
-                and _read_call_first_arg(node) is not None
-            ):
+            if isinstance(node, ast.Call) and _call_func_name(node) in read_funcs and _read_call_first_arg(node) is not None:
                 total += 1
     return total
 
@@ -311,9 +306,7 @@ def test_fr007_arm_live_identity_scan_is_clean() -> None:
     read the STATUS-only ``-coord`` husk, which carries no ``meta.json`` since
     #2106) — route it through the PRIMARY fold seam.
     """
-    offenders = _live_callshape_offenders(
-        _IDENTITY_SCAN_DIRS, _IDENTITY_SCAN_FILES, _IDENTITY_READ_FUNCS
-    )
+    offenders = _live_callshape_offenders(_IDENTITY_SCAN_DIRS, _IDENTITY_SCAN_FILES, _IDENTITY_READ_FUNCS)
     flagged = set(offenders)
     unexpected = flagged - _IDENTITY_CALLSHAPE_KNOWN_RESIDUALS
     stale_pins = _IDENTITY_CALLSHAPE_KNOWN_RESIDUALS - flagged
@@ -331,8 +324,7 @@ def test_fr007_arm_live_identity_scan_is_clean() -> None:
         "tracker ref. A missed in-scope routing means a prior WP left a site."
     )
     assert not stale_pins, (
-        f"stale identity callshape pin(s) no longer flagged: {sorted(stale_pins)} — "
-        "remove them from _IDENTITY_CALLSHAPE_KNOWN_RESIDUALS (shrink-only)."
+        f"stale identity callshape pin(s) no longer flagged: {sorted(stale_pins)} — remove them from _IDENTITY_CALLSHAPE_KNOWN_RESIDUALS (shrink-only)."
     )
 
 
@@ -345,9 +337,7 @@ def test_fr007_arm_live_lanes_scan_is_clean() -> None:
     LANE_STATE read was left coord-aware (it would read the husk, which carries no
     ``lanes.json`` since #2106) — route it through the PRIMARY fold seam.
     """
-    offenders = _live_callshape_offenders(
-        _LANES_SCAN_DIRS, _LANES_SCAN_FILES, _LANES_READ_FUNCS
-    )
+    offenders = _live_callshape_offenders(_LANES_SCAN_DIRS, _LANES_SCAN_FILES, _LANES_READ_FUNCS)
     flagged = set(offenders)
     unexpected = flagged - _LANES_CALLSHAPE_KNOWN_RESIDUALS
     stale_pins = _LANES_CALLSHAPE_KNOWN_RESIDUALS - flagged
@@ -361,8 +351,7 @@ def test_fr007_arm_live_lanes_scan_is_clean() -> None:
         "A missed in-scope routing means a prior WP left a site."
     )
     assert not stale_pins, (
-        f"stale lanes callshape pin(s) no longer flagged: {sorted(stale_pins)} — "
-        "remove them from _LANES_CALLSHAPE_KNOWN_RESIDUALS (shrink-only)."
+        f"stale lanes callshape pin(s) no longer flagged: {sorted(stale_pins)} — remove them from _LANES_CALLSHAPE_KNOWN_RESIDUALS (shrink-only)."
     )
 
 
@@ -377,12 +366,8 @@ def test_fr007_arm_live_scan_is_non_vacuous() -> None:
     (24 identity / 10 lanes, re-derived WP01/T005 — corrected from the stale 22
     recorded after FR-002/FR-005 widening), so a vacuous scan FAILS.
     """
-    identity_sites = _count_read_call_sites(
-        _IDENTITY_SCAN_DIRS, _IDENTITY_SCAN_FILES, _IDENTITY_READ_FUNCS
-    )
-    lanes_sites = _count_read_call_sites(
-        _LANES_SCAN_DIRS, _LANES_SCAN_FILES, _LANES_READ_FUNCS
-    )
+    identity_sites = _count_read_call_sites(_IDENTITY_SCAN_DIRS, _IDENTITY_SCAN_FILES, _IDENTITY_READ_FUNCS)
+    lanes_sites = _count_read_call_sites(_LANES_SCAN_DIRS, _LANES_SCAN_FILES, _LANES_READ_FUNCS)
     assert identity_sites >= _IDENTITY_READ_SITE_FLOOR, (
         f"in-scope identity read call sites dropped to {identity_sites}; expected "
         f">= {_IDENTITY_READ_SITE_FLOOR}. A shrinking count likely means the live "
@@ -415,13 +400,9 @@ def test_fr005_runtime_next_in_both_scan_families() -> None:
     vacuous on its own).
     """
     assert _RUNTIME_NEXT_DIR in _IDENTITY_SCAN_DIRS, (
-        "src/runtime/next/ dropped from _IDENTITY_SCAN_DIRS — the FR-005 identity "
-        "extension regressed; runtime_bridge.py identity reads are no longer gated."
+        "src/runtime/next/ dropped from _IDENTITY_SCAN_DIRS — the FR-005 identity extension regressed; runtime_bridge.py identity reads are no longer gated."
     )
-    assert _RUNTIME_NEXT_DIR in _LANES_SCAN_DIRS, (
-        "src/runtime/next/ dropped from _LANES_SCAN_DIRS — the FR-005 lanes "
-        "extension regressed."
-    )
+    assert _RUNTIME_NEXT_DIR in _LANES_SCAN_DIRS, "src/runtime/next/ dropped from _LANES_SCAN_DIRS — the FR-005 lanes extension regressed."
 
 
 def _runtime_next_identity_sites(scan_dirs: tuple[Path, ...]) -> int:
@@ -483,9 +464,7 @@ def test_fr005_runtime_next_floor_fails_if_scope_reverted() -> None:
 # ===========================================================================
 
 
-def _parse_func(
-    src: str, name: str
-) -> tuple[ast.FunctionDef | ast.AsyncFunctionDef, ast.Module]:
+def _parse_func(src: str, name: str) -> tuple[ast.FunctionDef | ast.AsyncFunctionDef, ast.Module]:
     """Parse *src* and return ``(function ``name``, enclosing module)``."""
     module = ast.parse(src)
     func = _find_function(module, name)
@@ -504,9 +483,7 @@ def test_fr003_runtime_bridge_get_mission_type_reads_are_clean_not_pinned() -> N
     auditability anti-pattern (T008 NON-FAKEABLE DoD). This guard proves they are
     genuinely absent from the live offender set AND that they are not pinned.
     """
-    offenders = _live_callshape_offenders(
-        (_RUNTIME_NEXT_DIR,), (), _IDENTITY_READ_FUNCS
-    )
+    offenders = _live_callshape_offenders((_RUNTIME_NEXT_DIR,), (), _IDENTITY_READ_FUNCS)
     runtime_bridge_flags = {k for k in offenders if "runtime_bridge.py" in k}
     assert not runtime_bridge_flags, (
         "runtime_bridge.py identity reads unexpectedly flagged — their FR-003 "
@@ -514,9 +491,9 @@ def test_fr003_runtime_bridge_get_mission_type_reads_are_clean_not_pinned() -> N
         "coord-aware binding appeared, route it or pin it explicitly."
     )
     # And they are not (incorrectly) carried as census pins.
-    assert not any(
-        "runtime_bridge.py" in entry for entry in _IDENTITY_CALLSHAPE_KNOWN_RESIDUALS
-    ), "runtime_bridge.py reads must NOT be census pins — they are clean (ROUTED)."
+    assert not any("runtime_bridge.py" in entry for entry in _IDENTITY_CALLSHAPE_KNOWN_RESIDUALS), (
+        "runtime_bridge.py reads must NOT be census pins — they are clean (ROUTED)."
+    )
 
 
 # read-side-seam-primary-primitive-closure-01KYKMMT WP01 (T005, FR-014):
@@ -548,38 +525,25 @@ def test_fr003_sanctioned_exclusions_are_read_func_scoped_for_status() -> None:
     # so its identity reads are scanned, NOT blanket-excluded.
     executor = _SRC / "specify_cli" / "merge" / "executor.py"
     assert any(executor.is_relative_to(d) for d in _IDENTITY_SCAN_DIRS), (
-        "merge/executor.py must be inside an identity scan dir (FR-002 unify) so its "
-        "identity reads are in-scope despite being a STATUS-bearing module."
+        "merge/executor.py must be inside an identity scan dir (FR-002 unify) so its identity reads are in-scope despite being a STATUS-bearing module."
     )
     assert "src/specify_cli/merge/executor.py" in _STATUS_BEARING_MODULES, (
-        "executor.py must remain a STATUS-bearing module for the read-func-scoped "
-        "read_events exclusion."
+        "executor.py must remain a STATUS-bearing module for the read-func-scoped read_events exclusion."
     )
     # POSITIVE proof: identity read off a coord-aware dir IS flagged in the
     # status-bearing module shape.
-    identity_src = (
-        "def build_run(repo, slug):\n"
-        "    feature_dir = resolve_feature_dir_for_mission(repo, slug)\n"
-        "    return resolve_mission_identity(feature_dir)\n"
-    )
+    identity_src = "def build_run(repo, slug):\n    feature_dir = resolve_feature_dir_for_mission(repo, slug)\n    return resolve_mission_identity(feature_dir)\n"
     ident_func, ident_module = _parse_func(identity_src, "build_run")
-    assert callshape_violations(
-        ident_func, read_funcs=_IDENTITY_READ_FUNCS, module=ident_module
-    ), "an identity read off a coord-aware dir must flag even in a STATUS-bearing module."
+    assert callshape_violations(ident_func, read_funcs=_IDENTITY_READ_FUNCS, module=ident_module), (
+        "an identity read off a coord-aware dir must flag even in a STATUS-bearing module."
+    )
     # NEGATIVE control: a read_events STATUS read off the same coord-aware dir is NOT
     # an identity-arm flag (the exclusion keys on the read-func name).
-    status_src = (
-        "def status_leg(repo, slug):\n"
-        "    feature_dir = candidate_feature_dir_for_mission(repo, slug)\n"
-        "    return read_events(feature_dir)\n"
-    )
+    status_src = "def status_leg(repo, slug):\n    feature_dir = candidate_feature_dir_for_mission(repo, slug)\n    return read_events(feature_dir)\n"
     status_func, status_module = _parse_func(status_src, "status_leg")
-    assert (
-        callshape_violations(
-            status_func, read_funcs=_IDENTITY_READ_FUNCS, module=status_module
-        )
-        == []
-    ), "read_events is not an identity read func — the identity arm must not flag it."
+    assert callshape_violations(status_func, read_funcs=_IDENTITY_READ_FUNCS, module=status_module) == [], (
+        "read_events is not an identity read func — the identity arm must not flag it."
+    )
 
 
 def test_sc006_executor_identity_reads_in_scope_both_shapes() -> None:
@@ -598,27 +562,16 @@ def test_sc006_executor_identity_reads_in_scope_both_shapes() -> None:
     # (1) ATTRIBUTE shape (FR-008): resolve_mission_identity(run.feature_dir) — a
     # non-sanctioned coord-bearing attribute — flags. (run.target_feature_dir, the
     # sanctioned primary attribute the real executor.py uses, would NOT flag.)
-    attr_src = (
-        "def reopen_executor_attr(run):\n"
-        "    return resolve_mission_identity(run.feature_dir).mission_id\n"
-    )
+    attr_src = "def reopen_executor_attr(run):\n    return resolve_mission_identity(run.feature_dir).mission_id\n"
     attr_func, attr_module = _parse_func(attr_src, "reopen_executor_attr")
-    assert callshape_violations(
-        attr_func, read_funcs=_IDENTITY_READ_FUNCS, module=attr_module
-    ), "the FR-008 attribute escape resolve_mission_identity(run.feature_dir) must flag."
-    sanctioned_src = (
-        "def executor_primary_attr(run):\n"
-        "    return resolve_mission_identity(run.target_feature_dir).mission_id\n"
+    assert callshape_violations(attr_func, read_funcs=_IDENTITY_READ_FUNCS, module=attr_module), (
+        "the FR-008 attribute escape resolve_mission_identity(run.feature_dir) must flag."
     )
-    sanctioned_func, sanctioned_module = _parse_func(
-        sanctioned_src, "executor_primary_attr"
+    sanctioned_src = "def executor_primary_attr(run):\n    return resolve_mission_identity(run.target_feature_dir).mission_id\n"
+    sanctioned_func, sanctioned_module = _parse_func(sanctioned_src, "executor_primary_attr")
+    assert callshape_violations(sanctioned_func, read_funcs=_IDENTITY_READ_FUNCS, module=sanctioned_module) == [], (
+        "the sanctioned primary attribute run.target_feature_dir must NOT flag (C-001)."
     )
-    assert (
-        callshape_violations(
-            sanctioned_func, read_funcs=_IDENTITY_READ_FUNCS, module=sanctioned_module
-        )
-        == []
-    ), "the sanctioned primary attribute run.target_feature_dir must NOT flag (C-001)."
 
     # (2) PARAMETER (one-hop) shape: a callee reads its feature_dir param; its caller
     # binds it coord-aware-without-fold → flags via the module-scoped caller index.
@@ -631,14 +584,14 @@ def test_sc006_executor_identity_reads_in_scope_both_shapes() -> None:
         "    return _executor_identity_leg(feature_dir)\n"
     )
     param_func, param_module = _parse_func(param_src, "_executor_identity_leg")
-    assert callshape_violations(
-        param_func, read_funcs=_IDENTITY_READ_FUNCS, module=param_module
-    ), "the FR-001 one-hop parameter shape must flag through the scope-unified arm."
+    assert callshape_violations(param_func, read_funcs=_IDENTITY_READ_FUNCS, module=param_module), (
+        "the FR-001 one-hop parameter shape must flag through the scope-unified arm."
+    )
     # BOUNDARY: without module context the one-hop shape is NOT flagged (proves the
     # flag came solely from the caller index, not a same-function binding).
-    assert (
-        callshape_violations(param_func, read_funcs=_IDENTITY_READ_FUNCS) == []
-    ), "the one-hop parameter shape must NOT flag without the module-scoped caller index."
+    assert callshape_violations(param_func, read_funcs=_IDENTITY_READ_FUNCS) == [], (
+        "the one-hop parameter shape must NOT flag without the module-scoped caller index."
+    )
 
 
 # ===========================================================================
@@ -675,14 +628,9 @@ def test_wp04_status_from_husk_proofs_exist() -> None:
     this close-out guard pins their existence.
     """
     proof_path = _REPO_ROOT / _WP04_PROOF_MODULE
-    assert proof_path.exists(), (
-        f"WP04 behavioral proof module missing: {_WP04_PROOF_MODULE} — the NFR-001 "
-        "STATUS-from-husk primary evidence is gone."
-    )
+    assert proof_path.exists(), f"WP04 behavioral proof module missing: {_WP04_PROOF_MODULE} — the NFR-001 STATUS-from-husk primary evidence is gone."
     tree = ast.parse(proof_path.read_text(encoding="utf-8"))
-    missing = [
-        name for name in _WP04_STATUS_FROM_HUSK_PROOFS if _find_function(tree, name) is None
-    ]
+    missing = [name for name in _WP04_STATUS_FROM_HUSK_PROOFS if _find_function(tree, name) is None]
     assert not missing, (
         f"WP04 STATUS-from-husk proof function(s) missing: {missing}. These are the "
         "NFR-001 primary evidence (the STATUS legs still read the coord husk on a "
@@ -712,23 +660,15 @@ def test_no_status_leg_rerouted_to_primary() -> None:
             # callee name — see that constant's docstring (test_gate_read_
             # literal_ban.py) for why a bare ``read_dir`` name would sanction a
             # STATUS_STATE-kind read here identically to a PRIMARY_METADATA one.
-            primary_bound = _names_bound_from(
-                node, _PRIMARY_FOLD_CALLSHAPE_FUNCS
-            ) | _names_bound_from_primary_read_dir(node)
+            primary_bound = _names_bound_from(node, _PRIMARY_FOLD_CALLSHAPE_FUNCS) | _names_bound_from_primary_read_dir(node)
             hits: list[str] = []
             for call in ast.walk(node):
-                if (
-                    not isinstance(call, ast.Call)
-                    or _call_func_name(call) not in _STATUS_READ_FUNCS
-                    or not call.args
-                ):
+                if not isinstance(call, ast.Call) or _call_func_name(call) not in _STATUS_READ_FUNCS or not call.args:
                     continue
                 first = call.args[0]
                 if isinstance(first, ast.Name) and first.id in primary_bound:
                     hits.append(f"read_events({first.id})  # PRIMARY-fold bound")
-                elif isinstance(first, ast.Call) and (
-                    _call_func_name(first) in _PRIMARY_FOLD_CALLSHAPE_FUNCS
-                ):
+                elif isinstance(first, ast.Call) and (_call_func_name(first) in _PRIMARY_FOLD_CALLSHAPE_FUNCS):
                     hits.append(f"read_events({_call_func_name(first)}(...))")
             if hits:
                 offenders[f"{rel_path}::{node.name}"] = hits

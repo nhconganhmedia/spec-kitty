@@ -78,9 +78,7 @@ def graph() -> DRGGraph:
 class TestC4TemplateDelivery:
     """C4 templates are DELIVERED to the architect via the profile channel (D13)."""
 
-    def test_architect_reaches_all_three_c4_templates_via_profile_channel(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_architect_reaches_all_three_c4_templates_via_profile_channel(self, graph: DRGGraph) -> None:
         """The delivery-tier proof (depends on WP01's ``suggests`` walk).
 
         Seeded from a SINGLE profile so the result is the doctrine the architect
@@ -91,25 +89,16 @@ class TestC4TemplateDelivery:
         """
         reached = profile_channel_reachable(graph, {_ARCHITECT})
         missing = [t for t in _C4_TEMPLATES if t not in reached]
-        assert not missing, (
-            f"architect-alphonso does not reach {missing} through the profile "
-            "channel — WP01's suggests-walk (or the C4 suggests chain) regressed"
-        )
+        assert not missing, f"architect-alphonso does not reach {missing} through the profile channel — WP01's suggests-walk (or the C4 suggests chain) regressed"
 
     def test_design_action_instantiates_each_c4_template(self, graph: DRGGraph) -> None:
         """T007 topology completion — pure ``instantiates`` edge membership.
 
         No WP01 dependency: this is the topology this WP authored, not delivery.
         """
-        instantiates = {
-            (e.source, e.target)
-            for e in graph.edges
-            if e.relation is Relation.INSTANTIATES
-        }
+        instantiates = {(e.source, e.target) for e in graph.edges if e.relation is Relation.INSTANTIATES}
         for template in _C4_TEMPLATES:
-            assert (_DESIGN_ACTION, template) in instantiates, (
-                f"missing instantiates edge {_DESIGN_ACTION} -> {template}"
-            )
+            assert (_DESIGN_ACTION, template) in instantiates, f"missing instantiates edge {_DESIGN_ACTION} -> {template}"
 
     def test_instantiates_is_not_the_delivery_vector(self, graph: DRGGraph) -> None:
         """Guards the D13 narrative: ``instantiates`` is walked by no channel.
@@ -123,31 +112,24 @@ class TestC4TemplateDelivery:
         action_reach = action_channel_reachable(graph, {_DESIGN_ACTION}, depth=2)
         for template in _C4_TEMPLATES:
             assert template not in action_reach, (
-                f"{template} became action-reachable from {_DESIGN_ACTION}; the "
-                "instantiates edge must not be a delivery vector (D13)"
+                f"{template} became action-reachable from {_DESIGN_ACTION}; the instantiates edge must not be a delivery vector (D13)"
             )
 
 
 class TestRefactoringAntiPatternValidation:
     """Anti_pattern REJECTS topology is complete and validation-tier only (D14)."""
 
-    def test_graph_validator_is_green_over_extended_corpus(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_graph_validator_is_green_over_extended_corpus(self, graph: DRGGraph) -> None:
         """No orphan / mistargeted-rejects errors for the 13-node corpus."""
         errors = validate_graph(graph)
         assert errors == [], f"validator reported errors: {errors}"
 
     @pytest.mark.parametrize(("tactic", "anti_pattern"), _REFACTORING_REJECTS)
-    def test_each_anti_pattern_is_a_rejects_target(
-        self, graph: DRGGraph, tactic: str, anti_pattern: str
-    ) -> None:
+    def test_each_anti_pattern_is_a_rejects_target(self, graph: DRGGraph, tactic: str, anti_pattern: str) -> None:
         """Mirrors ``_validate_anti_pattern_nodes_are_rejected``: >=1 inbound rejects."""
         inbound = graph.edges_to(anti_pattern, relation=Relation.REJECTS)
         assert inbound, f"{anti_pattern} has no inbound rejects edge"
-        assert any(e.source == tactic for e in inbound), (
-            f"{anti_pattern} is not rejected by its authoring tactic {tactic}"
-        )
+        assert any(e.source == tactic for e in inbound), f"{anti_pattern} is not rejected by its authoring tactic {tactic}"
 
     def test_anti_patterns_are_never_delivered(self, graph: DRGGraph) -> None:
         """D14/C-004: anti_pattern is a non-activatable kind — reached by no channel.
@@ -157,15 +139,7 @@ class TestRefactoringAntiPatternValidation:
         regardless of which channel introduced it.
         """
         profile_reach = profile_channel_reachable(graph, agent_profile_seed_urns(graph))
-        action_reach = action_channel_reachable(
-            graph, action_seed_urns(graph), depth=2
-        )
+        action_reach = action_channel_reachable(graph, action_seed_urns(graph), depth=2)
         for anti_pattern in _NEW_ANTI_PATTERNS:
-            assert anti_pattern not in profile_reach, (
-                f"{anti_pattern} is profile-channel-reachable — anti_patterns must "
-                "stay validation-tier only (D14)"
-            )
-            assert anti_pattern not in action_reach, (
-                f"{anti_pattern} is action-channel-reachable — anti_patterns must "
-                "stay validation-tier only (D14)"
-            )
+            assert anti_pattern not in profile_reach, f"{anti_pattern} is profile-channel-reachable — anti_patterns must stay validation-tier only (D14)"
+            assert anti_pattern not in action_reach, f"{anti_pattern} is action-channel-reachable — anti_patterns must stay validation-tier only (D14)"

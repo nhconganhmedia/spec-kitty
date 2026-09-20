@@ -29,7 +29,6 @@ __all__ = [
 ]
 
 
-
 # Default allowed path prefixes (relative to repo_root, resolved to absolute).
 _DEFAULT_ALLOWLIST: tuple[str, ...] = (
     ".kittify/doctrine",
@@ -56,10 +55,7 @@ class PathGuard:
         extra_allowed_prefixes: Sequence[str | Path] = (),
     ) -> None:
         self._repo_root = repo_root.resolve()
-        self._allowed: tuple[Path, ...] = tuple(
-            self._resolve_prefix(p)
-            for p in (*_DEFAULT_ALLOWLIST, *extra_allowed_prefixes)
-        )
+        self._allowed: tuple[Path, ...] = tuple(self._resolve_prefix(p) for p in (*_DEFAULT_ALLOWLIST, *extra_allowed_prefixes))
 
     def _resolve_prefix(self, prefix: str | Path) -> Path:
         p = Path(prefix)

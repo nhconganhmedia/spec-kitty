@@ -97,10 +97,14 @@ def test_lane_origin_append_lands_on_coord_with_zero_lane_commit(tmp_path: Path)
 
     result = _invoke_from_lane(
         lane_path,
-        "--mission", ctx.slug,
-        "--category", "tooling-friction",
-        "--entry", "The daemon hung mid-decode on a 3MB payload.",
-        "--actor", "claude",
+        "--mission",
+        ctx.slug,
+        "--category",
+        "tooling-friction",
+        "--entry",
+        "The daemon hung mid-decode on a 3MB payload.",
+        "--actor",
+        "claude",
         "--json",
     )
 
@@ -115,18 +119,13 @@ def test_lane_origin_append_lands_on_coord_with_zero_lane_commit(tmp_path: Path)
     # (1) Committed-tree proof: the entry lands on the COORD ref.
     rel = f"kitty-specs/{ctx.slug}/traces/tooling-friction.md"
     coord_show = _git_probe(ctx.repo, "show", f"{ctx.coord_branch}:{rel}")
-    assert coord_show.returncode == 0, (
-        f"tracer entry not found on coord ref {ctx.coord_branch!r}: {coord_show.stderr}"
-    )
+    assert coord_show.returncode == 0, f"tracer entry not found on coord ref {ctx.coord_branch!r}: {coord_show.stderr}"
     assert "claude" in coord_show.stdout
     assert "The daemon hung mid-decode on a 3MB payload." in coord_show.stdout
 
     # (2) Zero new commits on the LANE branch -- the #2980/#2549 barrier.
     lane_sha_after = _git(ctx.repo, "rev-parse", lane_branch)
-    assert lane_sha_after == lane_sha_before, (
-        "tracer-append must not add any commit to the lane branch; "
-        f"before={lane_sha_before} after={lane_sha_after}"
-    )
+    assert lane_sha_after == lane_sha_before, f"tracer-append must not add any commit to the lane branch; before={lane_sha_before} after={lane_sha_after}"
 
     # (3) The lane worktree's own working tree stays clean (the direct
     # mechanism that previously blocked a subsequent move-task).
@@ -138,9 +137,7 @@ def test_lane_origin_append_lands_on_coord_with_zero_lane_commit(tmp_path: Path)
     staged_local = ctx.repo / "kitty-specs" / ctx.slug / "traces" / "tooling-friction.md"
     assert not staged_local.exists(), "residue cleanup must remove the staged local copy"
     primary_status = _git(ctx.repo, "status", "--porcelain", "--", "kitty-specs")
-    assert primary_status == "", (
-        f"primary checkout's kitty-specs/ must stay clean; git status:\n{primary_status}"
-    )
+    assert primary_status == "", f"primary checkout's kitty-specs/ must stay clean; git status:\n{primary_status}"
 
 
 # ---------------------------------------------------------------------------
@@ -153,10 +150,14 @@ def test_identical_reappend_is_a_no_op_no_duplicate(tmp_path: Path) -> None:
     lane_path, _lane_branch = _create_lane_worktree(ctx.repo, ctx.slug)
 
     args = (
-        "--mission", ctx.slug,
-        "--category", "approach",
-        "--entry", "Adopted the seam over a bespoke commit path.",
-        "--actor", "architect-alphonso",
+        "--mission",
+        ctx.slug,
+        "--category",
+        "approach",
+        "--entry",
+        "Adopted the seam over a bespoke commit path.",
+        "--actor",
+        "architect-alphonso",
         "--json",
     )
 
@@ -174,15 +175,11 @@ def test_identical_reappend_is_a_no_op_no_duplicate(tmp_path: Path) -> None:
     assert second_payload["row_or_entry_ref"] == first_payload["row_or_entry_ref"]
 
     coord_sha_after_second = _git(ctx.repo, "rev-parse", ctx.coord_branch)
-    assert coord_sha_after_second == coord_sha_after_first, (
-        "an identical re-append must not create a second commit on the coord branch"
-    )
+    assert coord_sha_after_second == coord_sha_after_first, "an identical re-append must not create a second commit on the coord branch"
 
     rel = f"kitty-specs/{ctx.slug}/traces/approach.md"
     content = _git(ctx.repo, "show", f"{ctx.coord_branch}:{rel}")
-    assert content.count("Adopted the seam over a bespoke commit path.") == 1, (
-        "the entry must appear exactly once -- a re-append must not duplicate it"
-    )
+    assert content.count("Adopted the seam over a bespoke commit path.") == 1, "the entry must appear exactly once -- a re-append must not duplicate it"
 
 
 # ---------------------------------------------------------------------------
@@ -197,10 +194,14 @@ def test_blank_actor_guarded_no_commit_lands_anywhere(tmp_path: Path) -> None:
 
     result = _invoke_from_lane(
         lane_path,
-        "--mission", ctx.slug,
-        "--category", "tooling-friction",
-        "--entry", "should never be persisted",
-        "--actor", "   ",
+        "--mission",
+        ctx.slug,
+        "--category",
+        "tooling-friction",
+        "--entry",
+        "should never be persisted",
+        "--actor",
+        "   ",
         "--json",
     )
 
@@ -212,8 +213,6 @@ def test_blank_actor_guarded_no_commit_lands_anywhere(tmp_path: Path) -> None:
     # No commit landed anywhere: the coord branch never even got a tracer file.
     rel = f"kitty-specs/{ctx.slug}/traces/tooling-friction.md"
     coord_show = _git_probe(ctx.repo, "show", f"{ctx.coord_branch}:{rel}")
-    assert coord_show.returncode != 0, (
-        "a blank actor must never produce a committed (blank-attributed) entry"
-    )
+    assert coord_show.returncode != 0, "a blank actor must never produce a committed (blank-attributed) entry"
     lane_sha_after = _git(ctx.repo, "rev-parse", lane_branch)
     assert lane_sha_after == lane_sha_before

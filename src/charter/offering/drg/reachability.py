@@ -56,9 +56,7 @@ __all__ = [
 #: layer surfaces each ``suggests`` edge's ``when`` as a link (see
 #: ``charter.activation.progressive_disclosure.profile_channel_references``); this node-level
 #: walk stays edge-agnostic.
-PROFILE_CHANNEL_RELATIONS: frozenset[Relation] = frozenset(
-    {Relation.REQUIRES, Relation.SPECIALIZES_FROM, Relation.SUGGESTS}
-)
+PROFILE_CHANNEL_RELATIONS: frozenset[Relation] = frozenset({Relation.REQUIRES, Relation.SPECIALIZES_FROM, Relation.SUGGESTS})
 
 
 def action_seed_urns(graph: DRGGraph) -> frozenset[str]:

@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def extract_directive_number(artifact_id: str | None) -> str:
     """Return the numeric directive segment from an artifact ID.
 

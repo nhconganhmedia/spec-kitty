@@ -86,7 +86,8 @@ def test_report_husks_present(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     import specify_cli.status as status_mod
 
     report = _Report(
-        healthy=False, husks=[_Husk(registered=False), _Husk(registered=True)],
+        healthy=False,
+        husks=[_Husk(registered=False), _Husk(registered=True)],
         registration_error="partial",
     )
     monkeypatch.setattr(status_mod, "scan_workspace_husks", lambda _r: report)
@@ -136,9 +137,7 @@ def test_fix_clean(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import specify_cli.status as status_mod
 
     report = _Report(husks=[])
-    monkeypatch.setattr(
-        status_mod, "fix_workspace_husks", lambda _r: (report, _FixResult(removed=["a"]))
-    )
+    monkeypatch.setattr(status_mod, "fix_workspace_husks", lambda _r: (report, _FixResult(removed=["a"])))
     with pytest.raises(typer.Exit) as exc:
         wh._emit_workspace_husk_fix(tmp_path, json_output=False)
     assert exc.value.exit_code == 0
@@ -159,9 +158,7 @@ def test_fix_human_with_skips(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     import specify_cli.status as status_mod
 
     report = _Report(husks=[])
-    fix_result = _FixResult(
-        removed=["r"], skipped_registered=["reg"], skipped_appeared_valid=["v"]
-    )
+    fix_result = _FixResult(removed=["r"], skipped_registered=["reg"], skipped_appeared_valid=["v"])
     monkeypatch.setattr(status_mod, "fix_workspace_husks", lambda _r: (report, fix_result))
     with pytest.raises(typer.Exit) as exc:
         wh._emit_workspace_husk_fix(tmp_path, json_output=False)
@@ -181,9 +178,7 @@ def test_run_workspaces_fix_branch(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
 
 def test_run_workspaces_report_branch(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     called: dict[str, Any] = {}
-    monkeypatch.setattr(
-        wh, "_emit_workspace_husk_report", lambda r, j: called.setdefault("report", (r, j))
-    )
+    monkeypatch.setattr(wh, "_emit_workspace_husk_report", lambda r, j: called.setdefault("report", (r, j)))
     wh.run_workspaces(tmp_path, fix=False, json_output=False)
     assert called["report"] == (tmp_path, False)
 
@@ -191,9 +186,7 @@ def test_run_workspaces_report_branch(monkeypatch: pytest.MonkeyPatch, tmp_path:
 # --- _coord_worktree_needs_refresh (stale ancestor path) --------------------
 
 
-def test_coord_worktree_needs_refresh_stale_ancestor(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_worktree_needs_refresh_stale_ancestor(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """_coord_worktree_needs_refresh returns (True, branch) when HEAD is a strict
     ancestor of the branch tip.
 

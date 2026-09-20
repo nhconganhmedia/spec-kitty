@@ -44,9 +44,7 @@ pytestmark = pytest.mark.git_repo
 
 
 def _git(repo, *args, check=True):
-    return subprocess.run(
-        ["git", *args], cwd=str(repo), capture_output=True, text=True, check=check
-    )
+    return subprocess.run(["git", *args], cwd=str(repo), capture_output=True, text=True, check=check)
 
 
 def _make_git_repo(path):
@@ -131,8 +129,7 @@ def test_dependent_lane_base_contains_approved_dependency_tip(tmp_path):
         capture_output=True,
     )
     assert is_ancestor.returncode == 0, (
-        f"lane-a tip ({lane_a_tip[:8]}) is not an ancestor of lane-b HEAD; "
-        "depends_on_lanes was ignored when choosing the lane base (issue #1684)."
+        f"lane-a tip ({lane_a_tip[:8]}) is not an ancestor of lane-b HEAD; depends_on_lanes was ignored when choosing the lane base (issue #1684)."
     )
 
 
@@ -175,8 +172,7 @@ def test_reuse_path_catches_up_dependency_approved_after_creation(tmp_path):
     wt_b2, _ = allocate_lane_worktree(repo, "010-feat", "WP02", manifest)
     assert wt_b2 == wt_b
     assert (wt_b2 / "wp01_module.py").exists(), (
-        "reuse path did not catch up the dependency lane tip approved after "
-        "the dependent lane worktree was created (issue #1684)."
+        "reuse path did not catch up the dependency lane tip approved after the dependent lane worktree was created (issue #1684)."
     )
 
 
@@ -252,14 +248,10 @@ def test_explicit_base_composes_with_dependency_merge(tmp_path):
     wt_b, _ = allocate_lane_worktree(repo, mission_slug, "WP02", patched)
 
     # 4. The chosen ROOT's content is present...
-    assert (wt_b / "base_marker.py").exists(), (
-        "explicit --base ref content missing on lane-b — the chosen root was "
-        "not honored (issue #1684 --base composition)."
-    )
+    assert (wt_b / "base_marker.py").exists(), "explicit --base ref content missing on lane-b — the chosen root was not honored (issue #1684 --base composition)."
     # 5. ...AND the approved dependency tip was merged on top.
     assert (wt_b / "wp01_module.py").exists(), (
-        "dependency lane tip was not merged on top of the explicit base — "
-        "--base must compose with depends_on_lanes, not suppress it (issue #1684)."
+        "dependency lane tip was not merged on top of the explicit base — --base must compose with depends_on_lanes, not suppress it (issue #1684)."
     )
     lane_a_branch = lane_branch_name(mission_slug, "lane-a")
     assert (
@@ -284,9 +276,7 @@ def test_missing_dependency_branch_falls_back_with_warning(tmp_path, capfd):
     wt_b, _ = allocate_lane_worktree(repo, "010-feat", "WP02", manifest)
     assert wt_b.exists(), "lane-b worktree must still be created on missing dep"
     out = capfd.readouterr().out
-    assert "lane-a" in out and "WARNING" in out, (
-        "expected a warning that the missing dependency lane branch was skipped"
-    )
+    assert "lane-a" in out and "WARNING" in out, "expected a warning that the missing dependency lane branch was skipped"
 
 
 def test_conflicting_dependency_merge_fails_closed(tmp_path):
@@ -328,6 +318,4 @@ def test_conflicting_dependency_merge_fails_closed(tmp_path):
         capture_output=True,
         text=True,
     )
-    assert status.stdout.strip() == "", (
-        "worktree was left in a conflicted/half-merged state after fail-closed"
-    )
+    assert status.stdout.strip() == "", "worktree was left in a conflicted/half-merged state after fail-closed"

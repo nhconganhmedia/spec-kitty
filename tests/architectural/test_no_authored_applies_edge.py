@@ -42,11 +42,7 @@ def _load_fragment(path: Path) -> dict[str, Any]:
 
 
 def iter_fragments(root: Path) -> list[Path]:
-    return sorted(
-        path
-        for path in root.rglob("*.graph.yaml")
-        if "__pycache__" not in path.parts
-    )
+    return sorted(path for path in root.rglob("*.graph.yaml") if "__pycache__" not in path.parts)
 
 
 def authored_applies_edges(root: Path) -> tuple[AuthoredAppliesEdge, ...]:
@@ -69,11 +65,7 @@ def authored_applies_edges(root: Path) -> tuple[AuthoredAppliesEdge, ...]:
 
 
 def applies_edges_in(graph: DRGGraph) -> tuple[str, ...]:
-    return tuple(
-        f"{edge.source} --{_FORBIDDEN.value}--> {edge.target}"
-        for edge in graph.edges
-        if edge.relation is _FORBIDDEN
-    )
+    return tuple(f"{edge.source} --{_FORBIDDEN.value}--> {edge.target}" for edge in graph.edges if edge.relation is _FORBIDDEN)
 
 
 def _fragment_text(relation: str) -> str:
@@ -128,13 +120,9 @@ def test_fragment_guard_has_two_sided_fault_bite(tmp_path: Path) -> None:
     assert authored_applies_edges(tmp_path) == ()
 
     fragment.write_text(_fragment_text("applies"), encoding="utf-8")
-    assert [str(edge) for edge in authored_applies_edges(tmp_path)] == [
-        "probe.graph.yaml: agent_profile:planted --applies--> procedure:planted"
-    ]
+    assert [str(edge) for edge in authored_applies_edges(tmp_path)] == ["probe.graph.yaml: agent_profile:planted --applies--> procedure:planted"]
 
 
 def test_loaded_graph_guard_has_two_sided_fault_bite() -> None:
     assert applies_edges_in(_graph_with(Relation.REQUIRES)) == ()
-    assert applies_edges_in(_graph_with(Relation.APPLIES)) == (
-        "agent_profile:planted --applies--> procedure:planted",
-    )
+    assert applies_edges_in(_graph_with(Relation.APPLIES)) == ("agent_profile:planted --applies--> procedure:planted",)

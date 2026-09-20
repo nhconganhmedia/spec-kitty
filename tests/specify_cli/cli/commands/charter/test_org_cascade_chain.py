@@ -80,9 +80,7 @@ def _write_directive(pack_root: Path, stem: str, declared_id: str) -> None:
     """
     directives_dir = pack_root / "directives"
     directives_dir.mkdir(parents=True, exist_ok=True)
-    (directives_dir / f"{stem}.directive.yaml").write_text(
-        f"id: {declared_id}\ntype: directive\ntitle: {stem}\n", encoding="utf-8"
-    )
+    (directives_dir / f"{stem}.directive.yaml").write_text(f"id: {declared_id}\ntype: directive\ntitle: {stem}\n", encoding="utf-8")
 
 
 def _write_graph_fragment(
@@ -102,19 +100,10 @@ def _write_graph_fragment(
     node_lines = "\n".join(f'  - urn: "{urn}"\n    kind: {kind}' for urn, kind in nodes)
     nodes_section = f"nodes:\n{node_lines}" if nodes else "nodes: []"
 
-    edge_lines = "\n".join(
-        f'  - source: "{src}"\n    target: "{tgt}"\n    relation: {rel}'
-        for src, tgt, rel in edges
-    )
+    edge_lines = "\n".join(f'  - source: "{src}"\n    target: "{tgt}"\n    relation: {rel}' for src, tgt, rel in edges)
     edges_section = f"edges:\n{edge_lines}" if edges else "edges: []"
 
-    body = (
-        'schema_version: "1.0"\n'
-        'generated_at: "2026-08-17T00:00:00Z"\n'
-        'generated_by: "test"\n'
-        f"{nodes_section}\n"
-        f"{edges_section}\n"
-    )
+    body = f'schema_version: "1.0"\ngenerated_at: "2026-08-17T00:00:00Z"\ngenerated_by: "test"\n{nodes_section}\n{edges_section}\n'
     (pack_root / filename).write_text(body, encoding="utf-8")
 
 
@@ -123,9 +112,7 @@ def project_root(tmp_path: Path) -> Path:
     """A minimal project with an empty ``.kittify/config.yaml`` (no org packs)."""
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     return tmp_path
 
 
@@ -156,9 +143,7 @@ def _deactivate(project_root: Path, *args: str) -> object:
 
 
 class TestSingleOrgPackCascade:
-    def test_cascade_all_activates_requires_edge_within_same_org_pack(
-        self, project_root: Path
-    ) -> None:
+    def test_cascade_all_activates_requires_edge_within_same_org_pack(self, project_root: Path) -> None:
         """``A requires B``, both in one org pack: ``--cascade all`` activates B too.
 
         This is the baseline positive case for this call site -- previously
@@ -179,17 +164,13 @@ class TestSingleOrgPackCascade:
         )
         _write_org_pack_config(project_root, [("pack1", "org-packs/pack1")])
 
-        result = _activate(
-            project_root, "--cascade", "all", "directive", "a-directive"
-        )
+        result = _activate(project_root, "--cascade", "all", "directive", "a-directive")
         assert result.exit_code == 0, result.output
 
         data = _config(project_root)
         activated = data.get("activated_directives") or []
         assert "a-directive" in activated
-        assert "b-directive" in activated, (
-            f"org-pack requires edge did not cascade-activate; output:\n{result.output}"
-        )
+        assert "b-directive" in activated, f"org-pack requires edge did not cascade-activate; output:\n{result.output}"
         assert "Cascade-activated" in result.output
 
 
@@ -233,26 +214,19 @@ def _write_two_pack_chain(project_root: Path) -> None:
 
 
 class TestTwoPackChainCascade:
-    def test_cascade_all_activates_requires_edge_reaching_second_pack(
-        self, project_root: Path
-    ) -> None:
+    def test_cascade_all_activates_requires_edge_reaching_second_pack(self, project_root: Path) -> None:
         """``charter activate directive a-directive --cascade all`` activates
         pack-2's ``c-directive`` too -- the pack-2..N chain case (T011 item 2).
         """
         _write_two_pack_chain(project_root)
 
-        result = _activate(
-            project_root, "--cascade", "all", "directive", "a-directive"
-        )
+        result = _activate(project_root, "--cascade", "all", "directive", "a-directive")
         assert result.exit_code == 0, result.output
 
         data = _config(project_root)
         activated = data.get("activated_directives") or []
         assert "a-directive" in activated
-        assert "c-directive" in activated, (
-            "cascade did not reach the second org pack in the chain; "
-            f"output:\n{result.output}"
-        )
+        assert "c-directive" in activated, f"cascade did not reach the second org pack in the chain; output:\n{result.output}"
         # The config-stem ID must be used, never the raw DRG bare ID -- a
         # fallback to the raw ID is exactly the ID-mapping-widening failure
         # mode T012 proves separately.
@@ -262,22 +236,16 @@ class TestTwoPackChainCascade:
         """Symmetric coverage for ``deactivate --cascade`` (T010) over the same chain."""
         _write_two_pack_chain(project_root)
 
-        activate = _activate(
-            project_root, "--cascade", "all", "directive", "a-directive"
-        )
+        activate = _activate(project_root, "--cascade", "all", "directive", "a-directive")
         assert activate.exit_code == 0, activate.output
         assert "c-directive" in (_config(project_root).get("activated_directives") or [])
 
-        result = _deactivate(
-            project_root, "--cascade", "all", "directive", "a-directive"
-        )
+        result = _deactivate(project_root, "--cascade", "all", "directive", "a-directive")
         assert result.exit_code == 0, result.output
         data = _config(project_root)
         remaining = data.get("activated_directives") or []
         assert "a-directive" not in remaining
-        assert "c-directive" not in remaining, (
-            f"cascade-deactivation did not reach the second org pack; output:\n{result.output}"
-        )
+        assert "c-directive" not in remaining, f"cascade-deactivation did not reach the second org pack; output:\n{result.output}"
 
 
 # ---------------------------------------------------------------------------
@@ -286,9 +254,7 @@ class TestTwoPackChainCascade:
 
 
 class TestIdMappingWideningNonVacuous:
-    def test_two_pack_cascade_fails_without_id_mapping_org_roots(
-        self, project_root: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_two_pack_cascade_fails_without_id_mapping_org_roots(self, project_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Simulates reverting ONLY T008 (the ID-mapping half) while T009's
         DRG-visibility org-roots threading stays intact, and proves T011's
         two-pack test goes RED again.
@@ -309,17 +275,11 @@ class TestIdMappingWideningNonVacuous:
 
         def _resolve_config_id_without_org_roots(urn, *, doctrine_root, org_roots=None, layer_roots=None):
             del org_roots  # pre-T008 shape: never received the chain.
-            return real_resolve_config_id(
-                urn, doctrine_root=doctrine_root, layer_roots=layer_roots
-            )
+            return real_resolve_config_id(urn, doctrine_root=doctrine_root, layer_roots=layer_roots)
 
-        monkeypatch.setattr(
-            cascade_shared_mod, "resolve_config_id", _resolve_config_id_without_org_roots
-        )
+        monkeypatch.setattr(cascade_shared_mod, "resolve_config_id", _resolve_config_id_without_org_roots)
 
-        result = _activate(
-            project_root, "--cascade", "all", "directive", "a-directive"
-        )
+        result = _activate(project_root, "--cascade", "all", "directive", "a-directive")
         assert result.exit_code == 0, result.output
 
         data = _config(project_root)
@@ -335,8 +295,7 @@ class TestIdMappingWideningNonVacuous:
         # engine still reached pack 2 and tried (and failed) to map its raw
         # DRG id back, surfaced as a cascade warning naming the raw id.
         assert "DIRECTIVE_C" in result.output, (
-            "expected the raw DRG id to surface in a cascade warning, proving "
-            f"the DRG walk (T009) still reached pack 2 on its own; output:\n{result.output}"
+            f"expected the raw DRG id to surface in a cascade warning, proving the DRG walk (T009) still reached pack 2 on its own; output:\n{result.output}"
         )
 
 
@@ -346,9 +305,7 @@ class TestIdMappingWideningNonVacuous:
 
 
 class TestListAllLayersBackCompat:
-    def test_resolve_layer_roots_org_key_stays_single_path_over_a_chain(
-        self, project_root: Path
-    ) -> None:
+    def test_resolve_layer_roots_org_key_stays_single_path_over_a_chain(self, project_root: Path) -> None:
         """Direct proof: over a two-pack chain, ``resolve_layer_roots``'s
         ``roots["org"]`` is still exactly pack 1's single ``Path`` -- the
         literal FR-001 AC7 assertion, established BEFORE trusting any CLI
@@ -360,9 +317,7 @@ class TestListAllLayersBackCompat:
         assert roots["org"] == project_root / "org-packs" / "pack1"
         assert isinstance(roots["org"], Path)
 
-    def test_list_all_does_not_crash_over_a_two_pack_chain(
-        self, project_root: Path
-    ) -> None:
+    def test_list_all_does_not_crash_over_a_two_pack_chain(self, project_root: Path) -> None:
         """``charter list --all`` over the same two-pack chain does not crash
         or type-error (User Story 3 AC4, FR-001 AC7) -- the exact consumer
         the original issue missed.
@@ -376,9 +331,7 @@ class TestListAllLayersBackCompat:
         )
         assert result.exit_code == 0, result.output
 
-    def test_list_all_shows_pack_one_but_not_pack_two_unchanged(
-        self, project_root: Path
-    ) -> None:
+    def test_list_all_shows_pack_one_but_not_pack_two_unchanged(self, project_root: Path) -> None:
         """Pack 1's artifact is listed (pre-existing, single-org-root behaviour);
         pack 2's is not -- proving ``list --all``'s own display is genuinely
         UNCHANGED by this WP (widening its display to pack 2+ is explicitly
@@ -410,9 +363,7 @@ class TestNoOrgPackRegression:
     _CASCADE_SOURCE_KIND = "agent-profile"
     _CASCADE_SOURCE_ID = "architect-alphonso"
 
-    def test_activate_cascade_all_unaffected_by_org_roots_threading(
-        self, project_root: Path
-    ) -> None:
+    def test_activate_cascade_all_unaffected_by_org_roots_threading(self, project_root: Path) -> None:
         result = _activate(
             project_root,
             "--cascade",
@@ -426,9 +377,7 @@ class TestNoOrgPackRegression:
         assert data.get("activated_directives"), result.output
         assert data.get("activated_tactics"), result.output
 
-    def test_deactivate_cascade_all_unaffected_by_org_roots_threading(
-        self, project_root: Path
-    ) -> None:
+    def test_deactivate_cascade_all_unaffected_by_org_roots_threading(self, project_root: Path) -> None:
         activate = _activate(
             project_root,
             "--cascade",
@@ -447,16 +396,10 @@ class TestNoOrgPackRegression:
         )
         assert result.exit_code == 0, result.output
         data = _config(project_root)
-        assert self._CASCADE_SOURCE_ID not in (
-            data.get("activated_agent_profiles") or []
-        )
+        assert self._CASCADE_SOURCE_ID not in (data.get("activated_agent_profiles") or [])
 
-    def test_no_cascade_warning_unaffected_by_org_roots_threading(
-        self, project_root: Path
-    ) -> None:
-        result = _activate(
-            project_root, self._CASCADE_SOURCE_KIND, self._CASCADE_SOURCE_ID
-        )
+    def test_no_cascade_warning_unaffected_by_org_roots_threading(self, project_root: Path) -> None:
+        result = _activate(project_root, self._CASCADE_SOURCE_KIND, self._CASCADE_SOURCE_ID)
         assert result.exit_code == 0, result.output
         assert "not activated" in result.output.lower()
 
@@ -467,9 +410,7 @@ class TestNoOrgPackRegression:
 
 
 class TestNoCascadeWarningNamesOrgPackArtifacts:
-    def test_absent_cascade_warns_about_org_pack_requires_target(
-        self, project_root: Path
-    ) -> None:
+    def test_absent_cascade_warns_about_org_pack_requires_target(self, project_root: Path) -> None:
         """Without ``--cascade``, an org-pack ``requires`` target is reported
         by its config-stem ID in the warning -- proving the DRG this warning
         walks now contains org-pack nodes at all (pre-fix it structurally
@@ -495,10 +436,7 @@ class TestNoCascadeWarningNamesOrgPackArtifacts:
         data = _config(project_root)
         assert "a-directive" in (data.get("activated_directives") or [])
         assert "b-directive" not in (data.get("activated_directives") or [])
-        assert "b-directive" in result.output, (
-            f"no-cascade warning did not name the org-pack requires target "
-            f"by its config-stem ID; output:\n{result.output}"
-        )
+        assert "b-directive" in result.output, f"no-cascade warning did not name the org-pack requires target by its config-stem ID; output:\n{result.output}"
         assert "not activated" in result.output.lower()
 
 
@@ -508,9 +446,7 @@ class TestNoCascadeWarningNamesOrgPackArtifacts:
 
 
 class TestGraphlessOrgPackDegradesGracefully:
-    def test_graphless_org_pack_activates_directly_without_cascade_or_crash(
-        self, project_root: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_graphless_org_pack_activates_directly_without_cascade_or_crash(self, project_root: Path, caplog: pytest.LogCaptureFixture) -> None:
         """A configured org pack that carries doctrine artifacts but **no
         root-level ``*.graph.yaml``** contributes no charter-DRG layer, so
         ``load_validated_graph`` degrades it to "no org DRG layer for this
@@ -537,9 +473,7 @@ class TestGraphlessOrgPackDegradesGracefully:
         # Artifact file present, but deliberately no *.graph.yaml at the pack
         # root -- has_graph_files(pack_root) is False, so the root is skipped.
         _write_directive(pack_root, "a-directive", "DIRECTIVE_A")
-        _write_org_pack_config(
-            project_root, [("graphless-pack", "org-packs/graphless-pack")]
-        )
+        _write_org_pack_config(project_root, [("graphless-pack", "org-packs/graphless-pack")])
 
         with caplog.at_level(logging.WARNING, logger="charter.activation._drg_helpers"):
             result = _activate(
@@ -568,11 +502,9 @@ class TestGraphlessOrgPackDegradesGracefully:
         # reported, not swallowed. This is the load-bearing assertion -- it
         # exercises the guard's skip branch itself, which the no-crash /
         # no-cascade checks above cannot distinguish from an empty pack.
-        assert any(
-            "ships no root-level DRG graph" in rec.message
-            and "graphless-pack" in rec.message
-            for rec in caplog.records
-        ), [rec.message for rec in caplog.records]
+        assert any("ships no root-level DRG graph" in rec.message and "graphless-pack" in rec.message for rec in caplog.records), [
+            rec.message for rec in caplog.records
+        ]
 
 
 # ---------------------------------------------------------------------------
@@ -598,9 +530,7 @@ class TestFragmentYamlEdgeCascades:
     this mission (FR-005).
     """
 
-    def test_requires_edge_in_fragment_yaml_cascades(
-        self, project_root: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_requires_edge_in_fragment_yaml_cascades(self, project_root: Path, caplog: pytest.LogCaptureFixture) -> None:
         pack_root = project_root / "org-packs" / "fragment-only-pack"
         _write_directive(pack_root, "a-directive", "DIRECTIVE_A")
         _write_directive(pack_root, "b-directive", "DIRECTIVE_B")
@@ -626,9 +556,7 @@ class TestFragmentYamlEdgeCascades:
             "    relation: requires\n",
             encoding="utf-8",
         )
-        _write_org_pack_config(
-            project_root, [("fragment-only-pack", "org-packs/fragment-only-pack")]
-        )
+        _write_org_pack_config(project_root, [("fragment-only-pack", "org-packs/fragment-only-pack")])
 
         with caplog.at_level(logging.WARNING, logger="charter.activation._drg_helpers"):
             result = _activate(
@@ -648,18 +576,12 @@ class TestFragmentYamlEdgeCascades:
 
         # The fragment.yaml `requires` edge now cascades: b-directive IS
         # cascade-activated (the bridge folded the org fragment layer).
-        assert "b-directive" in activated, (
-            f"org fragment.yaml requires edge did not cascade-activate; "
-            f"output:\n{result.output}"
-        )
+        assert "b-directive" in activated, f"org fragment.yaml requires edge did not cascade-activate; output:\n{result.output}"
         assert "Cascade-activated" in result.output
 
         # A fragment-bearing pack is NOT graphless (FR-004) -- no graphless
         # warning fires for it.
-        assert not any(
-            "ships no root-level DRG graph" in rec.message
-            for rec in caplog.records
-        ), [rec.message for rec in caplog.records]
+        assert not any("ships no root-level DRG graph" in rec.message for rec in caplog.records), [rec.message for rec in caplog.records]
 
 
 # ---------------------------------------------------------------------------
@@ -691,15 +613,11 @@ class TestActivateCascadeTargetFailureAggregation:
     "Unknown ID" report at the wrong root."""
 
     def test_all_candidates_fail_aggregates_every_reason(self) -> None:
-        manager = _FakeManagerMultiFail(
-            ["Unknown directive ID 'x' in pack1", "structural issue in pack2"]
-        )
+        manager = _FakeManagerMultiFail(["Unknown directive ID 'x' in pack1", "structural issue in pack2"])
         org_roots = [Path("/org1"), Path("/org2")]
 
         with pytest.raises(ValueError) as excinfo:
-            activate_mod._activate_cascade_target(
-                manager, None, "directive", "x", None, org_roots
-            )
+            activate_mod._activate_cascade_target(manager, None, "directive", "x", None, org_roots)
 
         message = str(excinfo.value)
         assert "Unknown directive ID 'x' in pack1" in message, message
@@ -715,9 +633,7 @@ class TestActivateCascadeTargetFailureAggregation:
         manager = _FakeManagerMultiFail(["Unknown directive ID 'x'"])
 
         with pytest.raises(ValueError) as excinfo:
-            activate_mod._activate_cascade_target(
-                manager, None, "directive", "x", None, None
-            )
+            activate_mod._activate_cascade_target(manager, None, "directive", "x", None, None)
 
         assert str(excinfo.value) == "Unknown directive ID 'x'"
         assert manager.calls == 1

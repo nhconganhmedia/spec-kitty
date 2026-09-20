@@ -6,6 +6,7 @@ dispatch into ``WidenFlow``. They are public-by-convention (the legacy
 imported by other modules and by tests) and are re-exported from the package
 ``__init__`` for backward compatibility.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -62,9 +63,7 @@ def _get_mission_id(repo_root: Path, mission_slug: str) -> str | None:
     # callers (e.g. the fail-closed corrupt-meta test) deliberately rely on
     # raising.
     try:
-        feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.PRIMARY_METADATA
-        )
+        feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         # load_meta_or_empty (post-#2091 silent contract) absorbs a missing or
         # malformed meta.json to {}, matching the prior contextlib.suppress
         # absorption.
@@ -93,9 +92,7 @@ def _schedule_inactivity_reminder(
 
     def _remind() -> None:
         console.print(
-            "\n[yellow]Still waiting on widened discussion.[/yellow] "
-            "Check Slack, type a local answer, or press d to defer.\n"
-            "Waiting > ",
+            "\n[yellow]Still waiting on widened discussion.[/yellow] Check Slack, type a local answer, or press d to defer.\nWaiting > ",
             end="",
         )
 
@@ -116,9 +113,7 @@ def _render_waiting_panel(
     thread_line = f"Slack thread: {slack_thread_url}" if slack_thread_url else "Slack thread: (pending)"
     console.print(
         Panel(
-            f"Question: {question_text}\n"
-            f"Participants: {participants_line}\n"
-            f"{thread_line}",
+            f"Question: {question_text}\nParticipants: {participants_line}\n{thread_line}",
             title="Waiting for widened discussion",
         )
     )
@@ -148,9 +143,7 @@ def _resolve_locally(
             actor=actor,
         )
     except _DecisionError as exc:
-        console.print(
-            f"[red]Write-back failed: {exc}. Your answer was NOT saved.[/red]"
-        )
+        console.print(f"[red]Write-back failed: {exc}. Your answer was NOT saved.[/red]")
         return False
     console.print("[green]Resolved locally.[/green] SaaS will close the Slack thread shortly.")
     return True
@@ -178,9 +171,7 @@ def _defer_from_blocked_prompt(
             actor=actor,
         )
     except _DecisionError as exc:
-        console.print(
-            f"[red]Write-back failed: {exc}. Your deferral was NOT saved.[/red]"
-        )
+        console.print(f"[red]Write-back failed: {exc}. Your deferral was NOT saved.[/red]")
         return False
     console.print("[yellow]Decision deferred.[/yellow]")
     return True
@@ -404,19 +395,18 @@ def _dispatch_widen_input(  # noqa: C901
             try:
                 from kernel.clock import now_utc
 
-                widen_store.add_pending(WidenPendingEntry(
-                    decision_id=result.decision_id or current_decision_id,
-                    mission_slug=mission_slug,
-                    question_id=f"charter.{question_id}",
-                    question_text=prompt_text,
-                    entered_pending_at=now_utc(),
-                    widen_endpoint_response={},
-                ))
-            except Exception as exc:  # noqa: BLE001
-                console.print(
-                    "[red]Could not save pending widen marker: "
-                    f"{exc}. Question was NOT parked.[/red]"
+                widen_store.add_pending(
+                    WidenPendingEntry(
+                        decision_id=result.decision_id or current_decision_id,
+                        mission_slug=mission_slug,
+                        question_id=f"charter.{question_id}",
+                        question_text=prompt_text,
+                        entered_pending_at=now_utc(),
+                        widen_endpoint_response={},
+                    )
                 )
+            except Exception as exc:  # noqa: BLE001
+                console.print(f"[red]Could not save pending widen marker: {exc}. Question was NOT parked.[/red]")
                 return None, False
         answers_override[question_id] = ""
         return "", True  # advance to next question
@@ -460,9 +450,7 @@ def _run_blocked_prompt_loop(
 
         if not cmd:
             # Blank line — re-show options summary
-            console.print(
-                "[dim][f]etch & review | <local answer> | [d]efer | [!cancel][/dim]"
-            )
+            console.print("[dim][f]etch & review | <local answer> | [d]efer | [!cancel][/dim]")
             continue
         elif cmd.lower() == "f":
             _inactivity_timer.cancel()

@@ -52,9 +52,7 @@ _EVENT_DONE: dict[str, object] = {
 
 
 def _write_lines(path: Path, events: list[dict[str, object]]) -> None:
-    path.write_text(
-        "".join(json.dumps(e, sort_keys=True) + "\n" for e in events), encoding="utf-8"
-    )
+    path.write_text("".join(json.dumps(e, sort_keys=True) + "\n" for e in events), encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -74,9 +72,7 @@ def test_event_log_wrapper_unions_ours_and_theirs(tmp_path: Path) -> None:
     assert merged_ids == {_EVENT_APPROVED["event_id"], _EVENT_DONE["event_id"]}
 
 
-def test_event_log_wrapper_translates_merge_error_to_exit1(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_event_log_wrapper_translates_merge_error_to_exit1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An ``EventLogMergeError`` from the merger becomes ``typer.Exit(1)``."""
 
     def _boom(**_kwargs: object) -> None:
@@ -125,9 +121,7 @@ def test_meta_wrapper_writes_reconciled_blob(tmp_path: Path) -> None:
     ours = tmp_path / "A"  # target checkout (accepted-newer authority)
     theirs = tmp_path / "B"  # mission branch (planning authority)
     ours.write_text(json.dumps({"mission_number": 7, "status": "accepted"}), encoding="utf-8")
-    theirs.write_text(
-        json.dumps({"mission_slug": "m", "mission_number": None}), encoding="utf-8"
-    )
+    theirs.write_text(json.dumps({"mission_slug": "m", "mission_number": None}), encoding="utf-8")
 
     merge_driver_meta(str(tmp_path / "O"), str(ours), str(theirs))
 

@@ -165,17 +165,13 @@ class MissionTypeRepository:
         for yaml_file in sorted(directory.glob("*.yaml")):
             raw: Any = _yaml.load(yaml_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
-                raise ValueError(
-                    f"Expected a YAML mapping in {yaml_file}; got {type(raw).__name__}"
-                )
+                raise ValueError(f"Expected a YAML mapping in {yaml_file}; got {type(raw).__name__}")
             payload = _inject_projected_fields(raw, mission_type_id=yaml_file.stem)
             mission_type = MissionType.model_validate(payload)
             expected_id = yaml_file.stem
             if mission_type.id != expected_id:
                 raise ValueError(
-                    f"MissionType id {mission_type.id!r} in {yaml_file.name} "
-                    f"does not match filename stem {expected_id!r}. "
-                    "Rename the file or correct the id field."
+                    f"MissionType id {mission_type.id!r} in {yaml_file.name} does not match filename stem {expected_id!r}. Rename the file or correct the id field."
                 )
             index[mission_type.id] = mission_type
 
@@ -260,11 +256,7 @@ def _inject_projected_fields(
     boundary (:func:`charter.activation.mission_type_profiles._resolve_template_set_slot`),
     not from this repository-load-time injection.
     """
-    steps = list(
-        MissionStepRepository.default()
-        .resolve_all_for_mission_type(mission_type_id, pack_context=pack_context)
-        .values()
-    )
+    steps = list(MissionStepRepository.default().resolve_all_for_mission_type(mission_type_id, pack_context=pack_context).values())
 
     projected_sequence = project_action_sequence(steps)
 
@@ -348,9 +340,7 @@ PROJECT_MISSION_TYPES_RELATIVE: tuple[str, ...] = (".kittify", "missions", "miss
 PROJECT_MISSION_TYPES_RELATIVE_TO_KITTYFY_ROOT: tuple[str, ...] = PROJECT_MISSION_TYPES_RELATIVE[1:]
 
 
-def _load_layered_mission_type_file(
-    yaml_file: Path, *, pack_context: _PackContextLike | None = None
-) -> MissionType:
+def _load_layered_mission_type_file(yaml_file: Path, *, pack_context: _PackContextLike | None = None) -> MissionType:
     """Parse and validate one mission-type YAML file for the layered lookup.
 
     Mirrors :meth:`MissionTypeRepository._load`'s per-file logic (the same
@@ -391,23 +381,17 @@ def _load_layered_mission_type_file(
         raise ValueError(f"Malformed YAML in mission-type file {yaml_file}: {exc}") from exc
     if not isinstance(raw, dict):
         raise ValueError(f"Expected a YAML mapping in {yaml_file}; got {type(raw).__name__}")
-    payload = _inject_projected_fields(
-        raw, mission_type_id=yaml_file.stem, pack_context=pack_context
-    )
+    payload = _inject_projected_fields(raw, mission_type_id=yaml_file.stem, pack_context=pack_context)
     mission_type = MissionType.model_validate(payload)
     expected_id = yaml_file.stem
     if mission_type.id != expected_id:
         raise ValueError(
-            f"MissionType id {mission_type.id!r} in {yaml_file.name} "
-            f"does not match filename stem {expected_id!r}. "
-            "Rename the file or correct the id field."
+            f"MissionType id {mission_type.id!r} in {yaml_file.name} does not match filename stem {expected_id!r}. Rename the file or correct the id field."
         )
     return mission_type
 
 
-def scan_mission_types_dir(
-    directory: Path, *, pack_context: _PackContextLike | None = None
-) -> list[MissionType]:
+def scan_mission_types_dir(directory: Path, *, pack_context: _PackContextLike | None = None) -> list[MissionType]:
     """Return every :class:`MissionType` in *directory*, scanned flat/non-recursive (FR-005).
 
     Public (PR-CONTRACT-002, pre-merge squad, mission
@@ -465,13 +449,9 @@ def scan_mission_types_dir(
         # that reason; the "*.yaml" filter below is applied explicitly.
         entries = list(directory.iterdir())
     except OSError as exc:
-        raise ValueError(
-            f"mission-type directory exists but cannot be read: {directory}: {exc}"
-        ) from exc
+        raise ValueError(f"mission-type directory exists but cannot be read: {directory}: {exc}") from exc
     yaml_files = sorted(entry for entry in entries if entry.name.endswith(".yaml"))
-    return [
-        _load_layered_mission_type_file(f, pack_context=pack_context) for f in yaml_files
-    ]
+    return [_load_layered_mission_type_file(f, pack_context=pack_context) for f in yaml_files]
 
 
 @functools.cache

@@ -55,9 +55,7 @@ def _make_feature_dir(tmp_path: Path) -> Path:
         "target_branch": "feat/single-authority-topology-cleanup",
         "created_at": "2026-06-23T00:00:00+00:00",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return feature_dir
 
 

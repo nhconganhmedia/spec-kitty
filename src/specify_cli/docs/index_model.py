@@ -127,18 +127,11 @@ def _quote(value: str) -> str:
 
 
 def _render_anchor(anchor: Anchor) -> str:
-    return (
-        f"{{slug: {_quote(anchor.slug)}, text: {_quote(anchor.text)}, "
-        f"level: {anchor.level}}}"
-    )
+    return f"{{slug: {_quote(anchor.slug)}, text: {_quote(anchor.text)}, level: {anchor.level}}}"
 
 
 def _render_entry(entry: DocsQueryEntry) -> str:
-    anchors_block = (
-        " []"
-        if not entry.anchors
-        else "\n" + "\n".join(f"    - {_render_anchor(a)}" for a in entry.anchors)
-    )
+    anchors_block = " []" if not entry.anchors else "\n" + "\n".join(f"    - {_render_anchor(a)}" for a in entry.anchors)
     return (
         f"  - path: {_quote(entry.path)}\n"
         f"    title: {_quote(entry.title)}\n"
@@ -182,11 +175,7 @@ def _anchor_from_mapping(raw: Mapping[str, Any]) -> Anchor:
 
 def _entry_from_mapping(raw: Mapping[str, Any]) -> DocsQueryEntry:
     raw_anchors = raw.get("anchors") or []
-    anchors = tuple(
-        _anchor_from_mapping(raw_anchor)
-        for raw_anchor in raw_anchors
-        if isinstance(raw_anchor, Mapping)
-    )
+    anchors = tuple(_anchor_from_mapping(raw_anchor) for raw_anchor in raw_anchors if isinstance(raw_anchor, Mapping))
     return DocsQueryEntry(
         path=str(raw.get("path", "")),
         title=str(raw.get("title", "")),
@@ -219,11 +208,7 @@ def parse_index(text: str) -> list[DocsQueryEntry]:
     raw_pages = loaded.get("pages")
     if not isinstance(raw_pages, list):
         return []
-    return [
-        _entry_from_mapping(raw_entry)
-        for raw_entry in raw_pages
-        if isinstance(raw_entry, Mapping)
-    ]
+    return [_entry_from_mapping(raw_entry) for raw_entry in raw_pages if isinstance(raw_entry, Mapping)]
 
 
 # ---------------------------------------------------------------------------
@@ -250,10 +235,7 @@ class IndexDrift:
 
     def summary(self) -> str:
         """One-line human summary of the drift."""
-        return (
-            f"added={len(self.added)} removed={len(self.removed)} "
-            f"changed={len(self.changed)}"
-        )
+        return f"added={len(self.added)} removed={len(self.removed)} changed={len(self.changed)}"
 
 
 def _entry_fingerprint(
@@ -282,8 +264,7 @@ def compare_index(committed: str, regenerated: str) -> IndexDrift:
     changed = sorted(
         path
         for path in set(regenerated_by_path) & set(committed_by_path)
-        if _entry_fingerprint(regenerated_by_path[path])
-        != _entry_fingerprint(committed_by_path[path])
+        if _entry_fingerprint(regenerated_by_path[path]) != _entry_fingerprint(committed_by_path[path])
     )
     return IndexDrift(added=tuple(added), removed=tuple(removed), changed=tuple(changed))
 
@@ -299,10 +280,7 @@ def _matches_term(entry: DocsQueryEntry, normalized_term: str) -> bool:
         return True
     if normalized_term in entry.abstract.lower():
         return True
-    return any(
-        normalized_term in anchor.text.lower() or normalized_term in anchor.slug.lower()
-        for anchor in entry.anchors
-    )
+    return any(normalized_term in anchor.text.lower() or normalized_term in anchor.slug.lower() for anchor in entry.anchors)
 
 
 class DocsIndexStore:
@@ -357,9 +335,7 @@ class DocsIndexStore:
         for entry in self._entries:
             if divio_type is not None and entry.divio_type != divio_type:
                 continue
-            if section is not None and not any(
-                anchor.slug == section for anchor in entry.anchors
-            ):
+            if section is not None and not any(anchor.slug == section for anchor in entry.anchors):
                 continue
             if _matches_term(entry, normalized):
                 results.append(entry)

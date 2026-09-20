@@ -54,6 +54,4 @@ def test_absent_documentation_policy_emits_no_directive_line() -> None:
 
     # Assert
     assert SENTINEL_RISK in markdown, "surrounding directives must still render"
-    assert "Keep documentation synchronized" not in markdown, (
-        "no documentation directive line when documentation_policy is absent"
-    )
+    assert "Keep documentation synchronized" not in markdown, "no documentation directive line when documentation_policy is absent"

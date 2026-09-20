@@ -43,33 +43,22 @@ def test_all_providers_registered() -> None:
     registrations = SurfaceProviderRegistry._registrations
 
     assert len(registrations) == EXPECTED_PROVIDER_COUNT, (
-        f"Expected {EXPECTED_PROVIDER_COUNT} provider registrations, "
-        f"found {len(registrations)}: "
-        f"{sorted(r.provider_class.__name__ for r in registrations)}"
+        f"Expected {EXPECTED_PROVIDER_COUNT} provider registrations, found {len(registrations)}: {sorted(r.provider_class.__name__ for r in registrations)}"
     )
 
     # Each registration maps to a distinct provider class.
     classes = {reg.provider_class for reg in registrations}
-    assert len(classes) == EXPECTED_PROVIDER_COUNT, (
-        "Duplicate provider classes registered: "
-        f"{sorted(c.__name__ for c in classes)}"
-    )
+    assert len(classes) == EXPECTED_PROVIDER_COUNT, f"Duplicate provider classes registered: {sorted(c.__name__ for c in classes)}"
 
     for reg in registrations:
-        assert len(reg.definitions) >= 1, (
-            f"{reg.provider_class.__name__} registered with no definitions"
-        )
-        assert len(reg.kind_tokens) >= 1, (
-            f"{reg.provider_class.__name__} registered with no kind_tokens"
-        )
+        assert len(reg.definitions) >= 1, f"{reg.provider_class.__name__} registered with no definitions"
+        assert len(reg.kind_tokens) >= 1, f"{reg.provider_class.__name__} registered with no kind_tokens"
 
 
 def test_registration_orders_are_unique() -> None:
     """Order values must be unique so provider sequencing is deterministic."""
     orders = [reg.order for reg in SurfaceProviderRegistry._registrations]
-    assert len(orders) == len(set(orders)), (
-        f"Duplicate registration order values detected: {sorted(orders)}"
-    )
+    assert len(orders) == len(set(orders)), f"Duplicate registration order values detected: {sorted(orders)}"
 
 
 def _service_source() -> str:
@@ -92,11 +81,7 @@ def _list_with_provider_calls(node: ast.AST) -> ast.List | None:
         if not isinstance(child, ast.List) or not child.elts:
             continue
         for elt in child.elts:
-            if (
-                isinstance(elt, ast.Call)
-                and isinstance(elt.func, ast.Name)
-                and elt.func.id.endswith("Provider")
-            ):
+            if isinstance(elt, ast.Call) and isinstance(elt.func, ast.Name) and elt.func.id.endswith("Provider"):
                 return child
     return None
 
@@ -106,21 +91,14 @@ def test_service_py_has_no_central_provider_literals() -> None:
     tree = ast.parse(_service_source())
 
     build_providers = next(
-        (
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.FunctionDef) and node.name == "build_providers"
-        ),
+        (node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "build_providers"),
         None,
     )
     assert build_providers is not None, (
-        "service.py no longer defines build_providers(); update this conformance "
-        "test if the delegation surface was intentionally renamed."
+        "service.py no longer defines build_providers(); update this conformance test if the delegation surface was intentionally renamed."
     )
 
     offending = _list_with_provider_calls(build_providers)
     assert offending is None, (
-        "service.py build_providers() contains a central provider list literal "
-        f"(line {offending.lineno}) — registry self-registration not used "
-        "(Directive-030)."
+        f"service.py build_providers() contains a central provider list literal (line {offending.lineno}) — registry self-registration not used (Directive-030)."
     )

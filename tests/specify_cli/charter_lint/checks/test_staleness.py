@@ -21,6 +21,7 @@ from specify_cli.charter_runtime.lint.checks.staleness import StalenessChecker
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _utc_days_ago(days: int) -> str:
     """Return an ISO-8601 UTC string for *days* ago."""
     dt = now_utc() - timedelta(days=days)

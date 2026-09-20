@@ -44,9 +44,7 @@ __all__ = ["ClaimablePreview", "preview_claimable_wp"]
 # Lanes whose WPs are still moving through the implement → review → approve
 # pipeline. Used to distinguish "all candidates are active but not claimable"
 # from "all candidates are terminal/blocked" when computing selection_reason.
-_ACTIVE_NON_PLANNED_LANES: frozenset[Lane] = frozenset(
-    {Lane.CLAIMED, Lane.IN_PROGRESS, Lane.FOR_REVIEW, Lane.IN_REVIEW}
-)
+_ACTIVE_NON_PLANNED_LANES: frozenset[Lane] = frozenset({Lane.CLAIMED, Lane.IN_PROGRESS, Lane.FOR_REVIEW, Lane.IN_REVIEW})
 
 
 @dataclass(frozen=True)

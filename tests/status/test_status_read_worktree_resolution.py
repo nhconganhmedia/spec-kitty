@@ -32,6 +32,7 @@ pytestmark = pytest.mark.git_repo
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _init_git_repo(path: Path) -> None:
     """Initialise a minimal git repository at *path* with an initial commit."""
     subprocess.run(["git", "init", str(path)], check=True, capture_output=True)
@@ -57,9 +58,7 @@ def _write_events(feature_dir: Path, events_json: list[dict]) -> None:
     """Write a status.events.jsonl file in *feature_dir*."""
     feature_dir.mkdir(parents=True, exist_ok=True)
     events_file = feature_dir / "status.events.jsonl"
-    events_file.write_text(
-        "\n".join(json.dumps(e, sort_keys=True) for e in events_json) + "\n"
-    )
+    events_file.write_text("\n".join(json.dumps(e, sort_keys=True) for e in events_json) + "\n")
 
 
 def _make_event(wp_id: str, to_lane: str, mission_slug: str = "test-mission") -> dict:
@@ -83,6 +82,7 @@ def _make_event(wp_id: str, to_lane: str, mission_slug: str = "test-mission") ->
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def two_worktree_setup(tmp_path: Path) -> dict:
@@ -124,11 +124,13 @@ def two_worktree_setup(tmp_path: Path) -> dict:
     # Commit the events in the main repo so the worktree can see them via git
     subprocess.run(
         ["git", "-C", str(main), "add", "-A"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "-C", str(main), "commit", "-m", "add test mission events"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
 
     return {
@@ -145,6 +147,7 @@ def two_worktree_setup(tmp_path: Path) -> dict:
 # ---------------------------------------------------------------------------
 # T028: get_status_read_root() unit tests
 # ---------------------------------------------------------------------------
+
 
 class TestGetStatusReadRoot:
     """Unit tests for the get_status_read_root() helper (FR-013, FR-014)."""
@@ -199,6 +202,7 @@ class TestGetStatusReadRoot:
 # T030: assert_worktree_supported() unit tests
 # ---------------------------------------------------------------------------
 
+
 class TestAssertWorktreeSupported:
     """Unit tests for the fail-loud helper (T030)."""
 
@@ -226,6 +230,7 @@ class TestAssertWorktreeSupported:
 # T031: Regression — divergent event logs per worktree
 # ---------------------------------------------------------------------------
 
+
 class TestWorktreeEventLogIsolation:
     """Regression tests for #984: status reads must be worktree-local.
 
@@ -235,9 +240,7 @@ class TestWorktreeEventLogIsolation:
     checkout's).
     """
 
-    def test_status_read_from_main_repo_reads_main_events(
-        self, two_worktree_setup: dict
-    ) -> None:
+    def test_status_read_from_main_repo_reads_main_events(self, two_worktree_setup: dict) -> None:
         """get_status_read_root() from main → events from main's feature dir."""
         from specify_cli.status.store import read_events
 
@@ -250,14 +253,9 @@ class TestWorktreeEventLogIsolation:
         events = read_events(feature_dir)
 
         assert len(events) == 1, f"Expected 1 event from main, got: {events}"
-        assert events[0].to_lane.value == expected_lane, (
-            f"Main repo event should have to_lane='{expected_lane}', "
-            f"got: {events[0].to_lane}"
-        )
+        assert events[0].to_lane.value == expected_lane, f"Main repo event should have to_lane='{expected_lane}', got: {events[0].to_lane}"
 
-    def test_status_read_from_worktree_reads_worktree_events(
-        self, two_worktree_setup: dict
-    ) -> None:
+    def test_status_read_from_worktree_reads_worktree_events(self, two_worktree_setup: dict) -> None:
         """get_status_read_root() from worktree → events from worktree's feature dir.
 
         This is the core regression test for #984: when running from a detached
@@ -277,8 +275,7 @@ class TestWorktreeEventLogIsolation:
         # This is the fix: get_status_read_root returns the worktree root, not main.
         read_root = get_status_read_root(worktree)
         assert read_root == worktree.resolve(), (
-            f"Expected read root to be the worktree ({worktree.resolve()}), "
-            f"got {read_root}. This would indicate the fix has been reverted."
+            f"Expected read root to be the worktree ({worktree.resolve()}), got {read_root}. This would indicate the fix has been reverted."
         )
 
         feature_dir = read_root / "kitty-specs" / mission_slug
@@ -286,14 +283,10 @@ class TestWorktreeEventLogIsolation:
 
         assert len(events) == 1, f"Expected 1 event from worktree, got: {events}"
         assert events[0].to_lane.value == expected_lane, (
-            f"Worktree event should have to_lane='{expected_lane}', "
-            f"got: {events[0].to_lane}. "
-            f"If this is 'done', the fix has been reverted and #984 is back."
+            f"Worktree event should have to_lane='{expected_lane}', got: {events[0].to_lane}. If this is 'done', the fix has been reverted and #984 is back."
         )
 
-    def test_regression_guard_revert_would_fail(
-        self, two_worktree_setup: dict
-    ) -> None:
+    def test_regression_guard_revert_would_fail(self, two_worktree_setup: dict) -> None:
         """Demonstrates that using get_main_repo_root() from a worktree reads the WRONG events.
 
         This test documents the pre-fix behaviour: if you replace
@@ -318,6 +311,4 @@ class TestWorktreeEventLogIsolation:
 
         # Without the fix: main repo's events are "done" (wrong when in worktree)
         assert len(events) == 1
-        assert events[0].to_lane.value == "done", (
-            "The main repo event log has changed. The regression guard needs updating."
-        )
+        assert events[0].to_lane.value == "done", "The main repo event log has changed. The regression guard needs updating."

@@ -93,10 +93,8 @@ NO_COMPILE_HELP = (
 #: scope-narrowing case -- see the exact trigger condition in
 #: `_render_cascade_activation` below).
 CASCADE_ZERO_ACTIVATABLE_TARGETS_MESSAGE = (
-    "[yellow]Cascade resolved zero activatable targets[/yellow] "
-    "(every referenced node was kind-filtered; see the lines above)."
+    "[yellow]Cascade resolved zero activatable targets[/yellow] (every referenced node was kind-filtered; see the lines above)."
 )
-
 
 
 def render_pack_config_error(exc: CharterPackConfigError, console: Console) -> None:
@@ -180,9 +178,7 @@ def _emit_step_removal_warnings(kind: str, artifact_id: str, repo_root: Path) ->
             resolve_mission_type_context,
         )
 
-        current_seq: list[str] = resolve_mission_type_context(
-            repo_root, mission_type=artifact_id
-        ).action_sequence
+        current_seq: list[str] = resolve_mission_type_context(repo_root, mission_type=artifact_id).action_sequence
     except UnknownMissionTypeError:
         # FR-009: not yet activated (or no resolvable profile) -- there is no
         # previous state to compare against, so "no steps were removed" is
@@ -255,11 +251,7 @@ def _activate_cascade_target(
     multi-candidate "none of them worked" diagnostic, never the control
     flow or the success path.
     """
-    candidate_layer_roots: list[dict[str, Path] | None] = (
-        [{**(layer_roots or {}), "org": root} for root in org_roots]
-        if org_roots
-        else [layer_roots]
-    )
+    candidate_layer_roots: list[dict[str, Path] | None] = [{**(layer_roots or {}), "org": root} for root in org_roots] if org_roots else [layer_roots]
     failures: list[ValueError] = []
     for candidate in candidate_layer_roots:
         try:
@@ -276,10 +268,7 @@ def _activate_cascade_target(
     if len(failures) == 1:
         raise failures[-1]
     joined = "; ".join(f"org root {i + 1}/{len(failures)}: {exc}" for i, exc in enumerate(failures))
-    raise ValueError(
-        f"No candidate org root could activate {kind_token}:{config_id} "
-        f"({len(failures)} candidates tried): {joined}"
-    ) from failures[-1]
+    raise ValueError(f"No candidate org root could activate {kind_token}:{config_id} ({len(failures)} candidates tried): {joined}") from failures[-1]
 
 
 def _render_cascade_activation(
@@ -321,32 +310,19 @@ def _render_cascade_activation(
         for cascade_drg_id in result.activated[kind_value]:
             # The cascade engine reports DRG bare IDs; activation lists use
             # config-stem IDs. Resolve back through the kind-vocabulary bridge.
-            config_id = drg_urn_to_config_id(
-                f"{kind_value}:{cascade_drg_id}", doctrine_root, layer_roots, org_roots
-            )
+            config_id = drg_urn_to_config_id(f"{kind_value}:{cascade_drg_id}", doctrine_root, layer_roots, org_roots)
             try:
-                _activate_cascade_target(
-                    manager, ctx_project, kind_token, config_id, layer_roots, org_roots
-                )
+                _activate_cascade_target(manager, ctx_project, kind_token, config_id, layer_roots, org_roots)
             except ValueError as exc:
-                console.print(
-                    f"[yellow]Warning[/yellow]: could not cascade-activate "
-                    f"{kind_token}/{config_id}: {exc}"
-                )
+                console.print(f"[yellow]Warning[/yellow]: could not cascade-activate {kind_token}/{config_id}: {exc}")
                 continue
-            console.print(
-                f"[cyan]Cascade-activated[/cyan]: {kind_token}/{config_id}"
-            )
+            console.print(f"[cyan]Cascade-activated[/cyan]: {kind_token}/{config_id}")
 
     for kind_value in sorted(result.skipped_by_scope):
         kind_token = ArtifactKind(kind_value).operator_token
         for skipped_id in result.skipped_by_scope[kind_value]:
-            config_id = drg_urn_to_config_id(
-                f"{kind_value}:{skipped_id}", doctrine_root, layer_roots, org_roots
-            )
-            console.print(
-                f"[dim]Skipped (out of scope)[/dim]: {kind_token}/{config_id}"
-            )
+            config_id = drg_urn_to_config_id(f"{kind_value}:{skipped_id}", doctrine_root, layer_roots, org_roots)
+            console.print(f"[dim]Skipped (out of scope)[/dim]: {kind_token}/{config_id}")
 
     # FR-003/FR-008 (issue #3705): render the kind-filtered nodes WP01's
     # shared `_referenced_artifacts` seam collected instead of silently
@@ -358,9 +334,7 @@ def _render_cascade_activation(
     for kind_value in sorted(result.not_cascaded_kind_filtered):
         kind_token = ArtifactKind(kind_value).operator_token
         for filtered_id in result.not_cascaded_kind_filtered[kind_value]:
-            config_id = drg_urn_to_config_id(
-                f"{kind_value}:{filtered_id}", doctrine_root, layer_roots, org_roots
-            )
+            config_id = drg_urn_to_config_id(f"{kind_value}:{filtered_id}", doctrine_root, layer_roots, org_roots)
             render_kind_filtered_line(kind_token, config_id)
 
     # FR-004: fires ONLY when the cascade resolved zero activatable targets
@@ -374,11 +348,7 @@ def _render_cascade_activation(
     # and the "every referenced node was kind-filtered" summary would be a
     # falsehood the moment a scope-skipped node exists. Deliberately NOT the
     # broader "zero landed in `activated`" condition.
-    if (
-        not result.activated
-        and not result.skipped_by_scope
-        and result.not_cascaded_kind_filtered
-    ):
+    if not result.activated and not result.skipped_by_scope and result.not_cascaded_kind_filtered:
         console.print(CASCADE_ZERO_ACTIVATABLE_TARGETS_MESSAGE)
 
 
@@ -451,13 +421,8 @@ def _render_no_cascade_warning(
     for kind_value in sorted(report.skipped):
         kind_token = ArtifactKind(kind_value).operator_token
         for skipped_drg_id in report.skipped[kind_value]:
-            config_id = drg_urn_to_config_id(
-                f"{kind_value}:{skipped_drg_id}", doctrine_root, layer_roots, org_roots
-            )
-            console.print(
-                f"[yellow]Warning[/yellow]: referenced {kind_token}/{config_id} "
-                f"was not activated (no --cascade)."
-            )
+            config_id = drg_urn_to_config_id(f"{kind_value}:{skipped_drg_id}", doctrine_root, layer_roots, org_roots)
+            console.print(f"[yellow]Warning[/yellow]: referenced {kind_token}/{config_id} was not activated (no --cascade).")
     # FR-005a: gated on `report.skipped` specifically (not the broader
     # `has_skipped`) -- `recovery_hint` literally says "to activate the
     # referenced artifacts", which is only true of `skipped` entries.
@@ -483,9 +448,7 @@ def _render_no_cascade_warning(
     for kind_value in sorted(report.not_cascaded_kind_filtered):
         kind_token = ArtifactKind(kind_value).operator_token
         for filtered_id in report.not_cascaded_kind_filtered[kind_value]:
-            config_id = drg_urn_to_config_id(
-                f"{kind_value}:{filtered_id}", doctrine_root, layer_roots, org_roots
-            )
+            config_id = drg_urn_to_config_id(f"{kind_value}:{filtered_id}", doctrine_root, layer_roots, org_roots)
             render_kind_filtered_line(kind_token, config_id)
 
 
@@ -876,9 +839,7 @@ def activate_cmd(
         if scope is None:
             _render_no_cascade_warning(source_urn, repo_root, layer_roots)
         else:
-            _render_cascade_activation(
-                manager, ctx_project, source_urn, scope, repo_root, layer_roots
-            )
+            _render_cascade_activation(manager, ctx_project, source_urn, scope, repo_root, layer_roots)
 
     # FR-001/FR-003/FR-007: default catalog recompile keeps activation
     # coherent-by-construction (issue #4785 Finding 1) -- runs AFTER cascade

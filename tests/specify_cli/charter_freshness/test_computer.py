@@ -89,11 +89,7 @@ def _seed_manifest(
 ) -> Path:
     manifest_path = repo / ".kittify" / "charter" / "synthesis-manifest.yaml"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    hash_line = (
-        f"bundle_content_hash: {bundle_content_hash}\n"
-        if bundle_content_hash is not None
-        else "bundle_content_hash: null\n"
-    )
+    hash_line = f"bundle_content_hash: {bundle_content_hash}\n" if bundle_content_hash is not None else "bundle_content_hash: null\n"
     manifest_path.write_text(
         dedent(
             f"""\
@@ -283,10 +279,7 @@ def test_charter_source_missing_when_charter_yaml_absent(tmp_path: Path) -> None
     # WP02 file — narrow, consequence-of-computer.py-change only): F1 ("no
     # charter at all") must be distinguishable from F2 (legacy bundle
     # present, no charter.yaml) even though both report state="missing".
-    assert result.charter_source.detail == (
-        "no charter.yaml and no legacy charter bundle files; this project "
-        "has no charter at all"
-    )
+    assert result.charter_source.detail == ("no charter.yaml and no legacy charter bundle files; this project has no charter at all")
     assert result.synced_bundle.detail == result.charter_source.detail
 
 
@@ -350,14 +343,9 @@ def test_charter_source_missing_detail_names_charter_md_for_the_2831_shape(
     detail = result.charter_source.detail
     assert detail is not None
     assert "no charter at all" not in detail, (
-        "charter.md is present — telling the operator they have no charter is the "
-        "diagnostic-vs-reality contradiction #2831 reported"
+        "charter.md is present — telling the operator they have no charter is the diagnostic-vs-reality contradiction #2831 reported"
     )
-    assert detail == (
-        "no charter.yaml, but a legacy charter bundle file (charter.md) "
-        "is present; this project has a charter, just not in the "
-        "required form"
-    )
+    assert detail == ("no charter.yaml, but a legacy charter bundle file (charter.md) is present; this project has a charter, just not in the required form")
     # The exit stays open: naming the shape correctly must not cost the operator
     # the remediation that provably clears it.
     assert result.charter_source.remediation == "spec-kitty charter generate --no-from-interview"
@@ -386,10 +374,7 @@ def test_charter_source_missing_detail_true_for_single_stray_legacy_file(
     assert result.charter_source.state == "missing"
     detail = result.charter_source.detail
     assert detail is not None
-    assert detail == (
-        "no charter.yaml, but a legacy charter bundle file (references.yaml) "
-        "is present; this project has a charter, just not in the required form"
-    )
+    assert detail == ("no charter.yaml, but a legacy charter bundle file (references.yaml) is present; this project has a charter, just not in the required form")
     # The three files NOT on disk must not be named as present.
     for absent_name in ("governance.yaml", "directives.yaml", "metadata.yaml"):
         assert absent_name not in detail
@@ -411,9 +396,7 @@ def test_charter_source_missing_detail_true_for_two_of_four_legacy_files(
     detail = result.charter_source.detail
     assert detail is not None
     assert detail == (
-        "no charter.yaml, but legacy charter bundle files "
-        "(directives.yaml/references.yaml) are present; this project has a "
-        "charter, just not in the required form"
+        "no charter.yaml, but legacy charter bundle files (directives.yaml/references.yaml) are present; this project has a charter, just not in the required form"
     )
     for absent_name in ("governance.yaml", "metadata.yaml"):
         assert absent_name not in detail
@@ -481,9 +464,7 @@ def test_charter_source_invalid_when_empty_mapping(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("schema_version", ["1.0.0", "3.0.0", "not-a-version"])
-def test_charter_source_invalid_when_schema_version_unsupported(
-    tmp_path: Path, schema_version: str
-) -> None:
+def test_charter_source_invalid_when_schema_version_unsupported(tmp_path: Path, schema_version: str) -> None:
     """H5 (#2831 HIGH finding): a ``schema_version`` this build's bundle
     contract does not understand (a pre-inversion ``1.0.0`` shape, a
     hypothetical future major, or a non-semver string) parses cleanly but
@@ -579,8 +560,7 @@ def test_synthesized_drg_built_in_only_for_legacy_fresh_seed(tmp_path: Path) -> 
     provenance = tmp_path / ".kittify" / "doctrine" / "PROVENANCE.md"
     provenance.parent.mkdir(parents=True, exist_ok=True)
     provenance.write_text(
-        "# Spec Kitty Doctrine — Fresh Project Seed\n\n"
-        "No LLM-authored YAML was present; using built-in doctrine.\n",
+        "# Spec Kitty Doctrine — Fresh Project Seed\n\nNo LLM-authored YAML was present; using built-in doctrine.\n",
         encoding="utf-8",
     )
 
@@ -713,9 +693,7 @@ def test_synthesized_drg_stale_when_bundle_content_genuinely_changed(tmp_path: P
     # Genuinely edit bundle CONTENT (not just mtime) without re-seeding the
     # manifest's stored hash.
     charter_yaml_path = tmp_path / ".kittify" / "charter" / "charter.yaml"
-    charter_yaml_path.write_text(
-        charter_yaml_path.read_text(encoding="utf-8") + "# drift-marker\n", encoding="utf-8"
-    )
+    charter_yaml_path.write_text(charter_yaml_path.read_text(encoding="utf-8") + "# drift-marker\n", encoding="utf-8")
 
     result = compute_freshness(tmp_path)
 
@@ -789,17 +767,13 @@ def test_synthesized_drg_remediation_clears_genuine_content_change(tmp_path: Pat
     assert compute_freshness(tmp_path).synthesized_drg.state == "fresh"
 
     charter_yaml_path = tmp_path / ".kittify" / "charter" / "charter.yaml"
-    charter_yaml_path.write_text(
-        charter_yaml_path.read_text(encoding="utf-8") + "# drift-marker\n", encoding="utf-8"
-    )
+    charter_yaml_path.write_text(charter_yaml_path.read_text(encoding="utf-8") + "# drift-marker\n", encoding="utf-8")
     assert compute_freshness(tmp_path).synthesized_drg.state == "stale"
 
     synthesize(_base_synthesis_request("01HHHHHHHHHHHHHHHHHHHHHHHH"), adapter=adapter, repo_root=tmp_path)
     assert compute_freshness(tmp_path).synthesized_drg.state == "fresh"
 
-    charter_yaml_path.write_text(
-        charter_yaml_path.read_text(encoding="utf-8") + "# drift-marker-2\n", encoding="utf-8"
-    )
+    charter_yaml_path.write_text(charter_yaml_path.read_text(encoding="utf-8") + "# drift-marker-2\n", encoding="utf-8")
     assert compute_freshness(tmp_path).synthesized_drg.state == "stale"
 
     resynthesize_run(
@@ -874,9 +848,7 @@ def test_states_are_among_documented_vocabulary(scenario: str, tmp_path: Path) -
 # ---------------------------------------------------------------------------
 
 
-def test_compute_freshness_spawns_zero_subprocesses(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_compute_freshness_spawns_zero_subprocesses(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """NFR-002: a default ``compute_freshness`` read must not spawn any
     synthesis/regenerate subprocess. ``compute_freshness`` is a pure
     observer (module docstring) -- it reads ``charter.yaml``, the synthesis

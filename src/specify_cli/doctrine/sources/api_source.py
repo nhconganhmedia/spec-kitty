@@ -40,10 +40,8 @@ def _validate_server_filename(filename: str) -> None:
     as defence-in-depth.
     """
     if not _SAFE_FILENAME.fullmatch(filename):
-        raise ValueError(
-            f"Refusing unsafe artifact filename from server: {filename!r}. "
-            "Filenames must match ^[A-Za-z0-9._-]+$."
-        )
+        raise ValueError(f"Refusing unsafe artifact filename from server: {filename!r}. Filenames must match ^[A-Za-z0-9._-]+$.")
+
 
 # Default artifact type list used when /artifact-types is unavailable (404).
 DEFAULT_ARTIFACT_TYPES: tuple[str, ...] = (
@@ -96,9 +94,7 @@ class ApiSource:
                     ok=False,
                     artifacts_written=0,
                     pack_version=None,
-                    errors=[
-                        f"GET /artifact-types failed: {types_response.status_code}"
-                    ],
+                    errors=[f"GET /artifact-types failed: {types_response.status_code}"],
                 )
             try:
                 payload = types_response.json() or {}
@@ -140,9 +136,7 @@ class ApiSource:
     # ------------------------------------------------------------------
     # Endpoint helpers
     # ------------------------------------------------------------------
-    def _fetch_artifact_type(
-        self, target_dir: Path, artifact_type: str
-    ) -> tuple[int, str | None]:
+    def _fetch_artifact_type(self, target_dir: Path, artifact_type: str) -> tuple[int, str | None]:
         response = self._request("GET", f"/artifacts/{artifact_type}")
         if isinstance(response, _RequestError):
             return 0, response.message
@@ -154,9 +148,7 @@ class ApiSource:
         if credential_error:
             return 0, credential_error.errors[0]
         if response.status_code >= 400:
-            return 0, (
-                f"GET /artifacts/{artifact_type} failed: {response.status_code}"
-            )
+            return 0, (f"GET /artifacts/{artifact_type} failed: {response.status_code}")
 
         try:
             payload = response.json() or {}
@@ -241,9 +233,7 @@ class ApiSource:
     # ------------------------------------------------------------------
     # Transport
     # ------------------------------------------------------------------
-    def _request(
-        self, method: str, path: str
-    ) -> requests.Response | _RequestError:
+    def _request(self, method: str, path: str) -> requests.Response | _RequestError:
         endpoint = f"{self.url.rstrip('/')}{path}"
         try:
             response = requests.request(
@@ -266,9 +256,7 @@ class ApiSource:
                     timeout=30,
                 )
             except requests.RequestException as exc:
-                return _RequestError(
-                    f"Network error on 429-retry for {endpoint}: {exc}"
-                )
+                return _RequestError(f"Network error on 429-retry for {endpoint}: {exc}")
         return response
 
     def _headers(self) -> dict[str, str]:
@@ -303,11 +291,7 @@ def _credential_error(response: requests.Response) -> FetchResult | None:
             ok=False,
             artifacts_written=0,
             pack_version=None,
-            errors=[
-                "Authentication failed against the doctrine API. Set"
-                " SPEC_KITTY_ORG_TOKEN (or SPEC_KITTY_ORG_AUTH_HEADER for"
-                " custom auth schemes) and retry."
-            ],
+            errors=["Authentication failed against the doctrine API. Set SPEC_KITTY_ORG_TOKEN (or SPEC_KITTY_ORG_AUTH_HEADER for custom auth schemes) and retry."],
         )
     return None
 

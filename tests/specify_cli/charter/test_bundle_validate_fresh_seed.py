@@ -15,6 +15,7 @@ seeded ``built_in_only: true`` manifest caused ``validate_synthesis_state()``
 to find provenance files, skip the original early-exit, and then fail because
 those sidecars had no corresponding doctrine artifact.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -109,12 +110,8 @@ def test_fresh_seed_manifest_no_sidecars_passes(tmp_path: Path) -> None:
 
     result = validate_synthesis_state(tmp_path)
 
-    assert result.synthesis_state_present is True, (
-        "synthesis_state_present must be True when the manifest exists"
-    )
-    assert result.errors == [], (
-        f"No errors expected for fresh-seed state; got: {result.errors}"
-    )
+    assert result.synthesis_state_present is True, "synthesis_state_present must be True when the manifest exists"
+    assert result.errors == [], f"No errors expected for fresh-seed state; got: {result.errors}"
 
 
 def test_fresh_seed_manifest_with_stale_sidecars_passes(tmp_path: Path) -> None:
@@ -137,19 +134,12 @@ def test_fresh_seed_manifest_with_stale_sidecars_passes(tmp_path: Path) -> None:
     _write_stale_fixture_sidecar(tmp_path, "tactic", "testing-philosophy-tactic")
 
     # No .kittify/doctrine/ artifacts exist — the sidecars are orphaned.
-    assert not (tmp_path / ".kittify" / "doctrine").exists(), (
-        "Precondition: no doctrine artifacts exist"
-    )
+    assert not (tmp_path / ".kittify" / "doctrine").exists(), "Precondition: no doctrine artifacts exist"
 
     result = validate_synthesis_state(tmp_path)
 
-    assert result.synthesis_state_present is True, (
-        "synthesis_state_present must be True when the manifest exists"
-    )
-    assert result.errors == [], (
-        f"Early-exit must suppress stale-sidecar errors for built_in_only manifest; "
-        f"got: {result.errors}"
-    )
+    assert result.synthesis_state_present is True, "synthesis_state_present must be True when the manifest exists"
+    assert result.errors == [], f"Early-exit must suppress stale-sidecar errors for built_in_only manifest; got: {result.errors}"
 
 
 def test_manifest_with_real_artifacts_gets_full_validation(tmp_path: Path) -> None:
@@ -208,6 +198,4 @@ def test_manifest_with_real_artifacts_gets_full_validation(tmp_path: Path) -> No
 
     # Full validation runs and produces errors because the listed artifact is absent.
     assert result.synthesis_state_present is True
-    assert result.errors, (
-        "Errors expected: manifest lists an artifact that does not exist on disk"
-    )
+    assert result.errors, "Errors expected: manifest lists an artifact that does not exist on disk"

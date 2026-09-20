@@ -386,9 +386,7 @@ class TestCharterActivateCLI:
         # Step removal warning emitted for in-flight WPs.
         assert "review" in result.output
 
-    def test_activate_mission_type_surfaces_resolution_failure_not_silenced(
-        self, tmp_path: Path
-    ) -> None:
+    def test_activate_mission_type_surfaces_resolution_failure_not_silenced(self, tmp_path: Path) -> None:
         """FR-009 edge case (spec.md Edge Cases): a previous action_sequence
         resolution failure (WP06's ``MissionTypeEmptyActionSequenceError``)
         MUST surface, not be silently folded into "no steps were removed"
@@ -421,7 +419,6 @@ class TestCharterActivateCLI:
 
         assert result.exit_code == 1, result.output
         assert isinstance(result.exception, SystemExit), (
-            f"expected a clean typer.Exit(1) (SystemExit), got a raw "
-            f"{type(result.exception).__name__}: {result.exception!r}"
+            f"expected a clean typer.Exit(1) (SystemExit), got a raw {type(result.exception).__name__}: {result.exception!r}"
         )
         assert "qa" in result.output and "org" in result.output, result.output

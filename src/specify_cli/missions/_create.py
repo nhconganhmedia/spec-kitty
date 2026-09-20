@@ -65,9 +65,7 @@ __all__ = [
 #: The two coordination-bearing cells of the orthogonal coordination × lanes
 #: grid. A mission in either shape gets a per-mission coordination branch at
 #: creation; the branch-flat shapes (``SINGLE_BRANCH`` / ``LANES``) do not.
-_COORDINATION_BEARING_TOPOLOGIES: frozenset[MissionTopology] = frozenset(
-    {MissionTopology.COORD, MissionTopology.LANES_WITH_COORD}
-)
+_COORDINATION_BEARING_TOPOLOGIES: frozenset[MissionTopology] = frozenset({MissionTopology.COORD, MissionTopology.LANES_WITH_COORD})
 
 
 def topology_mints_coordination_branch(topology: MissionTopology) -> bool:
@@ -112,10 +110,7 @@ class CoordinationBranchDiverged(RuntimeError):
             f"or re-run mission create with --force-recreate-coordination-branch "
             f"to reset the branch to the target."
         )
-        super().__init__(
-            f"Coordination branch '{coordination_branch}' has diverged from "
-            f"target '{target_branch}'. {self.next_step}"
-        )
+        super().__init__(f"Coordination branch '{coordination_branch}' has diverged from target '{target_branch}'. {self.next_step}")
 
     def to_dict(self) -> dict[str, str]:
         """Return a JSON-serialisable representation for structured CLI output."""
@@ -242,9 +237,7 @@ def ensure_coordination_branch(
     if existing and force_recreate:
         _delete_branch(repo_root, branch)
         _create_branch(repo_root, branch, target_branch)
-        return CoordinationBranchResult(
-            branch_name=branch, created=True, force_recreated=True
-        )
+        return CoordinationBranchResult(branch_name=branch, created=True, force_recreated=True)
 
     if existing:
         if _is_ancestor(repo_root, branch, target_branch):
@@ -302,10 +295,7 @@ def _create_branch(repo_root: Path, branch: str, parent: str) -> None:
         check=False,
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"Failed to create coordination branch '{branch}' off '{parent}': "
-            f"{result.stderr.strip() or result.stdout.strip()}"
-        )
+        raise RuntimeError(f"Failed to create coordination branch '{branch}' off '{parent}': {result.stderr.strip() or result.stdout.strip()}")
 
 
 def _delete_branch(repo_root: Path, branch: str) -> None:
@@ -317,7 +307,4 @@ def _delete_branch(repo_root: Path, branch: str) -> None:
         check=False,
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"Failed to delete coordination branch '{branch}': "
-            f"{result.stderr.strip() or result.stdout.strip()}"
-        )
+        raise RuntimeError(f"Failed to delete coordination branch '{branch}': {result.stderr.strip() or result.stdout.strip()}")

@@ -112,9 +112,7 @@ def _seed_mission(root: Path) -> Path:
         ),
         encoding="utf-8",
     )
-    (mission / "status.events.jsonl").write_text(
-        "".join(json.dumps(row) + "\n" for row in _lane_rows()), encoding="utf-8"
-    )
+    (mission / "status.events.jsonl").write_text("".join(json.dumps(row) + "\n" for row in _lane_rows()), encoding="utf-8")
     # Frozen / stale snapshot — the drift the audit flags. WP02 is already
     # correctly "planned" here (it never advances); only WP01 is stale.
     (mission / "status.json").write_text(
@@ -160,17 +158,13 @@ def test_repair_from_worktree_materializes_primary_status_json(tmp_path: Path) -
     primary_mission, coord = _make_primary_with_coord_worktree(tmp_path)
 
     before = classify_status_json(primary_mission)
-    assert any(f.code == "SNAPSHOT_DRIFT" for f in before), (
-        "fixture must start with the drift the issue describes"
-    )
+    assert any(f.code == "SNAPSHOT_DRIFT" for f in before), "fixture must start with the drift the issue describes"
 
     # Invoke exactly as a CWD-inside-a-worktree run resolves the root.
     repair_repo(coord, allow_dirty=True)
 
     after = classify_status_json(primary_mission)
-    assert not any(f.code == "SNAPSHOT_DRIFT" for f in after), (
-        f"repair must re-materialize the PRIMARY status.json; residual findings: {after}"
-    )
+    assert not any(f.code == "SNAPSHOT_DRIFT" for f in after), f"repair must re-materialize the PRIMARY status.json; residual findings: {after}"
     summary = json.loads((primary_mission / "status.json").read_text(encoding="utf-8"))["summary"]
     assert summary["done"] == 1
     assert summary["planned"] == 1
@@ -191,9 +185,7 @@ def test_repair_from_worktree_leaves_coord_worktree_clean(tmp_path: Path) -> Non
         capture_output=True,
         text=True,
     ).stdout
-    assert porcelain.strip() == "", (
-        f"repair must not dirty the coord worktree; porcelain: {porcelain!r}"
-    )
+    assert porcelain.strip() == "", f"repair must not dirty the coord worktree; porcelain: {porcelain!r}"
     assert (coord_mission / "status.json").read_text(encoding="utf-8") == coord_status_before
     # Belt-and-suspenders: no quarantine/manifest artifacts leaked into the worktree.
     assert not (coord / ".kittify").exists()

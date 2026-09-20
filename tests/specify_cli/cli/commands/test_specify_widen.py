@@ -71,9 +71,7 @@ def _setup_repo(tmp_path: Path) -> Path:
     kittify.mkdir(parents=True, exist_ok=True)
     subprocess.run(["git", "init", "--quiet"], cwd=tmp_path, check=True)
     (kittify / "config.yaml").write_text(
-        "version: 1\n"
-        "project:\n"
-        "  uuid: 00000000-0000-0000-0000-000000000002\n",
+        "version: 1\nproject:\n  uuid: 00000000-0000-0000-0000-000000000002\n",
         encoding="utf-8",
     )
     (tmp_path / "kitty-specs").mkdir(parents=True, exist_ok=True)

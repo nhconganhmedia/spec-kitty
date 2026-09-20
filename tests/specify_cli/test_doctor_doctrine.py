@@ -40,16 +40,12 @@ runner = CliRunner()
 
 
 def test_pack_health_healthy_when_all_valid() -> None:
-    pack = PackHealth(
-        pack_id="builtin", layer="builtin", discovered_count=3, valid_count=3
-    )
+    pack = PackHealth(pack_id="builtin", layer="builtin", discovered_count=3, valid_count=3)
     assert pack.healthy is True
 
 
 def test_pack_health_degraded_when_counts_mismatch() -> None:
-    pack = PackHealth(
-        pack_id="org", layer="org", discovered_count=2, valid_count=1
-    )
+    pack = PackHealth(pack_id="org", layer="org", discovered_count=2, valid_count=1)
     assert pack.healthy is False
 
 
@@ -109,9 +105,7 @@ def test_report_healthy_only_when_every_pack_healthy() -> None:
         "org",
         2,
         1,
-        invalid_profiles=[
-            SkippedProfile("org", "/p/bad.yaml", None, "YAML error")
-        ],
+        invalid_profiles=[SkippedProfile("org", "/p/bad.yaml", None, "YAML error")],
     )
     assert DoctrineHealthReport(packs=[healthy]).healthy is True
     assert DoctrineHealthReport(packs=[healthy, degraded]).healthy is False
@@ -199,16 +193,10 @@ def repo_with_invalid_project_profile(tmp_path: Path) -> Path:
     """Repo whose project doctrine layer contains one invalid agent profile."""
     profiles_dir = tmp_path / ".kittify" / "doctrine" / "agent_profiles"
     profiles_dir.mkdir(parents=True)
-    (profiles_dir / "tester-tina.agent.yaml").write_text(
-        _VALID_PROFILE, encoding="utf-8"
-    )
-    (profiles_dir / "broken-bart.agent.yaml").write_text(
-        _INVALID_PROFILE, encoding="utf-8"
-    )
+    (profiles_dir / "tester-tina.agent.yaml").write_text(_VALID_PROFILE, encoding="utf-8")
+    (profiles_dir / "broken-bart.agent.yaml").write_text(_INVALID_PROFILE, encoding="utf-8")
     kittify = tmp_path / ".kittify"
-    (kittify / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return tmp_path
 
 
@@ -328,8 +316,9 @@ def test_doctor_doctrine_human_and_json_share_one_report(
         calls.append(1)
         return real(repo_root)
 
-    with patch.object(doctor_mod, "_collect_profile_health", _counting), patch.object(
-        doctor_mod, "locate_project_root", return_value=repo_with_invalid_project_profile
+    with (
+        patch.object(doctor_mod, "_collect_profile_health", _counting),
+        patch.object(doctor_mod, "locate_project_root", return_value=repo_with_invalid_project_profile),
     ):
         result = runner.invoke(doctor_mod.app, ["doctrine", "--json"])
     # WP01 (C5): the fixture's invalid profile makes the report unhealthy → RC=1.
@@ -423,24 +412,13 @@ def repo_with_inline_ref_org_profile(tmp_path: Path) -> Path:
     org_pack = tmp_path / "org-pack"
     profiles_dir = org_pack / "agent_profiles"
     profiles_dir.mkdir(parents=True)
-    (profiles_dir / "inline-ivan.agent.yaml").write_text(
-        _INLINE_REF_PROFILE, encoding="utf-8"
-    )
-    (profiles_dir / "valid-vera.agent.yaml").write_text(
-        _VALID_ORG_SIBLING, encoding="utf-8"
-    )
+    (profiles_dir / "inline-ivan.agent.yaml").write_text(_INLINE_REF_PROFILE, encoding="utf-8")
+    (profiles_dir / "valid-vera.agent.yaml").write_text(_VALID_ORG_SIBLING, encoding="utf-8")
 
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
     (kittify / "config.yaml").write_text(
-        "agents:\n"
-        "  available:\n"
-        "    - claude\n"
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: example-org\n"
-        f"        local_path: {org_pack}\n",
+        f"agents:\n  available:\n    - claude\ndoctrine:\n  org:\n    packs:\n      - name: example-org\n        local_path: {org_pack}\n",
         encoding="utf-8",
     )
     return tmp_path
@@ -509,12 +487,7 @@ def test_doctor_doctrine_json_inline_ref_unhealthy_and_rc1(
     assert health["healthy"] is False
 
     # Surfaced invalid profile with the stable fields + readable error.
-    invalid = [
-        s
-        for pack in health["packs"]
-        for s in pack["invalid_profiles"]
-        if s["path"].endswith("inline-ivan.agent.yaml")
-    ]
+    invalid = [s for pack in health["packs"] for s in pack["invalid_profiles"] if s["path"].endswith("inline-ivan.agent.yaml")]
     assert invalid, "inline-ivan must be surfaced in --json"
     assert set(invalid[0]) == {"layer", "path", "profile_id", "error_summary"}
     assert invalid[0]["profile_id"] == "inline-ivan"
@@ -536,9 +509,7 @@ def test_doctor_doctrine_json_healthy_exits_zero(
     # A clean built-in-only repo (no invalid project/org profiles) is healthy.
     clean = repo_with_invalid_project_profile
     # Remove the invalid profile so the report is healthy.
-    bad = (
-        clean / ".kittify" / "doctrine" / "agent_profiles" / "broken-bart.agent.yaml"
-    )
+    bad = clean / ".kittify" / "doctrine" / "agent_profiles" / "broken-bart.agent.yaml"
     bad.unlink()
 
     monkeypatch.chdir(clean)

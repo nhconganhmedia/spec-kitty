@@ -91,9 +91,7 @@ def _persist_review_artifact_override(
     # ``Any`` through the ``follow_imports=skip`` boundary on ``specify_cli.*``;
     # bind explicitly so the declared ``Path`` narrows back.
     mission_slug = artifact_path.parents[2].name
-    feature_dir: Path = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    feature_dir: Path = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
     timestamp = now_utc_stamp()
     override = ReviewOverride(at=timestamp, actor=actor, wp_id=wp_id, reason=reason)
     emit_inner_state_changed(
@@ -168,13 +166,7 @@ def _wp_slug_pattern(task_id: str) -> _typing_re.Pattern[str]:
 def _wp_slug_candidates(tasks_dir: Path, task_id: str) -> list[str]:
     """Return every DISTINCT ``tasks/`` file stem matching *task_id* (T057)."""
     pattern = _wp_slug_pattern(task_id)
-    return sorted(
-        {
-            str(p.stem)
-            for p in tasks_dir.iterdir()
-            if pattern.fullmatch(str(p.stem))
-        }
-    )
+    return sorted({str(p.stem) for p in tasks_dir.iterdir() if pattern.fullmatch(str(p.stem))})
 
 
 def _resolve_wp_slug(main_repo_root: Path, mission_slug: str, task_id: str) -> str:
@@ -199,9 +191,7 @@ def _resolve_wp_slug(main_repo_root: Path, mission_slug: str, task_id: str) -> s
     # ``placement_seam(...).read_dir`` is typed ``-> Path`` but mypy widens it to
     # ``Any`` through the ``follow_imports=skip`` boundary on ``specify_cli.*``;
     # bind explicitly so the join's return narrows back to ``Path``.
-    mission_dir: Path = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    mission_dir: Path = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     tasks_dir = mission_dir / "tasks"
     if not tasks_dir.exists():
         return task_id

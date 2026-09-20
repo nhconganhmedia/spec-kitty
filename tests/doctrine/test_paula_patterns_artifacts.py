@@ -40,10 +40,7 @@ def test_paula_patterns_profile_loads(service: DoctrineService) -> None:
         "reviewer",
     ]
     assert profile.specialization.primary_focus
-    assert any(
-        ref.id == "paula-patterns-architecture-scout-review"
-        for ref in profile.tactic_references
-    )
+    assert any(ref.id == "paula-patterns-architecture-scout-review" for ref in profile.tactic_references)
 
 
 def test_paula_patterns_graph_node_and_edges_exist(built_in_graph: DRGGraph) -> None:

@@ -95,9 +95,7 @@ def verify_jar_sha256(jar_path: Path, expected_sha256: str) -> None:
     """Raise ``PlantumlRenderError`` unless ``jar_path`` matches the pin."""
     digest = hashlib.sha256(jar_path.read_bytes()).hexdigest()
     if digest.lower() != expected_sha256.lower():
-        raise PlantumlRenderError(
-            f"plantuml.jar sha256 mismatch: expected {expected_sha256}, got {digest}"
-        )
+        raise PlantumlRenderError(f"plantuml.jar sha256 mismatch: expected {expected_sha256}, got {digest}")
 
 
 def _download_once(url: str, dest: Path) -> None:
@@ -158,19 +156,14 @@ def _provision_locked(pins: Pins, dest: Path) -> Path:
             except PlantumlRenderError:
                 continue  # sha mismatch on a fresh download — retry
         else:
-            raise PlantumlRenderError(
-                f"plantuml.jar download repeatedly failed sha256 verification "
-                f"after {_DOWNLOAD_ATTEMPTS} attempts"
-            )
+            raise PlantumlRenderError(f"plantuml.jar download repeatedly failed sha256 verification after {_DOWNLOAD_ATTEMPTS} attempts")
         os.replace(tmp, dest)
     finally:
         tmp.unlink(missing_ok=True)
     return dest
 
 
-def build_docker_argv(
-    *, image_digest: str, workdir: Path, jar_path: Path, infile: Path
-) -> list[str]:
+def build_docker_argv(*, image_digest: str, workdir: Path, jar_path: Path, infile: Path) -> list[str]:
     """Build the network-isolated docker argv.
 
     Kept pure/testable so a unit test can assert the security-critical flags are
@@ -245,17 +238,12 @@ def render_startyaml(
         )
         outfile = infile.with_suffix(".svg")
         if proc.returncode != 0 or not outfile.exists():
-            raise PlantumlRenderError(
-                f"render failed (exit {proc.returncode}): "
-                f"{proc.stderr.decode('utf-8', 'replace')[:500]}"
-            )
+            raise PlantumlRenderError(f"render failed (exit {proc.returncode}): {proc.stderr.decode('utf-8', 'replace')[:500]}")
         svg = outfile.read_bytes()
     if not svg.strip():
         raise PlantumlRenderError("render produced empty SVG")
     if svg_is_error(svg):
-        raise PlantumlRenderError(
-            "render produced a PlantUML error SVG (font/DNS/syntax); failing closed"
-        )
+        raise PlantumlRenderError("render produced a PlantUML error SVG (font/DNS/syntax); failing closed")
     return svg
 
 

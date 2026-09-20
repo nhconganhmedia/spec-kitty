@@ -67,17 +67,12 @@ def _protected_branch_refusal(
     coord_available: bool | None,
 ) -> Refused:
     """Build the protected-branch refusal, selecting a followable remedy."""
-    base_message = (
-        f"Refusing to record {operation!r}: "
-        f"destination ref {ref!r} is on this project's "
-        "protected branch list. "
-    )
+    base_message = f"Refusing to record {operation!r}: destination ref {ref!r} is on this project's protected branch list. "
     if coord_available is False:
         return Refused(
             error_code=PROTECTED_BRANCH_REFUSED,
             message=(
-                base_message
-                + "This mission uses a lanes or single-branch topology, which "
+                base_message + "This mission uses a lanes or single-branch topology, which "
                 "mints no coordination worktree, so bookkeeping cannot be "
                 "redirected to one."
             ),
@@ -90,15 +85,9 @@ def _protected_branch_refusal(
         )
     return Refused(
         error_code=PROTECTED_BRANCH_REFUSED,
-        message=(
-            base_message
-            + "Bookkeeping commits must target the coordination branch."
-        ),
+        message=(base_message + "Bookkeeping commits must target the coordination branch."),
         destination_ref=ref,
-        next_step=(
-            "Re-run the command through the coordination "
-            "transaction; the coord worktree is auto-resolved."
-        ),
+        next_step=("Re-run the command through the coordination transaction; the coord worktree is auto-resolved."),
     )
 
 
@@ -180,37 +169,21 @@ class WorkflowMutationPolicy:
         if not ref or not ref.strip() or ref != ref.strip():
             return Refused(
                 error_code="DESTINATION_REF_INVALID_SHAPE",
-                message=(
-                    f"Refusing to record {change_set.operation!r}: "
-                    f"destination_ref is empty or contains whitespace."
-                ),
+                message=(f"Refusing to record {change_set.operation!r}: destination_ref is empty or contains whitespace."),
                 destination_ref=ref,
-                next_step=(
-                    "Pass the short-form branch name "
-                    "(e.g. 'kitty/mission-foo-01ABCDEF')."
-                ),
+                next_step=("Pass the short-form branch name (e.g. 'kitty/mission-foo-01ABCDEF')."),
             )
         if ref.startswith("refs/heads/") or ref.startswith("refs/remotes/"):
             return Refused(
                 error_code="DESTINATION_REF_INVALID_SHAPE",
-                message=(
-                    f"Refusing to record {change_set.operation!r}: "
-                    f"destination_ref {ref!r} is fully-qualified. "
-                    "Use the short-form branch name."
-                ),
+                message=(f"Refusing to record {change_set.operation!r}: destination_ref {ref!r} is fully-qualified. Use the short-form branch name."),
                 destination_ref=ref,
-                next_step=(
-                    "Strip the 'refs/heads/' prefix and pass the bare "
-                    "branch name."
-                ),
+                next_step=("Strip the 'refs/heads/' prefix and pass the bare branch name."),
             )
         if ref.startswith("-") or ref.startswith("/"):
             return Refused(
                 error_code="DESTINATION_REF_INVALID_SHAPE",
-                message=(
-                    f"Refusing to record {change_set.operation!r}: "
-                    f"destination_ref {ref!r} has an invalid leading character."
-                ),
+                message=(f"Refusing to record {change_set.operation!r}: destination_ref {ref!r} has an invalid leading character."),
                 destination_ref=ref,
                 next_step="Pass a valid short-form branch name.",
             )
@@ -232,25 +205,16 @@ class WorkflowMutationPolicy:
                     "must target a local branch."
                 ),
                 destination_ref=ref,
-                next_step=(
-                    "Check out the corresponding local branch "
-                    "first, or pass the local branch name."
-                ),
+                next_step=("Check out the corresponding local branch first, or pass the local branch name."),
             )
 
         # 3. Existence: local branch must resolve.
         if not _local_branch_exists(repo_root, ref):
             return Refused(
                 error_code=DESTINATION_REF_NOT_FOUND,
-                message=(
-                    f"Refusing to record {change_set.operation!r}: "
-                    f"destination_ref {ref!r} does not exist in {repo_root}."
-                ),
+                message=(f"Refusing to record {change_set.operation!r}: destination_ref {ref!r} does not exist in {repo_root}."),
                 destination_ref=ref,
-                next_step=(
-                    "Confirm the branch exists locally "
-                    "('git branch --list'), or create it first."
-                ),
+                next_step=("Confirm the branch exists locally ('git branch --list'), or create it first."),
             )
 
         # 4. Protected-branch check. The protection DECISION is the SK policy

@@ -95,6 +95,7 @@ def test_source_change_during_byte_capture_refuses(tmp_path: Path, monkeypatch: 
     source = plans[0].instances[0].path
     real_read = projection.read_regular
     reads = 0
+
     def changing_read(path: Path) -> bytes:
         nonlocal reads
         if path == source:
@@ -102,6 +103,7 @@ def test_source_change_during_byte_capture_refuses(tmp_path: Path, monkeypatch: 
             if reads == 2:
                 return b"different bytes during capture"
         return real_read(path)
+
     monkeypatch.setattr(projection, "read_regular", changing_read)
     with pytest.raises(ValueError, match="source changed during preparation"):
         ClaudeCodeBundleProjector().project(plans, tmp_path / "project", tmp_path / "dist")
@@ -125,9 +127,7 @@ def test_projection_preserves_unknown_destination_link(tmp_path: Path) -> None:
 def test_claude_code_bundle_layout_is_correct(tmp_path: Path) -> None:
     project = tmp_path / "proj"
     out = tmp_path / "dist"
-    bundle = ClaudeCodeBundleProjector().project(
-        full_plans(project), project, out
-    )
+    bundle = ClaudeCodeBundleProjector().project(full_plans(project), project, out)
     # Manifest under .claude-plugin/, skills under skills/, agents under agents/.
     assert (out / ".claude-plugin" / "plugin.json").is_file()
     assert (out / "skills" / "spec-kitty.plan" / "SKILL.md").is_file()
@@ -145,9 +145,7 @@ def test_claude_code_bundle_plugin_json_exists(tmp_path: Path) -> None:
     project = tmp_path / "proj"
     out = tmp_path / "dist"
     ClaudeCodeBundleProjector().project(full_plans(project), project, out)
-    payload = json.loads(
-        (out / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
-    )
+    payload = json.loads((out / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
     assert payload["name"] == "spec-kitty"
     assert payload["distribution_target"] == "claude_code_plugin"
     assert "version" in payload
@@ -174,9 +172,7 @@ def test_claude_code_bundle_validate_fails_when_skills_missing(
     assert result.passed is False
     codes = {f.code for f in result.missing_surfaces}
     assert codes == {"bundle-component-missing"}
-    missing_kinds = {
-        f.message.rsplit(": ", 1)[-1] for f in result.missing_surfaces
-    }
+    missing_kinds = {f.message.rsplit(": ", 1)[-1] for f in result.missing_surfaces}
     assert str(ToolSurfaceKind.AGENT_PROFILE) in missing_kinds
     assert str(ToolSurfaceKind.DOCTRINE_SKILL) in missing_kinds
 

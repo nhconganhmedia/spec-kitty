@@ -219,9 +219,7 @@ def test_sc001_primary_lanes_json_never_lands_on_coord(tmp_path: Path) -> None:
     # exact real churn WP01's own recovery performs) so the working-tree copy
     # (content X) DIFFERS from the committed target copy (content Y). This is the
     # genuine divergence that makes the lane-allocation merge a real add/add.
-    lanes_path.write_text(
-        _lanes_json_payload(planning_commit_sha=planning_commit_sha), encoding="utf-8"
-    )
+    lanes_path.write_text(_lanes_json_payload(planning_commit_sha=planning_commit_sha), encoding="utf-8")
 
     # Real production entry point: the implement-time planning auto-commit, with
     # the coordination ``placement_ref`` a healthy coord mission threads.
@@ -239,8 +237,7 @@ def test_sc001_primary_lanes_json_never_lands_on_coord(tmp_path: Path) -> None:
     # lanes.json, so a merge of it into a lane that also has lanes.json is a real
     # add/add (holds in BOTH pre- and post-fix states; it is fixture provenance).
     assert _LANES_REL in _ls_tree_paths(repo, planning_commit_sha), (
-        "non-vacuity precondition (b) violated: the recorded planning_commit_sha "
-        "tree must contain lanes.json for the add/add reproduction to be real."
+        "non-vacuity precondition (b) violated: the recorded planning_commit_sha tree must contain lanes.json for the add/add reproduction to be real."
     )
 
     # --- SC-001 (FR-001) + non-vacuity leg (a) folded in: PRIMARY lanes.json must
@@ -248,14 +245,10 @@ def test_sc001_primary_lanes_json_never_lands_on_coord(tmp_path: Path) -> None:
     # holds and this assertion fails); GREEN post-fix.
     coord_paths = _ls_tree_paths(repo, coord_branch)
     assert _LANES_REL not in coord_paths, (
-        "SC-001 regression: PRIMARY lanes.json was committed onto the coordination "
-        f"branch {coord_branch!r} (#3371 P0). coord tree: {sorted(coord_paths)!r}"
+        f"SC-001 regression: PRIMARY lanes.json was committed onto the coordination branch {coord_branch!r} (#3371 P0). coord tree: {sorted(coord_paths)!r}"
     )
     # And it MUST be on the primary target branch (routed correctly, not dropped).
-    assert _LANES_REL in _ls_tree_paths(repo, _TARGET_BRANCH), (
-        "PRIMARY lanes.json must land on the primary target branch "
-        f"{_TARGET_BRANCH!r}."
-    )
+    assert _LANES_REL in _ls_tree_paths(repo, _TARGET_BRANCH), f"PRIMARY lanes.json must land on the primary target branch {_TARGET_BRANCH!r}."
 
     # --- SC-001 acceptance: the real lane allocator must NOT raise the specific
     # add/add ``PlanningCommitMergeConflictError`` (never asserted as a generic
@@ -444,12 +437,6 @@ def test_3281_retry_reenters_self_heal_to_establish_post_materialize_ancestry(
     )
 
     # Step 3: the retry, through the real shared gate.
-    bare = resolve_claim_ancestry_gate(
-        repo, _ANCESTRY_MISSION_SLUG, feature_dir, _ANCESTRY_WP_SELF, lane_b_worktree
-    )
-    assert bare.ok is True, (
-        f"retry must re-enter self-heal and establish ancestry: {bare.missing_refs}"
-    )
-    assert (lane_b_worktree / "lane_a_output.txt").exists(), (
-        "self-heal must have actually merged lane-a's tip into lane-b's worktree"
-    )
+    bare = resolve_claim_ancestry_gate(repo, _ANCESTRY_MISSION_SLUG, feature_dir, _ANCESTRY_WP_SELF, lane_b_worktree)
+    assert bare.ok is True, f"retry must re-enter self-heal and establish ancestry: {bare.missing_refs}"
+    assert (lane_b_worktree / "lane_a_output.txt").exists(), "self-heal must have actually merged lane-a's tip into lane-b's worktree"

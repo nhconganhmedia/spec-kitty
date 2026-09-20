@@ -53,20 +53,13 @@ def test_apply_installs_decisions_driver(tmp_path: Path) -> None:
 
     attributes = (repo / ".gitattributes").read_text(encoding="utf-8")
     assert _DECISIONS_ENTRY in attributes
-    assert (
-        _git(["config", "--local", "--get", "merge.spec-kitty-event-log.driver"], repo)
-        .stdout.strip()
-        == "spec-kitty merge-driver-event-log %O %A %B"
-    )
+    assert _git(["config", "--local", "--get", "merge.spec-kitty-event-log.driver"], repo).stdout.strip() == "spec-kitty merge-driver-event-log %O %A %B"
     assert migration.detect(repo) is False
 
 
 def test_ships_as_distinct_id_from_meta_traces(tmp_path: Path) -> None:
     """A distinct id is the whole point — see the runner re-run test below."""
-    assert (
-        DecisionsEventLogMergeDriverMigration.migration_id
-        != MetaTracesMergeDriverMigration.migration_id
-    )
+    assert DecisionsEventLogMergeDriverMigration.migration_id != MetaTracesMergeDriverMigration.migration_id
 
 
 def test_prior_meta_traces_upgrade_does_not_strand_decisions_driver(tmp_path: Path) -> None:
@@ -92,16 +85,12 @@ def test_prior_meta_traces_upgrade_does_not_strand_decisions_driver(tmp_path: Pa
 
     # The distinct id is NOT recorded, so _apply_migration reaches detect() and
     # applies it — instead of short-circuiting on the recorded meta+traces id.
-    _result, status = runner._apply_migration(
-        DecisionsEventLogMergeDriverMigration(), metadata, dry_run=False
-    )
+    _result, status = runner._apply_migration(DecisionsEventLogMergeDriverMigration(), metadata, dry_run=False)
     assert status == "applied"
     assert _DECISIONS_ENTRY in (repo / ".gitattributes").read_text(encoding="utf-8")
 
     # Contrast: once its own id is recorded, the runner correctly skips it —
     # proving the "applied" above was the has_migration branch actually working.
     metadata.record_migration(DecisionsEventLogMergeDriverMigration.migration_id, "success")
-    _result2, status2 = runner._apply_migration(
-        DecisionsEventLogMergeDriverMigration(), metadata, dry_run=False
-    )
+    _result2, status2 = runner._apply_migration(DecisionsEventLogMergeDriverMigration(), metadata, dry_run=False)
     assert status2 == "skipped"

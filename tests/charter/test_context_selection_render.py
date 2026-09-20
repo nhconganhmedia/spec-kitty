@@ -289,9 +289,7 @@ class TestInlineBodyRendering:
             mission="software-dev",
             steps=[_DummyStep(title="t", id_="s1", description="First step")],
         )
-        service = _StubService(
-            mission_step_contracts=_StubRepo(items={"impl-contract": contract})
-        )
+        service = _StubService(mission_step_contracts=_StubRepo(items={"impl-contract": contract}))
         lines = _render_selected_mission_step_contracts(["impl-contract"], service)
         joined = "\n".join(lines)
         assert _SELECTED_MISSION_STEP_CONTRACTS_HEADER in joined
@@ -324,9 +322,7 @@ class TestTokenBudgetOverflow:
     def test_oversized_procedure_body_emits_fetch_stanza(self) -> None:
         # Many steps each rendered as one line — pushes total over budget.
         steps = [_DummyStep(title="X" * 80) for _ in range(60)]
-        proc = _DummyProcedure(
-            name="Bloated", purpose="bloat", entry="in", exit_="out", steps=steps
-        )
+        proc = _DummyProcedure(name="Bloated", purpose="bloat", entry="in", exit_="out", steps=steps)
         service = _StubService(procedures=_StubRepo(items={"bloated-proc": proc}))
         lines = _render_selected_procedures(["bloated-proc"], service)
         joined = "\n".join(lines)
@@ -352,9 +348,7 @@ class TestFetchSelectorRecovery:
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
         (charter_dir / "charter.md").write_text(
-            "# Project Charter\n\n"
-            "## Regression Vigilance\n\n"
-            "Consult docs/context before approving a terminology cutover.\n",
+            "# Project Charter\n\n## Regression Vigilance\n\nConsult docs/context before approving a terminology cutover.\n",
             encoding="utf-8",
         )
 
@@ -434,9 +428,7 @@ class TestFetchSelectorRecovery:
         )
         service = _StubService(procedures=_StubRepo(items={"review-before-merge": procedure}))
 
-        text = _render_doctrine_artifact_include(
-            service, "procedure", "review-before-merge"
-        )
+        text = _render_doctrine_artifact_include(service, "procedure", "review-before-merge")
 
         assert text is not None
         assert "Procedure review-before-merge: Review" in text
@@ -444,9 +436,7 @@ class TestFetchSelectorRecovery:
 
     def test_doctrine_artifact_include_recovers_fields_outside_inline_summary(self) -> None:
         sg = _DummyStyleguide(title="Caveman", principles=["Prefer concrete names."])
-        sg.anti_patterns = [
-            {"name": "soft recovery", "description": "Do not drop governance."}
-        ]
+        sg.anti_patterns = [{"name": "soft recovery", "description": "Do not drop governance."}]
         toolguide = _DummyToolguide(title="Pytest", tool="pytest", summary="Run tests.")
         toolguide.commands = ["pytest tests/charter"]
         procedure = _DummyProcedure(
@@ -569,9 +559,7 @@ class TestFetchSelectorRecovery:
         tmp_path: Path,
     ) -> None:
         service = _StubService(
-            styleguides=_StubRepo(
-                items={"shared-id": _DummyStyleguide(title="Style", principles=["One"])}
-            ),
+            styleguides=_StubRepo(items={"shared-id": _DummyStyleguide(title="Style", principles=["One"])}),
             toolguides=_StubRepo(
                 items={
                     "shared-id": _DummyToolguide(
@@ -676,9 +664,7 @@ class TestFetchSelectorRecovery:
             "mode": "strict",
             "items": [{"name": "rule"}],
         }
-        assert _jsonable_artifact_value({"tags": {"beta", "alpha"}}) == {
-            "tags": ["alpha", "beta"]
-        }
+        assert _jsonable_artifact_value({"tags": {"beta", "alpha"}}) == {"tags": ["alpha", "beta"]}
         assert _jsonable_artifact_value(_Dumpable()) == {
             "kind": "modern",
             "kwargs": ["by_alias", "exclude_none", "mode"],
@@ -754,18 +740,14 @@ class TestOrgProvenance:
         )
         service = _StubService(styleguides=repo)
         org_map = _collect_org_source_map(repo, ["caveman-comments"])
-        lines = _render_selected_styleguides(
-            ["caveman-comments"], service, org_source_map=org_map
-        )
+        lines = _render_selected_styleguides(["caveman-comments"], service, org_source_map=org_map)
         joined = "\n".join(lines)
         assert "source: org" in joined
 
     def test_org_source_map_with_pack_name_emits_pack_suffix(self) -> None:
         # Direct check of the suffix helper — the pack-name path collapses
         # to "(source: org, pack: <name>)" when the map carries a pack.
-        suffix = _provenance_suffix(
-            "caveman-comments", {"caveman-comments": "very-serious-developers"}
-        )
+        suffix = _provenance_suffix("caveman-comments", {"caveman-comments": "very-serious-developers"})
         assert suffix == " (source: org, pack: very-serious-developers)"
 
     def test_project_sourced_styleguide_carries_no_suffix(self) -> None:
@@ -778,9 +760,7 @@ class TestOrgProvenance:
         # Project sources are NOT in the org map.
         org_map = _collect_org_source_map(repo, ["caveman-comments"])
         assert org_map == {}
-        lines = _render_selected_styleguides(
-            ["caveman-comments"], service, org_source_map=org_map
-        )
+        lines = _render_selected_styleguides(["caveman-comments"], service, org_source_map=org_map)
         joined = "\n".join(lines)
         assert "source: org" not in joined
         assert "source: project" not in joined
@@ -823,9 +803,7 @@ class TestDeduplication:
     def test_duplicate_styleguide_id_rendered_once(self) -> None:
         sg = _DummyStyleguide(title="Caveman", principles=["UGG"])
         service = _StubService(styleguides=_StubRepo(items={"caveman-comments": sg}))
-        lines = _render_selected_styleguides(
-            ["caveman-comments", "caveman-comments"], service
-        )
+        lines = _render_selected_styleguides(["caveman-comments", "caveman-comments"], service)
         joined = "\n".join(lines)
         # The ID + body should appear exactly once even though it was listed twice.
         assert joined.count("- caveman-comments") == 1
@@ -873,9 +851,7 @@ class TestCombinedSelectionBlock:
     def test_all_five_kinds_appear_in_order(self) -> None:
         sg = _DummyStyleguide(title="SG", principles=["a"])
         tg = _DummyToolguide(title="TG", tool="t", summary="s")
-        proc = _DummyProcedure(
-            name="P", purpose="p", entry="i", exit_="o", steps=[_DummyStep(title="s")]
-        )
+        proc = _DummyProcedure(name="P", purpose="p", entry="i", exit_="o", steps=[_DummyStep(title="s")])
         ap = _DummyAgentProfile(name="A", purpose="p", roles=["implementer"])
         contract = _DummyContract(
             action="implement",

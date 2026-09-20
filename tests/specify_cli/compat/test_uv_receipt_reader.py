@@ -174,10 +174,7 @@ class TestReadForExecutableHappyPath:
         remediation planner refuses to reconstruct a command from an unsupported
         entry rather than silently collapsing it to a PyPI name.
         """
-        receipt = (
-            "[tool]\n"
-            'requirements = [{ name = "spec-kitty-cli", unknown-source = "opaque" }]\n'
-        )
+        receipt = '[tool]\nrequirements = [{ name = "spec-kitty-cli", unknown-source = "opaque" }]\n'
         executable, _ = _make_uv_tool_env(tmp_path, receipt)
         result = UvReceiptReader.read_for_executable(str(executable))
         assert len(result.requirements) == 1
@@ -360,9 +357,7 @@ class TestCustomUvToolDir:
         result = UvReceiptReader.read_for_executable(str(executable))
         assert result.tool_dir == custom_dir
 
-    def test_tool_dir_without_env_var_uses_path_derivation(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_tool_dir_without_env_var_uses_path_derivation(self, tmp_path: Path, monkeypatch: Any) -> None:
         monkeypatch.delenv("UV_TOOL_DIR", raising=False)
         executable, _ = _make_uv_tool_env(tmp_path, _FULL_RECEIPT_TOML)
         result = UvReceiptReader.read_for_executable(str(executable))

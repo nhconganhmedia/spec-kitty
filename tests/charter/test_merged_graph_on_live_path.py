@@ -36,18 +36,17 @@ def test_load_validated_graph_invokes_assert_valid(tmp_path: Path) -> None:
     built_in_root = tmp_path / "doctrine"
     built_in_root.mkdir()
     (built_in_root / "graph.yaml").write_text(
-        "schema_version: '1.0'\n"
-        "generated_at: '2026-04-14T00:00:00Z'\n"
-        "generated_by: test\n"
-        "nodes: []\n"
-        "edges: []\n",
+        "schema_version: '1.0'\ngenerated_at: '2026-04-14T00:00:00Z'\ngenerated_by: test\nnodes: []\nedges: []\n",
         encoding="utf-8",
     )
 
-    with patch(
-        "charter.activation._drg_helpers.load_built_in_graph",
-        side_effect=lambda: _built_in_from(built_in_root),
-    ), patch("charter.activation._drg_helpers.assert_valid") as mock_validator:
+    with (
+        patch(
+            "charter.activation._drg_helpers.load_built_in_graph",
+            side_effect=lambda: _built_in_from(built_in_root),
+        ),
+        patch("charter.activation._drg_helpers.assert_valid") as mock_validator,
+    ):
         load_validated_graph(tmp_path)
     assert mock_validator.called, "assert_valid() was not called"
 
@@ -58,24 +57,14 @@ def test_load_validated_graph_overlays_project_graph(tmp_path: Path) -> None:
     built_in_root = tmp_path / "doctrine"
     built_in_root.mkdir()
     (built_in_root / "graph.yaml").write_text(
-        "schema_version: '1.0'\n"
-        "generated_at: '2026-04-14T00:00:00Z'\n"
-        "generated_by: test\n"
-        "nodes:\n"
-        "- {urn: 'directive:shipped-one', kind: directive}\n"
-        "edges: []\n",
+        "schema_version: '1.0'\ngenerated_at: '2026-04-14T00:00:00Z'\ngenerated_by: test\nnodes:\n- {urn: 'directive:shipped-one', kind: directive}\nedges: []\n",
         encoding="utf-8",
     )
 
     project_graph_dir = tmp_path / ".kittify" / "doctrine"
     project_graph_dir.mkdir(parents=True)
     (project_graph_dir / "graph.yaml").write_text(
-        "schema_version: '1.0'\n"
-        "generated_at: '2026-04-14T00:00:00Z'\n"
-        "generated_by: test\n"
-        "nodes:\n"
-        "- {urn: 'directive:project-one', kind: directive}\n"
-        "edges: []\n",
+        "schema_version: '1.0'\ngenerated_at: '2026-04-14T00:00:00Z'\ngenerated_by: test\nnodes:\n- {urn: 'directive:project-one', kind: directive}\nedges: []\n",
         encoding="utf-8",
     )
 

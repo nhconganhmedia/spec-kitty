@@ -235,10 +235,7 @@ class MissionType(BaseModel):
     @classmethod
     def _validate_id(cls, v: str) -> str:
         if not _IDENTIFIER_RE.match(v):
-            raise ValueError(
-                f"MissionType id {v!r} does not match IDENTIFIER_PATTERN "
-                f"{IDENTIFIER_PATTERN!r}"
-            )
+            raise ValueError(f"MissionType id {v!r} does not match IDENTIFIER_PATTERN {IDENTIFIER_PATTERN!r}")
         return v
 
     @model_validator(mode="after")

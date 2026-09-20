@@ -76,10 +76,6 @@ _COMPAT_GUARDED_NAMES = frozenset(
 _INTERNAL_ONLY_NAME = "_retrospective_blocks_completion"
 
 
-
-
-
-
 # ---------------------------------------------------------------------------
 # 2a. _BufferingRuntimeEmitter
 # ---------------------------------------------------------------------------
@@ -207,9 +203,7 @@ def test_resolve_retrospective_policy_for_runtime_success(monkeypatch: pytest.Mo
     assert error is None
 
 
-def test_resolve_retrospective_policy_for_runtime_falls_back_to_default_on_error(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_retrospective_policy_for_runtime_falls_back_to_default_on_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from specify_cli.retrospective.policy import default_policy
 
     boom = RuntimeError("malformed policy")
@@ -237,9 +231,7 @@ def test_resolve_retrospective_policy_for_runtime_falls_back_to_default_on_error
         (False, "before_completion", "block", False),
     ],
 )
-def test_retrospective_blocks_completion_matrix(
-    enabled: bool, timing: str, failure_policy: str, expected: bool
-) -> None:
+def test_retrospective_blocks_completion_matrix(enabled: bool, timing: str, failure_policy: str, expected: bool) -> None:
     class _Policy:
         pass
 
@@ -318,9 +310,7 @@ def test_classify_and_emit_failure_swallows_emit_failure(tmp_path: Path, caplog:
     )
 
 
-def test_classify_and_emit_failure_uses_live_lookup_for_classify_and_hint(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_classify_and_emit_failure_uses_live_lookup_for_classify_and_hint(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Retrospective-pair risk regression: ``_classify_and_emit_failure`` must
     resolve ``_classify_exc``/``_remediation_hint`` via a live lookup through
     ``runtime_bridge`` -- a bare intra-module call to this module's own
@@ -363,9 +353,7 @@ def test_classify_and_emit_failure_uses_live_lookup_for_classify_and_hint(
 # ---------------------------------------------------------------------------
 
 
-def test_run_retrospective_learning_capture_uses_live_lookup_for_facilitator_builder(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_retrospective_learning_capture_uses_live_lookup_for_facilitator_builder(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Retrospective-pair risk regression: the (unpatched, real)
     ``_run_retrospective_learning_capture`` must invoke
     ``_build_retrospective_facilitator_callback`` via a live lookup through
@@ -397,9 +385,7 @@ def test_run_retrospective_learning_capture_uses_live_lookup_for_facilitator_bui
     assert facilitator_calls == [{"mission_id": "mission-9"}]
 
 
-def test_run_retrospective_learning_capture_swallows_failure_by_default(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_retrospective_learning_capture_swallows_failure_by_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from runtime.next import runtime_bridge as rb
 
     def _raising_callback(*, mission_id: str, feature_dir: Path, repo_root: Path, **_kw: Any) -> None:
@@ -417,9 +403,7 @@ def test_run_retrospective_learning_capture_swallows_failure_by_default(
     )
 
 
-def test_run_retrospective_learning_capture_reraises_when_blocking(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_retrospective_learning_capture_reraises_when_blocking(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from runtime.next import runtime_bridge as rb
 
     def _raising_callback(*, mission_id: str, feature_dir: Path, repo_root: Path, **_kw: Any) -> None:
@@ -489,9 +473,7 @@ def test_facilitator_happy_path_writes_and_emits(monkeypatch: pytest.MonkeyPatch
     assert emit_calls == [sentinel_record]
 
 
-def test_facilitator_uses_live_lookup_for_classify_and_emit_failure(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_facilitator_uses_live_lookup_for_classify_and_emit_failure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Retrospective-pair risk regression: the ``_facilitator`` closure built
     by (unpatched, real) ``_build_retrospective_facilitator_callback`` must
     invoke ``_classify_and_emit_failure`` via a live lookup through

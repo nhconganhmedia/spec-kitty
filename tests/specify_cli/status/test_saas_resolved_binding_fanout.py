@@ -330,9 +330,7 @@ def _emit_binding_annotation(feature_dir: Path, root: Path) -> None:
     )
 
 
-def test_resolved_binding_fanout_fires_when_events_supports_type(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolved_binding_fanout_fires_when_events_supports_type(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Present package (gate True): an off-transition binding change fans out the
     first-class ``WPResolvedBindingChanged`` with the resolved binding + WP identity.
     """
@@ -390,9 +388,7 @@ def test_resolved_binding_fanout_skipped_and_logged_when_events_lacks_type(
         adapters.reset_handlers()
 
 
-def test_non_binding_annotation_never_bridges(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_non_binding_annotation_never_bridges(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A plain runtime annotation (no resolved-binding slots) never fans out a
     ``WPResolvedBindingChanged`` — even with the gate ON — because it is not a
     binding change."""

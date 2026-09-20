@@ -29,7 +29,9 @@ def _git_init(repo: Path) -> None:
     """Initialize a minimal git repo with identity configured."""
     subprocess.run(
         ["git", "init", "--initial-branch=main"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     for key, value in (
         ("user.email", "test@example.com"),
@@ -38,7 +40,9 @@ def _git_init(repo: Path) -> None:
     ):
         subprocess.run(
             ["git", "config", key, value],
-            cwd=repo, check=True, capture_output=True,
+            cwd=repo,
+            check=True,
+            capture_output=True,
         )
 
 
@@ -84,9 +88,7 @@ def project_with_org_pack(tmp_path: Path) -> Path:
           - DIRECTIVE_999
         """,
     )
-    _write_kittify_config_with_packs(
-        tmp_path, [{"name": "acme-security", "local_path": str(pack_dir)}]
-    )
+    _write_kittify_config_with_packs(tmp_path, [{"name": "acme-security", "local_path": str(pack_dir)}])
     return tmp_path
 
 
@@ -104,9 +106,7 @@ def test_interview_defaults_picks_up_org_charter_pre_fill(project_with_org_pack:
             ["interview", "--defaults", "--profile", "minimal"],
             catch_exceptions=False,
         )
-        assert result.exit_code == 0, (
-            f"interview failed: stdout={result.stdout!r}"
-        )
+        assert result.exit_code == 0, f"interview failed: stdout={result.stdout!r}"
 
         answers = _read_answers(project_with_org_pack)
         # interview_defaults landed in answers.yaml
@@ -119,9 +119,7 @@ def test_interview_defaults_picks_up_org_charter_pre_fill(project_with_org_pack:
         os.chdir(old_cwd)
 
 
-def test_interview_without_org_packs_has_no_pre_fill(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_interview_without_org_packs_has_no_pre_fill(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """When no org packs are configured, `charter interview` runs cleanly with no pre-fill side effects."""
     _git_init(tmp_path)
     # Hermetic against a stray ``.kittify`` marker anywhere above ``tmp_path``

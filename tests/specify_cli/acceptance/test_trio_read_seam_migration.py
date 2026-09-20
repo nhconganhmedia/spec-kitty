@@ -118,9 +118,7 @@ def _write_primary_meta(feature_dir: Path) -> None:
 def _flat(tmp_path: Path) -> Path:
     """Flat (no coordination) topology -- the simplest materialized fixture."""
     repo = _make_git_repo(tmp_path, "flat")
-    primary_dir = build_flat(
-        repo, _HANDLE, write_primary_meta=lambda fd: _write_meta(fd, coordination_branch=None)
-    )
+    primary_dir = build_flat(repo, _HANDLE, write_primary_meta=lambda fd: _write_meta(fd, coordination_branch=None))
     _plant_wp_task(primary_dir)
     _plant_analysis_report(primary_dir)
     return repo
@@ -160,9 +158,7 @@ def _coord_husk(tmp_path: Path) -> Path:
     """Coord worktree materialized, but its mission dir has NO meta.json."""
     repo = _make_git_repo(tmp_path, "coord-husk")
     coord_root = CoordinationWorkspace.worktree_path(repo, _SLUG, _MID8)
-    primary_dir = build_coord_husk(
-        repo, _HANDLE, _COORD_BRANCH, coord_root, write_primary_meta=_write_primary_meta
-    )
+    primary_dir = build_coord_husk(repo, _HANDLE, _COORD_BRANCH, coord_root, write_primary_meta=_write_primary_meta)
     _plant_wp_task(primary_dir)
     _plant_analysis_report(primary_dir)
     return repo
@@ -172,9 +168,7 @@ def _coord_worktree_empty(tmp_path: Path) -> Path:
     """Coord root materialized (create window) but no mission dir under it."""
     repo = _make_git_repo(tmp_path, "coord-empty")
     coord_root = CoordinationWorkspace.worktree_path(repo, _SLUG, _MID8)
-    primary_dir = build_coord_worktree_empty(
-        repo, _HANDLE, _COORD_BRANCH, coord_root, write_primary_meta=_write_primary_meta
-    )
+    primary_dir = build_coord_worktree_empty(repo, _HANDLE, _COORD_BRANCH, coord_root, write_primary_meta=_write_primary_meta)
     _plant_wp_task(primary_dir)
     _plant_analysis_report(primary_dir)
     return repo
@@ -183,9 +177,7 @@ def _coord_worktree_empty(tmp_path: Path) -> Path:
 def _coord_branch_deleted(tmp_path: Path) -> Path:
     """meta.json declares a coordination_branch that was never created in git."""
     repo = _make_git_repo(tmp_path, "coord-deleted")
-    primary_dir = build_coord_branch_deleted(
-        repo, _HANDLE, _COORD_BRANCH, write_primary_meta=_write_primary_meta
-    )
+    primary_dir = build_coord_branch_deleted(repo, _HANDLE, _COORD_BRANCH, write_primary_meta=_write_primary_meta)
     _plant_wp_task(primary_dir)
     _plant_analysis_report(primary_dir)
     return repo

@@ -168,9 +168,7 @@ def test_detection_error_multi_candidate_payload(repo: Path) -> None:
     assert payload["error_code"] == "PLAN_CONTEXT_UNRESOLVED"
     assert payload["available_missions"] == ["001-alpha", "002-beta"]
     assert "2 missions found" in str(payload["error"])
-    assert str(payload["example_command"]).startswith(
-        "spec-kitty agent mission setup-plan --mission 001-alpha"
-    )
+    assert str(payload["example_command"]).startswith("spec-kitty agent mission setup-plan --mission 001-alpha")
     assert payload["remediation"] == "Re-run with --mission <slug>"
 
 
@@ -187,10 +185,7 @@ def test_detection_error_custom_command_and_args(repo: Path) -> None:
     )
     assert payload["error_code"] == "CUSTOM_CODE"
     assert payload["mission_flag"] == "bad-flag"
-    assert (
-        payload["example_command"]
-        == "spec-kitty agent mission finalize-tasks --mission 001-alpha --validate-only --json"
-    )
+    assert payload["example_command"] == "spec-kitty agent mission finalize-tasks --mission 001-alpha --validate-only --json"
 
 
 # ---------------------------------------------------------------------------
@@ -244,9 +239,7 @@ def test_find_feature_directory_not_found_is_structured(repo: Path) -> None:
     assert excinfo.value.code == "FEATURE_CONTEXT_UNRESOLVED"
 
 
-def test_find_feature_directory_ambiguous_propagates_error_code(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_find_feature_directory_ambiguous_propagates_error_code(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An ambiguous selector surfaces MissionSelectorAmbiguous's error_code."""
 
     def _raise_ambiguous(*_args: object, **_kwargs: object) -> Path:
@@ -288,17 +281,13 @@ def test_primary_anchored_none_for_unknown(repo: Path) -> None:
     assert seam._primary_anchored_feature_dir(repo, "404-missing") is None
 
 
-def test_primary_anchored_ambiguous_raises_structured_error(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_primary_anchored_ambiguous_raises_structured_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An ambiguous handle surfaces a structured ActionContextError (no silent fallback)."""
 
     def _raise_ambiguous(*_args: object, **_kwargs: object) -> str | None:
         raise MissionSelectorAmbiguous(handle="amb", candidates=["001-a", "002-b"])
 
-    monkeypatch.setattr(
-        seam, "_resolve_mission_dir_name_primary_anchored", _raise_ambiguous
-    )
+    monkeypatch.setattr(seam, "_resolve_mission_dir_name_primary_anchored", _raise_ambiguous)
     with pytest.raises(ActionContextError) as excinfo:
         seam._primary_anchored_feature_dir(repo, "ambiguous")
     assert excinfo.value.code == "MISSION_AMBIGUOUS_SELECTOR"

@@ -122,10 +122,7 @@ def _is_allowed_terminal_reopen(
     target_status: DecisionStatus,
 ) -> bool:
     """Return True for terminal states that may be explicitly closed later."""
-    return (
-        current_status == DecisionStatus.DEFERRED
-        and target_status == DecisionStatus.RESOLVED
-    )
+    return current_status == DecisionStatus.DEFERRED and target_status == DecisionStatus.RESOLVED
 
 
 def _resolve_mission_id(repo_root: Path, mission_slug: str) -> str:
@@ -192,9 +189,7 @@ def _mission_dir(repo_root: Path, mission_slug: str) -> Path:
     topology-aware and agrees with where emit.py writes; splitting reads onto
     PRIMARY here would read/write split-brain the ledger under coord topology.
     """
-    mission_dir: Path = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    mission_dir: Path = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
     return mission_dir
 
 
@@ -220,9 +215,7 @@ def _parse_opened_events(content: bytes | str) -> list[dict[str, Any]]:
         try:
             events.append(json.loads(line))
         except json.JSONDecodeError as exc:
-            raise json.JSONDecodeError(
-                f"malformed event log line {line_number}: {exc.msg}", exc.doc, exc.pos
-            ) from exc
+            raise json.JSONDecodeError(f"malformed event log line {line_number}: {exc.msg}", exc.doc, exc.pos) from exc
     return events
 
 
@@ -247,11 +240,7 @@ def _opened_event_exists(repo_root: Path, mission_slug: str, decision_id: str) -
     )
     for event in events:
         payload = event.get("payload")
-        if (
-            event.get("event_type") == DECISION_POINT_OPENED
-            and isinstance(payload, dict)
-            and payload.get("decision_point_id") == decision_id
-        ):
+        if event.get("event_type") == DECISION_POINT_OPENED and isinstance(payload, dict) and payload.get("decision_point_id") == decision_id:
             return True
     return False
 
@@ -269,10 +258,7 @@ def _repair_missing_opened_event(
         raise DecisionError(
             code=DecisionErrorCode.EVENT_REPAIR_FAILED,
             details={"decision_id": entry.decision_id, "mission_slug": mission_slug},
-            message=(
-                f"Cannot repair opened event for decision {entry.decision_id!r}: "
-                "opening actor was not persisted"
-            ),
+            message=(f"Cannot repair opened event for decision {entry.decision_id!r}: opening actor was not persisted"),
         )
     try:
         return _emit.emit_decision_opened(
@@ -395,10 +381,7 @@ def open_decision(
                     "decision_id": existing.decision_id,
                     "status": existing.status.value,
                 },
-                message=(
-                    f"Decision {existing.decision_id!r} is already in terminal "
-                    f"state {existing.status.value!r}"
-                ),
+                message=(f"Decision {existing.decision_id!r} is already in terminal state {existing.status.value!r}"),
             )
 
     # Mint new decision (use caller-supplied id if provided, else mint fresh)
@@ -495,11 +478,7 @@ def _terminal_command(
         # Already terminal — check for idempotency or conflict
         if entry.status == target_status:
             # Same outcome — check payload identity
-            payload_matches = (
-                entry.final_answer == final_answer
-                and entry.other_answer == other_answer
-                and entry.rationale == rationale
-            )
+            payload_matches = entry.final_answer == final_answer and entry.other_answer == other_answer and entry.rationale == rationale
             if payload_matches:
                 return DecisionTerminalResponse(
                     decision_id=decision_id,
@@ -516,10 +495,7 @@ def _terminal_command(
                 "existing_status": entry.status.value,
                 "requested_status": target_status.value,
             },
-            message=(
-                f"Decision {decision_id!r} is already in terminal state "
-                f"{entry.status.value!r}; cannot transition to {target_status.value!r}"
-            ),
+            message=(f"Decision {decision_id!r} is already in terminal state {entry.status.value!r}; cannot transition to {target_status.value!r}"),
         )
 
     # Apply the terminal transition
@@ -537,9 +513,7 @@ def _terminal_command(
     )
 
     # Get the updated entry for artifact + event
-    updated_entry = next(
-        e for e in updated_index.entries if e.decision_id == decision_id
-    )
+    updated_entry = next(e for e in updated_index.entries if e.decision_id == decision_id)
     _store.write_artifact(mission_dir, updated_entry)
     lamport = _emit.emit_decision_resolved(
         repo_root,

@@ -46,10 +46,7 @@ class SessionPresenceAllHarnessesMigration(BaseMigration):
     """Backfill session presence orientation for all non-Claude configured harnesses."""
 
     migration_id = "3_3_0_session_presence_all_harnesses"
-    description = (
-        "Write session presence orientation to each configured non-Claude harness "
-        "(only agents listed in .kittify/config.yaml are processed)"
-    )
+    description = "Write session presence orientation to each configured non-Claude harness (only agents listed in .kittify/config.yaml are processed)"
     target_version = "3.2.0rc39"
     runs_on_worktrees = False
 
@@ -100,10 +97,7 @@ class SessionPresenceAllHarnessesMigration(BaseMigration):
         pending = self._iter_pending(project_path)
 
         if dry_run:
-            dry_changes = [
-                f"Would write session presence orientation for harness: {key}"
-                for key in pending
-            ]
+            dry_changes = [f"Would write session presence orientation for harness: {key}" for key in pending]
             return MigrationResult(success=True, changes_made=dry_changes)
 
         if not pending:

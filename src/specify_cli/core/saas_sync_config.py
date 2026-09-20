@@ -27,10 +27,7 @@ from specify_cli.core.env import is_truthy, sync_kill_switch_active
 
 SAAS_SYNC_ENV_VAR = "SPEC_KITTY_ENABLE_SAAS_SYNC"
 
-_DISABLED_MESSAGE = (
-    "Hosted SaaS sync is disabled on this machine. "
-    "Unset `SPEC_KITTY_ENABLE_SAAS_SYNC` (or set it to `1`) to re-enable it."
-)
+_DISABLED_MESSAGE = "Hosted SaaS sync is disabled on this machine. Unset `SPEC_KITTY_ENABLE_SAAS_SYNC` (or set it to `1`) to re-enable it."
 
 __all__ = [
     "SAAS_SYNC_ENV_VAR",

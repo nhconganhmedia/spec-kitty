@@ -180,9 +180,7 @@ def _hand_written_edge_dict(edge: DRGEdge) -> dict[str, Any]:
         pytest.param(AgentProfile, _VALID_PROFILE, id="AgentProfile"),
     ],
 )
-def test_an_undeclared_field_is_a_load_error(
-    model: type[BaseModel], payload: dict[str, Any]
-) -> None:
+def test_an_undeclared_field_is_a_load_error(model: type[BaseModel], payload: dict[str, Any]) -> None:
     """SC-003. The positive control runs first so a red here cannot be a broken payload.
 
     Without the control, a typo in ``payload`` would make the ``raises`` block
@@ -204,9 +202,7 @@ def test_a_stale_scalar_role_alongside_roles_is_a_load_error() -> None:
     authors both, so nothing in the tree depends on the old resolution.
     """
     with pytest.raises(ValidationError) as excinfo:
-        AgentProfile.model_validate(
-            {**_VALID_PROFILE, "roles": ["architect"], "role": "implementer"}
-        )
+        AgentProfile.model_validate({**_VALID_PROFILE, "roles": ["architect"], "role": "implementer"})
 
     message = str(excinfo.value)
     assert "role" in message
@@ -232,8 +228,7 @@ def test_every_shipped_drg_fragment_still_loads_under_the_strict_models() -> Non
     """``extra="forbid"`` is only correct if nothing shipped relies on the silence."""
     fragments = sorted(_BUILT_IN_PACK.glob("*.graph.yaml"))
     assert len(fragments) >= _MINIMUM_SHIPPED_FRAGMENTS, (
-        f"expected at least {_MINIMUM_SHIPPED_FRAGMENTS} shipped graph fragments; "
-        f"found {len(fragments)} -- this assertion passes vacuously on an empty walk"
+        f"expected at least {_MINIMUM_SHIPPED_FRAGMENTS} shipped graph fragments; found {len(fragments)} -- this assertion passes vacuously on an empty walk"
     )
 
     yaml_safe = YAML(typ="safe")
@@ -249,8 +244,7 @@ def test_every_shipped_agent_profile_still_loads_under_the_strict_model() -> Non
     """Same check for the 18 built-in profiles."""
     profiles = sorted((_BUILT_IN_PACK / "agent_profiles").glob("*.agent.yaml"))
     assert len(profiles) >= _MINIMUM_SHIPPED_PROFILES, (
-        f"expected at least {_MINIMUM_SHIPPED_PROFILES} built-in profiles; "
-        f"found {len(profiles)} -- this assertion passes vacuously on an empty walk"
+        f"expected at least {_MINIMUM_SHIPPED_PROFILES} built-in profiles; found {len(profiles)} -- this assertion passes vacuously on an empty walk"
     )
 
     yaml_safe = YAML(typ="safe")
@@ -308,10 +302,7 @@ def test_the_derived_helper_is_public_on_the_extractor() -> None:
     at the same object -- a copy would let the two drift.
     """
     assert extractor.model_to_graph_dict is extractor._model_to_dict
-    assert (
-        extractor.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
-        is extractor._FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
-    )
+    assert extractor.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT is extractor._FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
 
 
 def test_the_derived_helper_is_reexported_through_the_charter_facade() -> None:
@@ -324,10 +315,7 @@ def test_the_derived_helper_is_reexported_through_the_charter_facade() -> None:
     import charter.drg as charter_drg
 
     assert charter_drg.model_to_graph_dict is extractor.model_to_graph_dict
-    assert (
-        charter_drg.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
-        is extractor.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
-    )
+    assert charter_drg.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT is extractor.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
     assert "model_to_graph_dict" in charter_drg.__all__
     assert "FIELDS_WITHHELD_FROM_GRAPH_OUTPUT" in charter_drg.__all__
 
@@ -358,9 +346,7 @@ def test_a_novel_field_with_an_empty_value_is_not_dropped_silently() -> None:
     withheld nor named in the omit-when-empty allowlist, so the derived writer
     must emit both — the case that silently dropped B1's ``impacts`` today.
     """
-    edge = _DRGEdgeWithEmptyNovelFields(
-        source="tactic:a", target="tactic:b", relation=Relation.REQUIRES
-    )
+    edge = _DRGEdgeWithEmptyNovelFields(source="tactic:a", target="tactic:b", relation=Relation.REQUIRES)
 
     emitted = extractor.model_to_graph_dict(edge)
 
@@ -378,9 +364,7 @@ def test_the_omit_when_empty_set_is_a_shrink_only_allowlist() -> None:
     silent-drop hole for that field — precisely the escape mission B1's ``impacts``
     must not have — so this pin makes that a deliberate, diff-visible edit.
     """
-    assert frozenset(
-        {"label", "tags", "when", "reason"}
-    ) == extractor._FIELDS_OMITTED_WHEN_EMPTY
+    assert frozenset({"label", "tags", "when", "reason"}) == extractor._FIELDS_OMITTED_WHEN_EMPTY
 
 
 def test_the_omit_when_empty_set_names_only_real_model_fields() -> None:
@@ -541,8 +525,11 @@ class _DRGGraphWithNovelField(DRGGraph):
 def test_graph_document_to_dict_derives_the_document_level_keys() -> None:
     """W-2: the derived document writer emits every ``DRGGraph`` field, incl. novel."""
     graph = _DRGGraphWithNovelField(
-        schema_version="1.0", generated_at="STATIC", generated_by="test",
-        nodes=[], edges=[],
+        schema_version="1.0",
+        generated_at="STATIC",
+        generated_by="test",
+        nodes=[],
+        edges=[],
     )
     emitted = set(extractor.graph_document_to_dict(graph))
     expected = set(DRGGraph.model_fields) - extractor.FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
@@ -562,8 +549,11 @@ def test_the_production_dump_graph_document_does_not_drop_a_novel_field(
     """
     fragment = tmp_path / "planted.graph.yaml"
     graph = _DRGGraphWithNovelField(
-        schema_version="1.0", generated_at="STATIC", generated_by="test",
-        nodes=[], edges=[],
+        schema_version="1.0",
+        generated_at="STATIC",
+        generated_by="test",
+        nodes=[],
+        edges=[],
     )
 
     extractor._dump_graph_document(graph, fragment)
@@ -592,9 +582,7 @@ def test_the_strict_model_rejects_what_the_hand_written_writer_left_behind() -> 
     downgraded edge. That is the outcome ``extra="forbid"`` alone cannot prevent,
     because there is nothing extra left to forbid.
     """
-    dropped = _DRGEdgeWithNewField.model_validate(
-        _hand_written_edge_dict(_new_field_edge())
-    )
+    dropped = _DRGEdgeWithNewField.model_validate(_hand_written_edge_dict(_new_field_edge()))
 
     assert dropped.audit_note is None
 
@@ -766,9 +754,7 @@ _STRAY_SOURCE = "acme-org-pack/directive.graph.yaml"
 
 def test_load_graph_document_accepts_a_valid_document() -> None:
     """Positive control: a clean document round-trips through the typed loader."""
-    graph = drg_models.load_graph_document(
-        dict(_VALID_GRAPH_DOCUMENT), source=_STRAY_SOURCE
-    )
+    graph = drg_models.load_graph_document(dict(_VALID_GRAPH_DOCUMENT), source=_STRAY_SOURCE)
     assert isinstance(graph, DRGGraph)
 
 
@@ -795,9 +781,7 @@ def test_the_typed_error_is_not_swallowed_by_the_degrade_handlers() -> None:
 
 def test_a_valid_document_forbidding_extras_is_unchanged_by_the_loader() -> None:
     """The typed loader is a pure add-on: valid documents behave as before."""
-    graph = drg_models.load_graph_document(
-        dict(_VALID_GRAPH_DOCUMENT), source=_STRAY_SOURCE
-    )
+    graph = drg_models.load_graph_document(dict(_VALID_GRAPH_DOCUMENT), source=_STRAY_SOURCE)
     assert graph.nodes == []
     assert graph.edges == []
 
@@ -812,11 +796,7 @@ def test_a_valid_document_forbidding_extras_is_unchanged_by_the_loader() -> None
 
 def _write_graph_yaml(path: Path, extra: str = "") -> None:
     path.write_text(
-        "schema_version: '1.0'\n"
-        "generated_at: STATIC\n"
-        "generated_by: acme\n"
-        "nodes: []\n"
-        "edges: []\n" + extra,
+        "schema_version: '1.0'\ngenerated_at: STATIC\ngenerated_by: acme\nnodes: []\nedges: []\n" + extra,
         encoding="utf-8",
     )
 
@@ -851,14 +831,7 @@ def test_a_node_level_extra_key_still_raises_the_ordinary_load_error(
     """The typed error is document-scoped: nested extras stay ``DRGLoadError``."""
     graph_file = tmp_path / "directive.graph.yaml"
     graph_file.write_text(
-        "schema_version: '1.0'\n"
-        "generated_at: STATIC\n"
-        "generated_by: acme\n"
-        "nodes:\n"
-        "  - urn: directive:X\n"
-        "    kind: directive\n"
-        "    bogus_node_key: nope\n"
-        "edges: []\n",
+        "schema_version: '1.0'\ngenerated_at: STATIC\ngenerated_by: acme\nnodes:\n  - urn: directive:X\n    kind: directive\n    bogus_node_key: nope\nedges: []\n",
         encoding="utf-8",
     )
 

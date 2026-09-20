@@ -174,9 +174,7 @@ def test_cli_head_mismatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
         "destination_ref",
         "HEAD",
     )
-    assert any(signal in err_msg for signal in head_mismatch_signals), (
-        f"expected HEAD-mismatch signal in error message, got: {err_msg!r}"
-    )
+    assert any(signal in err_msg for signal in head_mismatch_signals), f"expected HEAD-mismatch signal in error message, got: {err_msg!r}"
 
     head_after = _git(tmp_path, "rev-parse", "HEAD").stdout.strip()
     assert head_after == head_before, "no commit must be created on HEAD-mismatch"
@@ -187,9 +185,7 @@ def test_cli_head_mismatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
 # ---------------------------------------------------------------------------
 
 
-def test_cli_dir_arg_mixed_modified_and_untracked_commits_all_with_report(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_dir_arg_mixed_modified_and_untracked_commits_all_with_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """(a) A directory argument with mixed modified + untracked contents commits
     every contained file and prints the explicit expansion report (no
     'unexpected paths' backstop refusal — F-002)."""
@@ -243,9 +239,7 @@ def test_cli_dir_arg_mixed_modified_and_untracked_commits_all_with_report(
     assert "pkg/untracked.txt" in committed_files
 
 
-def test_cli_to_branch_honored_from_non_target_cwd(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_to_branch_honored_from_non_target_cwd(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """(b) `--to-branch <branch>` is honored: the explicit value is the single
     destination authority. Invoked from a subdirectory CWD (not the repo root)."""
     monkeypatch.delenv("SPEC_KITTY_TEST_MODE", raising=False)
@@ -284,9 +278,7 @@ def test_cli_to_branch_honored_from_non_target_cwd(
     assert _git(tmp_path, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip() == branch
 
 
-def test_cli_retired_env_var_has_no_effect(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_retired_env_var_has_no_effect(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """(c) The retired `SPEC_KITTY_INFER_DESTINATION_REF` env var has NO effect:
     setting it does not suppress the no-flag deprecation warning (T016)."""
     monkeypatch.setenv("SPEC_KITTY_INFER_DESTINATION_REF", "1")
@@ -314,9 +306,7 @@ def test_cli_retired_env_var_has_no_effect(
     assert "--to-branch will be required in v3.3" in (result.stderr or "")
 
 
-def test_cli_genuinely_different_file_never_reports_no_changes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_genuinely_different_file_never_reports_no_changes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """(d) A file genuinely differing from HEAD is never reported 'No requested
     changes' — the F-002 misfire repro (passed via a dir arg)."""
     monkeypatch.delenv("SPEC_KITTY_TEST_MODE", raising=False)

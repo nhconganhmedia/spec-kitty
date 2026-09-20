@@ -79,12 +79,18 @@ class TestGeneratorDeterminism:
         actor = GenActor(kind="runtime", id="test-agent", display="Test Agent")
 
         record1 = generate_retrospective(
-            SIMPLE_CLEAN, policy, FIXTURES_ROOT,
-            invoked_at=ts, actor=actor,
+            SIMPLE_CLEAN,
+            policy,
+            FIXTURES_ROOT,
+            invoked_at=ts,
+            actor=actor,
         )
         record2 = generate_retrospective(
-            SIMPLE_CLEAN, policy, FIXTURES_ROOT,
-            invoked_at=ts, actor=actor,
+            SIMPLE_CLEAN,
+            policy,
+            FIXTURES_ROOT,
+            invoked_at=ts,
+            actor=actor,
         )
 
         json1 = json.dumps(dataclasses.asdict(record1), sort_keys=True)
@@ -98,12 +104,18 @@ class TestGeneratorDeterminism:
         actor = GenActor(kind="runtime", id="test-agent", display="Test Agent")
 
         record1 = generate_retrospective(
-            LARGE_WITH_GAPS, policy, FIXTURES_ROOT,
-            invoked_at=ts, actor=actor,
+            LARGE_WITH_GAPS,
+            policy,
+            FIXTURES_ROOT,
+            invoked_at=ts,
+            actor=actor,
         )
         record2 = generate_retrospective(
-            LARGE_WITH_GAPS, policy, FIXTURES_ROOT,
-            invoked_at=ts, actor=actor,
+            LARGE_WITH_GAPS,
+            policy,
+            FIXTURES_ROOT,
+            invoked_at=ts,
+            actor=actor,
         )
 
         json1 = json.dumps(dataclasses.asdict(record1), sort_keys=True)
@@ -120,7 +132,10 @@ class TestGeneratorDeterminism:
         """Generated record carries the correct generator_version."""
         policy = make_policy()
         record = generate_retrospective(
-            SIMPLE_CLEAN, policy, FIXTURES_ROOT, invoked_at="2026-01-01T00:00:00+00:00",
+            SIMPLE_CLEAN,
+            policy,
+            FIXTURES_ROOT,
+            invoked_at="2026-01-01T00:00:00+00:00",
         )
         assert record.generator_version == GENERATOR_VERSION
 
@@ -137,7 +152,9 @@ class TestGeneratorPerformance:
         """Functional half of the #4015 split: large-with-gaps fixture is produced."""
         policy = make_policy()
         record = generate_retrospective(
-            LARGE_WITH_GAPS, policy, FIXTURES_ROOT,
+            LARGE_WITH_GAPS,
+            policy,
+            FIXTURES_ROOT,
             invoked_at="2026-05-19T12:00:00+00:00",
         )
         # Sanity check: record was actually produced
@@ -149,7 +166,9 @@ class TestGeneratorPerformance:
         policy = make_policy()
         start = time.monotonic()
         generate_retrospective(
-            LARGE_WITH_GAPS, policy, FIXTURES_ROOT,
+            LARGE_WITH_GAPS,
+            policy,
+            FIXTURES_ROOT,
             invoked_at="2026-05-19T12:00:00+00:00",
         )
         elapsed = time.monotonic() - start
@@ -161,7 +180,9 @@ class TestGeneratorPerformance:
         policy = make_policy()
         start = time.monotonic()
         generate_retrospective(
-            SIMPLE_CLEAN, policy, FIXTURES_ROOT,
+            SIMPLE_CLEAN,
+            policy,
+            FIXTURES_ROOT,
             invoked_at="2026-05-19T12:00:00+00:00",
         )
         elapsed = time.monotonic() - start
@@ -278,9 +299,7 @@ class TestFindingsClassification:
         finding = gaps[0]
         assert finding.summary == "Arbiter override needed for WP04 (1x)"
         assert "escape hatch" in finding.details
-        assert "ecurring use" not in finding.details, (
-            f"a 1x override must not read as a pattern: {finding.details!r}"
-        )
+        assert "ecurring use" not in finding.details, f"a 1x override must not read as a pattern: {finding.details!r}"
 
     def test_repeated_arbiter_overrides_keep_recurring_use_reading(self) -> None:
         """#4065: two genuinely separate overrides on one WP still read as a
@@ -344,10 +363,7 @@ class TestFindingsClassification:
         record = generate_retrospective(LARGE_WITH_GAPS, policy, FIXTURES_ROOT)
 
         clarification_gaps = [g for g in record.gaps if "clarification marker" in g.summary.lower()]
-        assert len(clarification_gaps) >= 2, (
-            f"Expected ≥2 clarification gaps, got {len(clarification_gaps)}: "
-            f"{[g.summary for g in clarification_gaps]}"
-        )
+        assert len(clarification_gaps) >= 2, f"Expected ≥2 clarification gaps, got {len(clarification_gaps)}: {[g.summary for g in clarification_gaps]}"
 
     def test_large_with_gaps_has_unmapped_frs(self) -> None:
         """large-with-gaps: FR-007 and FR-008 appear in spec.md but no WP covers them."""
@@ -376,13 +392,9 @@ class TestFindingsClassification:
         known_ids = {e.id for e in record.evidence_refs}
 
         for finding in (*record.helped, *record.not_helpful, *record.gaps):
-            assert len(finding.evidence_refs) >= 1, (
-                f"Finding {finding.id!r} has no evidence_refs"
-            )
+            assert len(finding.evidence_refs) >= 1, f"Finding {finding.id!r} has no evidence_refs"
             for ref_id in finding.evidence_refs:
-                assert ref_id in known_ids, (
-                    f"Finding {finding.id!r} references unknown evidence_ref {ref_id!r}"
-                )
+                assert ref_id in known_ids, f"Finding {finding.id!r} references unknown evidence_ref {ref_id!r}"
 
     def test_snapshot_large_with_gaps(self) -> None:
         """Snapshot regression check for large-with-gaps fixture.
@@ -392,7 +404,9 @@ class TestFindingsClassification:
         """
         policy = make_policy()
         record = generate_retrospective(
-            LARGE_WITH_GAPS, policy, FIXTURES_ROOT,
+            LARGE_WITH_GAPS,
+            policy,
+            FIXTURES_ROOT,
             invoked_at="2026-05-19T12:00:00+00:00",
             actor=GenActor(kind="runtime", id="spec-kitty-generator", display="Spec Kitty Generator"),
         )
@@ -401,25 +415,16 @@ class TestFindingsClassification:
 
         # Load and parse the YAML snapshot for key assertions
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         expected = yaml.load(snapshot_path.read_text(encoding="utf-8"))
 
         # Check structural counts
-        assert len(record.helped) == len(expected["helped"]), (
-            f"helped count mismatch: got {len(record.helped)}, expected {len(expected['helped'])}"
-        )
-        assert len(record.not_helpful) == len(expected["not_helpful"]), (
-            "not_helpful count mismatch"
-        )
-        assert len(record.gaps) == len(expected["gaps"]), (
-            f"gaps count mismatch: got {len(record.gaps)}, expected {len(expected['gaps'])}"
-        )
-        assert len(record.proposals) == len(expected["proposals"]), (
-            "proposals count mismatch"
-        )
-        assert len(record.evidence_refs) == len(expected["evidence_refs"]), (
-            "evidence_refs count mismatch"
-        )
+        assert len(record.helped) == len(expected["helped"]), f"helped count mismatch: got {len(record.helped)}, expected {len(expected['helped'])}"
+        assert len(record.not_helpful) == len(expected["not_helpful"]), "not_helpful count mismatch"
+        assert len(record.gaps) == len(expected["gaps"]), f"gaps count mismatch: got {len(record.gaps)}, expected {len(expected['gaps'])}"
+        assert len(record.proposals) == len(expected["proposals"]), "proposals count mismatch"
+        assert len(record.evidence_refs) == len(expected["evidence_refs"]), "evidence_refs count mismatch"
 
         # Check findings_status
         assert record.findings_status == expected["findings_status"]
@@ -428,9 +433,7 @@ class TestFindingsClassification:
         actual_gap_summaries = {g.summary for g in record.gaps}
         expected_gap_summaries = {g["summary"] for g in expected["gaps"]}
         assert actual_gap_summaries == expected_gap_summaries, (
-            "Gap summaries differ.\n"
-            f"  Actual: {sorted(actual_gap_summaries)}\n"
-            f"  Expected: {sorted(expected_gap_summaries)}"
+            f"Gap summaries differ.\n  Actual: {sorted(actual_gap_summaries)}\n  Expected: {sorted(expected_gap_summaries)}"
         )
 
     def test_sorting_is_stable(self) -> None:
@@ -445,9 +448,7 @@ class TestFindingsClassification:
             (record.proposals, "proposals"),
         ):
             sort_keys = [(f.category, f.summary) for f in lst]
-            assert sort_keys == sorted(sort_keys), (
-                f"{name} list is not sorted by (category, summary)"
-            )
+            assert sort_keys == sorted(sort_keys), f"{name} list is not sorted by (category, summary)"
 
     def test_missing_optional_artifacts_do_not_raise(self) -> None:
         """Generator tolerates missions with missing optional artifacts (research.md etc)."""
@@ -504,9 +505,7 @@ def _write_mission(root: Path, slug: str, mission_number: int, events: list[dict
     (feature_dir / "spec.md").write_text("# Spec\n\n### FR-001\nReq.\n", encoding="utf-8")
     (feature_dir / "plan.md").write_text("# Plan\n", encoding="utf-8")
     (feature_dir / "tasks.md").write_text("# Tasks\n", encoding="utf-8")
-    (feature_dir / "status.events.jsonl").write_text(
-        "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
 
 _CLEAN_RUN = [
@@ -615,13 +614,8 @@ class TestRejectionAfterApproval:
         not_helpful_wps = {f.summary.split()[0] for f in record.not_helpful}
         # WP02 had a real rejection cycle — it must not be called clean.
         assert "WP01" in helped_wps, "WP01 clean completion expected in helped"
-        assert "WP02" not in helped_wps, (
-            f"#3687 contradiction: WP02 appears in helped ({record.helped}) "
-            "while also being flagged in not_helpful"
-        )
-        assert helped_wps & not_helpful_wps == set(), (
-            f"helped/not_helpful contradiction for {helped_wps & not_helpful_wps}"
-        )
+        assert "WP02" not in helped_wps, f"#3687 contradiction: WP02 appears in helped ({record.helped}) while also being flagged in not_helpful"
+        assert helped_wps & not_helpful_wps == set(), f"helped/not_helpful contradiction for {helped_wps & not_helpful_wps}"
         not_helpful_summaries = {f.summary for f in record.not_helpful}
         assert "WP02 required 1 rejection cycle(s) before approval" in not_helpful_summaries
         assert "WP02 needed 2 implementation cycles" in not_helpful_summaries
@@ -677,10 +671,7 @@ class TestRejectionAfterApproval:
         helped_wps = {h.summary.split()[0] for h in record.helped}
         not_helpful_wps = {f.summary.split()[0] for f in record.not_helpful}
         assert "WP02" in helped_wps, "WP02 clean completion expected in helped"
-        assert "WP01" not in helped_wps, (
-            f"#3687 contradiction: WP01 needed 2 implementation cycles yet appears "
-            f"in helped ({record.helped})"
-        )
+        assert "WP01" not in helped_wps, f"#3687 contradiction: WP01 needed 2 implementation cycles yet appears in helped ({record.helped})"
         assert helped_wps & not_helpful_wps == set()
         assert "WP01 needed 2 implementation cycles" in {f.summary for f in record.not_helpful}
 
@@ -797,9 +788,7 @@ class TestFindingsStatus:
     def test_validate_ran_no_findings_with_nonempty_list_raises(self) -> None:
         """findings_status='ran_no_findings' + non-empty list → RecordValidationError."""
         ev = GenEvidenceRef(id="e-001", kind="file", path="test.md")
-        finding = GenFinding(
-            id="g-001", category="spec_quality", summary="some gap", evidence_refs=["e-001"]
-        )
+        finding = GenFinding(id="g-001", category="spec_quality", summary="some gap", evidence_refs=["e-001"])
         record = GenRetrospectiveRecord(
             schema_version=1,
             mission_id="01TEST00000000000000000000",
@@ -827,9 +816,7 @@ class TestFindingsStatus:
     def test_validate_synthesize_fabricate_requires_no_findings(self) -> None:
         """synthesize_fabricate provenance must have ran_no_findings (FR-014 invariant)."""
         ev = GenEvidenceRef(id="e-001", kind="file", path="test.md")
-        finding = GenFinding(
-            id="h-001", category="implementation", summary="some help", evidence_refs=["e-001"]
-        )
+        finding = GenFinding(id="h-001", category="implementation", summary="some help", evidence_refs=["e-001"])
         record = GenRetrospectiveRecord(
             schema_version=1,
             mission_id="01TEST00000000000000000000",
@@ -860,8 +847,10 @@ class TestFindingsStatus:
     def test_validate_unresolved_evidence_ref_raises(self) -> None:
         """Finding references an evidence_ref id not in top-level evidence_refs → error."""
         finding = GenFinding(
-            id="h-001", category="implementation", summary="some help",
-            evidence_refs=["e-999"]  # not in evidence_refs list
+            id="h-001",
+            category="implementation",
+            summary="some help",
+            evidence_refs=["e-999"],  # not in evidence_refs list
         )
         record = GenRetrospectiveRecord(
             schema_version=1,
@@ -971,8 +960,7 @@ class TestRiskClass:
         risk_class, auto_applicable = _classify_risk("flag_not_helpful: some-directive")
         assert risk_class == "low"
         assert auto_applicable is False, (
-            "auto_applicable should be False at generation time; "
-            "the runtime sets it based on policy.permissions.apply_low_risk_changes"
+            "auto_applicable should be False at generation time; the runtime sets it based on policy.permissions.apply_low_risk_changes"
         )
 
     def test_classify_risk_with_no_colon_is_structural(self) -> None:
@@ -997,9 +985,7 @@ class TestRiskClass:
         policy = make_policy()
         record = generate_retrospective(MID_WITH_REJECTIONS, policy, FIXTURES_ROOT)
         for f in record.not_helpful:
-            assert len(f.evidence_refs) >= 1, (
-                f"not_helpful finding {f.id!r} has no evidence_refs"
-            )
+            assert len(f.evidence_refs) >= 1, f"not_helpful finding {f.id!r} has no evidence_refs"
 
     def test_generator_raises_on_missing_mission(self) -> None:
         """FileNotFoundError is raised for an unknown mission handle."""
@@ -1039,9 +1025,7 @@ class TestMissionResolution:
 
         (tmp_path / "kitty-specs" / "my-mission").mkdir(parents=True)
         meta = {"mission_id": "01AAAAAAAAAAAAAAAAAAAAAAA1", "mission_slug": "my-mission"}
-        (tmp_path / "kitty-specs" / "my-mission" / "meta.json").write_text(
-            json.dumps(meta), encoding="utf-8"
-        )
+        (tmp_path / "kitty-specs" / "my-mission" / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
         result = _resolve_mission_dir("01AAAAAAAAAAAAAAAAAAAAAAA1", tmp_path)
         assert result is not None
         assert result.name == "my-mission"
@@ -1052,9 +1036,7 @@ class TestMissionResolution:
 
         (tmp_path / "kitty-specs" / "001-my-mission").mkdir(parents=True)
         meta = {"mission_id": "01BBBBBBBBBBBBBBBBBBBBBBB2", "mission_slug": "my-mission"}
-        (tmp_path / "kitty-specs" / "001-my-mission" / "meta.json").write_text(
-            json.dumps(meta), encoding="utf-8"
-        )
+        (tmp_path / "kitty-specs" / "001-my-mission" / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
         result = _resolve_mission_dir("my-mission", tmp_path)
         assert result is not None
         assert result.name == "001-my-mission"

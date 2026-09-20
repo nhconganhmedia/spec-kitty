@@ -63,9 +63,7 @@ _SPEC_CONTENT = """\
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True)
 
 
 def _build_repo_with_worktree(root: Path) -> tuple[Path, Path]:
@@ -90,9 +88,7 @@ def _build_repo_with_worktree(root: Path) -> tuple[Path, Path]:
     _git(repo_root, "config", "commit.gpgsign", "false")
 
     (repo_root / ".kittify").mkdir(parents=True, exist_ok=True)
-    (repo_root / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (repo_root / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
 
     feature_dir = repo_root / "kitty-specs" / _MISSION_SLUG
     tasks_dir = feature_dir / "tasks"
@@ -109,9 +105,7 @@ def _build_repo_with_worktree(root: Path) -> tuple[Path, Path]:
         "---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
-    (feature_dir / "tasks.md").write_text(
-        "# Work Packages\n\n## WP01 - fixture\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("# Work Packages\n\n## WP01 - fixture\n", encoding="utf-8")
 
     _git(repo_root, "add", ".")
     _git(repo_root, "commit", "-q", "-m", "fixture: sc008 mission bootstrap")
@@ -119,9 +113,7 @@ def _build_repo_with_worktree(root: Path) -> tuple[Path, Path]:
     worktree_path = repo_root / ".worktrees" / f"{_MISSION_SLUG}-lane-c"
     worktree_path.parent.mkdir(parents=True, exist_ok=True)
     _git(repo_root, "worktree", "add", "-b", _LANE_BRANCH, str(worktree_path), "main")
-    assert (worktree_path / ".git").is_file(), (
-        "git worktree add must produce a real gitdir-pointer file"
-    )
+    assert (worktree_path / ".git").is_file(), "git worktree add must produce a real gitdir-pointer file"
 
     return repo_root, worktree_path
 
@@ -161,9 +153,7 @@ def _invoke_append_history(note: str = "off-axis note") -> object:
 class TestAppendHistoryTopologyResolution:
     """The ``note`` annotation lands on stored topology, never a cwd join."""
 
-    def test_lands_under_stored_topology_not_worktree_cwd(
-        self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_lands_under_stored_topology_not_worktree_cwd(self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         repo_root, worktree_path = mission_repo
         monkeypatch.chdir(worktree_path)
         assert is_worktree_context(Path.cwd()) is True
@@ -189,14 +179,10 @@ class TestAppendHistoryTopologyResolution:
         # exist instead of (or in addition to) the correct one above.
         decoy_events_path = _events_path(worktree_path / "kitty-specs" / _MISSION_SLUG)
         assert not decoy_events_path.exists(), (
-            "InnerStateChanged annotation leaked into the worktree-cwd-derived "
-            "kitty-specs/ copy -- destination_ref was NOT topology-resolved "
-            "(#2647 regression)."
+            "InnerStateChanged annotation leaked into the worktree-cwd-derived kitty-specs/ copy -- destination_ref was NOT topology-resolved (#2647 regression)."
         )
 
-    def test_repo_root_cwd_still_works(
-        self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repo_root_cwd_still_works(self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         """No-regression sibling: the historically-working repo-root cwd stays green."""
         repo_root, _worktree_path = mission_repo
         monkeypatch.chdir(repo_root)
@@ -221,9 +207,7 @@ class TestAppendHistoryTopologyResolution:
 class TestMapRequirementsTopologyResolution:
     """``tracker_refs`` emits land on stored topology; union/replace hold."""
 
-    def test_tracker_refs_union_lands_under_stored_topology_from_worktree_cwd(
-        self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tracker_refs_union_lands_under_stored_topology_from_worktree_cwd(self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         repo_root, worktree_path = mission_repo
         monkeypatch.chdir(worktree_path)
         assert is_worktree_context(Path.cwd()) is True
@@ -278,23 +262,16 @@ class TestMapRequirementsTopologyResolution:
 
         wp_file = correct_feature_dir / "tasks" / "WP01-fixture.md"
         wp_meta, _ = read_wp_frontmatter(wp_file)
-        assert not wp_meta.tracker_refs, (
-            "map-requirements must not write the union-merged tracker_refs "
-            "into frontmatter any more -- the reducer owns the merge"
-        )
+        assert not wp_meta.tracker_refs, "map-requirements must not write the union-merged tracker_refs into frontmatter any more -- the reducer owns the merge"
 
         # Negative control: no events file was created under the decoy
         # worktree-cwd-derived kitty-specs/ copy.
         decoy_events_path = _events_path(worktree_path / "kitty-specs" / _MISSION_SLUG)
         assert not decoy_events_path.exists(), (
-            "tracker_refs annotation leaked into the worktree-cwd-derived "
-            "kitty-specs/ copy -- destination_ref was NOT topology-resolved "
-            "(#2647 regression)."
+            "tracker_refs annotation leaked into the worktree-cwd-derived kitty-specs/ copy -- destination_ref was NOT topology-resolved (#2647 regression)."
         )
 
-    def test_tracker_refs_replace_never_degrades_to_union(
-        self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tracker_refs_replace_never_degrades_to_union(self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         """``--replace`` routes through WP01's dedicated ``tracker_refs_replace``
         channel (set-replace) -- it must never resurrect a stale ref via union.
         """
@@ -341,8 +318,7 @@ class TestMapRequirementsTopologyResolution:
         snapshot = reduce(stream.transitions, stream.annotations)
         wp01 = snapshot.work_packages["WP01"]
         assert wp01["tracker_refs"] == ["#999"], (
-            "--replace must wholesale-replace via tracker_refs_replace, "
-            "never degrade to a union that resurrects the stale #100 ref"
+            "--replace must wholesale-replace via tracker_refs_replace, never degrade to a union that resurrects the stale #100 ref"
         )
 
 
@@ -370,9 +346,7 @@ class TestMapRequirementsTopologyResolution:
 
 
 class TestTwoSidedProof:
-    def test_bad_root_alone_is_caught_by_emits_own_canonicalization(
-        self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_bad_root_alone_is_caught_by_emits_own_canonicalization(self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         """Defense-in-depth check: WP01's ``canonicalize_feature_dir`` alone
         already heals a worktree-rooted ``main_repo_root`` mistake.
         """
@@ -387,19 +361,11 @@ class TestTwoSidedProof:
 
         assert result.exit_code == 0, result.output
         decoy_events_path = _events_path(worktree_path / "kitty-specs" / _MISSION_SLUG)
-        assert not decoy_events_path.exists(), (
-            "canonicalize_feature_dir should have redirected the worktree-"
-            "rooted path back to the main repo copy"
-        )
+        assert not decoy_events_path.exists(), "canonicalize_feature_dir should have redirected the worktree-rooted path back to the main repo copy"
         stream = read_event_stream(repo_root / "kitty-specs" / _MISSION_SLUG)
-        assert any(
-            a.wp_id == "WP01" and a.delta.note is not None and "bad-root note (healed)" in a.delta.note
-            for a in stream.annotations
-        )
+        assert any(a.wp_id == "WP01" and a.delta.note is not None and "bad-root note (healed)" in a.delta.note for a in stream.annotations)
 
-    def test_bad_root_without_canonicalization_would_leak_into_the_worktree(
-        self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_bad_root_without_canonicalization_would_leak_into_the_worktree(self, mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         """With BOTH safety nets removed (bad root + stubbed canonicalization),
         the annotation genuinely leaks into the worktree-cwd-derived copy --
         proving the "no write under the decoy cwd" assertions in the classes
@@ -429,7 +395,4 @@ class TestTwoSidedProof:
             "tests above would pass regardless of implementation."
         )
         stream = read_event_stream(worktree_path / "kitty-specs" / _MISSION_SLUG)
-        assert any(
-            a.wp_id == "WP01" and a.delta.note is not None and "bad-root note (unhealed)" in a.delta.note
-            for a in stream.annotations
-        )
+        assert any(a.wp_id == "WP01" and a.delta.note is not None and "bad-root note (unhealed)" in a.delta.note for a in stream.annotations)

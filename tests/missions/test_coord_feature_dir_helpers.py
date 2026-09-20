@@ -74,17 +74,11 @@ def _materialize_coord_root(repo: Path) -> Path:
 
 def test_coord_feature_dir_composes_canonical_shape(tmp_path: Path) -> None:
     result = coord_feature_dir(tmp_path, _SLUG, _MID8)
-    expected = (
-        CoordinationWorkspace.worktree_path(tmp_path, _SLUG, _MID8)
-        / KITTY_SPECS_DIR
-        / f"{_SLUG}-{_MID8}"
-    )
+    expected = CoordinationWorkspace.worktree_path(tmp_path, _SLUG, _MID8) / KITTY_SPECS_DIR / f"{_SLUG}-{_MID8}"
     assert result == expected
     # The parent.parent of the mission dir is the coord worktree ROOT — the
     # contract probe_coord_state relies on.
-    assert result.parent.parent == CoordinationWorkspace.worktree_path(
-        tmp_path, _SLUG, _MID8
-    )
+    assert result.parent.parent == CoordinationWorkspace.worktree_path(tmp_path, _SLUG, _MID8)
 
 
 # --------------------------------------------------------------------------- #
@@ -104,12 +98,7 @@ def test_probe_unmaterialized_when_coord_absent_no_branch(tmp_path: Path) -> Non
 def test_probe_unmaterialized_when_branch_still_present(real_git_repo: Path) -> None:
     """Coord absent but the declared branch still exists in git → UNMATERIALIZED."""
     _git(real_git_repo, "branch", _COORD_BRANCH)
-    assert (
-        probe_coord_state(
-            real_git_repo, _SLUG, _MID8, coordination_branch=_COORD_BRANCH
-        )
-        is CoordState.UNMATERIALIZED
-    )
+    assert probe_coord_state(real_git_repo, _SLUG, _MID8, coordination_branch=_COORD_BRANCH) is CoordState.UNMATERIALIZED
 
 
 def test_probe_empty_when_coord_root_without_mission_dir(real_git_repo: Path) -> None:
@@ -132,12 +121,7 @@ def test_probe_deleted_when_coord_absent_and_branch_gone(real_git_repo: Path) ->
     """
     _git(real_git_repo, "branch", _COORD_BRANCH)
     _git(real_git_repo, "branch", "-D", _COORD_BRANCH)
-    assert (
-        probe_coord_state(
-            real_git_repo, _SLUG, _MID8, coordination_branch=_COORD_BRANCH
-        )
-        is CoordState.DELETED
-    )
+    assert probe_coord_state(real_git_repo, _SLUG, _MID8, coordination_branch=_COORD_BRANCH) is CoordState.DELETED
 
 
 def test_probe_materialized_ignores_deleted_branch(real_git_repo: Path) -> None:
@@ -147,9 +131,4 @@ def test_probe_materialized_ignores_deleted_branch(real_git_repo: Path) -> None:
     on disk the topology is MATERIALIZED regardless of branch state.
     """
     coord_feature_dir(real_git_repo, _SLUG, _MID8).mkdir(parents=True)
-    assert (
-        probe_coord_state(
-            real_git_repo, _SLUG, _MID8, coordination_branch=_COORD_BRANCH
-        )
-        is CoordState.MATERIALIZED
-    )
+    assert probe_coord_state(real_git_repo, _SLUG, _MID8, coordination_branch=_COORD_BRANCH) is CoordState.MATERIALIZED

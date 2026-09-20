@@ -90,10 +90,7 @@ def _read_org_activations(repo_root: Path) -> list[ActivationEntry]:
             try:
                 entries.append(ActivationEntry.model_validate(item))
             except ValidationError as exc:
-                raise ValueError(
-                    f"org pack `{name}` declares a malformed activations entry "
-                    f"{item!r}: {exc}"
-                ) from exc
+                raise ValueError(f"org pack `{name}` declares a malformed activations entry {item!r}: {exc}") from exc
     return entries
 
 
@@ -169,12 +166,14 @@ def _render_activation_block(
     from charter.activation._activation_render import render_activation_stanza
 
     try:
-        return str(render_activation_stanza(
-            activations,
-            service,
-            mission_type=mission_type,
-            action=action,
-        ))
+        return str(
+            render_activation_stanza(
+                activations,
+                service,
+                mission_type=mission_type,
+                action=action,
+            )
+        )
     except Exception:  # noqa: BLE001 — defensive: never crash the prompt build
         _LOGGER.warning(
             "Activation stanza renderer raised; surface omitted for action %s.",

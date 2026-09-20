@@ -93,9 +93,7 @@ def load_session_hot_path(store_dir: Path) -> SessionHotPathSummary | None:
 
     refresh_raw = payload.get("refresh_token_expires_at")
     try:
-        refresh_expires_at = (
-            parse_iso(refresh_raw) if refresh_raw else None
-        )
+        refresh_expires_at = parse_iso(refresh_raw) if refresh_raw else None
     except (TypeError, ValueError):
         return None
     if refresh_expires_at is not None:
@@ -104,8 +102,7 @@ def load_session_hot_path(store_dir: Path) -> SessionHotPathSummary | None:
         refresh_expires_at = refresh_expires_at.astimezone(UTC)
     return SessionHotPathSummary(
         refresh_token_expires_at=refresh_expires_at,
-        not_after_monotonic=time.monotonic()
-        + min(_MAX_AGE_SECONDS, max_age - (now - generated_at)),
+        not_after_monotonic=time.monotonic() + min(_MAX_AGE_SECONDS, max_age - (now - generated_at)),
     )
 
 
@@ -126,11 +123,7 @@ def publish_session_hot_path(store_dir: Path, session: StoredSession) -> None:
             "generated_at": now,
             "max_age_seconds": _MAX_AGE_SECONDS,
             "durable_fingerprint": _durable_fingerprint(cred_file),
-            "refresh_token_expires_at": (
-                session.refresh_token_expires_at.isoformat()
-                if session.refresh_token_expires_at is not None
-                else None
-            ),
+            "refresh_token_expires_at": (session.refresh_token_expires_at.isoformat() if session.refresh_token_expires_at is not None else None),
         }
         handoff_file = handoff_path_for_store(store_dir)
         tmp = handoff_file.with_suffix(handoff_file.suffix + ".tmp")

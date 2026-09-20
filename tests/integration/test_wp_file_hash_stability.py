@@ -117,9 +117,7 @@ def _build_mission(
     # "main" as protected by default, so this real-git fixture needs the
     # override to let the review-cycle artifact's commit genuinely succeed --
     # mirrors ``tests/review/test_cycle.py``'s ``_unprotect_main`` idiom.
-    (repo / ".kittify" / "config.yaml").write_text(
-        "auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (repo / ".kittify" / "config.yaml").write_text("auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8")
 
     feature_dir = repo / "kitty-specs" / _MISSION_SLUG
     tasks_dir = feature_dir / "tasks"
@@ -157,9 +155,7 @@ def _build_mission(
 
     monkeypatch.chdir(repo)
     monkeypatch.setattr(tasks_module, "locate_project_root", lambda: repo)
-    monkeypatch.setattr(
-        tasks_module, "_validate_ready_for_review", lambda *_a, **_k: (True, [])
-    )
+    monkeypatch.setattr(tasks_module, "_validate_ready_for_review", lambda *_a, **_k: (True, []))
     monkeypatch.setattr(tasks_module, "get_mission_type", lambda *_a, **_k: "software-dev")
     return repo, feature_dir
 
@@ -174,9 +170,7 @@ def _move(mission_args: list[str]) -> object:
 # ---------------------------------------------------------------------------
 
 
-def test_move_task_writer_cut_leaves_wp_file_and_tasks_md_byte_stable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_move_task_writer_cut_leaves_wp_file_and_tasks_md_byte_stable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo, feature_dir = _build_mission(tmp_path, monkeypatch, seed_up_to=Lane.PLANNED)
     wp_file = feature_dir / "tasks" / "WP01-core.md"
     tasks_md = feature_dir / "tasks.md"
@@ -189,9 +183,19 @@ def test_move_task_writer_cut_leaves_wp_file_and_tasks_md_byte_stable(
     # Action A — claim: the triple rides the transition policy_metadata.
     claim = _move(
         [
-            "WP01", "--to", "claimed", "--mission", _MISSION_SLUG,
-            "--shell-pid", "424242", "--agent", "claude",
-            "--note", "claiming for work", "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "claimed",
+            "--mission",
+            _MISSION_SLUG,
+            "--shell-pid",
+            "424242",
+            "--agent",
+            "claude",
+            "--note",
+            "claiming for work",
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert claim.exit_code == 0, claim.output
@@ -201,9 +205,19 @@ def test_move_task_writer_cut_leaves_wp_file_and_tasks_md_byte_stable(
     # Action B — note + tracker-ref union delta (off-axis InnerStateChanged).
     work = _move(
         [
-            "WP01", "--to", "in_progress", "--mission", _MISSION_SLUG,
-            "--agent", "claude", "--note", "starting the work",
-            "--tracker-ref", "TR-123", "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "in_progress",
+            "--mission",
+            _MISSION_SLUG,
+            "--agent",
+            "claude",
+            "--note",
+            "starting the work",
+            "--tracker-ref",
+            "TR-123",
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert work.exit_code == 0, work.output
@@ -216,17 +230,13 @@ def test_move_task_writer_cut_leaves_wp_file_and_tasks_md_byte_stable(
     assert len(stream.annotations) > annotations_before, "no off-axis annotation persisted"
 
     # The claim triple rode the transition's policy_metadata (not the WP file).
-    claimed_events = [
-        e for e in stream.transitions if e.to_lane == Lane.CLAIMED and e.policy_metadata
-    ]
+    claimed_events = [e for e in stream.transitions if e.to_lane == Lane.CLAIMED and e.policy_metadata]
     assert claimed_events, "claim triple did not ride the transition policy_metadata"
     assert claimed_events[-1].policy_metadata.get("shell_pid") == 424242
     assert claimed_events[-1].policy_metadata.get("agent") == "claude"
 
     # The tracker-ref union delta was recorded off-axis.
-    tracker_annotations = [
-        a for a in stream.annotations if a.delta.tracker_refs
-    ]
+    tracker_annotations = [a for a in stream.annotations if a.delta.tracker_refs]
     assert tracker_annotations, "tracker-ref union delta not emitted"
     assert "TR-123" in tracker_annotations[-1].delta.tracker_refs
 
@@ -236,9 +246,7 @@ def test_move_task_writer_cut_leaves_wp_file_and_tasks_md_byte_stable(
 # ---------------------------------------------------------------------------
 
 
-def test_sc008_off_axis_emit_lands_at_stored_topology_from_foreign_cwd(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sc008_off_axis_emit_lands_at_stored_topology_from_foreign_cwd(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo, feature_dir = _build_mission(tmp_path, monkeypatch, seed_up_to=Lane.PLANNED)
     annotations_before = len(read_event_stream(feature_dir).annotations)
 
@@ -249,9 +257,19 @@ def test_sc008_off_axis_emit_lands_at_stored_topology_from_foreign_cwd(
 
     result = _move(
         [
-            "WP01", "--to", "claimed", "--mission", _MISSION_SLUG,
-            "--shell-pid", "515151", "--agent", "claude",
-            "--note", "off-axis from a foreign cwd", "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "claimed",
+            "--mission",
+            _MISSION_SLUG,
+            "--shell-pid",
+            "515151",
+            "--agent",
+            "claude",
+            "--note",
+            "off-axis from a foreign cwd",
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert result.exit_code == 0, result.output
@@ -259,9 +277,7 @@ def test_sc008_off_axis_emit_lands_at_stored_topology_from_foreign_cwd(
     # The write landed at the stored-topology feature_dir...
     assert len(read_event_stream(feature_dir).annotations) > annotations_before
     # ...and NOT at any Path.cwd()-derived location.
-    assert not (foreign / "kitty-specs").exists(), (
-        "#2647 regression: an emit target was assembled from Path.cwd()"
-    )
+    assert not (foreign / "kitty-specs").exists(), "#2647 regression: an emit target was assembled from Path.cwd()"
 
 
 # ---------------------------------------------------------------------------
@@ -279,20 +295,24 @@ def test_sc008_off_axis_emit_lands_at_stored_topology_from_foreign_cwd(
 # ---------------------------------------------------------------------------
 
 
-def test_sc007_in_review_to_planned_is_force_promoted_by_wire_contract(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    repo, feature_dir = _build_mission(
-        tmp_path, monkeypatch, seed_up_to=Lane.IN_REVIEW, wp_agent="reviewer"
-    )
+def test_sc007_in_review_to_planned_is_force_promoted_by_wire_contract(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    repo, feature_dir = _build_mission(tmp_path, monkeypatch, seed_up_to=Lane.IN_REVIEW, wp_agent="reviewer")
     feedback = repo / "feedback.md"
     feedback.write_text("**Issue**: changes requested.\n", encoding="utf-8")
 
     result = _move(
         [
-            "WP01", "--to", "planned", "--mission", _MISSION_SLUG,
-            "--review-feedback-file", str(feedback), "--agent", "reviewer",
-            "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "planned",
+            "--mission",
+            _MISSION_SLUG,
+            "--review-feedback-file",
+            str(feedback),
+            "--agent",
+            "reviewer",
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert result.exit_code == 0, result.output
@@ -304,18 +324,22 @@ def test_sc007_in_review_to_planned_is_force_promoted_by_wire_contract(
     assert last.force, "in_review -> planned must persist force=True (#3307 wire contract)"
 
 
-def test_sc007_in_review_to_in_progress_is_force_free(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    repo, feature_dir = _build_mission(
-        tmp_path, monkeypatch, seed_up_to=Lane.IN_REVIEW, wp_agent="reviewer"
-    )
+def test_sc007_in_review_to_in_progress_is_force_free(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    repo, feature_dir = _build_mission(tmp_path, monkeypatch, seed_up_to=Lane.IN_REVIEW, wp_agent="reviewer")
 
     result = _move(
         [
-            "WP01", "--to", "in_progress", "--mission", _MISSION_SLUG,
-            "--agent", "reviewer", "--note", "reviewer sends it back",
-            "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "in_progress",
+            "--mission",
+            _MISSION_SLUG,
+            "--agent",
+            "reviewer",
+            "--note",
+            "reviewer sends it back",
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert result.exit_code == 0, result.output

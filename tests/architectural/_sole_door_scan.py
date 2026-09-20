@@ -184,11 +184,7 @@ def resolve_canonical(module: str, name: str) -> str | None:
 
 def _scope_nodes(tree: ast.Module) -> list[ast.AST]:
     scopes: list[ast.AST] = [tree]
-    scopes.extend(
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
-    )
+    scopes.extend(node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)))
     return scopes
 
 
@@ -244,9 +240,7 @@ def parent_map(tree: ast.Module) -> dict[int, ast.AST]:
     return parents
 
 
-def enclosing_scope(
-    parents: dict[int, ast.AST], node: ast.AST, tree: ast.Module
-) -> ast.AST:
+def enclosing_scope(parents: dict[int, ast.AST], node: ast.AST, tree: ast.Module) -> ast.AST:
     """The innermost ``def``/``class`` containing *node*, else the module."""
     cur: ast.AST | None = node
     while cur is not None:
@@ -256,9 +250,7 @@ def enclosing_scope(
     return tree
 
 
-def _scope_chain(
-    parents: dict[int, ast.AST], node: ast.AST, tree: ast.Module
-) -> list[ast.AST]:
+def _scope_chain(parents: dict[int, ast.AST], node: ast.AST, tree: ast.Module) -> list[ast.AST]:
     """Scopes containing *node*, innermost first, module scope last."""
     chain: list[ast.AST] = []
     cur: ast.AST | None = node
@@ -298,9 +290,7 @@ def _lookup_module(dotted: str, chain: list[_Bindings]) -> str:
     return dotted
 
 
-def _alias_rebinds_by_scope(
-    statements: list[ast.AST], bindings: _Bindings, candidate_names: frozenset[str]
-) -> dict[str, tuple[str, str]]:
+def _alias_rebinds_by_scope(statements: list[ast.AST], bindings: _Bindings, candidate_names: frozenset[str]) -> dict[str, tuple[str, str]]:
     """``Alias = AgentProfileRepository`` style re-bindings, for ONE scope.
 
     A1 fix (landing-fold gate hardening): the predecessor
@@ -329,11 +319,7 @@ def _alias_rebinds_by_scope(
 
 
 def _locally_defined_names(tree: ast.Module) -> frozenset[str]:
-    return frozenset(
-        node.name
-        for node in ast.iter_child_nodes(tree)
-        if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
-    )
+    return frozenset(node.name for node in ast.iter_child_nodes(tree) if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)))
 
 
 def callee_simple_name(call: ast.Call) -> str | None:
@@ -484,15 +470,8 @@ def scan_file_constructions(
     # duplicate walk was ~half of this scan's measured cost — see
     # test_gate_runs_under_fast_tier_budget's landing-fold history).
     statements_by_scope = {id(scope): _own_scope_statements(scope) for scope in scopes}
-    bindings_by_scope = {
-        id(scope): _bindings_for_scope(statements_by_scope[id(scope)]) for scope in scopes
-    }
-    rebinds_by_scope = {
-        id(scope): _alias_rebinds_by_scope(
-            statements_by_scope[id(scope)], bindings_by_scope[id(scope)], candidate_names
-        )
-        for scope in scopes
-    }
+    bindings_by_scope = {id(scope): _bindings_for_scope(statements_by_scope[id(scope)]) for scope in scopes}
+    rebinds_by_scope = {id(scope): _alias_rebinds_by_scope(statements_by_scope[id(scope)], bindings_by_scope[id(scope)], candidate_names) for scope in scopes}
     self_module = module_name_for(rel_path)
     locally_defined = _locally_defined_names(tree)
 
@@ -503,19 +482,9 @@ def scan_file_constructions(
         if simple_name is None:
             continue
         scope_chain = _scope_chain(parents, node, tree)
-        chain = [
-            bindings_by_scope[id(scope)]
-            for scope in scope_chain
-            if id(scope) in bindings_by_scope
-        ]
-        rebinds_chain = [
-            rebinds_by_scope[id(scope)]
-            for scope in scope_chain
-            if id(scope) in rebinds_by_scope
-        ]
-        origin = _resolve_callee(
-            node, chain, rebinds_chain, self_module, locally_defined
-        )
+        chain = [bindings_by_scope[id(scope)] for scope in scope_chain if id(scope) in bindings_by_scope]
+        rebinds_chain = [rebinds_by_scope[id(scope)] for scope in scope_chain if id(scope) in rebinds_by_scope]
+        origin = _resolve_callee(node, chain, rebinds_chain, self_module, locally_defined)
         # Only names that could possibly be a watched class are worth a
         # canonical lookup. The check is on the *original* imported name so an
         # ``as``-alias cannot dodge it (every live site aliases the import).
@@ -523,9 +492,7 @@ def scan_file_constructions(
             continue
         qualname, token = composite_key(source, node.lineno)
         if origin is None:
-            unresolved.append(
-                ConstructionSite(rel_path, qualname, token, node.lineno, "<unbound>")
-            )
+            unresolved.append(ConstructionSite(rel_path, qualname, token, node.lineno, "<unbound>"))
             continue
         canonical = _canonical_for(origin)
         if canonical is None:
@@ -540,9 +507,7 @@ def scan_file_constructions(
             )
             continue
         if canonical in target_qualnames:
-            matches.append(
-                (node, ConstructionSite(rel_path, qualname, token, node.lineno, canonical))
-            )
+            matches.append((node, ConstructionSite(rel_path, qualname, token, node.lineno, canonical)))
     return FileScan(
         rel_path,
         source,
@@ -553,9 +518,7 @@ def scan_file_constructions(
     )
 
 
-def scan_constructions(
-    src_root: Path, *, candidate_names: frozenset[str], target_qualnames: frozenset[str]
-) -> ScanResult:
+def scan_constructions(src_root: Path, *, candidate_names: frozenset[str], target_qualnames: frozenset[str]) -> ScanResult:
     """Whole-tree census of *target_qualnames* constructions under *src_root*.
 
     Returns **every** site, exemptions included, so a caller can first prove the
@@ -579,9 +542,7 @@ def scan_constructions(
 
 def structurally_exempt(rel_path: str) -> bool:
     """True for the sole door, the unified builder, and the doctrine layer."""
-    return rel_path in SOLE_DOOR_EXEMPT_FILES or rel_path.startswith(
-        SOLE_DOOR_EXEMPT_PREFIXES
-    )
+    return rel_path in SOLE_DOOR_EXEMPT_FILES or rel_path.startswith(SOLE_DOOR_EXEMPT_PREFIXES)
 
 
 def resolve_exclusion_keys(
@@ -594,12 +555,7 @@ def resolve_exclusion_keys(
     loudly instead of silently widening the exclusion set. That is the staleness
     half of the twin-guard.
     """
-    return {
-        resolve_descriptor(
-            (REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor
-        ): descriptor
-        for descriptor in descriptors
-    }
+    return {resolve_descriptor((REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor): descriptor for descriptor in descriptors}
 
 
 def assert_rationales_are_substantive(descriptors: tuple[ContentDescriptor, ...]) -> None:

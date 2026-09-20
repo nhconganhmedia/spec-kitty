@@ -70,9 +70,7 @@ class TestValidateSeedFileDataSuccess:
                     "definition": "An execution lane.",
                     "confidence": 0.95,
                     "status": "deprecated",
-                    "see_also": [
-                        {"fr": "FR-008", "description": "Wall-clock regression test requirement"}
-                    ],
+                    "see_also": [{"fr": "FR-008", "description": "Wall-clock regression test requirement"}],
                     "synonyms_to_avoid": ["track"],
                     "introduced_in_mission": "glossary-seed-file-schema-validation-01KSN752",
                 }
@@ -81,9 +79,7 @@ class TestValidateSeedFileDataSuccess:
         result = validate_seed_file_data(data, SEED_PATH)
         assert result.terms[0].confidence == 0.95
         assert result.terms[0].status == "deprecated"
-        assert result.terms[0].see_also == [
-            {"fr": "FR-008", "description": "Wall-clock regression test requirement"}
-        ]
+        assert result.terms[0].see_also == [{"fr": "FR-008", "description": "Wall-clock regression test requirement"}]
 
 
 # ---- validate_seed_file_data: failure cases ---------------------------------
@@ -93,11 +89,7 @@ class TestValidateSeedFileDataFailure:
     """validate_seed_file_data raises SeedFileValidationError on bad input."""
 
     def test_non_normalized_surface(self) -> None:
-        data = {
-            "terms": [
-                {"surface": "WorkTree", "definition": "A linked tree."}
-            ]
-        }
+        data = {"terms": [{"surface": "WorkTree", "definition": "A linked tree."}]}
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
@@ -111,28 +103,18 @@ class TestValidateSeedFileDataFailure:
         assert "normalized" in e.message.lower() or "lowercase" in e.message.lower()
 
     def test_empty_surface(self) -> None:
-        data = {
-            "terms": [{"surface": "", "definition": "Something."}]
-        }
+        data = {"terms": [{"surface": "", "definition": "Something."}]}
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
-        assert any(
-            e.field == "surface" and e.term_index == 0
-            for e in exc_info.value.errors
-        )
+        assert any(e.field == "surface" and e.term_index == 0 for e in exc_info.value.errors)
 
     def test_empty_definition(self) -> None:
-        data = {
-            "terms": [{"surface": "foo", "definition": "   "}]
-        }
+        data = {"terms": [{"surface": "foo", "definition": "   "}]}
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
-        assert any(
-            e.field == "definition" and e.term_index == 0
-            for e in exc_info.value.errors
-        )
+        assert any(e.field == "definition" and e.term_index == 0 for e in exc_info.value.errors)
 
     def test_missing_terms_key(self) -> None:
         data: dict[str, object] = {}
@@ -153,32 +135,18 @@ class TestValidateSeedFileDataFailure:
         assert len(exc_info.value.errors) >= 1
 
     def test_invalid_confidence(self) -> None:
-        data = {
-            "terms": [
-                {"surface": "foo", "definition": "bar", "confidence": 2.0}
-            ]
-        }
+        data = {"terms": [{"surface": "foo", "definition": "bar", "confidence": 2.0}]}
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
-        assert any(
-            e.field == "confidence" and e.term_index == 0
-            for e in exc_info.value.errors
-        )
+        assert any(e.field == "confidence" and e.term_index == 0 for e in exc_info.value.errors)
 
     def test_invalid_status(self) -> None:
-        data = {
-            "terms": [
-                {"surface": "foo", "definition": "bar", "status": "unknown"}
-            ]
-        }
+        data = {"terms": [{"surface": "foo", "definition": "bar", "status": "unknown"}]}
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
-        assert any(
-            e.field == "status" and e.term_index == 0
-            for e in exc_info.value.errors
-        )
+        assert any(e.field == "status" and e.term_index == 0 for e in exc_info.value.errors)
 
     def test_extra_field_at_term_level(self) -> None:
         data = {
@@ -193,9 +161,7 @@ class TestValidateSeedFileDataFailure:
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
-        assert any(
-            e.term_index == 0 for e in exc_info.value.errors
-        )
+        assert any(e.term_index == 0 for e in exc_info.value.errors)
 
     def test_malformed_see_also_rejected(self) -> None:
         data = {
@@ -210,10 +176,7 @@ class TestValidateSeedFileDataFailure:
         with pytest.raises(SeedFileValidationError) as exc_info:
             validate_seed_file_data(data, SEED_PATH)
 
-        assert any(
-            e.term_index == 0 and e.field == "see_also"
-            for e in exc_info.value.errors
-        )
+        assert any(e.term_index == 0 and e.field == "see_also" for e in exc_info.value.errors)
 
     def test_multiple_errors_collected(self) -> None:
         """Multiple invalid terms should produce multiple errors."""
@@ -280,10 +243,7 @@ class TestValidateScopeFilename:
 
     def test_path_with_directory(self) -> None:
         """Only the filename matters, not the directory."""
-        assert (
-            validate_scope_filename(Path("/some/dir/mission_local.yaml"))
-            == GlossaryScope.MISSION_LOCAL
-        )
+        assert validate_scope_filename(Path("/some/dir/mission_local.yaml")) == GlossaryScope.MISSION_LOCAL
 
     def test_yml_extension_not_matched(self) -> None:
         """Only .yaml extension is valid, not .yml."""
@@ -326,9 +286,7 @@ class TestTranslatePydanticErrors:
 
     def test_field_level_error(self) -> None:
         """loc=("terms", 0, "surface") -> term_index=0, field="surface"."""
-        data = {
-            "terms": [{"surface": "BAD", "definition": "ok"}]
-        }
+        data = {"terms": [{"surface": "BAD", "definition": "ok"}]}
         exc, raw = self._make_validation_error(data)
         errors = _translate_pydantic_errors(exc, raw, SEED_PATH)  # type: ignore[arg-type]
 
@@ -351,9 +309,7 @@ class TestTranslatePydanticErrors:
 
     def test_term_surface_extracted_from_data(self) -> None:
         """term_surface comes from input data, not error message."""
-        data = {
-            "terms": [{"surface": "My Term", "definition": "ok"}]
-        }
+        data = {"terms": [{"surface": "My Term", "definition": "ok"}]}
         exc, raw = self._make_validation_error(data)
         errors = _translate_pydantic_errors(exc, raw, SEED_PATH)  # type: ignore[arg-type]
 
@@ -390,11 +346,7 @@ class TestTranslatePydanticErrors:
 
     def test_extra_field_error(self) -> None:
         """Extra fields at term level produce errors with term_index."""
-        data = {
-            "terms": [
-                {"surface": "foo", "definition": "bar", "bogus": 1}
-            ]
-        }
+        data = {"terms": [{"surface": "foo", "definition": "bar", "bogus": 1}]}
         exc, raw = self._make_validation_error(data)
         errors = _translate_pydantic_errors(exc, raw, SEED_PATH)  # type: ignore[arg-type]
 

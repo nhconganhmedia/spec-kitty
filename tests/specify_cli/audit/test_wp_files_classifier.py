@@ -85,8 +85,7 @@ def test_classify_wp_files_does_not_raise_terminal_lane_without_event_log(
     # MISSING_EVIDENCE must NOT be emitted via frontmatter in Phase-2
     codes = [f.code for f in result]
     assert "MISSING_EVIDENCE" not in codes, (
-        "classify_wp_files() must not emit MISSING_EVIDENCE from frontmatter lane "
-        "when no event log is present (Phase-2 invariant)."
+        "classify_wp_files() must not emit MISSING_EVIDENCE from frontmatter lane when no event log is present (Phase-2 invariant)."
     )
 
 
@@ -135,9 +134,7 @@ def test_classify_wp_files_reads_suffixed_wp_id_from_frontmatter(
     assert missing_evidence[0].artifact_path == "tasks/WP01-real-task.md"
 
 
-def test_classify_wp_files_handles_get_wp_lane_race(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_classify_wp_files_handles_get_wp_lane_race(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """classify_wp_files() handles TOCTOU race where get_wp_lane raises after
     has_event_log returned True (except CanonicalStatusNotFoundError branch).
     """
@@ -148,9 +145,7 @@ def test_classify_wp_files_handles_get_wp_lane_race(
         encoding="utf-8",
     )
     # Minimal event log so has_event_log() returns True
-    (tmp_path / "status.events.jsonl").write_text(
-        json.dumps(_BASE_EVENT) + "\n", encoding="utf-8"
-    )
+    (tmp_path / "status.events.jsonl").write_text(json.dumps(_BASE_EVENT) + "\n", encoding="utf-8")
 
     def _raise(*_args: object) -> None:
         raise CanonicalStatusNotFoundError("simulated race: file deleted")

@@ -99,10 +99,8 @@ class TestDanglingEndpoints:
         errors = validate_dangling_references(graph)
 
         assert errors == [
-            "Dangling source: edge (tactic:missing-a --applies--> tactic:missing-b) "
-            "references non-existent node 'tactic:missing-a'",
-            "Dangling target: edge (tactic:missing-a --applies--> tactic:missing-b) "
-            "references non-existent node 'tactic:missing-b'",
+            "Dangling source: edge (tactic:missing-a --applies--> tactic:missing-b) references non-existent node 'tactic:missing-a'",
+            "Dangling target: edge (tactic:missing-a --applies--> tactic:missing-b) references non-existent node 'tactic:missing-b'",
         ]
 
     def test_validate_graph_still_reports_both_duplicate_and_dangling(self) -> None:
@@ -116,7 +114,4 @@ class TestDanglingEndpoints:
         errors = validate_graph(graph)
 
         assert "Duplicate edge: (tactic:a --applies--> tactic:b)" in errors
-        assert (
-            "Dangling target: edge (tactic:a --applies--> tactic:missing) "
-            "references non-existent node 'tactic:missing'"
-        ) in errors
+        assert ("Dangling target: edge (tactic:a --applies--> tactic:missing) references non-existent node 'tactic:missing'") in errors

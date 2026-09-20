@@ -41,9 +41,7 @@ def _init_repo(repo: Path) -> None:
     # activated mission-type set; software-dev is the only type resolved
     # for real in this file (the documentation-typed test mocks
     # resolve_mission_type_context directly).
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
@@ -70,10 +68,7 @@ def _mission_summary(slug: str) -> dict[str, str]:
     return {
         "friendly_name": title,
         "purpose_tldr": f"Deliver {title} cleanly for the team.",
-        "purpose_context": (
-            f"This mission delivers {title} so product and engineering can move "
-            "forward with a clear outcome and shared understanding."
-        ),
+        "purpose_context": (f"This mission delivers {title} so product and engineering can move forward with a clear outcome and shared understanding."),
     }
 
 
@@ -108,8 +103,7 @@ def test_mission_create_appends_mission_created_and_specify_started(tmp_path: Pa
 
     assert "MissionCreated" in event_types, f"MissionCreated missing from {log}: {event_types}"
     assert "SpecifyStarted" in event_types, (
-        "SpecifyStarted must be emitted at mission-create time so the canonical "
-        f"lifecycle is complete (#1067). Log contents: {event_types}"
+        f"SpecifyStarted must be emitted at mission-create time so the canonical lifecycle is complete (#1067). Log contents: {event_types}"
     )
     # MissionCreated must precede SpecifyStarted on the canonical timeline.
     assert event_types.index("MissionCreated") < event_types.index("SpecifyStarted")
@@ -168,10 +162,7 @@ def test_mission_create_specify_started_is_idempotent(tmp_path: Path) -> None:
 
     rows = _read_jsonl(first.feature_dir / "status.events.jsonl")
     specify_events = [r for r in rows if r.get("event_type") == "SpecifyStarted"]
-    assert len(specify_events) == 1, (
-        f"SpecifyStarted must be idempotent on (mission_slug, artifact_path); "
-        f"got {len(specify_events)} rows: {specify_events}"
-    )
+    assert len(specify_events) == 1, f"SpecifyStarted must be idempotent on (mission_slug, artifact_path); got {len(specify_events)} rows: {specify_events}"
     assert second is None
 
 

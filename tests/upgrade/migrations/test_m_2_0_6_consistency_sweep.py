@@ -15,6 +15,7 @@ from specify_cli.upgrade.migrations.m_2_0_6_consistency_sweep import (
 
 pytestmark = pytest.mark.fast
 
+
 def _write_wp(tasks_dir: Path, wp_id: str, lane: str) -> Path:
     wp_file = tasks_dir / f"{wp_id}-upgrade.md"
     wp_file.write_text(

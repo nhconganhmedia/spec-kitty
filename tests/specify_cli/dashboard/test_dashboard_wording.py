@@ -6,6 +6,7 @@ Asserts:
 2. Backend identifiers (CSS classes, HTML IDs, API route segments, cookie keys,
    JS function names, Python diagnostic keys) stay unchanged — FR-004 / C-007.
 """
+
 from pathlib import Path
 import pytest
 

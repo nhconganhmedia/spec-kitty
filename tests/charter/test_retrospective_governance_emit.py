@@ -117,9 +117,7 @@ def _write_authored_charter_yaml(root: Path, governance: dict[str, Any]) -> Path
     return charter_yaml_path
 
 
-def _bootstrap_into(
-    root: Path, compiled: CompiledCharter, *, subdir: str = "charter-bootstrap"
-) -> dict[str, Any]:
+def _bootstrap_into(root: Path, compiled: CompiledCharter, *, subdir: str = "charter-bootstrap") -> dict[str, Any]:
     """Run ``write_compiled_charter``'s BOOTSTRAP path and return the document.
 
     The output directory deliberately differs from the canonical
@@ -140,32 +138,22 @@ def _bootstrap_into(
 
 
 class TestAuthoredRetrospectiveIsEmitted:
-    def test_load_governance_config_preserves_authored_retrospective(
-        self, tmp_path: Path
-    ) -> None:
+    def test_load_governance_config_preserves_authored_retrospective(self, tmp_path: Path) -> None:
         """The schema must model the block — without the field, pydantic drops it."""
-        _write_authored_charter_yaml(
-            tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)}
-        )
+        _write_authored_charter_yaml(tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)})
 
         governance = load_governance_config(tmp_path)
 
-        assert governance.retrospective is not None, (
-            "GovernanceConfig dropped the authored governance.retrospective block"
-        )
+        assert governance.retrospective is not None, "GovernanceConfig dropped the authored governance.retrospective block"
         assert governance.retrospective.enabled is False
         assert governance.retrospective.failure_policy == "block"
         assert governance.retrospective.permissions is not None
         assert governance.retrospective.permissions.apply_low_risk_changes is True
 
-    def test_partial_block_does_not_gain_invented_defaults(
-        self, tmp_path: Path
-    ) -> None:
+    def test_partial_block_does_not_gain_invented_defaults(self, tmp_path: Path) -> None:
         """Unauthored keys stay ``None`` (C-003: charter.md remains a
         contributing secondary for keys charter.yaml does not claim)."""
-        _write_authored_charter_yaml(
-            tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)}
-        )
+        _write_authored_charter_yaml(tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)})
 
         retrospective = load_governance_config(tmp_path).retrospective
 
@@ -176,13 +164,9 @@ class TestAuthoredRetrospectiveIsEmitted:
         assert retrospective.permissions is not None
         assert retrospective.permissions.write_record is None
 
-    def test_write_compiled_charter_emits_governance_retrospective(
-        self, tmp_path: Path, compiled: CompiledCharter
-    ) -> None:
+    def test_write_compiled_charter_emits_governance_retrospective(self, tmp_path: Path, compiled: CompiledCharter) -> None:
         """FR-005b: the compiler emitter populates ``governance.retrospective``."""
-        _write_authored_charter_yaml(
-            tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)}
-        )
+        _write_authored_charter_yaml(tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)})
 
         document = _bootstrap_into(tmp_path, compiled)
 
@@ -191,13 +175,9 @@ class TestAuthoredRetrospectiveIsEmitted:
         assert emitted["failure_policy"] == "block"
         assert emitted["permissions"]["apply_low_risk_changes"] is True
 
-    def test_emitted_block_omits_unauthored_keys(
-        self, tmp_path: Path, compiled: CompiledCharter
-    ) -> None:
+    def test_emitted_block_omits_unauthored_keys(self, tmp_path: Path, compiled: CompiledCharter) -> None:
         """A partial authored block round-trips as a partial emitted block."""
-        _write_authored_charter_yaml(
-            tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)}
-        )
+        _write_authored_charter_yaml(tmp_path, {"retrospective": dict(_AUTHORED_RETROSPECTIVE)})
 
         document = _bootstrap_into(tmp_path, compiled)
 
@@ -208,9 +188,7 @@ class TestAuthoredRetrospectiveIsEmitted:
     def test_emit_yaml_round_trips_an_authored_block(self, tmp_path: Path) -> None:
         """``schemas.emit_yaml`` serializes a populated block (the pruner must
         drop only EMPTY values, never a real one)."""
-        governance = GovernanceConfig.model_validate(
-            {"retrospective": dict(_AUTHORED_RETROSPECTIVE)}
-        )
+        governance = GovernanceConfig.model_validate({"retrospective": dict(_AUTHORED_RETROSPECTIVE)})
         path = tmp_path / "governance.yaml"
 
         emit_yaml(governance, path)
@@ -226,9 +204,7 @@ class TestAuthoredRetrospectiveIsEmitted:
 
 
 class TestOmittedWhenUnset:
-    def test_emit_yaml_default_governance_is_byte_identical(
-        self, tmp_path: Path
-    ) -> None:
+    def test_emit_yaml_default_governance_is_byte_identical(self, tmp_path: Path) -> None:
         """THE pruner proof.
 
         ``emit_yaml`` dumps without ``exclude_none``, so the new
@@ -253,23 +229,17 @@ class TestOmittedWhenUnset:
 
         assert path.read_text(encoding="utf-8") == _DEFAULT_GOVERNANCE_YAML_GOLDEN
 
-    def test_bootstrap_omits_retrospective_when_charter_has_none(
-        self, tmp_path: Path, compiled: CompiledCharter
-    ) -> None:
+    def test_bootstrap_omits_retrospective_when_charter_has_none(self, tmp_path: Path, compiled: CompiledCharter) -> None:
         """A charter.yaml authored WITHOUT a retrospective block must not grow
         one when the compiler refreshes the bundle."""
         _write_authored_charter_yaml(tmp_path, {"testing": {"min_coverage": 87}})
 
         document = _bootstrap_into(tmp_path, compiled)
 
-        assert "retrospective" not in document["governance"], (
-            "a default retrospective block leaked into the compiled charter.yaml"
-        )
+        assert "retrospective" not in document["governance"], "a default retrospective block leaked into the compiled charter.yaml"
         assert document["governance"]["testing"]["min_coverage"] == 87
 
-    def test_bootstrap_without_repo_root_omits_retrospective(
-        self, tmp_path: Path, compiled: CompiledCharter
-    ) -> None:
+    def test_bootstrap_without_repo_root_omits_retrospective(self, tmp_path: Path, compiled: CompiledCharter) -> None:
         """The fresh-project bootstrap (empty ``GovernanceConfig()``) stays clean."""
         output_dir = tmp_path / ".kittify" / "charter"
 

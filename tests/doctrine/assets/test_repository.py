@@ -57,9 +57,7 @@ def test_loads_shipped_builtin_asset_from_package_data() -> None:
 def test_source_path_tracks_the_declaring_manifest(tmp_path: Path) -> None:
     """T020: the source manifest file is tracked per id (not just a layer label)."""
     built_in = tmp_path / "shipped" / "assets" / "built-in"
-    _write_asset(
-        built_in / "a.asset.yaml", asset_id="a", mime="text/plain", blob_path="built-in/a.txt"
-    )
+    _write_asset(built_in / "a.asset.yaml", asset_id="a", mime="text/plain", blob_path="built-in/a.txt")
     repo = AssetRepository(built_in_dir=built_in)
     assert repo.source_path("a") == built_in / "a.asset.yaml"
 
@@ -106,13 +104,9 @@ def test_source_path_absent_for_a_project_layer_manifest_that_fails_validation(
 def test_org_tier_overrides_builtin_and_reports_the_shadow(tmp_path: Path) -> None:
     """T025: more-specific tier wins; the shadowed tier is *reported*, not silent."""
     built_in = tmp_path / "shipped" / "assets" / "built-in"
-    _write_asset(
-        built_in / "icon.asset.yaml", asset_id="icon", mime="image/png", blob_path="built-in/icon.png"
-    )
+    _write_asset(built_in / "icon.asset.yaml", asset_id="icon", mime="image/png", blob_path="built-in/icon.png")
     org_assets = tmp_path / "org" / "assets"
-    _write_asset(
-        org_assets / "icon.asset.yaml", asset_id="icon", mime="image/svg+xml", blob_path="icon.svg"
-    )
+    _write_asset(org_assets / "icon.asset.yaml", asset_id="icon", mime="image/svg+xml", blob_path="icon.svg")
     with pytest.warns(DoctrineLayerCollisionWarning):
         repo = AssetRepository(built_in_dir=built_in, org_dirs=[org_assets])
     assert repo.get_provenance("icon") == "org"
@@ -169,9 +163,7 @@ def test_builtin_anchor_asymmetry_synthetic(tmp_path: Path) -> None:
     """T022: explicit built-in anchoring at ``built_in_dir.parent``."""
     root_assets = tmp_path / "shipped" / "assets"
     built_in = root_assets / "built-in"
-    _write_asset(
-        built_in / "logo.asset.yaml", asset_id="logo", mime="image/png", blob_path="built-in/logo.png"
-    )
+    _write_asset(built_in / "logo.asset.yaml", asset_id="logo", mime="image/png", blob_path="built-in/logo.png")
     _write_blob(built_in / "logo.png")
     repo = AssetRepository(built_in_dir=built_in)
     resolved = repo.resolve_path("logo")
@@ -201,9 +193,7 @@ def test_resolves_project_tier_blob(tmp_path: Path) -> None:
     built_in = tmp_path / "shipped" / "assets" / "built-in"
     built_in.mkdir(parents=True)
     project_assets = tmp_path / "proj" / "assets"
-    _write_asset(
-        project_assets / "p.asset.yaml", asset_id="p", mime="text/plain", blob_path="p.txt"
-    )
+    _write_asset(project_assets / "p.asset.yaml", asset_id="p", mime="text/plain", blob_path="p.txt")
     _write_blob(project_assets / "p.txt")
     repo = AssetRepository(built_in_dir=built_in, project_dir=project_assets)
     assert repo.get_provenance("p") == "project"
@@ -214,14 +204,10 @@ def test_resolves_project_tier_blob(tmp_path: Path) -> None:
 def test_org_override_resolves_via_winning_tier_anchor(tmp_path: Path) -> None:
     """T025/A-1: when org shadows built-in, resolution uses the org anchor."""
     built_in = tmp_path / "shipped" / "assets" / "built-in"
-    _write_asset(
-        built_in / "icon.asset.yaml", asset_id="icon", mime="image/png", blob_path="built-in/icon.png"
-    )
+    _write_asset(built_in / "icon.asset.yaml", asset_id="icon", mime="image/png", blob_path="built-in/icon.png")
     _write_blob(built_in / "icon.png")
     org_assets = tmp_path / "org" / "assets"
-    _write_asset(
-        org_assets / "icon.asset.yaml", asset_id="icon", mime="image/svg+xml", blob_path="icon.svg"
-    )
+    _write_asset(org_assets / "icon.asset.yaml", asset_id="icon", mime="image/svg+xml", blob_path="icon.svg")
     _write_blob(org_assets / "icon.svg")
     with pytest.warns(DoctrineLayerCollisionWarning):
         repo = AssetRepository(built_in_dir=built_in, org_dirs=[org_assets])

@@ -93,9 +93,7 @@ _DEFAULT_SEAM_MODULE = "specify_cli.tracker.saas_client"
 # deliberately absent — see `_disposition`, which has always called it
 # `correct-by-alias`. Keeping the two in one constant is what stops the report
 # and the disposition vocabulary drifting apart again.
-_CORRUPTIBLE_VERDICTS = frozenset(
-    {PatchTargetOutcome.REACH_THROUGH.value, PatchTargetOutcome.FOREIGN.value}
-)
+_CORRUPTIBLE_VERDICTS = frozenset({PatchTargetOutcome.REACH_THROUGH.value, PatchTargetOutcome.FOREIGN.value})
 
 PATCH_FORMS = ("decorator", "context_manager", "call")
 
@@ -188,9 +186,7 @@ class CensusResult:
         module, so a file-wide key silently collapses distinct sites onto one
         another and attributes one site's verdict to another site's assertions.
         """
-        return {
-            (s.file, s.node_id, s.binds): s for s in self.seam_sleep_sites if s.binds
-        }
+        return {(s.file, s.node_id, s.binds): s for s in self.seam_sleep_sites if s.binds}
 
     @property
     def sleep_assertions(self) -> list[Assertion]:
@@ -240,9 +236,7 @@ class CensusResult:
     @property
     def seam_sleep_sites(self) -> list[PatchSite]:
         """Sleep-seam sites on the declared seam module (SC-002 / T020 scope)."""
-        return [
-            s for s in self.sleep_seam_sites if s.target.startswith(f"{self.seam_module}.")
-        ]
+        return [s for s in self.sleep_seam_sites if s.target.startswith(f"{self.seam_module}.")]
 
     @property
     def sleep_nodes(self) -> list[dict[str, str]]:
@@ -288,11 +282,7 @@ class CensusResult:
 def default_first_party_roots(repo_root: Path) -> frozenset[str]:
     """Derive the first-party root set from ``src/`` plus declared extras."""
     src = repo_root / "src"
-    derived = {
-        entry.name
-        for entry in src.iterdir()
-        if entry.is_dir() and not entry.name.startswith((".", "_"))
-    }
+    derived = {entry.name for entry in src.iterdir() if entry.is_dir() and not entry.name.startswith((".", "_"))}
     return frozenset(derived | _DECLARED_EXTRA_ROOTS)
 
 
@@ -392,9 +382,7 @@ def _walk_patch_calls(
             if _is_patch_call(expr) and isinstance(expr, ast.Call):
                 var = item.optional_vars
                 bound = var.id if isinstance(var, ast.Name) else _sink_bindings(expr)
-                out.append(
-                    _RawCall(expr, "context_manager", func, bound, _qual(func, prefix))
-                )
+                out.append(_RawCall(expr, "context_manager", func, bound, _qual(func, prefix)))
             else:
                 _walk_patch_calls(expr, func, out, prefix)
         for child in node.body:
@@ -413,9 +401,7 @@ def _qual(func: ast.FunctionDef | ast.AsyncFunctionDef | None, prefix: str) -> s
     return f"{prefix}{func.name}" if func is not None else "<module>"
 
 
-def _decorator_bindings(
-    func: ast.FunctionDef | ast.AsyncFunctionDef, calls: Sequence[ast.Call]
-) -> dict[int, str]:
+def _decorator_bindings(func: ast.FunctionDef | ast.AsyncFunctionDef, calls: Sequence[ast.Call]) -> dict[int, str]:
     """Map each decorator patch call to the parameter name it binds.
 
     Decorators apply bottom-up: the decorator **closest** to ``def`` supplies the
@@ -507,9 +493,7 @@ def _literal_floats(nodes: Sequence[ast.expr]) -> list[float] | None:
     return out
 
 
-def _recognise_assert_method(
-    node: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_assert_method(node: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     """``mock.assert_called_once_with(...)`` and friends."""
     if not isinstance(node, ast.Expr) or not isinstance(node.value, ast.Call):
         return None
@@ -534,9 +518,7 @@ def _recognise_assert_method(
     )
 
 
-def _recognise_call_count(
-    test: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_call_count(test: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     """``assert mock.call_count == N``."""
     if not isinstance(test, ast.Compare) or not isinstance(test.ops[0], ast.Eq):
         return None
@@ -550,9 +532,7 @@ def _recognise_call_count(
     return ("call_count", owner, n, None)
 
 
-def _recognise_len_call_args(
-    test: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_len_call_args(test: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     """``assert len(mock.call_args_list) == N`` — alias permitted."""
     if not isinstance(test, ast.Compare) or not isinstance(test.ops[0], ast.Eq):
         return None
@@ -568,9 +548,7 @@ def _recognise_len_call_args(
     return ("len_call_args_list", owner, n, None)
 
 
-def _recognise_whole_list_equality(
-    test: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_whole_list_equality(test: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     """``assert delays == [...]`` — whole-list equality via an alias or sink."""
     if not isinstance(test, ast.Compare) or not isinstance(test.ops[0], ast.Eq):
         return None
@@ -583,9 +561,7 @@ def _recognise_whole_list_equality(
     return ("whole_list_equality", owner, len(right.elts), _literal_floats(right.elts))
 
 
-def _recognise_membership(
-    test: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_membership(test: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     """``assert x in [c.args[0] for c in mock.call_args_list]`` — asserts NO count.
 
     Reporting ``n`` from the length of the printed delay list would say ``n=1``
@@ -601,9 +577,7 @@ def _recognise_membership(
     return None
 
 
-def _recognise_call_args_read(
-    test: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_call_args_read(test: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     """Any remaining read of ``.call_args`` / ``.call_args_list``."""
     for node in ast.walk(test):
         if not isinstance(node, ast.Attribute) or node.attr not in {
@@ -628,9 +602,7 @@ _ASSERT_RECOGNISERS = (
 )
 
 
-def _recognise_assert_stmt(
-    node: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> tuple[str, str, int, list[float] | None] | None:
+def _recognise_assert_stmt(node: ast.AST, mocks: set[str], aliases: dict[str, str]) -> tuple[str, str, int, list[float] | None] | None:
     if not isinstance(node, ast.Assert):
         return None
     for recogniser in _ASSERT_RECOGNISERS:
@@ -712,9 +684,7 @@ def _collect_function_assertions(
                     reads_sleep_seam=driven in sleep_mocks,
                 )
             )
-        hit = _recognise_assert_method(node, mocks, aliases) or _recognise_assert_stmt(
-            node, mocks, aliases
-        )
+        hit = _recognise_assert_method(node, mocks, aliases) or _recognise_assert_stmt(node, mocks, aliases)
         if hit is None:
             continue
         form, owner, n, delays = hit
@@ -733,9 +703,7 @@ def _collect_function_assertions(
     return found, drives
 
 
-def _recognise_side_effect_assignment(
-    node: ast.AST, mocks: set[str], aliases: dict[str, str]
-) -> str | None:
+def _recognise_side_effect_assignment(node: ast.AST, mocks: set[str], aliases: dict[str, str]) -> str | None:
     """``mock_monotonic.side_effect = [0.0, 301.0]`` — a driver, not an assertion.
 
     It asserts nothing, so it never enters ``corruptible_assertions``. But it
@@ -750,9 +718,7 @@ def _recognise_side_effect_assignment(
     return _resolve_mock(_attr_chain_root(target.value), mocks, aliases)
 
 
-def analyse_file(
-    path: Path, roots: frozenset[str], forms: frozenset[str]
-) -> tuple[list[PatchSite], list[Assertion], list[Assertion]]:
+def analyse_file(path: Path, roots: frozenset[str], forms: frozenset[str]) -> tuple[list[PatchSite], list[Assertion], list[Assertion]]:
     """Parse one file and return its patch sites and read-side assertions."""
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -851,9 +817,7 @@ def cross_check(result: CensusResult, paths: Sequence[Path]) -> dict[str, list[d
             for _target, line in extract_targets(path):
                 regex_keys.add((str(path), line))
     return {
-        "regex_only": [
-            {"file": _to_rel(f), "line": n} for f, n in sorted(regex_keys - ast_keys)
-        ],
+        "regex_only": [{"file": _to_rel(f), "line": n} for f, n in sorted(regex_keys - ast_keys)],
         "ast_only": [{"file": _to_rel(f), "line": n} for f, n in sorted(ast_keys - regex_keys)],
     }
 
@@ -1014,9 +978,7 @@ def render_siblings(result: CensusResult, _extra: dict[str, object]) -> str:
     """
     scope_nodes = {(n["file"], n["node_id"]) for n in result.seam_patch_nodes}
     siblings: dict[tuple[str, str, str], PatchSite] = {
-        (s.file, s.node_id, s.binds): s
-        for s in result.sites
-        if s.binds and s.attr not in _SLEEP_ATTRS and (s.file, s.node_id) in scope_nodes
+        (s.file, s.node_id, s.binds): s for s in result.sites if s.binds and s.attr not in _SLEEP_ATTRS and (s.file, s.node_id) in scope_nodes
     }
 
     lines: list[str] = []
@@ -1038,9 +1000,7 @@ def render_siblings(result: CensusResult, _extra: dict[str, object]) -> str:
         if key in seen:
             continue
         lines.append(
-            f"{site.file}:{site.line}  {site.node_id}  "
-            f"target={site.target}  verdict={site.verdict}  "
-            f"read=none  disposition={_disposition(site, disposed=False)}"
+            f"{site.file}:{site.line}  {site.node_id}  target={site.target}  verdict={site.verdict}  read=none  disposition={_disposition(site, disposed=False)}"
         )
     return "\n".join(lines)
 
@@ -1108,16 +1068,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     this is a reporter, and the gate that fails a build is a separate concern.
     """
     args = _build_parser().parse_args(argv)
-    roots = (
-        frozenset(r.strip() for r in args.first_party_roots.split(",") if r.strip())
-        if args.first_party_roots
-        else default_first_party_roots(_REPO_ROOT)
-    )
-    forms = (
-        frozenset(f.strip() for f in args.only_forms.split(",") if f.strip())
-        if args.only_forms
-        else frozenset(PATCH_FORMS)
-    )
+    roots = frozenset(r.strip() for r in args.first_party_roots.split(",") if r.strip()) if args.first_party_roots else default_first_party_roots(_REPO_ROOT)
+    forms = frozenset(f.strip() for f in args.only_forms.split(",") if f.strip()) if args.only_forms else frozenset(PATCH_FORMS)
     result = run_census(args.paths, roots, forms, args.seam_module)
     extra: dict[str, object] = {}
     if args.cross_check:

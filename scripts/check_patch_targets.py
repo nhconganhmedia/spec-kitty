@@ -18,6 +18,7 @@ Usage (called by CI):
   python scripts/check_patch_targets.py
   python scripts/check_patch_targets.py tests/specific_dir/
 """
+
 from __future__ import annotations
 
 import ast
@@ -33,9 +34,7 @@ from types import ModuleType
 # Matches @patch("...") and patch("...") or patch('...')
 # Only captures dotted module paths (at least one dot required so plain
 # builtins like "open" are excluded from the dotted-path check).
-_PATCH_TARGET_RE = re.compile(
-    r"""(?:@patch|(?<!\w)patch)\s*\(\s*['"]([A-Za-z_][A-Za-z0-9_.]+\.[A-Za-z_][A-Za-z0-9_]*)['"]"""
-)
+_PATCH_TARGET_RE = re.compile(r"""(?:@patch|(?<!\w)patch)\s*\(\s*['"]([A-Za-z_][A-Za-z0-9_.]+\.[A-Za-z_][A-Za-z0-9_]*)['"]""")
 
 # Modules that are known external / stdlib and don't need validation.
 # These are importable in any environment but may not be installed in the
@@ -87,10 +86,7 @@ def _call_has_create_true(call: ast.Call) -> bool:
     same change the test asserts on, and ``create=True`` keeps the test
     collectible (and correct) on both sides of that removal.
     """
-    return any(
-        kw.arg == "create" and isinstance(kw.value, ast.Constant) and kw.value.value is True
-        for kw in call.keywords
-    )
+    return any(kw.arg == "create" and isinstance(kw.value, ast.Constant) and kw.value.value is True for kw in call.keywords)
 
 
 def _create_true_line_ranges(path: Path) -> set[int]:
@@ -268,9 +264,7 @@ def resolve_patch_target(target: str, *, first_party_roots: frozenset[str]) -> P
     )
 
 
-def _classify_module(
-    resolved_name: str, module_path: str, first_party_roots: frozenset[str]
-) -> PatchTargetOutcome:
+def _classify_module(resolved_name: str, module_path: str, first_party_roots: frozenset[str]) -> PatchTargetOutcome:
     """Map a resolved module onto the own/reach-through/foreign trichotomy.
 
     Kept separate from :func:`resolve_patch_target` so the resolution step and

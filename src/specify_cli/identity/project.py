@@ -312,10 +312,7 @@ def _config_shape_fault(config: object, config_path: Path) -> str | None:
     if config is None:
         return None
     if not isinstance(config, dict):
-        return (
-            f"{config_path}: top-level content is not a mapping "
-            f"(got {type(config).__name__})"
-        )
+        return f"{config_path}: top-level content is not a mapping (got {type(config).__name__})"
     return None
 
 
@@ -401,11 +398,7 @@ def _identity_from_mapping(project: dict[str, Any]) -> tuple[ProjectIdentity, st
     repo_slug, repo_fault = _text_value_or_fault("repo_slug", project.get("repo_slug"))
     build_id, build_fault = _text_value_or_fault("build_id", project.get("build_id"))
 
-    faults = [
-        fault
-        for fault in (uuid_fault, slug_fault, node_fault, repo_fault, build_fault)
-        if fault is not None
-    ]
+    faults = [fault for fault in (uuid_fault, slug_fault, node_fault, repo_fault, build_fault) if fault is not None]
     identity = ProjectIdentity(
         project_uuid=project_uuid,
         project_slug=project_slug,
@@ -474,9 +467,7 @@ def _load_mapping_for_merge(config_path: Path, yaml: YAML) -> dict[str, Any]:
     except OSError:
         raise
     except Exception as exc:  # noqa: BLE001 - re-raised as the typed refusal below
-        raise ConfigNotUnderstoodError(
-            f"{config_path}: could not be parsed ({exc}); refusing to overwrite it"
-        ) from exc
+        raise ConfigNotUnderstoodError(f"{config_path}: could not be parsed ({exc}); refusing to overwrite it") from exc
 
     fault = _identity_record_fault(loaded, config_path)
     if fault is not None:
@@ -584,9 +575,7 @@ def load_identity(config_path: Path) -> ProjectIdentity:
 
     project, section_fault = _project_section(config)
     if section_fault is not None:
-        logger.warning(
-            f"Invalid 'project' section in config.yaml; regenerating identity: {section_fault}"
-        )
+        logger.warning(f"Invalid 'project' section in config.yaml; regenerating identity: {section_fault}")
         return ProjectIdentity()
     if project is None:
         # Absence: no ``project`` key, or an empty section. Not a fault — denying on

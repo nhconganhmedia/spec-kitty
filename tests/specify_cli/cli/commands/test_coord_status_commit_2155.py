@@ -98,9 +98,7 @@ _COMPOSED = f"{_MISSION_SLUG}-{_MID8}"
 # =========================================================================== #
 # T009 — #2154 3-leg convergence (coord AND flat topologies), injected context.
 # =========================================================================== #
-def _install_distinguishable_topology(
-    monkeypatch: pytest.MonkeyPatch, *, coord: bool
-) -> tuple[Path, Path, dict[str, MagicMock]]:
+def _install_distinguishable_topology(monkeypatch: pytest.MonkeyPatch, *, coord: bool) -> tuple[Path, Path, dict[str, MagicMock]]:
     """Inject DISTINGUISHABLE primary/coord dirs into the read-path primitives.
 
     Returns ``(primary_dir, kind_blind_dir, stubs)``. Under coordination topology
@@ -182,17 +180,13 @@ def _mark_status_write_leg_resolver(repo: Path, handle: str) -> Path:
     """
     # Call through the module attribute (not a direct import) so the T009
     # monkeypatch of ``rpr.resolve_planning_read_dir`` takes effect.
-    resolved: Path = rpr.resolve_planning_read_dir(
-        repo, handle, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    resolved: Path = rpr.resolve_planning_read_dir(repo, handle, kind=MissionArtifactKind.TASKS_INDEX)
     return resolved
 
 
 def _validation_read_resolver(repo: Path, handle: str) -> Path:
     """Resolve the dir ``_check_unchecked_tasks`` validation reads (tasks.py:658)."""
-    resolved: Path = rpr.resolve_planning_read_dir(
-        repo, handle, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    resolved: Path = rpr.resolve_planning_read_dir(repo, handle, kind=MissionArtifactKind.TASKS_INDEX)
     return resolved
 
 
@@ -222,9 +216,7 @@ def test_mark_status_write_leg_matches_commit_leg_coord_topology(
     against reaching.
     """
     repo = Path("/synthetic/primary")
-    primary_dir, kind_blind_dir, stubs = _install_distinguishable_topology(
-        monkeypatch, coord=True
-    )
+    primary_dir, kind_blind_dir, stubs = _install_distinguishable_topology(monkeypatch, coord=True)
 
     # Leg 1 — mark_status WRITE leg (post-T008 kind-aware authority).
     write_dir = _mark_status_write_leg_resolver(repo, _COMPOSED)
@@ -232,9 +224,7 @@ def test_mark_status_write_leg_matches_commit_leg_coord_topology(
     validation_read_dir = _validation_read_resolver(repo, _COMPOSED)
     # Leg 2 — mark_status COMMIT leg routes the SAME TASKS_INDEX kind through the
     # commit router; its placement is derived from the SAME kind-aware dir.
-    commit_leg_dir = rpr.resolve_planning_read_dir(
-        repo, _COMPOSED, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    commit_leg_dir = rpr.resolve_planning_read_dir(repo, _COMPOSED, kind=MissionArtifactKind.TASKS_INDEX)
 
     # Distinguishable-stub guard (constant-stub rejection): coord topology MUST
     # present a coord husk distinct from primary, else convergence proves nothing.
@@ -266,16 +256,10 @@ def test_mark_status_write_leg_matches_commit_leg_flat_topology(
     guarantees the T008 fix does not change flat/legacy behaviour.
     """
     repo = Path("/synthetic/primary")
-    primary_dir, kind_blind_dir, stubs = _install_distinguishable_topology(
-        monkeypatch, coord=False
-    )
+    primary_dir, kind_blind_dir, stubs = _install_distinguishable_topology(monkeypatch, coord=False)
 
-    write_dir = rpr.resolve_planning_read_dir(
-        repo, _COMPOSED, kind=MissionArtifactKind.TASKS_INDEX
-    )
-    validation_read_dir = rpr.resolve_planning_read_dir(
-        repo, _COMPOSED, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    write_dir = rpr.resolve_planning_read_dir(repo, _COMPOSED, kind=MissionArtifactKind.TASKS_INDEX)
+    validation_read_dir = rpr.resolve_planning_read_dir(repo, _COMPOSED, kind=MissionArtifactKind.TASKS_INDEX)
 
     # Flat topology: kind-blind and kind-aware resolve the SAME dir.
     assert kind_blind_dir == primary_dir
@@ -300,8 +284,7 @@ def _seed_flat_mission(repo: Path) -> Path:
     feature_dir = repo / "kitty-specs" / _COMPOSED
     (feature_dir / "tasks").mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        f'{{"mission_id":"{_MISSION_ID}","mission_slug":"{_MISSION_SLUG}",'
-        f'"mid8":"{_MID8}","topology":"flat"}}',
+        f'{{"mission_id":"{_MISSION_ID}","mission_slug":"{_MISSION_SLUG}","mid8":"{_MID8}","topology":"flat"}}',
         encoding="utf-8",
     )
     wp_file = feature_dir / "tasks" / "WP01-demo.md"
@@ -379,9 +362,7 @@ def test_wrong_surface_worktrees_write_still_refused(tmp_path: Path) -> None:
     # un-committed (its enclosing kitty-specs/ dir remains untracked).
     porcelain = _porcelain(repo)
     assert "kitty-specs/" in porcelain
-    assert not _git(repo, "log", "--oneline", "-1", "--format=%s").stdout.startswith(
-        "chore: wrong-surface bundle"
-    )
+    assert not _git(repo, "log", "--oneline", "-1", "--format=%s").stdout.startswith("chore: wrong-surface bundle")
 
 
 def test_safe_commit_guard_raises_on_worktrees_path_directly(tmp_path: Path) -> None:

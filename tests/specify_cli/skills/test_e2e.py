@@ -35,6 +35,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _create_skill_on_disk(
     skills_root: Path,
     name: str,
@@ -278,9 +279,7 @@ def test_drift_detection_and_repair(tmp_path: Path) -> None:
     # Verify the manifest hash was updated after repair
     reloaded_manifest = load_manifest(project)
     assert reloaded_manifest is not None
-    repaired_entry = reloaded_manifest.find_by_installed_path(
-        ".claude/skills/drift-skill/SKILL.md"
-    )
+    repaired_entry = reloaded_manifest.find_by_installed_path(".claude/skills/drift-skill/SKILL.md")
     assert repaired_entry is not None
     assert repaired_entry.content_hash == compute_content_hash(installed_file)
 

@@ -150,9 +150,7 @@ def _qualname_for_line(qualname_map: dict[tuple[int, int], str], lineno: int) ->
     performs) pays for a single AST parse rather than one parse per candidate
     line (GAP-2 — build the qualname map ONCE per file).
     """
-    candidates = [
-        (end - start, qn) for (start, end), qn in qualname_map.items() if start <= lineno <= end
-    ]
+    candidates = [(end - start, qn) for (start, end), qn in qualname_map.items() if start <= lineno <= end]
     if not candidates:
         return "<module>"
     _, qn = min(candidates)
@@ -173,11 +171,7 @@ def _candidate_lines(source: str, qualname: str, token_substring: str) -> list[i
         return []
     qualname_map = build_qualname_map(tree)
     tokens = code_tokens_by_line(source)
-    return [
-        lineno
-        for lineno in sorted(tokens)
-        if token_substring in tokens[lineno] and _qualname_for_line(qualname_map, lineno) == qualname
-    ]
+    return [lineno for lineno in sorted(tokens) if token_substring in tokens[lineno] and _qualname_for_line(qualname_map, lineno) == qualname]
 
 
 def _assert_exactly_one(candidates: list[int], descriptor: ContentDescriptor) -> None:
@@ -201,8 +195,7 @@ def _assert_exactly_one(candidates: list[int], descriptor: ContentDescriptor) ->
         return
     if not (0 <= descriptor.occurrence < len(candidates)):
         raise DescriptorResolutionError(
-            f"descriptor {descriptor!r} occurrence={descriptor.occurrence} is out of "
-            f"range for {len(candidates)} candidate(s) at lines {candidates!r}."
+            f"descriptor {descriptor!r} occurrence={descriptor.occurrence} is out of range for {len(candidates)} candidate(s) at lines {candidates!r}."
         )
 
 
@@ -234,9 +227,7 @@ def resolve_descriptor(source: str, descriptor: ContentDescriptor) -> CompositeK
     return (descriptor.rel_path, qualname, token_line)
 
 
-def descriptor_still_live(
-    source: str, descriptor: ContentDescriptor, seeded_key: CompositeKey
-) -> bool:
+def descriptor_still_live(source: str, descriptor: ContentDescriptor, seeded_key: CompositeKey) -> bool:
     """``True`` iff ``descriptor`` resolves to exactly one finding equal to ``seeded_key``.
 
     Exactly-one AND key-equal — never "≥1 finding matches" (the D-1 bite hole: a

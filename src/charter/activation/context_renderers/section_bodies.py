@@ -134,20 +134,13 @@ def _is_fence_close(line: str, fence_marker: str, fence_length: int) -> bool:
     return re.match(close_pattern, line) is not None
 
 
-def _has_fence_close(
-    lines: list[str], start_index: int, fence_marker: str, fence_length: int
-) -> bool:
+def _has_fence_close(lines: list[str], start_index: int, fence_marker: str, fence_length: int) -> bool:
     """Return whether the active Markdown fence closes after ``start_index``."""
 
-    return any(
-        _is_fence_close(line, fence_marker, fence_length)
-        for line in lines[start_index:]
-    )
+    return any(_is_fence_close(line, fence_marker, fence_length) for line in lines[start_index:])
 
 
-def _close_fence_if_matched(
-    line: str, fence_marker: str, fence_length: int
-) -> tuple[str | None, int]:
+def _close_fence_if_matched(line: str, fence_marker: str, fence_length: int) -> tuple[str | None, int]:
     """Return the updated ``(marker, length)`` fence state after *line*.
 
     When *line* closes the active fence the state resets to ``(None, 0)``;
@@ -159,9 +152,7 @@ def _close_fence_if_matched(
     return fence_marker, fence_length
 
 
-def _heading_offset_if_match(
-    line: str, heading_level: int, offset: int
-) -> int | None:
+def _heading_offset_if_match(line: str, heading_level: int, offset: int) -> int | None:
     """Return *offset* when *line* is a heading at or above *heading_level*."""
 
     heading_match = re.match(r"^(#{1,6})\s+", line)
@@ -170,9 +161,7 @@ def _heading_offset_if_match(
     return None
 
 
-def _open_fence_if_started(
-    line: str, lines: list[str], index: int
-) -> tuple[str | None, int, bool]:
+def _open_fence_if_started(line: str, lines: list[str], index: int) -> tuple[str | None, int, bool]:
     """Return ``(marker, length, unclosed)`` for a fence opened by *line*.
 
     ``marker``/``length`` are ``(None, 0)`` when *line* does not open a fence.
@@ -200,16 +189,12 @@ def _find_next_section_start(body: str, heading_level: int) -> int | None:
     lines = body.splitlines(keepends=True)
     for index, line in enumerate(lines):
         if fence_marker is not None:
-            fence_marker, fence_length = _close_fence_if_matched(
-                line, fence_marker, fence_length
-            )
+            fence_marker, fence_length = _close_fence_if_matched(line, fence_marker, fence_length)
         else:
             heading_offset = _heading_offset_if_match(line, heading_level, offset)
             if heading_offset is not None:
                 return heading_offset
-            fence_marker, fence_length, unclosed = _open_fence_if_started(
-                line, lines, index
-            )
+            fence_marker, fence_length, unclosed = _open_fence_if_started(line, lines, index)
             if unclosed:
                 return offset
 
@@ -263,11 +248,7 @@ def _extract_section_body(charter_content: str, heading: str) -> str | None:
     body_start, heading_level = heading_match
     remainder = charter_content[body_start:]
     next_section_start = _find_next_section_start(remainder, heading_level)
-    body = (
-        remainder
-        if next_section_start is None
-        else charter_content[body_start : body_start + next_section_start]
-    )
+    body = remainder if next_section_start is None else charter_content[body_start : body_start + next_section_start]
 
     return body.strip("\n").rstrip()
 
@@ -354,10 +335,7 @@ def _honest_placeholder(heading: str) -> str:
     with "No charter section found for selector".
     """
 
-    return (
-        f"_This charter has not yet authored a **{heading}** section. "
-        f"Add one to `.kittify/charter/charter.md`._"
-    )
+    return f"_This charter has not yet authored a **{heading}** section. Add one to `.kittify/charter/charter.md`._"
 
 
 def render_critical_section_include(
@@ -389,11 +367,7 @@ def render_critical_section_include(
             return None
         return render_critical_section_bodies(charter_content, action_name) or None
 
-    headings = {
-        heading
-        for section_headings in ACTION_CRITICAL_SECTIONS.values()
-        for heading in section_headings
-    }
+    headings = {heading for section_headings in ACTION_CRITICAL_SECTIONS.values() for heading in section_headings}
     for heading in sorted(headings):
         if _slugify_heading(heading) != cleaned:
             continue

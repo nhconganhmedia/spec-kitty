@@ -13,6 +13,7 @@ These tests pin:
 * fail-closed registry-read failure;
 * injected-registry plumbing (no per-path shell-out).
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -65,10 +66,7 @@ def test_primary_checkout_is_primary(tmp_path: Path) -> None:
     feature_dir = repo_root / "kitty-specs" / "my-mission"
     feature_dir.mkdir(parents=True)
 
-    assert (
-        classify_worktree_topology(feature_dir, repo_root=repo_root)
-        is WorktreeTopology.PRIMARY
-    )
+    assert classify_worktree_topology(feature_dir, repo_root=repo_root) is WorktreeTopology.PRIMARY
 
 
 def test_registered_coord_worktree_is_coord(tmp_path: Path) -> None:
@@ -82,10 +80,7 @@ def test_registered_coord_worktree_is_coord(tmp_path: Path) -> None:
     feature_dir = coord / "kitty-specs" / "my-mission-ABCD1234"
     feature_dir.mkdir(parents=True)
 
-    assert (
-        classify_worktree_topology(feature_dir, repo_root=repo_root)
-        is WorktreeTopology.COORD_WORKTREE
-    )
+    assert classify_worktree_topology(feature_dir, repo_root=repo_root) is WorktreeTopology.COORD_WORKTREE
 
 
 def test_registered_lane_worktree_is_lane(tmp_path: Path) -> None:
@@ -99,26 +94,17 @@ def test_registered_lane_worktree_is_lane(tmp_path: Path) -> None:
     feature_dir = lane / "kitty-specs" / "my-mission-ABCD1234"
     feature_dir.mkdir(parents=True)
 
-    assert (
-        classify_worktree_topology(feature_dir, repo_root=repo_root)
-        is WorktreeTopology.LANE_WORKTREE
-    )
+    assert classify_worktree_topology(feature_dir, repo_root=repo_root) is WorktreeTopology.LANE_WORKTREE
 
 
 def test_unregistered_worktree_dir_is_unregistered(tmp_path: Path) -> None:
     repo_root = tmp_path / "repo"
     _init_repo(repo_root)
     # A plain directory under .worktrees that git never registered.
-    feature_dir = (
-        repo_root / ".worktrees" / "my-mission-ABCD1234-lane-a"
-        / "kitty-specs" / "my-mission-ABCD1234"
-    )
+    feature_dir = repo_root / ".worktrees" / "my-mission-ABCD1234-lane-a" / "kitty-specs" / "my-mission-ABCD1234"
     feature_dir.mkdir(parents=True)
 
-    assert (
-        classify_worktree_topology(feature_dir, repo_root=repo_root)
-        is WorktreeTopology.UNREGISTERED
-    )
+    assert classify_worktree_topology(feature_dir, repo_root=repo_root) is WorktreeTopology.UNREGISTERED
 
 
 def test_coord_named_husk_is_unregistered_never_coord(tmp_path: Path) -> None:
@@ -129,16 +115,10 @@ def test_coord_named_husk_is_unregistered_never_coord(tmp_path: Path) -> None:
     """
     repo_root = tmp_path / "repo"
     _init_repo(repo_root)
-    husk = (
-        repo_root / ".worktrees" / "my-mission-ABCD1234-coord"
-        / "kitty-specs" / "my-mission-ABCD1234"
-    )
+    husk = repo_root / ".worktrees" / "my-mission-ABCD1234-coord" / "kitty-specs" / "my-mission-ABCD1234"
     husk.mkdir(parents=True)
 
-    assert (
-        classify_worktree_topology(husk, repo_root=repo_root)
-        is WorktreeTopology.UNREGISTERED
-    )
+    assert classify_worktree_topology(husk, repo_root=repo_root) is WorktreeTopology.UNREGISTERED
     assert not is_registered_coord_worktree(husk, repo_root=repo_root)
 
 
@@ -196,9 +176,7 @@ def test_registry_unreadable_fails_closed(tmp_path: Path) -> None:
     guess (NFR-003).
     """
     non_repo = tmp_path / "not-a-repo"
-    feature_dir = (
-        non_repo / ".worktrees" / "my-mission-coord" / "kitty-specs" / "my-mission"
-    )
+    feature_dir = non_repo / ".worktrees" / "my-mission-coord" / "kitty-specs" / "my-mission"
     feature_dir.mkdir(parents=True)
 
     with pytest.raises(WorktreeRegistryUnavailable):
@@ -212,38 +190,21 @@ def test_injected_registry_skips_shell_out(tmp_path: Path) -> None:
     proves the path is honoured.
     """
     non_repo = tmp_path / "not-a-repo"
-    coord = (
-        non_repo / ".worktrees" / "my-mission-ABCD1234-coord"
-    )
+    coord = non_repo / ".worktrees" / "my-mission-ABCD1234-coord"
     feature_dir = coord / "kitty-specs" / "my-mission-ABCD1234"
     feature_dir.mkdir(parents=True)
     registry = frozenset({coord.resolve()})
 
-    assert (
-        classify_worktree_topology(
-            feature_dir, repo_root=non_repo, registry=registry
-        )
-        is WorktreeTopology.COORD_WORKTREE
-    )
-    assert is_registered_coord_worktree(
-        feature_dir, repo_root=non_repo, registry=registry
-    )
+    assert classify_worktree_topology(feature_dir, repo_root=non_repo, registry=registry) is WorktreeTopology.COORD_WORKTREE
+    assert is_registered_coord_worktree(feature_dir, repo_root=non_repo, registry=registry)
 
 
 def test_injected_empty_registry_classifies_unregistered(tmp_path: Path) -> None:
     non_repo = tmp_path / "not-a-repo"
-    feature_dir = (
-        non_repo / ".worktrees" / "my-mission-ABCD1234-coord"
-        / "kitty-specs" / "my-mission-ABCD1234"
-    )
+    feature_dir = non_repo / ".worktrees" / "my-mission-ABCD1234-coord" / "kitty-specs" / "my-mission-ABCD1234"
     feature_dir.mkdir(parents=True)
 
-    assert (
-        classify_worktree_topology(
-            feature_dir, repo_root=non_repo, registry=frozenset()
-        )
-        is WorktreeTopology.UNREGISTERED
-    )
+    assert classify_worktree_topology(feature_dir, repo_root=non_repo, registry=frozenset()) is WorktreeTopology.UNREGISTERED
 
 
 # ---------------------------------------------------------------------------
@@ -304,16 +265,12 @@ def _non_git_kitty_specs_feature_dir(tmp_path: Path) -> Path:
     ``WorktreeRegistryUnavailable``. This is the real trigger for the lock-root
     helpers' first degradation branch (no mock).
     """
-    feature_dir = (
-        tmp_path / ".worktrees" / "m-ABCD1234-coord" / "kitty-specs" / "m-ABCD1234"
-    )
+    feature_dir = tmp_path / ".worktrees" / "m-ABCD1234-coord" / "kitty-specs" / "m-ABCD1234"
     feature_dir.mkdir(parents=True)
     return feature_dir
 
 
-def test_lock_root_degrades_to_parent_parent_when_canonical_root_not_found(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lock_root_degrades_to_parent_parent_when_canonical_root_not_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``resolve_status_lock_root`` degrades to ``feature_dir.parent.parent`` when
     ``resolve_canonical_root`` raises ``WorkspaceRootNotFound`` (no git repo
     anywhere up the tree). This is the WP02-consolidated fallback path.

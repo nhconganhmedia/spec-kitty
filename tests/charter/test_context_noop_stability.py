@@ -89,19 +89,14 @@ def _assert_doctrine_is_git_tracked(repo: Path) -> None:
     """
     tracked_doctrine = _run_git(["ls-files", ".kittify/doctrine"], cwd=repo).stdout.strip().splitlines()
     assert tracked_doctrine, (
-        "Fixture is vacuous: .kittify/doctrine/** is not git-tracked in the "
-        "cloned repo. LM-1 requires a doctrine-tracked fixture for this guard "
-        "to mean anything."
+        "Fixture is vacuous: .kittify/doctrine/** is not git-tracked in the cloned repo. LM-1 requires a doctrine-tracked fixture for this guard to mean anything."
     )
     tracked_charter_yaml = _run_git(["ls-files", ".kittify/charter/charter.yaml"], cwd=repo).stdout.strip()
     assert tracked_charter_yaml, "Fixture is vacuous: .kittify/charter/charter.yaml is not git-tracked."
 
     exclude_path = repo / ".git" / "info" / "exclude"
     exclude_text = exclude_path.read_text(encoding="utf-8") if exclude_path.exists() else ""
-    assert ".kittify/doctrine" not in exclude_text, (
-        "Fixture leaked the LM-1 local exclude mask into the clone; the "
-        "cleanliness assertion below would be vacuous."
-    )
+    assert ".kittify/doctrine" not in exclude_text, "Fixture leaked the LM-1 local exclude mask into the clone; the cleanliness assertion below would be vacuous."
 
 
 def _tracked_status_lines(repo: Path) -> list[str]:

@@ -149,9 +149,7 @@ def _amend_wp01_owned_files(feature_dir: Path) -> None:
 def _base_patches(tmp_path: Path, mission_slug: str, feature_dir: Path) -> dict[str, object]:
     patches = _common_patches(tmp_path, mission_slug)
     patches[f"{MODULE}._find_feature_directory"] = MagicMock(return_value=feature_dir)
-    patches[f"{MODULE}.bootstrap_canonical_state"] = MagicMock(
-        return_value=_make_bootstrap_result()
-    )
+    patches[f"{MODULE}.bootstrap_canonical_state"] = MagicMock(return_value=_make_bootstrap_result())
     return patches
 
 
@@ -189,8 +187,7 @@ def test_execution_begun_preserves_recorded_sha_against_differing_tip(
     assert established is not None
     baseline_topology = {lane.lane_id: sorted(lane.wp_ids) for lane in established.lanes}
     assert sorted(baseline_topology.values()) == [["WP01"], ["WP02"]], (
-        "sanity: two disjoint WPs must materialize two independent single-WP "
-        f"lanes; got {baseline_topology}"
+        f"sanity: two disjoint WPs must materialize two independent single-WP lanes; got {baseline_topology}"
     )
 
     # Seed the recorded planning provenance SHA for an established mission.
@@ -328,8 +325,7 @@ def test_execution_begun_path_does_not_write_status_json(tmp_path: Path) -> None
 
     read_dir = resolve_status_surface_with_anchor(tmp_path, mission_slug).read_dir
     assert not (read_dir / "status.json").exists(), (
-        "sanity: status.json must not exist before the execution-begun run "
-        "(reducer.materialize() has never been called yet)"
+        "sanity: status.json must not exist before the execution-begun run (reducer.materialize() has never been called yet)"
     )
     before_files = _hash_status_surface_files(read_dir)
     assert before_files, "sanity: the status surface must already contain the seeded event log"
@@ -346,8 +342,7 @@ def test_execution_begun_path_does_not_write_status_json(tmp_path: Path) -> None
 
     materialize_spy.assert_not_called()
     assert not (read_dir / "status.json").exists(), (
-        "the execution-begun finalize path must not create status.json — that "
-        "is exclusively reducer.materialize()'s side effect"
+        "the execution-begun finalize path must not create status.json — that is exclusively reducer.materialize()'s side effect"
     )
 
     after_files = _hash_status_surface_files(read_dir)

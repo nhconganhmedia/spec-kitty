@@ -29,6 +29,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestParseWpSectionsHeaderDepth:
     """_parse_wp_sections_from_tasks_md must detect WP sections at h2/h3/h4."""
 
@@ -120,9 +121,7 @@ class TestSectionWalkerHeaderDepth:
     def test_wp_section_detection(self, depth: str, expected_found: bool) -> None:
         """WP section start regex must match at h2-h4 depth only."""
         content = f"{depth} WP01: Setup\n\n- [ ] T001 Do something\n"
-        assert _walker_found_any(content, "WP01") == expected_found, (
-            f"Header '{depth} WP01' should {'be' if expected_found else 'NOT be'} detected"
-        )
+        assert _walker_found_any(content, "WP01") == expected_found, f"Header '{depth} WP01' should {'be' if expected_found else 'NOT be'} detected"
 
     def test_section_end_boundary(self) -> None:
         """Section-end regex must stop scanning at the next WP heading."""
@@ -146,13 +145,7 @@ class TestSectionWalkerCanonicalOnly:
 
     def test_real_unchecked_tasks_still_counted(self) -> None:
         """Genuine ``- [ ] T###`` rows must still be yielded (regression guard)."""
-        content = (
-            "## WP01: Setup\n\n"
-            "### Included Subtasks\n"
-            "- [ ] T001 Create the module\n"
-            "- [x] T002 Already done\n"
-            "- [ ] T003 Wire it up\n"
-        )
+        content = "## WP01: Setup\n\n### Included Subtasks\n- [ ] T001 Create the module\n- [x] T002 Already done\n- [ ] T003 Wire it up\n"
         assert _walker_unchecked(content, "WP01") == ["T001", "T003"]
 
     def test_validation_command_rows_do_not_count(self) -> None:

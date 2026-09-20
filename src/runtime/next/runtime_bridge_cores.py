@@ -173,10 +173,7 @@ def _parse_wp_sections_from_tasks_md(tasks_content: str) -> dict[str, str]:
 
 def _parse_requirement_refs_from_tasks_md(tasks_content: str) -> dict[str, list[str]]:
     """Parse requirement references per WP from tasks.md content."""
-    return {
-        wp_id: _collect_requirement_refs_for_section(section_content)
-        for wp_id, section_content in _parse_wp_sections_from_tasks_md(tasks_content).items()
-    }
+    return {wp_id: _collect_requirement_refs_for_section(section_content) for wp_id, section_content in _parse_wp_sections_from_tasks_md(tasks_content).items()}
 
 
 def _collect_requirement_refs_for_section(section_content: str) -> list[str]:
@@ -282,10 +279,7 @@ def _evaluate_requirement_mapping(facts: RequirementMappingFacts) -> list[str]:
     if missing_requirement_refs_wps:
         details.append(f"missing refs for WPs: {', '.join(missing_requirement_refs_wps)}")
     if unknown_requirement_refs:
-        unknown_parts = [
-            f"{wp_id}: {', '.join(refs)}"
-            for wp_id, refs in sorted(unknown_requirement_refs.items())
-        ]
+        unknown_parts = [f"{wp_id}: {', '.join(refs)}" for wp_id, refs in sorted(unknown_requirement_refs.items())]
         details.append(f"unknown refs: {'; '.join(unknown_parts)}")
     if unmapped_functional_requirements:
         details.append(f"unmapped FRs: {', '.join(unmapped_functional_requirements)}")
@@ -875,9 +869,7 @@ def _step_decision(envelope: DecisionEnvelope, guard_failures: list[str]) -> Dec
     )
 
 
-def _blocked_from_step_envelope(
-    envelope: DecisionEnvelope, guard_failures: list[str], *, reason: str | None
-) -> Decision:
+def _blocked_from_step_envelope(envelope: DecisionEnvelope, guard_failures: list[str], *, reason: str | None) -> Decision:
     """Materialize the ``kind="blocked"`` fallback of a ``kind="step"`` envelope."""
     return Decision(
         kind=DecisionKind.blocked,

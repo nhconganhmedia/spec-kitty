@@ -264,9 +264,7 @@ class TestUnresolvableEndpointIsNeverSilent:
         # resolve them so the gate reads the real Literal members.
         hints = typing.get_type_hints(OrgDRGConflict)
         declared = set(typing.get_args(hints["kind"]))
-        assert len(declared) >= 7, (
-            f"floor: OrgDRGConflict.kind declares >= 7 classes, saw {declared}"
-        )
+        assert len(declared) >= 7, f"floor: OrgDRGConflict.kind declares >= 7 classes, saw {declared}"
         assert declared == set(_CONFLICT_REMEDIATIONS), (
             "conflict classes without operator remediation: "
             f"{sorted(declared - set(_CONFLICT_REMEDIATIONS))}; "
@@ -667,9 +665,7 @@ def _overlap_pack(root: Path, *, authored_target: str) -> Path:
         "    relation: specializes_from\n",
         encoding="utf-8",
     )
-    (pack / "agent_profiles" / "my-analyst.agent.yaml").write_text(
-        "id: my-analyst\nspecializes_from: researcher-ryan\n", encoding="utf-8"
-    )
+    (pack / "agent_profiles" / "my-analyst.agent.yaml").write_text("id: my-analyst\nspecializes_from: researcher-ryan\n", encoding="utf-8")
     return pack
 
 
@@ -696,11 +692,7 @@ def _lineage_overlap_pack(
     pack = root / name
     (pack / "drg").mkdir(parents=True)
     (pack / "agent_profiles").mkdir()
-    nodes = (
-        "nodes:\n  - id: my-analyst\n    kind: agent_profiles\n    title: My Analyst\n"
-        if declare_node
-        else "nodes: []\n"
-    )
+    nodes = "nodes:\n  - id: my-analyst\n    kind: agent_profiles\n    title: My Analyst\n" if declare_node else "nodes: []\n"
     if authored_reason is None:
         edges = "edges: []\n"
     else:
@@ -712,17 +704,11 @@ def _lineage_overlap_pack(
             f"    reason: {authored_reason!r}\n"
         )
     (pack / "drg" / "fragment.yaml").write_text(
-        f"pack_name: {name}\n"
-        "source_kind: local_path\n"
-        f"source_ref: {name}\n"
-        "layer_index: 1\n"
-        "provenance_marker: org\n" + nodes + edges,
+        f"pack_name: {name}\nsource_kind: local_path\nsource_ref: {name}\nlayer_index: 1\nprovenance_marker: org\n" + nodes + edges,
         encoding="utf-8",
     )
     if project_field:
-        (pack / "agent_profiles" / "my-analyst.agent.yaml").write_text(
-            "id: my-analyst\nspecializes_from: researcher-ryan\n", encoding="utf-8"
-        )
+        (pack / "agent_profiles" / "my-analyst.agent.yaml").write_text("id: my-analyst\nspecializes_from: researcher-ryan\n", encoding="utf-8")
     return pack
 
 
@@ -751,12 +737,8 @@ class TestOneRelationshipYieldsOneEdge:
             ("agent_profile:researcher-ryan", "byte-identical restatement"),
         ],
     )
-    def test_the_migration_window_overlap_yields_one_edge(
-        self, tmp_path: Path, authored_target: str, why: str
-    ) -> None:
-        fragment = load_org_pack(
-            "overlap-pack", _overlap_pack(tmp_path, authored_target=authored_target), 1
-        )
+    def test_the_migration_window_overlap_yields_one_edge(self, tmp_path: Path, authored_target: str, why: str) -> None:
+        fragment = load_org_pack("overlap-pack", _overlap_pack(tmp_path, authored_target=authored_target), 1)
 
         built_in = _built_in()
         merged = merge_three_layers(built_in, [fragment], None)
@@ -778,6 +760,7 @@ class TestOneRelationshipYieldsOneEdge:
         keeps provenance, mirroring org-vs-org node precedence) rather than
         produce a graph that fails its own integrity check.
         """
+
         def _pack(name: str) -> OrgDRGFragment:
             return _fragment(
                 [{"id": "shared-node", "kind": "directives"}],
@@ -794,18 +777,12 @@ class TestOneRelationshipYieldsOneEdge:
         built_in = _built_in()
         merged = merge_three_layers(built_in, [_pack("first"), _pack("second")], None)
 
-        assert _org_edges(merged, built_in) == [
-            ("directive:shared-node", "directive:builtin-alpha", "requires")
-        ]
+        assert _org_edges(merged, built_in) == [("directive:shared-node", "directive:builtin-alpha", "requires")]
         assert _duplicate_edge_errors(merged) == []
         contributed = [e for e in merged.edges if str(e.provenance).startswith("org:")]
-        assert [e.provenance for e in contributed] == ["org:first"], (
-            "the first declaring pack keeps provenance, as it does for nodes"
-        )
+        assert [e.provenance for e in contributed] == ["org:first"], "the first declaring pack keeps provenance, as it does for nodes"
 
-    def test_a_discarded_distinct_rationale_is_not_lost_in_silence(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_a_discarded_distinct_rationale_is_not_lost_in_silence(self, caplog: pytest.LogCaptureFixture) -> None:
         """Collapsing two AUTHORED rationales into one is information loss.
 
         The collapse itself is correct — one relationship, one edge — but the
@@ -816,6 +793,7 @@ class TestOneRelationshipYieldsOneEdge:
         old defence (org-vs-org *node* collisions are equally silent) argues the
         node path is also wrong, not that this one is right.
         """
+
         def _pack(name: str, reason: str) -> OrgDRGFragment:
             return _fragment(
                 [{"id": "shared-node", "kind": "directives"}],
@@ -838,19 +816,11 @@ class TestOneRelationshipYieldsOneEdge:
                 None,
             )
 
-        assert _org_edges(merged, built_in) == [
-            ("directive:shared-node", "directive:builtin-alpha", "requires")
-        ], "the collapse itself is still correct"
-        assert "GDPR Art. 30" in caplog.text, (
-            f"the discarded rationale must be named; got {caplog.text!r}"
-        )
-        assert "org:second" in caplog.text, (
-            f"the warning must name the pack whose reason was dropped; got {caplog.text!r}"
-        )
+        assert _org_edges(merged, built_in) == [("directive:shared-node", "directive:builtin-alpha", "requires")], "the collapse itself is still correct"
+        assert "GDPR Art. 30" in caplog.text, f"the discarded rationale must be named; got {caplog.text!r}"
+        assert "org:second" in caplog.text, f"the warning must name the pack whose reason was dropped; got {caplog.text!r}"
 
-    def test_one_pack_disagreeing_with_itself_is_named_once(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_one_pack_disagreeing_with_itself_is_named_once(self, caplog: pytest.LogCaptureFixture) -> None:
         """A pack can restate its own edge, and then there is only one pack.
 
         The cross-pack wording ("already contributed by ...", "reconcile the
@@ -877,18 +847,10 @@ class TestOneRelationshipYieldsOneEdge:
         with caplog.at_level(logging.WARNING, logger="charter.offering.drg.merge"):
             merged = merge_three_layers(built_in, [fragment], None)
 
-        assert _org_edges(merged, built_in) == [
-            ("directive:shared-node", "directive:builtin-alpha", "requires")
-        ]
-        assert "GDPR Art. 30" in caplog.text, (
-            f"the discarded rationale must be named; got {caplog.text!r}"
-        )
-        assert "already contributed by" not in caplog.text, (
-            f"there is no second contributor to name; got {caplog.text!r}"
-        )
-        assert "two packs" not in caplog.text, (
-            f"one pack must not be described as two; got {caplog.text!r}"
-        )
+        assert _org_edges(merged, built_in) == [("directive:shared-node", "directive:builtin-alpha", "requires")]
+        assert "GDPR Art. 30" in caplog.text, f"the discarded rationale must be named; got {caplog.text!r}"
+        assert "already contributed by" not in caplog.text, f"there is no second contributor to name; got {caplog.text!r}"
+        assert "two packs" not in caplog.text, f"one pack must not be described as two; got {caplog.text!r}"
 
     @pytest.mark.parametrize(
         ("first_reason", "second_reason", "why"),
@@ -925,6 +887,7 @@ class TestOneRelationshipYieldsOneEdge:
         A warning that fired on those would be noise on correct packs — a gate
         that flags everything. Only a genuinely discarded rationale is loud.
         """
+
         def _pack(name: str, reason: str | None) -> OrgDRGFragment:
             edge: dict[str, str] = {
                 "source": "shared-node",
@@ -947,12 +910,8 @@ class TestOneRelationshipYieldsOneEdge:
                 None,
             )
 
-        assert _org_edges(merged, built_in) == [
-            ("directive:shared-node", "directive:builtin-alpha", "requires")
-        ]
-        assert "discard" not in caplog.text.lower(), (
-            f"no rationale was lost ({why}); got {caplog.text!r}"
-        )
+        assert _org_edges(merged, built_in) == [("directive:shared-node", "directive:builtin-alpha", "requires")]
+        assert "discard" not in caplog.text.lower(), f"no rationale was lost ({why}); got {caplog.text!r}"
 
     @pytest.mark.parametrize(
         ("packs", "why"),
@@ -1025,10 +984,7 @@ class TestOneRelationshipYieldsOneEdge:
                 "specializes_from",
             )
         ], "the collapse itself is still correct"
-        assert caplog.records == [], (
-            f"a healthy migration-window pack must merge in silence ({why}); "
-            f"got {caplog.text!r}"
-        )
+        assert caplog.records == [], f"a healthy migration-window pack must merge in silence ({why}); got {caplog.text!r}"
 
     def test_distinct_relationships_are_not_collapsed(self) -> None:
         """The dedup must key on the whole triple, not a prefix of it."""
@@ -1088,9 +1044,7 @@ class TestQualifiedEndpointsAreCheckedOnceEveryLayerIsIn:
     own :class:`OrgDRGConflict` vocabulary rather than a second error channel.
     """
 
-    def test_a_typo_in_a_qualified_endpoint_does_not_land_unwarned(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_a_typo_in_a_qualified_endpoint_does_not_land_unwarned(self, caplog: pytest.LogCaptureFixture) -> None:
         """The measured hole: ``builtin-alpha`` mistyped as ``builtin-alfa``.
 
         Before this fix the merge returned a graph carrying
@@ -1120,16 +1074,11 @@ class TestQualifiedEndpointsAreCheckedOnceEveryLayerIsIn:
 
         warnings = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
         assert any("directive:builtin-alfa" in w for w in warnings), (
-            "a qualified endpoint that binds to nothing must name the offending "
-            f"token so the pack author can find it; got {warnings}"
+            f"a qualified endpoint that binds to nothing must name the offending token so the pack author can find it; got {warnings}"
         )
-        assert any("org:probe-pack" in w for w in warnings), (
-            "...and must name the pack to go fix"
-        )
+        assert any("org:probe-pack" in w for w in warnings), "...and must name the pack to go fix"
 
-    def test_a_resolvable_endpoint_produces_no_warning(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_a_resolvable_endpoint_produces_no_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         """The warning must discriminate, or operators learn to ignore it."""
         fragment = _fragment(
             [{"id": "sox-controls", "kind": "directives"}],
@@ -1189,9 +1138,7 @@ class TestQualifiedEndpointsAreCheckedOnceEveryLayerIsIn:
         built_in = load_built_in_graph()
         assert validate_graph(merge_three_layers(built_in, [], None)) == []
 
-    def test_a_cross_pack_reference_is_warned_but_not_refused(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_a_cross_pack_reference_is_warned_but_not_refused(self, caplog: pytest.LogCaptureFixture) -> None:
         """Why the merge reports instead of refusing.
 
         The in-repo ``example_org`` fixture demonstrates the sanctioned
@@ -1224,10 +1171,7 @@ class TestQualifiedEndpointsAreCheckedOnceEveryLayerIsIn:
                 "refines",
             )
         ]
-        assert any(
-            "from-a-pack-i-did-not-configure" in r.getMessage()
-            for r in caplog.records
-        )
+        assert any("from-a-pack-i-did-not-configure" in r.getMessage() for r in caplog.records)
 
     def test_a_qualified_endpoint_may_still_name_a_later_layers_node(self) -> None:
         """The deferral must survive — this is WHY mint-time existence is wrong.
@@ -1257,9 +1201,7 @@ class TestQualifiedEndpointsAreCheckedOnceEveryLayerIsIn:
             "requires",
         ) in _org_edges(merged, built_in)
 
-    def test_the_post_assembly_check_would_catch_a_reintroduced_hole(
-        self, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_the_post_assembly_check_would_catch_a_reintroduced_hole(self, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
         """Self-mutation (standing order 5): prove the check is load-bearing.
 
         Neuter the post-assembly detector and assert the typo goes back to
@@ -1289,9 +1231,7 @@ class TestQualifiedEndpointsAreCheckedOnceEveryLayerIsIn:
         with caplog.at_level("WARNING", logger="charter.offering.drg.merge"):
             merged = merge_three_layers(built_in, [fragment], None)
 
-        assert ("directive:mine", "directive:builtin-alfa", "requires") in _org_edges(
-            merged, built_in
-        )
+        assert ("directive:mine", "directive:builtin-alfa", "requires") in _org_edges(merged, built_in)
         assert [r.getMessage() for r in caplog.records if r.levelname == "WARNING"] == [], (
             "the mutation must restore the silence, otherwise the check is decorative"
         )
@@ -1338,8 +1278,7 @@ class TestResolutionPrecedence:
             verdicts.append([c.kind for c in excinfo.value.conflicts])
 
         assert verdicts[0] == verdicts[1] == ["unresolved_edge_endpoint"], (
-            "a cross-pack bare reference must be refused identically in both "
-            f"declaration orders; got {verdicts}"
+            f"a cross-pack bare reference must be refused identically in both declaration orders; got {verdicts}"
         )
 
     def test_fragment_local_id_wins_over_a_same_named_builtin(self) -> None:

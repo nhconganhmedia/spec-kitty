@@ -9,6 +9,7 @@ from charter.offering.directives.models import (
     Directive,
     Enforcement,
 )
+
 pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
@@ -30,9 +31,7 @@ class TestEnforcement:
         """StrEnum value/JSON behavior must survive the ordering override (FR-001)."""
         import json
 
-        assert json.dumps({"enforcement": Enforcement.LENIENT_ADHERENCE}) == (
-            '{"enforcement": "lenient-adherence"}'
-        )
+        assert json.dumps({"enforcement": Enforcement.LENIENT_ADHERENCE}) == ('{"enforcement": "lenient-adherence"}')
 
     def test_rank_order_matches_intent(self) -> None:
         """required > lenient-adherence > advisory, per the explicit rank map."""
@@ -41,9 +40,7 @@ class TestEnforcement:
         assert Enforcement.REQUIRED >= Enforcement.REQUIRED
         assert Enforcement.ADVISORY <= Enforcement.ADVISORY
 
-    def test_comparison_is_rank_driven_not_lexical(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_comparison_is_rank_driven_not_lexical(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """SC-009: comparison must consult the rank map, not `StrEnum`'s lexical compare.
 
         Alphabetically, "advisory" < "lenient-adherence" < "required" --
@@ -109,9 +106,7 @@ class TestDirective:
         assert directive.references[0].id == "git-agent-commit-signing"
         assert set(directive.integrity_rules) == {"Tests must pass before merge"}
         assert set(directive.validation_criteria) == {"Coverage above 90%"}
-        assert set(directive.explicit_allowances) == {
-            "Documented exceptions may expand scope when they reduce implementation risk."
-        }
+        assert set(directive.explicit_allowances) == {"Documented exceptions may expand scope when they reduce implementation risk."}
         # Post-WP02: inline `tactic_refs` is no longer a Directive attribute.
         assert not hasattr(directive, "tactic_refs")
 

@@ -102,9 +102,7 @@ def _base_row(**overrides: Any) -> _Row:
         ({"wp_id": "WP01", "to_lane": "done"}, None),
     ],
 )
-def test_rule_reject_non_status_event(
-    row: _Row, expect_error: str | None
-) -> None:
+def test_rule_reject_non_status_event(row: _Row, expect_error: str | None) -> None:
     result = _rule_reject_non_status_event(row, _ctx())
     assert isinstance(result, CanonicalStepResult)
     if expect_error == "quarantined_non_status_event":
@@ -180,9 +178,7 @@ def test_rule_apply_aliases(
         (_base_row(), (), []),
     ],
 )
-def test_rule_strip_legacy_keys(
-    row: _Row, expected_actions: tuple[str, ...], stripped_keys: list[str]
-) -> None:
+def test_rule_strip_legacy_keys(row: _Row, expected_actions: tuple[str, ...], stripped_keys: list[str]) -> None:
     result = _rule_strip_legacy_keys(row, _ctx())
     assert result.actions == expected_actions
     assert result.error is None
@@ -206,9 +202,7 @@ def test_rule_strip_legacy_keys(
         (_base_row(mission_id="old-id"), _MISSION_SLUG, _MISSION_ID),
     ],
 )
-def test_rule_stamp_identity(
-    row: _Row, expected_mission_slug: str, expected_mission_id: str
-) -> None:
+def test_rule_stamp_identity(row: _Row, expected_mission_slug: str, expected_mission_id: str) -> None:
     result = _rule_stamp_identity(row, _ctx())
     assert result.error is None
     assert result.state["mission_slug"] == expected_mission_slug
@@ -231,9 +225,7 @@ def test_rule_stamp_identity(
         (_base_row(event_id="not-valid"), None, True),
     ],
 )
-def test_rule_mint_event_id(
-    row: _Row, generated_ids: list[str] | None, expect_minted: bool
-) -> None:
+def test_rule_mint_event_id(row: _Row, generated_ids: list[str] | None, expect_minted: bool) -> None:
     ctx = _ctx(generated_ids=generated_ids)
     result = _rule_mint_event_id(row, ctx)
     assert result.error is None
@@ -264,9 +256,7 @@ def test_rule_mint_event_id(
         (_base_row(), "2025-01-01T00:00:00+00:00", None),
     ],
 )
-def test_rule_default_at(
-    row: _Row, expected_at: str, expected_action: str | None
-) -> None:
+def test_rule_default_at(row: _Row, expected_at: str, expected_action: str | None) -> None:
     result = _rule_default_at(row, _ctx())
     assert result.error is None
     assert result.state["at"] == expected_at
@@ -292,9 +282,7 @@ def test_rule_default_at(
         (_base_row(from_lane=""), "", False),
     ],
 )
-def test_rule_default_from_lane(
-    row: _Row, expected_from_lane: str, expect_action: bool
-) -> None:
+def test_rule_default_from_lane(row: _Row, expected_from_lane: str, expect_action: bool) -> None:
     result = _rule_default_from_lane(row, _ctx())
     assert result.error is None
     assert result.state["from_lane"] == expected_from_lane

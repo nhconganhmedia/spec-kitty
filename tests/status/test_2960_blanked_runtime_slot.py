@@ -49,9 +49,7 @@ def _ulid(suffix: str) -> str:
 
 
 def _annotation(event_id: str, at: str, delta: WPInnerStateDelta) -> InnerStateChanged:
-    return InnerStateChanged(
-        event_id=event_id, wp_id="WP01", at=at, actor="claude", delta=delta
-    )
+    return InnerStateChanged(event_id=event_id, wp_id="WP01", at=at, actor="claude", delta=delta)
 
 
 # ---------------------------------------------------------------------------
@@ -100,12 +98,8 @@ def test_nonempty_scalar_slots_are_preserved() -> None:
 def test_empty_agent_delta_does_not_blank_prior_attribution() -> None:
     """Folding an ``agent: ""`` annotation over a real ``agent: "claude"`` leaves
     the recorded attribution intact (survival)."""
-    ann_real = _annotation(
-        _ulid("A1"), "2026-08-15T00:00:01+00:00", WPInnerStateDelta(agent="claude")
-    )
-    ann_blank = _annotation(
-        _ulid("A2"), "2026-08-15T00:00:02+00:00", WPInnerStateDelta(agent="")
-    )
+    ann_real = _annotation(_ulid("A1"), "2026-08-15T00:00:01+00:00", WPInnerStateDelta(agent="claude"))
+    ann_blank = _annotation(_ulid("A2"), "2026-08-15T00:00:02+00:00", WPInnerStateDelta(agent=""))
 
     wp = reduce([], [ann_real, ann_blank]).work_packages["WP01"]
 
@@ -178,9 +172,7 @@ def _write_snapshot(feature_dir: Path, wp_state: dict[str, object]) -> None:
         "force": False,
         "execution_mode": "worktree",
     }
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(event) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(event) + "\n", encoding="utf-8")
 
 
 def test_check_blanked_runtime_slots_flags_empty_agent_on_active_wp() -> None:
@@ -236,9 +228,7 @@ def test_status_doctor_not_healthy_over_blanked_agent_slot(tmp_path: Path) -> No
         },
     )
 
-    result = run_doctor(
-        feature_dir=feature_dir, mission_slug=_MISSION_SLUG, repo_root=tmp_path
-    )
+    result = run_doctor(feature_dir=feature_dir, mission_slug=_MISSION_SLUG, repo_root=tmp_path)
 
     assert result.is_healthy is False
     blanked = result.findings_by_category(Category.BLANKED_RUNTIME_SLOT)
@@ -262,8 +252,6 @@ def test_status_doctor_healthy_when_attribution_present(tmp_path: Path) -> None:
         },
     )
 
-    result = run_doctor(
-        feature_dir=feature_dir, mission_slug=_MISSION_SLUG, repo_root=tmp_path
-    )
+    result = run_doctor(feature_dir=feature_dir, mission_slug=_MISSION_SLUG, repo_root=tmp_path)
 
     assert result.findings_by_category(Category.BLANKED_RUNTIME_SLOT) == []

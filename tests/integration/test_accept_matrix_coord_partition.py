@@ -161,8 +161,7 @@ def _build_coord_mission_for_matrix(tmp_path: Path) -> tuple[MissionCreationResu
     expected_coord_root = CoordinationWorkspace.resolve(tmp_path, result.mission_slug, mid8)
     assert coord_root == expected_coord_root
     assert coord_feature_dir != result.feature_dir, (
-        "fixture invariant violated: coord and primary must be genuinely "
-        "divergent surfaces, or every coord-landing assertion is vacuous"
+        "fixture invariant violated: coord and primary must be genuinely divergent surfaces, or every coord-landing assertion is vacuous"
     )
     assert not coord_feature_dir.exists(), (
         "fixture invariant: the coord worktree must NOT carry kitty-specs/<slug>/ "
@@ -307,9 +306,7 @@ def test_matrix_lands_on_coord_via_all_three_write_paths_no_stale_copy(tmp_path:
     tasks_dir = result.feature_dir / "tasks"
     tasks_dir.mkdir(exist_ok=True)
     wp_file = tasks_dir / "WP01.md"
-    wp_file.write_text(
-        "---\nwork_package_id: WP01\ntitle: fixture WP\n---\n# WP01\n", encoding="utf-8"
-    )
+    wp_file.write_text("---\nwork_package_id: WP01\ntitle: fixture WP\n---\n# WP01\n", encoding="utf-8")
     write_acceptance_matrix(result.feature_dir, _matrix_with_marker(slug, marker_2))
 
     # Mirrors mission_finalize.py::_commit_finalize_artifacts's EXACT call
@@ -386,12 +383,8 @@ def test_matrix_lands_on_coord_via_all_three_write_paths_no_stale_copy(tmp_path:
     # ``??`` entries for the same reason (accept.py docstring), so this
     # assertion mirrors that same tracked-vs-untracked distinction rather
     # than demanding a byte-for-byte pristine ``git status``.
-    assert not _tracked_dirty_lines(tmp_path), (
-        f"primary checkout has tracked-but-uncommitted residue: {_porcelain(tmp_path)!r}"
-    )
-    assert not _tracked_dirty_lines(coord_root), (
-        f"coord worktree has tracked-but-uncommitted residue: {_porcelain(coord_root)!r}"
-    )
+    assert not _tracked_dirty_lines(tmp_path), f"primary checkout has tracked-but-uncommitted residue: {_porcelain(tmp_path)!r}"
+    assert not _tracked_dirty_lines(coord_root), f"coord worktree has tracked-but-uncommitted residue: {_porcelain(coord_root)!r}"
 
 
 # ===========================================================================
@@ -400,9 +393,7 @@ def test_matrix_lands_on_coord_via_all_three_write_paths_no_stale_copy(tmp_path:
 # ===========================================================================
 
 
-def test_per_batch_kind_regression_would_misroute_matrix_off_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_per_batch_kind_regression_would_misroute_matrix_off_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Simulates a partition-classifier defect and shows the seam's guard is real.
 
     Post-#2650 (WP05) ``_group_files_by_partition`` decides membership via
@@ -421,13 +412,9 @@ def test_per_batch_kind_regression_would_misroute_matrix_off_coord(
     result, coord_root, coord_feature_dir = _build_coord_mission_for_matrix(tmp_path)
     slug = result.mission_slug
 
-    monkeypatch.setattr(
-        commit_router_mod, "is_coord_residue_churn", lambda *_a, **_kw: False
-    )
+    monkeypatch.setattr(commit_router_mod, "is_coord_residue_churn", lambda *_a, **_kw: False)
 
-    matrix_path = write_acceptance_matrix(
-        result.feature_dir, _matrix_with_marker(slug, "REGRESSION_MARKER")
-    )
+    matrix_path = write_acceptance_matrix(result.feature_dir, _matrix_with_marker(slug, "REGRESSION_MARKER"))
     policy = ProtectionPolicy.resolve(tmp_path)
     regressed_result: CommitRouterResult = commit_for_mission(
         repo_root=tmp_path,
@@ -442,10 +429,7 @@ def test_per_batch_kind_regression_would_misroute_matrix_off_coord(
     # it commits directly to the primary working branch, and the coord
     # worktree never receives it.
     assert regressed_result.status == "committed", regressed_result
-    assert not coord_feature_dir.exists(), (
-        "regression check invalid: coord dir should NOT be materialised when "
-        "the per-file classifier is disabled"
-    )
+    assert not coord_feature_dir.exists(), "regression check invalid: coord dir should NOT be materialised when the per-file classifier is disabled"
     resolved, acc_matrix = _read_back_via_accept_seam(tmp_path, slug)
     assert acc_matrix is None or acc_matrix.extras.get("marker") != "REGRESSION_MARKER" or resolved != coord_feature_dir, (
         "the per-batch-kind regression must NOT be indistinguishable from the "
@@ -483,15 +467,11 @@ def test_acceptance_matrix_read_dir_resolves_coord_surface(tmp_path: Path) -> No
     write_acceptance_matrix(coord_feature_dir, _matrix_with_marker(slug, "COORD_ONLY"))
     assert coord_feature_dir.exists()
     assert not (result.feature_dir / "acceptance-matrix.json").exists(), (
-        "fixture invariant: matrix must be COORD-only to exercise the "
-        "read-partition bug (a stray primary copy would mask it)"
+        "fixture invariant: matrix must be COORD-only to exercise the read-partition bug (a stray primary copy would mask it)"
     )
 
     resolved = _acceptance_matrix_read_dir(tmp_path, result.feature_dir)
-    assert resolved == coord_feature_dir, (
-        "coord-topology acceptance-matrix read must resolve the coord surface "
-        f"({coord_feature_dir}), got {resolved}"
-    )
+    assert resolved == coord_feature_dir, f"coord-topology acceptance-matrix read must resolve the coord surface ({coord_feature_dir}), got {resolved}"
     assert read_acceptance_matrix(resolved) is not None
 
 
@@ -515,9 +495,7 @@ def test_coord_matrix_gate_reads_from_coord_not_primary(tmp_path: Path) -> None:
     assert not (result.feature_dir / "acceptance-matrix.json").exists()
 
     # The exact feature_dir collect_feature_summary passes to _check_lane_gates.
-    read_feature_dir = placement_seam(tmp_path, slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    read_feature_dir = placement_seam(tmp_path, slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
 
     activity_issues: list[str] = []
     skipped_checks: list[AcceptanceCheckDiagnostic] = []
@@ -532,17 +510,14 @@ def test_coord_matrix_gate_reads_from_coord_not_primary(tmp_path: Path) -> None:
     )
 
     assert not any(c.check == "acceptance_matrix" for c in blocked_checks), (
-        "false 'acceptance-matrix not found' on a coord-only matrix — the gate "
-        f"read the PRIMARY dir instead of coord: {[c.to_dict() for c in blocked_checks]}"
+        f"false 'acceptance-matrix not found' on a coord-only matrix — the gate read the PRIMARY dir instead of coord: {[c.to_dict() for c in blocked_checks]}"
     )
     assert not any("was not found" in issue for issue in activity_issues), activity_issues
     # overall_verdict == "pass" → no fail/pending verdict issue appended.
     assert not any("verdict is" in issue for issue in activity_issues), activity_issues
 
 
-def test_flat_mission_matrix_read_dir_stays_primary(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flat_mission_matrix_read_dir_stays_primary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Fallback preserved: a non-coord mission reads the matrix from PRIMARY.
 
     ``routes_through_coordination`` is False for ``SINGLE_BRANCH``, so the
@@ -582,13 +557,9 @@ def test_flat_mission_matrix_read_dir_stays_primary(
     resolved = _acceptance_matrix_read_dir(tmp_path, result.feature_dir)
 
     assert seam_calls == [], (
-        "non-coord mission must short-circuit on routes_through_coordination "
-        f"BEFORE consulting placement_seam (guard pin); seam was called: {seam_calls}"
+        f"non-coord mission must short-circuit on routes_through_coordination BEFORE consulting placement_seam (guard pin); seam was called: {seam_calls}"
     )
-    assert resolved == result.feature_dir, (
-        "non-coord mission must read the matrix from the primary feature_dir "
-        f"({result.feature_dir}), got {resolved}"
-    )
+    assert resolved == result.feature_dir, f"non-coord mission must read the matrix from the primary feature_dir ({result.feature_dir}), got {resolved}"
     assert read_acceptance_matrix(resolved) is not None
 
 
@@ -600,9 +571,7 @@ def test_flat_mission_matrix_read_dir_stays_primary(
 
 
 def _git(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo_root), *args], capture_output=True, text=True, check=True
-    )
+    return subprocess.run(["git", "-C", str(repo_root), *args], capture_output=True, text=True, check=True)
 
 
 def _porcelain(repo_root: Path) -> str:

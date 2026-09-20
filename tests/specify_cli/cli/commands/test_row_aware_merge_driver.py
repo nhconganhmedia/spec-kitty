@@ -77,9 +77,7 @@ def _read_json(path: Path) -> dict[str, Any]:
         "merge-driver-issue-matrix",
     ],
 )
-def test_merge_driver_refuses_relative_traversal_escape(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, driver_command: str
-) -> None:
+def test_merge_driver_refuses_relative_traversal_escape(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, driver_command: str) -> None:
     """#2970: a ``../`` traversal argument is refused before any I/O (all 5 drivers)."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "O").write_text("", encoding="utf-8")
@@ -107,9 +105,7 @@ def test_merge_driver_refuses_relative_traversal_escape(
         "merge-driver-issue-matrix",
     ],
 )
-def test_merge_driver_refuses_absolute_path_escape(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, driver_command: str
-) -> None:
+def test_merge_driver_refuses_absolute_path_escape(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, driver_command: str) -> None:
     """#2970: an absolute-path argument (e.g. ``/etc/...``-shaped) outside the
     working directory is refused before any read/write (all 5 drivers)."""
     monkeypatch.chdir(tmp_path)
@@ -138,9 +134,7 @@ def test_merge_driver_path_guard_rejects_mismatched_parent(tmp_path: Path) -> No
     sibling_dir = tmp_path / "elsewhere"
     sibling_dir.mkdir()
     with pytest.raises(Exception, match="path-injection"):
-        _resolve_merge_driver_paths(
-            str(tmp_path / "O"), str(tmp_path / "A"), str(sibling_dir / "B")
-        )
+        _resolve_merge_driver_paths(str(tmp_path / "O"), str(tmp_path / "A"), str(sibling_dir / "B"))
 
 
 # ---------------------------------------------------------------------------
@@ -308,9 +302,7 @@ def test_merge_driver_acceptance_matrix_rejects_corrupt_json_exit1(tmp_path: Pat
 # ---------------------------------------------------------------------------
 
 
-def _acceptance_doc(
-    criteria: list[dict[str, Any]], negative_invariants: list[dict[str, Any]] | None = None
-) -> dict[str, Any]:
+def _acceptance_doc(criteria: list[dict[str, Any]], negative_invariants: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     return {
         "mission_slug": "m-01ABC",
         "criteria": criteria,
@@ -320,12 +312,8 @@ def _acceptance_doc(
 
 def test_acceptance_matrix_disjoint_criteria_union_no_clobber() -> None:
     base = _acceptance_doc([])
-    ours = _acceptance_doc(
-        [{"criterion_id": "FR-001", "description": "d1", "proof_type": "automated_test", "pass_fail": "pass"}]
-    )
-    theirs = _acceptance_doc(
-        [{"criterion_id": "AC-001", "description": "d2", "proof_type": "automated_test", "pass_fail": "pending"}]
-    )
+    ours = _acceptance_doc([{"criterion_id": "FR-001", "description": "d1", "proof_type": "automated_test", "pass_fail": "pass"}])
+    theirs = _acceptance_doc([{"criterion_id": "AC-001", "description": "d2", "proof_type": "automated_test", "pass_fail": "pending"}])
 
     merged = reconcile_acceptance_matrix_documents(base, ours, theirs)
 
@@ -377,15 +365,9 @@ def test_acceptance_matrix_stale_residue_dropped() -> None:
 
 
 def test_acceptance_matrix_same_field_conflict_never_silent_pick() -> None:
-    base = _acceptance_doc(
-        [{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "pending"}]
-    )
-    ours = _acceptance_doc(
-        [{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "pass"}]
-    )
-    theirs = _acceptance_doc(
-        [{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "fail"}]
-    )
+    base = _acceptance_doc([{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "pending"}])
+    ours = _acceptance_doc([{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "pass"}])
+    theirs = _acceptance_doc([{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "fail"}])
 
     merged = reconcile_acceptance_matrix_documents(base, ours, theirs)  # must not raise
 
@@ -429,15 +411,11 @@ def test_merge_driver_acceptance_matrix_writes_result_to_ours(tmp_path: Path) ->
     _write_json(base, _acceptance_doc([]))
     _write_json(
         ours,
-        _acceptance_doc(
-            [{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "pass"}]
-        ),
+        _acceptance_doc([{"criterion_id": "FR-001", "description": "d", "proof_type": "automated_test", "pass_fail": "pass"}]),
     )
     _write_json(
         theirs,
-        _acceptance_doc(
-            [{"criterion_id": "AC-001", "description": "d2", "proof_type": "automated_test", "pass_fail": "pending"}]
-        ),
+        _acceptance_doc([{"criterion_id": "AC-001", "description": "d2", "proof_type": "automated_test", "pass_fail": "pending"}]),
     )
 
     merge_driver_acceptance_matrix(str(base), str(ours), str(theirs))
@@ -465,9 +443,7 @@ def test_merge_driver_acceptance_matrix_writes_result_to_ours(tmp_path: Path) ->
 
 
 def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=str(cwd), capture_output=True, text=True, check=True
-    )
+    return subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True, check=True)
 
 
 def _init_repo(repo: Path) -> None:
@@ -481,9 +457,7 @@ def _init_repo(repo: Path) -> None:
 def _commit_issue_matrix(repo: Path, rows: dict[str, dict[str, object]], message: str) -> str:
     matrix_dir = repo / "kitty-specs" / "m-01ABC"
     matrix_dir.mkdir(parents=True, exist_ok=True)
-    (matrix_dir / "issue-matrix.json").write_text(
-        json.dumps(_issue_doc(rows), indent=2) + "\n", encoding="utf-8"
-    )
+    (matrix_dir / "issue-matrix.json").write_text(json.dumps(_issue_doc(rows), indent=2) + "\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-m", message)
     return _git(repo, "rev-parse", "HEAD").stdout.strip()
@@ -492,9 +466,7 @@ def _commit_issue_matrix(repo: Path, rows: dict[str, dict[str, object]], message
 def _blob_to_file(repo: Path, ref: str, rel_path: str, dest: Path) -> Path:
     """Extract a real git blob (``ref:rel_path``) to *dest* -- the same shape
     ``git`` feeds a merge driver's ``%O``/``%A``/``%B`` placeholders."""
-    result = subprocess.run(
-        ["git", "show", f"{ref}:{rel_path}"], cwd=str(repo), capture_output=True, text=True
-    )
+    result = subprocess.run(["git", "show", f"{ref}:{rel_path}"], cwd=str(repo), capture_output=True, text=True)
     dest.write_text(result.stdout if result.returncode == 0 else "", encoding="utf-8")
     return dest
 
@@ -515,14 +487,10 @@ def test_coord_topology_disjoint_rows_survive_real_git_merge_base(tmp_path: Path
     base_sha = _commit_issue_matrix(repo, {"#100": {"verdict": "unknown"}}, "base: seed #100")
 
     _git(repo, "checkout", "-q", "-b", "coord")
-    coord_sha = _commit_issue_matrix(
-        repo, {"#100": {"verdict": "unknown"}, "#200": {"verdict": "fixed"}}, "coord: add #200"
-    )
+    coord_sha = _commit_issue_matrix(repo, {"#100": {"verdict": "unknown"}, "#200": {"verdict": "fixed"}}, "coord: add #200")
 
     _git(repo, "checkout", "-q", "main")
-    target_sha = _commit_issue_matrix(
-        repo, {"#100": {"verdict": "unknown"}, "#300": {"verdict": "wontfix"}}, "target: add #300"
-    )
+    target_sha = _commit_issue_matrix(repo, {"#100": {"verdict": "unknown"}, "#300": {"verdict": "wontfix"}}, "target: add #300")
 
     merge_base = _git(repo, "merge-base", "main", "coord").stdout.strip()
     assert merge_base == base_sha  # sanity: real, non-synthetic common ancestor
@@ -535,8 +503,7 @@ def test_coord_topology_disjoint_rows_survive_real_git_merge_base(tmp_path: Path
 
     merged_rows = _read_json(ours_file)["rows"]
     assert set(merged_rows) == {"#100", "#200", "#300"}, (
-        f"zero-clobber (SC-003) violated -- expected #100/#200/#300 to all "
-        f"survive the coord<->target integration merge, got {sorted(merged_rows)}"
+        f"zero-clobber (SC-003) violated -- expected #100/#200/#300 to all survive the coord<->target integration merge, got {sorted(merged_rows)}"
     )
 
 
@@ -553,14 +520,10 @@ def test_flat_topology_disjoint_rows_survive_real_git_merge_base(tmp_path: Path)
     base_sha = _commit_issue_matrix(repo, {"#100": {"verdict": "unknown"}}, "base: seed #100")
 
     _git(repo, "checkout", "-q", "-b", "lane-a")
-    lane_a_sha = _commit_issue_matrix(
-        repo, {"#100": {"verdict": "unknown"}, "#400": {"verdict": "fixed"}}, "lane-a: add #400"
-    )
+    lane_a_sha = _commit_issue_matrix(repo, {"#100": {"verdict": "unknown"}, "#400": {"verdict": "fixed"}}, "lane-a: add #400")
 
     _git(repo, "checkout", "-q", "main")
-    lane_b_sha = _commit_issue_matrix(
-        repo, {"#100": {"verdict": "unknown"}, "#500": {"verdict": "wontfix"}}, "main: add #500"
-    )
+    lane_b_sha = _commit_issue_matrix(repo, {"#100": {"verdict": "unknown"}, "#500": {"verdict": "wontfix"}}, "main: add #500")
 
     merge_base = _git(repo, "merge-base", "main", "lane-a").stdout.strip()
     assert merge_base == base_sha
@@ -573,8 +536,7 @@ def test_flat_topology_disjoint_rows_survive_real_git_merge_base(tmp_path: Path)
 
     merged_rows = _read_json(ours_file)["rows"]
     assert set(merged_rows) == {"#100", "#400", "#500"}, (
-        f"zero-clobber (SC-003) violated on flat topology -- expected "
-        f"#100/#400/#500 to all survive, got {sorted(merged_rows)}"
+        f"zero-clobber (SC-003) violated on flat topology -- expected #100/#400/#500 to all survive, got {sorted(merged_rows)}"
     )
 
 
@@ -608,12 +570,8 @@ def test_m_3_2_6_issue_matrix_driver_repoint_is_a_new_file_not_a_mutation_of_gat
     # The historical migration's issue-matrix.md driver entry is untouched
     # (inert on repos that already ran it -- WP05 means no .md is ever
     # written any more, but the historical record is not rewritten).
-    assert any(
-        d.pattern == "kitty-specs/**/issue-matrix.md" for d in m_3_2_6_gate._DRIVERS
-    )
-    assert any(
-        d.pattern == "kitty-specs/**/issue-matrix.json" for d in m_3_2_6_repoint._DRIVERS
-    )
+    assert any(d.pattern == "kitty-specs/**/issue-matrix.md" for d in m_3_2_6_gate._DRIVERS)
+    assert any(d.pattern == "kitty-specs/**/issue-matrix.json" for d in m_3_2_6_repoint._DRIVERS)
 
 
 def test_m_3_2_6_issue_matrix_driver_repoint_migration_detects_and_applies_json_attribute(tmp_path: Path) -> None:
@@ -653,6 +611,9 @@ def test_m_3_2_6_issue_matrix_driver_repoint_migration_repoints_a_repo_still_on_
     assert _ISSUE_MATRIX_JSON_ENTRY in attributes
     driver_check = subprocess.run(
         ["git", "config", "--local", "--get", "merge.spec-kitty-issue-matrix.driver"],
-        cwd=str(tmp_path), capture_output=True, text=True, check=True,
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=True,
     )
     assert driver_check.stdout.strip() == "spec-kitty merge-driver-issue-matrix %O %A %B"

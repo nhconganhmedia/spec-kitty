@@ -145,9 +145,7 @@ from collections.abc import Iterable
 # A canonical constructor is recognised either by name (exact match in
 # _CANONICAL_NAMES) or by suffix (the trailing segment of the call target
 # ends in one of these strings).
-_CANONICAL_NAMES: frozenset[str] = frozenset(
-    {"StatusEvent", "EventEnvelope", "LifecycleEvent"}
-)
+_CANONICAL_NAMES: frozenset[str] = frozenset({"StatusEvent", "EventEnvelope", "LifecycleEvent"})
 _CANONICAL_SUFFIXES: tuple[str, ...] = ("Payload", "Envelope")
 
 # Emit-site names that activate CP003.
@@ -162,17 +160,13 @@ _EVENT_KEYS_REQUIRED: frozenset[str] = frozenset({"event_type", "payload"})
 
 # Tracker-ref regex. Permits bare `#1248` and `repo#1248` /
 # `Priivacy-ai/spec-kitty#1248` forms.
-_TRACKER_REF_PATTERN: re.Pattern[str] = re.compile(
-    r"(?:[A-Za-z0-9._/-]+)?#\d+"
-)
+_TRACKER_REF_PATTERN: re.Pattern[str] = re.compile(r"(?:[A-Za-z0-9._/-]+)?#\d+")
 
 _EXEMPT_PREFIX = "canonical-producer-exempt:"
 
 # Category-backed exemption for legitimate test fixtures.
 #   # canonical-event-exempt(<category>): <reason>
-_EVENT_EXEMPT_PATTERN: re.Pattern[str] = re.compile(
-    r"^canonical-event-exempt\((?P<category>[^)]*)\)\s*:\s*(?P<reason>.*)$"
-)
+_EVENT_EXEMPT_PATTERN: re.Pattern[str] = re.compile(r"^canonical-event-exempt\((?P<category>[^)]*)\)\s*:\s*(?P<reason>.*)$")
 _EVENT_EXEMPT_CATEGORIES: frozenset[str] = frozenset({"comparison", "exception-flow"})
 
 
@@ -244,7 +238,7 @@ def _parse_exemptions(source: str) -> dict[int, ExemptionToken]:
             text = tok.string.lstrip("#").strip()
             if not text.startswith(_EXEMPT_PREFIX):
                 continue
-            payload = text[len(_EXEMPT_PREFIX):].strip()
+            payload = text[len(_EXEMPT_PREFIX) :].strip()
             # Capture the FIRST whitespace-separated token before the em-dash /
             # double-dash / colon as the tracker ref candidate. We deliberately
             # scan the entire payload (not just the first token) so reasons
@@ -314,9 +308,7 @@ def _parse_event_exemptions(source: str) -> dict[int, EventExemptionToken]:
     return exemptions
 
 
-def _event_exempt_for(
-    node_line: int, exemptions: dict[int, EventExemptionToken]
-) -> EventExemptionToken | None:
+def _event_exempt_for(node_line: int, exemptions: dict[int, EventExemptionToken]) -> EventExemptionToken | None:
     """Return the event-exemption applicable to a finding at `node_line`.
 
     Applies if the comment is on the same line as the finding or the line
@@ -544,9 +536,7 @@ class _CanonicalProducerVisitor(ast.NodeVisitor):
 
         exempt = _is_exempt(line, self.exemptions)
         if exempt is None:
-            self.findings.append(
-                Finding(path=self.path, line=line, col=col, code=code, message=message)
-            )
+            self.findings.append(Finding(path=self.path, line=line, col=col, code=code, message=message))
             return
         # Mark this exemption as consumed.
         self._exemption_decisions[exempt.line] = True
@@ -655,9 +645,7 @@ def _lint_one_file(path: Path) -> list[Finding]:
     _ParentTagger().visit(tree)
     exemptions = _parse_exemptions(source)
     event_exemptions = _parse_event_exemptions(source)
-    visitor = _CanonicalProducerVisitor(
-        path=path, exemptions=exemptions, event_exemptions=event_exemptions
-    )
+    visitor = _CanonicalProducerVisitor(path=path, exemptions=exemptions, event_exemptions=event_exemptions)
     visitor.visit(tree)
     visitor.finalize()
     return visitor.findings
@@ -743,11 +731,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--update-baseline",
         type=Path,
         default=None,
-        help=(
-            "Path at which to write a fresh baseline file capturing every "
-            "current violation. Run this after a refactor sweep to shrink "
-            "the baseline."
-        ),
+        help=("Path at which to write a fresh baseline file capturing every current violation. Run this after a refactor sweep to shrink the baseline."),
     )
     return p
 
@@ -772,8 +756,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.update_baseline is not None:
         _write_baseline(args.update_baseline, findings)
         print(
-            f"wrote {len({_finding_key(f) for f in findings})} baseline "
-            f"entries to {args.update_baseline}",
+            f"wrote {len({_finding_key(f) for f in findings})} baseline entries to {args.update_baseline}",
             file=sys.stderr,
         )
         return 0
@@ -802,15 +785,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  - {key}", file=sys.stderr)
 
     if new_findings:
-        msg = (
-            f"\n{len(new_findings)} new canonical-producer violation(s)"
-        )
+        msg = f"\n{len(new_findings)} new canonical-producer violation(s)"
         if silenced_count:
             msg += f" ({silenced_count} silenced by baseline)"
-        msg += (
-            ". See https://github.com/Priivacy-ai/spec-kitty/issues/1248 "
-            "and docs/architecture/spec-kitty-mission-workflow.md C-007."
-        )
+        msg += ". See https://github.com/Priivacy-ai/spec-kitty/issues/1248 and docs/architecture/spec-kitty-mission-workflow.md C-007."
         print(msg, file=sys.stderr)
         return 1
 

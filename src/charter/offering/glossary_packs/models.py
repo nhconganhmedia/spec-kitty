@@ -67,10 +67,7 @@ class GlossaryPack(BaseModel):
         counts = Counter(term.surface for term in self.terms)
         duplicates = sorted(surface for surface, count in counts.items() if count > 1)
         if duplicates:
-            raise ValueError(
-                f"duplicate surface value(s) within glossary pack {self.id!r}: "
-                f"{duplicates}. Each term's surface must be unique within the pack."
-            )
+            raise ValueError(f"duplicate surface value(s) within glossary pack {self.id!r}: {duplicates}. Each term's surface must be unique within the pack.")
         return self
 
 

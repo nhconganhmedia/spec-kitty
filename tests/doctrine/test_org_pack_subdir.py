@@ -44,34 +44,24 @@ def _make_pack(tmp_path: Path, *, subdir: str | None = None) -> OrgPackConfig:
     )
 
 
-def _write_config_with_subdir(
-    repo_root: Path, *, pack_path: str, subdir: str | None = None
-) -> None:
+def _write_config_with_subdir(repo_root: Path, *, pack_path: str, subdir: str | None = None) -> None:
     """Write a canonical doctrine.org.packs config.yaml entry."""
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
     subdir_line = f"\n        subdir: {subdir}" if subdir is not None else ""
     (config_dir / "config.yaml").write_text(
-        f"doctrine:\n"
-        f"  org:\n"
-        f"    packs:\n"
-        f"      - name: {_PACK_NAME}\n"
-        f"        local_path: {pack_path}{subdir_line}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: {_PACK_NAME}\n        local_path: {pack_path}{subdir_line}\n",
         encoding="utf-8",
     )
 
 
-def _write_legacy_config_with_subdir(
-    repo_root: Path, *, pack_path: str, subdir: str | None = None
-) -> None:
+def _write_legacy_config_with_subdir(repo_root: Path, *, pack_path: str, subdir: str | None = None) -> None:
     """Write a legacy single-pack charter.offering.org inline config."""
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
     subdir_line = f"\n    subdir: {subdir}" if subdir is not None else ""
     (config_dir / "config.yaml").write_text(
-        f"doctrine:\n"
-        f"  org:\n"
-        f"    local_path: {pack_path}{subdir_line}\n",
+        f"doctrine:\n  org:\n    local_path: {pack_path}{subdir_line}\n",
         encoding="utf-8",
     )
 
@@ -124,18 +114,14 @@ class TestEffectiveRootWithSubdir:
     def test_subdir_joined_to_relative_local_path(self, tmp_path: Path) -> None:
         pack_root = tmp_path / "acme-doctrine"
         (pack_root / "core").mkdir(parents=True)
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("acme-doctrine"), subdir="core"
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("acme-doctrine"), subdir="core")
         result = pack.effective_root(tmp_path)
         assert result == (tmp_path / "acme-doctrine" / "core").resolve(strict=False)
 
     def test_nested_subdir(self, tmp_path: Path) -> None:
         pack_root = tmp_path / "doctrine-pack"
         (pack_root / "a" / "b").mkdir(parents=True)
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=pack_root, subdir="a/b"
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=pack_root, subdir="a/b")
         result = pack.effective_root(tmp_path)
         assert result == (pack_root / "a" / "b").resolve(strict=False)
 
@@ -161,9 +147,7 @@ class TestSubdirValidator:
         assert pack.subdir is None
 
     def test_valid_relative_subdir_accepted(self) -> None:
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("/pack"), subdir="doctrine/v2"
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("/pack"), subdir="doctrine/v2")
         assert pack.subdir == "doctrine/v2"
 
     def test_posix_absolute_rejected(self) -> None:
@@ -173,22 +157,16 @@ class TestSubdirValidator:
 
     def test_posix_absolute_nested_rejected(self) -> None:
         with pytest.raises(ValidationError):
-            OrgPackConfig(
-                name=_PACK_NAME, local_path=Path("/pack"), subdir="/usr/local/share"
-            )
+            OrgPackConfig(name=_PACK_NAME, local_path=Path("/pack"), subdir="/usr/local/share")
 
     def test_windows_drive_absolute_rejected(self) -> None:
         with pytest.raises(ValidationError) as exc_info:
-            OrgPackConfig(
-                name=_PACK_NAME, local_path=Path("/pack"), subdir=r"C:\Users\x"
-            )
+            OrgPackConfig(name=_PACK_NAME, local_path=Path("/pack"), subdir=r"C:\Users\x")
         assert "absolute" in str(exc_info.value).lower()
 
     def test_unc_absolute_rejected(self) -> None:
         with pytest.raises(ValidationError) as exc_info:
-            OrgPackConfig(
-                name=_PACK_NAME, local_path=Path("/pack"), subdir=r"\\server\share"
-            )
+            OrgPackConfig(name=_PACK_NAME, local_path=Path("/pack"), subdir=r"\\server\share")
         assert "absolute" in str(exc_info.value).lower()
 
     def test_dotdot_single_rejected(self) -> None:
@@ -198,25 +176,19 @@ class TestSubdirValidator:
 
     def test_dotdot_in_path_rejected(self) -> None:
         with pytest.raises(ValidationError) as exc_info:
-            OrgPackConfig(
-                name=_PACK_NAME, local_path=Path("/pack"), subdir="../escape"
-            )
+            OrgPackConfig(name=_PACK_NAME, local_path=Path("/pack"), subdir="../escape")
         assert ".." in str(exc_info.value)
 
     def test_dotdot_buried_in_path_rejected(self) -> None:
         with pytest.raises(ValidationError) as exc_info:
-            OrgPackConfig(
-                name=_PACK_NAME, local_path=Path("/pack"), subdir="a/../../b"
-            )
+            OrgPackConfig(name=_PACK_NAME, local_path=Path("/pack"), subdir="a/../../b")
         assert ".." in str(exc_info.value)
 
     def test_subdir_validator_does_not_touch_filesystem(self, tmp_path: Path) -> None:
         """Validator must NOT stat or open the path — non-existent is fine."""
         nonexistent_pack = tmp_path / "does-not-exist"
         # Should not raise, even though the path doesn't exist
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=nonexistent_pack, subdir="subdir/that/also/missing"
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=nonexistent_pack, subdir="subdir/that/also/missing")
         assert pack.subdir == "subdir/that/also/missing"
 
 
@@ -251,9 +223,7 @@ class TestEffectiveRootNonExistentDir:
 class TestSymlinkEscape:
     """NFR-002: resolution-time containment check raises the named structured error."""
 
-    def test_symlink_pointing_outside_raises_named_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_symlink_pointing_outside_raises_named_error(self, tmp_path: Path) -> None:
         """A subdir that is a symlink pointing outside local_path must be rejected."""
         pack_root = tmp_path / "pack"
         pack_root.mkdir()
@@ -268,9 +238,7 @@ class TestSymlinkEscape:
         with pytest.raises(OrgPackSubdirEscapeError):
             pack.effective_root(tmp_path)
 
-    def test_escape_is_not_swallowed_to_empty_registry(
-        self, tmp_path: Path
-    ) -> None:
+    def test_escape_is_not_swallowed_to_empty_registry(self, tmp_path: Path) -> None:
         """OrgPackSubdirEscapeError propagates out of resolve_org_roots (not swallowed)."""
         pack_root = tmp_path / "pack"
         pack_root.mkdir()
@@ -279,9 +247,7 @@ class TestSymlinkEscape:
         escape_link = pack_root / "escape"
         escape_link.symlink_to(outside_dir)
 
-        _write_config_with_subdir(
-            tmp_path, pack_path=str(pack_root), subdir="escape"
-        )
+        _write_config_with_subdir(tmp_path, pack_path=str(pack_root), subdir="escape")
 
         with pytest.raises(OrgPackSubdirEscapeError):
             resolve_org_roots(tmp_path)
@@ -299,9 +265,7 @@ class TestSymlinkEscape:
 class TestResolveOrgRoots:
     """The fan-in function returns effective roots, not raw local_path values."""
 
-    def test_no_subdir_pack_returns_resolved_local_path(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_subdir_pack_returns_resolved_local_path(self, tmp_path: Path) -> None:
         pack_root = tmp_path / "doctrine-root"
         pack_root.mkdir()
         _write_config_with_subdir(tmp_path, pack_path=str(pack_root))
@@ -310,9 +274,7 @@ class TestResolveOrgRoots:
         assert roots == [pack_root.resolve(strict=False)]
         assert roots[0] == pack_root.resolve(strict=False)
 
-    def test_subdir_pack_returns_joined_effective_root(
-        self, tmp_path: Path
-    ) -> None:
+    def test_subdir_pack_returns_joined_effective_root(self, tmp_path: Path) -> None:
         pack_root = tmp_path / "doctrine-root"
         (pack_root / "core").mkdir(parents=True)
         _write_config_with_subdir(tmp_path, pack_path=str(pack_root), subdir="core")
@@ -361,9 +323,7 @@ class TestRoundTrip:
     def test_subdir_preserved_in_round_trip(self, tmp_path: Path) -> None:
         pack_root = tmp_path / "doctrine-pack"
         pack_root.mkdir()
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=pack_root, subdir="doctrine/v2"
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=pack_root, subdir="doctrine/v2")
         registry = PackRegistry(packs=[pack])
         save_pack_registry(tmp_path, registry)
 
@@ -378,9 +338,7 @@ class TestRoundTrip:
         registry = PackRegistry(packs=[pack])
         save_pack_registry(tmp_path, registry)
 
-        config_text = (tmp_path / ".kittify" / "config.yaml").read_text(
-            encoding="utf-8"
-        )
+        config_text = (tmp_path / ".kittify" / "config.yaml").read_text(encoding="utf-8")
         # The YAML key "subdir:" must not appear in the emitted config;
         # note that the path itself may contain "subdir" in temp-dir names,
         # so check for the YAML key pattern rather than a bare substring.
@@ -400,9 +358,7 @@ class TestRoundTrip:
         """Legacy inline charter.offering.org shape with subdir is read correctly (T004)."""
         pack_root = tmp_path / "legacy-pack"
         pack_root.mkdir()
-        _write_legacy_config_with_subdir(
-            tmp_path, pack_path=str(pack_root), subdir="doctrine"
-        )
+        _write_legacy_config_with_subdir(tmp_path, pack_path=str(pack_root), subdir="doctrine")
 
         loaded = load_pack_registry(tmp_path)
         assert {p.subdir for p in loaded.packs} == {"doctrine"}
@@ -429,49 +385,35 @@ class TestEnvVarExpansion:
     """FR-001-007: ``${VAR}``/``$VAR`` indirection in local_path, resolved
     read-side only at effective_root() time."""
 
-    def test_braced_env_var_expands_at_effective_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_braced_env_var_expands_at_effective_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         pack_root = tmp_path / "org-pack"
         pack_root.mkdir()
         monkeypatch.setenv(_ENV_VAR_NAME, str(tmp_path))
 
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("${SPEC_KITTY_PACK_HOME}/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("${SPEC_KITTY_PACK_HOME}/org-pack"))
         result = pack.effective_root(tmp_path)
         assert result == pack_root.resolve(strict=False)
 
-    def test_bare_dollar_env_var_expands_at_effective_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_bare_dollar_env_var_expands_at_effective_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         pack_root = tmp_path / "org-pack"
         pack_root.mkdir()
         monkeypatch.setenv(_ENV_VAR_NAME, str(tmp_path))
 
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("$SPEC_KITTY_PACK_HOME/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("$SPEC_KITTY_PACK_HOME/org-pack"))
         result = pack.effective_root(tmp_path)
         assert result == pack_root.resolve(strict=False)
 
-    def test_stored_local_path_is_not_mutated_by_expansion(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_stored_local_path_is_not_mutated_by_expansion(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """T001: effective_root() must not write the expanded value back."""
         pack_root = tmp_path / "org-pack"
         pack_root.mkdir()
         monkeypatch.setenv(_ENV_VAR_NAME, str(tmp_path))
 
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("${SPEC_KITTY_PACK_HOME}/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("${SPEC_KITTY_PACK_HOME}/org-pack"))
         pack.effective_root(tmp_path)
         assert str(pack.local_path) == "${SPEC_KITTY_PACK_HOME}/org-pack"
 
-    def test_tilde_expansion_regression(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tilde_expansion_regression(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Pre-existing ``~`` expansion behaviour is unchanged (no regression)."""
         fake_home = tmp_path / "home"
         pack_root = fake_home / "org-pack"
@@ -484,9 +426,7 @@ class TestEnvVarExpansion:
         # Stored value must still be the literal ~-form, unexpanded
         assert str(pack.local_path) == "~/org-pack"
 
-    def test_tilde_and_env_var_compose_in_one_local_path(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tilde_and_env_var_compose_in_one_local_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-004: ``~`` and ``${VAR}`` in the SAME local_path both expand.
 
         Regression coverage for the composition case (adversarial-squad
@@ -498,9 +438,7 @@ class TestEnvVarExpansion:
         monkeypatch.setenv("HOME", str(fake_home))
         monkeypatch.setenv(_ENV_VAR_NAME, "acme")
 
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("~/${SPEC_KITTY_PACK_HOME}/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("~/${SPEC_KITTY_PACK_HOME}/org-pack"))
         result = pack.effective_root(tmp_path)
         assert result == pack_root.resolve(strict=False)
         # Stored value must still be the literal unexpanded form.
@@ -508,9 +446,7 @@ class TestEnvVarExpansion:
 
     def test_unset_braced_env_var_raises_named_error(self, tmp_path: Path) -> None:
         """FR-004: unset ${VAR} fails closed, naming the var and the pack."""
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("${SPEC_KITTY_DOES_NOT_EXIST}/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("${SPEC_KITTY_DOES_NOT_EXIST}/org-pack"))
         with pytest.raises(OrgPackEnvVarUnsetError) as exc_info:
             pack.effective_root(tmp_path)
         message = str(exc_info.value)
@@ -519,9 +455,7 @@ class TestEnvVarExpansion:
 
     def test_unset_bare_dollar_env_var_raises_named_error(self, tmp_path: Path) -> None:
         """FR-004: unset $VAR (bare form) also fails closed."""
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("$SPEC_KITTY_DOES_NOT_EXIST/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("$SPEC_KITTY_DOES_NOT_EXIST/org-pack"))
         with pytest.raises(OrgPackEnvVarUnsetError) as exc_info:
             pack.effective_root(tmp_path)
         message = str(exc_info.value)
@@ -531,14 +465,10 @@ class TestEnvVarExpansion:
     def test_env_var_unset_error_is_a_value_error(self) -> None:
         assert issubclass(OrgPackEnvVarUnsetError, ValueError)
 
-    def test_env_var_expansion_not_swallowed_by_resolve_org_roots(
-        self, tmp_path: Path
-    ) -> None:
+    def test_env_var_expansion_not_swallowed_by_resolve_org_roots(self, tmp_path: Path) -> None:
         """The unset-var error must propagate out of resolve_org_roots (not
         be silently swallowed into an empty org layer)."""
-        _write_config_with_subdir(
-            tmp_path, pack_path="${SPEC_KITTY_DOES_NOT_EXIST}/org-pack"
-        )
+        _write_config_with_subdir(tmp_path, pack_path="${SPEC_KITTY_DOES_NOT_EXIST}/org-pack")
         with pytest.raises(OrgPackEnvVarUnsetError):
             resolve_org_roots(tmp_path)
 
@@ -549,9 +479,7 @@ class TestEnvVarExpansion:
         pack_root = tmp_path / "org-pack"
         (pack_root / "${NOT_EXPANDED}").mkdir(parents=True)
 
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=pack_root, subdir="${NOT_EXPANDED}"
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=pack_root, subdir="${NOT_EXPANDED}")
         assert pack.subdir == "${NOT_EXPANDED}"
         result = pack.effective_root(tmp_path)
         assert result == (pack_root / "${NOT_EXPANDED}").resolve(strict=False)
@@ -559,26 +487,18 @@ class TestEnvVarExpansion:
     def test_round_trip_preserves_env_var_template(self, tmp_path: Path) -> None:
         """T003: save→load round-trip preserves the literal ${VAR} template,
         never freezing an expanded absolute path into config.yaml."""
-        pack = OrgPackConfig(
-            name=_PACK_NAME, local_path=Path("${SPEC_KITTY_PACK_HOME}/org-pack")
-        )
+        pack = OrgPackConfig(name=_PACK_NAME, local_path=Path("${SPEC_KITTY_PACK_HOME}/org-pack"))
         registry = PackRegistry(packs=[pack])
         save_pack_registry(tmp_path, registry)
 
-        config_text = (tmp_path / ".kittify" / "config.yaml").read_text(
-            encoding="utf-8"
-        )
+        config_text = (tmp_path / ".kittify" / "config.yaml").read_text(encoding="utf-8")
         assert "${SPEC_KITTY_PACK_HOME}/org-pack" in config_text
 
         loaded = load_pack_registry(tmp_path)
-        assert {str(p.local_path) for p in loaded.packs} == {
-            "${SPEC_KITTY_PACK_HOME}/org-pack"
-        }
+        assert {str(p.local_path) for p in loaded.packs} == {"${SPEC_KITTY_PACK_HOME}/org-pack"}
         assert str(loaded.packs[0].local_path) == "${SPEC_KITTY_PACK_HOME}/org-pack"
 
-    def test_empty_env_var_raises_named_error(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_empty_env_var_raises_named_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-004: env var set to empty string fails closed (not swallowed as a valid path).
 
         ``os.path.expandvars`` consumes the token when the var is set to ``""``,

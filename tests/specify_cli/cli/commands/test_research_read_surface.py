@@ -84,9 +84,7 @@ Structure: [Document the selected structure and reference real paths]
 def _git(repo_root: Path, *args: str) -> None:
     import subprocess
 
-    subprocess.run(
-        ["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True)
 
 
 def _init_repo(repo_root: Path) -> None:
@@ -126,9 +124,7 @@ def _seed_coord_topology(repo_root: Path) -> tuple[Path, Path]:
     _git(repo_root, "add", "-A")
     _git(repo_root, "commit", "-qm", "author primary plan")
 
-    coord_husk_dir = (
-        repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord" / "kitty-specs" / SLUG_WITH_MID8
-    )
+    coord_husk_dir = repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord" / "kitty-specs" / SLUG_WITH_MID8
     _write_meta(coord_husk_dir, meta)
     # The husk carries an UNFILLED template plan — pre-fix research validated this.
     (coord_husk_dir / "plan.md").write_text(UNFILLED_PLAN, encoding="utf-8")
@@ -160,9 +156,7 @@ def _run_research(repo_root: Path, mission_handle: str = SLUG_WITH_MID8):  # typ
     try:
         with (
             patch.object(research_mod, "find_repo_root", return_value=repo_root),
-            patch.object(
-                research_mod, "get_project_root_or_exit", return_value=repo_root
-            ),
+            patch.object(research_mod, "get_project_root_or_exit", return_value=repo_root),
         ):
             # A single-command typer app omits the command name from argv.
             result = runner.invoke(
@@ -211,9 +205,7 @@ def test_research_scaffolds_onto_primary_for_coord_topology(tmp_path: Path) -> N
 
     for rel in ("research.md", "data-model.md"):
         assert (primary_dir / rel).exists(), f"{rel} missing on PRIMARY surface"
-        assert not (coord_husk_dir / rel).exists(), (
-            f"{rel} leaked onto the COORD husk (write-twin regression)"
-        )
+        assert not (coord_husk_dir / rel).exists(), f"{rel} leaked onto the COORD husk (write-twin regression)"
     # CSV stubs also land on primary.
     assert (primary_dir / "research" / "evidence-log.csv").exists()
     assert not (coord_husk_dir / "research" / "evidence-log.csv").exists()
@@ -240,12 +232,8 @@ def test_research_resolves_bare_mid8_handle_to_primary_slug(tmp_path: Path) -> N
     # ``kitty-specs/<mid8>`` dir nor the coord husk.
     for rel in ("research.md", "data-model.md"):
         assert (primary_dir / rel).exists(), f"{rel} missing on PRIMARY surface"
-        assert not (coord_husk_dir / rel).exists(), (
-            f"{rel} leaked onto the COORD husk (#2122 regression)"
-        )
-    assert not (tmp_path / "kitty-specs" / MID8).exists(), (
-        "research composed a literal kitty-specs/<mid8> dir (handle-blind primary arm)"
-    )
+        assert not (coord_husk_dir / rel).exists(), f"{rel} leaked onto the COORD husk (#2122 regression)"
+    assert not (tmp_path / "kitty-specs" / MID8).exists(), "research composed a literal kitty-specs/<mid8> dir (handle-blind primary arm)"
 
 
 # --------------------------------------------------------------------------- #

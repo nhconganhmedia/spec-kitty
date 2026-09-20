@@ -9,6 +9,7 @@ or a change in the tracked/derived/content-hash invariants.
 these tests prove that invariant still holds under the v2 shape, not that
 it was relaxed.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

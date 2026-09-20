@@ -38,9 +38,7 @@ def _graph(*nodes: DRGNode) -> DRGGraph:
 
 
 def _policy(*entries: tuple[str, str]) -> ReplaceableBuiltinsPolicy:
-    return ReplaceableBuiltinsPolicy(
-        entries=tuple(ReplaceableBuiltin(urn=u, reason=r) for u, r in entries)
-    )
+    return ReplaceableBuiltinsPolicy(entries=tuple(ReplaceableBuiltin(urn=u, reason=r) for u, r in entries))
 
 
 # ---------------------------------------------------------------------------
@@ -51,9 +49,7 @@ def _policy(*entries: tuple[str, str]) -> ReplaceableBuiltinsPolicy:
 def test_org_provenance_at_builtin_urn_is_detected() -> None:
     built_in_urns = frozenset({"tactic:shared"})
     merged = _graph(_node("tactic:shared", NodeKind.TACTIC, "org:rogue"))
-    assert find_overridden_builtin_urns(merged, built_in_urns) == {
-        "tactic:shared": "tactic"
-    }
+    assert find_overridden_builtin_urns(merged, built_in_urns) == {"tactic:shared": "tactic"}
 
 
 def test_project_provenance_at_builtin_urn_is_out_of_scope() -> None:
@@ -96,9 +92,7 @@ def test_allowlisted_non_directive_is_cleared() -> None:
 
 def test_directive_override_with_blank_reason_is_flagged() -> None:
     targets = {"directive:shared": "directive"}
-    findings = find_unsanctioned_overrides(
-        targets, _policy(("directive:shared", "   "))
-    )
+    findings = find_unsanctioned_overrides(targets, _policy(("directive:shared", "   ")))
     assert [f.urn for f in findings] == ["directive:shared"]
     assert "reason" in findings[0].why
 

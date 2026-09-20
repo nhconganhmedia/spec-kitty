@@ -122,7 +122,10 @@ def _build_bootstrap_context(repo_root: Path) -> CharterContextResult:
         patch("charter.activation.sync.ensure_charter_bundle_fresh", return_value=None),
     ):
         return build_charter_context(
-            repo_root, action="implement", depth=2, mark_loaded=False,
+            repo_root,
+            action="implement",
+            depth=2,
+            mark_loaded=False,
             mission_type="software-dev",
         )
 
@@ -130,9 +133,7 @@ def _build_bootstrap_context(repo_root: Path) -> CharterContextResult:
 class TestOrgProjectActivationUnion:
     """SC-002: 4-tuple dedup, distinct-entry preservation, project-first order."""
 
-    def test_exact_duplicate_across_org_and_project_dedupes_to_one_render(
-        self, tmp_path: Path
-    ) -> None:
+    def test_exact_duplicate_across_org_and_project_dedupes_to_one_render(self, tmp_path: Path) -> None:
         repo = tmp_path / "consumer"
         repo.mkdir()
         _write_project_fixture(repo, governance_yaml=_governance_yaml_with_activation())
@@ -166,10 +167,7 @@ class TestOrgProjectActivationUnion:
 
         assert result.mode == "bootstrap"
         # The exact-duplicate 4-tuple entry renders exactly once.
-        assert text.count(_PROJECT_ARTIFACT_ID) == 1, (
-            "the org-declared exact duplicate of the project entry rendered "
-            "a second time — SC-002 dedup did not fire"
-        )
+        assert text.count(_PROJECT_ARTIFACT_ID) == 1, "the org-declared exact duplicate of the project entry rendered a second time — SC-002 dedup did not fire"
         # The distinct org-only entry is present too.
         assert _ORG_ONLY_ARTIFACT_ID in text
         # Project first-seen order preserved: project entry precedes the
@@ -218,14 +216,9 @@ class TestOrgActivationValidationAndSkip:
             _build_bootstrap_context(repo)
 
         message = str(exc_info.value)
-        assert _ORG_PACK_NAME in message, (
-            "the raised error must name the offending pack (SC-003: "
-            "'clear, pack-named error')"
-        )
+        assert _ORG_PACK_NAME in message, "the raised error must name the offending pack (SC-003: 'clear, pack-named error')"
 
-    def test_org_pack_with_no_org_charter_yaml_is_skipped_not_raised(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_pack_with_no_org_charter_yaml_is_skipped_not_raised(self, tmp_path: Path) -> None:
         """A registered pack whose directory exists but has no
         ``org-charter.yaml`` at all is the 'missing pack' case — skipped
         silently (diagnostic handled upstream by

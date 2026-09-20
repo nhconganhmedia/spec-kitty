@@ -29,14 +29,7 @@ from typer.testing import CliRunner
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[4]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 runner = CliRunner()
 
@@ -99,13 +92,9 @@ def test_render_org_layer_section_shows_pack_counts(
     _render_org_layer_section(tmp_repo_with_org_pack, console)
     output = buf.getvalue()
 
-    assert "example-org" in output, (
-        f"pack name 'example-org' must appear in output: {output!r}"
-    )
+    assert "example-org" in output, f"pack name 'example-org' must appear in output: {output!r}"
     # Must show node/edge counts
-    assert "nodes" in output or "edges" in output, (
-        f"output must show node/edge counts: {output!r}"
-    )
+    assert "nodes" in output or "edges" in output, f"output must show node/edge counts: {output!r}"
 
 
 def test_render_org_layer_section_names_a_dangling_org_endpoint(
@@ -129,9 +118,7 @@ def test_render_org_layer_section_names_a_dangling_org_endpoint(
 
     fragment = tmp_repo_with_org_pack / "example_org" / "drg" / "fragment.yaml"
     fragment.write_text(
-        fragment.read_text(encoding="utf-8").replace(
-            "styleguide:plain-language", "styleguide:plain-languagee"
-        ),
+        fragment.read_text(encoding="utf-8").replace("styleguide:plain-language", "styleguide:plain-languagee"),
         encoding="utf-8",
     )
 
@@ -140,15 +127,10 @@ def test_render_org_layer_section_names_a_dangling_org_endpoint(
     _render_org_layer_section(tmp_repo_with_org_pack, console)
     output = buf.getvalue()
 
-    assert "styleguide:plain-languagee" in output, (
-        f"the section must name the offending token; got {output!r}"
-    )
+    assert "styleguide:plain-languagee" in output, f"the section must name the offending token; got {output!r}"
     # ``markup=False`` on the test console keeps rich tags literal, so match the
     # verdict label and its count separately rather than across the ``[/red]``.
-    assert "dangling endpoints:" in output, (
-        "the token must be presented as a finding with its own verdict line, "
-        f"not buried in prose; got {output!r}"
-    )
+    assert "dangling endpoints:" in output, f"the token must be presented as a finding with its own verdict line, not buried in prose; got {output!r}"
     assert "1 org edge endpoint(s)" in output, output
     # ``collisions: none`` stays — and stays true. Collisions and dangling
     # endpoints are two checks; suppressing one verdict because the other
@@ -204,9 +186,7 @@ def test_render_org_layer_section_no_crash_on_missing_pack(
     _render_org_layer_section(tmp_path, console)
     output = buf.getvalue()
     # Should mention the error or missing pack
-    assert "missing" in output.lower() or "error" in output.lower() or "pack" in output.lower(), (
-        f"expected error/missing indication in output: {output!r}"
-    )
+    assert "missing" in output.lower() or "error" in output.lower() or "pack" in output.lower(), f"expected error/missing indication in output: {output!r}"
 
 
 def test_render_org_layer_section_no_packs_configured(
@@ -220,9 +200,7 @@ def test_render_org_layer_section_no_packs_configured(
     _render_org_layer_section(tmp_repo_without_org_pack, console)
     output = buf.getvalue()
 
-    assert "no organisation packs" in output.lower() or "no packs" in output.lower() or "(no" in output, (
-        f"expected 'no packs configured' indication: {output!r}"
-    )
+    assert "no organisation packs" in output.lower() or "no packs" in output.lower() or "(no" in output, f"expected 'no packs configured' indication: {output!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -272,26 +250,19 @@ def test_collect_org_layer_data_reports_a_dangling_org_endpoint(
 
     fragment = tmp_repo_with_org_pack / "example_org" / "drg" / "fragment.yaml"
     fragment.write_text(
-        fragment.read_text(encoding="utf-8").replace(
-            "styleguide:plain-language", "styleguide:plain-languagee"
-        ),
+        fragment.read_text(encoding="utf-8").replace("styleguide:plain-language", "styleguide:plain-languagee"),
         encoding="utf-8",
     )
 
     result = _collect_org_layer_data(tmp_repo_with_org_pack)
 
     dangling = result.get("dangling_endpoints")
-    assert isinstance(dangling, list) and dangling, (
-        f"a typo'd qualified endpoint must be reported, got {result!r}"
-    )
-    assert any("styleguide:plain-languagee" in e for e in dangling), (
-        f"the report must name the offending token; got {dangling}"
-    )
+    assert isinstance(dangling, list) and dangling, f"a typo'd qualified endpoint must be reported, got {result!r}"
+    assert any("styleguide:plain-languagee" in e for e in dangling), f"the report must name the offending token; got {dangling}"
     errors = result.get("errors")
     assert isinstance(errors, list)
     assert any("styleguide:plain-languagee" in e for e in errors), (
-        "the finding must reach org_drg['errors'] — that is the channel "
-        f"DoctrineHealthReport.healthy reads; got {errors}"
+        f"the finding must reach org_drg['errors'] — that is the channel DoctrineHealthReport.healthy reads; got {errors}"
     )
 
 
@@ -347,9 +318,7 @@ def test_collect_org_layer_data_surfaces_a_failed_merge_check(
 
     errors = result.get("errors")
     assert isinstance(errors, list)
-    assert any("merge exploded" in e for e in errors), (
-        f"a diagnostic that could not verify must not report healthy; got {errors}"
-    )
+    assert any("merge exploded" in e for e in errors), f"a diagnostic that could not verify must not report healthy; got {errors}"
 
 
 def test_collect_org_layer_data_empty_packs_when_none_configured(
@@ -392,9 +361,7 @@ def test_collect_org_layer_data_error_on_missing_pack(
 # ---------------------------------------------------------------------------
 
 
-def _build_kittify_config_for_test(
-    repo_root: Path, pack_path: Path, pack_name: str = "test-pack"
-) -> None:
+def _build_kittify_config_for_test(repo_root: Path, pack_path: Path, pack_name: str = "test-pack") -> None:
     """Write a minimal .kittify/config.yaml for the doctrine.org.packs schema."""
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
@@ -433,21 +400,14 @@ def test_doctor_doctrine_json_includes_org_drg_key_when_packs_configured(
         result = runner.invoke(doctor_app, ["doctrine", "--json"])
 
     # Exit code is always 0 for doctor doctrine (diagnostic only)
-    assert result.exit_code == 0, (
-        f"doctor doctrine exited with code {result.exit_code}: {result.output}"
-    )
+    assert result.exit_code == 0, f"doctor doctrine exited with code {result.exit_code}: {result.output}"
 
     try:
         payload = json.loads(result.output)
     except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"doctor doctrine --json did not produce valid JSON: {exc}\n"
-            f"output: {result.output!r}"
-        )
+        pytest.fail(f"doctor doctrine --json did not produce valid JSON: {exc}\noutput: {result.output!r}")
 
-    assert "org_drg" in payload, (
-        f"doctor doctrine JSON must include 'org_drg' key. Got keys: {list(payload.keys())}"
-    )
+    assert "org_drg" in payload, f"doctor doctrine JSON must include 'org_drg' key. Got keys: {list(payload.keys())}"
 
 
 def test_doctor_doctrine_json_includes_org_drg_key_when_no_packs(
@@ -465,21 +425,14 @@ def test_doctor_doctrine_json_includes_org_drg_key_when_no_packs(
     ):
         result = runner.invoke(doctor_app, ["doctrine", "--json"])
 
-    assert result.exit_code == 0, (
-        f"doctor doctrine exited with code {result.exit_code}: {result.output}"
-    )
+    assert result.exit_code == 0, f"doctor doctrine exited with code {result.exit_code}: {result.output}"
 
     try:
         payload = json.loads(result.output)
     except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"doctor doctrine --json did not produce valid JSON: {exc}\n"
-            f"output: {result.output!r}"
-        )
+        pytest.fail(f"doctor doctrine --json did not produce valid JSON: {exc}\noutput: {result.output!r}")
 
-    assert "org_drg" in payload, (
-        f"doctor doctrine JSON must always include 'org_drg' key. Got: {list(payload.keys())}"
-    )
+    assert "org_drg" in payload, f"doctor doctrine JSON must always include 'org_drg' key. Got: {list(payload.keys())}"
     org_drg = payload["org_drg"]
     packs = org_drg.get("configured_packs", [])
     assert packs == [], f"expected empty packs when none configured, got: {packs}"

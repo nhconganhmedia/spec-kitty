@@ -72,9 +72,7 @@ _GUARD_BRANCH_STEP_IDS: dict[str, frozenset[str]] = {
     # Every step documentation's mission.yaml defines has an explicit branch,
     # including the "accept" terminal branch (`if action == "accept": return
     # []`) -- a real, if trivial, dedicated branch, not a fallback.
-    "documentation": frozenset(
-        {"discover", "audit", "design", "generate", "validate", "publish", "accept"}
-    ),
+    "documentation": frozenset({"discover", "audit", "design", "generate", "validate", "publish", "accept"}),
     # Anything else (including the literal "software-dev" family) ->
     # _evaluate_software_dev_guards. "discovery" and "done" are NOT dispatched
     # to a per-step branch -- they fall through to the function's final bare
@@ -182,10 +180,7 @@ class TestGuardCommentParity:
                 has_comment = _has_trailing_comment(required_by_step, step_id)
                 if not has_real_branch and not has_comment:
                     unexplained.append(f"{mission_type}/{step_id}")
-        assert not unexplained, (
-            "required_by_step keys with neither a real guard branch nor an "
-            f"explanatory comment: {unexplained}"
-        )
+        assert not unexplained, f"required_by_step keys with neither a real guard branch nor an explanatory comment: {unexplained}"
 
     def test_software_dev_tasks_packages_and_finalize_path_pattern_is_wp_glob(self):
         """Dedicated, narrower check on top of the step-key-presence check
@@ -203,9 +198,7 @@ class TestGuardCommentParity:
             # Pins the whole collection -- exactly one spec, with the exact
             # WP-glob path_pattern -- so both a stray extra/removed spec and
             # a regression to the broader `tasks/*.md` pattern fail here.
-            assert [
-                (s.artifact_key, s.artifact_class, s.path_pattern, s.blocking) for s in specs
-            ] == [
+            assert [(s.artifact_key, s.artifact_class, s.path_pattern, s.blocking) for s in specs] == [
                 ("output.tasks.per_wp", ArtifactClassEnum.OUTPUT, "tasks/WP*.md", True),
             ], f"{step_id}'s required spec must be exactly the WP-glob output.tasks.per_wp entry"
 
@@ -226,10 +219,7 @@ class TestManifestVersionStability:
         for mission_type in _FOUR_MANIFEST_TYPES:
             manifest = ManifestRegistry.load_manifest(mission_type)
             assert manifest is not None, f"{mission_type} manifest failed to load"
-            assert manifest.manifest_version == "1", (
-                f"{mission_type} manifest_version must stay '1' (Decision 2); "
-                f"got {manifest.manifest_version!r}"
-            )
+            assert manifest.manifest_version == "1", f"{mission_type} manifest_version must stay '1' (Decision 2); got {manifest.manifest_version!r}"
 
 
 class TestManifestVersionRationaleComment:

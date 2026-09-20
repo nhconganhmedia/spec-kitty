@@ -140,9 +140,7 @@ def resolve_audiences(
 
     if docs_root.exists() and docs_root.is_dir():
         for md_path in sorted(docs_root.rglob("*.md")):
-            file_checked, file_dangling = _audiences_in_file(
-                md_path, repo_root, catalog
-            )
+            file_checked, file_dangling = _audiences_in_file(md_path, repo_root, catalog)
             checked_count += file_checked
             dangling.extend(file_dangling)
 
@@ -197,19 +195,13 @@ def resolve_audiences_diff_scoped(
     return AudienceReport(checked_count=checked_count, dangling_references=dangling)
 
 
-def _audiences_in_file(
-    md_path: Path, repo_root: Path, catalog: Path
-) -> tuple[int, list[DanglingReference]]:
+def _audiences_in_file(md_path: Path, repo_root: Path, catalog: Path) -> tuple[int, list[DanglingReference]]:
     """Check all ``audience:`` values in one Markdown page."""
     values = _read_audience(md_path)
     if not values:
         return 0, []
     from_rel = _repo_relative(md_path, repo_root)
-    dangling = [
-        DanglingReference(from_path=from_rel, to_path=value)
-        for value in values
-        if _is_reference(value) and not _resolves(value, repo_root, catalog)
-    ]
+    dangling = [DanglingReference(from_path=from_rel, to_path=value) for value in values if _is_reference(value) and not _resolves(value, repo_root, catalog)]
     return len(values), dangling
 
 
@@ -253,9 +245,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=_GATE_NAME,
         description=(
-            "Validate docs/ frontmatter 'audience:' references (scalar or "
-            "list) against the persona catalog. Report-only (exit 0) unless "
-            "--strict is passed."
+            "Validate docs/ frontmatter 'audience:' references (scalar or list) against the persona catalog. Report-only (exit 0) unless --strict is passed."
         ),
     )
     parser.add_argument(
@@ -274,10 +264,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--catalog-root",
         type=Path,
         default=None,
-        help=(
-            "Directory a resolved reference must live under "
-            f"(default: <repo-root>/{DEFAULT_CATALOG_ROOT})."
-        ),
+        help=(f"Directory a resolved reference must live under (default: <repo-root>/{DEFAULT_CATALOG_ROOT})."),
     )
     parser.add_argument(
         "--json",
@@ -335,10 +322,7 @@ def _emit(report: AudienceReport, *, as_json: bool) -> None:
         sys.stdout.write(json.dumps(report.as_dict(), indent=2, sort_keys=True) + "\n")
         return
 
-    sys.stdout.write(
-        f"{_GATE_NAME}: checked {report.checked_count} audience value(s); "
-        f"{len(report.dangling_references)} dangling.\n"
-    )
+    sys.stdout.write(f"{_GATE_NAME}: checked {report.checked_count} audience value(s); {len(report.dangling_references)} dangling.\n")
     for ref in report.dangling_references:
         sys.stdout.write(f"  DANGLING {ref.from_path} -> {ref.to_path}\n")
 

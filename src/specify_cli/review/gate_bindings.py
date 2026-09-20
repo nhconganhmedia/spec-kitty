@@ -143,10 +143,7 @@ def resolve_mission_type(snapshot: object, *, feature_dir: Path | None = None) -
         return populated.strip()
     if feature_dir is not None:
         return str(resolve_mission_identity(feature_dir).mission_type)
-    raise ValueError(
-        "cannot resolve mission type: snapshot carries no mission_type and no "
-        "feature_dir was supplied to read meta.json"
-    )
+    raise ValueError("cannot resolve mission type: snapshot carries no mission_type and no feature_dir was supplied to read meta.json")
 
 
 def owning_contract_urn(mission: str, action: str) -> str:
@@ -241,11 +238,7 @@ def resolve_active_gate_bindings(
     """
     if owning_contract_urn not in activated_msc_urns:
         return []
-    matched = [
-        (index, binding)
-        for index, binding in enumerate(bindings)
-        if binding.on_transition == edge_key
-    ]
+    matched = [(index, binding) for index, binding in enumerate(bindings) if binding.on_transition == edge_key]
     matched.sort(key=lambda pair: (pair[0], pair[1].handler))
     return [binding for _index, binding in matched]
 
@@ -332,10 +325,7 @@ def _no_binding(mission: str, action: str, edge_key: str, urn: str) -> GateBindi
         coverage=GateCoverage.NO_BINDING,
         edge_key=edge_key,
         owning_contract_urn=urn,
-        reason=(
-            f"{_NO_COVERAGE}: gate contract ({mission}, {action}) declares "
-            f"no binding for edge {edge_key}"
-        ),
+        reason=(f"{_NO_COVERAGE}: gate contract ({mission}, {action}) declares no binding for edge {edge_key}"),
     )
 
 
@@ -344,10 +334,7 @@ def _not_activated(edge_key: str, urn: str) -> GateBindingResolution:
         coverage=GateCoverage.NOT_ACTIVATED,
         edge_key=edge_key,
         owning_contract_urn=urn,
-        reason=(
-            f"gate binding present for edge {edge_key} but owning contract "
-            f"{urn} is not activated"
-        ),
+        reason=(f"gate binding present for edge {edge_key} but owning contract {urn} is not activated"),
     )
 
 

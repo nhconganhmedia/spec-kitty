@@ -116,9 +116,7 @@ def _single_directive_graph() -> DRGGraph:
 def test_reference_resolver_none_path_matches_no_filter_at_all(tmp_path: Path) -> None:
     graph = _single_directive_graph()
 
-    unfiltered = resolve_references_transitively(
-        [_REAL_DIRECTIVE_CANONICAL_ID], doctrine_service=None, graph=graph, pack_context=None
-    )
+    unfiltered = resolve_references_transitively([_REAL_DIRECTIVE_CANONICAL_ID], doctrine_service=None, graph=graph, pack_context=None)
     default_allow_ctx = _pack_context(activated_directives=None, repo_root=tmp_path)
     default_allow = resolve_references_transitively(
         [_REAL_DIRECTIVE_CANONICAL_ID],
@@ -139,13 +137,9 @@ def test_reference_resolver_populated_stem_retains_directive_node() -> None:
     instead of ``directives``. After WP01 the stem resolves to the canonical
     URN and the node (and this assertion) survives."""
     graph = _single_directive_graph()
-    ctx = _pack_context(
-        activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=Path("/nonexistent")
-    )
+    ctx = _pack_context(activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=Path("/nonexistent"))
 
-    result = resolve_references_transitively(
-        [_REAL_DIRECTIVE_CANONICAL_ID], doctrine_service=None, graph=graph, pack_context=ctx
-    )
+    result = resolve_references_transitively([_REAL_DIRECTIVE_CANONICAL_ID], doctrine_service=None, graph=graph, pack_context=ctx)
 
     assert result.directives == [_REAL_DIRECTIVE_CANONICAL_ID]
     assert result.unresolved == []
@@ -175,9 +169,7 @@ def test_compiler_closure_none_path_matches_no_filter_at_all(tmp_path: Path) -> 
     # would cut the closure short via the KIND-level gate (a different gate
     # step than the one under test) and produce a false mismatch unrelated
     # to the per-ID stem/canonical fix.
-    default_allow_ctx = _pack_context(
-        activated_directives=None, activated_kinds=_BUILTIN_ARTIFACT_KINDS, repo_root=tmp_path
-    )
+    default_allow_ctx = _pack_context(activated_directives=None, activated_kinds=_BUILTIN_ARTIFACT_KINDS, repo_root=tmp_path)
     default_allow = _resolve_transitive_reference_graph(
         doctrine_root=doctrine_root,
         directives=[_REAL_DIRECTIVE_CANONICAL_ID],
@@ -197,9 +189,7 @@ def test_compiler_closure_populated_stem_retains_directive_node(tmp_path: Path) 
     ``directives`` bucket. After WP01 it does."""
     from charter.activation.catalog import resolve_doctrine_root
 
-    ctx = _pack_context(
-        activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=tmp_path
-    )
+    ctx = _pack_context(activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=tmp_path)
 
     result = _resolve_transitive_reference_graph(
         doctrine_root=resolve_doctrine_root(),
@@ -249,11 +239,7 @@ def test_cross_kind_refs_none_path_matches_no_filter_at_all(tmp_path: Path) -> N
     # no-op assertion falsely fails. Derived from the graph so new built-in
     # mission types stay covered automatically.
     _MSC_PREFIX = "mission_step_contract:"
-    all_mission_types = frozenset(
-        n.urn[len(_MSC_PREFIX):].split("/", 1)[0]
-        for n in full_drg.nodes
-        if n.urn.startswith(_MSC_PREFIX)
-    )
+    all_mission_types = frozenset(n.urn[len(_MSC_PREFIX) :].split("/", 1)[0] for n in full_drg.nodes if n.urn.startswith(_MSC_PREFIX))
     default_allow_ctx = _pack_context(
         activated_directives=None,
         activated_tactics=None,
@@ -263,9 +249,7 @@ def test_cross_kind_refs_none_path_matches_no_filter_at_all(tmp_path: Path) -> N
     )
     activated_drg = filter_graph_by_activation(full_drg, default_allow_ctx)
     assert {n.urn for n in activated_drg.nodes} == {n.urn for n in full_drg.nodes}
-    assert {(e.source, e.target) for e in activated_drg.edges} == {
-        (e.source, e.target) for e in full_drg.edges
-    }
+    assert {(e.source, e.target) for e in activated_drg.edges} == {(e.source, e.target) for e in full_drg.edges}
 
     ctx = ProjectContext(repo_root=tmp_path, pack_context=default_allow_ctx)
     missing_from_doctrine: list[str] = []
@@ -382,9 +366,7 @@ def test_context_bundle_populated_stem_retains_directive_node(tmp_path: Path) ->
     ``scope`` edge, so ``directive_ids`` would be empty. After WP01 the stem
     resolves and the directive is retained."""
     graph = _action_graph()
-    ctx = _pack_context(
-        activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=tmp_path
-    )
+    ctx = _pack_context(activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=tmp_path)
 
     with patch("charter.activation._drg_helpers.load_validated_graph", return_value=graph):
         bundle = _load_action_doctrine_bundle(

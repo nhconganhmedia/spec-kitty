@@ -55,8 +55,7 @@ def _write_valid_json_matrix(feature_dir: Path, issue_number: str = "1234") -> N
                 "rows": {
                     f"#{issue_number}": {
                         "verdict": "fixed",
-                        "evidence_ref": "tests/specify_cli/cli/commands/review/"
-                        "test_zero_reference_not_applicable.py",
+                        "evidence_ref": "tests/specify_cli/cli/commands/review/test_zero_reference_not_applicable.py",
                         "title": "Zero-reference not_applicable",
                     }
                 },
@@ -220,9 +219,7 @@ def test_references_present_and_matrix_invalid_is_fail_closed(tmp_path: Path) ->
     assert result is True
     assert len(findings) == 1
     assert findings[0]["type"] == "issue_matrix_violation"
-    assert findings[0]["diagnostic_code"] == str(
-        MissionReviewDiagnostic.ISSUE_MATRIX_VERDICT_UNKNOWN
-    )
+    assert findings[0]["diagnostic_code"] == str(MissionReviewDiagnostic.ISSUE_MATRIX_VERDICT_UNKNOWN)
 
 
 def test_references_present_and_valid_matrix_passes(tmp_path: Path) -> None:

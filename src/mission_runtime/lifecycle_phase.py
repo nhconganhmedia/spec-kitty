@@ -107,9 +107,7 @@ def _primary_feature_dir(
     )
 
     main_root = get_main_repo_root(repo_root)
-    canonical_handle = _canonicalize_primary_read_handle(
-        main_root, mission_slug, resolver=resolver
-    )
+    canonical_handle = _canonicalize_primary_read_handle(main_root, mission_slug, resolver=resolver)
     # ``_compose_primary_feature_dir`` is typed ``-> Path`` but the
     # ``follow_imports=skip`` boundary on ``specify_cli.*`` widens it to
     # ``Any``; bind explicitly so the declared return narrows back (matches
@@ -179,9 +177,7 @@ def _target_ref_exists(repo_root: Path, target_branch: str) -> bool:
             check=False,
         )
     except subprocess.TimeoutExpired as exc:
-        raise LifecyclePhaseProbeError(
-            f"git rev-parse --verify refs/heads/{target_branch!r} timed out in {repo_root}"
-        ) from exc
+        raise LifecyclePhaseProbeError(f"git rev-parse --verify refs/heads/{target_branch!r} timed out in {repo_root}") from exc
     return result.returncode == _GIT_REV_VALID
 
 
@@ -212,9 +208,7 @@ def _all_work_packages_done(feature_dir: Path) -> bool:
     snapshot = reduce(events)
     if not snapshot.work_packages:
         return False
-    return all(
-        str(state.get("lane", "")) == "done" for state in snapshot.work_packages.values()
-    )
+    return all(str(state.get("lane", "")) == "done" for state in snapshot.work_packages.values())
 
 
 def resolve_lifecycle_phase(
@@ -311,9 +305,7 @@ def _path_present_at_rev(repo_root: Path, object_spec: str) -> bool:
             check=False,
         )
     except subprocess.TimeoutExpired as exc:
-        raise LifecyclePhaseProbeError(
-            f"git cat-file -e {object_spec!r} timed out in {repo_root}"
-        ) from exc
+        raise LifecyclePhaseProbeError(f"git cat-file -e {object_spec!r} timed out in {repo_root}") from exc
     return result.returncode == _GIT_REV_VALID
 
 
@@ -340,8 +332,7 @@ def _git_object_present(repo_root: Path, rev: str, path: str) -> bool:
     """
     if not _rev_is_valid(repo_root, rev):
         raise LifecyclePhaseProbeError(
-            f"git rev {rev!r} does not resolve to a valid revision in {repo_root} "
-            "-- expected the resolved Primary Branch to be a real ref"
+            f"git rev {rev!r} does not resolve to a valid revision in {repo_root} -- expected the resolved Primary Branch to be a real ref"
         )
     return _path_present_at_rev(repo_root, f"{rev}:{path}")
 

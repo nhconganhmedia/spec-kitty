@@ -106,6 +106,7 @@ from specify_cli.status import (
     mission_event_log_path,
     project_event_log_path,
 )
+
 # migrate_lifecycle_envelope is imported directly from its home submodule,
 # not the facade: its bare name collides with the submodule's own filename
 # (status/migrate_lifecycle_envelope.py), so promoting it onto
@@ -190,18 +191,11 @@ def _migrate_corpus(log_paths: list[Path], *, dry_run: bool) -> tuple[list[str],
     scanned = len(log_paths)
     if dry_run:
         return (
-            [
-                f"dry-run: would rewrite {migrated_total} legacy-shaped lifecycle "
-                f"envelope row(s) to F1's strict shape across {scanned} event "
-                "log(s) scanned"
-            ],
+            [f"dry-run: would rewrite {migrated_total} legacy-shaped lifecycle envelope row(s) to F1's strict shape across {scanned} event log(s) scanned"],
             warnings,
         )
     return (
-        [
-            f"Rewrote {migrated_total} legacy-shaped lifecycle envelope row(s) "
-            f"to F1's strict shape across {scanned} event log(s) scanned"
-        ],
+        [f"Rewrote {migrated_total} legacy-shaped lifecycle envelope row(s) to F1's strict shape across {scanned} event log(s) scanned"],
         warnings,
     )
 

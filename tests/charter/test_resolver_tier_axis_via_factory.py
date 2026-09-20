@@ -82,9 +82,7 @@ def package_missions_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Pa
     """
     root = tmp_path / "pkg-missions"
     root.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(
-        MissionTemplateRepository, "default_missions_root", classmethod(lambda cls: root)
-    )
+    monkeypatch.setattr(MissionTemplateRepository, "default_missions_root", classmethod(lambda cls: root))
     monkeypatch.setattr(runtime_resolver_module, "get_package_asset_root", lambda: root)
     charter_resolver_module._mission_template_repository.cache_clear()
     return root
@@ -129,9 +127,7 @@ def test_content_asset_tier_walk_matches_doctrine_resolver(
         via_factory = DoctrineService.resolve_content_asset(_CONTENT_NAME, project_dir, _MISSION)
         via_doctrine = doctrine_resolver_module.resolve_template(_CONTENT_NAME, project_dir, _MISSION)
 
-        assert via_factory == ResolutionResult(
-            path=expected_path, tier=expected_tier, mission=_MISSION
-        )
+        assert via_factory == ResolutionResult(path=expected_path, tier=expected_tier, mission=_MISSION)
         assert via_factory == via_doctrine
         expected_path.unlink()
 
@@ -169,9 +165,7 @@ def test_command_asset_tier_walk_matches_doctrine_resolver(
         via_factory = DoctrineService.resolve_command_asset(_COMMAND_NAME, project_dir, _MISSION)
         via_doctrine = doctrine_resolver_module.resolve_command(_COMMAND_NAME, project_dir, _MISSION)
 
-        assert via_factory == ResolutionResult(
-            path=expected_path, tier=expected_tier, mission=_MISSION
-        )
+        assert via_factory == ResolutionResult(path=expected_path, tier=expected_tier, mission=_MISSION)
         assert via_factory == via_doctrine
         expected_path.unlink()
 
@@ -205,9 +199,7 @@ def test_mission_definition_tier_walk_matches_doctrine_resolver(
         via_factory = DoctrineService.resolve_mission_definition(_MISSION, project_dir)
         via_doctrine = doctrine_resolver_module.resolve_mission(_MISSION, project_dir)
 
-        assert via_factory == ResolutionResult(
-            path=expected_path, tier=expected_tier, mission=_MISSION
-        )
+        assert via_factory == ResolutionResult(path=expected_path, tier=expected_tier, mission=_MISSION)
         assert via_factory == via_doctrine
         expected_path.unlink()
 
@@ -235,15 +227,21 @@ def test_package_default_paths_match_the_retired_resolver_calls(tmp_path: Path) 
 
     legacy = CharterTemplateResolver.from_missions_root(missions_root)
 
-    assert DoctrineService.resolve_package_default_asset_path(
-        missions_root=missions_root, mission=_MISSION, subdir="command-templates", name=_COMMAND_NAME
-    ) == legacy.resolve_command_template_path(_MISSION, _COMMAND_STEM) == command
-    assert DoctrineService.resolve_package_default_asset_path(
-        missions_root=missions_root, mission=_MISSION, subdir="templates", name=_CONTENT_NAME
-    ) == legacy.resolve_content_template_path(_MISSION, _CONTENT_NAME) == content
-    assert DoctrineService.resolve_package_default_mission_config_path(
-        missions_root=missions_root, mission=_MISSION
-    ) == legacy.resolve_mission_config_path(_MISSION) == mission_config
+    assert (
+        DoctrineService.resolve_package_default_asset_path(missions_root=missions_root, mission=_MISSION, subdir="command-templates", name=_COMMAND_NAME)
+        == legacy.resolve_command_template_path(_MISSION, _COMMAND_STEM)
+        == command
+    )
+    assert (
+        DoctrineService.resolve_package_default_asset_path(missions_root=missions_root, mission=_MISSION, subdir="templates", name=_CONTENT_NAME)
+        == legacy.resolve_content_template_path(_MISSION, _CONTENT_NAME)
+        == content
+    )
+    assert (
+        DoctrineService.resolve_package_default_mission_config_path(missions_root=missions_root, mission=_MISSION)
+        == legacy.resolve_mission_config_path(_MISSION)
+        == mission_config
+    )
 
 
 def test_package_default_asset_path_unknown_subdir_and_misses(tmp_path: Path) -> None:
@@ -252,30 +250,10 @@ def test_package_default_asset_path_unknown_subdir_and_misses(tmp_path: Path) ->
     other = _write(missions_root / _MISSION / "actions" / "index.yaml", "x")
     charter_resolver_module._mission_template_repository.cache_clear()
 
-    assert (
-        DoctrineService.resolve_package_default_asset_path(
-            missions_root=missions_root, mission=_MISSION, subdir="actions", name="index.yaml"
-        )
-        == other
-    )
-    assert (
-        DoctrineService.resolve_package_default_asset_path(
-            missions_root=missions_root, mission=_MISSION, subdir="actions", name="absent.yaml"
-        )
-        is None
-    )
-    assert (
-        DoctrineService.resolve_package_default_asset_path(
-            missions_root=missions_root, mission=_MISSION, subdir="templates", name="absent.md"
-        )
-        is None
-    )
-    assert (
-        DoctrineService.resolve_package_default_mission_config_path(
-            missions_root=missions_root, mission="no-such-mission"
-        )
-        is None
-    )
+    assert DoctrineService.resolve_package_default_asset_path(missions_root=missions_root, mission=_MISSION, subdir="actions", name="index.yaml") == other
+    assert DoctrineService.resolve_package_default_asset_path(missions_root=missions_root, mission=_MISSION, subdir="actions", name="absent.yaml") is None
+    assert DoctrineService.resolve_package_default_asset_path(missions_root=missions_root, mission=_MISSION, subdir="templates", name="absent.md") is None
+    assert DoctrineService.resolve_package_default_mission_config_path(missions_root=missions_root, mission="no-such-mission") is None
 
 
 def test_runtime_tier5_hop_resolves_all_three_asset_shapes_via_the_factory(
@@ -294,12 +272,12 @@ def test_runtime_tier5_hop_resolves_all_three_asset_shapes_via_the_factory(
     mission_config = _write(package_missions_root / _MISSION / "mission.yaml", "name: sd\n")
     charter_resolver_module._mission_template_repository.cache_clear()
 
-    assert runtime_resolver_module.resolve_template(
-        _CONTENT_NAME, project_dir, _MISSION
-    ) == ResolutionResult(path=content, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION)
-    assert runtime_resolver_module.resolve_command(
-        _COMMAND_NAME, project_dir, _MISSION
-    ) == ResolutionResult(path=command, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION)
+    assert runtime_resolver_module.resolve_template(_CONTENT_NAME, project_dir, _MISSION) == ResolutionResult(
+        path=content, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION
+    )
+    assert runtime_resolver_module.resolve_command(_COMMAND_NAME, project_dir, _MISSION) == ResolutionResult(
+        path=command, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION
+    )
     assert runtime_resolver_module.resolve_mission(_MISSION, project_dir) == ResolutionResult(
         path=mission_config, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION
     )
@@ -325,14 +303,12 @@ def test_runtime_tier5_hop_keeps_its_own_package_root_authority(
     expected = _write(runtime_root / _MISSION / "templates" / _CONTENT_NAME, "runtime root wins")
     _write(doctrine_root / _MISSION / "templates" / _CONTENT_NAME, "doctrine default")
     monkeypatch.setattr(runtime_resolver_module, "get_package_asset_root", lambda: runtime_root)
-    monkeypatch.setattr(
-        MissionTemplateRepository, "default_missions_root", classmethod(lambda cls: doctrine_root)
-    )
+    monkeypatch.setattr(MissionTemplateRepository, "default_missions_root", classmethod(lambda cls: doctrine_root))
     charter_resolver_module._mission_template_repository.cache_clear()
 
-    assert runtime_resolver_module.resolve_template(
-        _CONTENT_NAME, project_dir, _MISSION
-    ) == ResolutionResult(path=expected, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION)
+    assert runtime_resolver_module.resolve_template(_CONTENT_NAME, project_dir, _MISSION) == ResolutionResult(
+        path=expected, tier=ResolutionTier.PACKAGE_DEFAULT, mission=_MISSION
+    )
 
 
 def test_charter_template_resolver_routes_the_tier_chain_through_the_factory(
@@ -390,9 +366,7 @@ def test_factory_methods_delegate_to_doctrine_tier_functions(
     stay put": the factory holds no copy of the tier logic, so intercepting
     the doctrine function is sufficient to intercept the factory.
     """
-    marker = ResolutionResult(
-        path=project_dir / "marker", tier=ResolutionTier.LEGACY, mission="marker-mission"
-    )
+    marker = ResolutionResult(path=project_dir / "marker", tier=ResolutionTier.LEGACY, mission="marker-mission")
     monkeypatch.setattr(charter_resolver_module, doctrine_symbol, lambda *a, **k: marker)
 
     method = getattr(DoctrineService, factory_method)
@@ -420,9 +394,7 @@ def test_tier_axis_methods_are_static_because_the_axis_is_ungated(method_name: s
     them static makes that structural: a future edit cannot start reading
     activation state without changing the signature.
     """
-    assert isinstance(
-        inspect.getattr_static(DoctrineService, method_name), staticmethod
-    ), f"{method_name} must stay a staticmethod (ungated-by-design contract)"
+    assert isinstance(inspect.getattr_static(DoctrineService, method_name), staticmethod), f"{method_name} must stay a staticmethod (ungated-by-design contract)"
 
 
 @pytest.mark.parametrize(
@@ -453,11 +425,7 @@ def test_only_charter_resolver_imports_the_doctrine_tier_functions() -> None:
         src / "specify_cli" / "runtime" / "resolver.py",
     ):
         body = module_path.read_text(encoding="utf-8")
-        offending = [
-            line.strip()
-            for line in body.splitlines()
-            if line.lstrip().startswith(("import ", "from ")) and "charter.offering.resolver" in line
-        ]
+        offending = [line.strip() for line in body.splitlines() if line.lstrip().startswith(("import ", "from ")) and "charter.offering.resolver" in line]
         assert not offending, f"{module_path} must not import charter.offering.resolver: {offending}"
 
     charter_body = (src / "charter" / "activation" / "resolver.py").read_text(encoding="utf-8")

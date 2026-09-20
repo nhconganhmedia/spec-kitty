@@ -45,9 +45,7 @@ def test_skill_attributes_humanlayer_source_and_carries_mit_notice(
 
 
 def test_skill_builds_on_canonical_diagram_doctrine(skill_text: str) -> None:
-    sources = (SKILL.parent / "references" / "spec-kitty-diagram-sources.md").read_text(
-        encoding="utf-8"
-    )
+    sources = (SKILL.parent / "references" / "spec-kitty-diagram-sources.md").read_text(encoding="utf-8")
     assert "spec-kitty charter" in skill_text
     assert "context --include" in skill_text
     assert "toolguide:mermaid-diagramming" in sources
@@ -73,9 +71,7 @@ def test_skill_pins_status_tui_rendering_contract(skill_text: str) -> None:
             Lane.DONE,
         )
     )
-    renderer = (
-        REPO_ROOT / "src/specify_cli/cli/commands/agent/tasks_status_cmd.py"
-    ).read_text(encoding="utf-8")
+    renderer = (REPO_ROOT / "src/specify_cli/cli/commands/agent/tasks_status_cmd.py").read_text(encoding="utf-8")
 
     assert "spec-kitty agent tasks status --json" in skill_text
     assert lifecycle in skill_text
@@ -95,9 +91,7 @@ def test_skill_pins_status_tui_rendering_contract(skill_text: str) -> None:
     assert "Weighted readiness" in skill_text
 
 
-def test_skill_documented_status_json_keys_match_live_emitter(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, skill_text: str
-) -> None:
+def test_skill_documented_status_json_keys_match_live_emitter(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, skill_text: str) -> None:
     """Live-invoke ``spec-kitty agent tasks status --json`` and pin the
     documented JSON keys to what ``_st_emit_json`` actually constructs.
 
@@ -176,9 +170,7 @@ def test_skill_documented_status_json_keys_match_live_emitter(
         "mission_slug",
     )
     for documented_key in documented_top_level_keys:
-        assert documented_key in skill_text, (
-            f"expected SKILL.md to still document {documented_key!r}"
-        )
+        assert documented_key in skill_text, f"expected SKILL.md to still document {documented_key!r}"
         assert documented_key in payload, (
             f"SKILL.md documents top-level status-JSON key {documented_key!r}, "
             "but the live `_st_emit_json` payload does not contain it -- the "
@@ -189,22 +181,14 @@ def test_skill_documented_status_json_keys_match_live_emitter(
     assert work_packages, "fixture must produce at least one WP row"
     assert "work_packages[].lane" in skill_text
     for wp in work_packages:
-        assert "lane" in wp, (
-            "SKILL.md documents `work_packages[].lane`, but a live WP row "
-            "is missing the `lane` key"
-        )
+        assert "lane" in wp, "SKILL.md documents `work_packages[].lane`, but a live WP row is missing the `lane` key"
 
     in_progress_wp = next(wp for wp in work_packages if wp["id"] == "WP02")
     assert "work_packages[].is_stale" in skill_text
-    assert "is_stale" in in_progress_wp, (
-        "SKILL.md documents `work_packages[].is_stale`, but the live "
-        "in-progress WP row is missing the `is_stale` key"
-    )
+    assert "is_stale" in in_progress_wp, "SKILL.md documents `work_packages[].is_stale`, but the live in-progress WP row is missing the `is_stale` key"
 
 
-def test_installed_skill_carries_portable_sources_and_themes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_installed_skill_carries_portable_sources_and_themes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     project = tmp_path / "project"
     project.mkdir()
@@ -218,9 +202,7 @@ def test_installed_skill_carries_portable_sources_and_themes(
     assert (installed / "assets" / "MERMAID_DIAGRAMMING.md").is_file()
     assert (installed / "assets" / "PLANTUML_DIAGRAMMING.md").is_file()
     assert (installed / "assets" / "mermaid-theme-common-template.md").is_file()
-    assert (
-        installed / "assets" / "mermaid-theme-bluegray-conversation-template.md"
-    ).is_file()
+    assert (installed / "assets" / "mermaid-theme-bluegray-conversation-template.md").is_file()
 
 
 @pytest.mark.parametrize(

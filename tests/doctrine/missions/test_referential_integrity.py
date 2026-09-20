@@ -127,9 +127,7 @@ class TestActionSequenceRoundTrip:
 
     @pytest.mark.parametrize("mission_type", sorted(_EXPECTED_ACTION_SEQUENCES))
     def test_projection_matches_authored_yaml(self, mission_type: str) -> None:
-        steps = MissionStepRepository.default().resolve_all_for_mission_type(
-            mission_type, pack_context=None
-        )
+        steps = MissionStepRepository.default().resolve_all_for_mission_type(mission_type, pack_context=None)
         projected = project_action_sequence(steps.values())
 
         assert projected == _EXPECTED_ACTION_SEQUENCES[mission_type], (
@@ -148,19 +146,11 @@ class TestActionSequenceRoundTrip:
 
     @pytest.mark.parametrize(
         ("mission_type", "step_id"),
-        [
-            (mission_type, step_id)
-            for mission_type in ("documentation", "research")
-            for step_id in ("retrospect",)
-        ],
+        [(mission_type, step_id) for mission_type in ("documentation", "research") for step_id in ("retrospect",)],
     )
-    def test_retrospect_excluded_from_projected_sequence(
-        self, mission_type: str, step_id: str
-    ) -> None:
+    def test_retrospect_excluded_from_projected_sequence(self, mission_type: str, step_id: str) -> None:
         """``retrospect`` is authored (T014/T015) but ``in_action_sequence: false``."""
-        steps = MissionStepRepository.default().resolve_all_for_mission_type(
-            mission_type, pack_context=None
-        )
+        steps = MissionStepRepository.default().resolve_all_for_mission_type(mission_type, pack_context=None)
         step = steps[step_id]
 
         assert step.in_action_sequence is False
@@ -177,18 +167,12 @@ class TestArtifactResolution:
 
     @pytest.mark.parametrize("mission_type", sorted(_EXPECTED_ACTION_SEQUENCES))
     def test_every_step_prompt_template_file_exists(self, mission_type: str) -> None:
-        steps = MissionStepRepository.default().resolve_all_for_mission_type(
-            mission_type, pack_context=None
-        )
+        steps = MissionStepRepository.default().resolve_all_for_mission_type(mission_type, pack_context=None)
         assert steps, f"no steps resolved for {mission_type!r}"
 
         for step_id, step in steps.items():
             prompt_path = _MISSION_STEPS_ROOT / mission_type / step_id / step.prompt_template
-            assert prompt_path.is_file(), (
-                f"{mission_type}/{step_id}: prompt_template "
-                f"{step.prompt_template!r} does not resolve to a real file "
-                f"at {prompt_path}"
-            )
+            assert prompt_path.is_file(), f"{mission_type}/{step_id}: prompt_template {step.prompt_template!r} does not resolve to a real file at {prompt_path}"
 
 
 # ---------------------------------------------------------------------------
@@ -201,23 +185,16 @@ class TestGuidelinesByteIdentical:
 
     @pytest.mark.parametrize(
         ("mission_type", "step_id"),
-        [
-            (mission_type, step_id)
-            for mission_type, step_ids in _GUIDELINES_COPIED_STEPS.items()
-            for step_id in step_ids
-        ],
+        [(mission_type, step_id) for mission_type, step_ids in _GUIDELINES_COPIED_STEPS.items() for step_id in step_ids],
     )
-    def test_guidelines_byte_identical_to_source(
-        self, mission_type: str, step_id: str
-    ) -> None:
+    def test_guidelines_byte_identical_to_source(self, mission_type: str, step_id: str) -> None:
         source = _MISSIONS_ROOT / mission_type / "actions" / step_id / "guidelines.md"
         copy = _MISSION_STEPS_ROOT / mission_type / step_id / "guidelines.md"
 
         assert source.is_file(), f"source guidelines missing at {source}"
         assert copy.is_file(), f"copied guidelines missing at {copy}"
         assert filecmp.cmp(source, copy, shallow=False), (
-            f"{mission_type}/{step_id}: mission-steps/ guidelines.md has "
-            f"drifted from the actions/ source ({source} vs {copy})"
+            f"{mission_type}/{step_id}: mission-steps/ guidelines.md has drifted from the actions/ source ({source} vs {copy})"
         )
 
     def test_plan_has_no_guidelines_to_copy(self) -> None:
@@ -230,10 +207,7 @@ class TestGuidelinesByteIdentical:
                 "the T016 census assumption ('plan has none') is stale; a "
                 "byte-identity copy test should be added for this step"
             )
-            assert not copy.exists(), (
-                f"plan/{step_id}: an uncopied/invented guidelines.md exists at "
-                f"{copy} -- plan has no source to copy from (C-004)"
-            )
+            assert not copy.exists(), f"plan/{step_id}: an uncopied/invented guidelines.md exists at {copy} -- plan has no source to copy from (C-004)"
 
 
 # ---------------------------------------------------------------------------
@@ -245,9 +219,7 @@ class TestDispatchInvariance:
     """``spec-kitty next`` dispatch decisions are unaffected by WP05's step.yaml set."""
 
     @pytest.mark.parametrize("mission_type", sorted(_EXPECTED_ACTION_SEQUENCES))
-    def test_resolved_action_sequence_unchanged(
-        self, mission_type: str, tmp_path: Path
-    ) -> None:
+    def test_resolved_action_sequence_unchanged(self, mission_type: str, tmp_path: Path) -> None:
         """The charter-mediated seam ``spec-kitty next`` reads is unperturbed.
 
         ``resolve_mission_type_context`` is the function the runtime "next"
@@ -263,8 +235,7 @@ class TestDispatchInvariance:
         kittify = tmp_path / ".kittify"
         kittify.mkdir(parents=True, exist_ok=True)
         (kittify / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n  - documentation\n"
-            "  - research\n  - plan\n",
+            "mission_type_activations:\n  - software-dev\n  - documentation\n  - research\n  - plan\n",
             encoding="utf-8",
         )
         bundle = resolve_mission_type_context(tmp_path, mission_type=mission_type)
@@ -285,18 +256,8 @@ class TestDispatchInvariance:
         not wire that path (WP06's scope) -- it must not accidentally trigger
         it either.
         """
-        steps = MissionStepRepository.default().resolve_all_for_mission_type(
-            mission_type, pack_context=None
-        )
+        steps = MissionStepRepository.default().resolve_all_for_mission_type(mission_type, pack_context=None)
         assert steps, f"no steps resolved for {mission_type!r}"
 
-        offenders = {
-            step_id: step.agent_profile
-            for step_id, step in steps.items()
-            if step.agent_profile is not None
-        }
-        assert not offenders, (
-            f"{mission_type}: steps with a non-null agent_profile would "
-            f"activate the composed-action dispatch path prematurely: "
-            f"{offenders}"
-        )
+        offenders = {step_id: step.agent_profile for step_id, step in steps.items() if step.agent_profile is not None}
+        assert not offenders, f"{mission_type}: steps with a non-null agent_profile would activate the composed-action dispatch path prematurely: {offenders}"

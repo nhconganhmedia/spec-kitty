@@ -18,9 +18,7 @@ def run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> subp
     return result
 
 
-def run_python_script(
-    script: Path, args: list[str], *, cwd: Path, env: dict[str, str] | None = None
-) -> subprocess.CompletedProcess:
+def run_python_script(script: Path, args: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
     process_env = os.environ.copy()
     if env:
         process_env.update(env)
@@ -85,18 +83,12 @@ def _seed_canonical_wp_state(
         event_stream.annotations,
     ).work_packages.get(wp_id, {})
     shell_pid_value = int(shell_pid) if shell_pid else None
-    if (
-        runtime_state.get("agent") != actor
-        or runtime_state.get("assignee") != assignee
-        or runtime_state.get("shell_pid") != shell_pid_value
-    ):
+    if runtime_state.get("agent") != actor or runtime_state.get("assignee") != assignee or runtime_state.get("shell_pid") != shell_pid_value:
         append_annotations_atomic_verified(
             feature_dir,
             [
                 InnerStateChanged(
-                    event_id=(
-                        f"01H{len(event_stream.transitions) + len(event_stream.annotations) + 1:023d}"
-                    ),
+                    event_id=(f"01H{len(event_stream.transitions) + len(event_stream.annotations) + 1:023d}"),
                     wp_id=wp_id,
                     at=_event_timestamp(timestamp),
                     actor="test-fixture",

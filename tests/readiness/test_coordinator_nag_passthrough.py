@@ -98,9 +98,7 @@ def test_A_nag_renders_on_stderr_under_allow_with_nag(
 
     assert isinstance(result, ReadinessResult)
     captured = capsys.readouterr()
-    assert expected_nag in captured.err, (
-        f"expected nag on stderr, got stdout={captured.out!r} stderr={captured.err!r}"
-    )
+    assert expected_nag in captured.err, f"expected nag on stderr, got stdout={captured.out!r} stderr={captured.err!r}"
 
 
 def test_B_nag_suppressed_when_json_in_argv(

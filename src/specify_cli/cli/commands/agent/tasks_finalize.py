@@ -99,6 +99,7 @@ class _FinalizeState:
 def _default_finalize_ports() -> TasksPorts:
     """Production port bundle for ``finalize_tasks`` (FsReader read authority)."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     return TasksPorts(
         fs=_tasks.RealFsReader(),
         coord=_tasks.RealCoordCommitRouter(),
@@ -120,6 +121,7 @@ def _ft_resolve_context(st: _FinalizeState, ports: TasksPorts) -> None:
     coord-aware resolver in phase C.
     """
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     repo_root = _tasks.locate_project_root()
     if repo_root is None:
         _tasks._output_error(st.json_output, "Could not locate project root")
@@ -127,16 +129,10 @@ def _ft_resolve_context(st: _FinalizeState, ports: TasksPorts) -> None:
     st.repo_root = repo_root
     # FR-010 / FR-019: one-shot sparse-checkout session warning.
     _tasks._emit_sparse_session_warning(repo_root, command="spec-kitty agent tasks finalize-tasks")
-    st.mission_slug = _tasks._find_mission_slug(
-        explicit_mission=st.mission, json_output=st.json_output, repo_root=repo_root
-    )
-    st.main_repo_root, st.target_branch = _tasks._ensure_target_branch_checked_out(
-        repo_root, st.mission_slug, st.json_output
-    )
+    st.mission_slug = _tasks._find_mission_slug(explicit_mission=st.mission, json_output=st.json_output, repo_root=repo_root)
+    st.main_repo_root, st.target_branch = _tasks._ensure_target_branch_checked_out(repo_root, st.mission_slug, st.json_output)
     handle = MissionHandle(repo_root=st.main_repo_root, mission_slug=st.mission_slug)
-    st.primary_feature_dir = ports.fs.planning_read_dir(
-        handle, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    st.primary_feature_dir = ports.fs.planning_read_dir(handle, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
     # Boundary guard — hard-reject pre-3.0 layout before any WP mutation (#1057)
     try:
         check_pre30_layout(st.primary_feature_dir)
@@ -265,17 +261,14 @@ def _ft_apply_writes(st: _FinalizeState) -> None:
     # ``_tasks.resolve_feature_dir_for_mission`` — the kind-blind resolver's
     # module re-export was retired in the same WP; ``STATUS_STATE`` resolves
     # the SAME coord-aware dir the kind-blind resolver produced for this read).
-    st.feature_dir = placement_seam(st.main_repo_root, st.mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
-    st.bootstrap_result = _tasks.bootstrap_canonical_state(
-        st.feature_dir, st.mission_slug, dry_run=st.validate_only
-    )
+    st.feature_dir = placement_seam(st.main_repo_root, st.mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
+    st.bootstrap_result = _tasks.bootstrap_canonical_state(st.feature_dir, st.mission_slug, dry_run=st.validate_only)
 
 
 def _ft_output(st: _FinalizeState) -> None:
     """Phase D: build the validate-only / success envelope and emit it."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     assert st.update_plan is not None and st.bootstrap_result is not None
     update_plan = st.update_plan
     bootstrap_result = st.bootstrap_result
@@ -336,6 +329,7 @@ def _do_finalize_tasks(
     apply → output.
     """
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     ports = ports or _default_finalize_ports()
     st = _FinalizeState(mission=mission, json_output=json_output, validate_only=validate_only)
     try:

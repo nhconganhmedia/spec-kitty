@@ -140,9 +140,7 @@ def _artifact_id_from_provenance(prov: ProvenanceEntry) -> str | None:
         return None
     prefix, separator, artifact_id = prov.artifact_urn.partition(":")
     if prefix != "directive" or separator != ":" or not artifact_id:
-        raise ValueError(
-            "Directive provenance must carry artifact_urn='directive:<artifact_id>'"
-        )
+        raise ValueError("Directive provenance must carry artifact_urn='directive:<artifact_id>'")
     if artifact_id == "PROJECT_000":
         raise ValueError("Directive provenance must not surface PROJECT_000")
     # cast: charter.* follow_imports=skip collapses prov.artifact_urn to Any,
@@ -178,13 +176,7 @@ def compute_written_artifacts(
         slug = prov.artifact_slug
         artifact_id = _artifact_id_from_provenance(prov)
         filename = artifact_filename(kind, slug, artifact_id)
-        live_path = (
-            repo_root
-            / _KITTIFY_DIRNAME
-            / _DOCTRINE_DIRNAME
-            / doctrine_kind_subdir(kind)
-            / filename
-        )
+        live_path = repo_root / _KITTIFY_DIRNAME / _DOCTRINE_DIRNAME / doctrine_kind_subdir(kind) / filename
         rel_path = live_path.relative_to(repo_root).as_posix()
         entries.append(
             StagedArtifact(
@@ -237,15 +229,11 @@ def _compute_content_hash(yaml_bytes: bytes) -> str:
 # leaves the committed bytes (and their prior timestamps/version) untouched.
 
 # Provenance sidecar fields that change on every run regardless of content.
-_VOLATILE_PROVENANCE_FIELDS: frozenset[str] = frozenset(
-    {"produced_at", "synthesizer_version", "synthesis_run_id", "generated_at"}
-)
+_VOLATILE_PROVENANCE_FIELDS: frozenset[str] = frozenset({"produced_at", "synthesizer_version", "synthesis_run_id", "generated_at"})
 
 # Synthesis manifest fields that change on every run regardless of content.
 # ``manifest_hash`` is derived from the others, so it is volatile too.
-_VOLATILE_MANIFEST_FIELDS: frozenset[str] = frozenset(
-    {"created_at", "run_id", "synthesizer_version", "manifest_hash"}
-)
+_VOLATILE_MANIFEST_FIELDS: frozenset[str] = frozenset({"created_at", "run_id", "synthesizer_version", "manifest_hash"})
 
 # Project graph overlay fields that change when the graph is regenerated even
 # if the project-layer nodes/edges did not.
@@ -269,11 +257,7 @@ def _strip_volatile(text: str, volatile_keys: frozenset[str]) -> str:
     YAML assumptions; charter supplies this projection.
     """
     prefixes = tuple(f"{key}:" for key in volatile_keys)
-    kept = [
-        line
-        for line in text.splitlines()
-        if not (line[:1] not in (" ", "\t", "-") and line.startswith(prefixes))
-    ]
+    kept = [line for line in text.splitlines() if not (line[:1] not in (" ", "\t", "-") and line.startswith(prefixes))]
     return "\n".join(kept)
 
 
@@ -556,9 +540,7 @@ def _replace_one_artifact(
     # produces byte-identical content. Skip the replace when unchanged
     # so the tracked file (and its mtime) is left alone (#1912).
     staged_content = staging_dir.path_for_content(kind, filename)
-    live_content = (
-        repo_root / _KITTIFY_DIRNAME / _DOCTRINE_DIRNAME / _doctrine_kind_subdir(kind) / filename
-    )
+    live_content = repo_root / _KITTIFY_DIRNAME / _DOCTRINE_DIRNAME / _doctrine_kind_subdir(kind) / filename
     if not _substantively_equal(yaml_bytes, live_content, frozenset()):
         guard.replace(staged_content, live_content, caller="write_pipeline.promote[content-replace]")
     # else: unchanged — staged copy is discarded by staging_dir.wipe().
@@ -570,9 +552,7 @@ def _replace_one_artifact(
     # Skip the replace when the sidecar is unchanged modulo those
     # fields so the prior committed timestamp/version survives (#1912).
     staged_prov = staging_dir.path_for_provenance(kind, slug)
-    live_prov = (
-        repo_root / _KITTIFY_DIRNAME / _CHARTER_DIRNAME / _PROVENANCE_DIRNAME / f"{kind}-{slug}.yaml"
-    )
+    live_prov = repo_root / _KITTIFY_DIRNAME / _CHARTER_DIRNAME / _PROVENANCE_DIRNAME / f"{kind}-{slug}.yaml"
     staged_prov_bytes = staged_prov.read_bytes()
     if not _substantively_equal(staged_prov_bytes, live_prov, _VOLATILE_PROVENANCE_FIELDS):
         guard.replace(staged_prov, live_prov, caller="write_pipeline.promote[prov-replace]")
@@ -617,9 +597,7 @@ def _promote_artifacts(
     Extracted from :func:`promote` (S3776) as the caller's single try/except
     boundary around all live-tree replaces.
     """
-    manifest_entries = [
-        _replace_one_artifact(guard, staging_dir, repo_root, body, prov) for body, prov in results
-    ]
+    manifest_entries = [_replace_one_artifact(guard, staging_dir, repo_root, body, prov) for body, prov in results]
     _promote_graph_overlay(guard, staging_dir, repo_root)
     return manifest_entries
 
@@ -772,11 +750,7 @@ def promote(
         ) from exc
 
     # Step 4: manifest last — the authoritative commit marker (KD-2).
-    manifest = (
-        _build_manifest(mission_id, run_id, results, manifest_entries, repo_root)
-        if manifest_override is None
-        else manifest_override
-    )
+    manifest = _build_manifest(mission_id, run_id, results, manifest_entries, repo_root) if manifest_override is None else manifest_override
 
     try:
         written_manifest = _write_manifest_file(guard, repo_root, manifest)

@@ -25,15 +25,11 @@ pytestmark = [pytest.mark.architectural]
 # Load the lint module by file path. The script lives in scripts/ which is
 # not a Python package on PYTHONPATH; importlib lets us treat it as a module
 # without polluting sys.path semantics.
-_SCRIPT_PATH = (
-    Path(__file__).resolve().parents[2] / "scripts" / "lint_canonical_producers.py"
-)
+_SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "lint_canonical_producers.py"
 
 
 def _load_lint_module():
-    spec = importlib.util.spec_from_file_location(
-        "lint_canonical_producers", _SCRIPT_PATH
-    )
+    spec = importlib.util.spec_from_file_location("lint_canonical_producers", _SCRIPT_PATH)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     # Register in sys.modules BEFORE exec_module so that dataclass() (which
@@ -644,8 +640,7 @@ def test_lint_cli_baseline_warns_on_stale_entries(tmp_path: Path) -> None:
     baseline = tmp_path / "baseline.txt"
     # Pre-seed a stale entry pointing at a path that won't be re-found.
     baseline.write_text(
-        "# header\n"
-        f"{tmp_path / 'ghost.py'}::CP001\n",
+        f"# header\n{tmp_path / 'ghost.py'}::CP001\n",
         encoding="utf-8",
     )
     _write(

@@ -117,9 +117,7 @@ def _write_mission(repo_root: Path, layer: str, key: str, body: str) -> Path:
     return file
 
 
-def _isolated_context(
-    repo_root: Path, *, builtin_roots: list[Path] | None = None
-) -> DiscoveryContext:
+def _isolated_context(repo_root: Path, *, builtin_roots: list[Path] | None = None) -> DiscoveryContext:
     """Build a DiscoveryContext that ignores the user's real ~/.kittify."""
     fake_home = repo_root / ".fake-home"
     fake_home.mkdir(exist_ok=True)
@@ -143,9 +141,7 @@ class _FakeRunRef:
 # ---------------------------------------------------------------------------
 
 
-def test_happy_path_returns_zero_and_success_envelope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_happy_path_returns_zero_and_success_envelope(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     _write_mission(repo_root, ".kittify/missions", "erp-integration", _VALID_BODY)
@@ -206,9 +202,7 @@ def test_happy_path_returns_zero_and_success_envelope(
     assert registry.lookup("custom:erp-integration:plan") is not None
 
 
-def test_happy_path_with_no_meta_json_returns_null_mission_id(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_happy_path_with_no_meta_json_returns_null_mission_id(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     _write_mission(repo_root, ".kittify/missions", "erp-integration", _VALID_BODY)
@@ -225,9 +219,7 @@ def test_happy_path_with_no_meta_json_returns_null_mission_id(
     )
 
     ctx = _isolated_context(repo_root)
-    result = run_custom_mission(
-        "erp-integration", "tracked-mission-slug", repo_root, discovery_context=ctx
-    )
+    result = run_custom_mission("erp-integration", "tracked-mission-slug", repo_root, discovery_context=ctx)
     assert result.exit_code == 0
     assert result.envelope["mission_id"] is None
     meta_path = repo_root / "kitty-specs" / "tracked-mission-slug" / "meta.json"
@@ -241,9 +233,7 @@ def test_happy_path_with_no_meta_json_returns_null_mission_id(
 # ---------------------------------------------------------------------------
 
 
-def test_validation_error_returns_two_with_error_envelope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_validation_error_returns_two_with_error_envelope(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     _write_mission(repo_root, ".kittify/missions", "no-retro", _NO_RETRO_BODY)
@@ -286,9 +276,7 @@ def test_unknown_key_returns_two_with_MISSION_KEY_UNKNOWN(
     assert "tiers_searched" in result.envelope["details"]
 
 
-def test_unresolved_contract_ref_returns_two_with_MISSION_CONTRACT_REF_UNRESOLVED(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_unresolved_contract_ref_returns_two_with_MISSION_CONTRACT_REF_UNRESOLVED(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """F-2 regression: a step's ``contract_ref`` that does not resolve in
     the on-disk :class:`MissionStepContractRepository` produces a
     structured ``MISSION_CONTRACT_REF_UNRESOLVED`` envelope (exit 2)
@@ -296,32 +284,24 @@ def test_unresolved_contract_ref_returns_two_with_MISSION_CONTRACT_REF_UNRESOLVE
     """
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
-    file = _write_mission(
-        repo_root, ".kittify/missions", "bad-ref", _BAD_CONTRACT_REF_BODY
-    )
+    file = _write_mission(repo_root, ".kittify/missions", "bad-ref", _BAD_CONTRACT_REF_BODY)
 
     # Seed an empty doctrine project_dir so the repository points at a real
     # location with zero contracts. The shipped (built-in) repository never
     # carries a contract called "nonexistent-id", so the resolution must fail.
-    (repo_root / ".kittify" / "doctrine" / "mission_step_contracts").mkdir(
-        parents=True
-    )
+    (repo_root / ".kittify" / "doctrine" / "mission_step_contracts").mkdir(parents=True)
 
     # If the bridge is invoked, we want the test to fail loudly: the unresolved
     # contract_ref check must short-circuit before ``get_or_start_run`` runs.
     from runtime.next import runtime_bridge
 
     def _should_not_run(**_: object) -> _FakeRunRef:  # pragma: no cover - guard
-        raise AssertionError(
-            "get_or_start_run must not be called when contract_ref is unresolved"
-        )
+        raise AssertionError("get_or_start_run must not be called when contract_ref is unresolved")
 
     monkeypatch.setattr(runtime_bridge, "get_or_start_run", _should_not_run)
 
     ctx = _isolated_context(repo_root)
-    result = run_custom_mission(
-        "bad-ref", "tracked-slug", repo_root, discovery_context=ctx
-    )
+    result = run_custom_mission("bad-ref", "tracked-slug", repo_root, discovery_context=ctx)
 
     assert result.exit_code == 2
     env = result.envelope
@@ -431,9 +411,7 @@ def test_resolve_contract_refs_returns_error_when_org_pack_absent(
 # ---------------------------------------------------------------------------
 
 
-def test_run_start_failure_returns_one_with_RUN_START_FAILED(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_start_failure_returns_one_with_RUN_START_FAILED(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     _write_mission(repo_root, ".kittify/missions", "ok-mission", _VALID_BODY)
@@ -446,9 +424,7 @@ def test_run_start_failure_returns_one_with_RUN_START_FAILED(
     monkeypatch.setattr(runtime_bridge, "get_or_start_run", _boom)
 
     ctx = _isolated_context(repo_root)
-    result = run_custom_mission(
-        "ok-mission", "tracked-slug", repo_root, discovery_context=ctx
-    )
+    result = run_custom_mission("ok-mission", "tracked-slug", repo_root, discovery_context=ctx)
     assert result.exit_code == 1
     env = result.envelope
     assert env["result"] == "error"
@@ -469,9 +445,7 @@ def test_run_start_failure_returns_one_with_RUN_START_FAILED(
 # ---------------------------------------------------------------------------
 
 
-def test_warnings_pass_through_on_success(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_warnings_pass_through_on_success(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Two tiers define the same key; the higher tier wins and a shadow
     warning surfaces in the success envelope."""
     repo_root = tmp_path / "repo"
@@ -492,9 +466,7 @@ def test_warnings_pass_through_on_success(
     )
 
     ctx = _isolated_context(repo_root)
-    result = run_custom_mission(
-        "shadowy", "tracked-slug", repo_root, discovery_context=ctx
-    )
+    result = run_custom_mission("shadowy", "tracked-slug", repo_root, discovery_context=ctx)
     assert result.exit_code == 0
     warnings = result.envelope["warnings"]
     assert len(warnings) == 1
@@ -565,9 +537,7 @@ def test_render_envelope_human_format_error() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_default_discovery_context_is_built_when_none_supplied(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_default_discovery_context_is_built_when_none_supplied(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """When ``discovery_context`` is not provided we fall back to the
     repo-root-derived context. Exercises the `_build_discovery_context`
     helper without requiring a real built-in tree."""
@@ -596,9 +566,7 @@ def test_default_discovery_context_is_built_when_none_supplied(
     assert result.envelope["mission_key"] == "ok-mission"
 
 
-def test_org_tier_mission_discovered_via_third_wiring_site(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_org_tier_mission_discovered_via_third_wiring_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """DEC-006 / User Story 3 Acceptance Scenario 4: this module's own,
     independently-duplicated `_build_discovery_context` (the "third wiring
     site" the originating research missed) populates `org_roots` and
@@ -621,11 +589,7 @@ def test_org_tier_mission_discovered_via_third_wiring_site(
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True)
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: acme\n"
-        f"        local_path: {org_root}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: acme\n        local_path: {org_root}\n",
         encoding="utf-8",
     )
 
@@ -680,9 +644,7 @@ def test_build_discovery_context_malformed_config_emits_no_warning_stream(
     repo_root = tmp_path / "repo"
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True)
-    (config_dir / "config.yaml").write_text(
-        "not: [valid, doctrine.org.packs shape\n", encoding="utf-8"
-    )
+    (config_dir / "config.yaml").write_text("not: [valid, doctrine.org.packs shape\n", encoding="utf-8")
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -712,13 +674,7 @@ def test_build_discovery_context_declared_but_broken_org_pack_still_warns(
     acme_one = tmp_path / "acme-one"
     acme_two = tmp_path / "acme-two"
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: acme\n"
-        f"        local_path: {acme_one}\n"
-        "      - name: acme\n"
-        f"        local_path: {acme_two}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: acme\n        local_path: {acme_one}\n      - name: acme\n        local_path: {acme_two}\n",
         encoding="utf-8",
     )
 

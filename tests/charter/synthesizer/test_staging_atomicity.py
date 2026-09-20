@@ -178,6 +178,7 @@ def test_promote_validation_failure_no_files_in_live_tree(tmp_path: Path) -> Non
     """Validation callback raising → no files promoted to live tree; staging → .failed/."""
     repo = _make_repo_root(tmp_path)
     from charter.activation.synthesizer.request import SynthesisTarget
+
     target = SynthesisTarget(
         kind="tactic",
         slug="my-tactic",
@@ -334,6 +335,7 @@ def test_schema_failure_no_files_in_live_tree(tmp_path: Path) -> None:
 
 def _make_target(kind: str = "tactic", slug: str = "my-tactic") -> object:
     from charter.activation.synthesizer.request import SynthesisTarget
+
     return SynthesisTarget(
         kind=kind,
         slug=slug,
@@ -345,6 +347,7 @@ def _make_target(kind: str = "tactic", slug: str = "my-tactic") -> object:
 
 def _fake_request(target: object, run_id: str) -> object:
     from charter.activation.synthesizer.request import SynthesisRequest
+
     return SynthesisRequest(
         target=target,
         interview_snapshot={},

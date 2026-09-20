@@ -39,9 +39,24 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 #: check does not degenerate into an echo of a single implementer's wording.
 _DIRECTIVE_VERBS: frozenset[str] = frozenset(
     {
-        "route", "add", "wire", "delete", "convert", "annotate", "run", "use",
-        "invoke", "call", "rename", "move", "replace", "regenerate", "freeze",
-        "remove", "fix", "rewrite",
+        "route",
+        "add",
+        "wire",
+        "delete",
+        "convert",
+        "annotate",
+        "run",
+        "use",
+        "invoke",
+        "call",
+        "rename",
+        "move",
+        "replace",
+        "regenerate",
+        "freeze",
+        "remove",
+        "fix",
+        "rewrite",
     }
 )
 
@@ -55,9 +70,7 @@ _FILE_LINE_RE = re.compile(r"[\w./-]+\.py:\d+")
 #: A blanket "add the whole file to the allow-list" escape -- forbidden
 #: because it excuses every future finding in that file, not just the one
 #: being fixed (paula SF-2 / NFR-003).
-_WHOLE_FILE_ALLOWLIST_RE = re.compile(
-    r"add\s+(?:the\s+)?(?:whole\s+)?file\b.{0,120}?allow-?list", re.IGNORECASE | re.DOTALL
-)
+_WHOLE_FILE_ALLOWLIST_RE = re.compile(r"add\s+(?:the\s+)?(?:whole\s+)?file\b.{0,120}?allow-?list", re.IGNORECASE | re.DOTALL)
 
 
 def _has_directive_verb(text: str) -> bool:
@@ -84,22 +97,15 @@ def test_property_check_flags_a_message_with_no_directive_verb() -> None:
 
 
 def test_property_check_flags_a_file_line_locator() -> None:
-    assert not _is_content_anchored_remedy(
-        "Route through the resolver -- see scripts/docs/fixer.py:123 for details."
-    )
+    assert not _is_content_anchored_remedy("Route through the resolver -- see scripts/docs/fixer.py:123 for details.")
 
 
 def test_property_check_flags_a_whole_file_allowlist_escape() -> None:
-    assert not _is_content_anchored_remedy(
-        "Add the whole file scripts/docs/fixer.py to the allow-list."
-    )
+    assert not _is_content_anchored_remedy("Add the whole file scripts/docs/fixer.py to the allow-list.")
 
 
 def test_property_check_accepts_a_well_formed_remedy() -> None:
-    assert _is_content_anchored_remedy(
-        "Route the offender through the resolver, or add a rationale-carrying "
-        "allow-list entry."
-    )
+    assert _is_content_anchored_remedy("Route the offender through the resolver, or add a rationale-carrying allow-list entry.")
 
 
 # --------------------------------------------------------------------------- #
@@ -119,13 +125,7 @@ def _literal_text_segments(node: ast.AST) -> list[str]:
         if isinstance(n, ast.Constant) and isinstance(n.value, str):
             segments.append(n.value)
         elif isinstance(n, ast.JoinedStr):
-            segments.append(
-                "".join(
-                    part.value
-                    for part in n.values
-                    if isinstance(part, ast.Constant) and isinstance(part.value, str)
-                )
-            )
+            segments.append("".join(part.value for part in n.values if isinstance(part, ast.Constant) and isinstance(part.value, str)))
     return segments
 
 
@@ -137,11 +137,7 @@ def _function_literal_text(source: str, qualname: str) -> str:
     deleted) must fail loudly, not silently scan nothing.
     """
     tree = ast.parse(source)
-    matches = [
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == qualname
-    ]
+    matches = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == qualname]
     assert matches, f"no function/method named {qualname!r} found in source"
     segments: list[str] = []
     for match in matches:

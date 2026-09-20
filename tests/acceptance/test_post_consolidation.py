@@ -101,9 +101,7 @@ def _reload(feature_dir: Path) -> AcceptanceMatrix:
 
 
 def _run(tree: Path, feature_dir: Path, *, ref: str = CONSOLIDATION_REF) -> PostConsolidationResult:
-    return verify_deferred_invariants(
-        tree, feature_dir, consolidation_ref=ref, mission_slug=MISSION_SLUG
-    )
+    return verify_deferred_invariants(tree, feature_dir, consolidation_ref=ref, mission_slug=MISSION_SLUG)
 
 
 # ---------------------------------------------------------------------------
@@ -243,9 +241,7 @@ def test_terminal_invariant_preserved_verbatim(tmp_path: Path) -> None:
     result = _run(tree, feature_dir)
 
     persisted = _reload(feature_dir)
-    kept = next(
-        ni for ni in persisted.negative_invariants if ni.invariant_id == "NI-already-recorded"
-    )
+    kept = next(ni for ni in persisted.negative_invariants if ni.invariant_id == "NI-already-recorded")
     assert kept.result == "confirmed_absent"
     assert kept.verified_surface_kind == TopologySurface.PRIMARY.value
     assert kept.verified_ref == ALT_REF
@@ -256,9 +252,7 @@ def test_terminal_invariant_preserved_verbatim(tmp_path: Path) -> None:
 def test_unjudgeable_deferred_left_intact(tmp_path: Path) -> None:
     """An unknown method that cannot resolve stays deferred rather than demoting to pending."""
     tree = _consolidated_tree(tmp_path, marker_present=False)
-    unjudgeable = replace(
-        _deferred_invariant(), verification_method="unknown_method", verification_command=None
-    )
+    unjudgeable = replace(_deferred_invariant(), verification_method="unknown_method", verification_command=None)
     feature_dir = _write_matrix(tree, [unjudgeable])
 
     result = _run(tree, feature_dir)
@@ -310,13 +304,5 @@ def test_module_has_zero_merge_or_rollback_coupling() -> None:
     # false-positive on the docstring, which deliberately explains WHY there is no
     # call-in from merge/executor.py). No imported module may reach the
     # consolidation transaction or its rollback machinery.
-    forbidden = [
-        name
-        for name in imported
-        for part in name.split(".")
-        if part in {"merge", "executor", "rollback"}
-    ]
-    assert forbidden == [], (
-        f"post_consolidation must stay file-disjoint from the consolidation "
-        f"transaction — offending imports: {forbidden}"
-    )
+    forbidden = [name for name in imported for part in name.split(".") if part in {"merge", "executor", "rollback"}]
+    assert forbidden == [], f"post_consolidation must stay file-disjoint from the consolidation transaction — offending imports: {forbidden}"

@@ -79,9 +79,7 @@ def _disable_saas_sync_for_e2e_tests(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 _WATCHED_ROOTS: tuple[str, ...] = ("kitty-specs", ".kittify", ".worktrees", "docs")
-_SOURCE_POLLUTION_SELF_BOOKKEEPING = frozenset(
-    {".kittify/encoding-provenance/global.jsonl"}
-)
+_SOURCE_POLLUTION_SELF_BOOKKEEPING = frozenset({".kittify/encoding-provenance/global.jsonl"})
 
 
 @dataclass(frozen=True)
@@ -145,14 +143,8 @@ def capture_source_pollution_baseline(repo_root: Path) -> SourcePollutionBaselin
     inventory: dict[str, dict[str, tuple[int, int]]] = {}
     for root_name in _WATCHED_ROOTS:
         root = repo_root / root_name
-        excluded = frozenset(
-            path.removeprefix(f"{root_name}/")
-            for path in _SOURCE_POLLUTION_SELF_BOOKKEEPING
-            if path.startswith(f"{root_name}/")
-        )
-        inventory[root_name] = (
-            _walk_inventory(root, excluded=excluded) if root.exists() else {}
-        )
+        excluded = frozenset(path.removeprefix(f"{root_name}/") for path in _SOURCE_POLLUTION_SELF_BOOKKEEPING if path.startswith(f"{root_name}/"))
+        inventory[root_name] = _walk_inventory(root, excluded=excluded) if root.exists() else {}
 
     # Aggregate every `kitty-ops` directory anywhere under repo_root.
     pi_inventory: dict[str, tuple[int, int]] = {}

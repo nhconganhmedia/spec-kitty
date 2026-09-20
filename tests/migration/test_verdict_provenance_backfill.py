@@ -183,11 +183,19 @@ class TestTerminalVerdictDiscovery:
     def test_terminal_is_highest_cycle_number(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP02", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP02",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="multi-cycle",
         )
         _write_review_cycle(
-            feature_dir, "WP02", cycle_number=2, verdict="approved", reviewed_at=APPROVED_AT,
+            feature_dir,
+            "WP02",
+            cycle_number=2,
+            verdict="approved",
+            reviewed_at=APPROVED_AT,
             wp_slug="multi-cycle",
         )
 
@@ -226,7 +234,11 @@ class TestIdempotentBackfill:
     def test_rerun_appends_nothing(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="idempotent",
         )
 
@@ -244,7 +256,11 @@ class TestIdempotentBackfill:
     def test_deterministic_event_id_is_stable_across_runs(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="approved", reviewed_at=APPROVED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="approved",
+            reviewed_at=APPROVED_AT,
             wp_slug="deterministic",
         )
         backfill_verdict_provenance(feature_dir)
@@ -259,7 +275,11 @@ class TestIdempotentBackfill:
         rejection event on top of it (T007 supersession guard)."""
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="lane-only-approval",
         )
         _append_real_event(
@@ -285,12 +305,14 @@ class TestIdempotentBackfill:
 
 
 class TestReducerOrdering:
-    def test_historical_rejection_then_later_real_approval_resolves_approved(
-        self, tmp_path: Path
-    ) -> None:
+    def test_historical_rejection_then_later_real_approval_resolves_approved(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="rejection-then-approval",
         )
         backfill_verdict_provenance(feature_dir)
@@ -302,9 +324,7 @@ class TestReducerOrdering:
             from_lane=Lane.IN_REVIEW,
             to_lane=Lane.APPROVED,
             at=APPROVED_AT,
-            review_result=ReviewResult(
-                reviewer="reviewer-renata", verdict="approved", reference="approval:WP01"
-            ),
+            review_result=ReviewResult(reviewer="reviewer-renata", verdict="approved", reference="approval:WP01"),
             event_id="01ARZ3NDEKTSV4RRFFQ69G5FAW",
         )
 
@@ -316,7 +336,11 @@ class TestReducerOrdering:
     def test_later_rejection_wins_over_earlier_approval(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="approved", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="approved",
+            reviewed_at=REJECTED_AT,
             wp_slug="approval-then-rejection",
         )
         backfill_verdict_provenance(feature_dir)
@@ -357,9 +381,7 @@ class TestReducerOrdering:
             from_lane=Lane.IN_REVIEW,
             to_lane=Lane.APPROVED,
             at=APPROVED_AT,
-            review_result=ReviewResult(
-                reviewer="reviewer-renata", verdict="approved", reference="approval:WP01"
-            ),
+            review_result=ReviewResult(reviewer="reviewer-renata", verdict="approved", reference="approval:WP01"),
             event_id="01ARZ3NDEKTSV4RRFFQ69G5FAY",
         )
         # A hand-built rejection event using a now()-like `at` -- the exact
@@ -395,14 +417,16 @@ class TestStrandedVerdictFindings:
     def test_nonzero_before_zero_after_backfill(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="stranded",
         )
 
         before = stranded_verdict_findings(feature_dir)
-        assert before == [
-            ProvenanceFinding(wp_id="WP01", has_md_verdict=True, has_event_slot=False)
-        ]
+        assert before == [ProvenanceFinding(wp_id="WP01", has_md_verdict=True, has_event_slot=False)]
 
         backfill_verdict_provenance(feature_dir)
 
@@ -416,24 +440,34 @@ class TestStrandedVerdictFindings:
     def test_multiple_wps_only_stranded_ones_reported(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="stranded",
         )
         _write_review_cycle(
-            feature_dir, "WP02", cycle_number=1, verdict="approved", reviewed_at=APPROVED_AT,
+            feature_dir,
+            "WP02",
+            cycle_number=1,
+            verdict="approved",
+            reviewed_at=APPROVED_AT,
             wp_slug="also-migrated",
         )
         backfill_verdict_provenance(feature_dir)  # migrates both
 
         _write_review_cycle(
-            feature_dir, "WP03", cycle_number=1, verdict="rejected", reviewed_at=REJECTED_AT,
+            feature_dir,
+            "WP03",
+            cycle_number=1,
+            verdict="rejected",
+            reviewed_at=REJECTED_AT,
             wp_slug="freshly-stranded",
         )
 
         findings = stranded_verdict_findings(feature_dir)
-        assert findings == [
-            ProvenanceFinding(wp_id="WP03", has_md_verdict=True, has_event_slot=False)
-        ]
+        assert findings == [ProvenanceFinding(wp_id="WP03", has_md_verdict=True, has_event_slot=False)]
 
 
 # ---------------------------------------------------------------------------
@@ -444,11 +478,13 @@ class TestStrandedVerdictFindings:
 class TestMissionIdPropagation:
     def test_mission_id_read_from_meta_json(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
-        (feature_dir / "meta.json").write_text(
-            json.dumps({"mission_id": "01JMISSIONULID0000000000AA"}), encoding="utf-8"
-        )
+        (feature_dir / "meta.json").write_text(json.dumps({"mission_id": "01JMISSIONULID0000000000AA"}), encoding="utf-8")
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="approved", reviewed_at=APPROVED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="approved",
+            reviewed_at=APPROVED_AT,
             wp_slug="with-mission-id",
         )
 
@@ -459,7 +495,11 @@ class TestMissionIdPropagation:
     def test_missing_meta_json_yields_none_mission_id(self, tmp_path: Path) -> None:
         feature_dir = _make_feature_dir(tmp_path)
         _write_review_cycle(
-            feature_dir, "WP01", cycle_number=1, verdict="approved", reviewed_at=APPROVED_AT,
+            feature_dir,
+            "WP01",
+            cycle_number=1,
+            verdict="approved",
+            reviewed_at=APPROVED_AT,
             wp_slug="no-meta",
         )
         backfill_verdict_provenance(feature_dir)

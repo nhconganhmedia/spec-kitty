@@ -1,4 +1,5 @@
 """Corpus loader for charter synthesis evidence."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,7 +14,6 @@ from kernel.clock import now_utc_iso
 __all__ = [
     "CorpusLoader",
 ]
-
 
 
 class CorpusLoaderError(Exception):

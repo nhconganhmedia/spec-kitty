@@ -72,16 +72,11 @@ def read_project_version(pyproject_path: Path | str) -> str:
 
     project = data.get("project")
     if not isinstance(project, dict) or "version" not in project:
-        raise ProjectVersionError(
-            f"{path} has no [project].version (dynamic or missing); "
-            "sonar.projectVersion cannot be derived"
-        )
+        raise ProjectVersionError(f"{path} has no [project].version (dynamic or missing); sonar.projectVersion cannot be derived")
 
     version = project["version"]
     if not isinstance(version, str) or not version.strip():
-        raise ProjectVersionError(
-            f"{path} [project].version must be a non-empty string, got {version!r}"
-        )
+        raise ProjectVersionError(f"{path} [project].version must be a non-empty string, got {version!r}")
     return version
 
 

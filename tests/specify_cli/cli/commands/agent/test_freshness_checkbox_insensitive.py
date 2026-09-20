@@ -80,17 +80,13 @@ class TestWritePathCheckboxInsensitivity:
         feature_dir = repo_root / "kitty-specs" / "sample-01KWCX"
 
         _write_required_artifacts(feature_dir, _TASKS_MD_UNCHECKED)
-        baseline = write_analysis_report(
-            feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-        )
+        baseline = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
         baseline_hash = baseline.input_artifacts["tasks.md"]["sha256"]
         assert baseline_hash is not None
 
         # Simulate a dashboard progress tick: [ ] -> [x], no other edit.
         (feature_dir / "tasks.md").write_text(_TASKS_MD_ONE_CHECKED, encoding="utf-8")
-        flipped = write_analysis_report(
-            feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-        )
+        flipped = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
         flipped_hash = flipped.input_artifacts["tasks.md"]["sha256"]
 
         assert flipped_hash == baseline_hash
@@ -102,17 +98,11 @@ class TestWritePathCheckboxInsensitivity:
         feature_dir = repo_root / "kitty-specs" / "sample-01KWCY"
 
         _write_required_artifacts(feature_dir, _TASKS_MD_UNCHECKED)
-        baseline = write_analysis_report(
-            feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-        )
+        baseline = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
         baseline_hash = baseline.input_artifacts["tasks.md"]["sha256"]
 
-        (feature_dir / "tasks.md").write_text(
-            _TASKS_MD_SUBSTANTIVE_CHANGE, encoding="utf-8"
-        )
-        changed = write_analysis_report(
-            feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-        )
+        (feature_dir / "tasks.md").write_text(_TASKS_MD_SUBSTANTIVE_CHANGE, encoding="utf-8")
+        changed = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
         changed_hash = changed.input_artifacts["tasks.md"]["sha256"]
 
         assert changed_hash != baseline_hash
@@ -128,9 +118,7 @@ class TestGateCheckPathCheckboxInsensitivity:
         feature_dir = repo_root / "kitty-specs" / "sample-01KWCZ"
 
         _write_required_artifacts(feature_dir, _TASKS_MD_UNCHECKED)
-        write_analysis_report(
-            feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-        )
+        write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
         assert check_analysis_report_current(feature_dir, repo_root).ok is True
 
         # A tick on the dashboard (mark-status / move-task) flips a checkbox.
@@ -148,14 +136,10 @@ class TestGateCheckPathCheckboxInsensitivity:
         feature_dir = repo_root / "kitty-specs" / "sample-01KWD0"
 
         _write_required_artifacts(feature_dir, _TASKS_MD_UNCHECKED)
-        write_analysis_report(
-            feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-        )
+        write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
         assert check_analysis_report_current(feature_dir, repo_root).ok is True
 
-        (feature_dir / "tasks.md").write_text(
-            _TASKS_MD_SUBSTANTIVE_CHANGE, encoding="utf-8"
-        )
+        (feature_dir / "tasks.md").write_text(_TASKS_MD_SUBSTANTIVE_CHANGE, encoding="utf-8")
 
         freshness = check_analysis_report_current(feature_dir, repo_root)
         assert freshness.ok is False
@@ -174,13 +158,9 @@ def test_persisted_report_frontmatter_hash_matches_direct_collector(
     feature_dir = repo_root / "kitty-specs" / "sample-01KWD1"
     _write_required_artifacts(feature_dir, _TASKS_MD_ONE_CHECKED)
 
-    result = write_analysis_report(
-        feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n"
-    )
+    result = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
 
-    frontmatter, _body = FrontmatterManager().read(
-        feature_dir / "analysis-report.md"
-    )
+    frontmatter, _body = FrontmatterManager().read(feature_dir / "analysis-report.md")
     persisted_hash = frontmatter["input_artifacts"]["tasks.md"]["sha256"]
     direct_hash = _tasks_md_hash(feature_dir, repo_root)
 

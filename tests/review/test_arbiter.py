@@ -390,13 +390,7 @@ def test_persist_decision_survives_conflict_marked_review_cycle_artifact(
     wp_subdir.mkdir(parents=True, exist_ok=True)
     artifact = wp_subdir / "review-cycle-1.md"
     artifact.write_text(
-        "<<<<<<< ours\n"
-        "cycle_number: 1\n"
-        "mission_slug: 066-test\n"
-        "=======\n"
-        "cycle_number: 1\n"
-        "mission_slug: 066-test-renamed\n"
-        ">>>>>>> theirs\n",
+        "<<<<<<< ours\ncycle_number: 1\nmission_slug: 066-test\n=======\ncycle_number: 1\nmission_slug: 066-test-renamed\n>>>>>>> theirs\n",
         encoding="utf-8",
     )
 
@@ -635,8 +629,7 @@ def test_is_arbiter_override_no_events_for_wp(tmp_path: Path) -> None:
     # Write an event for a *different* WP
     _write_event(
         feature_dir,
-        _make_event(wp_id="WP02", from_lane=Lane.FOR_REVIEW, to_lane=Lane.PLANNED,
-                    review_ref="feedback://066-test/WP02/20260406T120000Z-abc123.md"),
+        _make_event(wp_id="WP02", from_lane=Lane.FOR_REVIEW, to_lane=Lane.PLANNED, review_ref="feedback://066-test/WP02/20260406T120000Z-abc123.md"),
     )
 
     result = _is_arbiter_override(

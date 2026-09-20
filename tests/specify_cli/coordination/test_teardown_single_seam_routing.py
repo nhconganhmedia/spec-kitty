@@ -73,8 +73,7 @@ def test_seam_file_exists_and_calls_the_primitive() -> None:
     """The seam file exists and is the one place that calls the primitive."""
     assert _SEAM_FILE.exists(), f"teardown seam missing at {_SEAM_FILE}"
     assert _TEARDOWN_CALL.search(_SEAM_FILE.read_text(encoding="utf-8")), (
-        "the seam file must invoke CoordinationWorkspace.teardown( — it is the "
-        "single production home for the destroy primitive"
+        "the seam file must invoke CoordinationWorkspace.teardown( — it is the single production home for the destroy primitive"
     )
 
 
@@ -96,19 +95,9 @@ def test_zero_production_teardown_calls_outside_the_seam() -> None:
 
 def test_former_production_sites_route_through_the_seam() -> None:
     """The three former production sites import the seam, not the primitive call."""
-    merge_py = (_REPO_ROOT / "src" / "specify_cli" / "cli" / "commands" / "merge.py").read_text(
-        encoding="utf-8"
-    )
-    mission_type_py = (
-        _REPO_ROOT / "src" / "specify_cli" / "cli" / "commands" / "mission_type.py"
-    ).read_text(encoding="utf-8")
+    merge_py = (_REPO_ROOT / "src" / "specify_cli" / "cli" / "commands" / "merge.py").read_text(encoding="utf-8")
+    mission_type_py = (_REPO_ROOT / "src" / "specify_cli" / "cli" / "commands" / "mission_type.py").read_text(encoding="utf-8")
 
     for name, text in (("merge.py", merge_py), ("mission_type.py", mission_type_py)):
-        assert "teardown_coordination_topology" in text, (
-            f"{name} must route coordination teardown through the shared seam "
-            "teardown_coordination_topology"
-        )
-        assert not _TEARDOWN_CALL.search(text), (
-            f"{name} must NOT call CoordinationWorkspace.teardown( directly — "
-            "route it through the seam"
-        )
+        assert "teardown_coordination_topology" in text, f"{name} must route coordination teardown through the shared seam teardown_coordination_topology"
+        assert not _TEARDOWN_CALL.search(text), f"{name} must NOT call CoordinationWorkspace.teardown( directly — route it through the seam"

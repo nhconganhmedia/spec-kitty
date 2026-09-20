@@ -153,9 +153,7 @@ def test_show_kanban_status_reports_rejected_artifact_under_wp_slug_dir(
     result = show_kanban_status(mission_slug)
 
     assert "error" not in result
-    assert result["stale_verdicts"] == [
-        {"wp_id": "WP01", "artifact": "review artifact: verdict=rejected"}
-    ]
+    assert result["stale_verdicts"] == [{"wp_id": "WP01", "artifact": "review artifact: verdict=rejected"}]
 
 
 def test_show_kanban_status_reports_stalled_in_review_wp(
@@ -191,9 +189,7 @@ def test_show_kanban_status_reports_stalled_in_review_wp(
     result = show_kanban_status(mission_slug)
 
     assert "error" not in result
-    assert result["stalled_wps"] == [
-        {"wp_id": "WP01", "age_minutes": 45, "mission_slug": mission_slug}
-    ]
+    assert result["stalled_wps"] == [{"wp_id": "WP01", "age_minutes": 45, "mission_slug": mission_slug}]
 
 
 def test_show_kanban_status_excludes_every_non_display_lane_wp(
@@ -254,7 +250,4 @@ def test_show_kanban_status_excludes_every_non_display_lane_wp(
     assert "error" not in result
     assert result["total_wps"] == 1
     assert result["planned_count"] == 1
-    assert (
-        result["planned_count"] + result["in_progress_count"] + result["done_count"]
-        == 1
-    )
+    assert result["planned_count"] + result["in_progress_count"] + result["done_count"] == 1

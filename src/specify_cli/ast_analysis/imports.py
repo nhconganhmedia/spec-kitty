@@ -91,9 +91,7 @@ def extract_static_all(tree: ast.Module) -> frozenset[str] | None:
     """
     for node in tree.body:
         value: ast.expr | None = None
-        if isinstance(node, ast.Assign) and any(
-            isinstance(t, ast.Name) and t.id == "__all__" for t in node.targets
-        ):
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "__all__" for t in node.targets):
             value = node.value
         elif isinstance(node, ast.AnnAssign):
             tgt = node.target
@@ -144,18 +142,13 @@ def import_binds_name(node: ast.Import | ast.ImportFrom, name: str) -> bool:
     ``"pkg.sub"``.
     """
     if isinstance(node, ast.Import):
-        return any(
-            (alias.asname or alias.name.split(".")[0]) == name for alias in node.names
-        )
+        return any((alias.asname or alias.name.split(".")[0]) == name for alias in node.names)
     return any(alias.name == name or alias.asname == name for alias in node.names)
 
 
 def _targets_dunder_all(node: ast.Assign) -> bool:
     """Return True when *node* assigns to a module-level ``__all__`` name."""
-    return any(
-        isinstance(target, ast.Name) and target.id == "__all__"
-        for target in node.targets
-    )
+    return any(isinstance(target, ast.Name) and target.id == "__all__" for target in node.targets)
 
 
 def assignment_lists_dunder_all(node: ast.Assign, name: str) -> bool:
@@ -174,6 +167,4 @@ def assignment_lists_dunder_all(node: ast.Assign, name: str) -> bool:
         return False
     if not isinstance(node.value, (ast.List, ast.Tuple, ast.Set)):
         return False
-    return any(
-        isinstance(elt, ast.Constant) and elt.value == name for elt in node.value.elts
-    )
+    return any(isinstance(elt, ast.Constant) and elt.value == name for elt in node.value.elts)

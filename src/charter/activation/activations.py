@@ -96,9 +96,7 @@ __all__ = [
 #: (charter -> doctrine) and cycle-free (doctrine never imports charter).
 #: Mirrors the expected vocabulary pinned in
 #: ``tests/architectural/test_activation_registry_schema.py``.
-ALLOWED_MISSION_TYPES: frozenset[str] = frozenset(
-    builtin_mission_type_id_set() | {"any", "generic"}
-)
+ALLOWED_MISSION_TYPES: frozenset[str] = frozenset(builtin_mission_type_id_set() | {"any", "generic"})
 
 
 #: 10-token operator-side closed vocabulary for ``activation_context.action``.
@@ -249,10 +247,7 @@ class ActivationEntry(BaseModel):
         # closed set; typos raise.
         mission_type = value.get("mission_type")
         if mission_type is not None and mission_type not in ALLOWED_MISSION_TYPES:
-            raise ValueError(
-                f"activation_context.mission_type={mission_type!r} is not in "
-                f"ALLOWED_MISSION_TYPES={sorted(ALLOWED_MISSION_TYPES)}"
-            )
+            raise ValueError(f"activation_context.mission_type={mission_type!r} is not in ALLOWED_MISSION_TYPES={sorted(ALLOWED_MISSION_TYPES)}")
         # Per data-model.md §7 the operator-side action vocabulary for
         # ``activation_context.action`` is the FULL ``REGISTERED_TRIGGERS``
         # set (10 mission-type/charter-loop verbs + 4 fine-grained
@@ -264,11 +259,7 @@ class ActivationEntry(BaseModel):
         # top so an operator can write ``action: any`` for "every
         # action".
         action = value.get("action")
-        if (
-            action is not None
-            and action not in REGISTERED_TRIGGERS
-            and action not in _ACTION_WILDCARDS
-        ):
+        if action is not None and action not in REGISTERED_TRIGGERS and action not in _ACTION_WILDCARDS:
             raise ValueError(
                 f"activation_context.action={action!r} is not in "
                 f"REGISTERED_TRIGGERS={sorted(REGISTERED_TRIGGERS)} "
@@ -362,23 +353,13 @@ def resolve_for_context(
     """
 
     def _mission_type_matches(declared: str | None, current: str) -> bool:
-        return (
-            declared is None
-            or declared in ("generic", "any")
-            or declared == current
-        )
+        return declared is None or declared in ("generic", "any") or declared == current
 
     def _action_matches(declared: str | None, current: str) -> bool:
-        return (
-            declared is None
-            or declared in ("generic", "any")
-            or declared == current
-            or declared in _FINE_GRAINED_TRIGGERS
-        )
+        return declared is None or declared in ("generic", "any") or declared == current or declared in _FINE_GRAINED_TRIGGERS
 
     return [
         entry
         for entry in entries
-        if _mission_type_matches(entry.activation_context.get("mission_type"), mission_type)
-        and _action_matches(entry.activation_context.get("action"), action)
+        if _mission_type_matches(entry.activation_context.get("mission_type"), mission_type) and _action_matches(entry.activation_context.get("action"), action)
     ]

@@ -160,9 +160,7 @@ def run_custom_mission(
     # ``_ensure_feature_metadata``, a ``meta.json``-adjacent read.
     # PRIMARY_METADATA is PRIMARY-partition, so resolution is behavior-
     # identical to the prior resolver; no fail-loud arm is reachable here.
-    feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     _ensure_feature_metadata(feature_dir, mission_key)
 
     return RunCustomMissionResult(
@@ -205,9 +203,7 @@ def _build_discovery_context(repo_root: Path) -> DiscoveryContext:
     UserWarning per call (see load_pack_registry's docstring). A genuinely
     declared-but-broken org pack still raises a loud UserWarning regardless.
     """
-    package_missions = (
-        Path(runtime_bridge.__file__).resolve().parent.parent / "missions"
-    )
+    package_missions = Path(runtime_bridge.__file__).resolve().parent.parent / "missions"
 
     from charter.drg import resolve_org_roots  # lazy, mirrors the resolve_org_dirs pattern below
 
@@ -253,20 +249,13 @@ def _resolve_contract_refs(
             continue
         if repository is None:
             repository = MissionStepContractRepository(
-                project_dir=repo_root
-                / ".kittify"
-                / "doctrine"
-                / "mission_step_contracts",
+                project_dir=repo_root / ".kittify" / "doctrine" / "mission_step_contracts",
                 org_dirs=resolve_org_dirs(repo_root, "mission_step_contracts"),
             )
         if repository.get(step.contract_ref) is None:
             return LoaderError(
                 code=LoaderErrorCode.MISSION_CONTRACT_REF_UNRESOLVED,
-                message=(
-                    f"Step {step.id!r} references contract "
-                    f"{step.contract_ref!r}, which is not present in the "
-                    f"on-disk MissionStepContractRepository."
-                ),
+                message=(f"Step {step.id!r} references contract {step.contract_ref!r}, which is not present in the on-disk MissionStepContractRepository."),
                 details={
                     "file": source_path,
                     "mission_key": mission_key,

@@ -73,7 +73,6 @@ app = typer.Typer(
 )
 
 
-
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
@@ -130,30 +129,32 @@ def _resolve_handle(
     except MissionNotFoundError as exc:
         if json_output:
             _console.print_json(
-                json.dumps({
-                    "result": "blocked",
-                    "code": "MISSION_NOT_FOUND",
-                    "blocked_reason": f"No mission found for handle {exc.handle!r}.",
-                    "exit_code": 1,
-                })
+                json.dumps(
+                    {
+                        "result": "blocked",
+                        "code": "MISSION_NOT_FOUND",
+                        "blocked_reason": f"No mission found for handle {exc.handle!r}.",
+                        "exit_code": 1,
+                    }
+                )
             )
         else:
             _err_console.print(
-                f"[red]Error MISSION_NOT_FOUND:[/red] "
-                f"No mission found for handle {handle!r}. "
-                "Check the mission handle or run `spec-kitty agent mission list`."
+                f"[red]Error MISSION_NOT_FOUND:[/red] No mission found for handle {handle!r}. Check the mission handle or run `spec-kitty agent mission list`."
             )
         raise typer.Exit(1) from exc
     except AmbiguousHandleError as exc:
         if json_output:
             _console.print_json(
-                json.dumps({
-                    "result": "blocked",
-                    "code": "MISSION_AMBIGUOUS_SELECTOR",
-                    "blocked_reason": str(exc),
-                    "candidates": exc.to_dict().get("candidates", []),
-                    "exit_code": 2,
-                })
+                json.dumps(
+                    {
+                        "result": "blocked",
+                        "code": "MISSION_AMBIGUOUS_SELECTOR",
+                        "blocked_reason": str(exc),
+                        "candidates": exc.to_dict().get("candidates", []),
+                        "exit_code": 2,
+                    }
+                )
             )
         else:
             _err_console.print(f"[red]Error MISSION_AMBIGUOUS_SELECTOR:[/red] {exc}")
@@ -186,6 +187,7 @@ def _check_mission_completed(
 
     # Build per-WP lane snapshot from events
     from specify_cli.status import reduce as reduce_events
+
     snapshot = reduce_events(events)
 
     open_wps: list[dict[str, str]] = []
@@ -273,19 +275,13 @@ def create_cmd(
 ) -> None:
     """Author a retrospective for one completed mission."""
     if overwrite and update:
-        _err_console.print(
-            "[red]Error:[/red] --overwrite and --update are mutually exclusive. "
-            "Pass exactly one."
-        )
+        _err_console.print("[red]Error:[/red] --overwrite and --update are mutually exclusive. Pass exactly one.")
         raise typer.BadParameter("--overwrite and --update are mutually exclusive")
 
     # Locate project root
     repo_root = locate_project_root()
     if repo_root is None:
-        _err_console.print(
-            "[red]Error:[/red] Could not locate project root. "
-            "Ensure you are inside a spec-kitty project."
-        )
+        _err_console.print("[red]Error:[/red] Could not locate project root. Ensure you are inside a spec-kitty project.")
         raise typer.Exit(1)
 
     # Resolve mission handle
@@ -297,24 +293,21 @@ def create_cmd(
         open_str = ", ".join(f"{w['wp_id']} ({w['lane']})" for w in open_wps)
         if json_output:
             _console.print_json(
-                json.dumps({
-                    "result": "blocked",
-                    "code": "MISSION_NOT_COMPLETED",
-                    "mission_id": resolved.mission_id,
-                    "mission_slug": resolved.mission_slug,
-                    "blocked_reason": (
-                        f"Mission has WPs in non-terminal lanes: {open_str}. "
-                        "Complete the mission before authoring a retrospective."
-                    ),
-                    "open_wps": open_wps,
-                    "exit_code": 1,
-                })
+                json.dumps(
+                    {
+                        "result": "blocked",
+                        "code": "MISSION_NOT_COMPLETED",
+                        "mission_id": resolved.mission_id,
+                        "mission_slug": resolved.mission_slug,
+                        "blocked_reason": (f"Mission has WPs in non-terminal lanes: {open_str}. Complete the mission before authoring a retrospective."),
+                        "open_wps": open_wps,
+                        "exit_code": 1,
+                    }
+                )
             )
         else:
             _err_console.print(
-                f"[red]Error MISSION_NOT_COMPLETED:[/red] "
-                f"Mission has WPs in non-terminal lanes: {open_str}. "
-                "Complete the mission before authoring a retrospective."
+                f"[red]Error MISSION_NOT_COMPLETED:[/red] Mission has WPs in non-terminal lanes: {open_str}. Complete the mission before authoring a retrospective."
             )
         raise typer.Exit(1)
 
@@ -324,14 +317,16 @@ def create_cmd(
     except PolicyResolutionError as exc:
         if json_output:
             _console.print_json(
-                json.dumps({
-                    "result": "blocked",
-                    "code": "POLICY_RESOLUTION_ERROR",
-                    "mission_id": resolved.mission_id,
-                    "mission_slug": resolved.mission_slug,
-                    "blocked_reason": str(exc),
-                    "exit_code": 1,
-                })
+                json.dumps(
+                    {
+                        "result": "blocked",
+                        "code": "POLICY_RESOLUTION_ERROR",
+                        "mission_id": resolved.mission_id,
+                        "mission_slug": resolved.mission_slug,
+                        "blocked_reason": str(exc),
+                        "exit_code": 1,
+                    }
+                )
             )
         else:
             _err_console.print(f"[red]Error POLICY_RESOLUTION_ERROR:[/red] {exc}")
@@ -365,6 +360,7 @@ def create_cmd(
 
     # Override provenance with explicit_create
     import dataclasses
+
     record = dataclasses.replace(
         record,
         provenance=GenProvenance(
@@ -381,18 +377,17 @@ def create_cmd(
     except RecordExistsError as exc:
         if json_output:
             _console.print_json(
-                json.dumps({
-                    "result": "blocked",
-                    "code": "RETROSPECTIVE_RECORD_EXISTS",
-                    "mission_id": resolved.mission_id,
-                    "mission_slug": resolved.mission_slug,
-                    "record_path": str(exc.path),
-                    "blocked_reason": (
-                        "A retrospective record already exists for this mission. "
-                        "Pass --overwrite to replace it or --update to merge."
-                    ),
-                    "exit_code": 1,
-                })
+                json.dumps(
+                    {
+                        "result": "blocked",
+                        "code": "RETROSPECTIVE_RECORD_EXISTS",
+                        "mission_id": resolved.mission_id,
+                        "mission_slug": resolved.mission_slug,
+                        "record_path": str(exc.path),
+                        "blocked_reason": ("A retrospective record already exists for this mission. Pass --overwrite to replace it or --update to merge."),
+                        "exit_code": 1,
+                    }
+                )
             )
         else:
             _err_console.print(
@@ -440,24 +435,23 @@ def create_cmd(
         "proposals": len(persisted.proposals),
         "evidence_refs": len(persisted.evidence_refs),
     }
-    next_step = (
-        f"Run `spec-kitty agent retrospect synthesize --mission {resolved.mission_slug}` "
-        "to review proposals (dry-run by default; add --apply to mutate)."
-    )
+    next_step = f"Run `spec-kitty agent retrospect synthesize --mission {resolved.mission_slug}` to review proposals (dry-run by default; add --apply to mutate)."
 
     if json_output:
         _console.print_json(
-            json.dumps({
-                "result": "success",
-                "mission_id": resolved.mission_id,
-                "mission_slug": resolved.mission_slug,
-                "record_path": str(record_path),
-                "findings_status": persisted.findings_status,
-                "counts": counts,
-                "provenance_kind": "explicit_create",
-                "policy_source": policy_source_out,
-                "next_step": next_step,
-            })
+            json.dumps(
+                {
+                    "result": "success",
+                    "mission_id": resolved.mission_id,
+                    "mission_slug": resolved.mission_slug,
+                    "record_path": str(record_path),
+                    "findings_status": persisted.findings_status,
+                    "counts": counts,
+                    "provenance_kind": "explicit_create",
+                    "policy_source": policy_source_out,
+                    "next_step": next_step,
+                }
+            )
         )
     else:
         _console.print(
@@ -501,10 +495,7 @@ def _parse_iso_date_or_exit(value: str, flag_name: str) -> datetime:
         return dt
     except ValueError:
         pass
-    raise typer.BadParameter(
-        f"Invalid {flag_name} value {value!r}. "
-        "Expected ISO-8601 date (YYYY-MM-DD) or datetime."
-    )
+    raise typer.BadParameter(f"Invalid {flag_name} value {value!r}. Expected ISO-8601 date (YYYY-MM-DD) or datetime.")
 
 
 def _discover_missions_for_backfill(
@@ -539,28 +530,28 @@ def _discover_missions_for_backfill(
             continue
 
         # mission_filter: skip if filter is set and this mission doesn't match
-        if mission_filter is not None and (
-            mission_id != mission_filter
-            and not mission_id.startswith(mission_filter)
-            and mission_slug != mission_filter
-        ):
-            candidates.append({
-                "mission_id": mission_id,
-                "mission_slug": mission_slug,
-                "skip_reason": "mission_filter_excluded",
-                "meta_path": str(meta_path),
-            })
+        if mission_filter is not None and (mission_id != mission_filter and not mission_id.startswith(mission_filter) and mission_slug != mission_filter):
+            candidates.append(
+                {
+                    "mission_id": mission_id,
+                    "mission_slug": mission_slug,
+                    "skip_reason": "mission_filter_excluded",
+                    "meta_path": str(meta_path),
+                }
+            )
             continue
 
         # Get completed_at timestamp
         completed_at_str = meta.get("completed_at") or meta.get("mission_completed_at")
         if not completed_at_str:
-            candidates.append({
-                "mission_id": mission_id,
-                "mission_slug": mission_slug,
-                "skip_reason": "not_completed",
-                "meta_path": str(meta_path),
-            })
+            candidates.append(
+                {
+                    "mission_id": mission_id,
+                    "mission_slug": mission_slug,
+                    "skip_reason": "not_completed",
+                    "meta_path": str(meta_path),
+                }
+            )
             continue
 
         try:
@@ -568,31 +559,37 @@ def _discover_missions_for_backfill(
             if completed_at.tzinfo is None:
                 completed_at = completed_at.replace(tzinfo=UTC)
         except ValueError:
-            candidates.append({
-                "mission_id": mission_id,
-                "mission_slug": mission_slug,
-                "skip_reason": "not_completed",
-                "meta_path": str(meta_path),
-            })
+            candidates.append(
+                {
+                    "mission_id": mission_id,
+                    "mission_slug": mission_slug,
+                    "skip_reason": "not_completed",
+                    "meta_path": str(meta_path),
+                }
+            )
             continue
 
         # Check window
         if completed_at < since or completed_at > until:
-            candidates.append({
+            candidates.append(
+                {
+                    "mission_id": mission_id,
+                    "mission_slug": mission_slug,
+                    "completed_at": completed_at_str,
+                    "skip_reason": "out_of_window",
+                    "meta_path": str(meta_path),
+                }
+            )
+            continue
+
+        candidates.append(
+            {
                 "mission_id": mission_id,
                 "mission_slug": mission_slug,
                 "completed_at": completed_at_str,
-                "skip_reason": "out_of_window",
                 "meta_path": str(meta_path),
-            })
-            continue
-
-        candidates.append({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "completed_at": completed_at_str,
-            "meta_path": str(meta_path),
-        })
+            }
+        )
 
     return candidates
 
@@ -647,10 +644,7 @@ def backfill_cmd(  # noqa: C901
     # Locate project root
     repo_root = locate_project_root()
     if repo_root is None:
-        _err_console.print(
-            "[red]Error:[/red] Could not locate project root. "
-            "Ensure you are inside a spec-kitty project."
-        )
+        _err_console.print("[red]Error:[/red] Could not locate project root. Ensure you are inside a spec-kitty project.")
         raise typer.Exit(1)
 
     # Discover missions
@@ -691,11 +685,7 @@ def backfill_cmd(  # noqa: C901
                 "reason": c["skip_reason"],
             }
             if c.get("skip_reason") == "already_exists":
-                skip_entry["record_path"] = str(
-                    _canonical_record_path(
-                        repo_root, str(c["mission_slug"]), str(c["mission_id"])
-                    )
-                )
+                skip_entry["record_path"] = str(_canonical_record_path(repo_root, str(c["mission_slug"]), str(c["mission_id"])))
             skipped.append(skip_entry)
             _maybe_emit_skip(str(c["mission_id"]), str(c["mission_slug"]), str(c["skip_reason"]))
         else:
@@ -709,12 +699,14 @@ def backfill_cmd(  # noqa: C901
 
         # Already exists?
         if record_path.exists():
-            skipped.append({
-                "mission_id": mid,
-                "mission_slug": mslug,
-                "reason": "already_exists",
-                "record_path": str(record_path),
-            })
+            skipped.append(
+                {
+                    "mission_id": mid,
+                    "mission_slug": mslug,
+                    "reason": "already_exists",
+                    "record_path": str(record_path),
+                }
+            )
             _maybe_emit_skip(mid, mslug, "already_exists")
             return
 
@@ -734,6 +726,7 @@ def backfill_cmd(  # noqa: C901
                 policy_source=source_map,
             )
             import dataclasses
+
             record = dataclasses.replace(
                 record,
                 provenance=GenProvenance(
@@ -750,24 +743,25 @@ def backfill_cmd(  # noqa: C901
                 provenance_kind="backfill",
                 actor=_cli_actor(),
             )
-            created.append({
-                "mission_id": mid,
-                "mission_slug": mslug,
-                "record_path": str(written_path),
-            })
+            created.append(
+                {
+                    "mission_id": mid,
+                    "mission_slug": mslug,
+                    "record_path": str(written_path),
+                }
+            )
             created_paths.append(written_path)
         except RecordExistsError as exc:
-            skipped.append({
-                "mission_id": mid,
-                "mission_slug": mslug,
-                "reason": "already_exists",
-                "record_path": str(exc.path),
-            })
-        except FileNotFoundError as exc:
-            remediation = (
-                f"Mission lacks required artifacts; rebuild via "
-                f"`spec-kitty migrate normalize-lifecycle --mission {mslug}`."
+            skipped.append(
+                {
+                    "mission_id": mid,
+                    "mission_slug": mslug,
+                    "reason": "already_exists",
+                    "record_path": str(exc.path),
+                }
             )
+        except FileNotFoundError as exc:
+            remediation = f"Mission lacks required artifacts; rebuild via `spec-kitty migrate normalize-lifecycle --mission {mslug}`."
             failed_entry: dict[str, object] = {
                 "mission_id": mid,
                 "mission_slug": mslug,
@@ -833,11 +827,7 @@ def backfill_cmd(  # noqa: C901
     # Auto-commit created records
     if created_paths and not dry_run:
         # FR-006 (#1735/#1771): stage the canonical status surface per mission.
-        event_paths = [
-            _canonical_events_path(repo_root, str(c.get("mission_slug", "")))
-            for c in created
-            if not c.get("dry_run")
-        ]
+        event_paths = [_canonical_events_path(repo_root, str(c.get("mission_slug", ""))) for c in created if not c.get("dry_run")]
         all_paths = created_paths + [p for p in event_paths if p.exists()]
         _maybe_auto_commit(
             repo_root,
@@ -849,8 +839,7 @@ def backfill_cmd(  # noqa: C901
     next_actions: list[str] = []
     if created and not dry_run:
         next_actions.append(
-            "Run `spec-kitty agent retrospect synthesize --mission <handle>` "
-            "on newly authored records (dry-run by default; add --apply to mutate)."
+            "Run `spec-kitty agent retrospect synthesize --mission <handle>` on newly authored records (dry-run by default; add --apply to mutate)."
         )
     if failed:
         next_actions.append(f"Inspect the {len(failed)} failed mission(s) listed above.")
@@ -876,8 +865,7 @@ def backfill_cmd(  # noqa: C901
                 f"Scanned: {total_scanned} | "
                 f"Created: {len(created)} | "
                 f"Skipped: {len(skipped)} | "
-                f"Failed: {len(failed)}"
-                + (" [yellow](dry-run — no files written)[/yellow]" if dry_run else ""),
+                f"Failed: {len(failed)}" + (" [yellow](dry-run — no files written)[/yellow]" if dry_run else ""),
                 title="spec-kitty retrospect backfill",
                 expand=False,
             )
@@ -885,10 +873,7 @@ def backfill_cmd(  # noqa: C901
         if failed:
             _err_console.print(f"\n[yellow]Failures ({len(failed)}):[/yellow]")
             for f_entry in failed:
-                _err_console.print(
-                    f"  [red]{f_entry['mission_slug']}[/red]: "
-                    f"{f_entry['failure_category']} — {f_entry.get('remediation_hint', '')}"
-                )
+                _err_console.print(f"  [red]{f_entry['mission_slug']}[/red]: {f_entry['failure_category']} — {f_entry.get('remediation_hint', '')}")
 
     raise typer.Exit(0)
 
@@ -958,10 +943,7 @@ def summary_cmd(  # noqa: C901
     has_kittify = (resolved_project / KITTIFY_DIR).exists()
     has_mission_specs = (resolved_project / KITTY_SPECS_DIR).exists()
     if not has_kittify and not has_mission_specs:
-        _err_console.print(
-            "[red]Error:[/red] Project root invalid: "
-            f"neither .kittify/ nor kitty-specs/ found in {resolved_project}"
-        )
+        _err_console.print(f"[red]Error:[/red] Project root invalid: neither .kittify/ nor kitty-specs/ found in {resolved_project}")
         raise typer.Exit(1)
 
     # Parse --since
@@ -970,19 +952,13 @@ def summary_cmd(  # noqa: C901
         try:
             since_date = date_type.fromisoformat(since)
         except ValueError as exc:
-            _err_console.print(
-                f"[red]Error:[/red] Invalid --since date {since!r}. "
-                "Expected ISO-8601 format (YYYY-MM-DD)."
-            )
+            _err_console.print(f"[red]Error:[/red] Invalid --since date {since!r}. Expected ISO-8601 format (YYYY-MM-DD).")
             raise typer.Exit(1) from exc
 
     # Validate --filter state
     valid_states = {"has_findings", "ran_no_findings", "missing", "failed"}
     if filter_state is not None and filter_state not in valid_states:
-        _err_console.print(
-            f"[red]Error:[/red] Invalid --filter value {filter_state!r}. "
-            f"Must be one of: {', '.join(sorted(valid_states))}"
-        )
+        _err_console.print(f"[red]Error:[/red] Invalid --filter value {filter_state!r}. Must be one of: {', '.join(sorted(valid_states))}")
         raise typer.Exit(1)
 
     try:
@@ -1083,6 +1059,7 @@ def summary_cmd(  # noqa: C901
         _base_render_rich(snapshot, include_malformed=include_malformed)
         # Show 4-state aggregate
         from rich.table import Table
+
         state_table = Table(title="Record State Summary (4-state)", show_header=True, header_style="bold cyan")
         state_table.add_column("State")
         state_table.add_column("Count", justify="right")

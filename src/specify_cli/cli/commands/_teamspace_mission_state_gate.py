@@ -87,10 +87,7 @@ def _guidance_lines(readiness: TeamspaceMissionStateReadiness) -> list[str]:
     codes = ", ".join(readiness.blocker_codes) if readiness.blocker_codes else "unknown"
     return [
         "TeamSpace mission-state migration is required before connecting.",
-        (
-            f"Found {readiness.blocker_count} TeamSpace blocker(s) "
-            f"across {readiness.missions_with_blockers} mission(s)."
-        ),
+        (f"Found {readiness.blocker_count} TeamSpace blocker(s) across {readiness.missions_with_blockers} mission(s)."),
         f"Finding codes: {codes}",
         "",
         "Recommended sequence:",

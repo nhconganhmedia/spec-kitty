@@ -23,14 +23,7 @@ import pytest
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[2]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 
 @pytest.fixture
@@ -83,7 +76,4 @@ def test_charter_lint_lists_all_three_layers_with_named_provenance(
     # The lint output must reference the org-layer source name. The
     # exact formatting may evolve, but the operator-facing string
     # ``org:example-org`` is the binding contract surface (FR-003).
-    assert "org:example-org" in combined or "example-org" in combined, (
-        f"charter lint must surface the org layer source name; "
-        f"got:\n{combined!r}"
-    )
+    assert "org:example-org" in combined or "example-org" in combined, f"charter lint must surface the org layer source name; got:\n{combined!r}"

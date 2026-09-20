@@ -45,9 +45,7 @@ def test_field_present_non_main_branch(tmp_path: Path) -> None:
     """Non-default target_branch values are returned verbatim."""
     feature_dir = tmp_path / "mission"
     feature_dir.mkdir()
-    (feature_dir / "meta.json").write_text(
-        '{"target_branch": "2.x"}', encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text('{"target_branch": "2.x"}', encoding="utf-8")
 
     assert read_target_branch_from_meta(feature_dir) == "2.x"
 
@@ -72,10 +70,7 @@ def test_field_absent_in_valid_meta_returns_none(tmp_path: Path) -> None:
 
     result = read_target_branch_from_meta(feature_dir)
 
-    assert result is None, (
-        "field-absent must return None so callers apply the documented default; "
-        "returning a branch string here conflates absent-with-failed"
-    )
+    assert result is None, "field-absent must return None so callers apply the documented default; returning a branch string here conflates absent-with-failed"
 
 
 def test_meta_file_absent_returns_none(tmp_path: Path) -> None:
@@ -93,9 +88,7 @@ def test_target_branch_null_in_meta_returns_none(tmp_path: Path) -> None:
     """target_branch explicitly set to null in JSON → None (treated as absent)."""
     feature_dir = tmp_path / "mission"
     feature_dir.mkdir()
-    (feature_dir / "meta.json").write_text(
-        '{"target_branch": null}', encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text('{"target_branch": null}', encoding="utf-8")
 
     result = read_target_branch_from_meta(feature_dir)
 
@@ -106,9 +99,7 @@ def test_target_branch_empty_string_in_meta_returns_none(tmp_path: Path) -> None
     """target_branch explicitly set to empty string → None (treated as absent)."""
     feature_dir = tmp_path / "mission"
     feature_dir.mkdir()
-    (feature_dir / "meta.json").write_text(
-        '{"target_branch": ""}', encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text('{"target_branch": ""}', encoding="utf-8")
 
     result = read_target_branch_from_meta(feature_dir)
 

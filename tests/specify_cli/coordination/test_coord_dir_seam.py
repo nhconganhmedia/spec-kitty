@@ -59,11 +59,7 @@ def _ref_coordination_branch_name(mission_slug: str, mission_id: str) -> str:
     """Pre-WP06 ``_create.coordination_branch_name``."""
     mid8_token = mission_id[:8]
     suffix = f"-{mid8_token}"
-    human_part = (
-        mission_slug
-        if mission_slug.endswith(suffix)
-        else f"{bn.strip_numeric_prefix(mission_slug)}{suffix}"
-    )
+    human_part = mission_slug if mission_slug.endswith(suffix) else f"{bn.strip_numeric_prefix(mission_slug)}{suffix}"
     return f"kitty/mission-{human_part}"
 
 

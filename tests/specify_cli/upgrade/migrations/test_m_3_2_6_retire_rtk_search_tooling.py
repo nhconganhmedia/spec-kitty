@@ -159,9 +159,7 @@ def test_apply_is_a_no_op_when_entry_absent(tmp_path: Path) -> None:
     result = RetireRtkSearchToolingMigration().apply(project)
 
     assert result.success is True
-    assert result.changes_made == [
-        f"{RETIRED_TOOLGUIDE_STEM} already absent; nothing to remove"
-    ]
+    assert result.changes_made == [f"{RETIRED_TOOLGUIDE_STEM} already absent; nothing to remove"]
     assert (project / ".kittify" / "config.yaml").read_text(encoding="utf-8") == before
     assert RetireRtkSearchToolingMigration().detect(project) is False
 
@@ -201,9 +199,7 @@ def test_apply_is_idempotent(tmp_path: Path) -> None:
 
     assert first.success is True
     assert second.success is True
-    assert second.changes_made == [
-        f"{RETIRED_TOOLGUIDE_STEM} already absent; nothing to remove"
-    ]
+    assert second.changes_made == [f"{RETIRED_TOOLGUIDE_STEM} already absent; nothing to remove"]
     assert migration.detect(project) is False
     for path, text in after_first.items():
         assert (project / path).read_text(encoding="utf-8") == text

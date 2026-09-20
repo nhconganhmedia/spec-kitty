@@ -33,6 +33,7 @@ _yaml.explicit_start = False
 def _write_yaml(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     import io
+
     buf = io.BytesIO()
     _yaml.dump(data, buf)
     path.write_bytes(buf.getvalue())
@@ -42,9 +43,7 @@ def _load_yaml(path: Path) -> dict:
     return _yaml.load(path)  # type: ignore[return-value]
 
 
-def _write_minimal_charter_yaml(
-    charter_dir: Path, bundle_schema_version: int | None = None
-) -> None:
+def _write_minimal_charter_yaml(charter_dir: Path, bundle_schema_version: int | None = None) -> None:
     """Write a minimal charter.yaml, optionally stamping ``metadata.bundle_schema_version``.
 
     consolidate-charter-bundle (WP07 / T030): ``charter.offering.versioning.
@@ -190,9 +189,7 @@ def _create_legacy_v2_bundle_without_built_in_only(project_path: Path) -> None:
 
     from charter.offering.yaml_utils import canonical_yaml
 
-    manifest_path = (
-        project_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
-    )
+    manifest_path = project_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
     manifest = _load_yaml(manifest_path)
     manifest.pop("built_in_only")
     manifest.pop("manifest_hash")
@@ -253,10 +250,7 @@ def test_registry_includes_current_version_manifest_repair(tmp_path: Path) -> No
         project_path=tmp_path,
     )
 
-    assert any(
-        migration.migration_id == CharterManifestDefaultsRepair.migration_id
-        for migration in migrations
-    )
+    assert any(migration.migration_id == CharterManifestDefaultsRepair.migration_id for migration in migrations)
 
 
 def test_runner_repairs_current_v2_after_original_migration_was_recorded(
@@ -330,9 +324,7 @@ def test_apply_migrates_sidecar_to_v2(tmp_path: Path) -> None:
     # Sidecar should now parse cleanly as ProvenanceEntry v2.
     from charter.activation.synthesizer.synthesize_pipeline import ProvenanceEntry
 
-    sidecar = _load_yaml(
-        tmp_path / ".kittify" / "charter" / "provenance" / "directive-use-prs.yaml"
-    )
+    sidecar = _load_yaml(tmp_path / ".kittify" / "charter" / "provenance" / "directive-use-prs.yaml")
     entry = ProvenanceEntry(**sidecar)
     assert entry.schema_version == "2"
     assert entry.synthesizer_version == "(pre-phase7-migration)"
@@ -347,9 +339,7 @@ def test_apply_idempotent(tmp_path: Path) -> None:
     migration = CharterBundleV2Migration()
     migration.apply(tmp_path)
     result2 = migration.apply(tmp_path)
-    assert result2.changes_made == [], (
-        f"Second apply() should be a no-op; got: {result2.changes_made}"
-    )
+    assert result2.changes_made == [], f"Second apply() should be a no-op; got: {result2.changes_made}"
 
 
 def test_apply_updates_metadata_yaml(tmp_path: Path) -> None:
@@ -376,9 +366,7 @@ def test_apply_manifest_gets_v2_fields(tmp_path: Path) -> None:
     assert "synthesizer_version" in manifest
     assert manifest["mission_id"] is None
     assert manifest["built_in_only"] is False
-    assert len(manifest["manifest_hash"]) == 64, (
-        f"manifest_hash should be a 64-char hex digest, got: {manifest['manifest_hash']!r}"
-    )
+    assert len(manifest["manifest_hash"]) == 64, f"manifest_hash should be a 64-char hex digest, got: {manifest['manifest_hash']!r}"
     verify_manifest_hash(load_yaml(manifest_path))
 
 
@@ -389,9 +377,7 @@ def test_apply_manifest_hash_verifies_after_v2_migration(tmp_path: Path) -> None
     _create_v1_bundle(tmp_path)
     CharterBundleV2Migration().apply(tmp_path)
 
-    manifest = load_yaml(
-        tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
-    )
+    manifest = load_yaml(tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml")
     verify_manifest_hash(manifest)
 
 
@@ -405,9 +391,7 @@ def test_apply_repairs_current_v2_manifest_missing_built_in_only(tmp_path: Path)
 
     assert result.success is True
     assert result.errors == []
-    assert result.changes_made == [
-        str(tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml")
-    ]
+    assert result.changes_made == [str(tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml")]
     manifest_path = tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
     manifest_data = _load_yaml(manifest_path)
     assert manifest_data["built_in_only"] is False
@@ -432,17 +416,11 @@ def test_apply_dry_run_makes_no_changes(tmp_path: Path) -> None:
     migration = CharterBundleV2Migration()
     result = migration.apply(tmp_path, dry_run=True)
 
-    assert len(result.changes_made) > 0, (
-        "dry_run should still report the files that would change"
-    )
+    assert len(result.changes_made) > 0, "dry_run should still report the files that would change"
 
     # Files must NOT have been mutated.
-    sidecar = _load_yaml(
-        tmp_path / ".kittify" / "charter" / "provenance" / "directive-use-prs.yaml"
-    )
-    assert sidecar.get("schema_version") == "1", (
-        "dry_run must not write the sidecar; schema_version should remain '1'"
-    )
+    sidecar = _load_yaml(tmp_path / ".kittify" / "charter" / "provenance" / "directive-use-prs.yaml")
+    assert sidecar.get("schema_version") == "1", "dry_run must not write the sidecar; schema_version should remain '1'"
 
 
 def test_apply_no_charter_returns_success_no_changes(tmp_path: Path) -> None:

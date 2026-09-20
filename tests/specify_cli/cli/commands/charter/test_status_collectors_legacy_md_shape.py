@@ -65,9 +65,7 @@ def charter_md_only_repo(tmp_path: Path) -> Path:
 class TestLegacyCharterMdOnlyShape:
     """FR-006: pin the ``charter.md``-only status-collector resolution shape."""
 
-    def test_resolves_available_via_legacy_md_fallback(
-        self, charter_md_only_repo: Path
-    ) -> None:
+    def test_resolves_available_via_legacy_md_fallback(self, charter_md_only_repo: Path) -> None:
         """The collector reports ``available: True`` from the ``charter.md`` fallback.
 
         With ``charter.yaml`` absent, ``_resolve_charter_bundle_path`` raises
@@ -78,13 +76,10 @@ class TestLegacyCharterMdOnlyShape:
         result = _collect_charter_sync_status(charter_md_only_repo)
 
         assert result["available"] is True, (
-            "charter.md-only projects (pre-consolidation, no charter.yaml) "
-            f"must still resolve via the legacy fallback; got {result!r}"
+            f"charter.md-only projects (pre-consolidation, no charter.yaml) must still resolve via the legacy fallback; got {result!r}"
         )
 
-    def test_charter_path_points_at_legacy_charter_md(
-        self, charter_md_only_repo: Path
-    ) -> None:
+    def test_charter_path_points_at_legacy_charter_md(self, charter_md_only_repo: Path) -> None:
         """The resolved ``charter_path`` is the legacy ``charter.md``, not ``charter.yaml``.
 
         ``charter.yaml`` does not exist in this fixture, so the only
@@ -96,9 +91,7 @@ class TestLegacyCharterMdOnlyShape:
 
         assert result["charter_path"] == str(Path(".kittify/charter/charter.md")), result
 
-    def test_files_info_reports_only_charter_md_present(
-        self, charter_md_only_repo: Path
-    ) -> None:
+    def test_files_info_reports_only_charter_md_present(self, charter_md_only_repo: Path) -> None:
         """``files`` lists ``charter.yaml`` absent and ``charter.md`` present."""
         result = _collect_charter_sync_status(charter_md_only_repo)
 
@@ -106,9 +99,7 @@ class TestLegacyCharterMdOnlyShape:
         assert files_by_name["charter.yaml"]["exists"] is False, result
         assert files_by_name["charter.md"]["exists"] is True, result
 
-    def test_reports_stale_with_no_charter_yaml_and_no_metadata(
-        self, charter_md_only_repo: Path
-    ) -> None:
+    def test_reports_stale_with_no_charter_yaml_and_no_metadata(self, charter_md_only_repo: Path) -> None:
         """No ``metadata.yaml`` + no ``charter.yaml`` -> reported ``stale`` (not synced).
 
         Mirrors the ``:94-100`` post-migration-hash-retirement branch: when

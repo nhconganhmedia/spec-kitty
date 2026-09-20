@@ -54,6 +54,7 @@ the WRONG branch (the current HEAD) rather than refusing (violating C-004,
 (mission genuinely unresolvable, not a real mission path, etc.) keeps
 falling back to the generic path unchanged (#1784).
 """
+
 from __future__ import annotations
 
 import json
@@ -104,7 +105,6 @@ class MissionAwareCommitRefused(ValueError):
     ValueError`` handler reports it with exit code 1 and no commit
     performed -- no new except arm needed.
     """
-
 
 
 def _current_worktree_root() -> Path:
@@ -190,9 +190,7 @@ def _expand_arguments(
             contained = _changed_paths_under(repo_root, rel_dir)
             contained_abs = [(repo_root / rel).resolve() for rel in contained]
             display = ", ".join(contained) if contained else "(no changed files)"
-            report_lines.append(
-                f"Expanding {rel_dir}/ → {len(contained_abs)} files: {display}"
-            )
+            report_lines.append(f"Expanding {rel_dir}/ → {len(contained_abs)} files: {display}")
             for abs_path in contained_abs:
                 _add(abs_path)
         else:
@@ -275,9 +273,7 @@ def _mission_file_kind(repo_root: Path, files: list[Path], mission_slug: str) ->
     return None
 
 
-def _resolve_mission_aware_target(
-    repo_root: Path, mission_slug: str, kind: MissionArtifactKind
-) -> CommitTarget | None:
+def _resolve_mission_aware_target(repo_root: Path, mission_slug: str, kind: MissionArtifactKind) -> CommitTarget | None:
     """Resolve the mission-aware planning :class:`CommitTarget` via the WP03 seam.
 
     FR-007 / #2063: the mission-aware planning commit resolves its destination
@@ -361,7 +357,7 @@ def _resolve_commit_target(
         # SafeCommitDestinationRefShape; the CLI normalizes for ergonomics.
         ref = explicit_to_branch
         if ref.startswith("refs/heads/"):
-            ref = ref[len("refs/heads/"):]
+            ref = ref[len("refs/heads/") :]
         return CommitTarget(ref=ref)
 
     mission_slug = _mission_slug_from_paths(repo_root, files)
@@ -378,10 +374,7 @@ def _resolve_commit_target(
 
     inferred = get_current_branch(repo_root)
     if inferred is None or inferred == "":
-        raise ValueError(
-            "Cannot resolve destination ref: HEAD is detached or not on a branch. "
-            "Pass --to-branch <ref> explicitly."
-        )
+        raise ValueError("Cannot resolve destination ref: HEAD is detached or not on a branch. Pass --to-branch <ref> explicitly.")
     # Print deprecation to stderr (not stdout) so scripted callers parsing
     # --json on stdout are not affected.
     print(
@@ -391,9 +384,7 @@ def _resolve_commit_target(
     return CommitTarget(ref=inferred)
 
 
-def _resolve_capability_for_target(
-    repo_root: Path, files: list[Path], target: CommitTarget
-) -> GuardCapability:
+def _resolve_capability_for_target(repo_root: Path, files: list[Path], target: CommitTarget) -> GuardCapability:
     """WP04 / T017 (#3033 SC-001): select the ONE ``safe_commit`` capability.
 
     ``GuardCapability.STANDARD`` (default) for every ordinary commit --
@@ -445,10 +436,7 @@ def safe_commit_command(
     """Commit only the requested files via Spec Kitty's safe-commit path."""
     try:
         repo_root = _current_worktree_root()
-        normalized_files = [
-            (repo_root / file_path).resolve() if not file_path.is_absolute() else file_path.resolve()
-            for file_path in files
-        ]
+        normalized_files = [(repo_root / file_path).resolve() if not file_path.is_absolute() else file_path.resolve() for file_path in files]
 
         expanded_files, expansion_report = _expand_arguments(repo_root, normalized_files)
         rel_files = [str(path.relative_to(repo_root)) for path in expanded_files]

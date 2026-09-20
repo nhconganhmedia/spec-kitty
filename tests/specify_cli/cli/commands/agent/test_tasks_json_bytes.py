@@ -168,13 +168,9 @@ def build_mission(project_root: Path, *, stale_wp02_refs: bool = False) -> Path:
     )
     (feature_dir / "spec.md").write_text(_SPEC_MD, encoding="utf-8")
     (feature_dir / "tasks.md").write_text(_TASKS_MD, encoding="utf-8")
-    (tasks_dir / "WP01-baseline-latency-probe-instrumentation.md").write_text(
-        _WP01_MD, encoding="utf-8"
-    )
+    (tasks_dir / "WP01-baseline-latency-probe-instrumentation.md").write_text(_WP01_MD, encoding="utf-8")
     wp02_refs = '["FR-002a"]' if stale_wp02_refs else "[]"
-    (tasks_dir / "WP02-latency-regression-report-rollup.md").write_text(
-        _WP02_MD_TEMPLATE.format(refs=wp02_refs), encoding="utf-8"
-    )
+    (tasks_dir / "WP02-latency-regression-report-rollup.md").write_text(_WP02_MD_TEMPLATE.format(refs=wp02_refs), encoding="utf-8")
     append_event(
         feature_dir,
         StatusEvent(
@@ -216,23 +212,15 @@ _SPARSE = "_emit_sparse_session_warning"
 # to fixtures/tasks_cli/json/byte_contracts.json.
 _CASE_SETUP: dict[str, _CaseSetup] = {
     "missing_mission_flag_error": _CaseSetup("bare_project", resolve_mission=False),
-    "add_history_success": _CaseSetup(
-        "mission", null_patches=(_SPARSE,)
-    ),
+    "add_history_success": _CaseSetup("mission", null_patches=(_SPARSE,)),
     "generic_error_invalid_mark_status": _CaseSetup("mission"),
     "status_success_indent2": _CaseSetup("mission", workspace=True),
     "mark_status_none_resolved_error": _CaseSetup("mission", null_patches=(_SPARSE,)),
     "list_tasks_success": _CaseSetup("mission"),
     "map_requirements_unknown_wp_error": _CaseSetup("mission", null_patches=(_SPARSE,)),
-    "map_requirements_malformed_ref_error": _CaseSetup(
-        "mission", null_patches=(_SPARSE,)
-    ),
-    "map_requirements_unknown_spec_ref_error": _CaseSetup(
-        "mission", null_patches=(_SPARSE,)
-    ),
-    "map_requirements_stale_frontmatter_error": _CaseSetup(
-        "mission_stale_refs", null_patches=(_SPARSE,)
-    ),
+    "map_requirements_malformed_ref_error": _CaseSetup("mission", null_patches=(_SPARSE,)),
+    "map_requirements_unknown_spec_ref_error": _CaseSetup("mission", null_patches=(_SPARSE,)),
+    "map_requirements_stale_frontmatter_error": _CaseSetup("mission_stale_refs", null_patches=(_SPARSE,)),
     "map_requirements_success": _CaseSetup("mission", null_patches=(_SPARSE,)),
     "validate_workflow_success": _CaseSetup("mission"),
     "list_dependents_success": _CaseSetup("mission"),
@@ -240,9 +228,7 @@ _CASE_SETUP: dict[str, _CaseSetup] = {
 
 
 def _load_cases() -> dict[str, dict[str, Any]]:
-    data: dict[str, dict[str, Any]] = json.loads(
-        BYTE_CONTRACTS.read_text(encoding="utf-8")
-    )
+    data: dict[str, dict[str, Any]] = json.loads(BYTE_CONTRACTS.read_text(encoding="utf-8"))
     return data
 
 
@@ -269,9 +255,7 @@ def invoke_case(name: str, case: dict[str, Any], tmp_path: Path) -> _InvokeOutco
     if setup.resolve_mission and setup.scenario != "bare_project":
         kwargs["mission_slug"] = MISSION_SLUG
     if setup.workspace:
-        kwargs["workspace_resolution"] = SimpleNamespace(
-            execution_mode="code_change", resolution_kind="lane_workspace"
-        )
+        kwargs["workspace_resolution"] = SimpleNamespace(execution_mode="code_change", resolution_kind="lane_workspace")
     if setup.null_patches:
         kwargs["extra_patches"] = dict.fromkeys(setup.null_patches)
 
@@ -293,9 +277,7 @@ def test_byte_contracts_pin_all_13_sites() -> None:
 
 
 @pytest.mark.parametrize("name", sorted(_CASE_SETUP))
-def test_json_emission_site_is_byte_identical(
-    name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_json_emission_site_is_byte_identical(name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Each emission site's full stdout matches its frozen bytes exactly."""
     case = _load_cases()[name]
     monkeypatch.chdir(tmp_path)

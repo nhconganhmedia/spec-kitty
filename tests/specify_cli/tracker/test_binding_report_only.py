@@ -73,9 +73,7 @@ def _no_binding_persisted(repo_root: Path) -> None:
 
 
 class TestReadPathsReportPendingUpgrade:
-    def test_status_changed_binding_ref_reports_without_writing(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_status_changed_binding_ref_reports_without_writing(self, repo_root: Path, mock_client: MagicMock) -> None:
         """status: changed server binding_ref -> pending reported, no write."""
         svc = _service(repo_root, mock_client)
         mock_client.status.return_value = {
@@ -93,9 +91,7 @@ class TestReadPathsReportPendingUpgrade:
         assert svc._config.binding_ref is None
         _no_binding_persisted(repo_root)
 
-    def test_sync_pull_changed_binding_ref_reports_without_writing(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_sync_pull_changed_binding_ref_reports_without_writing(self, repo_root: Path, mock_client: MagicMock) -> None:
         svc = _service(repo_root, mock_client)
         mock_client.pull.return_value = {"items": [], "binding_ref": "bind-pull"}
 
@@ -106,9 +102,7 @@ class TestReadPathsReportPendingUpgrade:
         assert svc._config.binding_ref is None
         _no_binding_persisted(repo_root)
 
-    def test_sync_push_changed_binding_ref_reports_without_writing(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_sync_push_changed_binding_ref_reports_without_writing(self, repo_root: Path, mock_client: MagicMock) -> None:
         svc = _service(repo_root, mock_client)
         mock_client.push.return_value = {"pushed": 0, "binding_ref": "bind-push"}
 
@@ -117,9 +111,7 @@ class TestReadPathsReportPendingUpgrade:
         assert result["pending_binding_upgrade"] == "bind-push"
         _no_binding_persisted(repo_root)
 
-    def test_sync_run_changed_binding_ref_reports_without_writing(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_sync_run_changed_binding_ref_reports_without_writing(self, repo_root: Path, mock_client: MagicMock) -> None:
         svc = _service(repo_root, mock_client)
         mock_client.run.return_value = {
             "pulled": 0,
@@ -132,9 +124,7 @@ class TestReadPathsReportPendingUpgrade:
         assert result["pending_binding_upgrade"] == "bind-run"
         _no_binding_persisted(repo_root)
 
-    def test_map_list_changed_binding_ref_reports_on_result_without_writing(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_map_list_changed_binding_ref_reports_on_result_without_writing(self, repo_root: Path, mock_client: MagicMock) -> None:
         """map_list keeps list behavior and reports pending upgrade on result."""
         svc = _service(repo_root, mock_client)
         mock_client.mappings.return_value = {
@@ -151,14 +141,10 @@ class TestReadPathsReportPendingUpgrade:
         assert svc._config.binding_ref is None
         _no_binding_persisted(repo_root)
 
-    def test_read_path_does_not_call_save_tracker_config(
-        self, repo_root: Path, mock_client: MagicMock, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_read_path_does_not_call_save_tracker_config(self, repo_root: Path, mock_client: MagicMock, monkeypatch: pytest.MonkeyPatch) -> None:
         """A read op with a changed binding_ref performs no config write."""
         save_spy = MagicMock()
-        monkeypatch.setattr(
-            "specify_cli.tracker.saas_service.save_tracker_config", save_spy
-        )
+        monkeypatch.setattr("specify_cli.tracker.saas_service.save_tracker_config", save_spy)
         svc = _service(repo_root, mock_client)
         mock_client.status.return_value = {
             "connected": True,
@@ -176,9 +162,7 @@ class TestReadPathsReportPendingUpgrade:
 
 
 class TestReadPathsNoOp:
-    def test_status_absent_binding_ref_is_noop(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_status_absent_binding_ref_is_noop(self, repo_root: Path, mock_client: MagicMock) -> None:
         svc = _service(repo_root, mock_client)
         mock_client.status.return_value = {"connected": True}
 
@@ -188,9 +172,7 @@ class TestReadPathsNoOp:
         assert svc.pending_binding_upgrade is None
         _no_binding_persisted(repo_root)
 
-    def test_status_unchanged_binding_ref_is_noop(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_status_unchanged_binding_ref_is_noop(self, repo_root: Path, mock_client: MagicMock) -> None:
         svc = _service(repo_root, mock_client, binding_ref="bind-abc")
         mock_client.status.return_value = {
             "connected": True,
@@ -202,9 +184,7 @@ class TestReadPathsNoOp:
         assert result["pending_binding_upgrade"] is None
         assert svc.pending_binding_upgrade is None
 
-    def test_map_list_absent_binding_ref_is_noop(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_map_list_absent_binding_ref_is_noop(self, repo_root: Path, mock_client: MagicMock) -> None:
         svc = _service(repo_root, mock_client)
         mock_client.mappings.return_value = {"mappings": []}
 
@@ -221,9 +201,7 @@ class TestReadPathsNoOp:
 
 
 class TestExplicitApplyPersists:
-    def test_apply_binding_upgrade_persists_to_config(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_apply_binding_upgrade_persists_to_config(self, repo_root: Path, mock_client: MagicMock) -> None:
         """Explicit apply writes binding_ref to config.yaml (write-authorized)."""
         svc = _service(repo_root, mock_client)
         # A read first reports the upgrade as pending (no write).
@@ -251,9 +229,7 @@ class TestExplicitApplyPersists:
         assert loaded.binding_ref == "bind-new"
         assert loaded.display_label == "My Project"
 
-    def test_apply_binding_upgrade_preserves_extra_fields(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_apply_binding_upgrade_preserves_extra_fields(self, repo_root: Path, mock_client: MagicMock) -> None:
         """Forward-compat: unknown config fields survive an explicit apply."""
         cfg = TrackerProjectConfig(
             provider="linear",
@@ -267,9 +243,7 @@ class TestExplicitApplyPersists:
         assert svc._config.binding_ref == "bind-new"
         assert svc._config._extra == {"future_flag": True}
 
-    def test_bind_persists_binding(
-        self, repo_root: Path, mock_client: MagicMock
-    ) -> None:
+    def test_bind_persists_binding(self, repo_root: Path, mock_client: MagicMock) -> None:
         """The explicit bind boundary still persists (write-authorized)."""
         svc = _service(repo_root, mock_client)
 

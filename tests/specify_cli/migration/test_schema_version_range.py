@@ -26,6 +26,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def test_min_lte_max() -> None:
     """MIN_SUPPORTED_SCHEMA must be <= MAX_SUPPORTED_SCHEMA."""
     assert MIN_SUPPORTED_SCHEMA <= MAX_SUPPORTED_SCHEMA

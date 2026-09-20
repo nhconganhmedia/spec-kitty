@@ -41,9 +41,7 @@ def _invoke(repo_root: Path, args: list[str]) -> Result:
 def _write_meta(repo_root: Path, slug: str, meta: dict[str, object]) -> Path:
     feature_dir = repo_root / "kitty-specs" / slug
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     return feature_dir
 
 

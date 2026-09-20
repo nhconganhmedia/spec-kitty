@@ -76,8 +76,7 @@ def _provision_all_builtin_mission_types(tmp_path: Path) -> None:
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
     (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n  - documentation\n"
-        "  - research\n  - plan\n",
+        "mission_type_activations:\n  - software-dev\n  - documentation\n  - research\n  - plan\n",
         encoding="utf-8",
     )
 
@@ -202,9 +201,7 @@ class TestNonLeakage:
     """No software-dev-only doctrine leaks into a non-software mission type."""
 
     @pytest.mark.parametrize("mission_type", NON_SOFTWARE_TYPES)
-    def test_resolved_governance_is_disjoint_from_software_dev_denylist(
-        self, mission_type: str, tmp_path: Path
-    ) -> None:
+    def test_resolved_governance_is_disjoint_from_software_dev_denylist(self, mission_type: str, tmp_path: Path) -> None:
         union = _resolve_union(mission_type, repo_root=tmp_path)
         leaked = union & SOFTWARE_DEV_ONLY_DENYLIST
         assert not leaked, (
@@ -215,13 +212,10 @@ class TestNonLeakage:
         )
 
     @pytest.mark.parametrize("mission_type", NON_SOFTWARE_TYPES)
-    def test_governance_text_has_no_software_dev_default(
-        self, mission_type: str, tmp_path: Path
-    ) -> None:
+    def test_governance_text_has_no_software_dev_default(self, mission_type: str, tmp_path: Path) -> None:
         bundle = resolve_mission_type_context(tmp_path, mission_type=mission_type)
         assert "software-dev-default" not in bundle.governance_text.lower(), (
-            f"FR-011 regression: {mission_type!r} governance text leaked the "
-            "software-dev-default template set."
+            f"FR-011 regression: {mission_type!r} governance text leaked the software-dev-default template set."
         )
 
 
@@ -274,9 +268,7 @@ class TestNonVacuityTwin:
 
 class TestDeterminism:
     @pytest.mark.parametrize("mission_type", ("software-dev", *NON_SOFTWARE_TYPES))
-    def test_two_resolutions_are_byte_identical(
-        self, mission_type: str, tmp_path: Path
-    ) -> None:
+    def test_two_resolutions_are_byte_identical(self, mission_type: str, tmp_path: Path) -> None:
         first = resolve_mission_type_context(tmp_path, mission_type=mission_type)
         second = resolve_mission_type_context(tmp_path, mission_type=mission_type)
         assert first == second
@@ -284,9 +276,7 @@ class TestDeterminism:
         assert first.governance == second.governance
 
     @pytest.mark.parametrize("mission_type", NON_SOFTWARE_TYPES)
-    def test_resolved_union_is_stable_across_resolutions(
-        self, mission_type: str, tmp_path: Path
-    ) -> None:
+    def test_resolved_union_is_stable_across_resolutions(self, mission_type: str, tmp_path: Path) -> None:
         first = _resolve_union(mission_type, repo_root=tmp_path)
         second = _resolve_union(mission_type, repo_root=tmp_path)
         assert first == second
@@ -302,9 +292,7 @@ class TestHardFailAndDegrade:
         with pytest.raises(UnknownMissionTypeError):
             resolve_mission_type_context(tmp_path, mission_type="totally-made-up-type")
 
-    def test_known_type_with_empty_type_grain_resolves_without_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_known_type_with_empty_type_grain_resolves_without_error(self, tmp_path: Path) -> None:
         """software-dev ships an empty TYPE-grain — accessing governance never errors (FR-004).
 
         Post-WP03, ``bundle.governance`` is the type-grain UNION action-grain, so
@@ -319,9 +307,7 @@ class TestHardFailAndDegrade:
         assert bundle.mission_type == "software-dev"
         assert bundle.governance is not None
 
-    def test_typeless_caller_degrades_neutrally_never_software_dev(
-        self, tmp_path: Path
-    ) -> None:
+    def test_typeless_caller_degrades_neutrally_never_software_dev(self, tmp_path: Path) -> None:
         bundle = resolve_mission_type_context(tmp_path)
         assert bundle.mission_type is None
         assert bundle.governance is None

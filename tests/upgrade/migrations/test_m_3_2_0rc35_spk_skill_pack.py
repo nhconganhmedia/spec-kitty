@@ -95,14 +95,7 @@ def test_apply_installs_spk_skill_and_reference(
 
     assert result.success is True
     assert (project / ".claude" / "skills" / "spk-start-here" / "SKILL.md").exists()
-    assert (
-        project
-        / ".claude"
-        / "skills"
-        / "spk-start-here"
-        / "references"
-        / "guide.md"
-    ).exists()
+    assert (project / ".claude" / "skills" / "spk-start-here" / "references" / "guide.md").exists()
 
     manifest = json.loads((project / ".kittify" / "skills-manifest.json").read_text())
     assert manifest["spec_kitty_version"] == "3.2.0rc35"

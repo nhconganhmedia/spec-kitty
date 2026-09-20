@@ -98,9 +98,7 @@ def _write_project_fixture(repo_root: Path) -> None:
 def _write_org_pack_with_activations(repo_root: Path) -> Path:
     pack_root = repo_root / "org-packs" / _ORG_ACTIVATION_PACK_ID
     pack_root.mkdir(parents=True, exist_ok=True)
-    (pack_root / "org-charter.yaml").write_text(
-        _ORG_CHARTER_WITH_ACTIVATIONS, encoding="utf-8"
-    )
+    (pack_root / "org-charter.yaml").write_text(_ORG_CHARTER_WITH_ACTIVATIONS, encoding="utf-8")
     return pack_root
 
 
@@ -124,13 +122,13 @@ def _bootstrap_text(repo_root: Path) -> str:
         patch("charter.activation.sync.ensure_charter_bundle_fresh", return_value=None),
     ):
         result = build_charter_context(
-            repo_root, action="implement", depth=2, mark_loaded=False,
+            repo_root,
+            action="implement",
+            depth=2,
+            mark_loaded=False,
             mission_type="software-dev",
         )
-    assert result.mode == "bootstrap", (
-        f"expected bootstrap mode, got {result.mode!r} — the entry point "
-        "must be forced into bootstrap for NFR-001 to hold"
-    )
+    assert result.mode == "bootstrap", f"expected bootstrap mode, got {result.mode!r} — the entry point must be forced into bootstrap for NFR-001 to hold"
     return str(result.text)
 
 
@@ -141,9 +139,7 @@ def _load_mock_graph(yaml: YAML) -> DRGGraph:
 class TestOrgActivationsReachBootstrapContext:
     """SC-001 / FR-005: org-declared activations reach the text stanza."""
 
-    def test_org_declared_activation_appears_in_selected_activations_stanza(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_declared_activation_appears_in_selected_activations_stanza(self, tmp_path: Path) -> None:
         """Given an org pack activation and NO project-local activations,
         the org entry appears in the ``Selected activations:`` stanza of
         ``build_charter_context(...).text`` resolved in bootstrap mode."""
@@ -155,13 +151,8 @@ class TestOrgActivationsReachBootstrapContext:
 
         text = _bootstrap_text(repo)
 
-        assert "Selected activations:" in text, (
-            "no activation stanza rendered at all — the org union never "
-            "reached _render_activation_block"
-        )
+        assert "Selected activations:" in text, "no activation stanza rendered at all — the org union never reached _render_activation_block"
         assert _ORG_ACTIVATION_ARTIFACT_ID in text, (
-            "the org pack's activations: entry did not surface in the "
-            "rendered stanza (the merged-but-never-rendered class, "
-            "#1465/#1242/#2365)"
+            "the org pack's activations: entry did not surface in the rendered stanza (the merged-but-never-rendered class, #1465/#1242/#2365)"
         )
         assert f"styleguide:{_ORG_ACTIVATION_ARTIFACT_ID}" in text

@@ -62,9 +62,7 @@ class HandoffPacket:
         if self.source_ref:
             fields["source_ref"] = escape_for_comment(self.source_ref)
         if self.requirement_ids:
-            fields["requirement_ids"] = [
-                escape_for_comment(rid) for rid in self.requirement_ids
-            ]
+            fields["requirement_ids"] = [escape_for_comment(rid) for rid in self.requirement_ids]
         return fields
 
 
@@ -148,11 +146,7 @@ def parse_handoff_packet(content: str) -> HandoffPacket | None:
     # ``True == 1`` and ``1.0 == 1`` in Python, so a bare ``!=`` check would
     # accept ``handoff_packet: true`` or ``handoff_packet: 1.0``. Only the
     # literal int ``1`` is a valid v1 packet.
-    if (
-        not isinstance(version, int)
-        or isinstance(version, bool)
-        or version != HANDOFF_PACKET_VERSION
-    ):
+    if not isinstance(version, int) or isinstance(version, bool) or version != HANDOFF_PACKET_VERSION:
         return None
     requirements = loaded.get("requirements")
     if not isinstance(requirements, list):

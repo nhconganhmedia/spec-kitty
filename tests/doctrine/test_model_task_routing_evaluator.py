@@ -206,9 +206,7 @@ def test_no_match_task_type_returns_no_catalog_candidate_without_raising() -> No
     recommendation = evaluate(catalog, "no-such-task-type", profile)
 
     assert recommendation.catalog_candidate is None
-    assert recommendation.candidates == (
-        recommendation.profile_candidate,
-    )
+    assert recommendation.candidates == (recommendation.profile_candidate,)
     assert recommendation.profile_candidate is not None
     assert recommendation.profile_candidate.model_id == "human-declared-model"
 

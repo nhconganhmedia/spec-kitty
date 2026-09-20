@@ -12,6 +12,7 @@ Usage:
 
 The 'check' mode exits with code 1 if any generated file is missing or stale.
 """
+
 from __future__ import annotations
 
 import os
@@ -140,12 +141,14 @@ def parse_context_file(md_file: Path) -> GlossaryContext:
 
                 j += 1
 
-            terms.append(GlossaryTerm(
-                name=term_name,
-                definition=definition,
-                status=status,
-                aliases=aliases,
-            ))
+            terms.append(
+                GlossaryTerm(
+                    name=term_name,
+                    definition=definition,
+                    status=status,
+                    aliases=aliases,
+                )
+            )
             i = j
         else:
             i += 1
@@ -228,7 +231,7 @@ def render_scope_yaml(scope_path: Path, context_base_dir: Path, context_slugs: l
 
 @dataclass
 class ScopeEntry:
-    path: str           # relative to repo root, e.g. "src/specify_cli/glossary"
+    path: str  # relative to repo root, e.g. "src/specify_cli/glossary"
     contexts: list[str]
     description: str = ""
 
@@ -263,10 +266,7 @@ def validate_map(tmap: TraceabilityMap) -> list[str]:
         for ctx_slug in scope.contexts:
             md_file = GLOSSARY_CONTEXTS_DIR / f"{ctx_slug}.md"
             if not md_file.exists():
-                errors.append(
-                    f"Scope '{scope.path}' references context '{ctx_slug}' "
-                    f"but '{md_file}' does not exist."
-                )
+                errors.append(f"Scope '{scope.path}' references context '{ctx_slug}' but '{md_file}' does not exist.")
     return errors
 
 

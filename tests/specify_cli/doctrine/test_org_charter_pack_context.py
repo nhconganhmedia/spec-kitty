@@ -65,9 +65,7 @@ def _make_pack_context(
                 "mission_step_contracts",
             }
         ),
-        activated_mission_types=frozenset(
-            {"software-dev", "documentation", "research", "plan"}
-        ),
+        activated_mission_types=frozenset({"software-dev", "documentation", "research", "plan"}),
         pack_roots=pack_roots,
         org_pack_names=tuple(p.name for p in pack_roots),
         repo_root=repo_root or Path("/nonexistent"),
@@ -77,9 +75,7 @@ def _make_pack_context(
 def _write_org_charter(pack_dir: Path, body: str) -> None:
     """Write an ``org-charter.yaml`` inside *pack_dir*."""
     pack_dir.mkdir(parents=True, exist_ok=True)
-    (pack_dir / "org-charter.yaml").write_text(
-        textwrap.dedent(body).lstrip(), encoding="utf-8"
-    )
+    (pack_dir / "org-charter.yaml").write_text(textwrap.dedent(body).lstrip(), encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -176,9 +172,7 @@ class TestPackRootsOrdering:
         assert policy.interview_defaults["only_first"] == "yes"
         assert policy.interview_defaults["only_second"] == "yes"
 
-    def test_pack_roots_ordering_reversed_wins_different_pack(
-        self, tmp_path: Path
-    ) -> None:
+    def test_pack_roots_ordering_reversed_wins_different_pack(self, tmp_path: Path) -> None:
         """Reversing pack_roots reverses who wins on collisions."""
         pack_alpha = tmp_path / "pack-alpha"
         pack_beta = tmp_path / "pack-beta"
@@ -240,8 +234,7 @@ class TestBackwardCompatibility:
         config_dir = tmp_path / ".kittify"
         config_dir.mkdir(parents=True)
         (config_dir / "config.yaml").write_text(
-            "doctrine:\n  org:\n    packs:\n"
-            f"      - name: legacy\n        local_path: {pack!s}\n",
+            f"doctrine:\n  org:\n    packs:\n      - name: legacy\n        local_path: {pack!s}\n",
             encoding="utf-8",
         )
 
@@ -298,9 +291,7 @@ class TestNoConfigYamlReadInResolver:
 
         assert "packcontext-dir-001" in policy.required_directives
 
-    def test_misleading_config_yaml_is_ignored_when_pack_context_provided(
-        self, tmp_path: Path
-    ) -> None:
+    def test_misleading_config_yaml_is_ignored_when_pack_context_provided(self, tmp_path: Path) -> None:
         """A config.yaml pointing at a *different* pack does not influence
         the result when a PackContext is explicitly supplied."""
         # Real pack (what the test wants)
@@ -329,8 +320,7 @@ class TestNoConfigYamlReadInResolver:
         config_dir = tmp_path / ".kittify"
         config_dir.mkdir(parents=True)
         (config_dir / "config.yaml").write_text(
-            "doctrine:\n  org:\n    packs:\n"
-            f"      - name: decoy-pack\n        local_path: {decoy_pack!s}\n",
+            f"doctrine:\n  org:\n    packs:\n      - name: decoy-pack\n        local_path: {decoy_pack!s}\n",
             encoding="utf-8",
         )
 

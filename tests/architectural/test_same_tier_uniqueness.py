@@ -81,11 +81,7 @@ def test_same_tier_relation_bites_on_synthetic_double_run() -> None:
         marker_expr="fast",
     )
     counts = gc.same_tier_shard_counts([shard_a, shard_b], [double_run_test])
-    fault = {
-        nid: count
-        for nid, count in counts.items()
-        if count["count_fast_shards"] > _MAX_SHARDS_PER_TIER
-    }
+    fault = {nid: count for nid, count in counts.items() if count["count_fast_shards"] > _MAX_SHARDS_PER_TIER}
     assert fault, "same-tier relation failed to flag a synthetic fast double-run"
 
 
@@ -145,18 +141,9 @@ def test_same_tier_exemption_is_narrow_not_a_blanket_pass() -> None:
     peer_gates = [g for g in gates if g.job not in _TRIGGER_DISJOINT_FAST_JOBS]
     counts = gc.same_tier_shard_counts(peer_gates, universe)
 
-    assert (
-        counts["tests/synthetic/corpus_case/test_corpus_overlap.py::test_a"][
-            "count_fast_shards"
-        ]
-        <= _MAX_SHARDS_PER_TIER
-    ), (
-        "corpus-overlay-plus-one-home-shard overlap must not be flagged "
-        "once the overlay is excluded from the peer set"
+    assert counts["tests/synthetic/corpus_case/test_corpus_overlap.py::test_a"]["count_fast_shards"] <= _MAX_SHARDS_PER_TIER, (
+        "corpus-overlay-plus-one-home-shard overlap must not be flagged once the overlay is excluded from the peer set"
     )
-    assert (
-        counts["tests/synthetic/genuine_case/test_genuine_double.py::test_b"][
-            "count_fast_shards"
-        ]
-        > _MAX_SHARDS_PER_TIER
-    ), "a genuine two-non-corpus-home-shard double-run must still be flagged"
+    assert counts["tests/synthetic/genuine_case/test_genuine_double.py::test_b"]["count_fast_shards"] > _MAX_SHARDS_PER_TIER, (
+        "a genuine two-non-corpus-home-shard double-run must still be flagged"
+    )

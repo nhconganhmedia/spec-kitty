@@ -44,11 +44,7 @@ def _count_orphaned_terms(project_dir: Path) -> int:
         nodes = drg_data.get("nodes", [])
         edges = drg_data.get("edges", [])
         # Collect all glossary URNs
-        glossary_urns = {
-            n.get("urn") or n.get("id", "")
-            for n in nodes
-            if isinstance(n, dict) and str(n.get("urn") or n.get("id", "")).startswith("glossary:")
-        }
+        glossary_urns = {n.get("urn") or n.get("id", "") for n in nodes if isinstance(n, dict) and str(n.get("urn") or n.get("id", "")).startswith("glossary:")}
         if not glossary_urns:
             return 0  # WP5.1 not yet merged
         # Collect all URNs that have at least one incoming vocabulary edge
@@ -120,9 +116,9 @@ def _recover_valid_senses(
     try:
         if any(e.term_index is None for e in original_error.errors):
             logger.warning(
-                "glossary scope %s: refusing per-term recovery after file-level "
-                "validation failure: %s",
-                scope.value, original_error,
+                "glossary scope %s: refusing per-term recovery after file-level validation failure: %s",
+                scope.value,
+                original_error,
             )
             return []
 
@@ -170,9 +166,12 @@ def _recover_valid_senses(
             )
         if skipped:
             logger.warning(
-                "glossary scope %s: recovered %d/%d terms; skipped indices %s "
-                "(file-level validation failed: %s)",
-                scope.value, len(recovered), len(raw_terms), skipped, original_error,
+                "glossary scope %s: recovered %d/%d terms; skipped indices %s (file-level validation failed: %s)",
+                scope.value,
+                len(recovered),
+                len(raw_terms),
+                skipped,
+                original_error,
             )
         return recovered
     except Exception as exc:
@@ -299,7 +298,8 @@ class GlossaryHandler(DashboardHandler):
         except SeedFileValidationError as exc:
             logger.warning(
                 "glossary terms: validation error in %s: %s",
-                exc.file_path, exc,
+                exc.file_path,
+                exc,
             )
             records = []
         except Exception as exc:

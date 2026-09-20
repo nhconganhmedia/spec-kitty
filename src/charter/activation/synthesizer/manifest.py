@@ -202,9 +202,7 @@ def load_yaml(path: Path) -> SynthesisManifest:
     return manifest
 
 
-def hash_manifest_payload(
-    data: Mapping[str, Any], *, exclude_keys: frozenset[str]
-) -> str:
+def hash_manifest_payload(data: Mapping[str, Any], *, exclude_keys: frozenset[str]) -> str:
     """Single canonical manifest hasher — SHA-256 of ``canonical_yaml(payload)``.
 
     The **one** manifest-hashing primitive, shared by both the charter
@@ -242,9 +240,7 @@ def compute_manifest_hash(manifest_or_data: SynthesisManifest | Mapping[str, Any
     if isinstance(manifest_or_data, SynthesisManifest):
         data = manifest_or_data.model_dump(mode="python")
     else:
-        data = SynthesisManifest.model_validate(
-            {**manifest_or_data, "manifest_hash": "0" * 64}
-        ).model_dump(mode="python")
+        data = SynthesisManifest.model_validate({**manifest_or_data, "manifest_hash": "0" * 64}).model_dump(mode="python")
 
     return hash_manifest_payload(data, exclude_keys=frozenset({"manifest_hash"}))
 
@@ -294,37 +290,25 @@ def verify_manifest_hash(manifest: SynthesisManifest) -> None:
     if computed != manifest.manifest_hash:
         raw_field_names = manifest._raw_field_names
         if raw_field_names is not None:
-            subset = {
-                k: v
-                for k, v in manifest.model_dump(mode="python").items()
-                if k in raw_field_names and k != "manifest_hash"
-            }
+            subset = {k: v for k, v in manifest.model_dump(mode="python").items() if k in raw_field_names and k != "manifest_hash"}
             legacy_computed = hashlib.sha256(  # noqa: TID251 - production raw SHA-256 owner
                 canonical_yaml(subset)
             ).hexdigest()
             if legacy_computed == manifest.manifest_hash:
                 return
 
-        raise ValueError(
-            f"manifest_hash mismatch (stored {manifest.manifest_hash[:12]}..., "
-            f"computed {computed[:12]}...)"
-        )
+        raise ValueError(f"manifest_hash mismatch (stored {manifest.manifest_hash[:12]}..., computed {computed[:12]}...)")
 
 
 def _validate_manifest_path(raw_path: str, *, field_name: str, required_prefix: Path) -> Path:
     """Return a safe repo-relative manifest path under ``required_prefix``."""
     path = Path(to_posix(raw_path))
     if path.is_absolute() or ".." in path.parts:
-        raise ValueError(
-            f"{field_name} must be repo-relative and stay under "
-            f"{required_prefix.as_posix()}: {raw_path}"
-        )
+        raise ValueError(f"{field_name} must be repo-relative and stay under {required_prefix.as_posix()}: {raw_path}")
     try:
         path.relative_to(required_prefix)
     except ValueError as exc:
-        raise ValueError(
-            f"{field_name} must be under {required_prefix.as_posix()}: {raw_path}"
-        ) from exc
+        raise ValueError(f"{field_name} must be under {required_prefix.as_posix()}: {raw_path}") from exc
     return path
 
 
@@ -335,9 +319,7 @@ def _resolve_under_repo(repo_root: Path, rel_path: Path, *, field_name: str) -> 
     try:
         resolved.relative_to(repo_resolved)
     except ValueError as exc:
-        raise ValueError(
-            f"{field_name} resolves outside repository root: {rel_path.as_posix()}"
-        ) from exc
+        raise ValueError(f"{field_name} resolves outside repository root: {rel_path.as_posix()}") from exc
     return resolved
 
 

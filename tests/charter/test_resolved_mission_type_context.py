@@ -57,9 +57,7 @@ class TestCanonicalArtifactKey:
         assert _canonical_artifact_key("DIRECTIVE_003") != _canonical_artifact_key("DIRECTIVE_030")
 
     def test_slug_only_reference_is_stable(self) -> None:
-        assert _canonical_artifact_key("python-style-guide") == _canonical_artifact_key(
-            "urn:styleguide:python-style-guide"
-        )
+        assert _canonical_artifact_key("python-style-guide") == _canonical_artifact_key("urn:styleguide:python-style-guide")
 
 
 # ---------------------------------------------------------------------------
@@ -107,9 +105,7 @@ class TestResolvedGovernanceFromGrains:
         assert gov.selected_directives == ["DIRECTIVE_010", "DIRECTIVE_024"]
 
     def test_provenance_is_carried(self) -> None:
-        gov = ResolvedGovernance.from_grains(
-            type_grain={}, action_grain={}, provenance="project"
-        )
+        gov = ResolvedGovernance.from_grains(type_grain={}, action_grain={}, provenance="project")
         assert gov.provenance == "project"
 
 
@@ -122,9 +118,7 @@ def _write_config(repo_root: Path, activations: list[str]) -> None:
     kittify = repo_root / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
     lines = "\n".join(f"  - {mt}" for mt in activations)
-    (kittify / "config.yaml").write_text(
-        f"mission_type_activations:\n{lines}\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text(f"mission_type_activations:\n{lines}\n", encoding="utf-8")
 
 
 class TestResolverHardFailPolicies:
@@ -204,9 +198,7 @@ class TestResolverDeterminism:
 # ---------------------------------------------------------------------------
 
 
-def _write_profile_template_override(
-    repo_root: Path, template_set: str, *, mission_type: str = "software-dev"
-) -> None:
+def _write_profile_template_override(repo_root: Path, template_set: str, *, mission_type: str = "software-dev") -> None:
     """Write a legacy governance-profile string that must not author mappings."""
     override_dir = repo_root / ".kittify" / "doctrine" / "mission_types" / mission_type
     override_dir.mkdir(parents=True, exist_ok=True)
@@ -342,9 +334,7 @@ class TestResolvedTemplateSet:
             "plan": "plan-template.md",
         }
 
-    def test_profile_string_override_cannot_author_artifact_mapping(
-        self, tmp_path: Path
-    ) -> None:
+    def test_profile_string_override_cannot_author_artifact_mapping(self, tmp_path: Path) -> None:
         _write_config(tmp_path, ["software-dev"])
         _write_profile_template_override(tmp_path, "project-custom")
 
@@ -356,9 +346,7 @@ class TestResolvedTemplateSet:
         }
 
     @pytest.mark.parametrize("selection_key", ["charter", "doctrine"])
-    def test_unregistered_project_override_has_no_artifact_mapping(
-        self, tmp_path: Path, selection_key: str
-    ) -> None:
+    def test_unregistered_project_override_has_no_artifact_mapping(self, tmp_path: Path, selection_key: str) -> None:
         _write_config(tmp_path, ["software-dev"])
         # consolidate-charter-bundle (IC-04 / WP04, T028c):
         # _project_has_doctrine_overrides reads charter.yaml's canonical
@@ -367,10 +355,7 @@ class TestResolvedTemplateSet:
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True, exist_ok=True)
         (charter_dir / "charter.yaml").write_text(
-            "governance:\n"
-            f"  {selection_key}:\n"
-            "    selected_directives:\n"
-            "      - DIRECTIVE_001\n",
+            f"governance:\n  {selection_key}:\n    selected_directives:\n      - DIRECTIVE_001\n",
             encoding="utf-8",
         )
         _write_profile_template_override(
@@ -384,9 +369,7 @@ class TestResolvedTemplateSet:
         assert bundle.action_sequence == []
         assert bundle.template_set is None
 
-    def test_action_sequence_hot_path_resolves_without_template_mapping(
-        self, tmp_path: Path
-    ) -> None:
+    def test_action_sequence_hot_path_resolves_without_template_mapping(self, tmp_path: Path) -> None:
         """Functional companion to
         test_action_sequence_hot_path_does_not_resolve_template_mapping
         (split, #4015): the hot path returns a populated action_sequence
@@ -400,9 +383,7 @@ class TestResolvedTemplateSet:
         assert "template_set" not in bundle.__dict__
 
     @pytest.mark.performance
-    def test_action_sequence_hot_path_does_not_resolve_template_mapping(
-        self, tmp_path: Path
-    ) -> None:
+    def test_action_sequence_hot_path_does_not_resolve_template_mapping(self, tmp_path: Path) -> None:
         """NFR timing budget only (split, #4015): 20-iteration hot-path
         p95 < 100ms. Functional coverage moved to
         test_action_sequence_hot_path_resolves_without_template_mapping,
@@ -453,9 +434,7 @@ class TestGovernanceThunkSeversCoupling:
     the FR-013 disk-reading union.
     """
 
-    def test_colliding_grain_does_not_fail_construction_or_action_sequence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_colliding_grain_does_not_fail_construction_or_action_sequence(self, tmp_path: Path) -> None:
         """A cross-grain collision is invisible to construction and ``.action_sequence``.
 
         ``resolve_mission_type_context`` MUST NOT raise even though the
@@ -488,9 +467,7 @@ class TestGovernanceThunkSeversCoupling:
         assert exc.value.kind == "directives"
         assert exc.value.artifact == "001-architectural-integrity-standard"
 
-    def test_existing_mission_types_and_action_sequence_ignore_governance_grain(
-        self, tmp_path: Path
-    ) -> None:
+    def test_existing_mission_types_and_action_sequence_ignore_governance_grain(self, tmp_path: Path) -> None:
         """``existing_mission_types`` / ``activated_mission_types`` / ``.action_sequence``
         never read the governance grain — a colliding override (which would
         blow up ``.governance``) leaves them untouched (C-001 regression pin).

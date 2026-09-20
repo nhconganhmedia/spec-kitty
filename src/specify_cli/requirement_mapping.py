@@ -185,9 +185,7 @@ def find_undeclared_requirement_citations(spec_content: str) -> list[str]:
     for heading_text, section in _requirement_named_sections(spec_content):
         section_raw_tokens = _raw_ref_tokens(section)
         if section_raw_tokens and not _declared_ids(section):
-            warnings.append(
-                _undeclared_citation_warning(sorted(section_raw_tokens), scope=f"The {heading_text!r} section")
-            )
+            warnings.append(_undeclared_citation_warning(sorted(section_raw_tokens), scope=f"The {heading_text!r} section"))
     return warnings
 
 
@@ -206,9 +204,7 @@ def find_discarded_sc_refs(tasks_dir: Path) -> list[str]:
     """Signal ``SC-###`` refs that are silently dropped from the ref graph."""
     warnings: list[str] = []
     for wp_id, raw_tokens in read_all_wp_raw_requirement_refs(tasks_dir).items():
-        sc_tokens = sorted(
-            {token.upper() for token in raw_tokens if _SC_REF_FIND_PATTERN.fullmatch(token)}
-        )
+        sc_tokens = sorted({token.upper() for token in raw_tokens if _SC_REF_FIND_PATTERN.fullmatch(token)})
         if sc_tokens:
             warnings.append(_discarded_sc_warning(wp_id, sc_tokens))
     return warnings

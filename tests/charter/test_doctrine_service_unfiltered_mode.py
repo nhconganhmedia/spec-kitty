@@ -158,9 +158,7 @@ def test_unfiltered_mode_equals_raw_projection(tmp_path: Path, kind: str) -> Non
 
 
 @pytest.mark.parametrize("kind", _ALL_GATED_KINDS)
-def test_unfiltered_mode_is_independent_of_which_pack_context_object_is_discarded(
-    tmp_path: Path, kind: str
-) -> None:
+def test_unfiltered_mode_is_independent_of_which_pack_context_object_is_discarded(tmp_path: Path, kind: str) -> None:
     """Passing ``pack_context=None`` is not merely "happens to match this
     particular PackContext" -- it must hold no matter how aggressively a real
     context WOULD have narrowed the result. Uses an explicit full opt-out
@@ -169,9 +167,7 @@ def test_unfiltered_mode_is_independent_of_which_pack_context_object_is_discarde
     "return nothing").
     """
     inner = _mock_inner()
-    fully_deactivated: dict[str, frozenset[str]] = {
-        field: frozenset() for _kind, field in _KIND_TO_FIELD
-    }
+    fully_deactivated: dict[str, frozenset[str]] = {field: frozenset() for _kind, field in _KIND_TO_FIELD}
     pack_ctx = PackContext(
         activated_kinds=frozenset(),
         activated_mission_types=frozenset(),
@@ -216,9 +212,7 @@ def test_agent_profile_repository_accessor_is_unaffected_by_pack_context(
 
 
 @pytest.mark.parametrize("kind", _ALL_GATED_KINDS)
-def test_raw_repository_accessor_is_unaffected_by_pack_context(
-    tmp_path: Path, kind: str
-) -> None:
+def test_raw_repository_accessor_is_unaffected_by_pack_context(tmp_path: Path, kind: str) -> None:
     """``raw_repository(kind)`` -- the generic accessor
     ``_collect_glossary_pack_health`` and ``_build_selection_block`` (T013)
     use for ``.list_all()``/``.get_provenance()`` -- returns the raw

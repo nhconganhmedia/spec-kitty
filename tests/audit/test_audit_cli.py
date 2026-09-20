@@ -90,9 +90,7 @@ def test_cli_requires_audit_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 # ---------------------------------------------------------------------------
 
 
-def test_cli_runs_audit_with_fixture_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_runs_audit_with_fixture_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--audit --fixture-dir scans the fixture and exits 0 for a clean mission."""
     fixture_root = tmp_path / "fixtures"
     _make_clean_mission(fixture_root)
@@ -132,9 +130,7 @@ def test_cli_json_output_shape(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 # ---------------------------------------------------------------------------
 
 
-def test_cli_fail_on_error_exit_0_when_clean(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_fail_on_error_exit_0_when_clean(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--fail-on error exits 0 when the fixture has no errors."""
     fixture_root = tmp_path / "fixtures"
     _make_clean_mission(fixture_root)
@@ -152,9 +148,7 @@ def test_cli_fail_on_error_exit_0_when_clean(
 # ---------------------------------------------------------------------------
 
 
-def test_cli_fail_on_error_exit_1_when_errors(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_fail_on_error_exit_1_when_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--fail-on error exits 1 when the fixture has a CORRUPT_JSONL (error) finding."""
     fixture_root = tmp_path / "fixtures"
     _make_corrupt_mission(fixture_root)
@@ -172,9 +166,7 @@ def test_cli_fail_on_error_exit_1_when_errors(
 # ---------------------------------------------------------------------------
 
 
-def test_cli_invalid_fail_on_exits_2(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_invalid_fail_on_exits_2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An unknown --fail-on value exits 2 with a helpful error message."""
     fixture_root = tmp_path / "fixtures"
     _make_clean_mission(fixture_root)
@@ -240,9 +232,7 @@ def test_cli_json_determinism(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     assert result1.output == result2.output
 
 
-def test_cli_fail_on_teamspace_blocker_exits_1_for_legacy_warning(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_fail_on_teamspace_blocker_exits_1_for_legacy_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--fail-on teamspace-blocker exits 1 for LEGACY_KEY warnings."""
     fixture_root = tmp_path / "fixtures"
     _make_legacy_mission(fixture_root)
@@ -276,9 +266,7 @@ def test_cli_include_fixtures_json(tmp_path: Path, monkeypatch: pytest.MonkeyPat
     assert data["shape_counters"]["CORRUPT_JSONL"] >= 1
 
 
-def test_cli_include_fixtures_rejects_fixture_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cli_include_fixtures_rejects_fixture_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--include-fixtures and --fixture-dir are mutually exclusive."""
     fixture_root = tmp_path / "fixtures"
     _make_clean_mission(fixture_root)

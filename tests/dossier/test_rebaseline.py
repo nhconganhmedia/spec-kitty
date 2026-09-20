@@ -368,9 +368,7 @@ class TestRebaselineErrorBranches:
         assert outcome.changed is False
         assert snapshot_path.read_text(encoding="utf-8") == before  # not rewritten
 
-    def test_reindex_failure_is_error_and_does_not_write(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_reindex_failure_is_error_and_does_not_write(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         import specify_cli.dossier.rebaseline as rb
         from specify_cli.dossier.rebaseline import rebaseline_snapshot_file
 
@@ -391,9 +389,7 @@ class TestRebaselineErrorBranches:
         assert outcome.changed is False
         assert snapshot_path.read_text(encoding="utf-8") == before  # not rewritten
 
-    def test_rebaseline_skips_one_mission_on_malformed_manifest(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_rebaseline_skips_one_mission_on_malformed_manifest(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """WP01 (FR-016, AS5): one bad mission must not abort the backlog sweep.
 
         Exercises rebaseline.py's own pre-existing `except Exception` at
@@ -550,9 +546,7 @@ class TestRebaselineOrgAwareness:
     def teardown_method(self):
         ManifestRegistry.clear_cache()
 
-    def test_indexer_receives_repo_root_matching_project_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_indexer_receives_repo_root_matching_project_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """SC-005 / AC1 / T004: red-first — `Indexer` must receive a non-`None`
         `repo_root` matching the real project root after
         `rebaseline_snapshot_file` runs.
@@ -583,13 +577,9 @@ class TestRebaselineOrgAwareness:
 
         rebaseline_snapshot_file(snapshot_path)
 
-        assert captured_repo_roots == [project_root], (
-            f"Indexer must receive repo_root={project_root!r}, got {captured_repo_roots!r}"
-        )
+        assert captured_repo_roots == [project_root], f"Indexer must receive repo_root={project_root!r}, got {captured_repo_roots!r}"
 
-    def test_org_pack_required_artifact_reaches_rebaselined_snapshot(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_pack_required_artifact_reaches_rebaselined_snapshot(self, tmp_path: Path) -> None:
         """AC1 / T004 non-inert proof: a healthy org pack's extra required
         artifact must surface as a missing ("ghost") entry in the rebaselined
         snapshot's `artifact_summaries` — proving the org pack was actually
@@ -611,13 +601,10 @@ class TestRebaselineOrgAwareness:
         rebaseline_snapshot_file(snapshot_path)
 
         assert _ORG_REQUIRED_KEY in _snapshot_artifact_keys(snapshot_path), (
-            "org-pack-required artifact must appear in the rebaselined snapshot "
-            "— the org pack was not consulted"
+            "org-pack-required artifact must appear in the rebaselined snapshot — the org pack was not consulted"
         )
 
-    def test_no_org_pack_configured_matches_org_blind_behavior(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_org_pack_configured_matches_org_blind_behavior(self, tmp_path: Path) -> None:
         """FR-003 AC2 (revert-discipline companion): with `repo_root` now
         threaded but NO org pack configured, rebaseline output must be
         byte-identical to the pre-fix, permanently org-blind
@@ -632,22 +619,16 @@ class TestRebaselineOrgAwareness:
         _write_source_mission(feature_dir)
         # No `.kittify/config.yaml` at project_root at all — org-agnostic project.
 
-        org_blind_dossier = Indexer(ManifestRegistry(), repo_root=None).index_feature(
-            feature_dir, "software-dev"
-        )
+        org_blind_dossier = Indexer(ManifestRegistry(), repo_root=None).index_feature(feature_dir, "software-dev")
         org_blind_hash = compute_snapshot(org_blind_dossier).parity_hash_sha256
 
         snapshot_path = _record_old_form_snapshot(feature_dir, slug)
         rebaseline_snapshot_file(snapshot_path)
 
-        assert _recorded_hash(snapshot_path) == org_blind_hash, (
-            "no-org-pack rebaseline must match the org-blind reindex exactly"
-        )
+        assert _recorded_hash(snapshot_path) == org_blind_hash, "no-org-pack rebaseline must match the org-blind reindex exactly"
         assert _ORG_REQUIRED_KEY not in _snapshot_artifact_keys(snapshot_path)
 
-    def test_malformed_org_pack_does_not_abort_the_operator_command(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_org_pack_does_not_abort_the_operator_command(self, tmp_path: Path) -> None:
         """FR-003 AC4 (as widened by #3412/WP03's org-tier fail-loud fix):
         a malformed org pack must not raise an UNHANDLED exception out of
         the operator's `migrate` command — but it must no longer silently
@@ -689,9 +670,7 @@ class TestRebaselineOrgAwareness:
         # Malformed: not a YAML mapping (unbalanced flow sequence) — this
         # must not raise UNHANDLED out of `rebaseline_snapshot_file`; it
         # must be captured as a per-mission `reindex_failed` error instead.
-        (malformed_dir / "expected-artifacts.yaml").write_text(
-            "required_always: [this, is, not: valid\n", encoding="utf-8"
-        )
+        (malformed_dir / "expected-artifacts.yaml").write_text("required_always: [this, is, not: valid\n", encoding="utf-8")
         _write_org_pack_config(project_root, packs=[("acme", org_root)])
 
         outcome = rebaseline_snapshot_file(snapshot_path)  # must not raise
@@ -723,20 +702,15 @@ class TestRebaselineOrgAwareness:
         org_root_1.mkdir(parents=True, exist_ok=True)  # exists, no override for software-dev
         org_root_2 = tmp_path / "org-pack-2"
         _write_org_manifest(org_root_2, "software-dev", _org_manifest_data("org-2"))
-        _write_org_pack_config(
-            project_root, packs=[("pack-one", org_root_1), ("pack-two", org_root_2)]
-        )
+        _write_org_pack_config(project_root, packs=[("pack-one", org_root_1), ("pack-two", org_root_2)])
 
         rebaseline_snapshot_file(snapshot_path)
 
         assert _ORG_REQUIRED_KEY in _snapshot_artifact_keys(snapshot_path), (
-            "second (pack-2) org root in the chain must be reached, proving "
-            "the full chain is walked, not just the first configured org root"
+            "second (pack-2) org root in the chain must be reached, proving the full chain is walked, not just the first configured org root"
         )
 
-    def test_unrecognized_layout_does_not_derive_bogus_repo_root(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unrecognized_layout_does_not_derive_bogus_repo_root(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Negative case: a snapshot NOT nested under the fixed
         `<repo_root>/kitty-specs/<slug>/...` layout must fail SAFE
         (`repo_root=None`, today's org-blind behavior) rather than deriving a
@@ -784,9 +758,5 @@ class TestRebaselineOrgAwareness:
 
         rebaseline_snapshot_file(snapshot_path)
 
-        assert captured_repo_roots == [None], (
-            f"unrecognized layout must fail safe to repo_root=None, got {captured_repo_roots!r}"
-        )
-        assert _ORG_REQUIRED_KEY not in _snapshot_artifact_keys(snapshot_path), (
-            "the wrong-project org pack must never be consulted"
-        )
+        assert captured_repo_roots == [None], f"unrecognized layout must fail safe to repo_root=None, got {captured_repo_roots!r}"
+        assert _ORG_REQUIRED_KEY not in _snapshot_artifact_keys(snapshot_path), "the wrong-project org pack must never be consulted"

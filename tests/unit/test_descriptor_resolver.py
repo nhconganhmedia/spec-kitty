@@ -43,7 +43,7 @@ pytestmark = [pytest.mark.unit]
 #: RJ#1/RJ#2 shape: ``coordination/surface_resolver.py``'s ``_coord_mid8`` — a
 #: single qualname holding two distinct raw-join sites (plan.md's descriptor
 #: feasibility table). Mirrors the real function's shape verbatim.
-_RJ_SOURCE = '''\
+_RJ_SOURCE = """\
 def _coord_mid8(meta, mission_slug, repo_root):
     mid8 = resolve_declared_mid8(meta, mission_slug)
     if mid8:
@@ -59,7 +59,7 @@ def _coord_mid8(meta, mission_slug, repo_root):
         / mission_slug,
         primary_candidate=repo_root / KITTY_SPECS_DIR / mission_slug,
     )
-'''
+"""
 _RJ_REL_PATH = "src/specify_cli/coordination/surface_resolver.py"
 _RJ_QUALNAME = "_coord_mid8"
 _RJ_SUBSTRING_1 = "coord_candidate = repo_root"
@@ -68,13 +68,13 @@ _RJ_SUBSTRING_2 = "primary_candidate = repo_root / KITTY_SPECS_DIR / mission_slu
 #: D-2 shape: TWO byte-identical ``subprocess . run ( cmd )`` findings inside
 #: ONE qualname — the case that FORCES an explicit ``occurrence`` ordinal
 #: because ``composite_key`` collides by construction for identical lines.
-_AMBIGUOUS_SOURCE = '''\
+_AMBIGUOUS_SOURCE = """\
 def _workflow_evidence_missing(paths):
     for path in paths:
         subprocess . run ( cmd )
         subprocess . run ( cmd )
     return False
-'''
+"""
 _AMBIGUOUS_REL_PATH = "src/specify_cli/coordination/gates_core.py"
 _AMBIGUOUS_QUALNAME = "_workflow_evidence_missing"
 _AMBIGUOUS_SUBSTRING = "subprocess . run ("
@@ -83,18 +83,18 @@ _AMBIGUOUS_SUBSTRING = "subprocess . run ("
 #: candidate lines differ (``cmd`` vs ``cmd2``) so ``occurrence`` selects a
 #: genuinely DIFFERENT composite key — proves the ordinal actually disambiguates
 #: rather than being a no-op.
-_OCCURRENCE_SOURCE = '''\
+_OCCURRENCE_SOURCE = """\
 def _workflow_evidence_missing(paths):
     for path in paths:
         subprocess . run ( cmd )
         subprocess . run ( cmd2 )
     return False
-'''
+"""
 
 #: TR#2/TR#3 shape: identical ``subprocess . run (`` token line reused across
 #: TWO DIFFERENT qualnames (``status_porcelain`` / ``show_blob``) — the
 #: qualname is the ONLY disambiguator here (plan.md's descriptor table).
-_TR_SOURCE = '''\
+_TR_SOURCE = """\
 def status_porcelain(repo_root):
     result = subprocess . run (
         ["git", "status", "--porcelain"], cwd=repo_root, capture_output=True
@@ -106,7 +106,7 @@ def show_blob(repo_root, ref):
         ["git", "show", ref], cwd=repo_root, capture_output=True
     )
     return result.stdout
-'''
+"""
 _TR_REL_PATH = "src/specify_cli/coordination/gates_core.py"
 
 #: WS#1 shape (plan.md table) for the non-vacuity self-test: a docstring
@@ -169,9 +169,7 @@ def test_zero_matches_raises() -> None:
 
 
 def test_multiple_matches_without_occurrence_raises() -> None:
-    descriptor = ContentDescriptor(
-        _AMBIGUOUS_REL_PATH, _AMBIGUOUS_QUALNAME, _AMBIGUOUS_SUBSTRING, None, "r"
-    )
+    descriptor = ContentDescriptor(_AMBIGUOUS_REL_PATH, _AMBIGUOUS_QUALNAME, _AMBIGUOUS_SUBSTRING, None, "r")
     with pytest.raises(DescriptorResolutionError):
         resolve_descriptor(_AMBIGUOUS_SOURCE, descriptor)
 
@@ -250,9 +248,7 @@ def test_descriptor_still_live_false_on_ambiguous_resolution_never_true_by_any_m
     (2 candidates, no occurrence). A forbidden "≥1 finding matches" semantics
     would wrongly read True here — this is the exact regression D-1 exists to
     prevent (a routed-away site masking a new sibling offender)."""
-    descriptor = ContentDescriptor(
-        _AMBIGUOUS_REL_PATH, _AMBIGUOUS_QUALNAME, _AMBIGUOUS_SUBSTRING, None, "r"
-    )
+    descriptor = ContentDescriptor(_AMBIGUOUS_REL_PATH, _AMBIGUOUS_QUALNAME, _AMBIGUOUS_SUBSTRING, None, "r")
     # One of the two colliding candidate lines' true composite key -- under a
     # forbidden "any match" semantics this would satisfy an "in" check.
     seeded: CompositeKey = (
@@ -353,9 +349,7 @@ def test_assert_descriptor_unique_within_qualname_passes_for_unique_descriptor()
 
 
 def test_assert_descriptor_unique_within_qualname_raises_for_ambiguous_descriptor() -> None:
-    descriptor = ContentDescriptor(
-        _AMBIGUOUS_REL_PATH, _AMBIGUOUS_QUALNAME, _AMBIGUOUS_SUBSTRING, None, "r"
-    )
+    descriptor = ContentDescriptor(_AMBIGUOUS_REL_PATH, _AMBIGUOUS_QUALNAME, _AMBIGUOUS_SUBSTRING, None, "r")
 
     with pytest.raises(DescriptorResolutionError):
         assert_descriptor_unique_within_qualname(_AMBIGUOUS_SOURCE, descriptor)

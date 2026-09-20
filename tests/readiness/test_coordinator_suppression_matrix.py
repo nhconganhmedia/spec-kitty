@@ -176,9 +176,7 @@ def test_suppression_matrix_no_teamspace_leakage(
     # Assert: result fields
     assert isinstance(result, ReadinessResult), f"got {type(result)!r}"
     assert result.enabled == row.expected_enabled, f"row={row.name}: enabled mismatch ({result.enabled})"
-    assert (
-        result.output_policy == row.expected_policy
-    ), f"row={row.name}: policy mismatch ({result.output_policy})"
+    assert result.output_policy == row.expected_policy, f"row={row.name}: policy mismatch ({result.output_policy})"
     if row.expected_enabled:
         # WS2 (issue #1094) widened AuthStatus. The probe now produces one of
         # the authoritative values; the Wave 1 ``NOT_CHECKED`` sentinel is no
@@ -192,16 +190,10 @@ def test_suppression_matrix_no_teamspace_leakage(
         }, f"row={row.name}: enabled rows expect an authoritative auth status, got {result.auth_status!r}"
         assert result.ran is True
     else:
-        assert (
-            result.auth_status == AuthStatus.DISABLED
-        ), f"row={row.name}: disabled rows expect DISABLED"
+        assert result.auth_status == AuthStatus.DISABLED, f"row={row.name}: disabled rows expect DISABLED"
         assert result.ran is False
 
     # Assert: no Teamspace leakage
     captured = capsys.readouterr()
-    assert "teamspace" not in captured.out.lower(), (
-        f"row={row.name}: Teamspace leaked to stdout: {captured.out!r}"
-    )
-    assert "teamspace" not in captured.err.lower(), (
-        f"row={row.name}: Teamspace leaked to stderr: {captured.err!r}"
-    )
+    assert "teamspace" not in captured.out.lower(), f"row={row.name}: Teamspace leaked to stdout: {captured.out!r}"
+    assert "teamspace" not in captured.err.lower(), f"row={row.name}: Teamspace leaked to stderr: {captured.err!r}"

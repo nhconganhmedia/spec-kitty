@@ -36,10 +36,7 @@ _EXPECTED_RELATION = Relation.SUGGESTS
 def test_tiered_standards_node_exists(built_in_graph: DRGGraph) -> None:
     """The tiered-standards styleguide node must be present in the shipped graph."""
     node_urns = {node.urn for node in built_in_graph.nodes}
-    assert _STYLEGUIDE_URN in node_urns, (
-        f"Node {_STYLEGUIDE_URN!r} not found in shipped graph. "
-        "Run 'spec-kitty doctrine regenerate-graph' to refresh."
-    )
+    assert _STYLEGUIDE_URN in node_urns, f"Node {_STYLEGUIDE_URN!r} not found in shipped graph. Run 'spec-kitty doctrine regenerate-graph' to refresh."
 
 
 def test_tiered_standards_has_inbound_edge_from_directive_030(
@@ -54,11 +51,7 @@ def test_tiered_standards_has_inbound_edge_from_directive_030(
     and regenerating the graph will make this test fail.
     """
     inbound_from_directive_030 = [
-        edge
-        for edge in built_in_graph.edges
-        if edge.target == _STYLEGUIDE_URN
-        and edge.source == _SOURCE_DIRECTIVE_URN
-        and edge.relation == _EXPECTED_RELATION
+        edge for edge in built_in_graph.edges if edge.target == _STYLEGUIDE_URN and edge.source == _SOURCE_DIRECTIVE_URN and edge.relation == _EXPECTED_RELATION
     ]
 
     assert inbound_from_directive_030, (

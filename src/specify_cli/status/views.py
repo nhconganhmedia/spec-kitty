@@ -55,11 +55,7 @@ def generate_status_view(feature_dir: Path) -> dict[str, Any]:
     events = read_events(feature_dir)
     snapshot = reduce(events)
     identity = resolve_mission_identity(feature_dir)
-    snapshot.mission_number = (
-        str(identity.mission_number)
-        if identity.mission_number is not None
-        else None
-    )
+    snapshot.mission_number = str(identity.mission_number) if identity.mission_number is not None else None
     snapshot.mission_type = identity.mission_type
     return snapshot.to_dict()
 
@@ -279,11 +275,7 @@ def materialize_if_stale(feature_dir: Path, repo_root: Path) -> StatusSnapshot:
         status_mtime = status_path.stat().st_mtime
         progress_mtime = progress_path.stat().st_mtime
         lifecycle_mtime = lifecycle_path.stat().st_mtime
-        return bool(
-            events_mtime > status_mtime
-            or events_mtime > progress_mtime
-            or events_mtime > lifecycle_mtime
-        )
+        return bool(events_mtime > status_mtime or events_mtime > progress_mtime or events_mtime > lifecycle_mtime)
 
     # Git-op guard (FR-005 / C-RT-1, #1789/#1062): never re-materialize tracked
     # status while a git operation is in progress. Defer regeneration until the
@@ -298,11 +290,7 @@ def materialize_if_stale(feature_dir: Path, repo_root: Path) -> StatusSnapshot:
     # Return snapshot without writing (T002 covers any write needed by derived views)
     snapshot = reduce(read_events(feature_dir))
     identity = resolve_mission_identity(feature_dir)
-    snapshot.mission_number = (
-        str(identity.mission_number)
-        if identity.mission_number is not None
-        else None
-    )
+    snapshot.mission_number = str(identity.mission_number) if identity.mission_number is not None else None
     snapshot.mission_type = identity.mission_type
     return snapshot
 
@@ -341,11 +329,7 @@ def format_post_mission_events(
         elif event_type == FOLLOW_UP_RECORDED:
             actor = payload.get("recorded_by") or "unknown"
             when = payload.get("recorded_at") or event.get("timestamp") or ""
-            ref = (
-                f"PR #{payload.get('pr_number')}"
-                if payload.get("follow_up_type") == "pr"
-                else f"commit {payload.get('commit_sha')}"
-            )
+            ref = f"PR #{payload.get('pr_number')}" if payload.get("follow_up_type") == "pr" else f"commit {payload.get('commit_sha')}"
             lines.append(f"follow-up {ref} by {actor} ({when})")
     return lines
 

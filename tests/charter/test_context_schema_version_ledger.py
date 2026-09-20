@@ -86,9 +86,7 @@ def _assert_stamped_and_declared(payload: dict[str, object]) -> None:
 
 class TestContextSchemaVersionStamped:
     def test_bootstrap_action_carries_stamped_version(self, project: Path) -> None:
-        payload = build_charter_context_json(
-            project, action="implement", mission_type="software-dev"
-        )
+        payload = build_charter_context_json(project, action="implement", mission_type="software-dev")
         assert payload["mode"] == "bootstrap"
         _assert_stamped_and_declared(payload)
 
@@ -99,9 +97,7 @@ class TestContextSchemaVersionStamped:
         superset guard must hold for the delivering payload shape too. Do NOT
         restore the old ``compact`` assertion.
         """
-        payload = build_charter_context_json(
-            project, action="tasks", mission_type="software-dev"
-        )
+        payload = build_charter_context_json(project, action="tasks", mission_type="software-dev")
         assert payload["mode"] == "bootstrap"
         _assert_stamped_and_declared(payload)
 
@@ -117,9 +113,7 @@ class TestContextSchemaVersionLedgerBites:
     """
 
     def test_stray_top_level_key_reds_the_guard(self, project: Path) -> None:
-        payload = build_charter_context_json(
-            project, action="implement", mission_type="software-dev"
-        )
+        payload = build_charter_context_json(project, action="implement", mission_type="software-dev")
         # Sanity: the unmutated payload passes first.
         _assert_stamped_and_declared(payload)
 
@@ -131,9 +125,7 @@ class TestContextSchemaVersionLedgerBites:
         _assert_stamped_and_declared(payload)
 
     def test_version_mismatch_reds_the_guard(self, project: Path) -> None:
-        payload = build_charter_context_json(
-            project, action="implement", mission_type="software-dev"
-        )
+        payload = build_charter_context_json(project, action="implement", mission_type="software-dev")
         _assert_stamped_and_declared(payload)
 
         payload["context_schema_version"] = "0.0.0-stale"

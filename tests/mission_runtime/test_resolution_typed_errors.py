@@ -23,6 +23,7 @@ Green-state (post-fix):
     translates the raw exception to ActionContextError(MISSION_AMBIGUOUS_SELECTOR),
     making the test pass.
 """
+
 from __future__ import annotations
 
 import json
@@ -68,9 +69,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "user.name", "Test")
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
-    (r / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (r / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return r
 
 
@@ -137,9 +136,7 @@ def test_ambiguous_handle_raises_action_context_error_with_specific_code(
         "The MissionSelectorAmbiguous exception escaped the mission_runtime boundary "
         "as a raw specify_cli exception instead of being translated."
     )
-    assert _AMBIGUOUS_HANDLE in str(excinfo.value), (
-        "The error message must include the ambiguous handle so operators can diagnose."
-    )
+    assert _AMBIGUOUS_HANDLE in str(excinfo.value), "The error message must include the ambiguous handle so operators can diagnose."
 
 
 def test_ambiguous_handle_resolve_placement_only_raises_action_context_error(
@@ -159,6 +156,5 @@ def test_ambiguous_handle_resolve_placement_only_raises_action_context_error(
         )
 
     assert excinfo.value.code == "MISSION_AMBIGUOUS_SELECTOR", (
-        f"Expected code 'MISSION_AMBIGUOUS_SELECTOR', got {excinfo.value.code!r}. "
-        "MissionSelectorAmbiguous escaped resolve_placement_only untranslated."
+        f"Expected code 'MISSION_AMBIGUOUS_SELECTOR', got {excinfo.value.code!r}. MissionSelectorAmbiguous escaped resolve_placement_only untranslated."
     )

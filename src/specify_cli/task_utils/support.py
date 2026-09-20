@@ -561,7 +561,11 @@ class WorkPackage:
 
 
 def locate_work_package(
-    repo_root: Path, feature: str, wp_id: str, *, effective_root: Path | None = None,
+    repo_root: Path,
+    feature: str,
+    wp_id: str,
+    *,
+    effective_root: Path | None = None,
 ) -> WorkPackage:
     """Locate a work package by ID, supporting both legacy and new formats.
 
@@ -584,15 +588,12 @@ def locate_work_package(
     # instead of the kind-blind ``resolve_planning_read_dir``.
     main_root = get_main_repo_root(repo_root)
     placement = placement_seam(
-        main_root, feature, **effective_root_kwargs(effective_root),
+        main_root,
+        feature,
+        **effective_root_kwargs(effective_root),
     )
-    feature_path = placement.read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
-    status_dir = (
-        placement.read_dir(MissionArtifactKind.STATUS_STATE)
-        if effective_root is not None else resolve_status_surface(main_root, feature).parent
-    )
+    feature_path = placement.read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
+    status_dir = placement.read_dir(MissionArtifactKind.STATUS_STATE) if effective_root is not None else resolve_status_surface(main_root, feature).parent
 
     tasks_root = feature_path / "tasks"
     if not tasks_root.exists():

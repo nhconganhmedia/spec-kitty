@@ -119,9 +119,7 @@ class TestSafeExtractTarPathTraversal:
             "/nonexistent/evil",
         ],
     )
-    def test_path_traversal_is_rejected(
-        self, tmp_path: Path, evil_name: str
-    ) -> None:
+    def test_path_traversal_is_rejected(self, tmp_path: Path, evil_name: str) -> None:
         """Path-traversal entries must raise TarError, not extract."""
         from specify_cli.doctrine.sources.https_source import _safe_extract_tar  # noqa: PLC0415
 
@@ -190,9 +188,7 @@ class TestSafeExtractTarSymlinkRejection:
         ):
             _safe_extract_tar(tf, tmp_path)
 
-        assert not list(tmp_path.iterdir()), (
-            "symlink must not have been written to disk"
-        )
+        assert not list(tmp_path.iterdir()), "symlink must not have been written to disk"
 
 
 # ---------------------------------------------------------------------------
@@ -210,9 +206,7 @@ class TestSafeExtractZipPathTraversal:
             "../../etc/passwd",
         ],
     )
-    def test_path_traversal_is_rejected(
-        self, tmp_path: Path, evil_name: str
-    ) -> None:
+    def test_path_traversal_is_rejected(self, tmp_path: Path, evil_name: str) -> None:
         from specify_cli.doctrine.sources.https_source import _safe_extract_zip  # noqa: PLC0415
 
         data = _make_zip([(evil_name, b"evil\n")])
@@ -240,9 +234,7 @@ class TestSafeExtractZipPathTraversal:
 # ---------------------------------------------------------------------------
 
 
-def _make_api_response(
-    status_code: int, body: dict, headers: dict | None = None
-) -> MagicMock:
+def _make_api_response(status_code: int, body: dict, headers: dict | None = None) -> MagicMock:
     resp = MagicMock()
     resp.status_code = status_code
     resp.json.return_value = body
@@ -260,13 +252,11 @@ class TestApiSourceFilenameTraversal:
             "../outside.yaml",
             "/etc/passwd",
             "/nonexistent/evil",
-            "foo/bar.yaml",          # path separator inside basename
-            "foo\x00bar.yaml",       # null byte
+            "foo/bar.yaml",  # path separator inside basename
+            "foo\x00bar.yaml",  # null byte
         ],
     )
-    def test_artifact_traversal_filename_is_skipped(
-        self, tmp_path: Path, evil_filename: str
-    ) -> None:
+    def test_artifact_traversal_filename_is_skipped(self, tmp_path: Path, evil_filename: str) -> None:
         """Evil filenames from /artifacts/{type} are silently skipped (not written)."""
         from specify_cli.doctrine.sources.api_source import ApiSource  # noqa: PLC0415
 
@@ -281,14 +271,10 @@ class TestApiSourceFilenameTraversal:
         with patch.object(source, "_request", return_value=artifact_response):
             written, err = source._fetch_artifact_type(tmp_path, "directives")
 
-        assert written == 0, (
-            f"Evil filename {evil_filename!r} must not be written; got written={written}"
-        )
+        assert written == 0, f"Evil filename {evil_filename!r} must not be written; got written={written}"
         # Nothing must have escaped the target_dir.
         for p in tmp_path.rglob("*"):
-            assert tmp_path in p.parents or p == tmp_path, (
-                f"File escaped target_dir: {p}"
-            )
+            assert tmp_path in p.parents or p == tmp_path, f"File escaped target_dir: {p}"
 
     def test_safe_filename_is_written(self, tmp_path: Path) -> None:
         """A safe filename from the server IS written correctly."""
@@ -313,9 +299,7 @@ class TestApiSourceFilenameTraversal:
             "/etc/passwd",
         ],
     )
-    def test_drg_extension_traversal_filename_is_skipped(
-        self, tmp_path: Path, evil_filename: str
-    ) -> None:
+    def test_drg_extension_traversal_filename_is_skipped(self, tmp_path: Path, evil_filename: str) -> None:
         """Evil filenames from /drg-extensions are silently skipped."""
         from specify_cli.doctrine.sources.api_source import ApiSource  # noqa: PLC0415
 
@@ -328,9 +312,7 @@ class TestApiSourceFilenameTraversal:
         with patch.object(source, "_request", return_value=drg_response):
             written, err = source._fetch_drg_extensions(tmp_path)
 
-        assert written == 0, (
-            f"Evil DRG filename {evil_filename!r} must not be written; got written={written}"
-        )
+        assert written == 0, f"Evil DRG filename {evil_filename!r} must not be written; got written={written}"
 
 
 # ---------------------------------------------------------------------------
@@ -339,9 +321,7 @@ class TestApiSourceFilenameTraversal:
 
 
 class TestHttpsBundleSourceSizeLimits:
-    def test_declared_raw_archive_limit_is_rejected(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_declared_raw_archive_limit_is_rejected(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.doctrine.sources import https_source  # noqa: PLC0415
         from specify_cli.doctrine.sources.https_source import HttpsBundleSource  # noqa: PLC0415
 
@@ -359,9 +339,7 @@ class TestHttpsBundleSourceSizeLimits:
         assert "raw byte limit" in " ".join(result.errors)
         assert not any(tmp_path.iterdir())
 
-    def test_streamed_raw_archive_limit_is_rejected(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_streamed_raw_archive_limit_is_rejected(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.doctrine.sources import https_source  # noqa: PLC0415
         from specify_cli.doctrine.sources.https_source import HttpsBundleSource  # noqa: PLC0415
 
@@ -376,9 +354,7 @@ class TestHttpsBundleSourceSizeLimits:
         assert "raw byte limit" in " ".join(result.errors)
         assert not any(tmp_path.iterdir())
 
-    def test_tar_extracted_byte_limit_is_rejected(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tar_extracted_byte_limit_is_rejected(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.doctrine.sources import https_source  # noqa: PLC0415
         from specify_cli.doctrine.sources.https_source import _safe_extract_tar  # noqa: PLC0415
 
@@ -394,9 +370,7 @@ class TestHttpsBundleSourceSizeLimits:
         ):
             _safe_extract_tar(tf, tmp_path)
 
-    def test_zip_member_count_limit_is_rejected(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_zip_member_count_limit_is_rejected(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.doctrine.sources import https_source  # noqa: PLC0415
         from specify_cli.doctrine.sources.https_source import _safe_extract_zip  # noqa: PLC0415
 
@@ -418,9 +392,7 @@ class TestHttpsBundleSourceSizeLimits:
 # ---------------------------------------------------------------------------
 
 
-def test_git_source_redacts_injected_oauth_token_from_stderr(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_git_source_redacts_injected_oauth_token_from_stderr(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.doctrine.sources.git_source import GitSource  # noqa: PLC0415
 
     token = "ghp_secret/with@reserved"
@@ -434,10 +406,7 @@ def test_git_source_redacts_injected_oauth_token_from_stderr(
             argv,
             128,
             stdout="",
-            stderr=(
-                "fatal: unable to access "
-                "'https://oauth2:ghp_secret/with@reserved@github.com/acme/private-pack.git/'"
-            ),
+            stderr=("fatal: unable to access 'https://oauth2:ghp_secret/with@reserved@github.com/acme/private-pack.git/'"),
         )
 
     monkeypatch.setattr(source, "_run_git", _fake_git)

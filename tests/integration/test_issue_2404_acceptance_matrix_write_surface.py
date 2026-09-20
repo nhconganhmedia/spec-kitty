@@ -161,9 +161,9 @@ def coord_mission(tmp_path: Path) -> _CoordMission:
     from mission_runtime import resolve_topology, routes_through_coordination
 
     mission = _build_coord_mission(tmp_path)
-    assert routes_through_coordination(
-        resolve_topology(mission.repo_root, mission.mission_slug)
-    ), "fixture precondition violated: mission must route through coordination"
+    assert routes_through_coordination(resolve_topology(mission.repo_root, mission.mission_slug)), (
+        "fixture precondition violated: mission must route through coordination"
+    )
     return mission
 
 
@@ -199,18 +199,19 @@ def test_scaffold_acceptance_matrix_lands_on_coord_never_primary_husk(
     # residue cleanup (R6) unlinks the staged primary copy once the coord
     # commit lands.
     assert not (coord_mission.feature_dir / _MATRIX_FILENAME).exists(), (
-        "acceptance-matrix.json was left as a residue on the PRIMARY checkout "
-        "after a coord-routed scaffold — exactly the #2404 husk-producer defect"
+        "acceptance-matrix.json was left as a residue on the PRIMARY checkout after a coord-routed scaffold — exactly the #2404 husk-producer defect"
     )
     # Nor is it committed on the target/PRIMARY branch.
     assert not _file_exists_on_branch(
-        coord_mission.repo_root, coord_mission.target_branch,
+        coord_mission.repo_root,
+        coord_mission.target_branch,
         f"kitty-specs/{coord_mission.mission_slug}/{_MATRIX_FILENAME}",
     ), "acceptance-matrix.json must not be committed on the PRIMARY target branch under coord topology"
 
     # It IS committed on the coordination branch — the single write surface.
     assert _file_exists_on_branch(
-        coord_mission.repo_root, coord_mission.coordination_branch,
+        coord_mission.repo_root,
+        coord_mission.coordination_branch,
         f"kitty-specs/{coord_mission.mission_slug}/{_MATRIX_FILENAME}",
     ), "acceptance-matrix.json must be committed on the coordination branch (the single write surface)"
 

@@ -43,7 +43,6 @@ from specify_cli.invocation.router import ActionRouter
 from specify_cli.task_utils import find_repo_root
 
 
-
 def _get_repo_root() -> Path:
     """Resolve the repository root using the project's canonical utility."""
     result: Path = find_repo_root()

@@ -22,6 +22,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_client(token: str = "tok", integrations: list[str] | None = None, health: bool = True) -> MagicMock:
     """Return a mock SaasClient with configurable behaviour."""
     client = MagicMock()

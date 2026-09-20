@@ -183,9 +183,7 @@ def test_charter_op_fails_loud_before_migration(legacy_project: Path) -> None:
     assert BUNDLE_INCOMPLETE_MESSAGE.split("{missing}")[0] in str(excinfo.value)
 
 
-def test_charter_op_succeeds_after_migration(
-    legacy_project: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_charter_op_succeeds_after_migration(legacy_project: Path, migration: ConsolidateCharterBundleMigration) -> None:
     """The SAME charter op no longer raises once the migration has run."""
     from specify_cli.cli.commands.charter._synthesis import _raise_if_bundle_incomplete
 
@@ -201,9 +199,7 @@ def test_charter_op_succeeds_after_migration(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_composes_charter_yaml_and_retires_four(
-    legacy_project: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_apply_composes_charter_yaml_and_retires_four(legacy_project: Path, migration: ConsolidateCharterBundleMigration) -> None:
     assert migration.detect(legacy_project) is True
 
     result = migration.apply(legacy_project)
@@ -237,9 +233,7 @@ def test_apply_composes_charter_yaml_and_retires_four(
     assert composed["activated_mission_step_contracts"] == []
 
 
-def test_apply_relocates_activation_and_mints_pointer(
-    legacy_project: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_apply_relocates_activation_and_mints_pointer(legacy_project: Path, migration: ConsolidateCharterBundleMigration) -> None:
     migration.apply(legacy_project)
 
     config_data = _load(legacy_project / ".kittify" / "config.yaml")
@@ -250,9 +244,7 @@ def test_apply_relocates_activation_and_mints_pointer(
     assert config_data["agents"] == {"claude": {}}
 
 
-def test_apply_touches_only_charter_metadata_yaml_never_project_metadata(
-    legacy_project: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_apply_touches_only_charter_metadata_yaml_never_project_metadata(legacy_project: Path, migration: ConsolidateCharterBundleMigration) -> None:
     """MG4: ``.kittify/metadata.yaml`` (project identity) is never touched."""
     project_metadata = legacy_project / ".kittify" / "metadata.yaml"
     project_metadata.write_text(
@@ -274,9 +266,7 @@ def test_apply_touches_only_charter_metadata_yaml_never_project_metadata(
 # ---------------------------------------------------------------------------
 
 
-def test_absent_activation_key_survives_as_absent(
-    tmp_path: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_absent_activation_key_survives_as_absent(tmp_path: Path, migration: ConsolidateCharterBundleMigration) -> None:
     """A config with an absent per-kind key migrates with that key still absent."""
     narrow_config = (
         "activated_directives:\n- DIRECTIVE_001\n"
@@ -291,10 +281,7 @@ def test_absent_activation_key_survives_as_absent(
     for key in ACTIVATION_KEYS:
         if key == "activated_directives":
             continue
-        assert key not in composed, (
-            f"{key} was absent from config.yaml; it must stay absent in "
-            f"charter.yaml, never become []"
-        )
+        assert key not in composed, f"{key} was absent from config.yaml; it must stay absent in charter.yaml, never become []"
 
 
 # ---------------------------------------------------------------------------
@@ -302,9 +289,7 @@ def test_absent_activation_key_survives_as_absent(
 # ---------------------------------------------------------------------------
 
 
-def test_reapply_after_migration_is_zero_change(
-    legacy_project: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_reapply_after_migration_is_zero_change(legacy_project: Path, migration: ConsolidateCharterBundleMigration) -> None:
     first = migration.apply(legacy_project)
     assert first.success
     assert first.changes_made
@@ -316,9 +301,7 @@ def test_reapply_after_migration_is_zero_change(
     assert second.changes_made == []
 
 
-def test_dry_run_does_not_write(
-    legacy_project: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_dry_run_does_not_write(legacy_project: Path, migration: ConsolidateCharterBundleMigration) -> None:
     result = migration.apply(legacy_project, dry_run=True)
     assert result.success
     assert result.changes_made  # reports intent
@@ -329,9 +312,7 @@ def test_dry_run_does_not_write(
     assert not (charter_dir / "charter.yaml").exists(), "dry-run must not write anything"
 
 
-def test_no_legacy_no_activation_is_zero_change_without_io(
-    tmp_path: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_no_legacy_no_activation_is_zero_change_without_io(tmp_path: Path, migration: ConsolidateCharterBundleMigration) -> None:
     """A brand new / already-migrated project (nothing to fold) stays a no-op."""
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True)
@@ -351,9 +332,7 @@ def test_no_legacy_no_activation_is_zero_change_without_io(
 # ---------------------------------------------------------------------------
 
 
-def test_pre_existing_charter_yaml_governance_survives_byte_for_byte(
-    tmp_path: Path, migration: ConsolidateCharterBundleMigration
-) -> None:
+def test_pre_existing_charter_yaml_governance_survives_byte_for_byte(tmp_path: Path, migration: ConsolidateCharterBundleMigration) -> None:
     _write_legacy_fixture(tmp_path)
     charter_dir = tmp_path / ".kittify" / "charter"
 
@@ -464,9 +443,7 @@ def test_registry_orders_fold_after_seed_migrations() -> None:
     fold_index = all_ids.index("consolidate_charter_bundle_fold")
     for seed_id in seed_ids:
         assert seed_id in all_ids, f"seed migration {seed_id} not registered"
-        assert all_ids.index(seed_id) < fold_index, (
-            f"{seed_id} must sequence before consolidate_charter_bundle_fold (MG6)"
-        )
+        assert all_ids.index(seed_id) < fold_index, f"{seed_id} must sequence before consolidate_charter_bundle_fold (MG6)"
 
 
 def test_fold_relocates_seed_migration_output(

@@ -166,9 +166,7 @@ def _build_healthy_no_traces_mission(repo_root: Path) -> Path:
     return feature_dir
 
 
-def test_generate_retrospective_degrades_on_deleted_coord_traces(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_generate_retrospective_degrades_on_deleted_coord_traces(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """``generate_retrospective`` returns ``[]`` traces instead of crashing (T024/T026).
 
     Red-first: before the WP06 guard, ``_load_traces``'s unwrapped
@@ -188,29 +186,16 @@ def test_generate_retrospective_degrades_on_deleted_coord_traces(
         record = generate_retrospective(_SLUG_WITH_MID8, policy, tmp_path)
 
     trace_evidence = [ref for ref in record.evidence_refs if "/traces/" in ref.path]
-    assert trace_evidence == [], (
-        "deleted-coord mission must degrade to zero tracer evidence refs; "
-        f"got {[ref.path for ref in trace_evidence]}"
-    )
+    assert trace_evidence == [], f"deleted-coord mission must degrade to zero tracer evidence refs; got {[ref.path for ref in trace_evidence]}"
 
     warnings = [rec for rec in caplog.records if rec.levelno == logging.WARNING]
-    assert len(warnings) == 1, (
-        f"expected exactly one WARNING for the deleted-coord tracer degrade, got {len(warnings)}: "
-        f"{[rec.message for rec in warnings]}"
-    )
+    assert len(warnings) == 1, f"expected exactly one WARNING for the deleted-coord tracer degrade, got {len(warnings)}: {[rec.message for rec in warnings]}"
     message = warnings[0].getMessage()
-    assert _SLUG_WITH_MID8 in message, (
-        f"degrade warning must name the mission ({_SLUG_WITH_MID8!r}); got: {message!r}"
-    )
-    assert _COORD_BRANCH in message, (
-        f"degrade warning must name the declared coordination branch ({_COORD_BRANCH!r}); "
-        f"got: {message!r}"
-    )
+    assert _SLUG_WITH_MID8 in message, f"degrade warning must name the mission ({_SLUG_WITH_MID8!r}); got: {message!r}"
+    assert _COORD_BRANCH in message, f"degrade warning must name the declared coordination branch ({_COORD_BRANCH!r}); got: {message!r}"
 
 
-def test_generate_retrospective_zero_traces_on_healthy_surface_logs_nothing(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_generate_retrospective_zero_traces_on_healthy_surface_logs_nothing(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """A healthy mission with genuinely zero tracers yields ``[]`` with NO warning.
 
     This is the discriminating sibling of the deleted-coord test above: both
@@ -226,13 +211,7 @@ def test_generate_retrospective_zero_traces_on_healthy_surface_logs_nothing(
         record = generate_retrospective(_HEALTHY_SLUG_WITH_MID8, policy, tmp_path)
 
     trace_evidence = [ref for ref in record.evidence_refs if "/traces/" in ref.path]
-    assert trace_evidence == [], (
-        "healthy mission with no tracers must still yield zero tracer evidence refs; "
-        f"got {[ref.path for ref in trace_evidence]}"
-    )
+    assert trace_evidence == [], f"healthy mission with no tracers must still yield zero tracer evidence refs; got {[ref.path for ref in trace_evidence]}"
 
     warnings = [rec for rec in caplog.records if rec.levelno == logging.WARNING]
-    assert warnings == [], (
-        "a healthy, reachable tracer surface with zero tracers must NOT log a warning; "
-        f"got: {[rec.message for rec in warnings]}"
-    )
+    assert warnings == [], f"a healthy, reachable tracer surface with zero tracers must NOT log a warning; got: {[rec.message for rec in warnings]}"

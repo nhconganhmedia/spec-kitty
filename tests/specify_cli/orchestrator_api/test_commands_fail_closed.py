@@ -60,12 +60,9 @@ def _seed_mission(tmp_path: Path) -> tuple[Path, Path]:
         "mission_type": "software-dev",
         "status_phase": 2,
     }
-    (primary / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (primary / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (tasks_dir / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: Example\ndependencies: []\n---\n\n"
-        "## Activity Log\n\n- seed\n",
+        "---\nwork_package_id: WP01\ntitle: Example\ndependencies: []\n---\n\n## Activity Log\n\n- seed\n",
         encoding="utf-8",
     )
     return repo_root, primary
@@ -109,10 +106,7 @@ def test_resolve_history_commit_args_error_never_carries_current_branch_ref(
         except PlacementResolutionRequired:
             pass
         else:
-            pytest.fail(
-                "expected PlacementResolutionRequired; a fallback CommitTarget "
-                "was returned instead (FR-004 regression)"
-            )
+            pytest.fail("expected PlacementResolutionRequired; a fallback CommitTarget was returned instead (FR-004 regression)")
 
 
 def test_append_history_surfaces_structured_error_code_on_emit_failure(
@@ -314,9 +308,7 @@ def _seed_wp05_mission(tmp_path: Path) -> tuple[Path, Path]:
         "target_branch": "main",
         "status_phase": 2,
     }
-    (mission_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (mission_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return repo_root, mission_dir
 
 

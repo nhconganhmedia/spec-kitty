@@ -273,10 +273,7 @@ def load_config(styleguide_path: Path) -> LintConfig:
     """
     path = styleguide_path
     if not path.is_file():
-        raise ConfigError(
-            f"Styleguide not found at {path} — cannot load '{_CONFIG_KEY}:' "
-            "(FR-011)."
-        )
+        raise ConfigError(f"Styleguide not found at {path} — cannot load '{_CONFIG_KEY}:' (FR-011).")
 
     yaml = YAML(typ="safe")
     try:
@@ -308,12 +305,8 @@ def _build_config(block: Mapping[str, Any], source: Path) -> LintConfig:
         frontmatter_required_fields=values["frontmatter_required_fields"],
         frontmatter_in_scope_exclusions=values["frontmatter_in_scope_exclusions"],
         shadow_tree_nav_exemptions=values["shadow_tree_nav_exemptions"],
-        concern_bucket_to_section=_require_str_dict(
-            block, "concern_bucket_to_section", source
-        ),
-        redirect_stub_description_prefix=_require_str(
-            block, "redirect_stub_description_prefix", source
-        ),
+        concern_bucket_to_section=_require_str_dict(block, "concern_bucket_to_section", source),
+        redirect_stub_description_prefix=_require_str(block, "redirect_stub_description_prefix", source),
         guides_boundary=_require_str(block, "guides_boundary", source),
         sanctioned_content_sections=values["sanctioned_content_sections"],
         non_content_dirs=values["non_content_dirs"],
@@ -345,9 +338,7 @@ def _require_bool(block: Mapping[str, Any], key: str, source: Path) -> bool:
 
 def _require_str_dict(block: Mapping[str, Any], key: str, source: Path) -> dict[str, str]:
     raw = block.get(key)
-    if not isinstance(raw, dict) or not all(
-        isinstance(k, str) and isinstance(v, str) for k, v in raw.items()
-    ):
+    if not isinstance(raw, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in raw.items()):
         raise ConfigError(f"{source}: '{_CONFIG_KEY}.{key}' must be a mapping of str to str")
     return dict(raw)
 
@@ -358,15 +349,8 @@ def _require_markers(block: Mapping[str, Any], source: Path) -> tuple[PointInTim
         raise ConfigError(f"{source}: '{_CONFIG_KEY}.point_in_time_markers' must be a list")
     markers: list[PointInTimeMarker] = []
     for index, entry in enumerate(raw):
-        if (
-            not isinstance(entry, dict)
-            or not isinstance(entry.get("frontmatter_field"), str)
-            or not isinstance(entry.get("frontmatter_value"), str)
-        ):
-            raise ConfigError(
-                f"{source}: '{_CONFIG_KEY}.point_in_time_markers[{index}]' must "
-                "have string 'frontmatter_field' and 'frontmatter_value' keys"
-            )
+        if not isinstance(entry, dict) or not isinstance(entry.get("frontmatter_field"), str) or not isinstance(entry.get("frontmatter_value"), str):
+            raise ConfigError(f"{source}: '{_CONFIG_KEY}.point_in_time_markers[{index}]' must have string 'frontmatter_field' and 'frontmatter_value' keys")
         markers.append(
             PointInTimeMarker(
                 frontmatter_field=entry["frontmatter_field"],
@@ -387,10 +371,7 @@ def _match_segments(pattern_segments: list[str], path_segments: list[str]) -> bo
     if head == "**":
         if not rest_pattern:
             return True
-        return any(
-            _match_segments(rest_pattern, path_segments[i:])
-            for i in range(len(path_segments) + 1)
-        )
+        return any(_match_segments(rest_pattern, path_segments[i:]) for i in range(len(path_segments) + 1))
     if not path_segments:
         return False
     if not _fnmatch_segment(path_segments[0], head):
@@ -447,9 +428,7 @@ def _linked_targets(index_path: Path) -> set[Path]:
     return targets
 
 
-def check_index_completeness(
-    docs_root: Path, repo_root: Path, config: LintConfig
-) -> list[Violation]:
+def check_index_completeness(docs_root: Path, repo_root: Path, config: LintConfig) -> list[Violation]:
     """Flag pages in a curated-complete section absent from its ``index.md``.
 
     Recurses into the section's subdirectories (a page under
@@ -473,10 +452,7 @@ def check_index_completeness(
                 Violation(
                     rule_id="index_completeness",
                     path=page_rel,
-                    message=(
-                        f"{page_rel} is missing from "
-                        f"{_repo_relative(index_path, repo_root)}"
-                    ),
+                    message=(f"{page_rel} is missing from {_repo_relative(index_path, repo_root)}"),
                 )
             )
     return violations
@@ -491,15 +467,10 @@ def _is_point_in_time(md_path: Path, config: LintConfig) -> bool:
     if any(re.match(pattern, basename) for pattern in config.point_in_time_patterns):
         return True
     frontmatter = parse_frontmatter(_read_text(md_path) or "")
-    return any(
-        frontmatter.get(marker.frontmatter_field) == marker.frontmatter_value
-        for marker in config.point_in_time_markers
-    )
+    return any(frontmatter.get(marker.frontmatter_field) == marker.frontmatter_value for marker in config.point_in_time_markers)
 
 
-def check_point_in_time_placement(
-    md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig
-) -> list[Violation]:
+def check_point_in_time_placement(md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig) -> list[Violation]:
     """Flag point-in-time files living outside their canonical ``plans/**`` home."""
     violations: list[Violation] = []
     for md_path in md_files:
@@ -513,10 +484,7 @@ def check_point_in_time_placement(
             Violation(
                 rule_id="point_in_time_placement",
                 path=page_rel,
-                message=(
-                    f"{page_rel} is a point-in-time document; its canonical "
-                    "home is plans/** (e.g. plans/engineering-notes/)."
-                ),
+                message=(f"{page_rel} is a point-in-time document; its canonical home is plans/** (e.g. plans/engineering-notes/)."),
             )
         )
     return violations
@@ -542,9 +510,7 @@ def _is_redirect_stub(md_path: Path, config: LintConfig) -> bool:
     return isinstance(description, str) and description.startswith(prefix)
 
 
-def check_shadow_tree_basename(
-    md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig
-) -> list[Violation]:
+def check_shadow_tree_basename(md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig) -> list[Violation]:
     """Flag a non-nav content basename duplicated across section subtrees.
 
     A content-duplicate check, not an absolute basename-uniqueness count
@@ -560,9 +526,7 @@ def check_shadow_tree_basename(
             continue
         rel_to_docs = _repo_relative(md_path, docs_root)
         section = rel_to_docs.split("/", 1)[0]
-        groups.setdefault(basename, []).append(
-            (section, _repo_relative(md_path, repo_root))
-        )
+        groups.setdefault(basename, []).append((section, _repo_relative(md_path, repo_root)))
 
     violations: list[Violation] = []
     for basename, entries in sorted(groups.items()):
@@ -574,10 +538,7 @@ def check_shadow_tree_basename(
             Violation(
                 rule_id="shadow_tree_basename",
                 path=paths[0],
-                message=(
-                    f"basename '{basename}' is duplicated non-nav content "
-                    f"across section subtrees: {', '.join(paths)}"
-                ),
+                message=(f"basename '{basename}' is duplicated non-nav content across section subtrees: {', '.join(paths)}"),
             )
         )
     return violations
@@ -586,9 +547,7 @@ def check_shadow_tree_basename(
 # --- Check 4: frontmatter_contract -------------------------------------------
 
 
-def check_frontmatter_contract(
-    md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig
-) -> list[Violation]:
+def check_frontmatter_contract(md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig) -> list[Violation]:
     """Flag in-scope pages missing a required frontmatter field.
 
     "In-scope" excludes section ``README.md`` landing pages (config
@@ -601,11 +560,7 @@ def check_frontmatter_contract(
         if _glob_match_any(rel_to_docs, config.frontmatter_in_scope_exclusions):
             continue
         frontmatter = parse_frontmatter(_read_text(md_path) or "")
-        missing = [
-            required_field
-            for required_field in config.frontmatter_required_fields
-            if not frontmatter.get(required_field)
-        ]
+        missing = [required_field for required_field in config.frontmatter_required_fields if not frontmatter.get(required_field)]
         if not missing:
             continue
         page_rel = _repo_relative(md_path, repo_root)
@@ -613,10 +568,7 @@ def check_frontmatter_contract(
             Violation(
                 rule_id="frontmatter_contract",
                 path=page_rel,
-                message=(
-                    f"{page_rel} is missing required frontmatter field(s): "
-                    f"{', '.join(missing)}"
-                ),
+                message=(f"{page_rel} is missing required frontmatter field(s): {', '.join(missing)}"),
             )
         )
     return violations
@@ -631,9 +583,7 @@ def check_frontmatter_contract(
 _INDEX_LANDING_BASENAMES: Final[tuple[str, ...]] = ("index.md", "README.md")
 
 
-def _is_exempt_landing(
-    md_path: Path, docs_root: Path, curated: set[str], config: LintConfig
-) -> bool:
+def _is_exempt_landing(md_path: Path, docs_root: Path, curated: set[str], config: LintConfig) -> bool:
     """True when a landing page does not COMPETE with a dir's canonical index.md.
 
     ``index.md`` is always the canonical keeper (never exempted away). A
@@ -681,11 +631,7 @@ def check_one_index_per_dir(
             by_dir.setdefault(md_path.parent, []).append(md_path)
     violations: list[Violation] = []
     for directory, all_landings in sorted(by_dir.items()):
-        landings = [
-            p
-            for p in all_landings
-            if not _is_exempt_landing(p, docs_root, curated, config)
-        ]
+        landings = [p for p in all_landings if not _is_exempt_landing(p, docs_root, curated, config)]
         if len(landings) < 2:
             continue
         # Prefer index.md as the surviving landing; flag the rest.
@@ -697,11 +643,7 @@ def check_one_index_per_dir(
                 Violation(
                     rule_id="one_index_per_dir",
                     path=extra_rel,
-                    message=(
-                        f"{_repo_relative(directory, repo_root)} carries more than "
-                        f"one index/landing page; {extra_rel} competes with "
-                        f"{keeper_rel}"
-                    ),
+                    message=(f"{_repo_relative(directory, repo_root)} carries more than one index/landing page; {extra_rel} competes with {keeper_rel}"),
                 )
             )
     return violations
@@ -731,15 +673,10 @@ def _under_non_content_dir(rel_to_docs: str, non_content: tuple[str, ...]) -> bo
     top segment ``templates``, which is not in the list), so the whole nested
     scaffolding zone was wrongly flagged as off-structure (WP04 reviewer bug).
     """
-    return any(
-        rel_to_docs == prefix or rel_to_docs.startswith(f"{prefix}/")
-        for prefix in non_content
-    )
+    return any(rel_to_docs == prefix or rel_to_docs.startswith(f"{prefix}/") for prefix in non_content)
 
 
-def check_sanctioned_section_membership(
-    md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig
-) -> list[Violation]:
+def check_sanctioned_section_membership(md_files: list[Path], docs_root: Path, repo_root: Path, config: LintConfig) -> list[Violation]:
     """Flag pages whose top-level section is not sanctioned (T011).
 
     A page is off-structure when its top-level section under ``docs_root`` is
@@ -766,10 +703,7 @@ def check_sanctioned_section_membership(
             Violation(
                 rule_id="sanctioned_section_membership",
                 path=page_rel,
-                message=(
-                    f"{page_rel} lives in non-sanctioned section '{section}/' "
-                    "(not in sanctioned_content_sections / non_content_dirs)"
-                ),
+                message=(f"{page_rel} lives in non-sanctioned section '{section}/' (not in sanctioned_content_sections / non_content_dirs)"),
             )
         )
     return violations
@@ -825,10 +759,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the structural-lint CLI parser."""
     parser = argparse.ArgumentParser(
         prog="docs_structural_lint",
-        description=(
-            "Structural docs lint (FR-007/008/011) — the durable successor to "
-            "the retired anti-sprawl ratchet. Exits non-zero on any violation."
-        ),
+        description=("Structural docs lint (FR-007/008/011) — the durable successor to the retired anti-sprawl ratchet. Exits non-zero on any violation."),
     )
     parser.add_argument(
         "docs_root",
@@ -890,10 +821,7 @@ def _emit(report: LintReport, *, as_json: bool) -> None:
         sys.stdout.write(json.dumps(report.as_dict(), indent=2, sort_keys=True) + "\n")
         return
 
-    sys.stdout.write(
-        f"docs_structural_lint: checked {report.checked} page(s); "
-        f"{len(report.violations)} violation(s).\n"
-    )
+    sys.stdout.write(f"docs_structural_lint: checked {report.checked} page(s); {len(report.violations)} violation(s).\n")
     for violation in report.violations:
         sys.stdout.write(f"  [{violation.rule_id}] {violation.path}: {violation.message}\n")
 

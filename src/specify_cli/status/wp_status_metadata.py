@@ -37,9 +37,7 @@ class WPStatusChangeMetadata:
     occurred_at: str | None = None
 
     @classmethod
-    def from_status_event(
-        cls, event: Any, *, policy_metadata: dict[str, Any] | None = None
-    ) -> WPStatusChangeMetadata:
+    def from_status_event(cls, event: Any, *, policy_metadata: dict[str, Any] | None = None) -> WPStatusChangeMetadata:
         """Build from a StatusEvent (the two production fan-out callers).
 
         ``policy_metadata`` is passed explicitly because callers resolve it

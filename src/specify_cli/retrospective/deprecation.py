@@ -137,10 +137,7 @@ def _emit_rich_stderr_notice(
     # to the shared ``err_console`` singleton, never an ad-hoc raw Console.
     from specify_cli.cli.console import err_console
 
-    err_console.print(
-        f"[yellow]DEPRECATED:[/yellow] {var_name} is a test/dev override only. "
-        f"Set {replacement_key} instead. See {docs_url}"
-    )
+    err_console.print(f"[yellow]DEPRECATED:[/yellow] {var_name} is a test/dev override only. Set {replacement_key} instead. See {docs_url}")
 
 
 # ---------------------------------------------------------------------------

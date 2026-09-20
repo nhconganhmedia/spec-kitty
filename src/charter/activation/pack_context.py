@@ -572,10 +572,7 @@ def _load_charter_activation_source(repo_root: Path, data: dict[str, Any]) -> di
     if charter_path is None:
         return data
     if not charter_path.exists():
-        raise _config_error(
-            f".kittify/config.yaml 'charter:' pointer names {charter_path}, "
-            f"which does not exist."
-        )
+        raise _config_error(f".kittify/config.yaml 'charter:' pointer names {charter_path}, which does not exist.")
     try:
         loaded = load_charter_yaml(charter_path)
     except Exception as exc:
@@ -709,7 +706,6 @@ def _read_activated_glossary_packs(data: dict[str, Any]) -> frozenset[str] | Non
 def _read_activated_anti_patterns(data: dict[str, Any]) -> frozenset[str] | None:
     """Extract ``activated_anti_patterns`` from parsed config data (three-state)."""
     return _read_list_key(data, "activated_anti_patterns")
-
 
 
 def _read_org_packs(repo_root: Path, _data: dict[str, Any]) -> tuple[tuple[str, ...], tuple[Path, ...]]:

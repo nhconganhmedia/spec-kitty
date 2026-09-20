@@ -55,25 +55,19 @@ def _patch_seam_topology(monkeypatch: pytest.MonkeyPatch, *, coord: bool) -> Non
     monkeypatch.setattr(record_seam, "resolve_topology", lambda _root, _slug: topology)
 
 
-def test_planning_commit_worktree_primary_keeps_main_checkout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_planning_commit_worktree_primary_keeps_main_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A primary (coord-less) topology returns the main checkout."""
     _patch_topology(monkeypatch, coord=False)
     artifact = tmp_path / "kitty-specs" / "001-demo" / "spec.md"
     artifact.parent.mkdir(parents=True)
     artifact.write_text("# Spec\n", encoding="utf-8")
 
-    worktree, paths = commit_router_mod._planning_commit_worktree(
-        tmp_path, "001-demo", (artifact,)
-    )
+    worktree, paths = commit_router_mod._planning_commit_worktree(tmp_path, "001-demo", (artifact,))
     assert worktree == tmp_path
     assert paths == (artifact,)
 
 
-def test_planning_commit_worktree_coord_kind_attempts_coord_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_planning_commit_worktree_coord_kind_attempts_coord_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A COORD-partition kind under coord topology routes through the coord-worktree branch.
 
     write-surface-coherence WP03 / T014: the helper is partition-aware. A
@@ -111,18 +105,13 @@ def test_planning_commit_worktree_coord_kind_attempts_coord_worktree(
     # never a silent primary fallback. The raise itself proves the coord branch was
     # taken (the predicate passed and _resolve_mid8 was consulted).
     with pytest.raises(CoordWorktreeResolutionError):
-        commit_router_mod._planning_commit_worktree(
-            tmp_path, "001-demo", (artifact,), kind=MissionArtifactKind.ACCEPTANCE_MATRIX
-        )
+        commit_router_mod._planning_commit_worktree(tmp_path, "001-demo", (artifact,), kind=MissionArtifactKind.ACCEPTANCE_MATRIX)
     assert consulted == ["001-demo"], (
-        "the COORDINATION branch of routes_through_coordination was not taken — "
-        "_resolve_mid8 (past the predicate) was never consulted"
+        "the COORDINATION branch of routes_through_coordination was not taken — _resolve_mid8 (past the predicate) was never consulted"
     )
 
 
-def test_planning_commit_worktree_primary_kind_short_circuits_under_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_planning_commit_worktree_primary_kind_short_circuits_under_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A PRIMARY kind under coord topology NEVER transits coord (T014 convergence).
 
     The kind partition is the single routing authority for planning artifacts: a
@@ -146,9 +135,7 @@ def test_planning_commit_worktree_primary_kind_short_circuits_under_coord(
 
     monkeypatch.setattr(commit_router_mod, "_resolve_mid8", _spy_resolve_mid8)
 
-    worktree, paths = commit_router_mod._planning_commit_worktree(
-        tmp_path, "001-demo", (artifact,), kind=MissionArtifactKind.TASKS_INDEX
-    )
+    worktree, paths = commit_router_mod._planning_commit_worktree(tmp_path, "001-demo", (artifact,), kind=MissionArtifactKind.TASKS_INDEX)
     assert consulted == [], (
         "a PRIMARY kind reached the coord branch (_safe_load_meta consulted) under "
         "coord topology — the kind partition must short-circuit to primary first "
@@ -158,48 +145,32 @@ def test_planning_commit_worktree_primary_kind_short_circuits_under_coord(
     assert paths == (artifact,)
 
 
-def test_analysis_preflight_coordination_drops_residue(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_analysis_preflight_coordination_drops_residue(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A COORDINATION placement drops coord-artifact residue from the dirty set."""
     monkeypatch.setattr(record_seam, "is_git_repo", lambda _root: True)
-    monkeypatch.setattr(
-        record_seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"]
-    )
+    monkeypatch.setattr(record_seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"])
     # Treat the residue path as coord-owned residue so it is dropped → no dirty set.
-    monkeypatch.setattr(
-        record_seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True
-    )
+    monkeypatch.setattr(record_seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True)
     _patch_seam_topology(monkeypatch, coord=True)
 
     placement = CommitTarget(ref="kitty/mission-001-demo-AAAA1111")
     # Should NOT raise (residue dropped → empty dirty set).
-    record_seam._enforce_analysis_report_write_preflight(
-        tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo"
-    )
+    record_seam._enforce_analysis_report_write_preflight(tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo")
 
 
-def test_analysis_preflight_primary_keeps_residue_and_gates(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_analysis_preflight_primary_keeps_residue_and_gates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A non-coord placement does NOT drop residue → a dirty tree still gates (NFR-003)."""
     monkeypatch.setattr(record_seam, "is_git_repo", lambda _root: True)
-    monkeypatch.setattr(
-        record_seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"]
-    )
+    monkeypatch.setattr(record_seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"])
     # Even if the path WOULD qualify as residue, a non-coord placement skips the drop.
-    monkeypatch.setattr(
-        record_seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True
-    )
+    monkeypatch.setattr(record_seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True)
     _patch_seam_topology(monkeypatch, coord=False)
 
     placement = CommitTarget(ref="main")
     import typer
 
     with pytest.raises(typer.Exit):
-        record_seam._enforce_analysis_report_write_preflight(
-            tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo"
-        )
+        record_seam._enforce_analysis_report_write_preflight(tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo")
 
 
 def test_no_direct_kind_is_coordination_decision_reads_remain() -> None:
@@ -217,14 +188,10 @@ def test_no_direct_kind_is_coordination_decision_reads_remain() -> None:
         left = node.left
         if isinstance(left, ast.Attribute) and left.attr == "kind":
             for comparator in node.comparators:
-                if (
-                    isinstance(comparator, ast.Attribute)
-                    and comparator.attr == "COORDINATION"
-                ):
+                if isinstance(comparator, ast.Attribute) and comparator.attr == "COORDINATION":
                     offenders.append(node.lineno)
     assert not offenders, (
-        f"direct `.kind is COORDINATION` decision read(s) remain in mission.py at "
-        f"lines {offenders} — route them through routes_through_coordination (FR-005)."
+        f"direct `.kind is COORDINATION` decision read(s) remain in mission.py at lines {offenders} — route them through routes_through_coordination (FR-005)."
     )
 
 
@@ -245,9 +212,7 @@ def test_no_direct_kind_is_coordination_decision_reads_remain() -> None:
 # ``pytest.raises`` below goes RED on pre-fix code — proven by revert+restore.
 
 
-def test_analysis_preflight_real_residue_filter_keeps_stale_primary_spec(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_analysis_preflight_real_residue_filter_keeps_stale_primary_spec(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The REAL residue filter no longer drops a stale primary ``spec.md`` (T022 ripple).
 
     Uses the genuine ``is_coord_residue_churn`` (NOT a stub) under a
@@ -270,14 +235,10 @@ def test_analysis_preflight_real_residue_filter_keeps_stale_primary_spec(
 
     placement = CommitTarget(ref="kitty/mission-001-demo-AAAA1111")
     with pytest.raises(typer.Exit):
-        record_seam._enforce_analysis_report_write_preflight(
-            tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo"
-        )
+        record_seam._enforce_analysis_report_write_preflight(tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo")
 
 
-def test_analysis_preflight_real_residue_filter_still_drops_coord_status(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_analysis_preflight_real_residue_filter_still_drops_coord_status(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The REAL residue filter STILL drops a genuine COORD-owned residue (status log).
 
     The complement: a status-event-log copy on the primary checkout under coord
@@ -295,6 +256,4 @@ def test_analysis_preflight_real_residue_filter_still_drops_coord_status(
 
     placement = CommitTarget(ref="kitty/mission-001-demo-AAAA1111")
     # Should NOT raise: the coord-owned status residue is dropped → empty dirty set.
-    record_seam._enforce_analysis_report_write_preflight(
-        tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo"
-    )
+    record_seam._enforce_analysis_report_write_preflight(tmp_path, json_output=True, placement_ref=placement, mission_slug="001-demo")

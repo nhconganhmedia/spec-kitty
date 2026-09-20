@@ -12,6 +12,7 @@ COMMAND *authority* is unified (NFR-005: both call the same
 future refactor that threads a ``scope``/``test_targets`` parameter into the
 baseline path (silently narrowing it to match head) fails loudly here first.
 """
+
 from __future__ import annotations
 
 import inspect

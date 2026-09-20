@@ -11,12 +11,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-SCRIPT = (
-    Path(__file__).resolve().parents[2]
-    / "scripts"
-    / "release"
-    / "check_exact_install.py"
-)
+SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "release" / "check_exact_install.py"
 
 
 def load_script_module() -> ModuleType:
@@ -40,16 +35,12 @@ def write_wheel(dist_dir: Path, *, package: str, version: str) -> Path:
     return wheel
 
 
-def test_console_script_smoke_runs_after_exact_install(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_console_script_smoke_runs_after_exact_install(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     module = load_script_module()
     write_wheel(tmp_path / "dist", package="spec-kitty-cli", version="3.2.0rc99")
     calls: list[list[str]] = []
 
-    def fake_run(
-        cmd: list[str], *, env: dict[str, str] | None = None
-    ) -> subprocess.CompletedProcess[str]:
+    def fake_run(cmd: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
         calls.append(cmd)
         stdout = "3.2.0rc99\n" if "-c" in cmd else ""
         return subprocess.CompletedProcess(cmd, 0, stdout=stdout, stderr="")
@@ -73,21 +64,14 @@ def test_console_script_smoke_runs_after_exact_install(
     assert module.main() == 0
 
     assert any(call[-3:] == ["install", "--upgrade", "pip"] for call in calls)
-    assert any(
-        "spec-kitty" in Path(call[0]).name and call[1:] == ["--version"]
-        for call in calls
-    )
+    assert any("spec-kitty" in Path(call[0]).name and call[1:] == ["--version"] for call in calls)
 
 
-def test_console_script_smoke_failure_fails_release_gate(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_console_script_smoke_failure_fails_release_gate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     module = load_script_module()
     write_wheel(tmp_path / "dist", package="spec-kitty-cli", version="3.2.0rc99")
 
-    def fake_run(
-        cmd: list[str], *, env: dict[str, str] | None = None
-    ) -> subprocess.CompletedProcess[str]:
+    def fake_run(cmd: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
         if "spec-kitty" in Path(cmd[0]).name:
             return subprocess.CompletedProcess(
                 cmd,
@@ -122,15 +106,11 @@ def test_console_script_smoke_failure_fails_release_gate(
     assert "No module named 'click'" in str(exc.value)
 
 
-def test_from_index_installs_exact_version_without_local_wheel(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_from_index_installs_exact_version_without_local_wheel(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     module = load_script_module()
     calls: list[list[str]] = []
 
-    def fake_run(
-        cmd: list[str], *, env: dict[str, str] | None = None
-    ) -> subprocess.CompletedProcess[str]:
+    def fake_run(cmd: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
         calls.append(cmd)
         stdout = "3.2.0rc99\n" if "-c" in cmd else ""
         return subprocess.CompletedProcess(cmd, 0, stdout=stdout, stderr="")
@@ -154,7 +134,8 @@ def test_from_index_installs_exact_version_without_local_wheel(
     assert module.main() == 0
 
     assert any(
-        call[-3:] == [
+        call[-3:]
+        == [
             "--index-url",
             "https://pypi.org/simple",
             "spec-kitty-cli==3.2.0rc99",

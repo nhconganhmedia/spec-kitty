@@ -52,9 +52,7 @@ STALE_HUSK = "# spec.md — STALE pre-mission coord husk copy\n"
 
 
 def _git(repo_root: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True)
 
 
 def _init_repo(repo_root: Path) -> None:
@@ -92,9 +90,7 @@ def _seed_coord_topology(repo_root: Path) -> tuple[Path, Path]:
     _write_meta(primary_dir, meta)
     (primary_dir / "spec.md").write_text(PRIMARY_TRUTH, encoding="utf-8")
 
-    coord_husk_dir = (
-        repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord" / "kitty-specs" / SLUG_WITH_MID8
-    )
+    coord_husk_dir = repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord" / "kitty-specs" / SLUG_WITH_MID8
     _write_meta(coord_husk_dir, meta)
     (coord_husk_dir / "spec.md").write_text(STALE_HUSK, encoding="utf-8")
     return primary_dir, coord_husk_dir
@@ -189,9 +185,7 @@ def test_retired_caller_returns_none_on_no_handle(tmp_path: Path) -> None:
     assert _primary_anchored_feature_dir(tmp_path, "   ") is None
 
 
-def test_retired_caller_propagates_ambiguous_selector(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_retired_caller_propagates_ambiguous_selector(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Ambiguity propagation preserved: an ambiguous handle is never silently resolved.
 
     The retired helper surfaces the structured ``ActionContextError`` (mapped from
@@ -203,9 +197,7 @@ def test_retired_caller_propagates_ambiguous_selector(
     _seed_coord_topology(tmp_path)
 
     def _raise_ambiguous(*_args: object, **_kwargs: object) -> str | None:
-        raise MissionSelectorAmbiguous(
-            handle="gate", candidates=[f"{SLUG_WITH_MID8}", "gate-other-01ABCDEF"]
-        )
+        raise MissionSelectorAmbiguous(handle="gate", candidates=[f"{SLUG_WITH_MID8}", "gate-other-01ABCDEF"])
 
     # Force the canonicalization step the workhorse runs to report ambiguity.
     # #2056 decomposition: ``_primary_anchored_feature_dir`` and its sibling
@@ -230,9 +222,7 @@ def test_retired_caller_propagates_ambiguous_selector(
 #          is what is proven. With the seam routing → PRIMARY (GREEN); reverted to
 #          the coord-aware ``candidate_feature_dir_for_mission`` → coord husk (RED).
 # --------------------------------------------------------------------------- #
-def test_red_first_body_revert_makes_caller_resolve_coord_husk(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_red_first_body_revert_makes_caller_resolve_coord_husk(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Non-vacuous RED: reverting the chokepoint body to the topology-routed resolver
     makes the existing caller resolve the COORD husk; the real seam routing resolves
     PRIMARY. This proves the consolidation's body (seam vs bespoke topology routing) is

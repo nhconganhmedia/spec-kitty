@@ -160,12 +160,9 @@ def test_safe_commit_surfaces_warn_mode_guard_warning_on_success(
     # message", "N files changed", ...) must NOT ride along on the WARNING
     # channel merged with the guard's stderr content.
     assert len(warning_records) == 1, (
-        f"expected exactly one WARNING record for the guard's stderr output, "
-        f"got {len(warning_records)}: {[r.getMessage() for r in warning_records]!r}"
+        f"expected exactly one WARNING record for the guard's stderr output, got {len(warning_records)}: {[r.getMessage() for r in warning_records]!r}"
     )
-    assert "file changed" not in surfaced, (
-        "git's routine stdout commit summary leaked into the WARNING channel"
-    )
+    assert "file changed" not in surfaced, "git's routine stdout commit summary leaked into the WARNING channel"
 
 
 def test_safe_commit_does_not_warn_on_routine_successful_commit(
@@ -203,8 +200,7 @@ def test_safe_commit_does_not_warn_on_routine_successful_commit(
 
     warning_records = [r for r in caplog.records if r.levelname == "WARNING"]
     assert warning_records == [], (
-        "a routine successful commit with no pre-commit hook must not emit "
-        f"any WARNING records; got {[r.getMessage() for r in warning_records]!r}"
+        f"a routine successful commit with no pre-commit hook must not emit any WARNING records; got {[r.getMessage() for r in warning_records]!r}"
     )
 
 
@@ -308,8 +304,7 @@ def test_safe_commit_allows_op_record_on_protected_branch_with_capability(tmp_pa
     op_path = repo / "kitty-ops" / f"{op_id}.jsonl"
     op_path.parent.mkdir()
     op_path.write_text(
-        '{"event":"started","invocation_id":"01KTBTTSWK43WGCPYKBMRCCY8T"}\n'
-        '{"event":"completed","invocation_id":"01KTBTTSWK43WGCPYKBMRCCY8T"}\n',
+        '{"event":"started","invocation_id":"01KTBTTSWK43WGCPYKBMRCCY8T"}\n{"event":"completed","invocation_id":"01KTBTTSWK43WGCPYKBMRCCY8T"}\n',
         encoding="utf-8",
     )
 

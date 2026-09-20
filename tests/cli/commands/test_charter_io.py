@@ -34,6 +34,7 @@ from specify_cli.task_utils import TaskCliError
 
 pytestmark = [pytest.mark.integration]
 
+
 def test_resolve_charter_path_returns_path_when_file_exists(tmp_path: Path) -> None:
     """Arrange: charter.md exists at canonical location;
     Act: resolve;
@@ -63,6 +64,7 @@ def test_resolve_charter_path_raises_when_file_missing(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # _parse_csv_option
 # ---------------------------------------------------------------------------
+
 
 def test_parse_csv_option_returns_none_when_input_is_none() -> None:
     """Arrange: None input; Act: parse; Assert: None returned."""
@@ -94,6 +96,7 @@ def test_parse_csv_option_empty_string_returns_empty_list() -> None:
 # _interview_path
 # ---------------------------------------------------------------------------
 
+
 def test_interview_path_returns_expected_location(tmp_path: Path) -> None:
     """Arrange: project root; Act: resolve interview path; Assert: canonical path returned."""
     expected = tmp_path / ".kittify" / "charter" / "interview" / "answers.yaml"
@@ -104,6 +107,7 @@ def test_interview_path_returns_expected_location(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # _display_path
 # ---------------------------------------------------------------------------
+
 
 def test_display_path_returns_relative_string_when_subpath(tmp_path: Path) -> None:
     """Arrange: path inside repo_root; Act: display; Assert: relative string returned."""
@@ -123,6 +127,7 @@ def test_display_path_returns_absolute_when_outside_root(tmp_path: Path) -> None
 # ---------------------------------------------------------------------------
 # _ensure_gitignore_entries
 # ---------------------------------------------------------------------------
+
 
 def test_ensure_gitignore_entries_creates_gitignore_when_missing(tmp_path: Path) -> None:
     """Arrange: no .gitignore; Act: ensure entries; Assert: .gitignore created with entries."""
@@ -175,6 +180,7 @@ def test_ensure_gitignore_entries_noop_when_all_present(tmp_path: Path) -> None:
 # _get_mission_id
 # ---------------------------------------------------------------------------
 
+
 def test_get_mission_id_returns_mission_id_from_meta_json(tmp_path: Path) -> None:
     """Arrange: kitty-specs/<slug>/meta.json with mission_id; Act: resolve; Assert: ULID returned."""
     slug = "my-feature"
@@ -223,6 +229,7 @@ def test_get_mission_id_returns_none_when_meta_json_malformed(tmp_path: Path) ->
 # ---------------------------------------------------------------------------
 # Permission-denied edge case (POSIX only)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.skipif(sys.platform == "win32", reason="chmod 000 not supported on Windows")
 def test_resolve_charter_path_raises_when_directory_not_readable(tmp_path: Path) -> None:

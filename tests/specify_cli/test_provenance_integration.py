@@ -57,9 +57,7 @@ def _directive(directive_id: str, title: str) -> dict:
 class TestProvenanceServiceIntegration:
     """End-to-end provenance via the shared ``DoctrineService`` factory."""
 
-    def test_org_overrides_builtin_provenance_resolves_to_org(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_org_overrides_builtin_provenance_resolves_to_org(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """An org pack that ships the same directive ID as built-in surfaces ``source=org``."""
         # Built-in (shipped) layer -- an isolated flat packs/built-in/ tree,
         # injected via SPEC_KITTY_PACKS_ROOT (the built_in_root= param is retired).
@@ -197,19 +195,13 @@ class TestLintOrgOverridesAdvisory:
         def _fake_resolve_project_root(_root: Path) -> Path | None:
             return None
 
-        monkeypatch.setattr(
-            "charter.activation.catalog.resolve_doctrine_root", _fake_resolve_doctrine_root
-        )
-        monkeypatch.setattr(
-            "charter.activation._doctrine_paths.resolve_project_root", _fake_resolve_project_root
-        )
+        monkeypatch.setattr("charter.activation.catalog.resolve_doctrine_root", _fake_resolve_doctrine_root)
+        monkeypatch.setattr("charter.activation._doctrine_paths.resolve_project_root", _fake_resolve_project_root)
 
         checker = org_layer.OrgOverridesBuiltinChecker(repo_root=repo_root)
         findings = checker.run(drg=None)
         # We should detect the org override of DIRECTIVE_001.
-        override_findings = [
-            f for f in findings if f.type == "org_overrides_builtin"
-        ]
+        override_findings = [f for f in findings if f.type == "org_overrides_builtin"]
         assert override_findings, "expected at least one org_overrides_builtin advisory"
         first = override_findings[0]
         assert first.severity == "low"
@@ -224,6 +216,4 @@ class TestLintEngineWithOrgChecksOnly:
         # Empty repo: no DRG → checker returns empty report, but no crash.
         engine = LintEngine(tmp_path)
         report = engine.run(checks={"org_overrides_builtin"})
-        assert report.findings == [] or all(
-            f.category == "org_layer" for f in report.findings
-        )
+        assert report.findings == [] or all(f.category == "org_layer" for f in report.findings)

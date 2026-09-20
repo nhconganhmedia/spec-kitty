@@ -42,9 +42,7 @@ def test_thin_delegates_forward_to_the_seam(monkeypatch: pytest.MonkeyPatch) -> 
     assert calls == ["primary"], "runtime_bridge._primary_runtime_feature_dir did not forward to the seam"
 
 
-def test_resolve_coordination_branch_uses_live_lookup_for_primary_runtime_feature_dir(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_coordination_branch_uses_live_lookup_for_primary_runtime_feature_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """``_resolve_coordination_branch`` must resolve
     ``_primary_runtime_feature_dir`` via a live lookup through
     ``runtime_bridge`` -- a bare intra-seam call to this module's own
@@ -75,9 +73,7 @@ def test_resolve_coordination_branch_uses_live_lookup_for_primary_runtime_featur
     )
 
 
-def test_resolve_mission_ulid_uses_live_lookup_for_primary_runtime_feature_dir(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_mission_ulid_uses_live_lookup_for_primary_runtime_feature_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Same live-lookup regression as above, for ``_resolve_mission_ulid``."""
     feature_dir = tmp_path / "kitty-specs" / "my-mission-01KWDABC"
     feature_dir.mkdir(parents=True)

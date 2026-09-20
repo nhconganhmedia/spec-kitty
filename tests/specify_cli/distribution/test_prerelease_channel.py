@@ -67,18 +67,14 @@ class TestHighestVersionChannelGate:
 
     def test_default_kwarg_matches_positional_call(self) -> None:
         """Old call sites (no kwarg at all) keep working identically."""
-        assert _highest_version(["1.9.0", "2.0.0rc1"]) == _highest_version(
-            ["1.9.0", "2.0.0rc1"], include_prerelease=False
-        )
+        assert _highest_version(["1.9.0", "2.0.0rc1"]) == _highest_version(["1.9.0", "2.0.0rc1"], include_prerelease=False)
 
     def test_include_prerelease_true_surfaces_the_rc(self) -> None:
         assert _highest_version(["1.9.0", "2.0.0rc1"], include_prerelease=True) == "2.0.0rc1"
 
     def test_include_prerelease_true_still_prefers_a_genuinely_newer_stable(self) -> None:
         """PEP 440 ordering: a final release outranks its own rc."""
-        assert (
-            _highest_version(["2.0.0rc1", "2.0.0"], include_prerelease=True) == "2.0.0"
-        )
+        assert _highest_version(["2.0.0rc1", "2.0.0"], include_prerelease=True) == "2.0.0"
 
     def test_no_stable_falls_back_to_highest_prerelease_either_way(self) -> None:
         assert _highest_version(["2.0.0rc1", "2.0.0rc2"]) == "2.0.0rc2"
@@ -127,31 +123,23 @@ class TestPyPIProviderChannelGate:
         1.9.0. Without opting in, ``get_latest`` must report the stable
         version — no rc advisory to a default-configuration user.
         """
-        respx.get(_PYPI_URL).mock(
-            return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"]))
-        )
+        respx.get(_PYPI_URL).mock(return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"])))
         result = PyPIProvider().get_latest("spec-kitty-cli")
         assert result == LatestVersionResult(version="1.9.0", source="pypi", error=None)
 
     @respx.mock
     def test_default_off_is_byte_identical_to_explicit_prerelease_false(self) -> None:
-        respx.get(_PYPI_URL).mock(
-            return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"]))
-        )
+        respx.get(_PYPI_URL).mock(return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"])))
         default_call = PyPIProvider().get_latest("spec-kitty-cli")
 
-        respx.get(_PYPI_URL).mock(
-            return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"]))
-        )
+        respx.get(_PYPI_URL).mock(return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"])))
         explicit_call = PyPIProvider().get_latest("spec-kitty-cli", prerelease=False)
 
         assert default_call == explicit_call
 
     @respx.mock
     def test_opted_in_surfaces_the_newest_prerelease(self) -> None:
-        respx.get(_PYPI_URL).mock(
-            return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"]))
-        )
+        respx.get(_PYPI_URL).mock(return_value=httpx.Response(200, content=_pypi_payload_with_releases("1.9.0", ["1.9.0", "2.0.0rc1"])))
         result = PyPIProvider().get_latest("spec-kitty-cli", prerelease=True)
         assert result == LatestVersionResult(version="2.0.0rc1", source="pypi", error=None)
 

@@ -109,9 +109,7 @@ def test_load_link_terms_missing_file_warns_and_returns_empty(tmp_path: Path, ca
     assert "WARNING" in capsys.readouterr().err
 
 
-def test_process_directory_with_no_terms_skips_without_crashing(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_process_directory_with_no_terms_skips_without_crashing(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     site = tmp_path / "_site"
     site.mkdir()
     (site / "page.html").write_text("<html><body>hello</body></html>", encoding="utf-8")
@@ -144,12 +142,7 @@ def test_link_page_html_skips_code_and_pre_blocks() -> None:
     pattern = glossary_linker.build_pattern(terms)
     assert pattern is not None
     term_by_key = {t.surface.lower(): t for t in terms}
-    markup = (
-        "<body>"
-        "<pre><code>work package = load()</code></pre>"
-        "<p>See the work package docs.</p>"
-        "</body>"
-    )
+    markup = "<body><pre><code>work package = load()</code></pre><p>See the work package docs.</p></body>"
 
     result, added = glossary_linker.link_page_html(markup, pattern, term_by_key)
 
@@ -166,10 +159,7 @@ def test_link_page_html_skips_head_and_title() -> None:
     pattern = glossary_linker.build_pattern(terms)
     assert pattern is not None
     term_by_key = {t.surface.lower(): t for t in terms}
-    markup = (
-        "<html><head><title>Work Package Frontmatter</title></head>"
-        "<body><p>See the work package docs.</p></body></html>"
-    )
+    markup = "<html><head><title>Work Package Frontmatter</title></head><body><p>See the work package docs.</p></body></html>"
 
     result, added = glossary_linker.link_page_html(markup, pattern, term_by_key)
 
@@ -229,9 +219,7 @@ def test_process_directory_excludes_glossary_page_itself(tmp_path: Path) -> None
     site = tmp_path / "_site"
     kitty_specs = site / "kitty-specs"
     kitty_specs.mkdir(parents=True)
-    (kitty_specs / "glossary.html").write_text(
-        "<body><p>work package appears here too.</p></body>", encoding="utf-8"
-    )
+    (kitty_specs / "glossary.html").write_text("<body><p>work package appears here too.</p></body>", encoding="utf-8")
     other = site / "guides"
     other.mkdir()
     (other / "index.html").write_text("<body><p>Read about a work package.</p></body>", encoding="utf-8")

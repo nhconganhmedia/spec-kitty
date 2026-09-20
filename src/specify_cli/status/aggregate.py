@@ -134,9 +134,7 @@ class InvalidMissionSlug(ValueError):
     def __init__(self, mission_slug: str) -> None:
         self.mission_slug = mission_slug
         super().__init__(
-            f"Invalid mission slug {mission_slug!r}: mission slugs must be a "
-            "single safe path segment (ASCII, no path separators, no '..', no "
-            "leading dot)."
+            f"Invalid mission slug {mission_slug!r}: mission slugs must be a single safe path segment (ASCII, no path separators, no '..', no leading dot)."
         )
 
 
@@ -256,11 +254,7 @@ class MissionStatus:
             primary_candidate=primary_candidate,
         )
 
-        topology: Literal["legacy", "coordination"] = (
-            "coordination"
-            if cls._is_coord_dir(read_dir, repo_root=repo_root)
-            else "legacy"
-        )
+        topology: Literal["legacy", "coordination"] = "coordination" if cls._is_coord_dir(read_dir, repo_root=repo_root) else "legacy"
         return cls(
             mission_slug=mission_slug,
             mission_id=mission_id,
@@ -401,9 +395,7 @@ class MissionStatus:
             raise InvalidMissionSlug(mission_slug) from exc
 
     @staticmethod
-    def _read_meta(
-        repo_root: Path, mission_slug: str
-    ) -> tuple[str | None, str | None, Path]:
+    def _read_meta(repo_root: Path, mission_slug: str) -> tuple[str | None, str | None, Path]:
         """Read ``meta.json`` and extract identity fields.
 
         Returns:
@@ -512,9 +504,7 @@ class MissionStatus:
         # every handle form (bare mid8 / ULID / numeric prefix / bare human
         # slug) to the correct composed primary dir internally, so the caller
         # no longer pre-canonicalizes with ``_canonicalize_primary_read_handle``.
-        primary_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.PRIMARY_METADATA
-        )
+        primary_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         raw_meta = primary_dir / _META_JSON_FILENAME
         # Pure-path happy path: when the literal slug already names an existing
         # primary mission dir with ``meta.json``, it IS the canonical directory
@@ -578,9 +568,7 @@ class MissionStatus:
         # non-existent composed path (NFR-001's one accepted divergence, US3
         # scenario 3) -- pinned by
         # ``tests/specify_cli/status/test_aggregate_read_seam_migration.py``.
-        canonical_primary = placement_seam(repo_root, candidate_dir.name).read_dir(
-            MissionArtifactKind.PRIMARY_METADATA
-        )
+        canonical_primary = placement_seam(repo_root, candidate_dir.name).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         return canonical_primary / _META_JSON_FILENAME, canonical_primary
 
     # ------------------------------------------------------------------
@@ -730,9 +718,7 @@ class MissionStatus:
             # longer pre-canonicalizes with ``_canonicalize_primary_read_handle``.
             from mission_runtime import MissionArtifactKind, placement_seam
 
-            diag_primary = placement_seam(
-                self.repo_root, self.mission_slug
-            ).read_dir(MissionArtifactKind.PRIMARY_METADATA)
+            diag_primary = placement_seam(self.repo_root, self.mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
             raise MissionMetadataUnavailable(
                 mission_slug=self.mission_slug,
                 meta_path=diag_primary / _META_JSON_FILENAME,
@@ -748,9 +734,7 @@ class MissionStatus:
         from specify_cli.status.reducer import SNAPSHOT_FILENAME
         from specify_cli.status.store import EVENTS_FILENAME
 
-        destination_ref = self.coordination_branch or mission_branch_name_required(
-            self.mission_slug, self.mission_id
-        )
+        destination_ref = self.coordination_branch or mission_branch_name_required(self.mission_slug, self.mission_id)
 
         with BookkeepingTransaction.acquire(
             repo_root=self.repo_root,

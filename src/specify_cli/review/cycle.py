@@ -238,9 +238,7 @@ class ReviewCycleError(ValueError):
     """Raised when a review-cycle invariant cannot be satisfied."""
 
 
-DurabilityClassification: TypeAlias = Literal[
-    "durable", "busy", "persistence_failed", "local_only"
-]
+DurabilityClassification: TypeAlias = Literal["durable", "busy", "persistence_failed", "local_only"]
 
 
 @dataclass(frozen=True)
@@ -447,10 +445,7 @@ def resolve_review_cycle_pointer(repo_root: Path, pointer: str) -> ResolvedRevie
         # / human slug names the on-disk ``<slug>-<mid8>`` dir only after
         # canonicalization, so a raw join would compose a DIVERGENT path).
         # ``MissionSelectorAmbiguous`` propagates (no silent pick — C-009).
-        candidate = (
-            _review_cycle_wp_dir(repo_root, parts.mission_slug, parts.wp_slug)
-            / parts.filename
-        ).resolve()
+        candidate = (_review_cycle_wp_dir(repo_root, parts.mission_slug, parts.wp_slug) / parts.filename).resolve()
         if not candidate.exists() or not candidate.is_file():
             return ResolvedReviewCyclePointer(reference=value, path=None, kind="canonical")
         try:
@@ -502,9 +497,7 @@ def resolve_review_cycle_pointer(repo_root: Path, pointer: str) -> ResolvedRevie
     )
 
 
-def _guard_feedback_source_provenance(
-    *, feedback_source: Path, sub_artifact_dir: Path
-) -> None:
+def _guard_feedback_source_provenance(*, feedback_source: Path, sub_artifact_dir: Path) -> None:
     """Refuse a *feedback_source* that IS a prior review-cycle artifact.
 
     Closes #2996(b) (fabricated duplicate) and #990 (content-wrapping) as the
@@ -552,10 +545,7 @@ def _guard_feedback_source_provenance(
     """
     resolved_feedback = feedback_source.resolve()
     resolved_dir = sub_artifact_dir.resolve()
-    if (
-        resolved_feedback.parent == resolved_dir
-        and _REVIEW_CYCLE_FILE_RE.fullmatch(resolved_feedback.name) is not None
-    ):
+    if resolved_feedback.parent == resolved_dir and _REVIEW_CYCLE_FILE_RE.fullmatch(resolved_feedback.name) is not None:
         raise ReviewCycleError(
             "feedback_source is this WP's own review-cycle artifact "
             f"({resolved_feedback.name}); pass the underlying reviewer "
@@ -590,8 +580,7 @@ def _commit_failure_message(
     identical message for both.
     """
     prefix = (
-        f"Exhausted contention retries committing review-cycle-{cycle_number} "
-        "artifact"
+        f"Exhausted contention retries committing review-cycle-{cycle_number} artifact"
         if exhausted_contention_retries
         else f"Failed to commit review-cycle-{cycle_number} artifact"
     )
@@ -623,10 +612,7 @@ def _commit_review_cycle_artifact(
     outside ``feature_status_lock``; checkout-wide queue ownership belongs to
     WP04 and is intentionally absent from this function.
     """
-    message = (
-        f"chore: Record review-cycle-{cycle_number} ({verdict}) for {wp_id} on "
-        f"{mission_slug}"
-    )
+    message = f"chore: Record review-cycle-{cycle_number} ({verdict}) for {wp_id} on {mission_slug}"
     mission = MissionHandle(
         repo_root=main_repo_root,
         mission_slug=mission_slug,
@@ -645,13 +631,11 @@ def _commit_review_cycle_artifact(
             policy=policy,
         )
         evidence_ref = _evidence_ref(operation_root, artifact_path)
-        destination_ref = result.placement_ref or placement_seam(
-            main_repo_root, mission_slug, effective_root=effective_root
-        ).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
+        destination_ref = (
+            result.placement_ref or placement_seam(main_repo_root, mission_slug, effective_root=effective_root).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
+        )
         if result.status == "committed":
-            destination_bytes = _read_artifact_at_ref(
-                operation_root, destination_ref, evidence_ref
-            )
+            destination_bytes = _read_artifact_at_ref(operation_root, destination_ref, evidence_ref)
             local_bytes = artifact_path.read_bytes()
             if destination_bytes == local_bytes:
                 return VerdictPersistenceOutcome(
@@ -660,26 +644,16 @@ def _commit_review_cycle_artifact(
                     evidence_ref=evidence_ref,
                     destination_ref=destination_ref,
                     reason=None,
-                    message=(
-                        "Review-cycle evidence is committed and verified at "
-                        f"{destination_ref}."
-                    ),
+                    message=(f"Review-cycle evidence is committed and verified at {destination_ref}."),
                 )
-            reason = (
-                "destination_readback_missing"
-                if destination_bytes is None
-                else "destination_readback_mismatch"
-            )
+            reason = "destination_readback_missing" if destination_bytes is None else "destination_readback_mismatch"
             return VerdictPersistenceOutcome(
                 classification="persistence_failed",
                 verdict_durably_persisted=False,
                 evidence_ref=evidence_ref,
                 destination_ref=destination_ref,
                 reason=reason,
-                message=(
-                    "Commit router reported committed, but exact evidence bytes "
-                    f"were not verified at {destination_ref}."
-                ),
+                message=(f"Commit router reported committed, but exact evidence bytes were not verified at {destination_ref}."),
             )
 
         contending = result.status == "error" and git_operation_in_progress(main_repo_root)
@@ -724,14 +698,10 @@ def _evidence_ref(main_repo_root: Path, artifact_path: Path) -> str:
     try:
         return artifact_path.resolve().relative_to(main_repo_root.resolve()).as_posix()
     except ValueError as exc:
-        raise ReviewCycleError(
-            f"Review-cycle artifact is outside the repository: {artifact_path}"
-        ) from exc
+        raise ReviewCycleError(f"Review-cycle artifact is outside the repository: {artifact_path}") from exc
 
 
-def _read_artifact_at_ref(
-    main_repo_root: Path, destination_ref: str, evidence_ref: str
-) -> bytes | None:
+def _read_artifact_at_ref(main_repo_root: Path, destination_ref: str, evidence_ref: str) -> bytes | None:
     """Read exact evidence bytes from the governed Git ref, if present."""
     completed = subprocess.run(
         ["git", "show", f"{destination_ref}:{evidence_ref}"],
@@ -939,9 +909,7 @@ def _adopt_or_allocate_review_cycle_locked(
     checkout-wide verdict queue lease around this non-acquiring operation.
     """
     operation_root = effective_root or main_repo_root
-    destination_ref = placement_seam(
-        main_repo_root, mission_slug, effective_root=effective_root
-    ).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
+    destination_ref = placement_seam(main_repo_root, mission_slug, effective_root=effective_root).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
     with feature_status_lock(
         main_repo_root,
         mission_slug,
@@ -956,16 +924,14 @@ def _adopt_or_allocate_review_cycle_locked(
             body=body,
         )
         if not candidates:
-            artifact, artifact_path, filename = (
-                _allocate_and_write_review_cycle_while_locked(
-                    mission_slug=mission_slug,
-                    wp_id=wp_id,
-                    sub_artifact_dir=sub_artifact_dir,
-                    reviewer_agent=reviewer_agent,
-                    affected_files=affected_files,
-                    body=body,
-                    reproduction_command=reproduction_command,
-                )
+            artifact, artifact_path, filename = _allocate_and_write_review_cycle_while_locked(
+                mission_slug=mission_slug,
+                wp_id=wp_id,
+                sub_artifact_dir=sub_artifact_dir,
+                reviewer_agent=reviewer_agent,
+                affected_files=affected_files,
+                body=body,
+                reproduction_command=reproduction_command,
             )
             return artifact, artifact_path, filename, False
 
@@ -973,9 +939,7 @@ def _adopt_or_allocate_review_cycle_locked(
     committed: list[_RetainedReviewCycleCandidate] = []
     for candidate in candidates:
         evidence_ref = _evidence_ref(operation_root, candidate.path)
-        destination_bytes = _read_artifact_at_ref(
-            operation_root, destination_ref, evidence_ref
-        )
+        destination_bytes = _read_artifact_at_ref(operation_root, destination_ref, evidence_ref)
         if destination_bytes is None:
             pending.append(candidate)
         elif destination_bytes == candidate.local_bytes:
@@ -983,16 +947,8 @@ def _adopt_or_allocate_review_cycle_locked(
 
     if len(pending) > 1:
         names = ", ".join(candidate.path.name for candidate in pending)
-        raise ReviewCycleError(
-            "Multiple identical pending review-cycle records are ambiguous: " + names
-        )
-    selected = (
-        pending[0]
-        if pending
-        else max(committed, key=lambda candidate: candidate.artifact.cycle_number)
-        if committed
-        else None
-    )
+        raise ReviewCycleError("Multiple identical pending review-cycle records are ambiguous: " + names)
+    selected = pending[0] if pending else max(committed, key=lambda candidate: candidate.artifact.cycle_number) if committed else None
 
     with feature_status_lock(
         main_repo_root,
@@ -1007,28 +963,19 @@ def _adopt_or_allocate_review_cycle_locked(
             affected_files=affected_files,
             body=body,
         )
-        original_snapshot = {
-            candidate.path: candidate.local_bytes for candidate in candidates
-        }
-        refreshed_snapshot = {
-            candidate.path: candidate.local_bytes for candidate in refreshed
-        }
+        original_snapshot = {candidate.path: candidate.local_bytes for candidate in candidates}
+        refreshed_snapshot = {candidate.path: candidate.local_bytes for candidate in refreshed}
         if refreshed_snapshot != original_snapshot:
-            raise ReviewCycleError(
-                "Retained review-cycle candidates changed during adoption; retry "
-                "the verdict save instead of guessing."
-            )
+            raise ReviewCycleError("Retained review-cycle candidates changed during adoption; retry the verdict save instead of guessing.")
         if selected is None:
-            artifact, artifact_path, filename = (
-                _allocate_and_write_review_cycle_while_locked(
-                    mission_slug=mission_slug,
-                    wp_id=wp_id,
-                    sub_artifact_dir=sub_artifact_dir,
-                    reviewer_agent=reviewer_agent,
-                    affected_files=affected_files,
-                    body=body,
-                    reproduction_command=reproduction_command,
-                )
+            artifact, artifact_path, filename = _allocate_and_write_review_cycle_while_locked(
+                mission_slug=mission_slug,
+                wp_id=wp_id,
+                sub_artifact_dir=sub_artifact_dir,
+                reviewer_agent=reviewer_agent,
+                affected_files=affected_files,
+                body=body,
+                reproduction_command=reproduction_command,
             )
             return artifact, artifact_path, filename, False
 
@@ -1091,10 +1038,7 @@ def create_rejected_review_cycle(
       for this leg.
     """
     if (feedback_source is None) == (body is None):
-        raise ReviewCycleError(
-            "create_rejected_review_cycle requires exactly one of "
-            "feedback_source or body"
-        )
+        raise ReviewCycleError("create_rejected_review_cycle requires exactly one of feedback_source or body")
 
     safe_mission_slug = _validate_segment("mission_slug", mission_slug)
     safe_wp_slug = _validate_segment("wp_slug", wp_slug)
@@ -1119,9 +1063,7 @@ def create_rejected_review_cycle(
         if not feedback_source.exists():
             raise ReviewCycleError(f"Review feedback file not found: {feedback_source}")
         if not feedback_source.is_file():
-            raise ReviewCycleError(
-                f"Review feedback path is not a file: {feedback_source}"
-            )
+            raise ReviewCycleError(f"Review feedback path is not a file: {feedback_source}")
         resolved_body = feedback_source.read_text(encoding="utf-8")
         if not resolved_body.strip():
             raise ReviewCycleError(f"Review feedback file is empty: {feedback_source}")
@@ -1135,10 +1077,7 @@ def create_rejected_review_cycle(
             raise ReviewCycleError("Review feedback body is empty")
         resolved_body = body
 
-    parsed_affected: list[AffectedFile] = [
-        AffectedFile(path=affected["path"], line_range=affected.get("line_range"))
-        for affected in affected_files or []
-    ]
+    parsed_affected: list[AffectedFile] = [AffectedFile(path=affected["path"], line_range=affected.get("line_range")) for affected in affected_files or []]
 
     # T040/T041 (FR-005/NFR-006): allocation, artifact construction, the
     # write, and post-write validation are ONE critical section serialized
@@ -1158,25 +1097,21 @@ def create_rejected_review_cycle(
         )
         already_committed = False
     else:
-        artifact, artifact_path, filename, already_committed = (
-            _adopt_or_allocate_review_cycle_locked(
-                main_repo_root=main_repo_root,
-                mission_slug=safe_mission_slug,
-                wp_id=safe_wp_id,
-                sub_artifact_dir=sub_artifact_dir,
-                reviewer_agent=reviewer_agent,
-                affected_files=parsed_affected,
-                body=resolved_body,
-                reproduction_command=reproduction_command,
-                effective_root=effective_root,
-            )
+        artifact, artifact_path, filename, already_committed = _adopt_or_allocate_review_cycle_locked(
+            main_repo_root=main_repo_root,
+            mission_slug=safe_mission_slug,
+            wp_id=safe_wp_id,
+            sub_artifact_dir=sub_artifact_dir,
+            reviewer_agent=reviewer_agent,
+            affected_files=parsed_affected,
+            body=resolved_body,
+            reproduction_command=reproduction_command,
+            effective_root=effective_root,
         )
     pointer = build_review_cycle_pointer(safe_mission_slug, safe_wp_slug, filename)
 
     evidence_ref = _evidence_ref(operation_root, artifact_path)
-    governed_destination_ref = placement_seam(
-        main_repo_root, safe_mission_slug, effective_root=effective_root
-    ).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
+    governed_destination_ref = placement_seam(main_repo_root, safe_mission_slug, effective_root=effective_root).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
     if commit_router is None:
         persistence = VerdictPersistenceOutcome(
             classification="local_only",
@@ -1193,10 +1128,7 @@ def create_rejected_review_cycle(
             evidence_ref=evidence_ref,
             destination_ref=governed_destination_ref,
             reason=None,
-            message=(
-                "Identical review-cycle evidence was already committed and verified at "
-                f"{governed_destination_ref}."
-            ),
+            message=(f"Identical review-cycle evidence was already committed and verified at {governed_destination_ref}."),
         )
     else:
         try:
@@ -1211,9 +1143,7 @@ def create_rejected_review_cycle(
                 effective_root=effective_root,
             )
         except Exception as exc:
-            destination_bytes = _read_artifact_at_ref(
-                operation_root, governed_destination_ref, evidence_ref
-            )
+            destination_bytes = _read_artifact_at_ref(operation_root, governed_destination_ref, evidence_ref)
             if destination_bytes == artifact_path.read_bytes():
                 persistence = VerdictPersistenceOutcome(
                     classification="durable",
@@ -1221,10 +1151,7 @@ def create_rejected_review_cycle(
                     evidence_ref=evidence_ref,
                     destination_ref=governed_destination_ref,
                     reason=None,
-                    message=(
-                        "Commit raised after persistence, but exact evidence was "
-                        f"verified at {governed_destination_ref}."
-                    ),
+                    message=(f"Commit raised after persistence, but exact evidence was verified at {governed_destination_ref}."),
                 )
             else:
                 reason = "commit_timeout" if isinstance(exc, TimeoutError) else "commit_exception"
@@ -1234,10 +1161,7 @@ def create_rejected_review_cycle(
                     evidence_ref=evidence_ref,
                     destination_ref=governed_destination_ref,
                     reason=reason,
-                    message=(
-                        f"Review-cycle commit raised {type(exc).__name__}: {exc}. "
-                        f"Evidence is retained at {evidence_ref}."
-                    ),
+                    message=(f"Review-cycle commit raised {type(exc).__name__}: {exc}. Evidence is retained at {evidence_ref}."),
                 )
 
     review_result = ReviewResult(

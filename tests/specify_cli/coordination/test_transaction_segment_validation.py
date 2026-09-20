@@ -10,6 +10,7 @@ Exception-type rule: use ``type(exc) is BookkeepingError`` not isinstance — Bo
 does NOT subclass ValueError, but correctness requires we verify the exact domain type
 rather than relying on structural typing.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -38,10 +39,7 @@ def test_validate_safe_segment_raises_bookkeeping_error(label: str, bad_value: s
     with pytest.raises(BookkeepingError) as exc_info:
         _validate_safe_segment("test_field", bad_value)
     # Exact-type check: must not leak a raw ValueError even if the delegate raises one.
-    assert type(exc_info.value) is BookkeepingError, (
-        f"Expected exact type BookkeepingError for input {bad_value!r}, "
-        f"got {type(exc_info.value).__name__}"
-    )
+    assert type(exc_info.value) is BookkeepingError, f"Expected exact type BookkeepingError for input {bad_value!r}, got {type(exc_info.value).__name__}"
 
 
 # ---------------------------------------------------------------------------

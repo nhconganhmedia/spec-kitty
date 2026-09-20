@@ -87,9 +87,7 @@ def test_synthesized_claim_anchor_is_byte_identical_across_leg_contexts(
 
     assert bytes_a, "expected a claim seed synthesized from the PRIMARY leg"
     assert bytes_a == bytes_b, (
-        "seed payload diverged across leg contexts (R5): the claim anchor "
-        "leaked from the COORD write leg's own meta.json instead of the "
-        "shared PRIMARY read leg"
+        "seed payload diverged across leg contexts (R5): the claim anchor leaked from the COORD write leg's own meta.json instead of the shared PRIMARY read leg"
     )
     assert _PRIMARY_CREATED_AT.encode() in bytes_a
     assert _FOREIGN_COORD_CREATED_AT.encode() not in bytes_a

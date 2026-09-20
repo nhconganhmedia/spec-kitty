@@ -915,8 +915,6 @@ def _run_commit_capture_sha(repo_path: Path, commit_message: str) -> tuple[str |
     return sha, commit_result.stdout, commit_result.stderr
 
 
-
-
 def preflight_commit(
     *,
     repo_root: Path,

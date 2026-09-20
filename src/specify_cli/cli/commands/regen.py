@@ -80,14 +80,9 @@ def _repo_root() -> Path:
     """
     for anchor in (Path(__file__).resolve(), Path.cwd().resolve()):
         for candidate in (anchor, *anchor.parents):
-            if (candidate / _TEMPLATES_REL).is_dir() and (
-                candidate / "tests" / "specify_cli"
-            ).is_dir():
+            if (candidate / _TEMPLATES_REL).is_dir() and (candidate / "tests" / "specify_cli").is_dir():
                 return candidate
-    raise typer.BadParameter(
-        "spec-kitty regen must run inside a spec-kitty source checkout "
-        f"(could not locate {_TEMPLATES_REL} + tests/specify_cli)."
-    )
+    raise typer.BadParameter(f"spec-kitty regen must run inside a spec-kitty source checkout (could not locate {_TEMPLATES_REL} + tests/specify_cli).")
 
 
 def _command_fixtures(root: Path) -> list[_Fixture]:
@@ -116,16 +111,9 @@ def _skill_fixtures(root: Path) -> list[_Fixture]:
     template = root / _TEMPLATES_REL / _CANONICAL_SKILL_COMMAND / "prompt.md"
     if not template.exists():
         return []
-    content = render_skill(
-        template, _CANONICAL_SKILL_AGENT, FIXTURE_SKILL_RENDER_VERSION
-    ).to_skill_md()
-    target = (
-        root / _SNAPSHOTS_REL / _CANONICAL_SKILL_AGENT
-        / f"{_CANONICAL_SKILL_COMMAND}.SKILL.md"
-    )
-    return [
-        _Fixture(target, content, f"{_CANONICAL_SKILL_AGENT}/{_CANONICAL_SKILL_COMMAND}")
-    ]
+    content = render_skill(template, _CANONICAL_SKILL_AGENT, FIXTURE_SKILL_RENDER_VERSION).to_skill_md()
+    target = root / _SNAPSHOTS_REL / _CANONICAL_SKILL_AGENT / f"{_CANONICAL_SKILL_COMMAND}.SKILL.md"
+    return [_Fixture(target, content, f"{_CANONICAL_SKILL_AGENT}/{_CANONICAL_SKILL_COMMAND}")]
 
 
 def _all_fixtures(root: Path) -> list[_Fixture]:
@@ -137,9 +125,7 @@ def _stale_diff(fixture: _Fixture) -> str | None:
 
     ``None`` when the committed file is byte-identical to the render.
     """
-    committed = (
-        fixture.path.read_text(encoding="utf-8") if fixture.path.exists() else ""
-    )
+    committed = fixture.path.read_text(encoding="utf-8") if fixture.path.exists() else ""
     if committed == fixture.content:
         return None
     diff = difflib.unified_diff(
@@ -191,8 +177,7 @@ def regen(
         # Fail closed: an empty render surface must never report "fresh" — that
         # would let a broken template tree pass the --check gate silently.
         raise typer.BadParameter(
-            f"regen rendered no fixtures from {root / _TEMPLATES_REL}; the "
-            "source template surface looks broken. Refusing to treat it as fresh."
+            f"regen rendered no fixtures from {root / _TEMPLATES_REL}; the source template surface looks broken. Refusing to treat it as fresh."
         )
 
     if check:
@@ -212,10 +197,7 @@ def regen(
             for label, diff in stale:
                 typer.echo(f"STALE: {label}")
                 typer.echo(diff)
-            typer.echo(
-                f"\n{len(stale)} of {len(fixtures)} generated fixtures are stale. "
-                f"{_REMEDIATION}"
-            )
+            typer.echo(f"\n{len(stale)} of {len(fixtures)} generated fixtures are stale. {_REMEDIATION}")
         else:
             typer.echo(f"All {len(fixtures)} generated fixtures are fresh.")
         raise typer.Exit(0 if not stale else 1)
@@ -232,8 +214,5 @@ def regen(
             )
         )
     else:
-        typer.echo(
-            f"Regenerated {len(fixtures)} generated fixtures "
-            f"({len(changed)} changed)."
-        )
+        typer.echo(f"Regenerated {len(fixtures)} generated fixtures ({len(changed)} changed).")
     raise typer.Exit(0)

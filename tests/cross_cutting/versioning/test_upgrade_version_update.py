@@ -15,6 +15,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
+
 def _init_git_repo(root):
     """Initialize a git repo so upgrade migrations can resolve canonical roots."""
     subprocess.run(
@@ -120,9 +121,7 @@ def test_upgrade_persists_schema_version(tmp_path: Path) -> None:
 
     # Sanity: starting state has no schema_version.
     pre = yaml.safe_load((kittify_dir / "metadata.yaml").read_text(encoding="utf-8"))
-    assert "schema_version" not in pre.get("spec_kitty", {}), (
-        "Test setup invariant violated: schema_version should be absent before upgrade"
-    )
+    assert "schema_version" not in pre.get("spec_kitty", {}), "Test setup invariant violated: schema_version should be absent before upgrade"
 
     runner = MigrationRunner(tmp_path)
     result = runner.upgrade(__version__, dry_run=False, include_worktrees=False)

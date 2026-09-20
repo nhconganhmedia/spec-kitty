@@ -43,9 +43,7 @@ def test_canonical_status_files_excluded_from_coord_staging(tmp_path: Path) -> N
     # The seeded lane-state log the transactional emitter already wrote.
     seeded = _write(coord_feature / "status.events.jsonl", "SEEDED-LANE-EVENTS\n")
 
-    staged = _stage_finalize_artifacts_in_coord_worktree(
-        files_to_commit, coord_wt, repo_root
-    )
+    staged = _stage_finalize_artifacts_in_coord_worktree(files_to_commit, coord_wt, repo_root)
 
     staged_names = {p.name for p in staged}
     # The canonical status log + snapshot are NOT staged from the primary copy.
@@ -65,9 +63,7 @@ def test_staging_copies_only_existing_non_status_artifacts(tmp_path: Path) -> No
 
     coord_wt = tmp_path / "coord"
 
-    staged = _stage_finalize_artifacts_in_coord_worktree(
-        files_to_commit, coord_wt, repo_root
-    )
+    staged = _stage_finalize_artifacts_in_coord_worktree(files_to_commit, coord_wt, repo_root)
 
     # Both non-status paths are returned (for staging); only the existing one is
     # physically copied into the coord worktree.
@@ -101,10 +97,7 @@ def test_branch_tree_relative_path_strips_target_worktree_prefix(tmp_path: Path)
         "# plan\n",
     )
 
-    assert (
-        _branch_tree_relative_path(plan_file, repo_root)
-        == "kitty-specs/060-test-01KT3YBD/plan.md"
-    )
+    assert _branch_tree_relative_path(plan_file, repo_root) == "kitty-specs/060-test-01KT3YBD/plan.md"
 
 
 def test_staging_includes_artifacts_already_in_target_coord_worktree(tmp_path: Path) -> None:
@@ -116,14 +109,10 @@ def test_staging_includes_artifacts_already_in_target_coord_worktree(tmp_path: P
         "# tasks\n",
     )
 
-    staged = _stage_finalize_artifacts_in_coord_worktree(
-        [coord_source], coord_wt, repo_root
-    )
+    staged = _stage_finalize_artifacts_in_coord_worktree([coord_source], coord_wt, repo_root)
 
     assert staged == [coord_source]
-    assert not (
-        coord_wt / ".worktrees" / "060-test-01KT3YBD-coord"
-    ).exists()
+    assert not (coord_wt / ".worktrees" / "060-test-01KT3YBD-coord").exists()
 
 
 def test_staging_skips_foreign_worktree_artifacts(tmp_path: Path) -> None:
@@ -135,14 +124,10 @@ def test_staging_skips_foreign_worktree_artifacts(tmp_path: Path) -> None:
         "# tasks\n",
     )
 
-    staged = _stage_finalize_artifacts_in_coord_worktree(
-        [foreign_source], coord_wt, repo_root
-    )
+    staged = _stage_finalize_artifacts_in_coord_worktree([foreign_source], coord_wt, repo_root)
 
     assert staged == []
-    assert not (
-        coord_wt / ".worktrees" / "060-test-01KT3YBD-coord"
-    ).exists()
+    assert not (coord_wt / ".worktrees" / "060-test-01KT3YBD-coord").exists()
 
 
 def test_staging_skips_nested_worktree_artifacts(tmp_path: Path) -> None:
@@ -154,8 +139,6 @@ def test_staging_skips_nested_worktree_artifacts(tmp_path: Path) -> None:
         "# tasks\n",
     )
 
-    staged = _stage_finalize_artifacts_in_coord_worktree(
-        [nested_source], coord_wt, repo_root
-    )
+    staged = _stage_finalize_artifacts_in_coord_worktree([nested_source], coord_wt, repo_root)
 
     assert staged == []

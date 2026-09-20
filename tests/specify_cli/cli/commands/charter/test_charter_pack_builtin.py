@@ -89,9 +89,7 @@ def test_path_minimal_resolves_to_the_shipped_file() -> None:
 
 
 def test_path_json_minimal() -> None:
-    result = runner.invoke(
-        charter_app, ["pack", "path", "minimal", "--json"], catch_exceptions=False
-    )
+    result = runner.invoke(charter_app, ["pack", "path", "minimal", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output)
@@ -100,18 +98,14 @@ def test_path_json_minimal() -> None:
 
 
 def test_path_unknown_name_fails_closed() -> None:
-    result = runner.invoke(
-        charter_app, ["pack", "path", "no-such-pack"], catch_exceptions=False
-    )
+    result = runner.invoke(charter_app, ["pack", "path", "no-such-pack"], catch_exceptions=False)
 
     assert result.exit_code == 1
     assert "no-such-pack" in result.output
 
 
 def test_path_unknown_name_json_fails_closed() -> None:
-    result = runner.invoke(
-        charter_app, ["pack", "path", "no-such-pack", "--json"], catch_exceptions=False
-    )
+    result = runner.invoke(charter_app, ["pack", "path", "no-such-pack", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 1
     payload = json.loads(result.output)
@@ -224,8 +218,7 @@ def _existing_project(tmp_path: Path) -> Path:
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
     (kittify / "config.yaml").write_text(
-        "activated_kinds:\n  - directives\n"
-        "activated_directives:\n  - 003-decision-documentation-requirement\n",
+        "activated_kinds:\n  - directives\nactivated_directives:\n  - 003-decision-documentation-requirement\n",
         encoding="utf-8",
     )
     return tmp_path

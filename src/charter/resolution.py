@@ -19,6 +19,7 @@ charter facades. ``ResolutionResult`` and ``ResolutionTier`` are re-exported
 here as **pure re-exports** (object identity preserved). No behaviour, no
 wrappers, no type aliases.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -49,10 +50,7 @@ class NotInsideRepositoryError(RuntimeError):
 
     def __init__(self, path: Path):
         self.path = path
-        super().__init__(
-            f"Path {path!r} is not inside a git repository. "
-            f"Charter resolution requires a git-tracked project root."
-        )
+        super().__init__(f"Path {path!r} is not inside a git repository. Charter resolution requires a git-tracked project root.")
 
 
 class GitCommonDirUnavailableError(RuntimeError):
@@ -66,10 +64,7 @@ class GitCommonDirUnavailableError(RuntimeError):
     def __init__(self, path: Path, detail: str):
         self.path = path
         self.detail = detail
-        super().__init__(
-            f"git rev-parse --git-common-dir failed for {path!r}: {detail}. "
-            f"Install a supported git binary and retry."
-        )
+        super().__init__(f"git rev-parse --git-common-dir failed for {path!r}: {detail}. Install a supported git binary and retry.")
 
 
 def resolve_canonical_repo_root(path: Path) -> Path:

@@ -196,9 +196,7 @@ def test_resolve_transitive_refs_loses_no_node_kind() -> None:
     added this test covers it without being edited — the property is
     "nothing is lost", not "these ten are kept".
     """
-    nodes = [
-        DRGNode(urn=f"{kind.value}:probe-{kind.value}", kind=kind) for kind in NodeKind
-    ]
+    nodes = [DRGNode(urn=f"{kind.value}:probe-{kind.value}", kind=kind) for kind in NodeKind]
     graph = DRGGraph(
         schema_version="1.0",
         generated_at="2026-07-27T00:00:00Z",
@@ -215,9 +213,7 @@ def test_resolve_transitive_refs_loses_no_node_kind() -> None:
 
     assert result.unresolved == []
     readable = _every_id_readable_from(result)
-    lost = sorted(
-        kind.value for kind in NodeKind if f"probe-{kind.value}" not in readable
-    )
+    lost = sorted(kind.value for kind in NodeKind if f"probe-{kind.value}" not in readable)
     assert not lost, f"resolve_transitive_refs silently dropped kinds: {lost}"
 
 
@@ -272,9 +268,7 @@ def test_anti_pattern_reachable_in_the_shipped_graph_survives() -> None:
         relations={Relation.REJECTS},
     )
 
-    expected = sorted(
-        {edge.target.split(":", 1)[1] for edge in rejects}
-    )
+    expected = sorted({edge.target.split(":", 1)[1] for edge in rejects})
     assert result.by_kind[NodeKind.ANTI_PATTERN] == expected
 
 
@@ -319,11 +313,7 @@ def test_action_bundle_projects_exactly_the_delivered_slots() -> None:
     """
     from charter.activation.context import action_bundle_bucket
 
-    projected = {
-        kind: action_bundle_bucket(kind)
-        for kind in NodeKind
-        if action_bundle_bucket(kind) is not None
-    }
+    projected = {kind: action_bundle_bucket(kind) for kind in NodeKind if action_bundle_bucket(kind) is not None}
 
     assert projected == {
         NodeKind.DIRECTIVE: "directives",
@@ -358,6 +348,7 @@ def test_classify_artifact_urns_propagates_the_loud_error() -> None:
     this pass with the drop reopened.
     """
     from charter.activation import context as context_module
+
     class _UnruledNode:
         kind = _FutureNodeKind.FUTURE
 

@@ -33,9 +33,7 @@ from specify_cli.missions._read_path_resolver import (
 pytestmark = [pytest.mark.fast]
 
 
-def _seed_mission(
-    tmp_path: Path, *, slug: str, mission_id: str
-) -> Path:
+def _seed_mission(tmp_path: Path, *, slug: str, mission_id: str) -> Path:
     """Create ``kitty-specs/<slug>/meta.json`` carrying a ``mission_id``.
 
     The mission directory is the canonical ``<slug>`` name (which already embeds
@@ -87,12 +85,8 @@ def test_candidate_helper_inherits_mid8_resolution(tmp_path: Path) -> None:
 def test_ambiguous_handle_raises_structured_error(tmp_path: Path) -> None:
     """C-CTX-4 / C-009: an ambiguous numeric-prefix handle raises a structured
     MissionSelectorAmbiguous — never a silent pick of one candidate."""
-    _seed_mission(
-        tmp_path, slug="083-alpha", mission_id="01AAAAAAAAAAAAAAAAAAAAAAAA"
-    )
-    _seed_mission(
-        tmp_path, slug="083-beta", mission_id="01BBBBBBBBBBBBBBBBBBBBBBBB"
-    )
+    _seed_mission(tmp_path, slug="083-alpha", mission_id="01AAAAAAAAAAAAAAAAAAAAAAAA")
+    _seed_mission(tmp_path, slug="083-beta", mission_id="01BBBBBBBBBBBBBBBBBBBBBBBB")
 
     with pytest.raises(MissionSelectorAmbiguous) as excinfo:
         # "083" matches two missions by numeric prefix → ambiguous.
@@ -105,12 +99,8 @@ def test_ambiguous_handle_raises_structured_error(tmp_path: Path) -> None:
 def test_unknown_handle_does_not_fabricate_dir(tmp_path: Path) -> None:
     """C-CTX-4: an unresolvable handle with ``require_exists`` raises rather than
     returning a wrong-but-plausible path."""
-    _seed_mission(
-        tmp_path, slug="my-feature-01KTPKST", mission_id="01KTPKSTABCDEFGHJKMNPQRSTV"
-    )
+    _seed_mission(tmp_path, slug="my-feature-01KTPKST", mission_id="01KTPKSTABCDEFGHJKMNPQRSTV")
     from specify_cli.missions._read_path_resolver import StatusReadPathNotFound
 
     with pytest.raises(StatusReadPathNotFound):
-        resolve_mission_read_path(
-            tmp_path, "does-not-exist", "", require_exists=True
-        )
+        resolve_mission_read_path(tmp_path, "does-not-exist", "", require_exists=True)

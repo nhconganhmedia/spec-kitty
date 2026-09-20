@@ -50,6 +50,7 @@ Two decisions this file pins, both deliberate:
   Containers are a genuine fault — no text was recorded there, and ``str()`` of a
   ``CommentedMap`` would ship a Python repr upstream as the project's identity.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -116,13 +117,7 @@ COERCED_TEXT = {
     "bool": ("true", None),  # ``str(True)`` mangles the text; only the type is pinned
 }
 
-VALID = (
-    "project:\n"
-    f"  uuid: {_UUID}\n"
-    "  slug: demo\n"
-    "  node_id: abc123abc123\n"
-    "  build_id: 22222222-2222-2222-2222-222222222222\n"
-)
+VALID = f"project:\n  uuid: {_UUID}\n  slug: demo\n  node_id: abc123abc123\n  build_id: 22222222-2222-2222-2222-222222222222\n"
 
 
 def _config(tmp_path: Path, case: str, body: str) -> Path:
@@ -149,20 +144,14 @@ def _project(field: str, value: str, *, with_uuid: bool = True) -> str:
 
 class TestReadingAnUnusableUuid:
     @pytest.mark.parametrize("case", sorted(UNUSABLE_UUIDS))
-    def test_load_identity_yields_no_identity_rather_than_raising(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_load_identity_yields_no_identity_rather_than_raising(self, tmp_path: Path, case: str) -> None:
         """Its docstring promises graceful handling; nine shapes raised instead."""
         path = _config(tmp_path, case, _project("uuid", UNUSABLE_UUIDS[case]))
 
-        assert load_identity(path) == ProjectIdentity(), (
-            "a recorded identity that cannot be understood carries no identity"
-        )
+        assert load_identity(path) == ProjectIdentity(), "a recorded identity that cannot be understood carries no identity"
 
     @pytest.mark.parametrize("case", sorted(UNUSABLE_UUIDS))
-    def test_the_read_only_resolver_answers_and_writes_nothing(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_the_read_only_resolver_answers_and_writes_nothing(self, tmp_path: Path, case: str) -> None:
         """``resolve_identity`` is on side-effect-free paths (sync, accept)."""
         path = _config(tmp_path, case, _project("uuid", UNUSABLE_UUIDS[case]))
         before = path.read_bytes()
@@ -184,9 +173,7 @@ class TestReadingAnUnusableUuid:
         assert load_identity(path) == ProjectIdentity()
 
     @pytest.mark.parametrize("case", sorted(ACCEPTED_UUIDS))
-    def test_an_understandable_uuid_is_accepted_and_canonicalised(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_an_understandable_uuid_is_accepted_and_canonicalised(self, tmp_path: Path, case: str) -> None:
         path = _config(tmp_path, case, _project("uuid", ACCEPTED_UUIDS[case]))
 
         assert load_identity(path).project_uuid == UUID(_UUID)
@@ -215,22 +202,14 @@ class TestEveryRecordedFieldIsTextOrAbsent:
 
     @pytest.mark.parametrize("field", TEXT_FIELDS)
     @pytest.mark.parametrize("case", sorted(CONTAINER_VALUES))
-    def test_a_container_where_text_belongs_is_a_fault(
-        self, tmp_path: Path, field: str, case: str
-    ) -> None:
-        path = _config(
-            tmp_path, f"{field}-{case}", _project(field, CONTAINER_VALUES[case])
-        )
+    def test_a_container_where_text_belongs_is_a_fault(self, tmp_path: Path, field: str, case: str) -> None:
+        path = _config(tmp_path, f"{field}-{case}", _project(field, CONTAINER_VALUES[case]))
 
-        assert load_identity(path) == ProjectIdentity(), (
-            "a Python repr is not the project's identity"
-        )
+        assert load_identity(path) == ProjectIdentity(), "a Python repr is not the project's identity"
 
     @pytest.mark.parametrize("field", TEXT_FIELDS)
     @pytest.mark.parametrize("case", sorted(COERCED_TEXT))
-    def test_yaml_implicit_typing_is_undone_rather_than_rejected(
-        self, tmp_path: Path, field: str, case: str
-    ) -> None:
+    def test_yaml_implicit_typing_is_undone_rather_than_rejected(self, tmp_path: Path, field: str, case: str) -> None:
         """An all-digit ``node_id`` is a legitimate value YAML resolves to ``int``.
 
         Rejecting it would deny a healthy checkout; ``str`` recovers the operator's
@@ -263,9 +242,7 @@ class TestEveryRecordedFieldIsTextOrAbsent:
             )
         ),
     )
-    def test_no_shape_of_any_field_produces_a_wrongly_typed_identity(
-        self, tmp_path: Path, field: str, index: int, yaml_value: str
-    ) -> None:
+    def test_no_shape_of_any_field_produces_a_wrongly_typed_identity(self, tmp_path: Path, field: str, index: int, yaml_value: str) -> None:
         """The class-closing invariant, asserted over the whole probed matrix.
 
         Whatever a config records, an identity that comes back has a ``UUID``
@@ -292,9 +269,7 @@ class TestEveryRecordedFieldIsTextOrAbsent:
 
 class TestWritingOverAnUnusableIdentityRecord:
     @pytest.mark.parametrize("case", sorted(UNUSABLE_UUIDS))
-    def test_atomic_write_refuses_rather_than_replacing_the_record(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_atomic_write_refuses_rather_than_replacing_the_record(self, tmp_path: Path, case: str) -> None:
         """Overwriting a corrupt uuid is not harmless: the uuid is the key other
         stores reference. The journal's ``project_uuid`` rows, the ledger and the
         machine consent index all keep the OLD value, so silently minting a new one
@@ -309,14 +284,10 @@ class TestWritingOverAnUnusableIdentityRecord:
 
         assert "config.yaml" in str(excinfo.value), "the operator needs the path"
         assert path.read_bytes() == before, "the record they could not read survives"
-        assert [p.name for p in path.parent.iterdir()] == ["config.yaml"], (
-            "no temp file may be left behind: the refusal happens before mkstemp"
-        )
+        assert [p.name for p in path.parent.iterdir()] == ["config.yaml"], "no temp file may be left behind: the refusal happens before mkstemp"
 
     @pytest.mark.parametrize("field", TEXT_FIELDS)
-    def test_atomic_write_refuses_over_an_unusable_text_field_too(
-        self, tmp_path: Path, field: str
-    ) -> None:
+    def test_atomic_write_refuses_over_an_unusable_text_field_too(self, tmp_path: Path, field: str) -> None:
         path = _config(tmp_path, f"write-{field}", _project(field, "{a: b}"))
         before = path.read_bytes()
 
@@ -326,9 +297,7 @@ class TestWritingOverAnUnusableIdentityRecord:
         assert path.read_bytes() == before
 
     @pytest.mark.parametrize("case", sorted(UNUSABLE_UUIDS))
-    def test_ensure_identity_degrades_instead_of_crashing(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_ensure_identity_degrades_instead_of_crashing(self, tmp_path: Path, case: str) -> None:
         """``ensure_identity``'s callers (``init``, ``tracker``, history-import) may
         not learn a new exception — a new error nobody catches is a crash moved.
         """
@@ -363,9 +332,7 @@ class TestWritingOverAnUnusableIdentityRecord:
         assert "project.uuid" in caplog.text, "the operator needs the field, not just the file"
 
     @pytest.mark.parametrize("case", sorted(ABSENT_UUIDS))
-    def test_an_unrecorded_uuid_still_mints_and_persists(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_an_unrecorded_uuid_still_mints_and_persists(self, tmp_path: Path, case: str) -> None:
         """Absence must stay absence in the write direction too — and the minted
         value must be a real uuid. ``''`` and whitespace uuids are the populations
         FR-017 found unreachable by any purge; they stay unpersistable because the
@@ -389,20 +356,14 @@ class TestWritingOverAnUnusableIdentityRecord:
         identity = ensure_identity(path.parent.parent)
 
         assert identity.project_uuid == UUID(_UUID)
-        assert f"uuid: {_UUID}\n" in path.read_text(encoding="utf-8"), (
-            "the persisted value carries neither the padding nor its quotes"
-        )
+        assert f"uuid: {_UUID}\n" in path.read_text(encoding="utf-8"), "the persisted value carries neither the padding nor its quotes"
         assert load_identity(path).project_uuid == UUID(_UUID)
 
     def test_atomic_write_still_merges_into_a_valid_document(self, tmp_path: Path) -> None:
         """Regression guard: the ordinary merge must be untouched."""
-        path = _config(
-            tmp_path, "merge", f"sync:\n  enabled: false\nproject:\n  uuid: {_UUID}\n"
-        )
+        path = _config(tmp_path, "merge", f"sync:\n  enabled: false\nproject:\n  uuid: {_UUID}\n")
 
-        atomic_write_config(
-            path, load_identity(path).with_defaults(path.parent.parent)
-        )
+        atomic_write_config(path, load_identity(path).with_defaults(path.parent.parent))
 
         text = path.read_text(encoding="utf-8")
         assert "enabled: false" in text, "an unrelated section must survive"

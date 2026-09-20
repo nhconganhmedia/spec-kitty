@@ -204,9 +204,15 @@ class TestGlossaryHealth:
 
         data = _read_response(handler)
         required_keys = {
-            "total_terms", "active_count", "draft_count", "deprecated_count",
-            "high_severity_drift_count", "orphaned_term_count",
-            "entity_pages_generated", "entity_pages_path", "last_conflict_at",
+            "total_terms",
+            "active_count",
+            "draft_count",
+            "deprecated_count",
+            "high_severity_drift_count",
+            "orphaned_term_count",
+            "entity_pages_generated",
+            "entity_pages_path",
+            "last_conflict_at",
             "validation_errors",
         }
         assert required_keys.issubset(data.keys())
@@ -321,16 +327,11 @@ class TestGlossaryHealth:
         seed_dir = tmp_path / ".kittify" / "glossaries"
         seed_dir.mkdir(parents=True)
         (seed_dir / "mission_local.yaml").write_text(
-            "terms:\n"
-            "  - surface: BadTerm\n"
-            "    definition: Invalid high-precedence term\n",
+            "terms:\n  - surface: BadTerm\n    definition: Invalid high-precedence term\n",
             encoding="utf-8",
         )
         (seed_dir / "spec_kitty_core.yaml").write_text(
-            "terms:\n"
-            "  - surface: alpha\n"
-            "    definition: Valid core term\n"
-            "    status: active\n",
+            "terms:\n  - surface: alpha\n    definition: Valid core term\n    status: active\n",
             encoding="utf-8",
         )
         handler = _make_handler(tmp_path)
@@ -352,11 +353,7 @@ class TestGlossaryHealth:
         seed_dir = tmp_path / ".kittify" / "glossaries"
         seed_dir.mkdir(parents=True)
         (seed_dir / "spec_kitty_core.yaml").write_text(
-            "version: 1\n"
-            "terms:\n"
-            "  - surface: alpha\n"
-            "    definition: Valid term in invalid file shape\n"
-            "    status: active\n",
+            "version: 1\nterms:\n  - surface: alpha\n    definition: Valid term in invalid file shape\n    status: active\n",
             encoding="utf-8",
         )
         handler = _make_handler(tmp_path)
@@ -376,10 +373,7 @@ class TestGlossaryHealth:
         seed_dir = tmp_path / ".kittify" / "glossaries"
         seed_dir.mkdir(parents=True)
         (seed_dir / "spec_kitty_core.yaml").write_text(
-            "terms:\n"
-            "  - surface: alpha\n"
-            "    definition: ok\n"
-            "    confidence: [unterminated\n",
+            "terms:\n  - surface: alpha\n    definition: ok\n    confidence: [unterminated\n",
             encoding="utf-8",
         )
         handler = _make_handler(tmp_path)
@@ -471,13 +465,15 @@ class TestGlossaryTerms:
 
         exc = SeedFileValidationError(
             Path("/fake/seed.yaml"),
-            [SeedValidationError(
-                file_path=Path("/fake/seed.yaml"),
-                term_index=0,
-                term_surface="bad",
-                field="status",
-                message="Invalid enum value",
-            )],
+            [
+                SeedValidationError(
+                    file_path=Path("/fake/seed.yaml"),
+                    term_index=0,
+                    term_surface="bad",
+                    field="status",
+                    message="Invalid enum value",
+                )
+            ],
         )
         handler = _make_handler(tmp_path)
 
@@ -498,13 +494,15 @@ class TestCollectAllSenses:
 
         exc = SeedFileValidationError(
             Path("/fake/seed.yaml"),
-            [SeedValidationError(
-                file_path=Path("/fake/seed.yaml"),
-                term_index=0,
-                term_surface="x",
-                field="surface",
-                message="bad",
-            )],
+            [
+                SeedValidationError(
+                    file_path=Path("/fake/seed.yaml"),
+                    term_index=0,
+                    term_surface="x",
+                    field="surface",
+                    message="bad",
+                )
+            ],
         )
 
         with (
@@ -553,13 +551,9 @@ class TestCollectAllSenses:
         result = _collect_all_senses(tmp_path)
 
         surfaces = sorted(t.surface.surface_text for t in result)
-        assert surfaces == ["alpha", "gamma"], (
-            f"recovery should keep alpha + gamma and skip beta; got {surfaces}"
-        )
+        assert surfaces == ["alpha", "gamma"], f"recovery should keep alpha + gamma and skip beta; got {surfaces}"
 
-    def test_recovered_term_provenance_timestamp_is_aware_utc(
-        self, tmp_path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_recovered_term_provenance_timestamp_is_aware_utc(self, tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-011 (kernel-clock-single-door, WP13c): per-term recovery stamps
         ``Provenance.timestamp`` via the door's aware-UTC ``now_utc()``, not
         a naive local ``datetime.now()``.
@@ -618,10 +612,7 @@ class TestGlossaryPage:
 
         handler.send_response.assert_called_once_with(200)
         # Verify content-type header was set to text/html
-        ct_calls = [
-            call for call in handler.send_header.call_args_list
-            if call.args[0] == "Content-type"
-        ]
+        ct_calls = [call for call in handler.send_header.call_args_list if call.args[0] == "Content-type"]
         assert len(ct_calls) == 1
         assert "text/html" in ct_calls[0].args[1]
 
@@ -757,9 +748,7 @@ edges:
 
         assert gloss_module._collect_all_senses(tmp_path) == [expected]
 
-    def test_collect_all_senses_returns_empty_list_when_scope_module_fails(
-        self, monkeypatch, tmp_path
-    ):
+    def test_collect_all_senses_returns_empty_list_when_scope_module_fails(self, monkeypatch, tmp_path):
         """Import failures degrade to an empty response payload."""
         import builtins
 
@@ -784,10 +773,7 @@ edges:
         seed_dir = tmp_path / ".kittify" / "glossaries"
         seed_dir.mkdir(parents=True)
         (seed_dir / "spec_kitty_core.yaml").write_text(
-            "version: 1\n"
-            "terms:\n"
-            "  - surface: alpha\n"
-            "    definition: Valid term in invalid file shape\n",
+            "version: 1\nterms:\n  - surface: alpha\n    definition: Valid term in invalid file shape\n",
             encoding="utf-8",
         )
 

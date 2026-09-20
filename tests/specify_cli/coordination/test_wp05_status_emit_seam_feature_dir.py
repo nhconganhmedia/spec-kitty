@@ -141,8 +141,7 @@ def test_caller_supplies_seam_feature_dir_even_with_backstop_neutralized(
     )
     # And the primary checkout carries NO status events file (the wrong surface).
     assert not (coord_repo / "kitty-specs" / _DIRNAME / "status.events.jsonl").exists(), (
-        "a status events file leaked onto the primary checkout — the write did not "
-        "converge on the single seam-resolved surface (FR-009)."
+        "a status events file leaked onto the primary checkout — the write did not converge on the single seam-resolved surface (FR-009)."
     )
 
 
@@ -168,6 +167,5 @@ def test_transactional_identity_feature_dir_is_seam_resolved_primary(
     assert identity.feature_dir == (coord_repo / "kitty-specs" / _DIRNAME)
     assert identity.feature_dir.is_absolute()
     assert ".worktrees" not in identity.feature_dir.parts, (
-        "the identity feature_dir must be the canonical PRIMARY dir, never a "
-        "worktree-local path (the seam-resolved surface FR-009 converges on)."
+        "the identity feature_dir must be the canonical PRIMARY dir, never a worktree-local path (the seam-resolved surface FR-009 converges on)."
     )

@@ -5,6 +5,7 @@ Usage:  python3 docs/plans/doctrine/_reproduce_matrix_findings.py
 Reads:  docs/plans/doctrine/_ammerse-connascence-first-order.json
 No dependencies beyond the standard library.
 """
+
 from __future__ import annotations
 
 import copy
@@ -74,8 +75,7 @@ def main() -> None:
     print(f"final scale (1-r) = {1 - ratio:.4f}")
 
     print("\nsensitivity to the asymmetric cell (maintainable <-> extensible):")
-    for label, value in (("as published", None), ("symmetrised +0.75", 0.75),
-                         ("symmetrised -0.75", -0.75), ("zeroed (abstain)", 0.0)):
+    for label, value in (("as published", None), ("symmetrised +0.75", 0.75), ("symmetrised -0.75", -0.75), ("zeroed (abstain)", 0.0)):
         candidate = copy.deepcopy(matrix)
         if value is not None:
             i_m, i_e = axes.index("maintainable"), axes.index("extensible")
@@ -88,8 +88,7 @@ def main() -> None:
     for size in (3, 5, 7, 12):
         all_pos = [[0.0 if i == j else 1.0 for j in range(size)] for i in range(size)]
         all_neg = [[0.0 if i == j else -1.0 for j in range(size)] for i in range(size)]
-        print(f"  N={size:2d}  all +1 -> {spectral_radius(all_pos) / (size - 1):.4f}"
-              f"   all -1 -> {spectral_radius(all_neg) / (size - 1):.4f}")
+        print(f"  N={size:2d}  all +1 -> {spectral_radius(all_pos) / (size - 1):.4f}   all -1 -> {spectral_radius(all_neg) / (size - 1):.4f}")
 
     print(f"\nrandom admissible bases at N={n} (symmetric, zero diagonal, uniform [-1,1]):")
     print(f"  {SAMPLES} samples — the committed figure is 30000 samples: max 0.6225, mean 0.3841")

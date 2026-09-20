@@ -135,17 +135,10 @@ def _names_in_file(path: Path) -> frozenset[str]:
 
 def _load_inventory() -> list[dict[str, str]]:
     """Parse inventory.md and return the list of row dicts."""
-    assert INVENTORY_PATH.exists(), (
-        f"inventory.md missing at {INVENTORY_PATH} — "
-        "the WP01 audit artifact must exist for WP04 to anchor on it."
-    )
+    assert INVENTORY_PATH.exists(), f"inventory.md missing at {INVENTORY_PATH} — the WP01 audit artifact must exist for WP04 to anchor on it."
     text = INVENTORY_PATH.read_text(encoding="utf-8")
     rows = _parse_inventory_rows(text)
-    assert rows, (
-        "inventory.md parsed to zero rows — "
-        "the file exists but the sink table is empty; "
-        "this defeats the non-vacuous coverage assertion (T019-b)."
-    )
+    assert rows, "inventory.md parsed to zero rows — the file exists but the sink table is empty; this defeats the non-vacuous coverage assertion (T019-b)."
     return rows
 
 
@@ -198,11 +191,7 @@ def test_routed_through_seam_surfaces_still_reference_canonical_seam() -> None:
     inventory_rows = _load_inventory()
 
     # Collect unique module paths for rows classified routed-through-seam (no TODO).
-    seam_locators = [
-        row["locator"]
-        for row in inventory_rows
-        if row["disposition"] == _SEAM_DISPOSITION
-    ]
+    seam_locators = [row["locator"] for row in inventory_rows if row["disposition"] == _SEAM_DISPOSITION]
     assert seam_locators, (
         "inventory.md contains zero 'routed-through-seam' rows — "
         "either all surfaces were fixed (update this guard) or the inventory "
@@ -210,17 +199,12 @@ def test_routed_through_seam_surfaces_still_reference_canonical_seam() -> None:
     )
 
     # Unique module paths (strip the :line suffix).
-    expected_seam_surfaces: frozenset[str] = frozenset(
-        loc.split(":")[0] for loc in seam_locators
-    )
+    expected_seam_surfaces: frozenset[str] = frozenset(loc.split(":")[0] for loc in seam_locators)
 
     # -----------------------------------------------------------------------
     # T019-b — coverage assertion: the set we inspect must match the inventory.
     # -----------------------------------------------------------------------
-    assert len(expected_seam_surfaces) > 0, (
-        "Expected seam-surface set is empty after parsing inventory rows — "
-        "vacuous guard detected (T019-b)."
-    )
+    assert len(expected_seam_surfaces) > 0, "Expected seam-surface set is empty after parsing inventory rows — vacuous guard detected (T019-b)."
 
     # Per-surface seam-presence check (T018).
     failures: list[str] = []
@@ -229,8 +213,7 @@ def test_routed_through_seam_surfaces_still_reference_canonical_seam() -> None:
     for rel_path in sorted(expected_seam_surfaces):
         src_file = SRC_ROOT / rel_path
         assert src_file.exists(), (
-            f"Audited surface {rel_path!r} no longer exists at {src_file} — "
-            "update inventory.md and audited-surfaces.md to reflect the deletion."
+            f"Audited surface {rel_path!r} no longer exists at {src_file} — update inventory.md and audited-surfaces.md to reflect the deletion."
         )
 
         file_names = _names_in_file(src_file)
@@ -257,11 +240,7 @@ def test_routed_through_seam_surfaces_still_reference_canonical_seam() -> None:
         "This indicates a logic error in the guard itself."
     )
 
-    assert not failures, (
-        "One or more routed-through-seam surfaces no longer reference a "
-        "canonical seam in their AST:\n"
-        + "\n".join(f"  - {f}" for f in failures)
-    )
+    assert not failures, "One or more routed-through-seam surfaces no longer reference a canonical seam in their AST:\n" + "\n".join(f"  - {f}" for f in failures)
 
 
 # ---------------------------------------------------------------------------
@@ -277,11 +256,7 @@ def test_fr009_inventory_row_present() -> None:
     the audit script as a subprocess.
     """
     inventory_rows = _load_inventory()
-    fr009_rows = [
-        row
-        for row in inventory_rows
-        if row["locator"].startswith(_FR009_FILE)
-    ]
+    fr009_rows = [row for row in inventory_rows if row["locator"].startswith(_FR009_FILE)]
     assert fr009_rows, (
         f"FR-009 candidate {_FR009_FILE!r} (meta.json write-path) is absent "
         "from inventory.md.  This row is an inventory-only assertion (RULESET §6) "
@@ -289,8 +264,7 @@ def test_fr009_inventory_row_present() -> None:
     )
     dispositions = {row["disposition"] for row in fr009_rows}
     assert _TODO_DISPOSITION in dispositions or _SEAM_DISPOSITION in dispositions, (
-        f"FR-009 {_FR009_FILE!r} row(s) must be tagged 'routed-through-seam (TODO)' "
-        f"or 'routed-through-seam' (found: {sorted(dispositions)})."
+        f"FR-009 {_FR009_FILE!r} row(s) must be tagged 'routed-through-seam (TODO)' or 'routed-through-seam' (found: {sorted(dispositions)})."
     )
 
 
@@ -332,18 +306,14 @@ def test_all_discovered_rows_appear_in_inventory() -> None:
     """
     inventory_rows = _load_inventory()
     parse_errors, inventory_keys = build_inventory_key_map(inventory_rows)
-    assert not parse_errors, (
-        "inventory.md has rows with an unparseable composite identity "
-        "(missing qualname/token column):\n" + "\n".join(parse_errors)
-    )
+    assert not parse_errors, "inventory.md has rows with an unparseable composite identity (missing qualname/token column):\n" + "\n".join(parse_errors)
 
     discovered_keys = build_discovered_key_map(discover_rows())
     missing = check_undercount(discovered_keys, inventory_keys)
 
     assert not missing, (
         "The following untrusted-segment → FS-sink rows were discovered by the "
-        "AST audit but are NOT in inventory.md (by composite identity):\n"
-        + "\n".join(f"  {m}" for m in missing)
+        "AST audit but are NOT in inventory.md (by composite identity):\n" + "\n".join(f"  {m}" for m in missing)
     )
 
 
@@ -422,9 +392,7 @@ def test_2306_documented_sink_shifted_one_line_stays_green() -> None:
     src = (SRC_ROOT / rel).read_text(encoding="utf-8")
     lines = src.splitlines(keepends=True)
 
-    sink_idx = next(
-        i for i, line in enumerate(lines) if "worktree_kitty / st.mission_slug" in line
-    )
+    sink_idx = next(i for i, line in enumerate(lines) if "worktree_kitty / st.mission_slug" in line)
     sink_lineno = sink_idx + 1  # 1-based
     key_before = _key_from_source(rel, src, sink_lineno)
 
@@ -432,10 +400,7 @@ def test_2306_documented_sink_shifted_one_line_stays_green() -> None:
     shifted_src = "".join(lines[:sink_idx] + ["\n"] + lines[sink_idx:])
     key_after = _key_from_source(rel, shifted_src, sink_lineno + 1)
 
-    assert key_before == key_after, (
-        "#2306 regression: a one-line shift of _mt_warn_worktree_kitty_specs must "
-        "NOT change the composite identity"
-    )
+    assert key_before == key_after, "#2306 regression: a one-line shift of _mt_warn_worktree_kitty_specs must NOT change the composite identity"
 
     discovered = {key_after: f"{rel}:{sink_lineno + 1}"}
     inventory = {key_before: f"{rel}:{sink_lineno}"}
@@ -499,6 +464,5 @@ def test_inventory_only_rows_carry_a_documented_reason() -> None:
     for row in tagged:
         remainder = row["rationale"].replace(INVENTORY_ONLY_TAG, "").strip()
         assert len(remainder) > 20, (
-            f"[inventory-only] row {row['locator']!r} must document WHY it is "
-            "exempt (removed-sink change or known-FN class), not just the bare tag."
+            f"[inventory-only] row {row['locator']!r} must document WHY it is exempt (removed-sink change or known-FN class), not just the bare tag."
         )

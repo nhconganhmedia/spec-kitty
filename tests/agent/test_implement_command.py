@@ -594,6 +594,7 @@ class TestImplementCommand:
         ):
             mock_ensure_vcs.return_value = MagicMock(value="git")
             from specify_cli.lanes.compute import PLANNING_LANE_ID
+
             mock_resolve_workspace.return_value = MagicMock(
                 execution_mode="planning_artifact",
                 worktree_path=tmp_path,
@@ -735,13 +736,10 @@ class TestImplementPrimaryTopologyLanesJson:
 
         # KEY assertion: the pre-fix error must NOT appear
         assert "lanes.json is required" not in error, (
-            f"Implement failed to read primary-partition lanes.json while STATUS "
-            f"was coord-owned — #3371 regression. Got: {error!r}"
+            f"Implement failed to read primary-partition lanes.json while STATUS was coord-owned — #3371 regression. Got: {error!r}"
         )
         # We reached the workspace-create step, which confirms lanes.json was found
-        assert "__workspace_create_sentinel__" in error, (
-            f"Expected to pass lanes.json validation and reach workspace creation. Got: {error!r}"
-        )
+        assert "__workspace_create_sentinel__" in error, f"Expected to pass lanes.json validation and reach workspace creation. Got: {error!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -759,9 +757,7 @@ class TestNFR003ProtectionPolicySingleBoundaryRead:
     - Neither ``is_protected`` nor ``commit_guard.evaluate`` trigger additional I/O reads
     """
 
-    def test_protection_decision_io_confined_to_resolve_boundary(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_protection_decision_io_confined_to_resolve_boundary(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Drive _protected_branch_status_commit_error and assert single-boundary I/O (T013)."""
         from specify_cli.cli.commands.implement import _protected_branch_status_commit_error
         from specify_cli.git import protection_policy as _pp_module
@@ -794,21 +790,13 @@ class TestNFR003ProtectionPolicySingleBoundaryRead:
             result = _protected_branch_status_commit_error("main", tmp_path)
 
         # Config read happens exactly ONCE at the resolve boundary — not per is_protected call
-        assert kittify_read_count[0] == 1, (
-            f"_load_kittify_config called {kittify_read_count[0]} times; "
-            "expected exactly 1 (boundary-resolved value, NFR-003)"
-        )
+        assert kittify_read_count[0] == 1, f"_load_kittify_config called {kittify_read_count[0]} times; expected exactly 1 (boundary-resolved value, NFR-003)"
         # Remote read happens at most ONCE (only on the absent-key path)
-        assert remote_read_count[0] <= 1, (
-            f"_remote_default_branch called {remote_read_count[0]} times; "
-            "expected at most 1 (boundary-resolved value, NFR-003)"
-        )
+        assert remote_read_count[0] <= 1, f"_remote_default_branch called {remote_read_count[0]} times; expected at most 1 (boundary-resolved value, NFR-003)"
         # The decision itself: "main" is in the default protected set, no hatch active
         assert result is not None, "Expected a refusal message for protected branch 'main'"
 
-    def test_is_protected_makes_no_io_after_resolve(
-        self, tmp_path: Path
-    ) -> None:
+    def test_is_protected_makes_no_io_after_resolve(self, tmp_path: Path) -> None:
         """is_protected() is pure after resolve — zero filesystem/env reads (T013)."""
         from specify_cli.git.protection_policy import ProtectionPolicy
         from specify_cli.git import protection_policy as _pp_module

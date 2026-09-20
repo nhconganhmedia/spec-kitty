@@ -3,6 +3,7 @@
 Provides the canonical data model, YAML loader, and tasks.md generator
 for spec-kitty missions that use wps.yaml as their primary WP source.
 """
+
 from __future__ import annotations
 
 import re
@@ -83,9 +84,7 @@ class WorkPackageEntry(BaseModel):
         """Validate that each ref matches the IC-## pattern (ASCII digits only)."""
         for ref in v:
             if not re.match(r"^IC-\d{2}$", ref, re.ASCII):
-                raise ValueError(
-                    f"plan_concern_ref must match IC-## (e.g. IC-01), got: {ref!r}"
-                )
+                raise ValueError(f"plan_concern_ref must match IC-## (e.g. IC-01), got: {ref!r}")
         return v
 
 
@@ -122,9 +121,7 @@ def _parse_wps_manifest(content: bytes | str, feature_dir: Path) -> WpsManifest:
         cross_cutting_explicit = "cross_cutting" in raw_wp
         object.__setattr__(entry, "_plan_concern_refs_explicit", plan_refs_explicit)
         object.__setattr__(entry, "_cross_cutting_explicit", cross_cutting_explicit)
-        concern_tracking_fields_seen = (
-            concern_tracking_fields_seen or plan_refs_explicit or cross_cutting_explicit
-        )
+        concern_tracking_fields_seen = concern_tracking_fields_seen or plan_refs_explicit or cross_cutting_explicit
 
     object.__setattr__(
         manifest,
@@ -215,10 +212,7 @@ def check_concern_refs_coverage(manifest: WpsManifest) -> list[str]:
     warnings: list[str] = []
     for wp in manifest.work_packages:
         if not wp.plan_concern_refs and not wp.cross_cutting:
-            warnings.append(
-                f"{wp.id} ({wp.title!r}): missing plan_concern_refs and "
-                "cross_cutting is not set — add IC-## refs or set cross_cutting: true"
-            )
+            warnings.append(f"{wp.id} ({wp.title!r}): missing plan_concern_refs and cross_cutting is not set — add IC-## refs or set cross_cutting: true")
     return warnings
 
 

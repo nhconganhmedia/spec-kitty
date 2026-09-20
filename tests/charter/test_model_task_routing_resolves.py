@@ -135,17 +135,13 @@ def test_charter_references_surface_model_task_routing_body() -> None:
     tactic_ref = by_id.get("TACTIC:model-task-routing")
     assert tactic_ref is not None, "TACTIC:model-task-routing did not resolve into compiled references"
     assert _MODEL_TASK_ROUTING_PURPOSE_FRAGMENT in tactic_ref.summary.lower(), (
-        "resolved reference does not carry the tactic's real purpose body "
-        f"(got: {tactic_ref.summary!r})"
+        f"resolved reference does not carry the tactic's real purpose body (got: {tactic_ref.summary!r})"
     )
 
     autonomous_ref = by_id.get("TACTIC:autonomous-operation-protocol")
-    assert autonomous_ref is not None, (
-        "TACTIC:autonomous-operation-protocol did not resolve into compiled references"
-    )
+    assert autonomous_ref is not None, "TACTIC:autonomous-operation-protocol did not resolve into compiled references"
     assert _AUTONOMOUS_OPERATION_PURPOSE_FRAGMENT in autonomous_ref.summary.lower(), (
-        "resolved reference does not carry the tactic's real purpose body "
-        f"(got: {autonomous_ref.summary!r})"
+        f"resolved reference does not carry the tactic's real purpose body (got: {autonomous_ref.summary!r})"
     )
 
 
@@ -156,10 +152,5 @@ def test_charter_repoints_snake_case_token_to_kebab() -> None:
     old token must not linger anywhere in the charter prose."""
     charter_text = CHARTER_PATH.read_text(encoding="utf-8")
 
-    assert "`model-task-routing`" in charter_text, (
-        "charter.md must reference the kebab tactic id `model-task-routing`"
-    )
-    assert "model_task_routing" not in charter_text, (
-        "charter.md still contains the dangling snake_case token; repoint it, "
-        "do not leave it alongside a new artifact"
-    )
+    assert "`model-task-routing`" in charter_text, "charter.md must reference the kebab tactic id `model-task-routing`"
+    assert "model_task_routing" not in charter_text, "charter.md still contains the dangling snake_case token; repoint it, do not leave it alongside a new artifact"

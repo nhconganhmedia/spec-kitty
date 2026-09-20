@@ -333,10 +333,7 @@ def _run_hic(
             event_name="retrospective.failed",
             payload=FailedPayload(
                 failure_code="prompt_not_configured",
-                message=(
-                    "Human-in-command retrospective requires an interactive "
-                    "prompt callback; none was supplied to run_terminus."
-                ),
+                message=("Human-in-command retrospective requires an interactive prompt callback; none was supplied to run_terminus."),
                 record_path=None,
             ),
         )

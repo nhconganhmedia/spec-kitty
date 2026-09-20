@@ -65,9 +65,7 @@ class TestDecisionLogRoutesThroughPlacementPort:
     whatever ``destination_ref`` string the (legacy/ambient) caller supplied.
     """
 
-    def test_default_target_is_classifier_derived_not_ambient_destination_ref(
-        self, tmp_path: Path
-    ) -> None:
+    def test_default_target_is_classifier_derived_not_ambient_destination_ref(self, tmp_path: Path) -> None:
         _write_meta(tmp_path, coordination_branch=_COORD_BRANCH, target_branch=_TARGET_BRANCH)
 
         # Deliberately WRONG ambient value: a legacy caller that computed some
@@ -106,9 +104,7 @@ class TestDecisionLogRoutesThroughPlacementPort:
 
         assert log._target is injected
 
-    def test_unresolvable_mission_degrades_to_ambient_destination_ref(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unresolvable_mission_degrades_to_ambient_destination_ref(self, tmp_path: Path) -> None:
         """No meta.json at all (bootstrap window / ad-hoc fixture) -> the
         classifier cannot resolve, so the ambient destination_ref is used —
         the degrade-path, not a hard failure."""
@@ -236,14 +232,11 @@ class TestBookkeepingProjectionRoutesThroughPlacementPort:
 
         mock_seam.assert_called_once()
         assert events_path.parent == sentinel_dir, (
-            "the target directory must be derived via placement_seam(...).read_dir(...) "
-            f"— expected it under {sentinel_dir}, got {events_path.parent}"
+            f"the target directory must be derived via placement_seam(...).read_dir(...) — expected it under {sentinel_dir}, got {events_path.parent}"
         )
         assert status_path.parent == sentinel_dir
         # Sanity: the un-patched seam resolves back to the real primary dir.
-        real_events_path, _ = bp._target_bookkeeping_status_paths(
-            main_repo=tmp_path, mission_slug=_SLUG, status_feature_dir=coord_specs
-        )
+        real_events_path, _ = bp._target_bookkeeping_status_paths(main_repo=tmp_path, mission_slug=_SLUG, status_feature_dir=coord_specs)
         assert real_events_path.parent == primary_dir.resolve()
 
     def test_filename_trust_check_is_classifier_derived(self) -> None:
@@ -251,12 +244,8 @@ class TestBookkeepingProjectionRoutesThroughPlacementPort:
         (``kind_for_mission_file``) rather than a hand-maintained literal set —
         patching the classifier to reject a normally-trusted filename must
         flip the trust decision."""
-        assert bp._classify_status_bookkeeping_filename("status.events.jsonl") is (
-            MissionArtifactKind.STATUS_STATE
-        )
-        assert bp._classify_status_bookkeeping_filename("status.json") is (
-            MissionArtifactKind.STATUS_STATE
-        )
+        assert bp._classify_status_bookkeeping_filename("status.events.jsonl") is (MissionArtifactKind.STATUS_STATE)
+        assert bp._classify_status_bookkeeping_filename("status.json") is (MissionArtifactKind.STATUS_STATE)
         assert bp._classify_status_bookkeeping_filename("evil.txt") is None
 
         with (

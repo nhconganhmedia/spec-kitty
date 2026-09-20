@@ -58,9 +58,7 @@ class TestLoadMergedDRGResolutionOrder:
         assert graph is None
         assert state is GraphState.MISSING
 
-    def test_returns_built_in_only_when_project_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_returns_built_in_only_when_project_missing(self, tmp_path: Path) -> None:
         """Project DRG absent, built-in catalog resolves → ``BUILT_IN_ONLY``.
 
         The built-in helper is patched to avoid requiring the real catalog
@@ -100,13 +98,9 @@ class TestLoadMergedDRGResolutionOrder:
 
         assert graph is project_stub
         assert state is GraphState.MERGED
-        assert built_in_calls["n"] == 0, (
-            "Built-in fallback MUST NOT be invoked when project DRG resolves"
-        )
+        assert built_in_calls["n"] == 0, "Built-in fallback MUST NOT be invoked when project DRG resolves"
 
-    def test_built_in_resolver_failure_falls_through_to_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_built_in_resolver_failure_falls_through_to_missing(self, tmp_path: Path) -> None:
         """An exception inside the built-in resolver MUST be swallowed and
         the call MUST fall through to ``MISSING`` rather than propagating.
         """
@@ -150,9 +144,7 @@ class TestProjectDRGFileFormats:
     ``tests/integration/test_charter_lint_lints_all_layers.py``.
     """
 
-    def test_drg_json_resolves_as_merged(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_drg_json_resolves_as_merged(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A valid JSON DRG at ``.kittify/doctrine/drg.json`` resolves to
         ``MERGED``. We stub ``DRGGraph.model_validate`` to avoid pulling in
         the full doctrine schema for a unit-level test.

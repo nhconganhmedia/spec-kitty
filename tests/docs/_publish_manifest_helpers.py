@@ -74,9 +74,7 @@ def is_generated_at_build(url_path: str) -> bool:
     ``url_path`` is site-relative (no ``SITE_URL`` prefix), e.g.
     ``"kitty-specs/index.html"``.
     """
-    return url_path.startswith(_GENERATED_AT_BUILD_PREFIX) and url_path.endswith(
-        HTML_SUFFIX
-    )
+    return url_path.startswith(_GENERATED_AT_BUILD_PREFIX) and url_path.endswith(HTML_SUFFIX)
 
 
 def strip_site(url: str, site_url: str = SITE_URL) -> str:
@@ -112,9 +110,7 @@ def uncovered_urls(
         if path in derived_paths:
             continue
         target = redirect_map.get(path)
-        if target is not None and (
-            target in derived_paths or is_generated_at_build(target)
-        ):
+        if target is not None and (target in derived_paths or is_generated_at_build(target)):
             continue
         uncovered.append(path)
     return sorted(uncovered)

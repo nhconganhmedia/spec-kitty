@@ -52,9 +52,7 @@ def _git(repo: Path, *args: str) -> None:
 
 
 def _init_repo(repo: Path) -> None:
-    subprocess.run(
-        ["git", "init", "-q", str(repo)], check=True, capture_output=True
-    )
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
     _git(repo, "config", "user.email", "t@t.invalid")
     _git(repo, "config", "user.name", "t")
     (repo / ".kittify").mkdir(parents=True, exist_ok=True)
@@ -72,9 +70,7 @@ def _coord_declared_no_worktree(tmp_path: Path) -> Path:
     """The repro #8 topology: meta declares a coord branch, but neither the
     coord branch nor the coord worktree are materialized → fail-closed."""
     _init_repo(tmp_path)
-    _write_meta(
-        tmp_path / "kitty-specs" / SLUG, coordination_branch=COORD_BRANCH
-    )
+    _write_meta(tmp_path / "kitty-specs" / SLUG, coordination_branch=COORD_BRANCH)
     return tmp_path
 
 
@@ -83,17 +79,9 @@ def _coord_materialized(tmp_path: Path) -> Path:
     (``resolve_mission_read_path`` is pure-path), so the handle resolves."""
     _init_repo(tmp_path)
     # Primary dir declares the coordination branch (read-path mediation).
-    _write_meta(
-        tmp_path / "kitty-specs" / SLUG, coordination_branch=COORD_BRANCH
-    )
+    _write_meta(tmp_path / "kitty-specs" / SLUG, coordination_branch=COORD_BRANCH)
     # Materialize the coord worktree's mission dir so the resolver returns it.
-    coord_mission_dir = (
-        tmp_path
-        / ".worktrees"
-        / f"{SLUG}-{MID8}-coord"
-        / "kitty-specs"
-        / f"{SLUG}-{MID8}"
-    )
+    coord_mission_dir = tmp_path / ".worktrees" / f"{SLUG}-{MID8}-coord" / "kitty-specs" / f"{SLUG}-{MID8}"
     _write_meta(coord_mission_dir, coordination_branch=COORD_BRANCH)
     return tmp_path
 
@@ -116,9 +104,7 @@ def _assert_no_raw_traceback(result: object) -> None:
     exit) is NOT a traceback — the CLI handled the error and emitted a payload.
     """
     exc = result.exception  # type: ignore[attr-defined]
-    assert exc is None or isinstance(exc, SystemExit), (
-        f"uncaught resolver traceback (the #8 symptom): {exc!r}"
-    )
+    assert exc is None or isinstance(exc, SystemExit), f"uncaught resolver traceback (the #8 symptom): {exc!r}"
 
 
 def _parse_json_lines(output: str) -> list[dict]:  # type: ignore[type-arg]
@@ -158,9 +144,7 @@ def test_open_resolves_coord_aware_handle(tmp_path: Path) -> None:
     canonical authority — no escape-string, no raw traceback."""
     repo = _coord_materialized(tmp_path)
 
-    with patch(
-        "specify_cli.decisions.emit.emit_decision_opened", return_value=1
-    ):
+    with patch("specify_cli.decisions.emit.emit_decision_opened", return_value=1):
         result = _invoke(_open_args(SLUG), cwd=repo)
 
     _assert_no_raw_traceback(result)

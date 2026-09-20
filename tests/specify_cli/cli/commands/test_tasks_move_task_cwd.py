@@ -114,9 +114,7 @@ def _build_mission(repo_root: Path) -> Path:
     minimal real-on-disk WP fixture.
     """
     (repo_root / ".kittify").mkdir(parents=True, exist_ok=True)
-    (repo_root / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (repo_root / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
 
     feature_dir = repo_root / "kitty-specs" / _MISSION_SLUG
     (feature_dir / "tasks").mkdir(parents=True)
@@ -136,16 +134,12 @@ def _build_mission(repo_root: Path) -> Path:
         "# Work Packages\n\n## WP01 - fixture\n- [x] T001 done already\n",
         encoding="utf-8",
     )
-    (feature_dir / "spec.md").write_text(
-        "# Spec\n\nFR-001 do a thing.\n", encoding="utf-8"
-    )
+    (feature_dir / "spec.md").write_text("# Spec\n\nFR-001 do a thing.\n", encoding="utf-8")
 
     # Canonical event-log lane: planned -> claimed -> in_progress. This is the
     # ONLY authority for "old_lane" (frontmatter `lane` is retired) -- the
     # transition core reads this, not anything derived from the worktree cwd.
-    for ordinal, (from_lane, to_lane) in enumerate(
-        (("planned", "claimed"), ("claimed", "in_progress")), start=1
-    ):
+    for ordinal, (from_lane, to_lane) in enumerate((("planned", "claimed"), ("claimed", "in_progress")), start=1):
         append_event(
             feature_dir,
             StatusEvent(
@@ -186,9 +180,7 @@ def _build_repo_with_worktree(root: Path) -> tuple[Path, Path]:
     worktree_path = repo_root / ".worktrees" / f"{_MISSION_SLUG}-lane-c"
     worktree_path.parent.mkdir(parents=True, exist_ok=True)
     _git(repo_root, "worktree", "add", "-b", _LANE_BRANCH, str(worktree_path), "main")
-    assert (worktree_path / ".git").is_file(), (
-        "git worktree add must produce a real gitdir-pointer file"
-    )
+    assert (worktree_path / ".git").is_file(), "git worktree add must produce a real gitdir-pointer file"
 
     return repo_root, worktree_path
 
@@ -230,9 +222,7 @@ def _invoke_move_task() -> Result:
 # ---------------------------------------------------------------------------
 
 
-def test_move_task_succeeds_from_lane_worktree_cwd(
-    mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_move_task_succeeds_from_lane_worktree_cwd(mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     """Driving move-task from a REAL lane-worktree cwd must not fail with
     "Illegal transition" -- the status surface must resolve from the
     canonical mission root regardless of where the operator's shell sits.
@@ -246,15 +236,12 @@ def test_move_task_succeeds_from_lane_worktree_cwd(
     result = _invoke_move_task()
 
     assert "Illegal transition" not in (result.output or ""), (
-        "move-task from a lane-worktree cwd regressed to the #2647 "
-        f"'Illegal transition' failure:\n{result.output}"
+        f"move-task from a lane-worktree cwd regressed to the #2647 'Illegal transition' failure:\n{result.output}"
     )
     assert result.exit_code == 0, result.output
 
 
-def test_move_task_repo_root_cwd_no_regression(
-    mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_move_task_repo_root_cwd_no_regression(mission_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     """The repo-root invocation (the historically-working arm) stays green."""
     repo_root, _worktree_path = mission_repo
     monkeypatch.chdir(repo_root)
@@ -264,9 +251,7 @@ def test_move_task_repo_root_cwd_no_regression(
     assert result.exit_code == 0, result.output
 
 
-def test_worktree_cwd_and_repo_root_cwd_produce_the_identical_transition(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_worktree_cwd_and_repo_root_cwd_produce_the_identical_transition(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Both cwd contexts must resolve WP01's ``in_progress`` from-lane and
     land the SAME successful ``for_review`` transition (SC-001).
 
@@ -366,9 +351,7 @@ def _build_stale_worktree_mission(root: Path) -> tuple[Path, Path]:
     _git(repo_root, "checkout", "-q", "-b", _LEGACY_TARGET_BRANCH)
 
     (repo_root / ".kittify").mkdir(parents=True, exist_ok=True)
-    (repo_root / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (repo_root / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
 
     feature_dir = repo_root / "kitty-specs" / _LEGACY_MISSION_SLUG
     (feature_dir / "tasks").mkdir(parents=True)
@@ -441,9 +424,7 @@ def _build_stale_worktree_mission(root: Path) -> tuple[Path, Path]:
     # Advance the PRIMARY checkout past the fork point: planned -> claimed ->
     # in_progress. The lane worktree created above does NOT see these -- its
     # own tracked kitty-specs/ copy stays frozen at the fork-point commit.
-    for ordinal, (from_lane, to_lane) in enumerate(
-        (("planned", "claimed"), ("claimed", "in_progress")), start=2
-    ):
+    for ordinal, (from_lane, to_lane) in enumerate((("planned", "claimed"), ("claimed", "in_progress")), start=2):
         append_event(
             feature_dir,
             StatusEvent(
@@ -482,9 +463,7 @@ def _invoke_move_task_for_stale_worktree_mission() -> Result:
     )
 
 
-def test_write_side_from_lane_rederivation_no_longer_reproduces_2647(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_side_from_lane_rederivation_no_longer_reproduces_2647(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """GREEN (#2453 fixed): the write-side re-derivation taint is closed.
 
     Was ``xfail(strict=True)`` -- the WP06 cycle-1 characterization pinned
@@ -515,8 +494,7 @@ def test_write_side_from_lane_rederivation_no_longer_reproduces_2647(
 
     assert result.exit_code == 0, result.output
     assert "Illegal transition" not in (result.output or ""), (
-        "move-task from a lane-worktree cwd regressed to the #2647/#2453 "
-        f"write-side 'Illegal transition' failure:\n{result.output}"
+        f"move-task from a lane-worktree cwd regressed to the #2647/#2453 write-side 'Illegal transition' failure:\n{result.output}"
     )
 
     # FR-001 no-regression (T030): an INDEPENDENT stale-worktree mission

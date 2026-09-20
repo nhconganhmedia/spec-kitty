@@ -8,6 +8,7 @@ critical-path and is subject to the diff-coverage floor. The real-git
 integration parity tests (linked worktrees, live ``git init``) live in
 ``tests/git/test_git_topology.py`` and run under the ``git_repo`` marker.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -40,9 +41,7 @@ def _reset_caches() -> None:
 
 
 def _fake(returncode: int = 0, stdout: str = "", stderr: str = "") -> subprocess.CompletedProcess[str]:
-    return subprocess.CompletedProcess(
-        args=["git", "rev-parse"], returncode=returncode, stdout=stdout, stderr=stderr
-    )
+    return subprocess.CompletedProcess(args=["git", "rev-parse"], returncode=returncode, stdout=stdout, stderr=stderr)
 
 
 # --- git_common_dir ---------------------------------------------------------

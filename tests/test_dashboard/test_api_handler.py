@@ -58,12 +58,8 @@ class TestHealthEndpointNoSideEffects:
         source = inspect.getsource(api_module)
         assert "ensure_sync_daemon_running" not in source
         assert "get_sync_daemon_status" not in source
-        assert "urllib.request" not in source, (
-            "the dashboard API handler holds no transmit primitive of its own"
-        )
-        assert not hasattr(api_module.APIHandler, "handle_sync_trigger"), (
-            "/api/sync/trigger was deleted; do not reintroduce it"
-        )
+        assert "urllib.request" not in source, "the dashboard API handler holds no transmit primitive of its own"
+        assert not hasattr(api_module.APIHandler, "handle_sync_trigger"), "/api/sync/trigger was deleted; do not reintroduce it"
 
     def test_health_never_touches_urlopen(self, tmp_path):
         """A hostile/unreachable loopback cannot make /api/health transmit."""
@@ -440,9 +436,7 @@ class TestDossierEndpointRouting:
             mock_cls.return_value.handle_dossier_overview.return_value = response
             api_module.APIHandler.handle_dossier(handler, handler.path)
 
-        mock_cls.return_value.handle_dossier_overview.assert_called_once_with(
-            "064-complete-mission-identity-cutover"
-        )
+        mock_cls.return_value.handle_dossier_overview.assert_called_once_with("064-complete-mission-identity-cutover")
         handler.send_response.assert_called_once_with(200)
 
     def test_dossier_artifacts_routes_with_filters(self, tmp_path):
@@ -483,9 +477,7 @@ class TestDossierEndpointRouting:
             "064-complete-mission-identity-cutover",
             "artifact-123",
         )
-        mock_cls.return_value.handle_dossier_snapshot_export.assert_called_once_with(
-            "064-complete-mission-identity-cutover"
-        )
+        mock_cls.return_value.handle_dossier_snapshot_export.assert_called_once_with("064-complete-mission-identity-cutover")
 
     def test_dossier_handler_hides_internal_errors(self, tmp_path):
         api_module, handler = self._make_handler(

@@ -61,9 +61,7 @@ def _request(feature_dir: Path, slug: str) -> TransitionRequest:
     )
 
 
-def test_inline_write_target_oracle_documents_git_head_divergence(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_inline_write_target_oracle_documents_git_head_divergence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-004 oracle (PIN by node-id — WP05 flipped the value, never deleted).
 
     Flat mission (no ``coordination_branch``), CWD parked on an off-target lane
@@ -89,9 +87,7 @@ def test_inline_write_target_oracle_documents_git_head_divergence(
     identity = _identity_for_request(_request(primary.feature_dir, primary.mission_slug))
     # The status write target resolves with STATUS_STATE (coord-preserving) kind
     # (write-surface-coherence WP02 / T031): flat topology → target_branch.
-    factory = resolve_placement_only(
-        primary.repo_root, primary.mission_slug, kind=MissionArtifactKind.STATUS_STATE
-    )
+    factory = resolve_placement_only(primary.repo_root, primary.mission_slug, kind=MissionArtifactKind.STATUS_STATE)
 
     # AFTER the WP05 adoption the write-target is CWD-invariant ``target_branch``,
     # NOT the off-target git HEAD the inline selector used to return (the bug).
@@ -102,9 +98,7 @@ def test_inline_write_target_oracle_documents_git_head_divergence(
     assert identity.destination_ref == factory.ref  # convergence (the fix)
 
 
-def test_write_target_is_cwd_invariant_after_adoption(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_target_is_cwd_invariant_after_adoption(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The fix's signature: the write-target is now CWD-invariant.
 
     before→after (WP05): the inline selector's value used to CHANGE with the CWD
@@ -116,9 +110,7 @@ def test_write_target_is_cwd_invariant_after_adoption(
     monkeypatch.chdir(primary.repo_root)
 
     # On the target branch itself, the write-target == target.
-    on_target = _identity_for_request(
-        _request(primary.feature_dir, primary.mission_slug)
-    )
+    on_target = _identity_for_request(_request(primary.feature_dir, primary.mission_slug))
     assert on_target.destination_ref == TARGET_BRANCH
 
     # Switch to an off-target branch: AFTER the adoption the write-target does NOT
@@ -130,14 +122,10 @@ def test_write_target_is_cwd_invariant_after_adoption(
     assert off.destination_ref != off_target
 
     # ...and the factory resolver agrees, unchanged across both CWD branches.
-    assert resolve_placement_only(
-        primary.repo_root, primary.mission_slug, kind=MissionArtifactKind.STATUS_STATE
-    ).ref == (TARGET_BRANCH)
+    assert resolve_placement_only(primary.repo_root, primary.mission_slug, kind=MissionArtifactKind.STATUS_STATE).ref == (TARGET_BRANCH)
 
 
-def test_coord_topology_both_selectors_agree_on_coord_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coord_topology_both_selectors_agree_on_coord_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Equivalence row (green on HEAD, stays green post-adoption).
 
     Under coord topology the mission declares ``coordination_branch``, so the
@@ -148,14 +136,10 @@ def test_coord_topology_both_selectors_agree_on_coord_branch(
     coord = build_coord(tmp_path)
     monkeypatch.chdir(coord.coord_worktree)
 
-    identity = _identity_for_request(
-        _request(coord.primary_feature_dir, coord.mission_slug)
-    )
+    identity = _identity_for_request(_request(coord.primary_feature_dir, coord.mission_slug))
     # STATUS_STATE (coord-preserving) kind: coord topology → coord branch
     # (write-surface-coherence WP02 / T031).
-    factory = resolve_placement_only(
-        coord.main_root, coord.mission_slug, kind=MissionArtifactKind.STATUS_STATE
-    )
+    factory = resolve_placement_only(coord.main_root, coord.mission_slug, kind=MissionArtifactKind.STATUS_STATE)
 
     assert identity.destination_ref == coord.coord_branch
     assert factory.ref == coord.coord_branch

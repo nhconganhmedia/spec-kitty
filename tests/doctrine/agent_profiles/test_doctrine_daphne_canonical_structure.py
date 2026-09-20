@@ -89,14 +89,10 @@ class TestGuardIsNonVacuous:
     """
 
     @pytest.mark.parametrize(("label", "token"), _REQUIRED_RULES)
-    def test_removing_a_rule_fails_its_own_check(
-        self, profile_text: str, label: str, token: str
-    ) -> None:
+    def test_removing_a_rule_fails_its_own_check(self, profile_text: str, label: str, token: str) -> None:
         mutated = profile_text.replace(token.lower(), "")
         # The predicate under test is exactly the one `test_rule_is_stated` applies.
-        assert token.lower() not in mutated, (
-            f"check for {label!r} cannot fail — its token is not actually load-bearing"
-        )
+        assert token.lower() not in mutated, f"check for {label!r} cannot fail — its token is not actually load-bearing"
 
     def test_assertions_run_against_real_resolved_content(self, profile_text: str) -> None:
         """Floor check: prove we loaded substantive prose, not an empty model dump."""

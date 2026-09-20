@@ -145,9 +145,7 @@ def _rejected_finding(
         RejectedReviewArtifactFinding,
     )
 
-    assert isinstance(finding, RejectedReviewArtifactFinding), (
-        f"Expected a rejected-verdict finding, got a schema finding instead: {finding}"
-    )
+    assert isinstance(finding, RejectedReviewArtifactFinding), f"Expected a rejected-verdict finding, got a schema finding instead: {finding}"
     return finding
 
 
@@ -178,9 +176,7 @@ def test_review_artifact_gate_catches_genuine_rejection_on_coord_topology(
     _seed_terminal_wp01(
         ctx,
         event_id="01KW2E7A0TERMINAL00000001",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     _write_review_cycle(
         ctx,
@@ -192,8 +188,7 @@ def test_review_artifact_gate_catches_genuine_rejection_on_coord_topology(
     findings = find_rejected_review_artifact_conflicts(ctx.primary_feature_dir, ["WP01"])
 
     assert len(findings) == 1, (
-        "Expected the genuine rejection to be caught. An empty result means "
-        f"the lane/verdict read missed the coord husk's real status log. Got: {findings}"
+        f"Expected the genuine rejection to be caught. An empty result means the lane/verdict read missed the coord husk's real status log. Got: {findings}"
     )
     assert findings[0].wp_id == "WP01"
     assert _rejected_finding(findings[0]).verdict == "changes_requested"
@@ -252,9 +247,7 @@ def test_review_artifact_gate_ignores_stray_artifact_on_coord_husk(
     _seed_terminal_wp01(
         ctx,
         event_id="01KW2E7A0TERMINAL00000002",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="approved", reference="x"
-        ),
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="approved", reference="x"),
     )
     # The real, correct artifact on PRIMARY: approved.
     _write_review_cycle(
@@ -274,8 +267,7 @@ def test_review_artifact_gate_ignores_stray_artifact_on_coord_husk(
     findings = find_rejected_review_artifact_conflicts(ctx.primary_feature_dir, ["WP01"])
 
     assert findings == [], (
-        "The coord husk's stray rejected artifact must not shadow PRIMARY's real "
-        f"approved one — a stale leftover must not cause a false not-ready. Got: {findings}"
+        f"The coord husk's stray rejected artifact must not shadow PRIMARY's real approved one — a stale leftover must not cause a false not-ready. Got: {findings}"
     )
 
 
@@ -311,9 +303,7 @@ def test_preview_and_consolidation_agree_on_rejected_review_case(
     _seed_terminal_wp01(
         ctx,
         event_id="01KW2E7A0TERMINAL00000003",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     _write_review_cycle(
         ctx,
@@ -323,13 +313,9 @@ def test_preview_and_consolidation_agree_on_rejected_review_case(
     )
 
     # The preview leg (forecast): resolved through the PRIMARY WORK_PACKAGE_TASK dir.
-    preview_findings = find_rejected_review_artifact_conflicts(
-        ctx.primary_feature_dir, ["WP01"]
-    )
+    preview_findings = find_rejected_review_artifact_conflicts(ctx.primary_feature_dir, ["WP01"])
     # The real-consolidation leg (executor): the coord-husk STATUS surface.
-    consolidation_findings = find_rejected_review_artifact_conflicts(
-        ctx.coord_feature_dir, ["WP01"]
-    )
+    consolidation_findings = find_rejected_review_artifact_conflicts(ctx.coord_feature_dir, ["WP01"])
 
     assert preview_findings == consolidation_findings, (
         "SC-002: the preview and the real consolidation must return the identical "
@@ -380,9 +366,7 @@ def test_t057_resolve_wp_slug_prefix_id_does_not_collide(
     from specify_cli.cli.commands.agent.tasks_materialization import _resolve_wp_slug
 
     ctx = flat_topology_mission
-    (ctx.primary_feature_dir / "tasks" / "WP10-something.md").write_text(
-        "# WP10\n", encoding="utf-8"
-    )
+    (ctx.primary_feature_dir / "tasks" / "WP10-something.md").write_text("# WP10\n", encoding="utf-8")
 
     assert _resolve_wp_slug(ctx.repo, ctx.slug, "WP1") == "WP1"
 
@@ -482,17 +466,12 @@ def test_c001_merge_gate_agrees_with_real_writer_single_branch_two_separators(
             ),
         )
 
-    findings = find_rejected_review_artifact_conflicts(
-        ctx.primary_feature_dir, ["WP01", "WP02"]
-    )
+    findings = find_rejected_review_artifact_conflicts(ctx.primary_feature_dir, ["WP01", "WP02"])
 
     assert {finding.wp_id for finding in findings} == {"WP01", "WP02"}, (
-        "C-001: the merge gate must reach a verdict for every WP the writer "
-        f"actually wrote, for both accepted separators. Got: {findings}"
+        f"C-001: the merge gate must reach a verdict for every WP the writer actually wrote, for both accepted separators. Got: {findings}"
     )
-    assert all(
-        _rejected_finding(finding).verdict == "changes_requested" for finding in findings
-    )
+    assert all(_rejected_finding(finding).verdict == "changes_requested" for finding in findings)
 
 
 def test_c001_merge_gate_agrees_with_real_writer_under_coord_topology(
@@ -601,9 +580,7 @@ def _unprotect_main(repo: Path) -> None:
 
     kittify_dir = repo / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "protection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("protection:\n  protected_branches: []\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "test: unprotect main"],
@@ -668,8 +645,7 @@ def test_revert_committed_verdict_write_targets_coord_ref_under_coord_topology(
         text=True,
     )
     assert coord_show.returncode == 0, (
-        "Precondition failed: the writer's own commit did not land on the "
-        f"coord ref {ctx.coord_branch!r}. stderr={coord_show.stderr}"
+        f"Precondition failed: the writer's own commit did not land on the coord ref {ctx.coord_branch!r}. stderr={coord_show.stderr}"
     )
 
     st = _MoveTaskState(

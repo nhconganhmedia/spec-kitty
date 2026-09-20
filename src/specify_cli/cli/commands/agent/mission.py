@@ -43,6 +43,7 @@ from typing import cast
 # Re-exported so the WP06 merge seam's ``mission.resolve_mission_handle`` access
 # and historical patch targets keep resolving.
 from specify_cli.cli.selector_resolution import resolve_mission_handle as resolve_mission_handle
+
 # Re-exported so the WP06 accept/merge seams can resolve the top-level delegators
 # via the ``mission`` module — preserving both the lazy-import boundary (the seams
 # never import the accept/merge graph at module scope) and the historical
@@ -57,6 +58,7 @@ from specify_cli.core.git_preflight import (
 )
 from specify_cli.core.paths import locate_project_root as locate_project_root
 from specify_cli.core.paths import get_main_repo_root as get_main_repo_root
+
 # Re-exported so the WP06 merge seam's ``mission.get_feature_target_branch``
 # access keeps resolving.
 from specify_cli.core.paths import get_feature_target_branch as get_feature_target_branch
@@ -95,6 +97,7 @@ from specify_cli.core.wps_manifest import (
 from specify_cli.missions._resolve_planning_branch import (
     PlanningBranchResolutionFailed as PlanningBranchResolutionFailed,
 )
+
 # Re-exported so the setup-plan seam's historical patch boundary and configured
 # content-template selection remain available after setup-plan extraction.
 from specify_cli.runtime.resolver import (

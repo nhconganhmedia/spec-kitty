@@ -174,10 +174,7 @@ def _build_mission_repo(tmp_path: Path) -> Path:
     _write_wp(tasks_dir, "WP01", "src/a/**")
     _write_wp(tasks_dir, "WP02", "src/b/**")
     (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(_seed_event(_MISSION_SLUG, "WP01", "S01"), sort_keys=True)
-        + "\n"
-        + json.dumps(_seed_event(_MISSION_SLUG, "WP02", "S02"), sort_keys=True)
-        + "\n",
+        json.dumps(_seed_event(_MISSION_SLUG, "WP01", "S01"), sort_keys=True) + "\n" + json.dumps(_seed_event(_MISSION_SLUG, "WP02", "S02"), sort_keys=True) + "\n",
         encoding="utf-8",
     )
 
@@ -191,9 +188,7 @@ def _build_mission_repo(tmp_path: Path) -> Path:
 
 def _workspace_mock(feature_dir: Path, lane_id: str) -> MagicMock:
     return MagicMock(
-        workspace_path=feature_dir.parent.parent
-        / ".worktrees"
-        / f"{feature_dir.name}-{lane_id}",
+        workspace_path=feature_dir.parent.parent / ".worktrees" / f"{feature_dir.name}-{lane_id}",
         branch_name=f"kitty/mission-{feature_dir.name}-{lane_id}",
         lane_id=lane_id,
         mission_branch=f"kitty/mission-{feature_dir.name}",
@@ -202,9 +197,7 @@ def _workspace_mock(feature_dir: Path, lane_id: str) -> MagicMock:
 
 
 @contextmanager
-def _claim_through_guard(
-    tmp_path: Path, feature_dir: Path, lane_id: str
-) -> Iterator[MagicMock]:
+def _claim_through_guard(tmp_path: Path, feature_dir: Path, lane_id: str) -> Iterator[MagicMock]:
     """Drive the REAL dirty-tree guard via ``implement()`` while patching only
     the post-guard worktree allocation and status emission.
 
@@ -242,9 +235,7 @@ def _claim_through_guard(
         yield create_mock
 
 
-def test_second_auto_commit_false_claim_not_blocked_by_lock_self_write(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_second_auto_commit_false_claim_not_blocked_by_lock_self_write(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#2222 core: after the first claim's uncommitted vcs-lock self-write to
     meta.json, the second dependency-free ``auto_commit=False`` claim must NOT
     be blocked by the dirty-tree guard.
@@ -277,15 +268,10 @@ def test_second_auto_commit_false_claim_not_blocked_by_lock_self_write(
             recover=False,
         )
 
-    assert create_mock.called, (
-        "the second auto_commit=False claim was blocked by the first claim's "
-        "uncommitted vcs-lock self-write (#2222 regression)"
-    )
+    assert create_mock.called, "the second auto_commit=False claim was blocked by the first claim's uncommitted vcs-lock self-write (#2222 regression)"
 
 
-def test_non_lock_dirty_meta_still_blocks_auto_commit_false_claim(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_non_lock_dirty_meta_still_blocks_auto_commit_false_claim(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Required negative guard: a meta.json dirtied with a NON-lock field (here
     alongside the lock fields) still aborts the ``auto_commit=False`` claim — the
     exclusion is strictly lock-field-only, never a blanket meta.json bypass."""
@@ -311,8 +297,7 @@ def test_non_lock_dirty_meta_still_blocks_auto_commit_false_claim(
 
     assert exc_info.value.exit_code == 1
     assert not create_mock.called, (
-        "a non-lock dirty meta.json must abort at the guard before allocation; "
-        "the exclusion must be lock-field-only, not a blanket meta.json bypass"
+        "a non-lock dirty meta.json must abort at the guard before allocation; the exclusion must be lock-field-only, not a blanket meta.json bypass"
     )
 
 

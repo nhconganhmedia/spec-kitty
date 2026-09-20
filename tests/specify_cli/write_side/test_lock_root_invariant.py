@@ -46,9 +46,7 @@ def _lock_root(feature_dir: Path) -> Path:
     return resolved
 
 
-def test_lock_path_is_identical_from_primary_and_coord_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lock_path_is_identical_from_primary_and_coord_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The behavioral invariant: one mission → one lock path across worktrees.
 
     A process anchored at the primary checkout and a process anchored at the
@@ -73,9 +71,7 @@ def test_lock_path_is_identical_from_primary_and_coord_worktree(
     assert path_from_primary == path_from_coord
 
 
-def test_shared_resolver_and_canonical_resolver_agree_on_lock_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_shared_resolver_and_canonical_resolver_agree_on_lock_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Equivalence (D-5 / WP02): the consolidated ``resolve_status_lock_root``
     and the canonical resolver resolve the SAME lock root — so FR-001's swap is
     a behavior no-op and the public lock path is identical across callers.
@@ -94,9 +90,7 @@ def test_shared_resolver_and_canonical_resolver_agree_on_lock_root(
     # The consolidated resolver and the canonical resolver agree — the public
     # lock path is identical.
     assert shared == canonical
-    assert feature_status_lock_path(shared, coord.mission_slug) == (
-        feature_status_lock_path(canonical, coord.mission_slug)
-    )
+    assert feature_status_lock_path(shared, coord.mission_slug) == (feature_status_lock_path(canonical, coord.mission_slug))
 
     # before→after (WP05): the coord ``_repo_root_for_feature`` used to walk to
     # the COORD-WORKTREE root (the divergence the adoption unifies). After the
@@ -106,14 +100,10 @@ def test_shared_resolver_and_canonical_resolver_agree_on_lock_root(
     # convergence this invariant predicted as "the adoption").
     adopted_coord = _repo_root_for_feature(fd, None)
     assert adopted_coord == canonical
-    assert feature_status_lock_path(adopted_coord, coord.mission_slug) == (
-        feature_status_lock_path(canonical, coord.mission_slug)
-    )
+    assert feature_status_lock_path(adopted_coord, coord.mission_slug) == (feature_status_lock_path(canonical, coord.mission_slug))
 
 
-def test_lock_path_invariant_holds_for_submodule(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lock_path_invariant_holds_for_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The lock-root invariant holds for the submodule class too (NFR-001/002).
 
     Anchored inside a real submodule, the lock root resolves to the submodule's
@@ -129,9 +119,7 @@ def test_lock_path_invariant_holds_for_submodule(
     assert lock_path.name == f"{sub.mission_slug}.status.lock"
 
 
-def test_lock_is_reentrant_and_acquirable_on_primary(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lock_is_reentrant_and_acquirable_on_primary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """End-to-end public behavior: the lock is actually acquirable (and
     re-entrant) on a primary checkout via the resolved root — the observable the
     private smoke tests (S-9) approximated on synthetic dirs.

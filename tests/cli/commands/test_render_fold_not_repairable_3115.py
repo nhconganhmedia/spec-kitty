@@ -120,10 +120,7 @@ def test_every_committed_capture_has_a_provenance_sidecar() -> None:
     carry its sidecar -- catches a future capture landing without one.
     """
     captures = sorted(_FIXTURE_DIR.glob("*.txt"))
-    assert captures, (
-        f"no capture files found under {_FIXTURE_DIR} -- this test would "
-        "otherwise pass vacuously on an empty fixture set"
-    )
+    assert captures, f"no capture files found under {_FIXTURE_DIR} -- this test would otherwise pass vacuously on an empty fixture set"
     for capture_path in captures:
         _load_capture(_FIXTURE_DIR, capture_path.name)
 
@@ -149,9 +146,7 @@ def test_full_whitespace_collapse_does_not_repair_the_fold() -> None:
         "(and silently wrongly) true"
     )
     assert _UUID_FRAGMENT_2 in raw, (
-        f"the second uuid fragment {_UUID_FRAGMENT_2!r} is not present in "
-        "capture_width80.txt -- same failure mode as the first fragment, "
-        "the other half of it"
+        f"the second uuid fragment {_UUID_FRAGMENT_2!r} is not present in capture_width80.txt -- same failure mode as the first fragment, the other half of it"
     )
     assert _UUID_FRAGMENT_1 + _UUID_FRAGMENT_2 == _UUID, (
         f"the two uuid fragments concatenate to "

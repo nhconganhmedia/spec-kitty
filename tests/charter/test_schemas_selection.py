@@ -49,9 +49,7 @@ def test_default_construction_exposes_all_new_selected_fields() -> None:
     cfg = DoctrineSelectionConfig()
     for key in _NEW_SELECTED_KEYS:
         assert hasattr(cfg, key), f"DoctrineSelectionConfig missing field {key}"
-        assert getattr(cfg, key) == [], (
-            f"Field {key} should default to empty list, got {getattr(cfg, key)!r}"
-        )
+        assert getattr(cfg, key) == [], f"Field {key} should default to empty list, got {getattr(cfg, key)!r}"
 
 
 def test_new_selected_keys_are_in_optional_omit_set() -> None:
@@ -59,10 +57,7 @@ def test_new_selected_keys_are_in_optional_omit_set() -> None:
     ``_OPTIONAL_EMPTY_OMIT_KEYS`` so empty values stay out of emitted YAML.
     """
     missing = sorted(set(_NEW_SELECTED_KEYS) - _OPTIONAL_EMPTY_OMIT_KEYS)
-    assert not missing, (
-        "The following selected_<kind> fields are not in "
-        f"_OPTIONAL_EMPTY_OMIT_KEYS: {missing}"
-    )
+    assert not missing, f"The following selected_<kind> fields are not in _OPTIONAL_EMPTY_OMIT_KEYS: {missing}"
 
 
 # ---------------------------------------------------------------------------
@@ -74,10 +69,7 @@ def test_prune_omits_empty_new_selected_fields() -> None:
     raw = DoctrineSelectionConfig().model_dump(mode="json")
     pruned = _prune_optional_empties(raw)
     for key in _NEW_SELECTED_KEYS:
-        assert key not in pruned, (
-            f"Empty {key!r} should have been pruned, but appears in: "
-            f"{sorted(pruned)}"
-        )
+        assert key not in pruned, f"Empty {key!r} should have been pruned, but appears in: {sorted(pruned)}"
 
 
 def test_prune_keeps_populated_new_selected_fields() -> None:
@@ -161,6 +153,4 @@ def test_default_governance_round_trip_stays_byte_stable(tmp_path: Path) -> None
     emit_yaml(GovernanceConfig(), out)
     text = out.read_text(encoding="utf-8")
     for key in _NEW_SELECTED_KEYS:
-        assert key not in text, (
-            f"Default-config emission unexpectedly contains {key!r}: \n{text}"
-        )
+        assert key not in text, f"Default-config emission unexpectedly contains {key!r}: \n{text}"

@@ -54,10 +54,12 @@ def _generate_event_id() -> str:
     """Generate a ULID-format event ID."""
     try:
         import ulid
+
         return str(ulid.ULID())
     except ImportError:
         # Fallback: use a UUID4-based ID if ulid not available.
         import uuid
+
         return str(uuid.uuid4()).replace("-", "").upper()
 
 
@@ -108,21 +110,15 @@ class DecisionGitLog:
         # or an ad-hoc fixture outside a resolvable mission) does this degrade to
         # the ambient ``destination_ref`` — mirroring the established degrade-path
         # idiom in ``coordination.status_transition._resolve_write_target``.
-        self._target = target or self._resolve_default_target(
-            repo_root, mission_slug, destination_ref
-        )
+        self._target = target or self._resolve_default_target(repo_root, mission_slug, destination_ref)
         # WP04/FR-004: mission_id must be a ULID or None (fail-closed). Never
         # substitute the slug — a slug in a mission_id field is a contract violation.
         self._mission_id = mission_id
         self._inner = inner
-        self._decisions_file = (
-            worktree_root / KITTY_SPECS_DIR / _safe_slug / "decisions.events.jsonl"
-        )
+        self._decisions_file = worktree_root / KITTY_SPECS_DIR / _safe_slug / "decisions.events.jsonl"
 
     @staticmethod
-    def _resolve_default_target(
-        repo_root: Path, mission_slug: str, destination_ref: str
-    ) -> CommitTarget:
+    def _resolve_default_target(repo_root: Path, mission_slug: str, destination_ref: str) -> CommitTarget:
         """Derive the default commit target via the placement port (FR-003).
 
         ``decisions.events.jsonl`` is the ``DECISION_LOG`` kind (a
@@ -145,16 +141,12 @@ class DecisionGitLog:
     # Decision event methods (git-logged)
     # ------------------------------------------------------------------
 
-    def emit_decision_input_requested(
-        self, payload: DecisionInputRequestedPayload
-    ) -> None:
+    def emit_decision_input_requested(self, payload: DecisionInputRequestedPayload) -> None:
         """Append sanitized DecisionInputRequested to decisions.events.jsonl."""
         self._append_decision_event(DECISION_INPUT_REQUESTED, payload)
         self._inner.emit_decision_input_requested(payload)
 
-    def emit_decision_input_answered(
-        self, payload: DecisionInputAnsweredPayload
-    ) -> None:
+    def emit_decision_input_answered(self, payload: DecisionInputAnsweredPayload) -> None:
         """Append sanitized DecisionInputAnswered and trigger safe_commit()."""
         self._append_decision_event(DECISION_INPUT_ANSWERED, payload)
         self._trigger_commit()
@@ -170,24 +162,16 @@ class DecisionGitLog:
     def emit_next_step_issued(self, payload: NextStepIssuedPayload) -> None:
         self._inner.emit_next_step_issued(payload)
 
-    def emit_next_step_auto_completed(
-        self, payload: NextStepAutoCompletedPayload
-    ) -> None:
+    def emit_next_step_auto_completed(self, payload: NextStepAutoCompletedPayload) -> None:
         self._inner.emit_next_step_auto_completed(payload)
 
-    def emit_mission_run_completed(
-        self, payload: MissionRunCompletedPayload
-    ) -> None:
+    def emit_mission_run_completed(self, payload: MissionRunCompletedPayload) -> None:
         self._inner.emit_mission_run_completed(payload)
 
-    def emit_significance_evaluated(
-        self, payload: SignificanceEvaluatedPayload
-    ) -> None:
+    def emit_significance_evaluated(self, payload: SignificanceEvaluatedPayload) -> None:
         self._inner.emit_significance_evaluated(payload)
 
-    def emit_decision_timeout_expired(
-        self, payload: TimeoutExpiredPayload
-    ) -> None:
+    def emit_decision_timeout_expired(self, payload: TimeoutExpiredPayload) -> None:
         self._inner.emit_decision_timeout_expired(payload)
 
     def seed_from_snapshot(self, snapshot: Any) -> None:
@@ -198,9 +182,7 @@ class DecisionGitLog:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _build_envelope(
-        self, event_type: str, payload: Any
-    ) -> dict[str, Any]:
+    def _build_envelope(self, event_type: str, payload: Any) -> dict[str, Any]:
         """Build a JSON-serialisable event envelope from a payload."""
         payload_dict: dict[str, Any]
         if hasattr(payload, "model_dump"):
@@ -262,9 +244,7 @@ class DecisionGitLog:
         except SafeCommitError as exc:
             _observed = getattr(exc, "observed_head", None)
             logger.warning(
-                "DecisionGitLog: safe_commit failed for mission %s "
-                "(decisions_file=%s, worktree_root=%s, destination_ref=%s, "
-                "observed_head=%s, error=%s)",
+                "DecisionGitLog: safe_commit failed for mission %s (decisions_file=%s, worktree_root=%s, destination_ref=%s, observed_head=%s, error=%s)",
                 self._mission_slug,
                 self._decisions_file,
                 self._worktree_root,
@@ -274,8 +254,7 @@ class DecisionGitLog:
             )
         except Exception:
             logger.warning(
-                "DecisionGitLog: unexpected error in safe_commit for mission %s "
-                "(decisions_file=%s, worktree_root=%s, destination_ref=%s)",
+                "DecisionGitLog: unexpected error in safe_commit for mission %s (decisions_file=%s, worktree_root=%s, destination_ref=%s)",
                 self._mission_slug,
                 self._decisions_file,
                 self._worktree_root,

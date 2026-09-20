@@ -77,9 +77,7 @@ def _review_currency_check_branch(
         # against the coordination BASE ref under coord topology. STATUS_STATE keeps
         # the coord ref; a primary kind would read the primary ref as the base and
         # corrupt the currency comparison.
-        placement = _tasks.resolve_placement_only(
-            main_repo_root, mission_slug, kind=MissionArtifactKind.STATUS_STATE
-        )
+        placement = _tasks.resolve_placement_only(main_repo_root, mission_slug, kind=MissionArtifactKind.STATUS_STATE)
     except Exception as exc:  # noqa: BLE001 -- legacy fixtures keep target-branch fallback
         logger.debug("Could not resolve review currency placement: %s", exc)
         return target_branch
@@ -260,9 +258,7 @@ def _find_mission_slug(
         # checkout; get_main_repo_root() here guards against caller passing a
         # worktree path directly.
         try:
-            legacy_dir = placement_seam(
-                _tasks.get_main_repo_root(repo_root), raw_handle
-            ).read_dir(MissionArtifactKind.PRIMARY_METADATA)
+            legacy_dir = placement_seam(_tasks.get_main_repo_root(repo_root), raw_handle).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         except MissionSelectorAmbiguous as exc:
             if error_handler is not None:
                 error_handler(exc.error_code, str(exc), 2, {"handle": exc.handle, "candidates": exc.candidates})
@@ -408,14 +404,13 @@ def _coord_topology_active(repo_root: Path, mission_slug: str) -> bool:
     try:
         from specify_cli.coordination.workspace import CoordinationWorkspace
         from specify_cli.lanes.branch_naming import resolve_transaction_mid8
+
         # Authoritative topology resolver (FR-004/#1918): a coord-worktree lookup
         # needs the REAL mid8 to name its dir. With no declared mission_id/mid8 the
         # seam falls back to the embedded ``<slug>-<mid8>`` tail (genuine slug) and
         # returns "" only for a legacy/flattened mission with no coord topology —
         # exactly the historical mid8_from_slug behaviour for resolvable slugs.
-        mid8 = resolve_transaction_mid8(
-            mission_slug, mission_id=None, mid8=None, coordination_branch=None
-        )
+        mid8 = resolve_transaction_mid8(mission_slug, mission_id=None, mid8=None, coordination_branch=None)
         path = CoordinationWorkspace.worktree_path(repo_root, mission_slug, mid8)
         exists: bool = path.exists()
         return exists
@@ -546,11 +541,7 @@ def _check_unchecked_subtasks(
     # WP04 / FR-006: the authored WP roster is TASKS_INDEX and therefore lives
     # on the primary partition. Dynamic completion is STATUS_STATE and follows
     # the topology-routed status surface instead.
-    feature_dir = placement_seam(
-        main_repo_root, mission_slug, effective_root=effective_root
-    ).read_dir(
-        MissionArtifactKind.TASKS_INDEX
-    )
+    feature_dir = placement_seam(main_repo_root, mission_slug, effective_root=effective_root).read_dir(MissionArtifactKind.TASKS_INDEX)
     if not (feature_dir / "tasks").is_dir():
         return []
     from specify_cli.core.subtask_rows import (
@@ -562,9 +553,7 @@ def _check_unchecked_subtasks(
     if not roster:
         return []
     if effective_root is not None:
-        status_dir = placement_seam(
-            main_repo_root, mission_slug, effective_root=effective_root
-        ).read_dir(MissionArtifactKind.STATUS_STATE)
+        status_dir = placement_seam(main_repo_root, mission_slug, effective_root=effective_root).read_dir(MissionArtifactKind.STATUS_STATE)
     else:
         from specify_cli.coordination import resolve_status_surface
 
@@ -676,9 +665,7 @@ def _wp_branch_merged_into_target(
     )
 
 
-def _filter_by_planning_tip_content(
-    worktree_path: Path, candidates: list[str], base_branch: str
-) -> list[str]:
+def _filter_by_planning_tip_content(worktree_path: Path, candidates: list[str], base_branch: str) -> list[str]:
     """Drop candidates byte-identical to the planning-branch tip (FR-007 / #2274).
 
     Compares the candidates against the planning tip through the canonical
@@ -691,9 +678,7 @@ def _filter_by_planning_tip_content(
     ``git_diff_names_checked`` returns ``None`` and every candidate is kept
     conservatively so the guard never silently loses signal.
     """
-    diverged = git_diff_names_checked(
-        worktree_path, base_branch, "HEAD", pathspec=f"{KITTY_SPECS_DIR}/"
-    )
+    diverged = git_diff_names_checked(worktree_path, base_branch, "HEAD", pathspec=f"{KITTY_SPECS_DIR}/")
     if diverged is None:
         # git failure or unresolvable base ref → keep conservatively.
         return candidates

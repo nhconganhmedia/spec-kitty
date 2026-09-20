@@ -39,9 +39,7 @@ def _make_mission_dir(root: Path, slug: str, meta_text: str) -> Path:
 class TestSurfaceResolverBatchARouting:
     """``coordination/surface_resolver.resolve_status_surface_with_anchor``."""
 
-    def test_corrupt_json_raises_typed_error_not_raw_valueerror(
-        self, tmp_path: Path
-    ) -> None:
+    def test_corrupt_json_raises_typed_error_not_raw_valueerror(self, tmp_path: Path) -> None:
         slug = "batch-a-surface-corrupt"
         _make_mission_dir(tmp_path, slug, "{ bad json")
 
@@ -52,9 +50,7 @@ class TestSurfaceResolverBatchARouting:
         with pytest.raises(MissionMetaReadError, match="Malformed JSON"):
             resolve_status_surface_with_anchor(tmp_path, slug)
 
-    def test_non_dict_json_raises_typed_error_not_raw_valueerror(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_dict_json_raises_typed_error_not_raw_valueerror(self, tmp_path: Path) -> None:
         slug = "batch-a-surface-non-dict"
         _make_mission_dir(tmp_path, slug, json.dumps([1, 2, 3]))
 
@@ -65,18 +61,14 @@ class TestSurfaceResolverBatchARouting:
 class TestMissionStatusBatchARouting:
     """``status/aggregate.MissionStatus.load`` (via ``_read_meta``)."""
 
-    def test_corrupt_json_raises_typed_error_not_raw_valueerror(
-        self, tmp_path: Path
-    ) -> None:
+    def test_corrupt_json_raises_typed_error_not_raw_valueerror(self, tmp_path: Path) -> None:
         slug = "batch-a-status-corrupt"
         _make_mission_dir(tmp_path, slug, "{ bad json")
 
         with pytest.raises(MissionMetadataUnavailable):
             MissionStatus.load(repo_root=tmp_path, mission_slug=slug)
 
-    def test_non_dict_json_raises_typed_error_not_raw_valueerror(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_dict_json_raises_typed_error_not_raw_valueerror(self, tmp_path: Path) -> None:
         slug = "batch-a-status-non-dict"
         _make_mission_dir(tmp_path, slug, json.dumps([1, 2, 3]))
 

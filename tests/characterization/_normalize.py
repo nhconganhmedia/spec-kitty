@@ -30,9 +30,7 @@ from typing import Any
 _SHA_RE = re.compile(r"\b[0-9a-f]{40}\b|\b[0-9a-f]{7,39}\b")
 
 # ISO-8601 UTC timestamps, e.g. "2026-07-11T05:59:22Z" or with offset/micros.
-_ISO_TS_RE = re.compile(
-    r"\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})\b"
-)
+_ISO_TS_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})\b")
 
 # Bare process ids appear in frontmatter as shell_pid: "128230" (quoted or not).
 _PID_RE = re.compile(r"\bshell_pid[\"']?\s*[:=]\s*[\"']?(\d{2,7})[\"']?")

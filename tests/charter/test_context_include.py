@@ -127,9 +127,7 @@ def _write_minimal_config(repo_root: Path) -> None:
     """
     kittify = repo_root / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -138,9 +136,7 @@ def _write_minimal_config(repo_root: Path) -> None:
 
 
 class TestAgentProfileInclude:
-    def test_hyphenated_agent_profile_resolves(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_hyphenated_agent_profile_resolves(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_minimal_config(tmp_path)
         profile = _DummyAgentProfile(
             name="Python Pedro",
@@ -156,13 +152,9 @@ class TestAgentProfileInclude:
 
         assert "Agent profile python-pedro: Python Pedro" in text
 
-    def test_underscore_agent_profile_resolves(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_underscore_agent_profile_resolves(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_minimal_config(tmp_path)
-        profile = _DummyAgentProfile(
-            name="Python Pedro", purpose="p", roles=["implementer"]
-        )
+        profile = _DummyAgentProfile(name="Python Pedro", purpose="p", roles=["implementer"])
         _patch_service(
             monkeypatch,
             _StubService(agent_profiles=_StubRepo({"python-pedro": profile})),
@@ -172,13 +164,9 @@ class TestAgentProfileInclude:
 
         assert "Agent profile python-pedro: Python Pedro" in text
 
-    def test_mixed_case_kind_resolves(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mixed_case_kind_resolves(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_minimal_config(tmp_path)
-        profile = _DummyAgentProfile(
-            name="Python Pedro", purpose="p", roles=["implementer"]
-        )
+        profile = _DummyAgentProfile(name="Python Pedro", purpose="p", roles=["implementer"])
         _patch_service(
             monkeypatch,
             _StubService(agent_profiles=_StubRepo({"python-pedro": profile})),
@@ -188,9 +176,7 @@ class TestAgentProfileInclude:
 
         assert "Agent profile python-pedro: Python Pedro" in text
 
-    def test_unknown_agent_profile_id_fails_closed(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unknown_agent_profile_id_fails_closed(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_minimal_config(tmp_path)
         _patch_service(monkeypatch, _StubService())
 
@@ -199,9 +185,7 @@ class TestAgentProfileInclude:
 
 
 class TestDirectiveInclude:
-    def test_active_directive_slug_resolves_to_its_canonical_id(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_active_directive_slug_resolves_to_its_canonical_id(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """#3816: active directive slugs must work in the public include selector."""
         directive = SimpleNamespace(title="Boy Scout Rule", intent="Keep scope tidy.")
         _patch_service(
@@ -209,9 +193,7 @@ class TestDirectiveInclude:
             _StubService(directives=_StubRepo({"DIRECTIVE_025": directive})),
         )
 
-        text = build_charter_context_include(
-            tmp_path, "directive:025-boy-scout-rule"
-        )
+        text = build_charter_context_include(tmp_path, "directive:025-boy-scout-rule")
 
         assert "Directive DIRECTIVE_025: Boy Scout Rule" in text
 
@@ -222,9 +204,7 @@ class TestDirectiveInclude:
 
 
 class TestSiblingHyphenKinds:
-    def test_mission_step_contract_hyphen_resolves(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mission_step_contract_hyphen_resolves(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         contract = _DummyContract(
             action="implement",
             mission="software-dev",
@@ -232,14 +212,10 @@ class TestSiblingHyphenKinds:
         )
         _patch_service(
             monkeypatch,
-            _StubService(
-                mission_step_contracts=_StubRepo({"implement-contract": contract})
-            ),
+            _StubService(mission_step_contracts=_StubRepo({"implement-contract": contract})),
         )
 
-        text = build_charter_context_include(
-            tmp_path, "mission-step-contract:implement-contract"
-        )
+        text = build_charter_context_include(tmp_path, "mission-step-contract:implement-contract")
 
         assert "Mission step contract implement-contract: implement" in text
 
@@ -258,26 +234,20 @@ class TestTemplateInclude:
         monkeypatch.delenv("SPEC_KITTY_TEMPLATE_ROOT", raising=False)
         monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "empty-global-home"))
 
-        text = build_charter_context_include(
-            tmp_path, "template:software-dev/spec-template.md"
-        )
+        text = build_charter_context_include(tmp_path, "template:software-dev/spec-template.md")
 
         # The header names the mission-qualified id and the resolved tier; the
         # exact tier depends on the host (package_default vs a global mirror),
         # so assert on the stable prefix rather than a fixed tier.
         first_line = text.splitlines()[0]
-        assert first_line.startswith(
-            "Template software-dev/spec-template.md (tier: "
-        )
+        assert first_line.startswith("Template software-dev/spec-template.md (tier: ")
         # The resolved template body is appended after the header line.
         assert len(text.splitlines()) > 1
         assert "Mission Specification" in text
 
     def test_missing_template_fails_closed(self, tmp_path: Path) -> None:
         with pytest.raises(ValueError, match="No template found"):
-            build_charter_context_include(
-                tmp_path, "template:software-dev/does-not-exist.md"
-            )
+            build_charter_context_include(tmp_path, "template:software-dev/does-not-exist.md")
 
     def test_malformed_template_id_fails_closed(self, tmp_path: Path) -> None:
         with pytest.raises(ValueError, match="Malformed template selector"):
@@ -297,14 +267,10 @@ class TestTemplateInclude:
         # name reference), so the patch target must follow the code, not
         # stay on ``charter.activation.context`` (which merely re-exports the render
         # function for FR-009 test-import preservation).
-        monkeypatch.setattr(
-            template_include_module, "resolve_project_root", _raise_pack_config_error
-        )
+        monkeypatch.setattr(template_include_module, "resolve_project_root", _raise_pack_config_error)
 
         with pytest.raises(CharterPackConfigError, match="CHARTER_PACK_CONFIG_INVALID"):
-            build_charter_context_include(
-                tmp_path, "template:software-dev/spec-template.md"
-            )
+            build_charter_context_include(tmp_path, "template:software-dev/spec-template.md")
 
 
 # ---------------------------------------------------------------------------
@@ -332,18 +298,14 @@ class TestUnknownSelectors:
 
 
 class TestJsonEntryPoint:
-    def test_agent_profile_renders_in_json_context(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_agent_profile_renders_in_json_context(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from typer.testing import CliRunner
 
         from specify_cli.cli.commands.charter import charter_app
         import specify_cli.cli.commands.charter as charter_pkg
 
         _write_minimal_config(tmp_path)
-        profile = _DummyAgentProfile(
-            name="Python Pedro", purpose="p", roles=["implementer"]
-        )
+        profile = _DummyAgentProfile(name="Python Pedro", purpose="p", roles=["implementer"])
         _patch_service(
             monkeypatch,
             _StubService(agent_profiles=_StubRepo({"python-pedro": profile})),
@@ -402,10 +364,7 @@ def _built_in_directive_stems() -> list[str]:
     from charter.offering.artifact_kinds import ArtifactKind
     from charter.offering.pack_paths import built_in_dir
 
-    return sorted(
-        p.name.split(".")[0]
-        for p in built_in_dir(ArtifactKind.DIRECTIVE).glob("*.directive.yaml")
-    )
+    return sorted(p.name.split(".")[0] for p in built_in_dir(ArtifactKind.DIRECTIVE).glob("*.directive.yaml"))
 
 
 class TestDirectiveIncludeSlugParity:

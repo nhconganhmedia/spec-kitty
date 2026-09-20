@@ -175,10 +175,7 @@ def parse_and_validate_policy(raw_json: str) -> PolicyMetadata:
         if not isinstance(flag, str):
             raise ValueError("--policy.dangerous_flags entries must be strings")
         if flag in BANNED_FLAGS:
-            raise ValueError(
-                f"--policy.dangerous_flags contains a banned flag: {flag!r}. "
-                "Banned flags must never appear in orchestrator policy payloads."
-            )
+            raise ValueError(f"--policy.dangerous_flags contains a banned flag: {flag!r}. Banned flags must never appear in orchestrator policy payloads.")
 
     tool_restrictions = data.get("tool_restrictions")
     if tool_restrictions is not None and not isinstance(tool_restrictions, str):

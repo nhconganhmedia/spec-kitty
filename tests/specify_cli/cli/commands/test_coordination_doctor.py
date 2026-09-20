@@ -82,9 +82,7 @@ def test_tracked_worktrees_clean(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 
 
 def test_tracked_worktrees_flagged(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setattr(
-        subprocess, "check_output", lambda *a, **k: ".worktrees/m-coord/file.txt\n"
-    )
+    monkeypatch.setattr(subprocess, "check_output", lambda *a, **k: ".worktrees/m-coord/file.txt\n")
     out = cd._check_tracked_worktrees_content(tmp_path)
     assert out[0].severity == "error"
     assert out[0].error_code == "TRACKED_WORKTREES_CONTENT"
@@ -126,9 +124,7 @@ def test_coord_health_incomplete_meta() -> None:
     assert out[0].error_code == "COORDINATION_META_INCOMPLETE"
 
 
-def test_coord_health_missing_worktree(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_health_missing_worktree(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from specify_cli import coordination as coord_mod
 
     monkeypatch.setattr(
@@ -204,9 +200,7 @@ def test_run_coordination_health_not_in_project(monkeypatch: pytest.MonkeyPatch)
     assert exc.value.exit_code == 1
 
 
-def test_run_coordination_health_error_exit(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_error_exit(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "locate_project_root", lambda: tmp_path)
     # `run_coordination_health` now calls `_collect_coordination_findings` with
     # the `check_staleness` keyword unconditionally (E-1 fix: the closure that
@@ -222,9 +216,7 @@ def test_run_coordination_health_error_exit(
     assert exc.value.exit_code == 1
 
 
-def test_run_coordination_health_clean_exit(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_clean_exit(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "locate_project_root", lambda: tmp_path)
     # See test_run_coordination_health_error_exit above: the stub must accept
     # the `check_staleness` keyword now that the call is unconditional.
@@ -238,9 +230,7 @@ def test_run_coordination_health_clean_exit(
     assert exc.value.exit_code == 0
 
 
-def test_collect_findings_no_specs_dir(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_collect_findings_no_specs_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "_check_git_version", lambda: [])
     monkeypatch.setattr(cd, "_check_tracked_worktrees_content", lambda _r: [])
     # No kitty-specs dir → only the (stubbed-empty) repo-level checks.
@@ -289,9 +279,7 @@ def test_coord_health_healthy(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
 
     worktree = tmp_path / "coord"
     worktree.mkdir()
-    monkeypatch.setattr(
-        coord_mod.CoordinationWorkspace, "worktree_path", staticmethod(lambda *_a: worktree)
-    )
+    monkeypatch.setattr(coord_mod.CoordinationWorkspace, "worktree_path", staticmethod(lambda *_a: worktree))
     monkeypatch.setattr(branch_naming, "resolve_mid8", lambda *a, **k: "01ABCDEF")
     monkeypatch.setattr(cd, "_coord_worktree_head_finding", lambda *a: None)
     monkeypatch.setattr(cd, "_coord_worktree_dirty_finding", lambda *a: None)
@@ -320,9 +308,7 @@ def test_lane_sparse_file_relative(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
 # --- _check_lane_sparse_checkout_drift full loop -----------------------------
 
 
-def test_check_lane_drift_no_worktrees_dir(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_check_lane_drift_no_worktrees_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from specify_cli import coordination as coord_mod
     from specify_cli.lanes import branch_naming
 
@@ -333,9 +319,7 @@ def test_check_lane_drift_no_worktrees_dir(
     assert cd._check_lane_sparse_checkout_drift(tmp_path, meta) == []
 
 
-def test_check_lane_drift_all_clean(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_check_lane_drift_all_clean(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from specify_cli import coordination as coord_mod
     from specify_cli.lanes import branch_naming
 
@@ -353,9 +337,7 @@ def test_check_lane_drift_all_clean(
 # --- _collect_coordination_findings mission loop -----------------------------
 
 
-def test_collect_findings_iterates_missions(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_collect_findings_iterates_missions(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import json as _json
 
     specs = tmp_path / "kitty-specs"
@@ -365,7 +347,8 @@ def test_collect_findings_iterates_missions(
     monkeypatch.setattr(cd, "_check_git_version", lambda: [])
     monkeypatch.setattr(cd, "_check_tracked_worktrees_content", lambda _r: [])
     monkeypatch.setattr(
-        cd, "_check_coordination_worktree_health",
+        cd,
+        "_check_coordination_worktree_health",
         lambda _r, _m: [cd.DoctorFinding(severity="ok", message="coord")],
     )
     monkeypatch.setattr(cd, "_check_lane_sparse_checkout_drift", lambda _r, _m: [])
@@ -373,9 +356,7 @@ def test_collect_findings_iterates_missions(
     assert any(f.message == "coord" for f in out)
 
 
-def test_collect_findings_unstattable_mission_candidate_is_not_silently_skipped(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_collect_findings_unstattable_mission_candidate_is_not_silently_skipped(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """`#3194`: the `mission_dir.is_dir()` filter must not use the EACCES-divergent
     predicate.
 
@@ -439,10 +420,6 @@ def test_apply_coord_staleness_fixes_unstattable_mission_candidate_is_not_silent
 
 
 # --- H2 / cycle invariants ---------------------------------------------------
-
-
-
-
 
 
 # --- _fix_never_created_branches ---------------------------------------------
@@ -510,28 +487,26 @@ def test_fix_is_idempotent_when_key_already_absent(tmp_path: Path) -> None:
 # --- _collect_coordination_findings injects meta_path -----------------------
 
 
-def test_collect_injects_meta_path_for_never_created_findings(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_collect_injects_meta_path_for_never_created_findings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """_collect_coordination_findings stamps meta_path on COORDINATION_WORKTREE_NEVER_CREATED."""
     import json
 
     specs = tmp_path / "kitty-specs" / "demo-01AB"
     specs.mkdir(parents=True)
-    (specs / "meta.json").write_text(
-        json.dumps({"mission_slug": "demo-01AB", "coordination_branch": "kitty/mission-demo-01AB"})
-    )
+    (specs / "meta.json").write_text(json.dumps({"mission_slug": "demo-01AB", "coordination_branch": "kitty/mission-demo-01AB"}))
 
     monkeypatch.setattr(cd, "_check_git_version", lambda: [])
     monkeypatch.setattr(cd, "_check_tracked_worktrees_content", lambda _r: [])
     monkeypatch.setattr(
         cd,
         "_check_coordination_worktree_health",
-        lambda _r, _m: [cd.DoctorFinding(
-            severity="warning",
-            message="never created",
-            error_code="COORDINATION_WORKTREE_NEVER_CREATED",
-        )],
+        lambda _r, _m: [
+            cd.DoctorFinding(
+                severity="warning",
+                message="never created",
+                error_code="COORDINATION_WORKTREE_NEVER_CREATED",
+            )
+        ],
     )
     monkeypatch.setattr(cd, "_check_lane_sparse_checkout_drift", lambda _r, _m: [])
 
@@ -559,16 +534,12 @@ _DOCTOR_EVENTS_REL = f"kitty-specs/{_DOCTOR_MISSION_SLUG}/status.events.jsonl"
 
 
 def _git_doctor(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True)
 
 
 def _init_doctor_repo(repo: Path) -> None:
     repo.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        ["git", "init", "-qb", "main", str(repo)], check=True, capture_output=True
-    )
+    subprocess.run(["git", "init", "-qb", "main", str(repo)], check=True, capture_output=True)
     _git_doctor(repo, "config", "user.email", "test@test.com")
     _git_doctor(repo, "config", "user.name", "Test")
     _git_doctor(repo, "config", "commit.gpgsign", "false")
@@ -577,9 +548,7 @@ def _init_doctor_repo(repo: Path) -> None:
     _git_doctor(repo, "commit", "-m", "init")
 
 
-def _doctor_event(
-    wp_id: str, to_lane: str, *, event_id: str, from_lane: str
-) -> dict[str, object]:
+def _doctor_event(wp_id: str, to_lane: str, *, event_id: str, from_lane: str) -> dict[str, object]:
     return {
         "actor": "reviewer-renata",
         "at": "2026-07-18T10:00:00+00:00",
@@ -596,9 +565,7 @@ def _doctor_event(
     }
 
 
-def _seed_doctor_coord_ref(
-    repo: Path, events: list[dict[str, object]], *, branch: str = "coord"
-) -> None:
+def _seed_doctor_coord_ref(repo: Path, events: list[dict[str, object]], *, branch: str = "coord") -> None:
     """Init ``repo`` and commit ``events`` as the mission's coord event log on ``branch``.
 
     The mission meta deliberately omits ``coordination_branch`` (legacy shape) so
@@ -693,9 +660,7 @@ def test_stranded_check_emits_error_for_live_strand(tmp_path: Path) -> None:
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_run_coordination_health_json_exits_1_on_live_strand(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_run_coordination_health_json_exits_1_on_live_strand(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """`doctor coordination --json` exits 1 and surfaces the stable error_code."""
     repo = tmp_path / "repo"
     _seed_doctor_coord_ref(
@@ -750,9 +715,7 @@ def test_stranded_check_no_finding_for_stale_marker_over_coherent_ref(
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_run_coordination_health_exits_0_for_stale_marker(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_exits_0_for_stale_marker(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The entrypoint exits 0 when every marker's ref re-derives coherent."""
     repo = tmp_path / "repo"
     _seed_doctor_coord_ref(
@@ -859,9 +822,7 @@ def _committed_coord_events(repo: Path) -> bytes:
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_run_coordination_health_fix_heals_dirty_coord_worktree(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_fix_heals_dirty_coord_worktree(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """`--fix` heals a strand whose coord worktree is DIRTY (the HIGH, #2786/#2367-B).
 
     The realistic post-rollback state: the coord worktree's WORKING
@@ -888,9 +849,7 @@ def test_run_coordination_health_fix_heals_dirty_coord_worktree(
 
     # Preconditions: the coord worktree is genuinely DIRTY and WP-A is stranded done.
     assert _porcelain(worktree), "fixture precondition: coord worktree must be dirty"
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == ["WP-A"]
+    assert coord_incoherent_done_wps("coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == ["WP-A"]
 
     monkeypatch.setattr(cd, "locate_project_root", lambda: repo)
     monkeypatch.setattr(cd, "_check_git_version", lambda: [])
@@ -901,9 +860,7 @@ def test_run_coordination_health_fix_heals_dirty_coord_worktree(
 
     # Healed: exit 0, committed ref coherent, worktree clean, marker cleared.
     assert exc.value.exit_code == 0
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == []
+    assert coord_incoherent_done_wps("coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == []
     assert _porcelain(worktree) == "", "the heal must leave the coord worktree clean"
     healed_state = load_state(repo, _DOCTOR_MISSION_ID)
     assert healed_state is not None
@@ -912,9 +869,7 @@ def test_run_coordination_health_fix_heals_dirty_coord_worktree(
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_run_coordination_health_fix_heals_then_is_idempotent(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_fix_heals_then_is_idempotent(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """`--fix` reverts the strand, clears the marker, and re-running is byte-stable."""
     repo = tmp_path / "repo"
     _seed_doctor_coord_ref(
@@ -931,9 +886,7 @@ def test_run_coordination_health_fix_heals_then_is_idempotent(
     feature_dir = repo / "kitty-specs" / _DOCTOR_MISSION_SLUG
 
     # Pre-condition: WP-A is genuinely stranded done on the committed ref.
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == ["WP-A"]
+    assert coord_incoherent_done_wps("coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == ["WP-A"]
 
     monkeypatch.setattr(cd, "locate_project_root", lambda: repo)
     monkeypatch.setattr(cd, "_check_git_version", lambda: [])
@@ -943,9 +896,7 @@ def test_run_coordination_health_fix_heals_then_is_idempotent(
     with pytest.raises(typer.Exit) as exc:
         cd.run_coordination_health(json_output=True, fix=True)
     assert exc.value.exit_code == 0
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == []
+    assert coord_incoherent_done_wps("coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == []
     # Marker cleared exactly once.
     healed_state = load_state(repo, _DOCTOR_MISSION_ID)
     assert healed_state is not None
@@ -1111,9 +1062,7 @@ def test_stranded_check_folds_bare_handle_to_canonical_feature_dir(
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_stranded_check_bare_handle_false_negative_under_raw_resolver(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_stranded_check_bare_handle_false_negative_under_raw_resolver(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Non-vacuity guard: the SAME fixture yields ZERO findings under the raw resolver.
 
     Simulates the pre-fix code path by swapping the canonicalizing
@@ -1326,9 +1275,7 @@ def _seed_mission_meta(specs: Path, slug: str, mission_id: str) -> None:
     )
 
 
-def test_collect_findings_mission_filter_scopes_to_one(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_collect_findings_mission_filter_scopes_to_one(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """`_collect_coordination_findings(mission_filter=...)` scopes the kitty-specs
     iteration to the single mission the shared resolver maps the handle to (#2696,
     FR-012). Assert on the specific per-mission finding, not exit codes."""
@@ -1343,9 +1290,7 @@ def test_collect_findings_mission_filter_scopes_to_one(
     monkeypatch.setattr(
         cd,
         "_check_coordination_worktree_health",
-        lambda _r, m: [
-            cd.DoctorFinding(severity="warning", message=f"coord:{m['mission_slug']}")
-        ],
+        lambda _r, m: [cd.DoctorFinding(severity="warning", message=f"coord:{m['mission_slug']}")],
     )
 
     scoped = cd._collect_coordination_findings(tmp_path, mission_filter="084-beta")
@@ -1359,9 +1304,7 @@ def test_collect_findings_mission_filter_scopes_to_one(
     assert "coord:083-alpha" in unscoped_messages
 
 
-def test_run_coordination_health_mission_not_found_exits_1(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_mission_not_found_exits_1(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """An unresolvable `--mission` handle fails closed with exit 1 (mission-state parity)."""
     (tmp_path / "kitty-specs").mkdir()
     monkeypatch.setattr(cd, "locate_project_root", lambda: tmp_path)
@@ -1370,9 +1313,7 @@ def test_run_coordination_health_mission_not_found_exits_1(
     assert exc.value.exit_code == 1
 
 
-def test_run_coordination_health_mission_not_found_json_envelope(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_run_coordination_health_mission_not_found_json_envelope(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """`--json` unresolvable-handle emits a JSON error envelope (mission-state parity)."""
     (tmp_path / "kitty-specs").mkdir()
     monkeypatch.setattr(cd, "locate_project_root", lambda: tmp_path)
@@ -1386,9 +1327,7 @@ def test_run_coordination_health_mission_not_found_json_envelope(
     assert payload["handle"] == "nope"
 
 
-def test_run_coordination_health_ambiguous_handle_exits_1(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_coordination_health_ambiguous_handle_exits_1(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """An ambiguous `--mission` handle fails closed with exit 1 (mission-state parity)."""
     specs = tmp_path / "kitty-specs"
     # Two missions sharing the same human slug (differ only by numeric prefix)

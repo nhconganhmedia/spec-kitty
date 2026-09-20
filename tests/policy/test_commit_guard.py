@@ -13,6 +13,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 
+
 class TestBranchDetection:
     def test_lane_branch(self):
         assert is_implementation_branch("kitty/mission-057-feat-lane-a") is True
@@ -168,8 +169,7 @@ class TestOwnershipEnforcement:
                 context_source="canonical_status",
                 diagnostic_code="ACTIVE_WP_CONTEXT_AMBIGUOUS",
                 diagnostic_message=(
-                    "ACTIVE_WP_CONTEXT_AMBIGUOUS: Cannot prove active WP for branch "
-                    "kitty/mission-057-feat-lane-a; lane_id=lane-a; active candidates: WP01, WP04"
+                    "ACTIVE_WP_CONTEXT_AMBIGUOUS: Cannot prove active WP for branch kitty/mission-057-feat-lane-a; lane_id=lane-a; active candidates: WP01, WP04"
                 ),
             ),
         )
@@ -195,19 +195,19 @@ class TestOwnershipEnforcement:
         )
 
         assert result.allowed is False
-        assert result.violations == [
-            "ACTIVE_WP_OWNERSHIP_MISSING: active_wp=WP04 has no owned_files; lane_id=lane-a; context_source=canonical_status"
-        ]
+        assert result.violations == ["ACTIVE_WP_OWNERSHIP_MISSING: active_wp=WP04 has no owned_files; lane_id=lane-a; context_source=canonical_status"]
 
 
 class TestHookInstaller:
     def test_install_creates_hook(self, tmp_path):
         import subprocess
+
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", str(repo)], capture_output=True, check=True)
 
         from specify_cli.policy.hook_installer import install_commit_guard
+
         hook_path = install_commit_guard(repo, repo)
 
         assert hook_path is not None
@@ -216,11 +216,13 @@ class TestHookInstaller:
 
     def test_install_is_idempotent(self, tmp_path):
         import subprocess
+
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "init", str(repo)], capture_output=True, check=True)
 
         from specify_cli.policy.hook_installer import install_commit_guard
+
         path1 = install_commit_guard(repo, repo)
         path2 = install_commit_guard(repo, repo)
         assert path1 == path2

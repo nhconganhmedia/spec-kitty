@@ -23,6 +23,7 @@ pytestmark = pytest.mark.fast
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
+
 # T068: Test Framework Detection
 def test_detect_sphinx_framework(tmp_path):
     """Test detects Sphinx from conf.py."""
@@ -383,9 +384,7 @@ def test_gap_analysis_dataclass():
     assert isinstance(analysis.analysis_date, datetime)
 
 
-def test_analyze_documentation_gaps_analysis_date_is_aware_utc(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_analyze_documentation_gaps_analysis_date_is_aware_utc(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-011 (kernel-clock-single-door, WP13c): ``analyze_documentation_gaps``
     stamps ``analysis_date`` via the door's aware-UTC ``now_utc()``, not a
     naive local ``datetime.now()``.

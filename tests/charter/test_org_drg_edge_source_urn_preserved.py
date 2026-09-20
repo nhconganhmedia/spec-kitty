@@ -69,23 +69,17 @@ class TestShippedEdgeSourceUrnPreservedAfterMerge:
         built_in = _built_in_with_edge("directive:alpha", "directive:beta")
         merged = merge_three_layers(built_in=built_in, org_fragments=[], project=None)
 
-        assert {(e.source, e.target) for e in merged.edges} == {
-            ("directive:alpha", "directive:beta")
-        }, "edge must survive the merge"
+        assert {(e.source, e.target) for e in merged.edges} == {("directive:alpha", "directive:beta")}, "edge must survive the merge"
         edge = merged.edges[0]
 
         # The declared Pydantic field must still hold the URN — not the
         # provenance marker.  Before the fix this was "built-in".
-        assert edge.source == "directive:alpha", (
-            f"DRGEdge.source was corrupted by _tag_source: got {edge.source!r}"
-        )
+        assert edge.source == "directive:alpha", f"DRGEdge.source was corrupted by _tag_source: got {edge.source!r}"
         assert edge.target == "directive:beta"
 
         # Provenance must be on the sidecar attribute, NOT on .source
         assert getattr(edge, "provenance", None) == "built-in"
-        assert getattr(edge, "source", None) != "built-in", (
-            "edge.source must be the URN, not the provenance marker"
-        )
+        assert getattr(edge, "source", None) != "built-in", "edge.source must be the URN, not the provenance marker"
 
     def test_shipped_graph_with_edge_validates_after_merge(self) -> None:
         """The merged graph must be Pydantic-valid (no corrupted enum fields)."""
@@ -129,9 +123,7 @@ class TestOrgBridgeEdgeSourceUrnPreserved:
                 ],
             }
         )
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[fragment], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
 
         org_edges = list(merged.edges)
         assert len(org_edges) == 1, "org edge must be bridged into the merged graph"
@@ -139,14 +131,10 @@ class TestOrgBridgeEdgeSourceUrnPreserved:
 
         # Before the fix, edge.source was "org:acme" (the pack provenance).
         # After the fix, edge.source must be the resolved URN.
-        assert edge.source.startswith("directive:") or edge.source.startswith(
-            "tactic:"
-        ), (
+        assert edge.source.startswith("directive:") or edge.source.startswith("tactic:"), (
             f"edge.source should be a URN, not a provenance marker; got {edge.source!r}"
         )
-        assert edge.source != "org:acme", (
-            "edge.source must not be the pack name (provenance marker)"
-        )
+        assert edge.source != "org:acme", "edge.source must not be the pack name (provenance marker)"
 
         # Provenance lives on the sidecar, not on the declared field.
         assert getattr(edge, "provenance", None) == "org:acme"
@@ -169,10 +157,5 @@ class TestDanglingSourceValidatorOnMergedGraph:
         checker = ReferenceIntegrityChecker()
         findings = checker.run(merged, feature_scope=None)
 
-        dangling_source_findings = [
-            f for f in findings if f.type == "dangling_edge"
-        ]
-        assert not dangling_source_findings, (
-            f"merge_three_layers produced false-positive dangling edges: "
-            f"{dangling_source_findings}"
-        )
+        dangling_source_findings = [f for f in findings if f.type == "dangling_edge"]
+        assert not dangling_source_findings, f"merge_three_layers produced false-positive dangling edges: {dangling_source_findings}"

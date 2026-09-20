@@ -41,10 +41,7 @@ _ROOT_PATH: Final[Path] = _REPO_ROOT / "CHANGELOG.md"
 #: The exact link target the root symlink must carry (relative, POSIX form).
 SYMLINK_TARGET: Final[str] = "docs/changelog/CHANGELOG.md"
 
-_DRIFT_MESSAGE: Final[str] = (
-    "CHANGELOG layout drift: {root} must be a symlink to {target}.\n"
-    "Fix: python scripts/docs/sync_changelog.py --write"
-)
+_DRIFT_MESSAGE: Final[str] = "CHANGELOG layout drift: {root} must be a symlink to {target}.\nFix: python scripts/docs/sync_changelog.py --write"
 
 
 def check(root: Path | None = None, canonical: Path | None = None) -> int:
@@ -72,9 +69,7 @@ def write(root: Path | None = None, target: str | None = None) -> int:
 
 def main() -> int:
     """Entry point for ``--check`` / ``--write`` CLI."""
-    parser = argparse.ArgumentParser(
-        description="Guard the root CHANGELOG.md symlink to docs/changelog/CHANGELOG.md."
-    )
+    parser = argparse.ArgumentParser(description="Guard the root CHANGELOG.md symlink to docs/changelog/CHANGELOG.md.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--check",

@@ -54,9 +54,7 @@ def _seed_legacy_project_log(project_path: Path, *, project_uuid: str) -> None:
     emit_project_initialized(project_path, project_uuid=project_uuid, project_slug="demo")
 
 
-def _seed_legacy_mission_log(
-    project_path: Path, *, project_uuid: str, slug: str = _MISSION_SLUG
-) -> Path:
+def _seed_legacy_mission_log(project_path: Path, *, project_uuid: str, slug: str = _MISSION_SLUG) -> Path:
     """Write one genuine legacy ``WPCreated`` row via the real emitter.
 
     Returns the created mission ``feature_dir``.
@@ -95,9 +93,7 @@ def test_apply_migrates_project_and_mission_logs(tmp_path: Path) -> None:
     assert "aggregate_type" not in project_entries[0]
     assert "node_id" in project_entries[0]
 
-    mission_entries = read_lifecycle_events(
-        mission_event_log_path(tmp_path / "kitty-specs" / _MISSION_SLUG)
-    )
+    mission_entries = read_lifecycle_events(mission_event_log_path(tmp_path / "kitty-specs" / _MISSION_SLUG))
     assert len(mission_entries) == 1
     assert mission_entries[0]["schema_version"] == "3.0.0"
     assert "aggregate_type" not in mission_entries[0]
@@ -195,8 +191,6 @@ def test_migration_is_auto_discovered_and_registered() -> None:
     auto_discover_migrations()
 
     migration = MigrationRegistry.get_by_id(_THIS_MIGRATION_ID)
-    assert migration is not None, (
-        "migrate_lifecycle_envelope must be auto-discovered and registered"
-    )
+    assert migration is not None, "migrate_lifecycle_envelope must be auto-discovered and registered"
     assert migration.target_version == "3.2.6rc2"
     assert migration.runs_on_worktrees is False

@@ -34,8 +34,7 @@ def _build_feature(tmp_path: Path, *, owned_file: str) -> Path:
         encoding="utf-8",
     )
     (feature_dir / "tasks.md").write_text(
-        "## WP01\n"
-        "**Requirement Refs**: FR-001\n",
+        "## WP01\n**Requirement Refs**: FR-001\n",
         encoding="utf-8",
     )
     (tasks_dir / "WP01-invalid.md").write_text(
@@ -166,9 +165,6 @@ def test_validate_only_json_suppresses_ownership_stderr_on_error(tmp_path: Path)
     assert result.exit_code == 1
     commit_for_mission.assert_not_called()
     payload = _strict_json_payload(result.stdout)
-    assert payload["error"] == (
-        "Ownership validation failed: literal-path owned_files entries match zero files. "
-        "Fix the paths or add them to 'create_intent'."
-    )
+    assert payload["error"] == ("Ownership validation failed: literal-path owned_files entries match zero files. Fix the paths or add them to 'create_intent'.")
     assert payload["ownership_literal_path_errors"]
     assert result.stderr == ""

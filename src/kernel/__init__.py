@@ -58,4 +58,3 @@ __all__: list[str] = [
     "MISSION_ASSETS_SIBLING_PATTERN",
     "get_built_in_pack_root",
 ]
-

@@ -111,7 +111,7 @@ def _pre_schema_still_present(invariant_id: str) -> dict[str, Any]:
         "invariant_id": invariant_id,
         "description": "Legacy shim namespace must be fully removed.",
         "verification_method": "custom_command",
-        "verification_command": ".venv/bin/python -c \"import sys; sys.exit(1)\"",
+        "verification_command": '.venv/bin/python -c "import sys; sys.exit(1)"',
         "result": "still_present",
         "evidence": "Command exited 1: ",
     }
@@ -670,9 +670,7 @@ def test_cli_exits_nonzero_on_unparseable_matrix(tmp_path: Path) -> None:
     reported, never auto-archived — see the module-level error tests above)."""
     feature_dir = tmp_path / "kitty-specs" / "broken-mission-01KY0006"
     feature_dir.mkdir(parents=True)
-    (feature_dir / "acceptance-matrix.json").write_text(
-        "{ not valid json", encoding="utf-8"
-    )
+    (feature_dir / "acceptance-matrix.json").write_text("{ not valid json", encoding="utf-8")
 
     result = CliRunner().invoke(
         migrate_app,

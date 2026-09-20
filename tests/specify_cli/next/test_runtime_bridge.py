@@ -71,9 +71,7 @@ def test_is_run_affecting_matches_expected_routing():
     }
     for lane, expected_value in expected.items():
         state = wp_state_for(lane)
-        assert state.is_run_affecting == expected_value, (
-            f"Lane {lane!r}: expected is_run_affecting={expected_value}, got {state.is_run_affecting}"
-        )
+        assert state.is_run_affecting == expected_value, f"Lane {lane!r}: expected is_run_affecting={expected_value}, got {state.is_run_affecting}"
 
 
 # ---------------------------------------------------------------------------
@@ -104,20 +102,24 @@ def _write_status_events(
     # Build events: planned -> (claimed) -> actual_lane for each WP
     for wp_id, final_lane in wp_lanes.items():
         # Always start with planned
-        lines.append(json.dumps({
-            "actor": "test",
-            "at": "2026-04-09T00:00:00+00:00",
-            "event_id": f"01TEST{wp_id}PLANNED",
-            "evidence": None,
-            "execution_mode": "worktree",
-            "feature_slug": "test-feature",
-            "force": False,
-            "from_lane": "planned",
-            "reason": None,
-            "review_ref": None,
-            "to_lane": "planned",
-            "wp_id": wp_id,
-        }))
+        lines.append(
+            json.dumps(
+                {
+                    "actor": "test",
+                    "at": "2026-04-09T00:00:00+00:00",
+                    "event_id": f"01TEST{wp_id}PLANNED",
+                    "evidence": None,
+                    "execution_mode": "worktree",
+                    "feature_slug": "test-feature",
+                    "force": False,
+                    "from_lane": "planned",
+                    "reason": None,
+                    "review_ref": None,
+                    "to_lane": "planned",
+                    "wp_id": wp_id,
+                }
+            )
+        )
         if final_lane != _Lane.PLANNED:
             event: dict[str, object] = {
                 "actor": "test",
@@ -167,6 +169,7 @@ def test_should_advance_implement_all_for_review(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.FOR_REVIEW, "WP02": Lane.FOR_REVIEW})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
 
 
@@ -177,6 +180,7 @@ def test_should_advance_implement_all_approved(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.APPROVED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
 
 
@@ -188,6 +192,7 @@ def test_should_advance_implement_all_done(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.DONE, "WP02": Lane.DONE})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
 
 
@@ -199,6 +204,7 @@ def test_should_not_advance_implement_one_in_progress(feature_dir: Path) -> None
     _write_status_events(feature_dir, {"WP01": Lane.FOR_REVIEW, "WP02": Lane.IN_PROGRESS})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is False
 
 
@@ -210,6 +216,7 @@ def test_should_not_advance_implement_one_planned(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.FOR_REVIEW, "WP02": Lane.PLANNED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is False
 
 
@@ -220,6 +227,7 @@ def test_should_not_advance_implement_one_claimed(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.CLAIMED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is False
 
 
@@ -230,6 +238,7 @@ def test_should_not_advance_implement_one_in_review(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.IN_REVIEW})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is False
 
 
@@ -241,6 +250,7 @@ def test_should_not_advance_implement_one_blocked(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.FOR_REVIEW, "WP02": Lane.BLOCKED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is False
 
 
@@ -252,6 +262,7 @@ def test_should_advance_implement_one_synthetic_canceled(feature_dir: Path) -> N
     _write_status_events(feature_dir, {"WP01": Lane.FOR_REVIEW, "WP02": Lane.CANCELED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
 
 
@@ -297,6 +308,7 @@ def test_should_advance_review_all_approved(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.APPROVED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("review", feature_dir) is True
 
 
@@ -307,6 +319,7 @@ def test_should_advance_review_all_done(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.DONE})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("review", feature_dir) is True
 
 
@@ -317,6 +330,7 @@ def test_should_not_advance_review_one_for_review(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.FOR_REVIEW})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("review", feature_dir) is False
 
 
@@ -328,6 +342,7 @@ def test_should_not_advance_review_one_in_review(feature_dir: Path) -> None:
     _write_status_events(feature_dir, {"WP01": Lane.APPROVED, "WP02": Lane.IN_REVIEW})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("review", feature_dir) is False
 
 
@@ -345,6 +360,7 @@ def test_should_advance_review_canceled_with_operator_provenance(feature_dir: Pa
     )
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("review", feature_dir) is True
 
 
@@ -362,6 +378,7 @@ def test_should_advance_implement_canceled_with_operator_provenance(feature_dir:
     )
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
 
 
@@ -376,6 +393,7 @@ def test_should_not_advance_review_synthetic_cancellation(feature_dir: Path) -> 
     _write_status_events(feature_dir, {"WP01": Lane.CANCELED})  # no provenance -> synthetic
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("review", feature_dir) is False
 
 
@@ -388,12 +406,14 @@ def test_should_advance_implement_synthetic_cancellation(feature_dir: Path) -> N
     _write_status_events(feature_dir, {"WP01": Lane.CANCELED})
 
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
 
 
 def test_should_advance_no_wps(feature_dir: Path) -> None:
     """Both steps advance when there are no WP files (no work to iterate)."""
     from runtime.next.runtime_bridge import _should_advance_wp_step
+
     assert _should_advance_wp_step("implement", feature_dir) is True
     assert _should_advance_wp_step("review", feature_dir) is True
 

@@ -47,6 +47,7 @@ pays at most one subprocess per distinct checkout. Exceptions are never cached
 (``lru_cache`` re-runs after a raise), so a not-a-repo path that later becomes a
 repo resolves correctly on the next call.
 """
+
 from __future__ import annotations
 
 import subprocess

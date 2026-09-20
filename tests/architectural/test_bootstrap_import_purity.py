@@ -169,10 +169,8 @@ def test_transitive_imports_are_stdlib_kernel_or_core_env_only() -> None:
             if not _is_allowed_root(target):
                 violations.append((module, target))
 
-    assert violations == [], (
-        f"disallowed import(s) reachable from {_ENTRY_MODULE} (allowed: stdlib, "
-        f"{_ALLOWED_NON_STDLIB_PREFIXES}):\n"
-        + "\n".join(f"  {module} imports {target!r}" for module, target in violations)
+    assert violations == [], f"disallowed import(s) reachable from {_ENTRY_MODULE} (allowed: stdlib, {_ALLOWED_NON_STDLIB_PREFIXES}):\n" + "\n".join(
+        f"  {module} imports {target!r}" for module, target in violations
     )
 
 
@@ -190,7 +188,6 @@ def test_no_transitively_reachable_module_reads_os_environ_at_import_time() -> N
         for lineno in _module_level_environ_access_lines(_parse(path)):
             violations.append((module, lineno))
 
-    assert violations == [], (
-        f"import-time os.environ/os.getenv access reachable from {_ENTRY_MODULE}:\n"
-        + "\n".join(f"  {module}:{lineno}" for module, lineno in violations)
+    assert violations == [], f"import-time os.environ/os.getenv access reachable from {_ENTRY_MODULE}:\n" + "\n".join(
+        f"  {module}:{lineno}" for module, lineno in violations
     )

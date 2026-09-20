@@ -30,6 +30,7 @@ from specify_cli.workspace.root_resolver import (
 
 pytestmark = [pytest.mark.contract, pytest.mark.git_repo]
 
+
 def _git(cwd: Path, *args: str) -> str:
     result = subprocess.run(
         ["git", *args],
@@ -109,9 +110,7 @@ def test_emit_from_worktree_writes_to_canonical_repo(tmp_path: Path) -> None:
         "to_lane": "planned",
         "wp_id": "WP01",
     }
-    (canonical_feature_dir / "status.events.jsonl").write_text(
-        json.dumps(seed_event, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (canonical_feature_dir / "status.events.jsonl").write_text(json.dumps(seed_event, sort_keys=True) + "\n", encoding="utf-8")
 
     worktree = tmp_path / "wt-feature"
     _git(repo, "worktree", "add", "-b", "feature", str(worktree))
@@ -137,9 +136,7 @@ def test_emit_from_worktree_writes_to_canonical_repo(tmp_path: Path) -> None:
     worktree_log = worktree_feature_dir / "status.events.jsonl"
 
     assert canonical_log.exists(), "canonical event log must exist"
-    canonical_lines = [
-        line for line in canonical_log.read_text(encoding="utf-8").splitlines() if line
-    ]
+    canonical_lines = [line for line in canonical_log.read_text(encoding="utf-8").splitlines() if line]
     # genesis->planned seed + the planned->claimed transition under test.
     assert len(canonical_lines) == 2
     payload = json.loads(canonical_lines[-1])
@@ -148,11 +145,5 @@ def test_emit_from_worktree_writes_to_canonical_repo(tmp_path: Path) -> None:
 
     if worktree_log.exists():
         # Permissible only if it is empty / does not contain the new event.
-        worktree_lines = [
-            line
-            for line in worktree_log.read_text(encoding="utf-8").splitlines()
-            if line
-        ]
-        assert worktree_lines == [], (
-            "emit must not write to the stale worktree-local event log"
-        )
+        worktree_lines = [line for line in worktree_log.read_text(encoding="utf-8").splitlines() if line]
+        assert worktree_lines == [], "emit must not write to the stale worktree-local event log"

@@ -187,13 +187,9 @@ class TestFreshlyCompiledPackSelectorResolves:
     def _write_fresh_pack_charter_md(self, tmp_path: Path) -> None:
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
-        (charter_dir / "charter.md").write_text(
-            _CHARTER_MD_COMPANION_SEED, encoding="utf-8"
-        )
+        (charter_dir / "charter.md").write_text(_CHARTER_MD_COMPANION_SEED, encoding="utf-8")
 
-    def test_terminology_canon_selector_resolves_against_fresh_pack(
-        self, tmp_path: Path
-    ) -> None:
+    def test_terminology_canon_selector_resolves_against_fresh_pack(self, tmp_path: Path) -> None:
         self._write_fresh_pack_charter_md(tmp_path)
 
         result = build_charter_context_include(tmp_path, "section:terminology-canon")
@@ -202,14 +198,10 @@ class TestFreshlyCompiledPackSelectorResolves:
         assert result
         assert TERMINOLOGY_CANON in result
 
-    def test_code_review_checklist_selector_resolves_against_fresh_pack(
-        self, tmp_path: Path
-    ) -> None:
+    def test_code_review_checklist_selector_resolves_against_fresh_pack(self, tmp_path: Path) -> None:
         self._write_fresh_pack_charter_md(tmp_path)
 
-        result = build_charter_context_include(
-            tmp_path, "section:code-review-checklist"
-        )
+        result = build_charter_context_include(tmp_path, "section:code-review-checklist")
 
         assert isinstance(result, str)
         assert result

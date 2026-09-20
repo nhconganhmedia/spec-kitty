@@ -81,8 +81,9 @@ def test_glossary_pack_definitions_have_disambiguation_guard(glossary_terms: dic
     """Each pack definition must include a "Do NOT confuse with" guard clause."""
     for term in REQUIRED_TERMS:
         definition = glossary_terms[term].get("definition", "")
-        assert "Do NOT confuse with" in definition or "do NOT confuse with" in definition, \
+        assert "Do NOT confuse with" in definition or "do NOT confuse with" in definition, (
             f"Term '{term}' in glossary pack lacks 'Do NOT confuse with' guard clause"
+        )
 
 
 def test_orchestration_md_definitions_have_disambiguation_guard(orchestration_md_path: Path) -> None:
@@ -100,14 +101,12 @@ def test_orchestration_md_definitions_have_disambiguation_guard(orchestration_md
         next_separator_idx = content.find("\n---", heading_idx + 1)
 
         # Find the end of this term's section
-        end_idx = min(
-            x for x in [next_heading_idx, next_separator_idx, len(content)]
-            if x > heading_idx
-        )
+        end_idx = min(x for x in [next_heading_idx, next_separator_idx, len(content)] if x > heading_idx)
 
         section = content[heading_idx:end_idx]
-        assert "Do NOT confuse with" in section or "do NOT confuse with" in section, \
+        assert "Do NOT confuse with" in section or "do NOT confuse with" in section, (
             f"Orchestration.md section for '{term}' lacks 'Do NOT confuse with' guard clause"
+        )
 
 
 def test_no_phantom_semantic_gate_reference(glossary_terms: dict, orchestration_md_path: Path) -> None:
@@ -115,8 +114,7 @@ def test_no_phantom_semantic_gate_reference(glossary_terms: dict, orchestration_
     # Check glossary pack
     for term in REQUIRED_TERMS:
         definition = glossary_terms[term].get("definition", "")
-        assert PHANTOM_SENSE not in definition.lower(), \
-            f"Glossary pack term '{term}' incorrectly references phantom '{PHANTOM_SENSE}'"
+        assert PHANTOM_SENSE not in definition.lower(), f"Glossary pack term '{term}' incorrectly references phantom '{PHANTOM_SENSE}'"
 
     # Check orchestration.md
     content = orchestration_md_path.read_text()
@@ -126,14 +124,10 @@ def test_no_phantom_semantic_gate_reference(glossary_terms: dict, orchestration_
 
         next_heading_idx = content.find("\n### ", heading_idx + 1)
         next_separator_idx = content.find("\n---", heading_idx + 1)
-        end_idx = min(
-            x for x in [next_heading_idx, next_separator_idx, len(content)]
-            if x > heading_idx
-        )
+        end_idx = min(x for x in [next_heading_idx, next_separator_idx, len(content)] if x > heading_idx)
 
         section = content[heading_idx:end_idx].lower()
-        assert PHANTOM_SENSE not in section, \
-            f"Orchestration.md section for '{term}' incorrectly references phantom '{PHANTOM_SENSE}'"
+        assert PHANTOM_SENSE not in section, f"Orchestration.md section for '{term}' incorrectly references phantom '{PHANTOM_SENSE}'"
 
 
 def test_five_real_senses_referenced_in_guards(glossary_terms: dict) -> None:
@@ -142,12 +136,8 @@ def test_five_real_senses_referenced_in_guards(glossary_terms: dict) -> None:
         definition = glossary_terms[term].get("definition", "").lower()
 
         # At least some of the five senses should be mentioned in the guard
-        senses_mentioned = sum(
-            1 for sense in REAL_GATE_SENSES
-            if sense.lower() in definition
-        )
-        assert senses_mentioned >= 2, \
-            f"Term '{term}' definition should reference multiple real gate senses; found {senses_mentioned}"
+        senses_mentioned = sum(1 for sense in REAL_GATE_SENSES if sense.lower() in definition)
+        assert senses_mentioned >= 2, f"Term '{term}' definition should reference multiple real gate senses; found {senses_mentioned}"
 
 
 def test_pack_and_orchestration_md_consistency(glossary_terms: dict, orchestration_md_path: Path) -> None:
@@ -172,8 +162,7 @@ def test_no_legacy_feature_casing_in_new_terms(glossary_terms: dict, orchestrati
     for term in REQUIRED_TERMS:
         definition = glossary_terms[term].get("definition", "")
         # Reject standalone 'Feature' or 'feature' (allow only in quotes/context)
-        assert not re.search(r'\bFeature\b(?!.*\()', definition), \
-            f"Glossary pack term '{term}' contains forbidden 'Feature' (use 'Mission')"
+        assert not re.search(r"\bFeature\b(?!.*\()", definition), f"Glossary pack term '{term}' contains forbidden 'Feature' (use 'Mission')"
 
     # Check orchestration.md
     content = orchestration_md_path.read_text()
@@ -183,15 +172,11 @@ def test_no_legacy_feature_casing_in_new_terms(glossary_terms: dict, orchestrati
 
         next_heading_idx = content.find("\n### ", heading_idx + 1)
         next_separator_idx = content.find("\n---", heading_idx + 1)
-        end_idx = min(
-            x for x in [next_heading_idx, next_separator_idx, len(content)]
-            if x > heading_idx
-        )
+        end_idx = min(x for x in [next_heading_idx, next_separator_idx, len(content)] if x > heading_idx)
 
         section = content[heading_idx:end_idx]
         # Look for forbidden Feature term (allow in code blocks)
         lines = section.split("\n")
         for line in lines:
             if not line.strip().startswith("`"):  # Skip code lines
-                assert not re.search(r'\bFeature\b', line), \
-                    f"Orchestration.md section for '{term}' contains forbidden 'Feature' (use 'Mission')"
+                assert not re.search(r"\bFeature\b", line), f"Orchestration.md section for '{term}' contains forbidden 'Feature' (use 'Mission')"

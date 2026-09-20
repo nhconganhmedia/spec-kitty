@@ -113,15 +113,9 @@ def evaluate_branch_strategy(
         )
 
     if prompt is None:
-        raise BranchStrategyGateError(
-            "Branch-strategy gate must prompt but no prompt callable was supplied. "
-            "Pass `--branch-strategy already-confirmed` to bypass."
-        )
+        raise BranchStrategyGateError("Branch-strategy gate must prompt but no prompt callable was supplied. Pass `--branch-strategy already-confirmed` to bypass.")
 
-    message = (
-        f"You are on '{current_branch}', which is the mission's merge target. "
-        "PR-bound missions usually live on a feature branch. Proceed anyway?"
-    )
+    message = f"You are on '{current_branch}', which is the mission's merge target. PR-bound missions usually live on a feature branch. Proceed anyway?"
     answer = prompt(message)
     decision_reason = "operator-confirmed" if answer else "operator-aborted"
     return GateOutcome(

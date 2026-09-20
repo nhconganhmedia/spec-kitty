@@ -81,8 +81,7 @@ class SiblingPathNotFound(Exception):
         self.sibling_relative_path = sibling_relative_path
         self.anchor_file = anchor_file
         super().__init__(
-            f"Could not resolve {sibling_relative_path.as_posix()!r} as a sibling of "
-            f"{anchor_file}: no env override or ancestor sibling directory matched."
+            f"Could not resolve {sibling_relative_path.as_posix()!r} as a sibling of {anchor_file}: no env override or ancestor sibling directory matched."
         )
 
 

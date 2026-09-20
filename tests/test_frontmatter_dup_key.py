@@ -45,12 +45,7 @@ def test_all_duplicate_keys_are_enumerated(tmp_path: Path) -> None:
     """Every duplicated key is named, not only the first ruamel would raise on."""
     path = _write(
         tmp_path,
-        "---\n"
-        "review_feedback: ''\n"
-        "review_feedback: path/to/review.md\n"
-        "status: draft\n"
-        "status: final\n"
-        "---\nbody\n",
+        "---\nreview_feedback: ''\nreview_feedback: path/to/review.md\nstatus: draft\nstatus: final\n---\nbody\n",
     )
 
     with pytest.raises(FrontmatterError) as exc_info:

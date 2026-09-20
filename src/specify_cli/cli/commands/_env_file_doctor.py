@@ -121,11 +121,7 @@ def _home_env_path(repo_root: Path) -> tuple[Path, str]:
 def _ignore_file_entries(path: Path) -> set[str]:
     if not path.exists():
         return set()
-    return {
-        line.strip()
-        for line in path.read_text(encoding="utf-8-sig").splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    }
+    return {line.strip() for line in path.read_text(encoding="utf-8-sig").splitlines() if line.strip() and not line.lstrip().startswith("#")}
 
 
 def _is_gitignored(repo_root: Path) -> bool:
@@ -181,9 +177,7 @@ def _governed_var_reports(repo_values: dict[str, str], home_values: dict[str, st
         tier = _tier_for(real_env_present=real_present, repo_present=repo_present, home_present=home_present)
         value = None
         if present:
-            raw_value = _raw_tier_value(
-                var, real_present=real_present, repo_present=repo_present, repo_values=repo_values, home_values=home_values
-            )
+            raw_value = _raw_tier_value(var, real_present=real_present, repo_present=repo_present, repo_values=repo_values, home_values=home_values)
             redacted = redact({var: raw_value} if raw_value is not None else {})
             value = redacted[0].value if redacted else None
         reports.append(GovernedVarReport(name=var, tier=tier, present=present, value=value))
@@ -235,11 +229,7 @@ def run_env_file_health(repo_root: Path, *, json_output: bool) -> None:
         gi_status = "[green]yes[/green]" if gitignored else "[red]no[/red]"
         ci_status = "[green]yes[/green]" if claudeignored else "[red]no[/red]"
         console.print(f"    gitignored: {gi_status}    claudeignored: {ci_status}")
-    console.print(
-        f"  Home tier   ({home_env_path}): "
-        f"{'[green]exists[/green]' if home_exists else '[dim]not provisioned[/dim]'} "
-        f"[dim]({home_source})[/dim]"
-    )
+    console.print(f"  Home tier   ({home_env_path}): {'[green]exists[/green]' if home_exists else '[dim]not provisioned[/dim]'} [dim]({home_source})[/dim]")
 
     console.print("\n  Governed vars:")
     for report in governed:

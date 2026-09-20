@@ -26,14 +26,7 @@ import pytest
 pytestmark = [pytest.mark.unit]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[2]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 
 # ---------------------------------------------------------------------------
@@ -148,15 +141,9 @@ def test_build_action_org_source_map_returns_org_entries(
     """When an org pack contributes 'sox-controls', source map contains that entry."""
     from charter.activation.context_renderers.selection_block import _build_action_org_source_map
 
-    result = _build_action_org_source_map(
-        tmp_repo_with_org_pack, ["sox-controls", "some-other-directive"]
-    )
-    assert "sox-controls" in result, (
-        f"expected 'sox-controls' in org source map, got: {result}"
-    )
-    assert result["sox-controls"] == "example-org", (
-        f"expected pack name 'example-org', got: {result.get('sox-controls')!r}"
-    )
+    result = _build_action_org_source_map(tmp_repo_with_org_pack, ["sox-controls", "some-other-directive"])
+    assert "sox-controls" in result, f"expected 'sox-controls' in org source map, got: {result}"
+    assert result["sox-controls"] == "example-org", f"expected pack name 'example-org', got: {result.get('sox-controls')!r}"
     # Built-in artifacts not in map
     assert "some-other-directive" not in result
 
@@ -187,9 +174,7 @@ def test_extend_named_artifact_lines_no_org_source_map_no_suffix() -> None:
     """Without org_source_map, no '(source: org)' suffix is appended (NFR-001)."""
     from charter.activation.context_renderers.selection_block import _extend_named_artifact_lines
 
-    repo = _make_mock_repository(
-        {"DIRECTIVE_001": {"title": "Test Directive", "intent": "Do stuff."}}
-    )
+    repo = _make_mock_repository({"DIRECTIVE_001": {"title": "Test Directive", "intent": "Do stuff."}})
     lines: list[str] = []
     _extend_named_artifact_lines(
         lines,
@@ -209,9 +194,7 @@ def test_extend_named_artifact_lines_org_source_map_adds_suffix() -> None:
     """When artifact is in org_source_map, '(source: org, pack: <name>)' is appended."""
     from charter.activation.context_renderers.selection_block import _extend_named_artifact_lines
 
-    repo = _make_mock_repository(
-        {"sox-controls": {"title": "SOX Controls", "intent": "Audit compliance."}}
-    )
+    repo = _make_mock_repository({"sox-controls": {"title": "SOX Controls", "intent": "Audit compliance."}})
     lines: list[str] = []
     _extend_named_artifact_lines(
         lines,
@@ -251,7 +234,5 @@ def test_extend_named_artifact_lines_builtin_no_suffix_org_artifact_with_suffix(
     # Org artifact has suffix
     assert "(source: org, pack: example-org)" in joined
     # Built-in artifact has no suffix
-    builtin_line = next(
-        (line for line in lines if "DIRECTIVE_001" in line), ""
-    )
+    builtin_line = next((line for line in lines if "DIRECTIVE_001" in line), "")
     assert "source: org" not in builtin_line

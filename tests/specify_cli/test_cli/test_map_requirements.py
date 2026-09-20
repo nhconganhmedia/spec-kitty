@@ -54,9 +54,9 @@ def _setup_feature(tmp_path: Path, *, wp_ids: list[str] | None = None) -> Path:
 
     (feature_dir / "spec.md").write_text(SPEC_CONTENT, encoding="utf-8")
 
-    for wp_id in (wp_ids or ["WP01", "WP02"]):
+    for wp_id in wp_ids or ["WP01", "WP02"]:
         (tasks_dir / f"{wp_id}-test.md").write_text(
-            f"---\nwork_package_id: \"{wp_id}\"\ntitle: \"{wp_id}\"\n---\n\n# {wp_id}\n",
+            f'---\nwork_package_id: "{wp_id}"\ntitle: "{wp_id}"\n---\n\n# {wp_id}\n',
             encoding="utf-8",
         )
 
@@ -671,8 +671,7 @@ class TestFinalizeTasksWithFrontmatterRefs:
             encoding="utf-8",
         )
         (tasks_dir / "WP01-test.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "WP01"\n'
-            "requirement_refs:\n  - FR-001\n  - FR-002\n  - FR-003\n  - NFR-001\n---\n\n# WP01\n",
+            '---\nwork_package_id: "WP01"\ntitle: "WP01"\nrequirement_refs:\n  - FR-001\n  - FR-002\n  - FR-003\n  - NFR-001\n---\n\n# WP01\n',
             encoding="utf-8",
         )
 
@@ -713,9 +712,7 @@ class TestMapRequirementsAutoCommitJson:
         # WP07 / FR-006: the WP-file commit routes through ``commit_for_mission``.
         # A committed router result carries the placement ref + commit hash; the
         # command reconstructs the serializable ``commit_result`` envelope (#1891).
-        mock_commit_for_mission.return_value = CommitRouterResult(
-            status="committed", placement_ref="main", commit_hash="abc1234def"
-        )
+        mock_commit_for_mission.return_value = CommitRouterResult(status="committed", placement_ref="main", commit_hash="abc1234def")
         _setup_feature(tmp_path)
 
         result = runner.invoke(

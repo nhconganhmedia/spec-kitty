@@ -250,9 +250,7 @@ class TestLifecycleMetaLoadContract:
     Observable return values per arm (CT4 — not call-graph assertions).
     """
 
-    def test_fallback_created_at_missing_meta_returns_mtime(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fallback_created_at_missing_meta_returns_mtime(self, tmp_path: Path) -> None:
         """Missing meta.json: _fallback_created_at falls back to dir mtime (never raises).
 
         With allow_missing=True, load_meta returns None; ``None or {}`` yields {}.
@@ -278,9 +276,7 @@ class TestLifecycleMetaLoadContract:
         with pytest.raises(MissionMetaReadError, match="Malformed JSON"):
             _fallback_created_at(feature_dir)
 
-    def test_last_merge_marker_at_missing_meta_returns_none(
-        self, tmp_path: Path
-    ) -> None:
+    def test_last_merge_marker_at_missing_meta_returns_none(self, tmp_path: Path) -> None:
         """Missing meta.json: _last_merge_marker_at returns None without raising.
 
         With allow_missing=True, load_meta returns None; ``None or {}`` yields {}.

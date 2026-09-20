@@ -30,6 +30,7 @@ submodule instead of widening the public surface for test convenience.
 
 See ADR ``docs/adr/3.x/2026-06-07-1-execution-state-canonical-surface.md``.
 """
+
 from __future__ import annotations
 
 from typing import Any

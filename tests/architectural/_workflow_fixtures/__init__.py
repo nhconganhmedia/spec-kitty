@@ -41,9 +41,7 @@ def _filter_block(groups: dict[str, list[str]]) -> str:
 
 
 def _unmatched_step(refs: list[str]) -> str:
-    checks = "\n".join(
-        f'            "${{{{ steps.filter.outputs.{ref} }}}}" \\' for ref in refs
-    )
+    checks = "\n".join(f'            "${{{{ steps.filter.outputs.{ref} }}}}" \\' for ref in refs)
     return (
         "      - name: Compute catch-all unmatched signal\n"
         "        id: unmatched\n"
@@ -91,9 +89,7 @@ def filter_workflow(
     if unmatched_refs is not None:
         parts.append(_unmatched_step(unmatched_refs))
     for job, gate_groups in gated_jobs.items():
-        cond = " || ".join(
-            f"needs.changes.outputs.{g} == 'true'" for g in gate_groups
-        )
+        cond = " || ".join(f"needs.changes.outputs.{g} == 'true'" for g in gate_groups)
         parts.extend(
             [
                 f"  {job}:",

@@ -70,9 +70,7 @@ class AssetPathEscapeError(AssetResolutionError):
         self.asset_id = asset_id
         self.blob_path = blob_path
         self.root = root
-        super().__init__(
-            f"Asset {asset_id!r} blob path {blob_path!r} escapes its root {root}."
-        )
+        super().__init__(f"Asset {asset_id!r} blob path {blob_path!r} escapes its root {root}.")
 
 
 class AssetRepository(BaseDoctrineRepository[AssetManifest]):

@@ -78,9 +78,7 @@ def _profile_catalog(
     from charter.profiles import AgentProfileRepository
 
     legacy_dir = repo_root / _KITTIFY_DIR / "profiles"
-    legacy_repo = AgentProfileRepository(
-        project_dir=legacy_dir if legacy_dir.exists() else None
-    )
+    legacy_repo = AgentProfileRepository(project_dir=legacy_dir if legacy_dir.exists() else None)
 
     by_id: dict[str, AgentProfile] = {}
     provenance: dict[str, str | None] = {}
@@ -159,10 +157,7 @@ def list_profiles(
         if json_output:
             typer.echo("[]")
         else:
-            console.print(
-                "[yellow]No profiles found.[/yellow] "
-                "Run 'spec-kitty charter synthesize' to create project-local profiles."
-            )
+            console.print("[yellow]No profiles found.[/yellow] Run 'spec-kitty charter synthesize' to create project-local profiles.")
         raise typer.Exit(0)
 
     # --all is the richer, layer-aware availability view; it implies --show-available.
@@ -177,10 +172,7 @@ def list_profiles(
     if not show_available:
         if activated is not None:
             profiles = [p for p in profiles if p.profile_id in activated]
-        descriptors = [
-            _build_descriptor(p, source_layer=provenance.get(p.profile_id))
-            for p in profiles
-        ]
+        descriptors = [_build_descriptor(p, source_layer=provenance.get(p.profile_id)) for p in profiles]
         _render_list(descriptors, json_output=json_output)
         return
 
@@ -241,18 +233,12 @@ def _render_list_annotated(descriptors: list[dict[str, Any]], *, json_output: bo
 #: Warning text emitted when resolution traverses non-activated ancestor
 #: profiles (abstract base profiles). Schema mirrors data-model.md.
 _LINEAGE_WARNING_PREFIX = "resolved via non-activated parent profile(s): "
-_LINEAGE_WARNING_SUFFIX = (
-    " — these act as abstract base profiles and are not directly selectable"
-)
+_LINEAGE_WARNING_SUFFIX = " — these act as abstract base profiles and are not directly selectable"
 
 
 def _lineage_warning(non_activated_ancestors: list[str]) -> str:
     """Build the FR-015 lineage warning naming non-activated ancestors."""
-    return (
-        _LINEAGE_WARNING_PREFIX
-        + ", ".join(non_activated_ancestors)
-        + _LINEAGE_WARNING_SUFFIX
-    )
+    return _LINEAGE_WARNING_PREFIX + ", ".join(non_activated_ancestors) + _LINEAGE_WARNING_SUFFIX
 
 
 def _profile_payload(profile: AgentProfile, *, source_layer: str | None, warnings: list[str]) -> dict[str, Any]:
@@ -276,17 +262,9 @@ def _profile_payload(profile: AgentProfile, *, source_layer: str | None, warning
             "works_with": list(collab.works_with),
             "canonical_verbs": list(collab.canonical_verbs),
         },
-        "mode_defaults": [
-            {"mode": m.mode, "description": m.description, "use_case": m.use_case}
-            for m in profile.mode_defaults
-        ],
-        "directive_references": [
-            {"code": r.code, "name": r.name, "rationale": r.rationale}
-            for r in profile.directive_references
-        ],
-        "tactic_references": [
-            {"id": r.id, "rationale": r.rationale} for r in profile.tactic_references
-        ],
+        "mode_defaults": [{"mode": m.mode, "description": m.description, "use_case": m.use_case} for m in profile.mode_defaults],
+        "directive_references": [{"code": r.code, "name": r.name, "rationale": r.rationale} for r in profile.directive_references],
+        "tactic_references": [{"id": r.id, "rationale": r.rationale} for r in profile.tactic_references],
         "source_layer": source_layer,
         "warnings": warnings,
     }
@@ -329,9 +307,7 @@ def show_profile(
     profiles, provenance, owner = _profile_catalog(repo_root)
     by_id = {p.profile_id: p for p in profiles}
     activated = _activated_agent_profiles(repo_root)
-    activated_profiles = (
-        by_id if activated is None else {k: v for k, v in by_id.items() if k in activated}
-    )
+    activated_profiles = by_id if activated is None else {k: v for k, v in by_id.items() if k in activated}
 
     # FR-014: activation gate on the leaf id. --all bypasses for inspection.
     if profile_id not in activated_profiles and not show_all:
@@ -375,19 +351,12 @@ def _emit_not_activated(
     if json_output:
         typer.echo(json.dumps(error, indent=2, sort_keys=True))
     else:
-        console.print(
-            f"[red]Error: profile '{profile_id}' is not activated.[/red]"
-        )
+        console.print(f"[red]Error: profile '{profile_id}' is not activated.[/red]")
         if activated_candidates:
-            console.print(
-                "Activated candidates: " + ", ".join(activated_candidates)
-            )
+            console.print("Activated candidates: " + ", ".join(activated_candidates))
         else:
             console.print("No agent profiles are currently activated.")
-        console.print(
-            "Use --all to inspect a non-activated profile, or activate it via "
-            "'spec-kitty charter activate agent-profile <id>'."
-        )
+        console.print("Use --all to inspect a non-activated profile, or activate it via 'spec-kitty charter activate agent-profile <id>'.")
 
 
 def _render_profile_human(payload: dict[str, Any]) -> None:

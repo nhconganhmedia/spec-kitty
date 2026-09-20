@@ -21,20 +21,12 @@ def test_domain_preflight_does_not_import_push_preflight_at_module_load() -> Non
     """Local-merge domain module must not load publish-layer code at import time."""
     source = Path("src/specify_cli/merge/preflight.py").read_text()
     tree = ast.parse(source)
-    parents = {
-        child: node
-        for node in ast.walk(tree)
-        for child in ast.iter_child_nodes(node)
-    }
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
 
     def is_under_type_checking(node: ast.AST) -> bool:
         while node in parents:
             parent = parents[node]
-            if (
-                isinstance(parent, ast.If)
-                and isinstance(parent.test, ast.Name)
-                and parent.test.id == "TYPE_CHECKING"
-            ):
+            if isinstance(parent, ast.If) and isinstance(parent.test, ast.Name) and parent.test.id == "TYPE_CHECKING":
                 return True
             node = parent
         return False
@@ -42,9 +34,7 @@ def test_domain_preflight_does_not_import_push_preflight_at_module_load() -> Non
     runtime_imports = [
         node
         for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom)
-        and node.module == "specify_cli.merge.push_preflight"
-        and not is_under_type_checking(node)
+        if isinstance(node, ast.ImportFrom) and node.module == "specify_cli.merge.push_preflight" and not is_under_type_checking(node)
     ]
     assert runtime_imports == []
 

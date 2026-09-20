@@ -32,12 +32,6 @@ class TestImplementHelpContainsInternalMarker:
         with patch.object(sys, "argv", ["spec-kitty", "implement", "--help"]):
             result = runner.invoke(cli_app, ["implement", "--help"])
         assert result.exit_code == 0, f"implement --help exited {result.exit_code}:\n{result.output}"
-        assert "internal" in result.output.lower(), (
-            f"'internal' not found in --help output:\n{result.output}"
-        )
-        assert "spec-kitty next" in result.output, (
-            f"'spec-kitty next' not found in --help output:\n{result.output}"
-        )
-        assert "spec-kitty agent action implement" in result.output, (
-            f"'spec-kitty agent action implement' not found in --help output:\n{result.output}"
-        )
+        assert "internal" in result.output.lower(), f"'internal' not found in --help output:\n{result.output}"
+        assert "spec-kitty next" in result.output, f"'spec-kitty next' not found in --help output:\n{result.output}"
+        assert "spec-kitty agent action implement" in result.output, f"'spec-kitty agent action implement' not found in --help output:\n{result.output}"

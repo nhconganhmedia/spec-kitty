@@ -33,6 +33,7 @@ from specify_cli.task_utils import find_repo_root
 
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
+
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         cmd,
@@ -80,9 +81,7 @@ class TestMergePreflightBlocks:
         yield
         _reset_session_warning_state()
 
-    def _invoke(
-        self, repo: Path, extra_args: list[str], monkeypatch: pytest.MonkeyPatch
-    ) -> object:
+    def _invoke(self, repo: Path, extra_args: list[str], monkeypatch: pytest.MonkeyPatch) -> object:
         """Invoke the real merge Typer command in ``repo``.
 
         ``find_repo_root()`` walks unboundedly in production. Bound the walk
@@ -93,9 +92,7 @@ class TestMergePreflightBlocks:
         preflight against *this* repo (same class of bug as #130/#139's
         ``_find_project_root``).
         """
-        monkeypatch.setattr(
-            merge_module, "find_repo_root", partial(find_repo_root, stop=repo)
-        )
+        monkeypatch.setattr(merge_module, "find_repo_root", partial(find_repo_root, stop=repo))
         runner = CliRunner()
         # The Typer command must be wrapped in a Typer app to receive options
         # correctly. The real CLI mounts merge() on the root app; here we
@@ -117,9 +114,7 @@ class TestMergePreflightBlocks:
         finally:
             os.chdir(original_cwd)
 
-    def test_sparse_repo_blocks_merge(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_sparse_repo_blocks_merge(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-006: merge exits non-zero under sparse-checkout, no state written, HEAD unchanged."""
         repo = tmp_path / "r"
         _init_git_repo(repo)
@@ -134,28 +129,18 @@ class TestMergePreflightBlocks:
         exit_code = getattr(result, "exit_code", None)
         if exit_code is None:
             exit_code = getattr(result, "code", None)
-        assert exit_code is not None and exit_code != 0, (
-            f"merge must exit non-zero under sparse-checkout; got {exit_code}"
-        )
+        assert exit_code is not None and exit_code != 0, f"merge must exit non-zero under sparse-checkout; got {exit_code}"
 
         output = getattr(result, "output", "") or getattr(result, "stdout", "") or ""
-        assert "sparse-checkout" in output.lower(), (
-            f"Expected sparse-checkout block message; got output:\n{output}"
-        )
+        assert "sparse-checkout" in output.lower(), f"Expected sparse-checkout block message; got output:\n{output}"
 
         merge_state_path = repo / ".kittify" / "runtime" / "merge-state.json"
-        assert not merge_state_path.exists(), (
-            "MergeState must not be written when preflight aborts (FR-006)."
-        )
+        assert not merge_state_path.exists(), "MergeState must not be written when preflight aborts (FR-006)."
 
         head_after = _run(["git", "-C", str(repo), "rev-parse", "HEAD"]).stdout.strip()
-        assert head_before == head_after, (
-            "HEAD must not advance when preflight aborts the merge."
-        )
+        assert head_before == head_after, "HEAD must not advance when preflight aborts the merge."
 
-    def test_force_flag_does_not_bypass_preflight(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_force_flag_does_not_bypass_preflight(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-009 / T038: ``--force`` must NOT open a bypass path.
 
         The merge command deliberately has no ``--force`` flag — the only
@@ -183,16 +168,10 @@ class TestMergePreflightBlocks:
         exit_code = getattr(result, "exit_code", None)
         if exit_code is None:
             exit_code = getattr(result, "code", None)
-        assert exit_code is not None and exit_code != 0, (
-            f"--force must not open a bypass path under sparse-checkout; got exit={exit_code}"
-        )
+        assert exit_code is not None and exit_code != 0, f"--force must not open a bypass path under sparse-checkout; got exit={exit_code}"
 
         merge_state_path = repo / ".kittify" / "runtime" / "merge-state.json"
-        assert not merge_state_path.exists(), (
-            "MergeState must not be written when --force is passed under sparse-checkout."
-        )
+        assert not merge_state_path.exists(), "MergeState must not be written when --force is passed under sparse-checkout."
 
         head_after = _run(["git", "-C", str(repo), "rev-parse", "HEAD"]).stdout.strip()
-        assert head_before == head_after, (
-            "HEAD must not advance when --force is passed under sparse-checkout."
-        )
+        assert head_before == head_after, "HEAD must not advance when --force is passed under sparse-checkout."

@@ -124,9 +124,7 @@ class Fixture:
 # --------------------------------------------------------------------------- #
 # Fixture builders — one per quickstart.md §4 row.
 # --------------------------------------------------------------------------- #
-def _primary_meta_writer(
-    *, topology: str, coordination_branch: str | None
-) -> Callable[[Path], None]:
+def _primary_meta_writer(*, topology: str, coordination_branch: str | None) -> Callable[[Path], None]:
     def _write(feature_dir: Path) -> None:
         _write_meta(
             feature_dir,
@@ -144,9 +142,7 @@ def _flat_no_coord(tmp_path: Path) -> Fixture:
     primary_dir = build_flat(
         repo,
         _COMPOSED,
-        write_primary_meta=_primary_meta_writer(
-            topology="single_branch", coordination_branch=None
-        ),
+        write_primary_meta=_primary_meta_writer(topology="single_branch", coordination_branch=None),
     )
     return Fixture(repo=repo, handle=_COMPOSED, primary_dir=primary_dir)
 
@@ -245,9 +241,7 @@ def _backfilled(tmp_path: Path) -> tuple[Fixture, Path]:
 
 
 def _seam_read(repo: Path, handle: str) -> Path:
-    resolved: Path = placement_seam(repo, handle).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    resolved: Path = placement_seam(repo, handle).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     return resolved
 
 
@@ -274,7 +268,8 @@ def _seam_read(repo: Path, handle: str) -> Path:
     ],
 )
 def test_seam_matches_blind_composition_for_materialized_or_absent_mission(
-    tmp_path: Path, builder: object,
+    tmp_path: Path,
+    builder: object,
 ) -> None:
     """Anchoring: for every non-backfilled fixture the seam and the blind
 
@@ -299,9 +294,7 @@ def test_husk_primary_read_does_not_raise_and_resolves_primary_anchor(
     fx = _coord_husk(tmp_path)
     resolved = _seam_read(fx.repo, fx.handle)
     assert resolved == fx.primary_dir
-    assert ".worktrees" not in str(resolved), (
-        "a PRIMARY-partition read must never resolve into the coord husk"
-    )
+    assert ".worktrees" not in str(resolved), "a PRIMARY-partition read must never resolve into the coord husk"
 
 
 def test_deleted_coord_branch_does_not_raise_for_primary_kind(tmp_path: Path) -> None:

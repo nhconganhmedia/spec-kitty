@@ -405,20 +405,13 @@ class WPMetadata(BaseModel):
         if v is None or v == "":
             return None
         canonical = cls._LANE_ALIASES.get(str(v), str(v))
-        valid = ", ".join(
-            [lane.value for lane in Lane if lane not in NON_DISPLAY_LANES]
-            + sorted(cls._LANE_ALIASES)
-        )
+        valid = ", ".join([lane.value for lane in Lane if lane not in NON_DISPLAY_LANES] + sorted(cls._LANE_ALIASES))
         if canonical in {lane.value for lane in NON_DISPLAY_LANES}:
-            raise ValueError(
-                f"Invalid lane value: {v!r}. Must be one of: {valid}"
-            )
+            raise ValueError(f"Invalid lane value: {v!r}. Must be one of: {valid}")
         try:
             return Lane(canonical)
         except ValueError as err:
-            raise ValueError(
-                f"Invalid lane value: {v!r}. Must be one of: {valid}"
-            ) from err
+            raise ValueError(f"Invalid lane value: {v!r}. Must be one of: {valid}") from err
 
     # ── Computed properties ──────────────────────────────────────
 

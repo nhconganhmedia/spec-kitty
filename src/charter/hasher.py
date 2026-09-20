@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 def hash_content(content: str) -> str:
     """Generate SHA-256 hash of charter content.
 

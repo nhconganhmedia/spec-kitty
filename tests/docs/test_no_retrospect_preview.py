@@ -100,6 +100,5 @@ def test_no_retrospect_synthesize_preview_pairing() -> None:
 
     assert not offenders, (
         "`retrospect synthesize` is dry-run by default and uses --apply to mutate; "
-        "it does not accept --preview. Remove the stale --preview reference(s):\n"
-        + "\n".join(offenders)
+        "it does not accept --preview. Remove the stale --preview reference(s):\n" + "\n".join(offenders)
     )

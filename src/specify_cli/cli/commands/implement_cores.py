@@ -397,9 +397,7 @@ def _is_runtime_frontmatter_only_wp_diff(
     if committed_tail != working_tail:
         return False
     changed_keys = {
-        key
-        for key in set(committed_front) | set(working_front)
-        if committed_front.get(key, _MISSING_META_VALUE) != working_front.get(key, _MISSING_META_VALUE)
+        key for key in set(committed_front) | set(working_front) if committed_front.get(key, _MISSING_META_VALUE) != working_front.get(key, _MISSING_META_VALUE)
     }
     return bool(changed_keys) and changed_keys <= WP_RUNTIME_FIELDS
 
@@ -462,9 +460,7 @@ def _is_self_write_only_diff(
     if committed_blob is None:
         return False
     working_front, working_body, working_padding = _parse_wp_frontmatter(source.read_text(encoding="utf-8-sig"))
-    committed_front, committed_body, committed_padding = _parse_wp_frontmatter(
-        committed_blob.decode("utf-8", errors="replace")
-    )
+    committed_front, committed_body, committed_padding = _parse_wp_frontmatter(committed_blob.decode("utf-8", errors="replace"))
     return _is_runtime_frontmatter_only_wp_diff(
         committed_front,
         working_front,

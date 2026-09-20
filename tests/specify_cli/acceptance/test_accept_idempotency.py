@@ -264,9 +264,7 @@ def test_accept_converges_on_unchanged_tree(
     )
     # The #1883 convergence property: accept-owned writes never trip the gate's
     # own dirty check on the second run, in EVERY mode.
-    assert summary.git_dirty == [], (
-        f"second accept tripped on accept-owned writes: {summary.git_dirty}"
-    )
+    assert summary.git_dirty == [], f"second accept tripped on accept-owned writes: {summary.git_dirty}"
     if not diagnose:
         # Mutating modes resolve the negative invariant, so the full gate passes
         # on the second run. Diagnose is read-only (mutate_matrix=False): it
@@ -329,9 +327,7 @@ def test_accept_excludes_dirty_mission_spec_artifacts_only_when_accept_owned(
         strict_metadata=True,
         mutate_matrix=True,
     )
-    assert any("spec.md" in line for line in summary.git_dirty), (
-        f"dirty non-owned mission artifact was wrongly excluded: {summary.git_dirty}"
-    )
+    assert any("spec.md" in line for line in summary.git_dirty), f"dirty non-owned mission artifact was wrongly excluded: {summary.git_dirty}"
     assert not summary.ok
 
 
@@ -373,7 +369,5 @@ def test_accept_still_trips_on_non_owned_kittify_file(
         strict_metadata=True,
         mutate_matrix=True,
     )
-    assert any(".kittify" in line for line in summary.git_dirty), (
-        f"non-owned .kittify dirt was wrongly excluded: {summary.git_dirty}"
-    )
+    assert any(".kittify" in line for line in summary.git_dirty), f"non-owned .kittify dirt was wrongly excluded: {summary.git_dirty}"
     assert not summary.ok

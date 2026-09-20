@@ -133,9 +133,7 @@ def _git(
 
 
 def _branch_commit_exists(repo_root: Path, ref: str) -> bool:
-    result = _git(
-        repo_root, ["rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}"]
-    )
+    result = _git(repo_root, ["rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}"])
     return result.returncode == 0
 
 
@@ -307,9 +305,7 @@ def check_push_safety(
     This function must only be called when ``--push`` is requested.  Never call
     it from the domain merge layer.
     """
-    refresh = refresh_target_branch_tracking_ref(
-        repo_root, target_branch, remote_name=remote_name
-    )
+    refresh = refresh_target_branch_tracking_ref(repo_root, target_branch, remote_name=remote_name)
     if not refresh.success:
         return TargetBranchPushSafetyResult(
             refresh_status=refresh,

@@ -94,9 +94,7 @@ def _unprotect_main(repo: Path) -> None:
     """
     kittify_dir = repo / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "protection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("protection:\n  protected_branches: []\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "test: unprotect main"],
@@ -167,11 +165,7 @@ def _drive_reject_then_approve(repo: Path, mission_slug: str, tmp_path: Path) ->
     committed_text = approved.artifact_path.read_text(encoding="utf-8")
     assert "Approved by" in committed_text
     frontmatter = committed_text.split("---", 2)[1]
-    frontmatter_keys = {
-        line.split(":", 1)[0].strip()
-        for line in frontmatter.splitlines()
-        if line and not line.startswith((" ", "\t", "-"))
-    }
+    frontmatter_keys = {line.split(":", 1)[0].strip() for line in frontmatter.splitlines() if line and not line.startswith((" ", "\t", "-"))}
     assert "verdict" not in frontmatter_keys
 
     status = subprocess.run(
@@ -182,10 +176,7 @@ def _drive_reject_then_approve(repo: Path, mission_slug: str, tmp_path: Path) ->
         text=True,
     )
     rel = str(approved.artifact_path.relative_to(repo))
-    assert rel not in status.stdout, (
-        "review-cycle-2.md is NOT committed -- git status still shows it:\n"
-        f"{status.stdout}"
-    )
+    assert rel not in status.stdout, f"review-cycle-2.md is NOT committed -- git status still shows it:\n{status.stdout}"
 
 
 def _append_status_event(feature_dir: Path, mission_slug: str, mission_id: str, *, event_id: str) -> None:
@@ -242,15 +233,9 @@ def test_2646_coord_topology_approved_wp_has_no_stale_verdict_warning(
     )
 
     monkeypatch.chdir(ctx.repo)
-    monkeypatch.setattr(
-        "specify_cli.agent_utils.status.locate_project_root", lambda cwd: ctx.repo
-    )
-    monkeypatch.setattr(
-        "specify_cli.agent_utils.status.get_main_repo_root", lambda repo_root: ctx.repo
-    )
-    monkeypatch.setattr(
-        "specify_cli.agent_utils.status.get_status_read_root", lambda: ctx.repo
-    )
+    monkeypatch.setattr("specify_cli.agent_utils.status.locate_project_root", lambda cwd: ctx.repo)
+    monkeypatch.setattr("specify_cli.agent_utils.status.get_main_repo_root", lambda repo_root: ctx.repo)
+    monkeypatch.setattr("specify_cli.agent_utils.status.get_status_read_root", lambda: ctx.repo)
 
     result = show_kanban_status(ctx.slug)
 
@@ -258,12 +243,10 @@ def test_2646_coord_topology_approved_wp_has_no_stale_verdict_warning(
     wp01 = next(wp for wp in result["work_packages"] if wp["id"] == _WP_ID)
     assert wp01["lane"] == Lane.APPROVED
     assert not wp01.get("_stale_verdict"), (
-        "T009 FAIL: WP01 still carries a stale-verdict marker after reject->"
-        f"approve via WP01's real writer. work_package entry: {wp01!r}"
+        f"T009 FAIL: WP01 still carries a stale-verdict marker after reject->approve via WP01's real writer. work_package entry: {wp01!r}"
     )
     assert result["stale_verdicts"] == [], (
-        "T009 FAIL: show_kanban_status reported a stale verdict for an "
-        f"approved WP after WP01's writer ran: {result['stale_verdicts']!r}"
+        f"T009 FAIL: show_kanban_status reported a stale verdict for an approved WP after WP01's writer ran: {result['stale_verdicts']!r}"
     )
 
 
@@ -294,15 +277,9 @@ def test_2646_flat_topology_approved_wp_has_no_stale_verdict_warning(
     )
 
     monkeypatch.chdir(ctx.repo)
-    monkeypatch.setattr(
-        "specify_cli.agent_utils.status.locate_project_root", lambda cwd: ctx.repo
-    )
-    monkeypatch.setattr(
-        "specify_cli.agent_utils.status.get_main_repo_root", lambda repo_root: ctx.repo
-    )
-    monkeypatch.setattr(
-        "specify_cli.agent_utils.status.get_status_read_root", lambda: ctx.repo
-    )
+    monkeypatch.setattr("specify_cli.agent_utils.status.locate_project_root", lambda cwd: ctx.repo)
+    monkeypatch.setattr("specify_cli.agent_utils.status.get_main_repo_root", lambda repo_root: ctx.repo)
+    monkeypatch.setattr("specify_cli.agent_utils.status.get_status_read_root", lambda: ctx.repo)
 
     result = show_kanban_status(ctx.slug)
 

@@ -120,10 +120,7 @@ def test_catalog_is_the_order_rigged_fixture() -> None:
     assert "tactic" in kinds, "catalog must carry tactics for a reachability test"
     # The first tactic sits far behind a naive head window.
     first_tactic_index = kinds.index("tactic")
-    assert first_tactic_index >= 10, (
-        "expected the first tactic to sit behind the retired [:10] window; "
-        f"found it at index {first_tactic_index}"
-    )
+    assert first_tactic_index >= 10, f"expected the first tactic to sit behind the retired [:10] window; found it at index {first_tactic_index}"
 
 
 def test_reference_block_reaches_later_kinds() -> None:
@@ -133,10 +130,7 @@ def test_reference_block_reaches_later_kinds() -> None:
     window; per-kind distribution must surface it.
     """
     block = _render_reference_block("implement")
-    assert "TACTIC:" in block, (
-        "the reference block must surface a tactic -- distribution across kinds, "
-        "not a fixed-order head window"
-    )
+    assert "TACTIC:" in block, "the reference block must surface a tactic -- distribution across kinds, not a fixed-order head window"
 
 
 def test_render_bootstrap_dead_renderer_is_deleted() -> None:
@@ -150,12 +144,9 @@ def test_render_bootstrap_dead_renderer_is_deleted() -> None:
     import charter.activation.context as context_module
 
     assert not hasattr(context_module, "_render_bootstrap"), (
-        "_render_bootstrap is a test-only dead render path with a second "
-        "order-rigged cap; it must be deleted (F-5)"
+        "_render_bootstrap is a test-only dead render path with a second order-rigged cap; it must be deleted (F-5)"
     )
-    assert hasattr(context_module, "_render_bootstrap_text"), (
-        "the live renderer _render_bootstrap_text must remain"
-    )
+    assert hasattr(context_module, "_render_bootstrap_text"), "the live renderer _render_bootstrap_text must remain"
 
 
 def test_every_emitted_pointer_opens() -> None:
@@ -191,8 +182,7 @@ def test_non_vacuity_floor_per_action() -> None:
         pointers = _emitted_pointer_paths(block)
         opened = [pointer for pointer in pointers if _pointer_opens(pointer)]
         assert len(opened) >= _REFERENCE_POINTER_FLOOR, (
-            f"action {action!r} emitted only {len(opened)} resolvable pointers; "
-            f"the non-vacuity floor is {_REFERENCE_POINTER_FLOOR}"
+            f"action {action!r} emitted only {len(opened)} resolvable pointers; the non-vacuity floor is {_REFERENCE_POINTER_FLOOR}"
         )
 
 
@@ -205,10 +195,7 @@ def test_emitted_sets_differ_across_actions() -> None:
     implement = set(_emitted_pointer_paths(_render_reference_block("implement")))
     specify = set(_emitted_pointer_paths(_render_reference_block("specify")))
     assert implement and specify
-    assert implement != specify, (
-        "the reference block emitted an identical set for 'implement' and "
-        "'specify' -- composition must vary by action"
-    )
+    assert implement != specify, "the reference block emitted an identical set for 'implement' and 'specify' -- composition must vary by action"
 
 
 def _emitted_kinds(action: str) -> set[str]:
@@ -238,8 +225,7 @@ def test_distribution_is_pinned_against_mutation() -> None:
     block = _render_reference_block("implement")
     pointers = _emitted_pointer_paths(block)
     assert len(pointers) == _REFERENCE_POINTER_LIMIT, (
-        f"expected exactly {_REFERENCE_POINTER_LIMIT} emitted pointers "
-        f"(the stated cap); got {len(pointers)} -- the cap is unpinned or changed"
+        f"expected exactly {_REFERENCE_POINTER_LIMIT} emitted pointers (the stated cap); got {len(pointers)} -- the cap is unpinned or changed"
     )
     kinds = _emitted_kinds("implement")
     assert len(kinds) >= 5, (

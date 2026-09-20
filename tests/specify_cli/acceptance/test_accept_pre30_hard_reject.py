@@ -60,13 +60,10 @@ def _pre30_repo(tmp_path: Path) -> tuple[Path, Path]:
     # escape past this fixture into an unrelated ancestor project.
     kittify_dir = repo / ".kittify"
     kittify_dir.mkdir(parents=True)
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
     (fd / "tasks" / "planned" / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\nagent: claude\nshell_pid: '12345'\n"
-        "assignee: pedro\ntitle: Legacy work package\n---\n\n# WP01\n\n## Activity Log\n",
+        "---\nwork_package_id: WP01\nagent: claude\nshell_pid: '12345'\nassignee: pedro\ntitle: Legacy work package\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
     (fd / "spec.md").write_text("# Spec\n\nReal spec content.\n", encoding="utf-8")
@@ -108,9 +105,7 @@ def _pre30_repo(tmp_path: Path) -> tuple[Path, Path]:
 
 
 def _head(repo: Path) -> str:
-    return subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -163,9 +158,7 @@ def test_collect_feature_summary_rejects_pre30(tmp_path: Path) -> None:
 # covers at the source.
 
 
-def test_accept_cli_hard_rejects_pre30_and_commits_nothing(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_accept_cli_hard_rejects_pre30_and_commits_nothing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``spec-kitty accept`` on a pre-3.0 mission exits 1 and writes nothing.
 
     Pins ``accept.py``'s ``except Pre30LayoutError`` branch directly: the engine

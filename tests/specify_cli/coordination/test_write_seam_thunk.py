@@ -105,9 +105,7 @@ def _write_meta(
         "friendly_name": "WP04 write-seam thunk fixture",
     }
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _write_wp_file(feature_dir: Path, wp_id: str) -> Path:
@@ -115,13 +113,7 @@ def _write_wp_file(feature_dir: Path, wp_id: str) -> Path:
     tasks_dir.mkdir(parents=True, exist_ok=True)
     wp_path = tasks_dir / f"{wp_id}-scaffold.md"
     wp_path.write_text(
-        "---\n"
-        f"work_package_id: {wp_id}\n"
-        f"title: {wp_id} scaffold\n"
-        "agent: python-pedro\n"
-        "review_status: approved\n"
-        "---\n"
-        f"# {wp_id}\n\nInitial scaffold.\n",
+        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} scaffold\nagent: python-pedro\nreview_status: approved\n---\n# {wp_id}\n\nInitial scaffold.\n",
         encoding="utf-8",
     )
     return wp_path
@@ -167,9 +159,7 @@ def _record_e1_consolidation(
     )
 
 
-def _build_e2_mission(
-    repo: Path, *, mid8: str, slug_prefix: str, mission_number: int
-) -> tuple[str, Path, str]:
+def _build_e2_mission(repo: Path, *, mid8: str, slug_prefix: str, mission_number: int) -> tuple[str, Path, str]:
     """A genuine, FLAT-topology E2 mission (mirrors WP02 T005's PRIMARY-kind
     variant, C-006's canonical repro topology). Unlike WP02's fixture, the
     tasks WP file is left MODIFIABLE by the caller so a genuinely new write
@@ -197,9 +187,7 @@ def _build_e2_mission(
         target_branch=target_branch,
     )
     wp_path = _write_wp_file(feature_dir, wp_id)
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(_done_event(mission_slug, wp_id), sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(_done_event(mission_slug, wp_id), sort_keys=True) + "\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-m", f"chore({mission_slug}): mission scaffold")
 
@@ -299,9 +287,7 @@ def _build_coord_branch_deleted_fixture(repo: Path) -> str:
         "friendly_name": "WP04 orphaned-coord-branch fixture",
     }
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-m", f"chore({mission_slug}): mission scaffold, no coord branch ever created")
     return mission_slug
@@ -381,9 +367,7 @@ def _build_off_checkout_fixture(repo: Path) -> tuple[str, str]:
         target_branch=target_branch,
     )
     _write_wp_file(feature_dir, wp_id)
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(_done_event(mission_slug, wp_id), sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(_done_event(mission_slug, wp_id), sort_keys=True) + "\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-m", f"chore({mission_slug}): mission scaffold")
 
@@ -507,9 +491,7 @@ def test_e2_consolidated_coord_kind_write_commits_and_agrees_with_probe(
     disagree about where a write lands).
     """
     repo = tmp_path / "repo"
-    mission_slug, wp_path, target_branch = _build_e2_mission(
-        repo, mid8="01KYQS20", slug_prefix="evidence-capture-mission", mission_number=812
-    )
+    mission_slug, wp_path, target_branch = _build_e2_mission(repo, mid8="01KYQS20", slug_prefix="evidence-capture-mission", mission_number=812)
     feature_dir = repo / "kitty-specs" / mission_slug
     assert not _branch_exists(repo, target_branch)
 
@@ -530,9 +512,7 @@ def test_e2_consolidated_coord_kind_write_commits_and_agrees_with_probe(
     from mission_runtime import placement_seam
 
     probed = placement_seam(repo, mission_slug).write_target(MissionArtifactKind.TRACER_FILE)
-    assert is_post_consolidation_write_target(
-        repo, mission_slug, MissionArtifactKind.TRACER_FILE, probed
-    ), probed
+    assert is_post_consolidation_write_target(repo, mission_slug, MissionArtifactKind.TRACER_FILE, probed), probed
 
     result = write_artifact(
         repo_root=repo,
@@ -560,15 +540,11 @@ def test_e2_consolidated_coord_kind_write_commits_and_agrees_with_probe(
     # notification for any kitty-specs/ write) -- not residue this WP's
     # thunk contract is about, so it is excluded rather than asserted away.
     status = _git(repo, "status", "--porcelain", "--untracked-files=all")
-    residual_paths = [
-        line[3:].strip()
-        for line in status.stdout.splitlines()
-        if line.strip() and not line[3:].strip().endswith(".kittify/sync-state.json")
-    ]
+    residual_paths = [line[3:].strip() for line in status.stdout.splitlines() if line.strip() and not line[3:].strip().endswith(".kittify/sync-state.json")]
     assert residual_paths == [], f"expected no artifact residue, got: {residual_paths!r}"
-    assert not trace_path.exists() or _git(
-        repo, "log", "--oneline", "-1", "--", str(trace_path.relative_to(repo))
-    ).stdout.strip(), "trace_path must be committed, not left as untracked residue"
+    assert not trace_path.exists() or _git(repo, "log", "--oneline", "-1", "--", str(trace_path.relative_to(repo))).stdout.strip(), (
+        "trace_path must be committed, not left as untracked residue"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -584,9 +560,7 @@ def test_review_post_merge_exits_zero_on_e2_mission(tmp_path: Path) -> None:
     consolidated, then published to trunk, Target Ref deleted).
     """
     repo = tmp_path / "repo"
-    mission_slug, wp_path, target_branch = _build_e2_mission(
-        repo, mid8="01KYQS30", slug_prefix="widget-catalog-review", mission_number=555
-    )
+    mission_slug, wp_path, target_branch = _build_e2_mission(repo, mid8="01KYQS30", slug_prefix="widget-catalog-review", mission_number=555)
     assert not _branch_exists(repo, target_branch)
 
     # A changed Python file (no NEW public symbol) so the dead-code gate is

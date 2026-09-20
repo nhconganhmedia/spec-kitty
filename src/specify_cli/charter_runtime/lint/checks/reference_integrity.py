@@ -39,25 +39,19 @@ class ReferenceIntegrityChecker:
             return []
 
         # Build node-urn set for O(1) membership tests
-        node_urns: set[str] = {
-            getattr(n, "urn", None) or "" for n in getattr(drg, "nodes", [])
-        }
+        node_urns: set[str] = {getattr(n, "urn", None) or "" for n in getattr(drg, "nodes", [])}
         node_urns.discard("")
 
         findings: list[LintFinding] = []
         findings.extend(self._check_dangling_edges(drg, node_urns, feature_scope))
-        findings.extend(
-            self._check_superseded_adr_references(drg, node_urns, feature_scope)
-        )
+        findings.extend(self._check_superseded_adr_references(drg, node_urns, feature_scope))
         return findings
 
     # ------------------------------------------------------------------
     # Rule 1 — dangling edges
     # ------------------------------------------------------------------
 
-    def _check_dangling_edges(
-        self, drg: Any, node_urns: set[str], feature_scope: str | None
-    ) -> list[LintFinding]:
+    def _check_dangling_edges(self, drg: Any, node_urns: set[str], feature_scope: str | None) -> list[LintFinding]:
         findings: list[LintFinding] = []
         for edge in getattr(drg, "edges", []):
             target: str = getattr(edge, "target", None) or ""
@@ -72,14 +66,9 @@ class ReferenceIntegrityChecker:
                         type="dangling_edge",
                         id=f"edge:{source}->{target}",
                         severity="high",
-                        message=(
-                            f"Edge from '{source}' to '{target}' via '{relation_val}' "
-                            f"is dangling — target URN '{target}' does not exist in the DRG."
-                        ),
+                        message=(f"Edge from '{source}' to '{target}' via '{relation_val}' is dangling — target URN '{target}' does not exist in the DRG."),
                         feature_id=feature_scope,
-                        remediation_hint=(
-                            f"Remove the edge or add the missing node '{target}'."
-                        ),
+                        remediation_hint=(f"Remove the edge or add the missing node '{target}'."),
                     )
                 )
         return findings
@@ -88,9 +77,7 @@ class ReferenceIntegrityChecker:
     # Rule 2 — WP references a superseded ADR
     # ------------------------------------------------------------------
 
-    def _check_superseded_adr_references(
-        self, drg: Any, _node_urns: set[str], feature_scope: str | None
-    ) -> list[LintFinding]:
+    def _check_superseded_adr_references(self, drg: Any, _node_urns: set[str], feature_scope: str | None) -> list[LintFinding]:
         """Flag WP->ADR edges where the referenced ADR has been superseded."""
         superseded_adrs = self._collect_superseded_adrs(drg)
         if not superseded_adrs:
@@ -98,9 +85,7 @@ class ReferenceIntegrityChecker:
 
         findings: list[LintFinding] = []
         for source, target in self._iter_wp_to_superseded_edges(drg, superseded_adrs):
-            findings.append(
-                self._build_superseded_finding(source, target, feature_scope)
-            )
+            findings.append(self._build_superseded_finding(source, target, feature_scope))
         return findings
 
     @staticmethod
@@ -120,9 +105,7 @@ class ReferenceIntegrityChecker:
         return superseded_adrs
 
     @staticmethod
-    def _iter_wp_to_superseded_edges(
-        drg: Any, superseded_adrs: set[str]
-    ) -> list[tuple[str, str]]:
+    def _iter_wp_to_superseded_edges(drg: Any, superseded_adrs: set[str]) -> list[tuple[str, str]]:
         """Return ``(source, target)`` pairs for WP edges into a superseded ADR."""
         pairs: list[tuple[str, str]] = []
         for edge in getattr(drg, "edges", []):
@@ -141,20 +124,13 @@ class ReferenceIntegrityChecker:
         return pairs
 
     @staticmethod
-    def _build_superseded_finding(
-        source: str, target: str, feature_scope: str | None
-    ) -> LintFinding:
+    def _build_superseded_finding(source: str, target: str, feature_scope: str | None) -> LintFinding:
         return LintFinding(
             category="reference_integrity",
             type="superseded_adr_reference",
             id=f"edge:{source}->{target}",
             severity="medium",
-            message=(
-                f"Work package '{source}' references ADR '{target}' "
-                f"which has been superseded by a newer ADR."
-            ),
+            message=(f"Work package '{source}' references ADR '{target}' which has been superseded by a newer ADR."),
             feature_id=feature_scope,
-            remediation_hint=(
-                "Update the WP to reference the superseding ADR instead."
-            ),
+            remediation_hint=("Update the WP to reference the superseding ADR instead."),
         )

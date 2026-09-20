@@ -22,16 +22,7 @@ pytestmark = [pytest.mark.architectural]
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SRC_ROOT = _REPO_ROOT / "src" / "specify_cli"
-_MATRIX_PATH = (
-    _REPO_ROOT
-    / "src"
-    / "charter"
-    / "offering"
-    / "skills"
-    / "spec-kitty-git-workflow"
-    / "references"
-    / "git-operations-matrix.md"
-)
+_MATRIX_PATH = _REPO_ROOT / "src" / "charter" / "offering" / "skills" / "spec-kitty-git-workflow" / "references" / "git-operations-matrix.md"
 _SECTION_HEADING = "## Python-Executed Git Commands"
 
 
@@ -109,10 +100,7 @@ def test_all_source_file_paths_resolve_on_disk() -> None:
     """Every ``Source File`` cell in the shipped matrix names a real file."""
     text = _MATRIX_PATH.read_text(encoding="utf-8")
     missing = _phantom_paths(text)
-    assert not missing, (
-        "Phantom Source File reference(s) in git-operations-matrix.md "
-        f"(file does not exist under src/specify_cli/): {missing}"
-    )
+    assert not missing, f"Phantom Source File reference(s) in git-operations-matrix.md (file does not exist under src/specify_cli/): {missing}"
 
 
 def test_guard_bites_on_planted_phantom_path() -> None:

@@ -591,10 +591,14 @@ def test_proposal_id_filter_passed_to_apply_proposals() -> None:
         result = runner.invoke(
             app,
             [
-                "retrospect", "synthesize",
-                "--mission", "01KQ6YEG",
-                "--proposal-id", FAKE_PROPOSAL_ID_A,
-                "--proposal-id", FAKE_PROPOSAL_ID_B,
+                "retrospect",
+                "synthesize",
+                "--mission",
+                "01KQ6YEG",
+                "--proposal-id",
+                FAKE_PROPOSAL_ID_A,
+                "--proposal-id",
+                FAKE_PROPOSAL_ID_B,
             ],
             catch_exceptions=False,
         )
@@ -755,9 +759,7 @@ def test_invalid_category_reports_generator_diagnosis_not_pydantic_wall(tmp_path
     root = tmp_path
     retro_path = _write_generator_retrospective(root)
     retro_path.write_text(
-        retro_path.read_text(encoding="utf-8").replace(
-            "category: process", "category: terminus"
-        ),
+        retro_path.read_text(encoding="utf-8").replace("category: process", "category: terminus"),
         encoding="utf-8",
     )
 
@@ -840,9 +842,7 @@ def test_invalid_category_json_surface_carries_diagnosis_and_allow_list(tmp_path
     root = tmp_path
     retro_path = _write_generator_retrospective(root)
     retro_path.write_text(
-        retro_path.read_text(encoding="utf-8").replace(
-            "category: process", "category: terminus"
-        ),
+        retro_path.read_text(encoding="utf-8").replace("category: process", "category: terminus"),
         encoding="utf-8",
     )
 

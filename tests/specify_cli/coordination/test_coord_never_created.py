@@ -17,6 +17,7 @@ T009 Purity guards:
   ``classify_topology`` and ``read_topology`` produce identical outputs for
   identical inputs and perform no git/subprocess calls.
 """
+
 from __future__ import annotations
 
 import json
@@ -43,6 +44,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _git(*args: str, cwd: Path) -> None:
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True)
 
@@ -59,9 +61,7 @@ def _make_git_repo(path: Path) -> Path:
 
 def _write_meta(feature_dir: Path, meta: dict[str, object]) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -105,13 +105,9 @@ def test_backfill_skips_never_created_coord_branch(tmp_path: Path) -> None:
         "backfill_mission_topology must not persist topology='coord' when the "
         "declared coordination_branch does not exist in git (#2250)."
     )
-    assert result.topology != MissionTopology.COORD.value, (
-        "backfill must not report topology='coord' for a never-created branch."
-    )
+    assert result.topology != MissionTopology.COORD.value, "backfill must not report topology='coord' for a never-created branch."
     # meta.json must be byte-identical — no write occurred.
-    assert (feature_dir / "meta.json").read_bytes() == meta_before, (
-        "meta.json must not be mutated when backfill skips."
-    )
+    assert (feature_dir / "meta.json").read_bytes() == meta_before, "meta.json must not be mutated when backfill skips."
 
 
 # ---------------------------------------------------------------------------
@@ -151,9 +147,7 @@ def test_resolver_remediation_leads_with_flatten(tmp_path: Path) -> None:
     assert flatten_pos >= 0, f"next_step must mention 'flatten'. Got: {next_step!r}"
     assert doctor_pos >= 0, f"next_step must mention 'doctor'. Got: {next_step!r}"
     assert flatten_pos < doctor_pos, (
-        "next_step must lead with 'flatten' BEFORE 'doctor'. "
-        f"flatten at {flatten_pos}, doctor at {doctor_pos}. "
-        f"Full next_step: {next_step!r}"
+        f"next_step must lead with 'flatten' BEFORE 'doctor'. flatten at {flatten_pos}, doctor at {doctor_pos}. Full next_step: {next_step!r}"
     )
 
 

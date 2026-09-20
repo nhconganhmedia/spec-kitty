@@ -106,11 +106,7 @@ class TestRegistration:
     def _assert_cascade_option_registered(self, command_name: str) -> None:
         click_group = get_command(charter_app)
         click_command = click_group.commands[command_name]
-        cascade_options = [
-            param
-            for param in click_command.params
-            if getattr(param, "name", None) == "cascade"
-        ]
+        cascade_options = [param for param in click_command.params if getattr(param, "name", None) == "cascade"]
         assert cascade_options, f"{command_name} command is missing cascade parameter"
         assert "--cascade" in cascade_options[0].opts
         assert "Cascade" in cascade_options[0].help
@@ -146,9 +142,7 @@ class TestRegistration:
 
 
 class TestLayerAwareActivation:
-    def test_org_artifact_listed_by_all_can_be_activated_and_deactivated(
-        self, project_root: Path, tmp_path: Path
-    ) -> None:
+    def test_org_artifact_listed_by_all_can_be_activated_and_deactivated(self, project_root: Path, tmp_path: Path) -> None:
         org_pack = tmp_path / "org-pack"
         _write_directive(
             org_pack / "doctrine" / "directives" / "org",
@@ -182,9 +176,7 @@ class TestLayerAwareActivation:
         data = _config(project_root)
         assert "900-org-only-directive" not in data["activated_directives"]
 
-    def test_project_artifact_listed_by_all_can_be_activated(
-        self, project_root: Path
-    ) -> None:
+    def test_project_artifact_listed_by_all_can_be_activated(self, project_root: Path) -> None:
         _write_directive(
             project_root / ".kittify" / "doctrine" / "directive",
             "950-project-only-directive",
@@ -310,9 +302,7 @@ class TestFailClosedConfig:
         kittify = tmp_path / ".kittify"
         kittify.mkdir()
         # A non-list activation key is rejected by PackContext.from_config.
-        (kittify / "config.yaml").write_text(
-            "activated_directives: not-a-list\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("activated_directives: not-a-list\n", encoding="utf-8")
         return tmp_path
 
     def test_activate_fails_closed(self, malformed_project: Path) -> None:
@@ -366,9 +356,7 @@ class TestDeactivate:
     def test_deactivate_removes_from_config(self, tmp_path: Path) -> None:
         kittify = tmp_path / ".kittify"
         kittify.mkdir()
-        (kittify / "config.yaml").write_text(
-            "activated_directives:\n  - some-directive\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("activated_directives:\n  - some-directive\n", encoding="utf-8")
         result = _deactivate(tmp_path, "directive", "some-directive")
         assert result.exit_code == 0, result.output
         data = _config(tmp_path)

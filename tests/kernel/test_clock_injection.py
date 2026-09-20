@@ -92,9 +92,7 @@ _PACKAGE_CASES = [
 
 
 @pytest.mark.parametrize(("package", "consumer"), _PACKAGE_CASES)
-def test_one_frozen_clock_freezes_every_package(
-    package: str, consumer: Callable[[], str], monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_one_frozen_clock_freezes_every_package(package: str, consumer: Callable[[], str], monkeypatch: pytest.MonkeyPatch) -> None:
     """SC-002: ONE injection (``DEFAULT_CLOCK``) freezes every package's door
     consumer to the identical instant -- no per-module monkeypatching.
     """

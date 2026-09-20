@@ -35,12 +35,7 @@ from specify_cli.retrospective.summary import (
 
 app = typer.Typer(
     name="retrospect",
-    help=(
-        "Retrospective operator surface.\n\n"
-        "Reads kitty-specs/*/retrospective.yaml and "
-        "kitty-specs/*/status.events.jsonl. "
-        "No mutation is performed."
-    ),
+    help=("Retrospective operator surface.\n\nReads kitty-specs/*/retrospective.yaml and kitty-specs/*/status.events.jsonl. No mutation is performed."),
     no_args_is_help=True,
 )
 
@@ -243,10 +238,7 @@ def summary_cmd(
     has_kittify = (resolved_project / ".kittify").exists()
     has_mission_specs = (resolved_project / KITTY_SPECS_DIR).exists()
     if not has_kittify and not has_mission_specs:
-        _err_console.print(
-            "[red]Error:[/red] Project root invalid: "
-            f"neither .kittify/ nor kitty-specs/ found in {resolved_project}"
-        )
+        _err_console.print(f"[red]Error:[/red] Project root invalid: neither .kittify/ nor kitty-specs/ found in {resolved_project}")
         raise typer.Exit(1)
 
     # Parse --since
@@ -255,10 +247,7 @@ def summary_cmd(
         try:
             since_date = date.fromisoformat(since)
         except ValueError:
-            _err_console.print(
-                f"[red]Error:[/red] Invalid --since date {since!r}. "
-                "Expected ISO-8601 format (YYYY-MM-DD)."
-            )
+            _err_console.print(f"[red]Error:[/red] Invalid --since date {since!r}. Expected ISO-8601 format (YYYY-MM-DD).")
             raise typer.Exit(1)
 
     # Run the reducer

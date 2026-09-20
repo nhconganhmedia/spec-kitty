@@ -64,7 +64,9 @@ def _write_review_artifact(
 
 
 def _rejection_review_result(
-    mission_slug: str, wp_slug: str = "WP01-regression-harness", cycle_number: int = 1,
+    mission_slug: str,
+    wp_slug: str = "WP01-regression-harness",
+    cycle_number: int = 1,
 ) -> ReviewResult:
     """The event-sourced ``changes_requested`` opinion a real rejection
     records (WP05, verdict-seam-write-unification-01KZ9Q35, FR-013 pure-event
@@ -133,12 +135,8 @@ def _write_lanes_json(mission: object) -> None:
 
 
 def _patch_dry_run_git_boundaries(monkeypatch: pytest.MonkeyPatch, mission: object) -> None:
-    monkeypatch.setattr(
-        "specify_cli.cli.commands.merge._enforce_git_preflight", lambda *a, **kw: None
-    )
-    monkeypatch.setattr(
-        "specify_cli.cli.commands.merge.find_repo_root", lambda: mission.repo_root
-    )
+    monkeypatch.setattr("specify_cli.cli.commands.merge._enforce_git_preflight", lambda *a, **kw: None)
+    monkeypatch.setattr("specify_cli.cli.commands.merge.find_repo_root", lambda: mission.repo_root)
     monkeypatch.setattr(
         "specify_cli.cli.commands.merge.get_main_repo_root",
         lambda _repo: mission.repo_root,
@@ -230,9 +228,7 @@ def test_preflight_passes_on_clean_mission(tmp_path: Path) -> None:
     assert result.diagnostics(repo_root=mission.repo_root) == []
 
 
-def test_dry_run_emits_rejected_review_artifact_conflict(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_dry_run_emits_rejected_review_artifact_conflict(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``merge --dry-run --json`` exits non-zero and emits REJECTED_REVIEW_ARTIFACT_CONFLICT.
 
     WP06 repoint: the gate is pure-event post-WP05 -- the ``review_result``
@@ -277,9 +273,7 @@ def test_dry_run_emits_rejected_review_artifact_conflict(
         ["--mission", mission.mission_slug, "--dry-run", "--json"],
     )
 
-    assert result.exit_code == 1, (
-        f"Expected exit 1, got {result.exit_code}\nstdout={result.stdout}\nstderr={result.stderr}"
-    )
+    assert result.exit_code == 1, f"Expected exit 1, got {result.exit_code}\nstdout={result.stdout}\nstderr={result.stderr}"
     payload = json.loads(result.stdout.strip().splitlines()[-1])
     assert payload["blocked"] is True
     assert payload["diagnostic_code"] == REJECTED_REVIEW_ARTIFACT_CONFLICT
@@ -288,9 +282,7 @@ def test_dry_run_emits_rejected_review_artifact_conflict(
     assert payload["blockers"][0]["branch_or_work_package"] == "WP01"
 
 
-def test_dry_run_emits_review_artifact_schema_invalid(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_dry_run_emits_review_artifact_schema_invalid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``merge --dry-run --json`` no longer reports malformed review-cycle
     frontmatter as a blocker (WP06 repoint, same precedent as WP05's own
     ``test_malformed_review_artifact_frontmatter_becomes_schema_diagnostic``
@@ -338,20 +330,13 @@ def test_dry_run_emits_review_artifact_schema_invalid(
     )
 
     assert result.exit_code == 0, (
-        f"Expected exit 0 (malformed-but-unreviewed artifact must not "
-        f"fabricate a block), got {result.exit_code}\n"
-        f"stdout={result.stdout}\nstderr={result.stderr}"
+        f"Expected exit 0 (malformed-but-unreviewed artifact must not fabricate a block), got {result.exit_code}\nstdout={result.stdout}\nstderr={result.stderr}"
     )
     payload = json.loads(result.stdout.strip().splitlines()[-1])
-    assert "blocked" not in payload, (
-        "a clean dry-run payload carries no 'blocked' key at all -- "
-        f"got: {payload}"
-    )
+    assert "blocked" not in payload, f"a clean dry-run payload carries no 'blocked' key at all -- got: {payload}"
 
 
-def test_dry_run_human_emits_rejected_review_artifact_conflict(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_dry_run_human_emits_rejected_review_artifact_conflict(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``merge --dry-run`` without --json prints a labelled REJECTED_REVIEW_ARTIFACT_CONFLICT block.
 
     WP06 repoint: the gate is pure-event post-WP05 -- the ``review_result``
@@ -397,9 +382,7 @@ def test_dry_run_human_emits_rejected_review_artifact_conflict(
     assert "WP01" in output
 
 
-def test_dry_run_human_emits_review_artifact_schema_invalid(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_dry_run_human_emits_review_artifact_schema_invalid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``merge --dry-run`` (human channel) no longer prints schema diagnostics
     for a malformed review-cycle artifact (WP06 repoint, same precedent as
     WP05's own ``test_malformed_review_artifact_frontmatter_becomes_schema_diagnostic``):
@@ -436,10 +419,7 @@ def test_dry_run_human_emits_review_artifact_schema_invalid(
 
     result = runner.invoke(app, ["--mission", mission.mission_slug, "--dry-run"])
 
-    assert result.exit_code == 0, (
-        f"Expected exit 0 (malformed-but-unreviewed artifact must not "
-        f"fabricate a block), got {result.exit_code}\nstdout={result.stdout}"
-    )
+    assert result.exit_code == 0, f"Expected exit 0 (malformed-but-unreviewed artifact must not fabricate a block), got {result.exit_code}\nstdout={result.stdout}"
     output = result.stdout
     assert _RETIRED_REVIEW_ARTIFACT_SCHEMA_INVALID not in output
     assert "Traceback" not in output

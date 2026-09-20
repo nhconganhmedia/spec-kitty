@@ -35,9 +35,7 @@ class BookkeepingPolicyRefused(BookkeepingError):
 
     def __init__(self, verdict: Refused) -> None:
         self.verdict = verdict
-        super().__init__(
-            f"Bookkeeping refused: {verdict.error_code}: {verdict.message}"
-        )
+        super().__init__(f"Bookkeeping refused: {verdict.error_code}: {verdict.message}")
 
 
 class BookkeepingLockTimeout(BookkeepingError):

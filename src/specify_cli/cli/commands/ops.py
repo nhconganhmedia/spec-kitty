@@ -24,7 +24,6 @@ app = typer.Typer(
 )
 
 
-
 def _display_operations(ops: list[OperationInfo]) -> None:
     """Display operation history in a formatted table.
 

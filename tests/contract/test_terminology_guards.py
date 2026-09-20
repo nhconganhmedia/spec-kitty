@@ -155,7 +155,7 @@ def _live_doc_scan_targets() -> list[tuple[Path, str]]:
 
 def _surrounding_param_name(content: str, offset: int) -> str:
     """Best-effort extraction of the enclosing parameter name."""
-    window = content[max(0, offset - 300):offset]
+    window = content[max(0, offset - 300) : offset]
     matches = list(re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)\s*:\s*[^=\n]+=\s*$", window, re.MULTILINE))
     if matches:
         return matches[-1].group(1)
@@ -203,10 +203,7 @@ def test_no_mission_run_slug_help_text_in_cli_commands() -> None:
             if "Mission run slug" not in content:
                 continue
             line = _line_number(content, content.index("Mission run slug"))
-            pytest.fail(
-                f"{path.relative_to(REPO_ROOT)}:{line}: contains 'Mission run slug'. "
-                "Authority: spec.md FR-008. Fix: say 'Mission slug'."
-            )
+            pytest.fail(f"{path.relative_to(REPO_ROOT)}:{line}: contains 'Mission run slug'. Authority: spec.md FR-008. Fix: say 'Mission slug'.")
 
 
 def test_no_visible_feature_alias_in_cli_commands() -> None:
@@ -248,10 +245,7 @@ def test_no_mission_run_instructions_in_doctrine_skills() -> None:
             for pattern in forbidden_patterns:
                 for match in re.finditer(pattern, content):
                     line = _line_number(content, match.start())
-                    pytest.fail(
-                        f"{path.relative_to(REPO_ROOT)}:{line}: doctrine skill instructs --mission-run. "
-                        "Authority: spec.md FR-009. Fix: use --mission."
-                    )
+                    pytest.fail(f"{path.relative_to(REPO_ROOT)}:{line}: doctrine skill instructs --mission-run. Authority: spec.md FR-009. Fix: use --mission.")
 
 
 def test_no_mission_run_instructions_in_agent_facing_docs() -> None:
@@ -269,10 +263,7 @@ def test_no_mission_run_instructions_in_agent_facing_docs() -> None:
         for pattern in forbidden_patterns:
             for match in re.finditer(pattern, content):
                 line = _line_number(content, match.start())
-                pytest.fail(
-                    f"{path.relative_to(REPO_ROOT)}:{line}: doc instructs --mission-run. "
-                    "Authority: spec.md FR-010/FR-022. Fix: use --mission."
-                )
+                pytest.fail(f"{path.relative_to(REPO_ROOT)}:{line}: doc instructs --mission-run. Authority: spec.md FR-010/FR-022. Fix: use --mission.")
 
 
 def test_no_feature_flag_in_live_first_party_docs() -> None:
@@ -291,7 +282,7 @@ def test_no_feature_flag_in_live_first_party_docs() -> None:
         for pattern in forbidden_patterns:
             for match in re.finditer(pattern, content):
                 line = _line_number(content, match.start())
-                snippet = content[max(0, match.start() - 25):match.end() + 25]
+                snippet = content[max(0, match.start() - 25) : match.end() + 25]
                 pytest.fail(
                     f"{path.relative_to(REPO_ROOT)}:{line}: documents --feature as a live CLI option: {snippet!r}. "
                     "Authority: spec.md FR-005/FR-022 and charter terminology canon. "
@@ -434,8 +425,7 @@ def test_no_main_branch_workflow_language_in_live_docs_and_skills() -> None:
             for match in re.finditer(pattern, content, flags=re.IGNORECASE):
                 line = _line_number(content, match.start())
                 pytest.fail(
-                    f"{relative}:{line}: teaches deprecated main-centric workflow wording. "
-                    "Fix: distinguish repository root checkout from explicit branch intent."
+                    f"{relative}:{line}: teaches deprecated main-centric workflow wording. Fix: distinguish repository root checkout from explicit branch intent."
                 )
 
 
@@ -457,13 +447,9 @@ def test_orchestrator_api_envelope_width_unchanged() -> None:
         "data",
     }
     assert set(envelope.keys()) == expected_keys, (
-        f"Orchestrator-api envelope keys must remain exactly {expected_keys}; got {set(envelope.keys())}. "
-        "Authority: spec.md C-010."
+        f"Orchestrator-api envelope keys must remain exactly {expected_keys}; got {set(envelope.keys())}. Authority: spec.md C-010."
     )
-    assert len(envelope) == 7, (
-        f"Orchestrator-api envelope must remain exactly 7 keys; got {len(envelope)}. "
-        "Authority: spec.md C-010."
-    )
+    assert len(envelope) == 7, f"Orchestrator-api envelope must remain exactly 7 keys; got {len(envelope)}. Authority: spec.md C-010."
 
 
 def test_grep_guards_do_not_scan_historical_artifacts() -> None:
@@ -475,15 +461,9 @@ def test_grep_guards_do_not_scan_historical_artifacts() -> None:
         for pattern in group:
             normalized = pattern.replace("\\", "/")
             for forbidden in FORBIDDEN_SCAN_ROOTS:
-                assert forbidden not in normalized, (
-                    f"Guard scan pattern {pattern!r} must not target {forbidden!r}. "
-                    "Authority: spec.md FR-022/C-011."
-                )
+                assert forbidden not in normalized, f"Guard scan pattern {pattern!r} must not target {forbidden!r}. Authority: spec.md FR-022/C-011."
 
-    assert "CHANGELOG.md" not in AGENT_DOC_GLOBS, (
-        "CHANGELOG.md must be handled through _extract_changelog_unreleased(), not a raw glob. "
-        "Authority: spec.md FR-022."
-    )
+    assert "CHANGELOG.md" not in AGENT_DOC_GLOBS, "CHANGELOG.md must be handled through _extract_changelog_unreleased(), not a raw glob. Authority: spec.md FR-022."
 
 
 def test_docs_adr_exemption_is_narrow() -> None:
@@ -496,15 +476,11 @@ def test_docs_adr_exemption_is_narrow() -> None:
     glob change cannot silently widen the carve-out to all of docs/.
     """
     scanned = {p.relative_to(REPO_ROOT).as_posix() for p, _ in _live_doc_scan_targets()}
-    assert not any(p.startswith("docs/adr/") for p in scanned), (
-        "docs/adr/ ADR records must be excluded from the live-docs terminology scan"
-    )
+    assert not any(p.startswith("docs/adr/") for p in scanned), "docs/adr/ ADR records must be excluded from the live-docs terminology scan"
     # Non-vacuity / narrowness: live docs/ pages outside the exempt roots ARE scanned.
-    assert any(
-        p.startswith("docs/")
-        and not p.startswith(("docs/adr/", "docs/migrations/"))
-        for p in scanned
-    ), "the exemption widened too far — no live docs/ page is being scanned"
+    assert any(p.startswith("docs/") and not p.startswith(("docs/adr/", "docs/migrations/")) for p in scanned), (
+        "the exemption widened too far — no live docs/ page is being scanned"
+    )
 
 
 def test_no_feature_alias_in_internal_command_cluster() -> None:
@@ -525,10 +501,7 @@ def test_no_feature_alias_in_internal_command_cluster() -> None:
     for rel_path in INSCOPE_FEATURE_FREE_FILES:
         path = REPO_ROOT / rel_path
         if not path.exists():
-            pytest.fail(
-                f"In-scope file not found: {rel_path}. "
-                "Update INSCOPE_FEATURE_FREE_FILES or restore the file."
-            )
+            pytest.fail(f"In-scope file not found: {rel_path}. Update INSCOPE_FEATURE_FREE_FILES or restore the file.")
         content = _read(path)
         if "--feature" in content:
             # Report each hit with line number for fast triage
@@ -537,8 +510,7 @@ def test_no_feature_alias_in_internal_command_cluster() -> None:
                     offenders.append(f"{rel_path}:{lineno}: {line.strip()!r}")
     assert not offenders, (
         "FR-003/FR-004 regression: '--feature' literal found in in-scope command files "
-        "(INSCOPE_FEATURE_FREE_FILES).  Remove the alias entirely — do not hide it.\n  "
-        + "\n  ".join(offenders)
+        "(INSCOPE_FEATURE_FREE_FILES).  Remove the alias entirely — do not hide it.\n  " + "\n  ".join(offenders)
     )
 
 
@@ -554,16 +526,14 @@ def test_terminology_exemption_policy_doc_is_present_and_consistent() -> None:
     """
     policy_doc = REPO_ROOT / "docs" / "development" / "reference" / "terminology-exemptions.md"
     assert policy_doc.exists(), (
-        "docs/development/reference/terminology-exemptions.md must exist. "
-        "Authority: FR-013. The exemption policy must be documented in a human-readable form."
+        "docs/development/reference/terminology-exemptions.md must exist. Authority: FR-013. The exemption policy must be documented in a human-readable form."
     )
 
     # This guard test must reference the policy doc by its canonical path so
     # a reader can navigate from the exemption comment to the full rationale.
     guard_source = Path(__file__).read_text(encoding="utf-8")
     assert "docs/development/terminology-exemptions.md" in guard_source, (
-        "test_terminology_guards.py must reference docs/development/terminology-exemptions.md. "
-        "Authority: FR-013. The link must appear in the guard test itself."
+        "test_terminology_guards.py must reference docs/development/terminology-exemptions.md. Authority: FR-013. The link must appear in the guard test itself."
     )
 
     # The policy doc must cover ALL four exempt surfaces in FORBIDDEN_SCAN_ROOTS.
@@ -578,6 +548,5 @@ def test_terminology_exemption_policy_doc_is_present_and_consistent() -> None:
     )
     for token in required_tokens:
         assert token in policy_content, (
-            f"docs/development/terminology-exemptions.md must contain exemption token {token!r}. "
-            "Authority: FR-013. All four exempt surfaces must be documented."
+            f"docs/development/terminology-exemptions.md must contain exemption token {token!r}. Authority: FR-013. All four exempt surfaces must be documented."
         )

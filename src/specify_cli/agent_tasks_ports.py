@@ -127,9 +127,7 @@ class FsReader(Protocol):
     Wraps the kind-aware read seam; never conflates with the write authority.
     """
 
-    def planning_read_dir(
-        self, mission: MissionHandle, *, kind: MissionArtifactKind
-    ) -> Path:
+    def planning_read_dir(self, mission: MissionHandle, *, kind: MissionArtifactKind) -> Path:
         """Resolve the read dir for one artifact ``kind`` (per-kind partition)."""
         ...
 
@@ -236,9 +234,7 @@ class Render(Protocol):
 class RealFsReader:
     """Real :class:`FsReader` over the canonical read-path resolvers."""
 
-    def planning_read_dir(
-        self, mission: MissionHandle, *, kind: MissionArtifactKind
-    ) -> Path:
+    def planning_read_dir(self, mission: MissionHandle, *, kind: MissionArtifactKind) -> Path:
         # read-side-placement-seam-migration WP07: a direct 1:1 swap onto the
         # kind-aware seam (fail-loud on a deleted-coord mismatch, NFR-002) —
         # ``resolve_planning_read_dir(root, slug, kind=kind)`` →
@@ -247,14 +243,16 @@ class RealFsReader:
         # so the imported (typed ``-> Path``) resolver surfaces as ``Any`` here;
         # the annotation re-pins the known concrete type without a suppression.
         read_dir: Path = placement_seam(
-            mission.repo_root, mission.mission_slug,
+            mission.repo_root,
+            mission.mission_slug,
             **({"effective_root": mission.effective_root} if mission.effective_root is not None else {}),
         ).read_dir(kind)
         return read_dir
 
     def wp_tasks_dir(self, mission: MissionHandle) -> Path:
         feature_dir: Path = placement_seam(
-            mission.repo_root, mission.mission_slug,
+            mission.repo_root,
+            mission.mission_slug,
             **({"effective_root": mission.effective_root} if mission.effective_root is not None else {}),
         ).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
         return feature_dir / "tasks"
@@ -276,7 +274,8 @@ class RealFsReader:
         # equivalent (the fold's own no-op leg for an unresolvable handle
         # returns it unchanged either way).
         anchor: Path = placement_seam(
-            mission.repo_root, mission.mission_slug,
+            mission.repo_root,
+            mission.mission_slug,
             **({"effective_root": mission.effective_root} if mission.effective_root is not None else {}),
         ).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         return anchor
@@ -337,12 +336,12 @@ class RealCoordCommitRouter:
     def feature_write_dir(self, mission: MissionHandle) -> Path:
         if mission.effective_root is not None:
             write_dir: Path = placement_seam(
-                mission.repo_root, mission.mission_slug, effective_root=mission.effective_root,
+                mission.repo_root,
+                mission.mission_slug,
+                effective_root=mission.effective_root,
             ).read_dir(MissionArtifactKind.STATUS_STATE)
             return write_dir
-        write_dir = resolve_feature_dir_for_mission(
-            mission.repo_root, mission.mission_slug
-        )
+        write_dir = resolve_feature_dir_for_mission(mission.repo_root, mission.mission_slug)
         return write_dir
 
     def commit_status(
@@ -433,9 +432,7 @@ class RealRender:
     the ``status --json`` indented envelope without a second adapter class.
     """
 
-    def __init__(
-        self, console: Console | None = None, indent: int | None = None
-    ) -> None:
+    def __init__(self, console: Console | None = None, indent: int | None = None) -> None:
         self._console = console or Console()
         self._indent = indent
 

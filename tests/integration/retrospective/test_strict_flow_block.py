@@ -29,13 +29,15 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir.mkdir(parents=True)
 
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-            "friendly_name": "Strict Test Mission",
-            "mission_number": None,
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+                "friendly_name": "Strict Test Mission",
+                "mission_number": None,
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text("# Spec\n", encoding="utf-8")
@@ -61,9 +63,7 @@ def _write_strict_config(tmp_path: Path) -> None:
 
 
 @pytest.mark.integration
-def test_strict_flow_block_raises_when_generator_fails(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_strict_flow_block_raises_when_generator_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Strict policy + broken generator → terminus raises MissionCompletionBlocked.
 
     The facilitator callback re-raises; the terminus (WP06) calls
@@ -106,16 +106,6 @@ def test_strict_flow_block_raises_when_generator_fails(
     # Verify no MissionCompleted-equivalent event in the log.
     events_path = feature_dir / "status.events.jsonl"
     if events_path.exists():
-        events = [
-            json.loads(line)
-            for line in events_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
-        mission_completed_events = [
-            e for e in events
-            if e.get("type") in ("MissionCompleted", "MissionRunCompleted")
-        ]
-        assert not mission_completed_events, (
-            f"Gate-blocked mission must not have MissionCompleted in event log; "
-            f"found: {mission_completed_events}"
-        )
+        events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        mission_completed_events = [e for e in events if e.get("type") in ("MissionCompleted", "MissionRunCompleted")]
+        assert not mission_completed_events, f"Gate-blocked mission must not have MissionCompleted in event log; found: {mission_completed_events}"

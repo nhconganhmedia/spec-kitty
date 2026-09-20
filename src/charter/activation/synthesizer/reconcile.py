@@ -147,10 +147,7 @@ class ReconciliationConflict:
 
     def __post_init__(self) -> None:
         if not self.remediation:
-            raise ValueError(
-                f"ReconciliationConflict.kind={self.kind!r} carries no remediation "
-                "(every conflict class must be operator-actionable)"
-            )
+            raise ValueError(f"ReconciliationConflict.kind={self.kind!r} carries no remediation (every conflict class must be operator-actionable)")
 
 
 @dataclass(frozen=True)
@@ -343,9 +340,7 @@ def rewrite_manifest(
 
     if len(new_adapter_ids) == 1:
         primary_adapter_id = new_adapter_ids.pop()
-        primary_adapter_version = (
-            new_adapter_versions.pop() if len(new_adapter_versions) == 1 else existing.adapter_version
-        )
+        primary_adapter_version = new_adapter_versions.pop() if len(new_adapter_versions) == 1 else existing.adapter_version
     else:
         primary_adapter_id = existing.adapter_id
         primary_adapter_version = existing.adapter_version
@@ -454,20 +449,18 @@ def _graph_delta(
 ) -> tuple[tuple[NodeOrEdgeRef, ...], tuple[NodeOrEdgeRef, ...], tuple[NodeOrEdgeRef, ...]]:
     """Return (retained, added, removable) graph-level refs."""
     if existing_overlay is None:
-        added = tuple(_node_ref(n, urn_to_path) for n in fresh_overlay.nodes) + tuple(
-            _edge_ref(e, urn_to_path) for e in fresh_overlay.edges
-        )
+        added = tuple(_node_ref(n, urn_to_path) for n in fresh_overlay.nodes) + tuple(_edge_ref(e, urn_to_path) for e in fresh_overlay.edges)
         return (), added, ()
 
     fresh_node_urns = {n.urn for n in fresh_overlay.nodes}
     existing_node_urns = {n.urn for n in existing_overlay.nodes}
 
-    preserved_refs = tuple(
-        _node_ref(n, urn_to_path) for n in existing_overlay.nodes if n.urn not in fresh_node_urns
-    ) + tuple(_edge_ref(e, urn_to_path) for e in existing_overlay.edges if e.source not in fresh_node_urns)
-    added_refs = tuple(
-        _node_ref(n, urn_to_path) for n in fresh_overlay.nodes if n.urn not in existing_node_urns
-    ) + tuple(_edge_ref(e, urn_to_path) for e in fresh_overlay.edges if e.source not in existing_node_urns)
+    preserved_refs = tuple(_node_ref(n, urn_to_path) for n in existing_overlay.nodes if n.urn not in fresh_node_urns) + tuple(
+        _edge_ref(e, urn_to_path) for e in existing_overlay.edges if e.source not in fresh_node_urns
+    )
+    added_refs = tuple(_node_ref(n, urn_to_path) for n in fresh_overlay.nodes if n.urn not in existing_node_urns) + tuple(
+        _edge_ref(e, urn_to_path) for e in fresh_overlay.edges if e.source not in existing_node_urns
+    )
     return preserved_refs, added_refs, preserved_refs
 
 
@@ -537,14 +530,8 @@ def _classify_conflicts(
     full_graph = merge_layers(base_layer, merged_overlay)
     target_urns = {n.urn for n in fresh_overlay.nodes}
 
-    conflicts = [
-        _edge_conflict("duplicate_triple", edge, target_urns, urn_to_path)
-        for edge in duplicate_edge_triples(full_graph)
-    ]
-    conflicts.extend(
-        _edge_conflict("preserved_dangling_endpoint", edge, target_urns, urn_to_path)
-        for edge in dangling_endpoints(full_graph)
-    )
+    conflicts = [_edge_conflict("duplicate_triple", edge, target_urns, urn_to_path) for edge in duplicate_edge_triples(full_graph)]
+    conflicts.extend(_edge_conflict("preserved_dangling_endpoint", edge, target_urns, urn_to_path) for edge in dangling_endpoints(full_graph))
     return tuple(conflicts)
 
 
@@ -616,11 +603,7 @@ def reconcile_synthesis(
     # legacy root -- M3 cuts writes over once the data itself has moved.
     doctrine_dir = resolve_doctrine_read_root(repo_root)
     existing_overlay = _load_existing_overlay(doctrine_dir)
-    merged_overlay = (
-        fresh_overlay
-        if existing_overlay is None
-        else merge_project_overlay(existing_overlay=existing_overlay, updated_overlay=fresh_overlay)
-    )
+    merged_overlay = fresh_overlay if existing_overlay is None else merge_project_overlay(existing_overlay=existing_overlay, updated_overlay=fresh_overlay)
 
     manifest_path = repo_root / MANIFEST_PATH
     existing_manifest = load_manifest(manifest_path) if manifest_path.exists() else _empty_manifest_seed(run_id)
@@ -671,9 +654,7 @@ def apply_prune(outcome: ReconciliationOutcome) -> ReconciliationOutcome:
     pruned_overlay = outcome.merged_overlay.model_copy(update={"nodes": pruned_nodes, "edges": pruned_edges})
 
     removable_manifest_keys = {(ref.kind, ref.slug) for ref in outcome.delta.manifest_delta.removable}
-    pruned_artifacts = [
-        a for a in outcome.merged_manifest.artifacts if (a.kind, a.slug) not in removable_manifest_keys
-    ]
+    pruned_artifacts = [a for a in outcome.merged_manifest.artifacts if (a.kind, a.slug) not in removable_manifest_keys]
     pruned_manifest = finalize_manifest(outcome.merged_manifest.model_copy(update={"artifacts": pruned_artifacts}))
 
     return ReconciliationOutcome(

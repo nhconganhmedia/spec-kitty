@@ -43,17 +43,10 @@ class AugmentProfileRenderer:
         """Return ``True`` for the three Augment tool-key aliases."""
         return tool_key in {"auggie", "augment", FORMAT_AUGMENT_AGENT}
 
-    def output_path(
-        self, tool_key: str, profile: ProfilePathIdentity, project_root: Path
-    ) -> Path:
+    def output_path(self, tool_key: str, profile: ProfilePathIdentity, project_root: Path) -> Path:
         """Return ``.augment/agents/<profile_id>.md`` under *project_root*."""
         _ = tool_key  # path is identical across the renderer's accepted tool keys
-        return (
-            project_root
-            / _AUGMENT_DIR
-            / _AGENTS_SUBDIR
-            / f"{profile.profile_id}{_MD_SUFFIX}"
-        )
+        return project_root / _AUGMENT_DIR / _AGENTS_SUBDIR / f"{profile.profile_id}{_MD_SUFFIX}"
 
     def render(self, profile: AgentProfile) -> str:
         """Return the Markdown agent file body (frontmatter + instructions)."""

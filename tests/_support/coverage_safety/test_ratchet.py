@@ -62,9 +62,7 @@ def test_a_single_red_run_rejects_and_stops_early() -> None:
 
 
 def test_first_run_red_rejects_immediately() -> None:
-    runner = _scripted_runner(
-        [RunOutcome(passed=False, failed_nodeids=frozenset({"t::x"}))]
-    )
+    runner = _scripted_runner([RunOutcome(passed=False, failed_nodeids=frozenset({"t::x"}))])
     result = run_ratchet(["tests/agent"], n=3, runner=runner)  # type: ignore[arg-type]
     assert result.accepted is False
     assert result.green_runs == 0

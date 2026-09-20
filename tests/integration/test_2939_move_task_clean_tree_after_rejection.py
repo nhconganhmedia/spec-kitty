@@ -164,9 +164,7 @@ def test_rejected_review_move_task_leaves_clean_coord_tree(tmp_path: Path) -> No
     _commit_coord_baseline(ctx, "test: commit coord in_review baseline")
 
     # Sanity: the coord status tree is CLEAN before the move.
-    assert _coord_status_porcelain(ctx) == "", (
-        "precondition failed: coord status tree must be clean before the move"
-    )
+    assert _coord_status_porcelain(ctx) == "", "precondition failed: coord status tree must be clean before the move"
 
     feedback = tmp_path / "feedback.md"
     feedback.write_text("**Issue**: needs another pass.\n", encoding="utf-8")
@@ -197,9 +195,7 @@ def test_for_review_move_task_with_note_leaves_clean_coord_tree(tmp_path: Path) 
     _seed_wp_event(ctx.coord_feature_dir, _WP_ID, "in_progress", seq=0)
     _commit_coord_baseline(ctx, "test: commit coord in_progress baseline")
 
-    assert _coord_status_porcelain(ctx) == "", (
-        "precondition failed: coord status tree must be clean before the move"
-    )
+    assert _coord_status_porcelain(ctx) == "", "precondition failed: coord status tree must be clean before the move"
 
     router = _FaultInjectableCoordRouter(write_dir=ctx.coord_feature_dir)
     _run_move(ctx, router, to="for_review", note="Ready for review — please look.")
@@ -242,9 +238,7 @@ def test_skip_review_artifact_evidence_is_committed_on_coord(tmp_path: Path) -> 
     _seed_coord_wp_in_review(ctx, _WP_ID)
     _commit_coord_baseline(ctx, "test: commit coord in_review baseline")
 
-    assert _coord_status_porcelain(ctx) == "", (
-        "precondition failed: coord status tree must be clean before recording evidence"
-    )
+    assert _coord_status_porcelain(ctx) == "", "precondition failed: coord status tree must be clean before recording evidence"
 
     finding = ReviewArtifactFinding(
         wp_id=_WP_ID,
@@ -292,13 +286,7 @@ def test_flat_topology_annotation_still_lands(
     ctx = flat_topology_mission
 
     def _event_line_count() -> int:
-        return len(
-            [
-                line
-                for line in ctx.status_events_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
-        )
+        return len([line for line in ctx.status_events_path.read_text(encoding="utf-8").splitlines() if line.strip()])
 
     before = _event_line_count()
 
@@ -313,6 +301,4 @@ def test_flat_topology_annotation_still_lands(
 
     # Coord-less: the emitter delegates to the uncommitted ``emit_inner_state_changed``
     # so the annotation still lands in the PRIMARY event log (surface unchanged).
-    assert _event_line_count() == before + 1, (
-        "flat-topology annotation was not persisted to the primary event log"
-    )
+    assert _event_line_count() == before + 1, "flat-topology annotation was not persisted to the primary event log"

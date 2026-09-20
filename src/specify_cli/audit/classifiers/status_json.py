@@ -94,10 +94,7 @@ def classify_status_json(
                 code="SNAPSHOT_DRIFT",
                 severity=Severity.ERROR,
                 artifact_path="status.json",
-                detail=(
-                    "reducer raised during drift check: "
-                    f"{format_exception_detail(exc)}"
-                ),
+                detail=(f"reducer raised during drift check: {format_exception_detail(exc)}"),
             )
         )
         return findings
@@ -159,7 +156,4 @@ def _is_terminal_snapshot(computed_json: str) -> bool:
     work_packages = json.loads(computed_json).get("work_packages", {})
     if not isinstance(work_packages, dict) or not work_packages:
         return False
-    return all(
-        isinstance(wp, dict) and wp.get("lane") == "done"
-        for wp in work_packages.values()
-    )
+    return all(isinstance(wp, dict) and wp.get("lane") == "done" for wp in work_packages.values())

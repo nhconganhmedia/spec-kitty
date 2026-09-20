@@ -38,9 +38,7 @@ def _make_project(tmp_path: Path, with_claude: bool = True) -> Path:
     if with_claude:
         (tmp_path / ".claude").mkdir()
         config_yaml = tmp_path / ".kittify" / "config.yaml"
-        config_yaml.write_text(
-            "agents:\n  available:\n    - claude\n", encoding="utf-8"
-        )
+        config_yaml.write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return tmp_path
 
 
@@ -93,9 +91,7 @@ class TestDetect:
         from specify_cli.session_presence.content import SECTION_CLOSE, SECTION_OPEN
 
         claude_md = claude_project / ".claude" / "CLAUDE.md"
-        claude_md.write_text(
-            f"{SECTION_OPEN}\nSome content\n{SECTION_CLOSE}\n", encoding="utf-8"
-        )
+        claude_md.write_text(f"{SECTION_OPEN}\nSome content\n{SECTION_CLOSE}\n", encoding="utf-8")
         # No settings.json
         migration = SessionPresenceClaudeCodeMigration()
         assert migration.detect(claude_project) is True
@@ -107,9 +103,7 @@ class TestDetect:
 
         content = SessionPresenceContent("3.2.0", "test-project", "healthy", None)
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch(
                 "importlib.metadata.version",
                 return_value="3.2.0",
@@ -130,9 +124,7 @@ class TestApply:
     def test_apply_writes_claude_md_section(self, claude_project: Path) -> None:
         migration = SessionPresenceClaudeCodeMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch(
                 "importlib.metadata.version",
                 return_value="3.2.0",
@@ -153,9 +145,7 @@ class TestApply:
     def test_apply_writes_settings_json_hook(self, claude_project: Path) -> None:
         migration = SessionPresenceClaudeCodeMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch(
                 "importlib.metadata.version",
                 return_value="3.2.0",
@@ -172,11 +162,7 @@ class TestApply:
         assert settings.exists()
         data = json.loads(settings.read_text(encoding="utf-8"))
         entries = data.get("hooks", {}).get("SessionStart", [])
-        commands = [
-            h.get("command")
-            for entry in entries
-            for h in entry.get("hooks", [])
-        ]
+        commands = [h.get("command") for entry in entries for h in entry.get("hooks", [])]
         assert "spec-kitty session-start" in commands
 
     def test_apply_dry_run_no_filesystem_changes(self, claude_project: Path) -> None:
@@ -192,9 +178,7 @@ class TestApply:
         """apply() twice leaves files in the same state (no duplicates)."""
         migration = SessionPresenceClaudeCodeMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch(
                 "importlib.metadata.version",
                 return_value="3.2.0",
@@ -215,12 +199,7 @@ class TestApply:
         settings = claude_project / ".claude" / "settings.json"
         data = json.loads(settings.read_text(encoding="utf-8"))
         entries = data.get("hooks", {}).get("SessionStart", [])
-        commands = [
-            h.get("command")
-            for entry in entries
-            for h in entry.get("hooks", [])
-            if h.get("command") == "spec-kitty session-start"
-        ]
+        commands = [h.get("command") for entry in entries for h in entry.get("hooks", []) if h.get("command") == "spec-kitty session-start"]
         assert len(commands) == 1
 
 
@@ -243,9 +222,7 @@ class TestStopHookBackfill:
 
         content = SessionPresenceContent("3.2.0", "test-project", "healthy", None)
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch("specify_cli.compat.plan", side_effect=Exception("no compat")),
         ):
@@ -268,34 +245,22 @@ class TestStopHookBackfill:
         self._write_presence(claude_project)
         assert SessionPresenceClaudeCodeMigration().detect(claude_project) is False
 
-    def test_apply_backfills_stop_hook_preserving_session_start(
-        self, claude_project: Path
-    ) -> None:
+    def test_apply_backfills_stop_hook_preserving_session_start(self, claude_project: Path) -> None:
         self._write_presence(claude_project)
         self._strip_stop_hook(claude_project)
         migration = SessionPresenceClaudeCodeMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch("specify_cli.compat.plan", side_effect=Exception("no compat")),
         ):
             mock_checker_cls.return_value.get_available_version.return_value = None
             result = migration.apply(claude_project)
         assert result.success
-        data = json.loads(
-            (claude_project / ".claude" / "settings.json").read_text(encoding="utf-8")
-        )
-        stop_commands = [
-            h["command"] for entry in data["hooks"]["Stop"] for h in entry["hooks"]
-        ]
+        data = json.loads((claude_project / ".claude" / "settings.json").read_text(encoding="utf-8"))
+        stop_commands = [h["command"] for entry in data["hooks"]["Stop"] for h in entry["hooks"]]
         assert stop_commands == ["spec-kitty session-stop"]
-        start_commands = [
-            h["command"]
-            for entry in data["hooks"]["SessionStart"]
-            for h in entry["hooks"]
-        ]
+        start_commands = [h["command"] for entry in data["hooks"]["SessionStart"] for h in entry["hooks"]]
         assert start_commands.count("spec-kitty session-start") == 1
         # Migration is now satisfied — no-ops on a current project.
         assert migration.detect(claude_project) is False

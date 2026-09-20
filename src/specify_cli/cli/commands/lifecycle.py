@@ -41,12 +41,8 @@ PLAN_WIDEN_QUESTIONS: list[tuple[str, str]] = [
 ]
 
 
-
 def _scaffold_next_action(mission_slug: str) -> str:
-    return (
-        "Open spec_file and replace the scaffold with a complete specification; "
-        f"then run `spec-kitty plan --mission {mission_slug}`."
-    )
+    return f"Open spec_file and replace the scaffold with a complete specification; then run `spec-kitty plan --mission {mission_slug}`."
 
 
 def _with_specify_scaffold_state(payload: dict[str, object], mission_slug: str) -> dict[str, object]:
@@ -298,7 +294,6 @@ def plan(
                         mission_slug=_mission_slug,
                         console=_console,
                     )
-
 
 
 def tasks(

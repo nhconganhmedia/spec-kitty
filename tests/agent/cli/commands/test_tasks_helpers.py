@@ -58,37 +58,49 @@ def _write_issue_matrix(
 
 
 def test_self_review_fallback_requires_explicit_force_and_metadata() -> None:
-    assert _self_review_fallback_option_error(
-        enabled=False,
-        target_lane="approved",
-        force=False,
-        intended_reviewer="codex",
-        failure_reason=None,
-    ) == "--intended-reviewer/--reviewer-failure-reason require --self-review-fallback."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=False,
+            target_lane="approved",
+            force=False,
+            intended_reviewer="codex",
+            failure_reason=None,
+        )
+        == "--intended-reviewer/--reviewer-failure-reason require --self-review-fallback."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True,
-        target_lane="for_review",
-        force=True,
-        intended_reviewer="codex",
-        failure_reason="exit 1",
-    ) == "--self-review-fallback is only valid when approving or marking done."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="for_review",
+            force=True,
+            intended_reviewer="codex",
+            failure_reason="exit 1",
+        )
+        == "--self-review-fallback is only valid when approving or marking done."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True,
-        target_lane="approved",
-        force=False,
-        intended_reviewer="codex",
-        failure_reason="exit 1",
-    ) == "--self-review-fallback requires --force so force_count records the independence override."
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="approved",
+            force=False,
+            intended_reviewer="codex",
+            failure_reason="exit 1",
+        )
+        == "--self-review-fallback requires --force so force_count records the independence override."
+    )
 
-    assert _self_review_fallback_option_error(
-        enabled=True,
-        target_lane="approved",
-        force=True,
-        intended_reviewer="codex",
-        failure_reason="exit 1",
-    ) is None
+    assert (
+        _self_review_fallback_option_error(
+            enabled=True,
+            target_lane="approved",
+            force=True,
+            intended_reviewer="codex",
+            failure_reason="exit 1",
+        )
+        is None
+    )
 
 
 def test_issue_matrix_read_is_coord_authoritative_no_primary_fallback(
@@ -133,9 +145,7 @@ def test_issue_matrix_in_mission_passes_approved_blocks_done(tmp_path: Path) -> 
 
     feature_dir = tmp_path / "kitty-specs" / "demo"
     feature_dir.mkdir(parents=True)
-    (feature_dir / "spec.md").write_text(
-        "Fix Priivacy-ai/spec-kitty issue #1582.\n", encoding="utf-8"
-    )
+    (feature_dir / "spec.md").write_text("Fix Priivacy-ai/spec-kitty issue #1582.\n", encoding="utf-8")
     _write_issue_matrix(feature_dir, "in-mission", evidence_ref="WP14 (this mission)")
 
     # Accepted at per-WP approval: a later WP in this mission closes #1582.
@@ -373,6 +383,7 @@ def test_resolve_wp_slug_no_matching_file(tmp_path: Path) -> None:
 # _check_unchecked_subtasks
 # ---------------------------------------------------------------------------
 
+
 def _write_wp_frontmatter(feature_dir: Path, wp_id: str, roster: list[str]) -> None:
     """Author a WP file whose frontmatter ``subtasks:`` list is the guard roster."""
     (feature_dir / "tasks").mkdir(parents=True, exist_ok=True)
@@ -403,9 +414,7 @@ def _seed_subtask_snapshot(feature_dir: Path, wp_id: str, subtasks: dict[str, ob
 
 def test_check_unchecked_subtasks_no_wp_file(tmp_path: Path) -> None:
     """Returns empty list when the WP has no authored frontmatter roster."""
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path
-    ):
+    with patch("specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path):
         result = _check_unchecked_subtasks(tmp_path, "010-test", "WP01", False)
     assert result == []
 
@@ -416,13 +425,9 @@ def test_check_unchecked_subtasks_finds_unchecked(tmp_path: Path) -> None:
 
     feature_dir = tmp_path / "kitty-specs" / "010-test"
     _write_wp_frontmatter(feature_dir, "WP01", ["T001", "T002", "T003"])
-    _seed_subtask_snapshot(
-        feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.IN_PROGRESS, "T003": Lane.PLANNED}
-    )
+    _seed_subtask_snapshot(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.IN_PROGRESS, "T003": Lane.PLANNED})
 
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path
-    ):
+    with patch("specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path):
         result = _check_unchecked_subtasks(tmp_path, "010-test", "WP01", False)
 
     assert "T002" in result
@@ -438,9 +443,7 @@ def test_check_unchecked_subtasks_all_done(tmp_path: Path) -> None:
     _write_wp_frontmatter(feature_dir, "WP01", ["T001", "T002"])
     _seed_subtask_snapshot(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.DONE})
 
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path
-    ):
+    with patch("specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path):
         result = _check_unchecked_subtasks(tmp_path, "010-test", "WP01", False)
     assert result == []
 
@@ -455,9 +458,7 @@ def test_check_unchecked_subtasks_only_target_wp(tmp_path: Path) -> None:
     _seed_subtask_snapshot(feature_dir, "WP01", {"T002": Lane.IN_PROGRESS})
     _seed_subtask_snapshot(feature_dir, "WP02", {"T004": Lane.PLANNED, "T005": Lane.DONE})
 
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path
-    ):
+    with patch("specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path):
         result = _check_unchecked_subtasks(tmp_path, "010-test", "WP02", False)
 
     # WP02 has T004 not-done and T005 done.
@@ -481,9 +482,7 @@ def test_check_unchecked_subtasks_rosters_do_not_cross_contaminate(
     _seed_subtask_snapshot(feature_dir, "WP02", {"T004": Lane.DONE, "T005": Lane.DONE})
     _seed_subtask_snapshot(feature_dir, "WP03", {"T006": Lane.PLANNED, "T007": Lane.PLANNED})
 
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path
-    ):
+    with patch("specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path):
         wp02 = _check_unchecked_subtasks(tmp_path, "010-test", "WP02", False)
         wp03 = _check_unchecked_subtasks(tmp_path, "010-test", "WP03", False)
 
@@ -521,7 +520,7 @@ def test_behind_commits_no_changed_files(tmp_path: Path) -> None:
     """Returns True when diff reports no changed files (fully up-to-date)."""
     responses = [
         _make_subproc(returncode=0, stdout="abc123\n"),  # merge-base
-        _make_subproc(returncode=0, stdout=""),          # diff --name-only
+        _make_subproc(returncode=0, stdout=""),  # diff --name-only
     ]
     with patch("subprocess.run", side_effect=responses):
         result = _behind_commits_touch_only_planning_artifacts(tmp_path, "main", "010-test")

@@ -116,12 +116,7 @@ class TestExtractReferencedPaths:
         assert ("mission", "switch") in paths
 
     def test_extracts_classification_flags(self) -> None:
-        text = (
-            "## spec-kitty old\n\n"
-            "> **Deprecated**: replaced by new\n\n"
-            "## spec-kitty internal\n\n"
-            "> **Internal**: dev only\n\n"
-        )
+        text = "## spec-kitty old\n\n> **Deprecated**: replaced by new\n\n## spec-kitty internal\n\n> **Internal**: dev only\n\n"
         paths = freshness.extract_referenced_paths(text)
         assert paths[("old",)]["classified_deprecated"] is True
         assert paths[("internal",)]["classified_internal"] is True
@@ -147,19 +142,10 @@ class TestExtractReferencedPaths:
 
         paths = freshness.extract_referenced_paths(text)
 
-        assert paths[("foo",)]["help_body"] == (
-            "Stable summary. Body text wrapped across terminal lines."
-        )
+        assert paths[("foo",)]["help_body"] == ("Stable summary. Body text wrapped across terminal lines.")
 
     def test_extracts_click_deprecated_label_as_presentation_only(self) -> None:
-        text = (
-            "## spec-kitty old\n\n"
-            "```\n"
-            "Usage: spec-kitty old [OPTIONS]\n\n"
-            "(Deprecated) The command's actual help.\n\n"
-            "Options:\n"
-            "```\n"
-        )
+        text = "## spec-kitty old\n\n```\nUsage: spec-kitty old [OPTIONS]\n\n(Deprecated) The command's actual help.\n\nOptions:\n```\n"
 
         paths = freshness.extract_referenced_paths(text)
 
@@ -184,14 +170,10 @@ class TestRules:
         return (FIXTURES_DIR / "sample_cli_reference.md").read_text(encoding="utf-8")
 
     def _missing_reference(self) -> str:
-        return (FIXTURES_DIR / "sample_cli_reference_missing.md").read_text(
-            encoding="utf-8"
-        )
+        return (FIXTURES_DIR / "sample_cli_reference_missing.md").read_text(encoding="utf-8")
 
     def _extra_reference(self) -> str:
-        return (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(
-            encoding="utf-8"
-        )
+        return (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(encoding="utf-8")
 
     def test_clean_reference_produces_no_findings(self) -> None:
         findings = freshness.evaluate_reference(
@@ -245,10 +227,7 @@ class TestRules:
             agent_reference_text="",
             saas_sync_enabled=True,
         )
-        assert any(
-            f.rule_id == "REF-DEPRECATED-UNCLASSIFIED" and f.path == ("legacy-cmd",)
-            for f in findings
-        )
+        assert any(f.rule_id == "REF-DEPRECATED-UNCLASSIFIED" and f.path == ("legacy-cmd",) for f in findings)
 
     def test_internal_leak(self) -> None:
         entries = [
@@ -436,10 +415,7 @@ class TestRules:
             requires_saas_sync=False,
             help_body="Canonical help body.",
         )
-        main_ref = (
-            "## spec-kitty foo\n\n"
-            "```\nUsage: spec-kitty foo\n\nCanonical help body.\n\nOptions:\n```\n"
-        )
+        main_ref = "## spec-kitty foo\n\n```\nUsage: spec-kitty foo\n\nCanonical help body.\n\nOptions:\n```\n"
 
         findings = freshness.evaluate_reference(
             entries=[entry],
@@ -470,9 +446,7 @@ class TestRules:
             agent_reference_text="",
             saas_sync_enabled=True,
         )
-        assert any(
-            f.rule_id == "REF-MISSING" and f.path == ("agent", "tasks") for f in findings
-        )
+        assert any(f.rule_id == "REF-MISSING" and f.path == ("agent", "tasks") for f in findings)
 
     def test_agent_path_in_agent_reference_is_clean(self) -> None:
         entries = [
@@ -504,9 +478,7 @@ class TestRules:
 
 class TestCli:
     @pytest.fixture()
-    def stub_specify_cli(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> Iterator[None]:
+    def stub_specify_cli(self, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         import sys
         import types
 
@@ -515,9 +487,7 @@ class TestCli:
         @synthetic.command("foo", help="Run the foo command")
         def foo_cmd() -> None: ...
 
-        @synthetic.command(
-            "legacy-cmd", help="Deprecated: replaced by foo", deprecated=True
-        )
+        @synthetic.command("legacy-cmd", help="Deprecated: replaced by foo", deprecated=True)
         def legacy_cmd() -> None: ...
 
         bar_app = typer.Typer()
@@ -559,9 +529,7 @@ class TestCli:
         )
         assert rc == 2
 
-    def test_main_returns_2_for_missing_agent_reference(
-        self, tmp_path: Path
-    ) -> None:
+    def test_main_returns_2_for_missing_agent_reference(self, tmp_path: Path) -> None:
         ref = tmp_path / "ref.md"
         ref.write_text("# ref\n", encoding="utf-8")
         rc = freshness.main(
@@ -603,9 +571,7 @@ class TestCli:
     ) -> None:
         ref = tmp_path / "ref.md"
         ref.write_text(
-            (FIXTURES_DIR / "sample_cli_reference_missing.md").read_text(
-                encoding="utf-8"
-            ),
+            (FIXTURES_DIR / "sample_cli_reference_missing.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         agent_ref = tmp_path / "agent.md"
@@ -627,9 +593,7 @@ class TestCli:
     ) -> None:
         ref = tmp_path / "ref.md"
         ref.write_text(
-            (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(
-                encoding="utf-8"
-            ),
+            (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         agent_ref = tmp_path / "agent.md"
@@ -656,9 +620,7 @@ class TestCli:
 
         ref = tmp_path / "ref.md"
         ref.write_text(
-            (FIXTURES_DIR / "sample_cli_reference_no_saas.md").read_text(
-                encoding="utf-8"
-            ),
+            (FIXTURES_DIR / "sample_cli_reference_no_saas.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         agent_ref = tmp_path / "agent.md"
@@ -681,9 +643,7 @@ class TestCli:
     ) -> None:
         ref = tmp_path / "ref.md"
         ref.write_text(
-            (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(
-                encoding="utf-8"
-            ),
+            (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         agent_ref = tmp_path / "agent.md"
@@ -712,9 +672,7 @@ class TestCli:
     ) -> None:
         ref = tmp_path / "ref.md"
         ref.write_text(
-            (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(
-                encoding="utf-8"
-            ),
+            (FIXTURES_DIR / "sample_cli_reference_extra.md").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         agent_ref = tmp_path / "agent.md"
@@ -776,10 +734,7 @@ def test_real_typer_app_visible_count_within_tolerance() -> None:
     entries = walk(app)
     visible = [e for e in entries if not e.hidden]
     deprecated = [e for e in entries if e.deprecated]
-    assert 253 <= len(visible) <= 309, (
-        f"visible count {len(visible)} is outside the ±10% tolerance band "
-        "around the 2026-09-05 convergence audit baseline of 281"
-    )
+    assert 253 <= len(visible) <= 309, f"visible count {len(visible)} is outside the ±10% tolerance band around the 2026-09-05 convergence audit baseline of 281"
     assert len(deprecated) >= 1
 
 

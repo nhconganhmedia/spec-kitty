@@ -20,8 +20,7 @@ def _write_runtime_next_skill(project: Path, content: str) -> Path:
 def test_migration_detects_stale_success_default_doc(tmp_path: Path) -> None:
     _write_runtime_next_skill(
         tmp_path,
-        "The `--result` flag tells the runtime the outcome of the previous step.\n"
-        "Defaults to `success` if omitted.\n",
+        "The `--result` flag tells the runtime the outcome of the previous step.\nDefaults to `success` if omitted.\n",
     )
 
     assert FixRuntimeNextResultDefaultMigration().detect(tmp_path) is True
@@ -30,22 +29,16 @@ def test_migration_detects_stale_success_default_doc(tmp_path: Path) -> None:
 def test_migration_refreshes_runtime_next_skill_doc(tmp_path: Path) -> None:
     skill_path = _write_runtime_next_skill(
         tmp_path,
-        "The `--result` flag tells the runtime the outcome of the previous step.\n"
-        "Defaults to `success` if omitted.\n",
+        "The `--result` flag tells the runtime the outcome of the previous step.\nDefaults to `success` if omitted.\n",
     )
 
     result = FixRuntimeNextResultDefaultMigration().apply(tmp_path)
 
     assert result.success is True
-    assert result.changes_made == [
-        "Replaced .claude/skills/spec-kitty-runtime-next/SKILL.md"
-    ]
+    assert result.changes_made == ["Replaced .claude/skills/spec-kitty-runtime-next/SKILL.md"]
     content = skill_path.read_text(encoding="utf-8")
     assert "Defaults to `success` if omitted." not in content
-    assert (
-        "If omitted, `spec-kitty next` returns current state without advancing "
-        "(query mode)."
-    ) in content
+    assert ("If omitted, `spec-kitty next` returns current state without advancing (query mode).") in content
 
 
 def test_migration_applies_to_same_version_when_stale_doc_detected(
@@ -53,8 +46,7 @@ def test_migration_applies_to_same_version_when_stale_doc_detected(
 ) -> None:
     _write_runtime_next_skill(
         tmp_path,
-        "The `--result` flag tells the runtime the outcome of the previous step.\n"
-        "Defaults to `success` if omitted.\n",
+        "The `--result` flag tells the runtime the outcome of the previous step.\nDefaults to `success` if omitted.\n",
     )
 
     applicable = MigrationRegistry.get_applicable(
@@ -63,7 +55,4 @@ def test_migration_applies_to_same_version_when_stale_doc_detected(
         project_path=tmp_path,
     )
 
-    assert any(
-        migration.migration_id == "3.2.0rc30_fix_runtime_next_result_default"
-        for migration in applicable
-    )
+    assert any(migration.migration_id == "3.2.0rc30_fix_runtime_next_result_default" for migration in applicable)

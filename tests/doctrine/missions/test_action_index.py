@@ -73,16 +73,7 @@ class TestLoadActionIndexEmptyButWellFormed:
         assert result.agent_profiles == []
 
     def test_all_empty_lists_returns_empty_content(self, tmp_path: Path):
-        yaml = (
-            "action: plan\n"
-            "directives: []\n"
-            "tactics: []\n"
-            "paradigms: []\n"
-            "styleguides: []\n"
-            "toolguides: []\n"
-            "procedures: []\n"
-            "agent_profiles: []\n"
-        )
+        yaml = "action: plan\ndirectives: []\ntactics: []\nparadigms: []\nstyleguides: []\ntoolguides: []\nprocedures: []\nagent_profiles: []\n"
         _write_index(tmp_path, "m", "act", yaml)
         result = load_action_index(tmp_path, "m", "act")
         assert result.action == "plan"

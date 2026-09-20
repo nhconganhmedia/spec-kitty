@@ -180,15 +180,10 @@ def _load_kittify_config(repo_root: Path) -> dict:  # type: ignore[type-arg]
         with open(config_file, encoding="utf-8") as fh:
             loaded = yaml.load(fh) or {}
     except Exception as exc:
-        raise ProtectionConfigError(
-            f"Failed to parse {config_file}: {exc}"
-        ) from exc
+        raise ProtectionConfigError(f"Failed to parse {config_file}: {exc}") from exc
 
     if not isinstance(loaded, dict):
-        raise ProtectionConfigError(
-            f"{config_file} must be a YAML mapping at the top level; found "
-            f"{type(loaded).__name__} instead."
-        )
+        raise ProtectionConfigError(f"{config_file} must be a YAML mapping at the top level; found {type(loaded).__name__} instead.")
 
     return loaded
 
@@ -213,10 +208,7 @@ def _resolve_protected_branches(repo_root: Path) -> frozenset[str]:
         return _default_branches_with_remote(repo_root)
 
     if not isinstance(raw_value, list):
-        raise ProtectionConfigError(
-            f"protection.protected_branches in .kittify/config.yaml must be a list, "
-            f"got {type(raw_value).__name__}: {raw_value!r}"
-        )
+        raise ProtectionConfigError(f"protection.protected_branches in .kittify/config.yaml must be a list, got {type(raw_value).__name__}: {raw_value!r}")
 
     # Explicit list (possibly empty) → exactly that set; no remote union
     return frozenset(str(b) for b in raw_value)

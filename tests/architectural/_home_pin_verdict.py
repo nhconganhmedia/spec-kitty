@@ -111,15 +111,10 @@ class GuardVerdict:
         return not self.unexpected and not self.stale and self.census_hash_ok and self.exempt_hash_ok
 
     def __str__(self) -> str:
-        return (
-            f"unexpected={sorted(self.unexpected)} stale={sorted(self.stale)} "
-            f"census_hash_ok={self.census_hash_ok} exempt_hash_ok={self.exempt_hash_ok}"
-        )
+        return f"unexpected={sorted(self.unexpected)} stale={sorted(self.stale)} census_hash_ok={self.census_hash_ok} exempt_hash_ok={self.exempt_hash_ok}"
 
 
-def evaluate(
-    root: Path, census_text: str, baseline_text: str, exempt: scan.ExemptSet
-) -> GuardVerdict:
+def evaluate(root: Path, census_text: str, baseline_text: str, exempt: scan.ExemptSet) -> GuardVerdict:
     """Run both guard limbs against a tree and its census/baseline artefacts.
 
     ``root`` is a parameter (FR-009), so this is the same function whether the tree is materialised
@@ -137,10 +132,7 @@ def evaluate(
     return GuardVerdict(
         unexpected=frozenset(discovered - known),
         stale=frozenset(known - discovered),
-        census_hash_ok=(
-            hash_of_key_set(census | tombstone_keys(baseline_text))
-            == baseline["census_key_set_sha256"]
-        ),
+        census_hash_ok=(hash_of_key_set(census | tombstone_keys(baseline_text)) == baseline["census_key_set_sha256"]),
         exempt_hash_ok=hash_of_key_set(exempt_key_set) == baseline["exempt_set_sha256"],
     )
 

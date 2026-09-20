@@ -23,9 +23,7 @@ pytestmark = pytest.mark.fast
 
 def _write_meta(feature_dir: Path, meta: dict[str, object]) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 
 @pytest.fixture()

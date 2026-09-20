@@ -42,7 +42,8 @@ def test_explicit_build_assessment_exact_full_delta(tmp_path: Path, target: str)
     assert result.outcome == "applied", result
     actual = net_delta(before, snapshot({"staging": tmp_path, "home": Path.home()}))
     assert {(e.root.root_id, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in assessment.effects} == {
-        (e.root, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in actual}
+        (e.root, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in actual
+    }
     assert any(e.path.endswith("marketplace.json") for e in assessment.effects)
     if target == "claude":
         assert any(e.path.endswith("bin/spec-kitty-wrapper") and e.after.mode == 0o700 for e in assessment.effects)
@@ -64,11 +65,20 @@ def test_full_codex_build_preserves_all_node_mtimes(tmp_path: Path) -> None:
     assert_unchanged(before, snapshot({"stage": tmp_path}))
 
 
-@pytest.mark.parametrize("directory_mode,empty_mode", [
-    (0o755, 0o755), (0o700, 0o700), (0o700, 0o710), pytest.param(0o555, 0o555, id="readonly"),
-])
+@pytest.mark.parametrize(
+    "directory_mode,empty_mode",
+    [
+        (0o755, 0o755),
+        (0o700, 0o700),
+        (0o700, 0o710),
+        pytest.param(0o555, 0o555, id="readonly"),
+    ],
+)
 def test_codex_build_preserves_source_directory_modes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, directory_mode: int, empty_mode: int,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    directory_mode: int,
+    empty_mode: int,
 ) -> None:
     import stat
     import charter.offering as offering
@@ -100,7 +110,9 @@ def test_codex_build_preserves_source_directory_modes(
 
 @pytest.mark.parametrize("scenario", ["missing", "chmod-root", "chmod-empty", "existing"])
 def test_codex_prepared_directory_modes_and_guards(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, scenario: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    scenario: str,
 ) -> None:
     import stat
     import charter.offering as offering
@@ -132,8 +144,7 @@ def test_codex_prepared_directory_modes_and_guards(
     assert assessment.complete and assessment.effects, assessment.diagnostics
     assert_unchanged(before, snapshot({"staging": tmp_path, "home": Path.home()}))
     assert isinstance(assessment.prepared, PreparedBundle)
-    relative_modes = {(tmp_path / path).relative_to(assessment.root.path).as_posix(): mode
-                      for path, mode in expected_modes.items()}
+    relative_modes = {(tmp_path / path).relative_to(assessment.root.path).as_posix(): mode for path, mode in expected_modes.items()}
     assert dict(assessment.prepared.supporting_dirs) == relative_modes
     directory_effects = {e.path: e.after.mode for e in assessment.effects if e.path in relative_modes}
     assert directory_effects == ({} if scenario == "existing" else relative_modes)
@@ -154,9 +165,9 @@ def test_codex_prepared_directory_modes_and_guards(
     assert result.outcome == "applied", result
     assert set(result.succeeded) == {e.id for e in assessment.effects}
     actual = net_delta(before, snapshot({"staging": tmp_path, "home": Path.home()}))
-    assert {(e.root.root_id, e.destination.relative_to(tmp_path).as_posix(), e.action, e.after.kind, e.after.sha256, e.after.mode)
-            for e in assessment.effects} == {
-        (e.root, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in actual}
+    assert {(e.root.root_id, e.destination.relative_to(tmp_path).as_posix(), e.action, e.after.kind, e.after.sha256, e.after.mode) for e in assessment.effects} == {
+        (e.root, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in actual
+    }
     for relative, mode in expected_modes.items():
         if scenario == "existing":
             mode = 0o751 if relative.endswith("/hooks") else 0o755
@@ -174,7 +185,9 @@ def test_codex_prepared_directory_modes_and_guards(
 
 @pytest.mark.parametrize("fault", ["none", "member", "final-mode", "replacement", "symlink", "mode", "open-race"])
 def test_codex_readonly_directory_finalization(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fault: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    fault: str,
 ) -> None:
     import stat
     import charter.offering as offering
@@ -227,7 +240,8 @@ def test_codex_readonly_directory_finalization(
         assert stat.S_IMODE((staged / "nested/run.sh").stat().st_mode) == 0o750
         actual = net_delta(before, snapshot({"staging": tmp_path, "home": Path.home()}))
         assert {(e.root.root_id, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in assessment.effects} == {
-            (e.root, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in actual}
+            (e.root, e.path, e.action, e.after.kind, e.after.sha256, e.after.mode) for e in actual
+        }
         settled = snapshot({"staging": tmp_path, "home": Path.home()})
         projector.build()
         assert_unchanged(settled, snapshot({"staging": tmp_path, "home": Path.home()}))
@@ -255,7 +269,10 @@ def test_codex_readonly_directory_finalization(
 
 @contextmanager
 def _readonly_directory_faults(
-    monkeypatch: pytest.MonkeyPatch, staged: Path, outside: Path, fault: str,
+    monkeypatch: pytest.MonkeyPatch,
+    staged: Path,
+    outside: Path,
+    fault: str,
 ) -> Iterator[tuple[list[Path], Callable[[], bool]]]:
     """Inject one I/O failure or concurrent replacement; other operations remain real."""
     import os
@@ -291,8 +308,7 @@ def _readonly_directory_faults(
         nonlocal injected
         info = os.fstat(fd)
         if stat.S_ISDIR(info.st_mode):
-            path = next(p for p in (staged, staged / "empty", staged / "nested")
-                        if p.lstat().st_ino == info.st_ino)
+            path = next(p for p in (staged, staged / "empty", staged / "nested") if p.lstat().st_ino == info.st_ino)
             assert mode == 0o555
             assert not (staged.parent / ".codex-plugin/plugin.json").exists()
             if path == staged / "nested" and fault == "final-mode":
@@ -360,20 +376,14 @@ class TestPluginJson:
 
     def test_plugin_json_exists(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
-        assert (bundle_dir / ".codex-plugin" / "plugin.json").is_file(), (
-            "plugin.json must exist under .codex-plugin/"
-        )
+        assert (bundle_dir / ".codex-plugin" / "plugin.json").is_file(), "plugin.json must exist under .codex-plugin/"
 
     def test_plugin_json_has_real_version(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
         payload = _read_manifest(bundle_dir)
         version = payload["version"]
-        assert version != "0.0.0", (
-            "plugin.json version must come from importlib.metadata, not the placeholder"
-        )
-        assert re.match(r"\d+\.\d+", str(version)), (
-            f"version {version!r} does not look like a version string"
-        )
+        assert version != "0.0.0", "plugin.json version must come from importlib.metadata, not the placeholder"
+        assert re.match(r"\d+\.\d+", str(version)), f"version {version!r} does not look like a version string"
 
     def test_plugin_json_name(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
@@ -410,12 +420,8 @@ class TestPluginJson:
         iface = payload.get("interface", {})
         assert isinstance(iface, dict)
         short_desc = iface.get("shortDescription", "")
-        assert isinstance(short_desc, str) and short_desc, (
-            "interface.shortDescription must be a non-empty string"
-        )
-        assert len(short_desc) <= 120, (
-            f"interface.shortDescription must be <= 120 chars, got {len(short_desc)}"
-        )
+        assert isinstance(short_desc, str) and short_desc, "interface.shortDescription must be a non-empty string"
+        assert len(short_desc) <= 120, f"interface.shortDescription must be <= 120 chars, got {len(short_desc)}"
 
 
 # ---------------------------------------------------------------------------
@@ -428,18 +434,13 @@ class TestForbiddenKeys:
         """'hooks' MUST NOT appear at the top level of Codex plugin.json."""
         bundle_dir = _run_build(tmp_path)
         payload = _read_manifest(bundle_dir)
-        assert "hooks" not in payload, (
-            "Codex plugin.json must NOT contain a 'hooks' key "
-            "(hooks are discovered by filesystem presence only)"
-        )
+        assert "hooks" not in payload, "Codex plugin.json must NOT contain a 'hooks' key (hooks are discovered by filesystem presence only)"
 
     def test_agents_key_absent(self, tmp_path: Path) -> None:
         """'agents' MUST NOT appear at the top level of Codex plugin.json."""
         bundle_dir = _run_build(tmp_path)
         payload = _read_manifest(bundle_dir)
-        assert "agents" not in payload, (
-            "Codex plugin.json must NOT contain an 'agents' key"
-        )
+        assert "agents" not in payload, "Codex plugin.json must NOT contain an 'agents' key"
 
     def test_validate_manifest_raises_on_hooks_key(self, tmp_path: Path) -> None:
         projector = CodexBundleProjector(tmp_path / "dist")
@@ -487,9 +488,7 @@ class TestForbiddenKeys:
         with pytest.raises(BuildError, match="'name'"):
             projector._validate_manifest(bad_manifest)
 
-    def test_validate_manifest_raises_on_missing_author_name(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_manifest_raises_on_missing_author_name(self, tmp_path: Path) -> None:
         projector = CodexBundleProjector(tmp_path / "dist")
         bad_manifest: dict[str, object] = {
             "name": "spec-kitty",
@@ -504,9 +503,7 @@ class TestForbiddenKeys:
         with pytest.raises(BuildError, match="author.name"):
             projector._validate_manifest(bad_manifest)
 
-    def test_validate_manifest_raises_on_missing_interface_display_name(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_manifest_raises_on_missing_interface_display_name(self, tmp_path: Path) -> None:
         projector = CodexBundleProjector(tmp_path / "dist")
         bad_manifest: dict[str, object] = {
             "name": "spec-kitty",
@@ -521,9 +518,7 @@ class TestForbiddenKeys:
         with pytest.raises(BuildError, match="interface.displayName"):
             projector._validate_manifest(bad_manifest)
 
-    def test_validate_manifest_raises_on_missing_interface_short_description(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_manifest_raises_on_missing_interface_short_description(self, tmp_path: Path) -> None:
         projector = CodexBundleProjector(tmp_path / "dist")
         bad_manifest: dict[str, object] = {
             "name": "spec-kitty",
@@ -538,9 +533,7 @@ class TestForbiddenKeys:
         with pytest.raises(BuildError, match="interface.shortDescription"):
             projector._validate_manifest(bad_manifest)
 
-    def test_validate_manifest_raises_on_short_description_too_long(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_manifest_raises_on_short_description_too_long(self, tmp_path: Path) -> None:
         projector = CodexBundleProjector(tmp_path / "dist")
         bad_manifest: dict[str, object] = {
             "name": "spec-kitty",
@@ -555,9 +548,7 @@ class TestForbiddenKeys:
         with pytest.raises(BuildError, match="shortDescription"):
             projector._validate_manifest(bad_manifest)
 
-    def test_validate_manifest_passes_on_valid_manifest(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_manifest_passes_on_valid_manifest(self, tmp_path: Path) -> None:
         projector = CodexBundleProjector(tmp_path / "dist")
         valid_manifest: dict[str, object] = {
             "name": "spec-kitty",
@@ -585,35 +576,27 @@ class TestSkillsCopy:
         skills_dir = bundle_dir / "skills"
         assert skills_dir.is_dir(), "skills/ directory must be created"
         skill_files = list(skills_dir.glob("*/SKILL.md"))
-        assert len(skill_files) >= MIN_SKILL_COUNT, (
-            f"Expected at least {MIN_SKILL_COUNT} skills, found {len(skill_files)}"
-        )
+        assert len(skill_files) >= MIN_SKILL_COUNT, f"Expected at least {MIN_SKILL_COUNT} skills, found {len(skill_files)}"
 
     def test_all_canonical_commands_present(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
         for command in CANONICAL_COMMANDS:
             skill_file = bundle_dir / "skills" / f"spec-kitty.{command}" / "SKILL.md"
-            assert skill_file.is_file(), (
-                f"Missing SKILL.md for canonical command: {command}"
-            )
+            assert skill_file.is_file(), f"Missing SKILL.md for canonical command: {command}"
 
     def test_skill_files_have_frontmatter(self, tmp_path: Path) -> None:
         """Each SKILL.md must start with YAML frontmatter."""
         bundle_dir = _run_build(tmp_path)
         for skill_md in sorted((bundle_dir / "skills").glob("*/SKILL.md")):
             content = skill_md.read_text(encoding="utf-8")
-            assert content.startswith("---"), (
-                f"{skill_md.name} does not start with YAML frontmatter"
-            )
+            assert content.startswith("---"), f"{skill_md.name} does not start with YAML frontmatter"
 
     def test_skills_dir_uses_spec_kitty_prefix(self, tmp_path: Path) -> None:
         """All skill subdirectories must follow the spec-kitty.<cmd> naming."""
         bundle_dir = _run_build(tmp_path)
         for skill_dir in (bundle_dir / "skills").iterdir():
             if skill_dir.is_dir():
-                assert skill_dir.name.startswith("spec-kitty."), (
-                    f"Skill directory {skill_dir.name!r} must start with 'spec-kitty.'"
-                )
+                assert skill_dir.name.startswith("spec-kitty."), f"Skill directory {skill_dir.name!r} must start with 'spec-kitty.'"
 
 
 # ---------------------------------------------------------------------------
@@ -628,27 +611,21 @@ class TestMarketplaceJson:
 
     def test_marketplace_json_schema(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
-        payload = json.loads(
-            (bundle_dir / "marketplace.json").read_text(encoding="utf-8")
-        )
+        payload = json.loads((bundle_dir / "marketplace.json").read_text(encoding="utf-8"))
         assert payload.get("name") == "spec-kitty-plugins"
         assert isinstance(payload.get("plugins"), list)
         assert len(payload["plugins"]) >= 1
 
     def test_marketplace_plugin_entry(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
-        payload = json.loads(
-            (bundle_dir / "marketplace.json").read_text(encoding="utf-8")
-        )
+        payload = json.loads((bundle_dir / "marketplace.json").read_text(encoding="utf-8"))
         plugin_entry = payload["plugins"][0]
         assert plugin_entry.get("name") == "spec-kitty"
         source = plugin_entry.get("source", {})
         assert source.get("source") == "local"
         assert "path" in source
 
-    def test_marketplace_json_not_written_to_agents_dir(
-        self, tmp_path: Path
-    ) -> None:
+    def test_marketplace_json_not_written_to_agents_dir(self, tmp_path: Path) -> None:
         """marketplace.json must NOT be written outside output_dir (C-006)."""
         _run_build(tmp_path)
         # Should not pollute .agents/plugins/ in the project tree.
@@ -656,9 +633,7 @@ class TestMarketplaceJson:
 
     def test_marketplace_json_interface_display_name(self, tmp_path: Path) -> None:
         bundle_dir = _run_build(tmp_path)
-        payload = json.loads(
-            (bundle_dir / "marketplace.json").read_text(encoding="utf-8")
-        )
+        payload = json.loads((bundle_dir / "marketplace.json").read_text(encoding="utf-8"))
         iface = payload.get("interface", {})
         assert isinstance(iface, dict)
         assert iface.get("displayName")
@@ -681,17 +656,11 @@ class TestMcpCompanion:
         doctrine today) and must stay a guarded no-op, not a silent gap.
         """
         bundle_dir = _run_build(tmp_path)
-        assert not (bundle_dir / ".mcp.json").exists(), (
-            ".mcp.json must NOT be written when no MCP source is present"
-        )
+        assert not (bundle_dir / ".mcp.json").exists(), ".mcp.json must NOT be written when no MCP source is present"
         payload = _read_manifest(bundle_dir)
-        assert "mcpServers" not in payload, (
-            "mcpServers pointer must be absent when there is no .mcp.json"
-        )
+        assert "mcpServers" not in payload, "mcpServers pointer must be absent when there is no .mcp.json"
 
-    def test_mcp_json_projected_when_source_present(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mcp_json_projected_when_source_present(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Present MCP source: companion copied and ``mcpServers`` pointer set.
 
         Drives the public build boundary, including canonical skill preparation,
@@ -703,25 +672,17 @@ class TestMcpCompanion:
         fake_doctrine_root = tmp_path / "fake_doctrine"
         fake_doctrine_root.mkdir()
         mcp_payload = '{"mcpServers": {"demo": {"command": "echo"}}}\n'
-        (fake_doctrine_root / ".mcp.json").write_text(
-            mcp_payload, encoding="utf-8"
-        )
-        monkeypatch.setattr(
-            doctrine, "__file__", str(fake_doctrine_root / "__init__.py")
-        )
+        (fake_doctrine_root / ".mcp.json").write_text(mcp_payload, encoding="utf-8")
+        monkeypatch.setattr(doctrine, "__file__", str(fake_doctrine_root / "__init__.py"))
 
         projector = CodexBundleProjector(tmp_path / "dist")
         projector.build(skip_validate=True)
 
         staged = projector.bundle_dir / ".mcp.json"
         assert staged.is_file(), ".mcp.json must be staged when a source is present"
-        assert staged.read_text(encoding="utf-8") == mcp_payload, (
-            ".mcp.json contents must be copied verbatim"
-        )
+        assert staged.read_text(encoding="utf-8") == mcp_payload, ".mcp.json contents must be copied verbatim"
         payload = _read_manifest(projector.bundle_dir)
-        assert payload.get("mcpServers") == "./.mcp.json", (
-            "manifest must advertise mcpServers -> ./.mcp.json when companion present"
-        )
+        assert payload.get("mcpServers") == "./.mcp.json", "manifest must advertise mcpServers -> ./.mcp.json when companion present"
 
 
 # ---------------------------------------------------------------------------
@@ -748,9 +709,7 @@ class TestIdempotency:
             if f.is_file():
                 snapshot_2[str(f.relative_to(bundle_dir_2))] = f.read_bytes()
 
-        assert snapshot_1 == snapshot_2, (
-            "Build is not idempotent: second run produced different files"
-        )
+        assert snapshot_1 == snapshot_2, "Build is not idempotent: second run produced different files"
 
 
 # ---------------------------------------------------------------------------
@@ -775,12 +734,8 @@ class TestCliDispatch:
             plugin_app,
             ["--target", "codex", "--output-dir", str(tmp_path / "dist")],
         )
-        assert result.exit_code == 0, (
-            f"CLI exited with {result.exit_code}:\n{result.output}"
-        )
-        assert (
-            tmp_path / "dist" / "codex" / ".codex-plugin" / "plugin.json"
-        ).is_file()
+        assert result.exit_code == 0, f"CLI exited with {result.exit_code}:\n{result.output}"
+        assert (tmp_path / "dist" / "codex" / ".codex-plugin" / "plugin.json").is_file()
 
     def test_plugin_build_unknown_target_via_cli(self, tmp_path: Path) -> None:
         """Unknown --target must produce a non-zero exit."""

@@ -84,9 +84,7 @@ def test_executor_does_not_import_command_shim() -> None:
             modules.add(node.module)
         elif isinstance(node, ast.Import):
             modules.update(alias.name for alias in node.names)
-    assert not any(
-        m.startswith("specify_cli.cli.commands.merge") for m in modules
-    ), sorted(modules)
+    assert not any(m.startswith("specify_cli.cli.commands.merge") for m in modules), sorted(modules)
 
 
 # --- INV-5: phase ordering in the linear driver -----------------------------
@@ -128,7 +126,8 @@ def test_record_then_commit_then_assert_ordering(tmp_path: Path) -> None:
         patch.object(ex, "_refresh_primary_checkout_after_merge", lambda *_a, **_k: None),
         patch.object(ex, "_capture_merge_snapshots", lambda *_a, **_k: {}),
         patch.object(
-            ex, "_target_bookkeeping_status_paths",
+            ex,
+            "_target_bookkeeping_status_paths",
             lambda **_k: (tmp_path / "e.jsonl", tmp_path / "s.json"),
         ),
         patch.object(ex, "_record_baseline_merge_commit", side_effect=_record_baseline),
@@ -136,7 +135,8 @@ def test_record_then_commit_then_assert_ordering(tmp_path: Path) -> None:
         patch.object(ex, "commit_merge_bookkeeping", side_effect=lambda **_k: events.append("commit")),
         patch.object(ex, "_assert_merged_wps_done_on_target", lambda *_a, **_k: None),
         patch.object(
-            ex, "_assert_baseline_merge_commit_on_target",
+            ex,
+            "_assert_baseline_merge_commit_on_target",
             side_effect=lambda *_a, **_k: events.append("assert"),
         ),
     ):
@@ -161,15 +161,18 @@ def test_baseline_record_error_restores_then_exits(tmp_path: Path) -> None:
         patch.object(ex, "_refresh_primary_checkout_after_merge", lambda *_a, **_k: None),
         patch.object(ex, "_capture_merge_snapshots", lambda *_a, **_k: {}),
         patch.object(
-            ex, "_target_bookkeeping_status_paths",
+            ex,
+            "_target_bookkeeping_status_paths",
             lambda **_k: (tmp_path / "e.jsonl", tmp_path / "s.json"),
         ),
         patch.object(
-            ex, "_record_baseline_merge_commit",
+            ex,
+            "_record_baseline_merge_commit",
             side_effect=BaselineMergeCommitError("boom"),
         ),
         patch.object(
-            ex, "restore_generated_artifact_snapshots",
+            ex,
+            "restore_generated_artifact_snapshots",
             side_effect=lambda snaps: restored.append(snaps),
         ),
         pytest.raises(typer.Exit) as exc,
@@ -193,7 +196,8 @@ def test_commit_failure_restores_then_reraises(tmp_path: Path) -> None:
         patch.object(ex, "_paths_have_status_changes", lambda *_a, **_k: True),
         patch.object(ex, "commit_merge_bookkeeping", side_effect=boom),
         patch.object(
-            ex, "restore_generated_artifact_snapshots",
+            ex,
+            "restore_generated_artifact_snapshots",
             side_effect=lambda snaps: restored.append(snaps),
         ),
         pytest.raises(RuntimeError, match="commit failed"),
@@ -213,7 +217,8 @@ def test_porcelain_invariant_violation_restores_then_exits(tmp_path: Path) -> No
         patch.object(ex, "_raw_porcelain_status", lambda *_a, **_k: (0, " M src/unexpected.py\n")),
         patch.object(ex, "_classify_porcelain_lines", lambda *_a, **_k: ([" M src/unexpected.py"], 0)),
         patch.object(
-            ex, "restore_generated_artifact_snapshots",
+            ex,
+            "restore_generated_artifact_snapshots",
             side_effect=lambda snaps: restored.append(snaps),
         ),
         pytest.raises(typer.Exit) as exc,

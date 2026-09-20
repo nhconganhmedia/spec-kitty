@@ -159,9 +159,7 @@ def _profile_repository_inputs(project_root: Path) -> tuple[AgentProfileReposito
     return repo, skipped
 
 
-def _merge_activated_org_profiles(
-    repo: AgentProfileRepository, repo_root: Path
-) -> tuple[SkippedProfile, ...]:
+def _merge_activated_org_profiles(repo: AgentProfileRepository, repo_root: Path) -> tuple[SkippedProfile, ...]:
     """Merge WP02's activation-admitted org profiles onto ``repo`` in place.
 
     Consumes the provenance-preserving :class:`ResolvedOrgProfile` records so the
@@ -231,15 +229,9 @@ class ProfileProjector:
         if renderer is None:
             return []
         layer_filter = set(source_layers) if source_layers is not None else None
-        return [
-            self._project_one(renderer, tool_key, profile, project_root)
-            for profile in self._repo.list_all()
-            if self._include(profile, layer_filter)
-        ]
+        return [self._project_one(renderer, tool_key, profile, project_root) for profile in self._repo.list_all() if self._include(profile, layer_filter)]
 
-    def _include(
-        self, profile: AgentProfile, layer_filter: set[str] | None
-    ) -> bool:
+    def _include(self, profile: AgentProfile, layer_filter: set[str] | None) -> bool:
         if profile.sentinel:
             return False
         if layer_filter is None:
@@ -345,21 +337,12 @@ class ProfileProjector:
         layers that must not be presented as healthy.
         """
         loaded = {p.profile_id for p in self._repo.list_all()}
-        conflicts = sorted(
-            {
-                skip.profile_id
-                for skip in self._skipped_profiles()
-                if skip.profile_id and skip.profile_id in loaded
-            }
-        )
+        conflicts = sorted({skip.profile_id for skip in self._skipped_profiles() if skip.profile_id and skip.profile_id in loaded})
         return [
             make_finding(
                 PROFILE_OVERLAY_CONFLICT,
                 SEVERITY_ERROR,
-                (
-                    f"Agent profile {profile_id!r} is defined in multiple layers "
-                    "with an incompatible overlay; resolution is ambiguous."
-                ),
+                (f"Agent profile {profile_id!r} is defined in multiple layers with an incompatible overlay; resolution is ambiguous."),
                 tool_key=tool_key,
                 surface_id=profile_id,
                 repair_command=_REPAIR_HINT,
@@ -392,10 +375,7 @@ class ProfileProjector:
             make_finding(
                 PROFILE_SENTINEL_SKIPPED,
                 SEVERITY_INFO,
-                (
-                    f"Sentinel profile {profile.profile_id!r} is a workflow "
-                    "routing signal and is intentionally not projected."
-                ),
+                (f"Sentinel profile {profile.profile_id!r} is a workflow routing signal and is intentionally not projected."),
                 tool_key=tool_key,
                 surface_id=_profile_urn(profile),
             )

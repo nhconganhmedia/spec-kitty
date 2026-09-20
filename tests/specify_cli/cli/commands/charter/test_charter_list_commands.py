@@ -52,9 +52,7 @@ def empty_project_root(tmp_path: Path) -> Path:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     return tmp_path
 
 
@@ -63,10 +61,7 @@ def project_with_directive(tmp_path: Path) -> Path:
     """A project with activated_directives: [python-style-guide] in config.yaml."""
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    config_data = (
-        "activated_directives:\n  - python-style-guide\n"
-        "mission_type_activations:\n  - software-dev\n"
-    )
+    config_data = "activated_directives:\n  - python-style-guide\nmission_type_activations:\n  - software-dev\n"
     (kittify / "config.yaml").write_text(config_data, encoding="utf-8")
     return tmp_path
 
@@ -144,9 +139,7 @@ class TestListShowAvailable:
         assert result.exit_code == 0, result.output
         assert "Available (not activated)" in result.output
 
-    def test_show_available_without_flag_has_no_third_column(
-        self, empty_project_root: Path
-    ) -> None:
+    def test_show_available_without_flag_has_no_third_column(self, empty_project_root: Path) -> None:
         """Without --show-available, the third column is absent."""
         result = _invoke_list(empty_project_root)
         assert result.exit_code == 0, result.output
@@ -228,9 +221,7 @@ class TestListJson:
         kinds = {row["kind"]: row for row in payload["kinds"]}
         assert kinds["directive"]["activated"] == ["python-style-guide"]
 
-    def test_json_empty_activation_list_is_empty_list_not_null(
-        self, tmp_path: Path
-    ) -> None:
+    def test_json_empty_activation_list_is_empty_list_not_null(self, tmp_path: Path) -> None:
         """An explicit empty activation list (restriction) must serialize as
         ``[]``, distinct from the ``null`` "all built-ins" state."""
         kittify = tmp_path / ".kittify"
@@ -245,9 +236,7 @@ class TestListJson:
         kinds = {row["kind"]: row for row in payload["kinds"]}
         assert kinds["directive"]["activated"] == []
 
-    def test_json_show_available_adds_available_field(
-        self, empty_project_root: Path
-    ) -> None:
+    def test_json_show_available_adds_available_field(self, empty_project_root: Path) -> None:
         """``--show-available --json`` adds an ``available`` list per kind,
         reusing ``CharterPackManager.list_available`` (same call the human
         table's third column uses)."""
@@ -264,9 +253,7 @@ class TestListJson:
             "doctrine-entry-2",
         ]
 
-    def test_json_without_show_available_has_null_available_field(
-        self, empty_project_root: Path
-    ) -> None:
+    def test_json_without_show_available_has_null_available_field(self, empty_project_root: Path) -> None:
         """Without ``--show-available``, every row still carries an
         ``available`` key -- it is ``null``, not absent (OP-CONTRACT-003:
         prefer always-present-with-null over conditionally-absent keys, so
@@ -293,9 +280,7 @@ class TestListJson:
         template_ids = {t["template_id"] for t in payload["templates"]}
         assert "software-dev/spec-template.md" in template_ids
 
-    def test_json_all_layers_available_field_carries_layer(
-        self, empty_project_root: Path
-    ) -> None:
+    def test_json_all_layers_available_field_carries_layer(self, empty_project_root: Path) -> None:
         """``--all --json``'s ``available`` entries are ``{artifact_id, layer}``
         objects, matching the human view's per-layer annotation."""
         result = _invoke_list(empty_project_root, "--all", "--json")
@@ -318,9 +303,7 @@ class TestListJson:
         assert "templates" in payload, payload
         assert payload["templates"] is None, payload
 
-    def test_json_all_value_error_routes_through_emit_error(
-        self, empty_project_root: Path
-    ) -> None:
+    def test_json_all_value_error_routes_through_emit_error(self, empty_project_root: Path) -> None:
         """A ``ValueError`` from ``list_available_detailed`` under ``--all
         --json`` must be reported through the shared ``_emit_error`` envelope
         -- not leaked as unstructured stdout text."""
@@ -394,23 +377,16 @@ def _build_non_mapping_config(repo_root: Path, yaml_text: str) -> None:
 class TestListNonMappingConfigGuard:
     """Every entry path x every non-mapping shape, in both output modes."""
 
-    def test_json_mode_fails_closed_with_parseable_diagnostic(
-        self, tmp_path: Path, shape_name: str, entry_name: str
-    ) -> None:
+    def test_json_mode_fails_closed_with_parseable_diagnostic(self, tmp_path: Path, shape_name: str, entry_name: str) -> None:
         _build_non_mapping_config(tmp_path, _NON_MAPPING_CONFIG_YAML[shape_name])
-        result = _invoke_list(
-            tmp_path, *_LIST_ENTRY_PATHS[entry_name], "--json"
-        )
+        result = _invoke_list(tmp_path, *_LIST_ENTRY_PATHS[entry_name], "--json")
 
         assert result.exit_code == 1, (
             f"charter list {_LIST_ENTRY_PATHS[entry_name]} --json must fail "
             f"closed on a non-mapping ({shape_name}) config.yaml; got exit "
             f"{result.exit_code}:\n{result.stdout}"
         )
-        assert result.stdout.strip(), (
-            "expected JSON on stdout -- empty stdout is the pre-fix symptom "
-            "(the raw traceback went to stderr instead)"
-        )
+        assert result.stdout.strip(), "expected JSON on stdout -- empty stdout is the pre-fix symptom (the raw traceback went to stderr instead)"
         assert "Traceback" not in result.stdout
 
         payload = json.loads(result.stdout)  # raises if not parseable JSON
@@ -420,16 +396,10 @@ class TestListNonMappingConfigGuard:
         message = payload["error"]
         # Surface .body, not just str(exc) -- CHARTER_PACK_CONFIG_INVALID
         # alone tells the consumer nothing.
-        assert message != "CHARTER_PACK_CONFIG_INVALID", (
-            f"diagnostic must carry the .body detail, not the bare code: {payload!r}"
-        )
-        assert "config.yaml" in message and "mapping" in message, (
-            f"diagnostic should name the file and the real problem: {payload!r}"
-        )
+        assert message != "CHARTER_PACK_CONFIG_INVALID", f"diagnostic must carry the .body detail, not the bare code: {payload!r}"
+        assert "config.yaml" in message and "mapping" in message, f"diagnostic should name the file and the real problem: {payload!r}"
 
-    def test_rich_console_mode_fails_closed_without_traceback(
-        self, tmp_path: Path, shape_name: str, entry_name: str
-    ) -> None:
+    def test_rich_console_mode_fails_closed_without_traceback(self, tmp_path: Path, shape_name: str, entry_name: str) -> None:
         _build_non_mapping_config(tmp_path, _NON_MAPPING_CONFIG_YAML[shape_name])
         result = _invoke_list(tmp_path, *_LIST_ENTRY_PATHS[entry_name])
 
@@ -439,9 +409,7 @@ class TestListNonMappingConfigGuard:
             f"{result.exit_code}:\n{result.output}"
         )
         assert "Traceback" not in result.output
-        assert "config.yaml" in result.output and "mapping" in result.output, (
-            f"diagnostic should name the file and the real problem: {result.output!r}"
-        )
+        assert "config.yaml" in result.output and "mapping" in result.output, f"diagnostic should name the file and the real problem: {result.output!r}"
 
 
 class TestListNoneConfigResolvesToEmptyMapping:

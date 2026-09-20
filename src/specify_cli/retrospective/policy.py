@@ -167,9 +167,7 @@ class RetrospectivePolicy:
     write_record: bool = True
     generate_proposals: bool = True
     apply_proposals: Literal["require_human", "low_risk_auto"] = "require_human"
-    permissions: RetrospectivePermissions = field(
-        default_factory=RetrospectivePermissions
-    )
+    permissions: RetrospectivePermissions = field(default_factory=RetrospectivePermissions)
     precedence: Literal["charter", "config"] | None = None
     generator: Literal["python"] = "python"
 
@@ -320,10 +318,7 @@ def _load_charter_retrospective_block(
         err = PolicyResolutionError(
             source=source_str,
             reason="invalid_type_for_retrospective_block",
-            detail=(
-                f"Charter frontmatter 'retrospective:' value must be a mapping; "
-                f"got {type(retro_block).__name__}."
-            ),
+            detail=(f"Charter frontmatter 'retrospective:' value must be a mapping; got {type(retro_block).__name__}."),
         )
         return None, source_str, err
 
@@ -352,17 +347,12 @@ def _authored_keys_only(model: RetrospectiveGovernance) -> dict[str, object] | N
 
 def _format_validation_error(exc: ValidationError) -> str:
     """Render a pydantic ``ValidationError`` as a flat, operator-readable detail."""
-    return "; ".join(
-        f"{'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
-        for error in exc.errors()
-    )
+    return "; ".join(f"{'.'.join(str(part) for part in error['loc'])}: {error['msg']}" for error in exc.errors())
 
 
 def _charter_yaml_error(reason: str, detail: str) -> PolicyResolutionError:
     """Build a ``PolicyResolutionError`` attributed to ``charter.yaml``."""
-    return PolicyResolutionError(
-        source=str(CHARTER_YAML), reason=reason, detail=detail
-    )
+    return PolicyResolutionError(source=str(CHARTER_YAML), reason=reason, detail=detail)
 
 
 #: pydantic error ``type`` codes that represent a genuine bad-enum-value
@@ -446,8 +436,7 @@ def _load_charter_yaml_retrospective_block(
     if not isinstance(governance, dict):
         return None, _charter_yaml_error(
             "invalid_type_for_retrospective_block",
-            f"charter.yaml 'governance:' value must be a mapping; "
-            f"got {type(governance).__name__}.",
+            f"charter.yaml 'governance:' value must be a mapping; got {type(governance).__name__}.",
         )
 
     raw_block = governance.get("retrospective")
@@ -456,8 +445,7 @@ def _load_charter_yaml_retrospective_block(
     if not isinstance(raw_block, dict):
         return None, _charter_yaml_error(
             "invalid_type_for_retrospective_block",
-            f"charter.yaml '{_YAML_BLOCK_PATH}:' value must be a mapping; "
-            f"got {type(raw_block).__name__}.",
+            f"charter.yaml '{_YAML_BLOCK_PATH}:' value must be a mapping; got {type(raw_block).__name__}.",
         )
 
     try:
@@ -531,10 +519,7 @@ def _load_config_retrospective_block(
         err = PolicyResolutionError(
             source=source_str,
             reason="invalid_type_for_retrospective_block",
-            detail=(
-                f".kittify/config.yaml 'retrospective:' value must be a mapping; "
-                f"got {type(retro_block).__name__}."
-            ),
+            detail=(f".kittify/config.yaml 'retrospective:' value must be a mapping; got {type(retro_block).__name__}."),
         )
         return None, err
 
@@ -546,9 +531,7 @@ def _load_config_retrospective_block(
 # ---------------------------------------------------------------------------
 
 
-def _validate_enum(
-    key: str, value: object, source: str
-) -> PolicyResolutionError | None:
+def _validate_enum(key: str, value: object, source: str) -> PolicyResolutionError | None:
     """Return a PolicyResolutionError if ``value`` is not valid for ``key``."""
     valid_set = _ENUM_FIELDS.get(key)
     if valid_set is None:
@@ -614,9 +597,7 @@ def _apply_block_to_policy(
                 return PolicyResolutionError(
                     source=source_label_prefix,
                     reason="invalid_type_for_retrospective_block",
-                    detail=(
-                        f"'permissions' must be a mapping; got {type(raw_value).__name__}."
-                    ),
+                    detail=(f"'permissions' must be a mapping; got {type(raw_value).__name__}."),
                 )
             perm_error = _apply_permissions_block(
                 policy.permissions,
@@ -680,9 +661,7 @@ def _apply_permissions_block(
             return PolicyResolutionError(
                 source=source_label_prefix,
                 reason="invalid_enum",
-                detail=(
-                    f"permissions.{perm_key}: expected boolean, got {type(raw_value).__name__}."
-                ),
+                detail=(f"permissions.{perm_key}: expected boolean, got {type(raw_value).__name__}."),
             )
         setattr(perms, perm_key, raw_value)
         source_map[leaf_key] = f"{source_label_prefix}.permissions.{perm_key}"
@@ -730,8 +709,12 @@ def _apply_charter_layers(
     """Apply every charter layer in ascending precedence order."""
     for block, prefix in charter_layers:
         err = _apply_block_to_policy(
-            policy, source_map, block, prefix,
-            strict_keys=strict_keys, keys_to_apply=None,
+            policy,
+            source_map,
+            block,
+            prefix,
+            strict_keys=strict_keys,
+            keys_to_apply=None,
         )
         if err is not None:
             raise err
@@ -753,8 +736,12 @@ def _apply_blocks_config_precedence(
     """
     if config_block is not None:
         err = _apply_block_to_policy(
-            policy, source_map, config_block, config_prefix,
-            strict_keys=strict_keys, keys_to_apply=None,
+            policy,
+            source_map,
+            config_block,
+            config_prefix,
+            strict_keys=strict_keys,
+            keys_to_apply=None,
         )
         if err is not None:
             raise err
@@ -787,8 +774,12 @@ def _apply_blocks_charter_precedence(
     config_eligible = _KNOWN_KEYS - charter_set_keys - {"strict_keys"}
     config_leaf_eligible = _expand_eligible_to_leaf_keys(config_eligible)
     err = _apply_block_to_policy(
-        policy, source_map, config_block, config_prefix,
-        strict_keys=strict_keys, keys_to_apply=config_leaf_eligible,
+        policy,
+        source_map,
+        config_block,
+        config_prefix,
+        strict_keys=strict_keys,
+        keys_to_apply=config_leaf_eligible,
     )
     if err is not None:
         raise err
@@ -888,9 +879,7 @@ def resolve_policy(
     # ------------------------------------------------------------------
     # Step 2: Load the secondary block (charter.md frontmatter)
     # ------------------------------------------------------------------
-    md_block, charter_source_str, charter_error = _load_charter_retrospective_block(
-        repo_root
-    )
+    md_block, charter_source_str, charter_error = _load_charter_retrospective_block(repo_root)
 
     if charter_error is not None:
         _mark_source_map_error(source_map, charter_source_str or str(CHARTER_MD))
@@ -914,9 +903,7 @@ def resolve_policy(
     if md_block is not None:
         charter_layers.append((md_block, f"{charter_source_str}:retrospective"))
     if yaml_block is not None:
-        charter_layers.append(
-            (yaml_block, f"{CHARTER_YAML}:{_YAML_BLOCK_PATH}")
-        )
+        charter_layers.append((yaml_block, f"{CHARTER_YAML}:{_YAML_BLOCK_PATH}"))
 
     precedence = _resolve_precedence(charter_layers)
     strict_keys = _resolve_strict_keys(yaml_block, md_block, config_block)
@@ -924,13 +911,21 @@ def resolve_policy(
 
     if precedence == "config":
         _apply_blocks_config_precedence(
-            policy, source_map, charter_layers, config_block,
-            config_prefix, strict_keys,
+            policy,
+            source_map,
+            charter_layers,
+            config_block,
+            config_prefix,
+            strict_keys,
         )
     else:
         _apply_blocks_charter_precedence(
-            policy, source_map, charter_layers, config_block,
-            config_prefix, strict_keys,
+            policy,
+            source_map,
+            charter_layers,
+            config_block,
+            config_prefix,
+            strict_keys,
         )
 
     # ------------------------------------------------------------------

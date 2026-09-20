@@ -327,20 +327,14 @@ class TestGuardConditions:
         ok, error = validate_transition(
             "in_review",
             "approved",
-            GuardContext(
-                review_result=ReviewResult(
-                    reviewer="r", verdict="changes_requested", reference="feedback://1"
-                )
-            ),
+            GuardContext(review_result=ReviewResult(reviewer="r", verdict="changes_requested", reference="feedback://1")),
         )
         assert ok is False
         assert "approval" in error.lower()
 
     def test_in_review_done_rejects_non_approval_evidence(self) -> None:
         result = ReviewResult(reviewer="r", verdict="changes_requested", reference="feedback://1")
-        evidence = DoneEvidence(review=ReviewApproval(
-            reviewer="r", verdict="changes_requested", reference="feedback://1"
-        ))
+        evidence = DoneEvidence(review=ReviewApproval(reviewer="r", verdict="changes_requested", reference="feedback://1"))
         ok, error = validate_transition(
             "in_review",
             "done",
@@ -355,9 +349,7 @@ class TestGuardConditions:
             "planned",
             GuardContext(
                 review_ref="feedback://other",
-                review_result=ReviewResult(
-                    reviewer="r", verdict="changes_requested", reference="feedback://1"
-                ),
+                review_result=ReviewResult(reviewer="r", verdict="changes_requested", reference="feedback://1"),
             ),
         )
         assert ok is False
@@ -365,9 +357,7 @@ class TestGuardConditions:
 
     def test_in_review_evidence_must_match_result(self) -> None:
         result = ReviewResult(reviewer="r", verdict="approved", reference="PR#42")
-        evidence = DoneEvidence(review=ReviewApproval(
-            reviewer="other", verdict="approved", reference="PR#42"
-        ))
+        evidence = DoneEvidence(review=ReviewApproval(reviewer="other", verdict="approved", reference="PR#42"))
         ok, error = validate_transition(
             "in_review",
             "done",
@@ -601,14 +591,10 @@ def _collect_parity_mismatches(
         ok, err = validate_transition(from_lane, to_lane, ctx)
         row_id = f"{from_lane}->{to_lane}[{ctx_name}]"
         if ok is not expected_ok:
-            mismatches.append(
-                f"{row_id}: expected ok={expected_ok}, got ok={ok} (err={err!r})"
-            )
+            mismatches.append(f"{row_id}: expected ok={expected_ok}, got ok={ok} (err={err!r})")
             continue
         if err != expected_err:
-            mismatches.append(
-                f"{row_id}: expected error={expected_err!r}, got {err!r}"
-            )
+            mismatches.append(f"{row_id}: expected error={expected_err!r}, got {err!r}")
     return mismatches, checked
 
 
@@ -644,14 +630,8 @@ class TestBehaviorPreservationParity:
         mismatches, checked = _collect_parity_mismatches(_PARITY_ROWS)
         # Anti-vacuity: prove the loop actually ran over the whole baseline,
         # so an empty/short fixture can never make this test trivially pass.
-        assert checked == len(_PARITY_ROWS), (
-            f"only checked {checked} of {len(_PARITY_ROWS)} parity rows — "
-            "the matrix loop did not cover the full baseline"
-        )
-        assert not mismatches, (
-            "validate_transition diverged from the golden baseline on "
-            f"{len(mismatches)} row(s):\n  " + "\n  ".join(mismatches)
-        )
+        assert checked == len(_PARITY_ROWS), f"only checked {checked} of {len(_PARITY_ROWS)} parity rows — the matrix loop did not cover the full baseline"
+        assert not mismatches, f"validate_transition diverged from the golden baseline on {len(mismatches)} row(s):\n  " + "\n  ".join(mismatches)
 
     def test_collapsed_matrix_catches_planted_row(self) -> None:
         """T009 anti-vacuity proof (C-001): the collapsed loop is non-vacuous.
@@ -687,10 +667,7 @@ class TestBehaviorPreservationParity:
         except AssertionError as exc:  # pragma: no cover - failure path is the bug signal
             # Surface which row the mutation targeted so a vacuous collapse is
             # diagnosable; re-raise so the test still fails.
-            raise AssertionError(
-                f"planted mutation on {expected_row_id} was not caught by the "
-                f"collapsed matrix loop: {exc}"
-            ) from exc
+            raise AssertionError(f"planted mutation on {expected_row_id} was not caught by the collapsed matrix loop: {exc}") from exc
 
 
 class TestTerminalForceExitParity:
@@ -752,9 +729,7 @@ class TestAcceptableEndingPredicate:
     @pytest.mark.parametrize("lane", list(_STATUS_LANES_CANONICAL))
     @pytest.mark.parametrize("has_provenance", [True, False])
     def test_truth_table_all_lanes(self, lane: str, has_provenance: bool) -> None:
-        expected = lane in self._ACCEPTABLE_WITHOUT_PROVENANCE or (
-            lane == "canceled" and has_provenance
-        )
+        expected = lane in self._ACCEPTABLE_WITHOUT_PROVENANCE or (lane == "canceled" and has_provenance)
         assert is_acceptable_ending(lane, has_provenance=has_provenance) is expected
 
     def test_all_nine_lanes_are_covered(self) -> None:
@@ -770,9 +745,7 @@ class TestAcceptableEndingPredicate:
         assert is_acceptable_ending("canceled", has_provenance=True) is True
         assert is_acceptable_ending("canceled", has_provenance=False) is False
 
-    @pytest.mark.parametrize(
-        "lane", ["planned", "claimed", "in_progress", "for_review", "in_review", "blocked"]
-    )
+    @pytest.mark.parametrize("lane", ["planned", "claimed", "in_progress", "for_review", "in_review", "blocked"])
     def test_non_terminal_lanes_never_acceptable(self, lane: str) -> None:
         assert is_acceptable_ending(lane, has_provenance=True) is False
         assert is_acceptable_ending(lane, has_provenance=False) is False

@@ -91,6 +91,7 @@ def _dry_run_is_safe(invocation: _InvocationProtocol) -> Safety:
     """
     return Safety.SAFE if _DRY_RUN_FLAG in invocation.raw_args else Safety.UNSAFE
 
+
 # ---------------------------------------------------------------------------
 # Central registry
 # ---------------------------------------------------------------------------

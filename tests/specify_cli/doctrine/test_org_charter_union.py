@@ -51,9 +51,7 @@ class _Interview:
 
 
 @pytest.mark.parametrize("kind", list(REQUIRED_KIND_FIELDS))
-def test_apply_org_charter_unions_required_kind_into_selection(
-    kind: str, tmp_path: Path
-) -> None:
+def test_apply_org_charter_unions_required_kind_into_selection(kind: str, tmp_path: Path) -> None:
     pack = tmp_path / "pack"
     _write_org_charter(
         pack,
@@ -72,18 +70,12 @@ def test_apply_org_charter_unions_required_kind_into_selection(
     interview = _Interview()
     messages = apply_org_charter_to_interview(interview, consumer)
 
-    assert getattr(interview, f"selected_{kind}") == ["org-id-1", "org-id-2"], (
-        f"required_{kind} entries MUST union into selected_{kind} in declaration order."
-    )
-    assert any(f"required_{kind}" in m for m in messages), (
-        f"apply messages MUST disclose what was added per required_{kind}."
-    )
+    assert getattr(interview, f"selected_{kind}") == ["org-id-1", "org-id-2"], f"required_{kind} entries MUST union into selected_{kind} in declaration order."
+    assert any(f"required_{kind}" in m for m in messages), f"apply messages MUST disclose what was added per required_{kind}."
 
 
 @pytest.mark.parametrize("kind", list(REQUIRED_KIND_FIELDS))
-def test_apply_org_charter_is_non_destructive_per_kind(
-    kind: str, tmp_path: Path
-) -> None:
+def test_apply_org_charter_is_non_destructive_per_kind(kind: str, tmp_path: Path) -> None:
     pack = tmp_path / "pack"
     _write_org_charter(
         pack,

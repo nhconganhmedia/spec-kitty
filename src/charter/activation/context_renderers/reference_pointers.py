@@ -142,9 +142,7 @@ def _reference_source_index(doctrine_root: Path) -> dict[str, dict[str, Path]]:
     return index
 
 
-def _resolve_reference_source(
-    ref: dict[str, str], index: dict[str, dict[str, Path]]
-) -> Path | None:
+def _resolve_reference_source(ref: dict[str, str], index: dict[str, dict[str, Path]]) -> Path | None:
     """Resolve *ref* to an existing doctrine-source path, or ``None``.
 
     Tries the catalog artifact id (the part after ``KIND:``) first, then the
@@ -178,9 +176,7 @@ def _action_offset(action: str) -> int:
     return sum((position + 1) * ord(char) for position, char in enumerate(action))
 
 
-def _distribute_references_across_kinds(
-    references: list[dict[str, str]], action: str
-) -> list[dict[str, str]]:
+def _distribute_references_across_kinds(references: list[dict[str, str]], action: str) -> list[dict[str, str]]:
     """Interleave *references* across their kinds (round-robin).
 
     Groups by ``kind`` (preserving first-seen kind order), rotates each kind's

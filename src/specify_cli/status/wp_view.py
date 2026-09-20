@@ -187,9 +187,7 @@ def _resolved_group(feature_dir: Path, wp_id: str) -> ResolvedGroup:
         review=review,
         role=_opt_str(state.get("role")),
         agent_profile=normalized("agent_profile", RESOLVED_PROFILE_ABSENT),
-        agent_profile_version=normalized(
-            "agent_profile_version", RESOLVED_PROFILE_VERSION_ABSENT
-        ),
+        agent_profile_version=normalized("agent_profile_version", RESOLVED_PROFILE_VERSION_ABSENT),
         model=normalized("model", RESOLVED_MODEL_ABSENT),
         provider=normalized("provider", RESOLVED_PROVIDER_ABSENT),
     )
@@ -236,11 +234,7 @@ def _locate_wp_metadata(feature_dir: Path, wp_id: str) -> WPMetadata | None:
         return None
 
     pattern = re.compile(rf"^{re.escape(wp_id)}{_WP_FILE_SEP}", re.IGNORECASE)
-    matches = [
-        path
-        for path in tasks_dir.glob("*.md")
-        if path.name.lower() != "readme.md" and pattern.match(path.name)
-    ]
+    matches = [path for path in tasks_dir.glob("*.md") if path.name.lower() != "readme.md" and pattern.match(path.name)]
     if len(matches) != 1:
         return None
 

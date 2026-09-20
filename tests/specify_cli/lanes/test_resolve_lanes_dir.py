@@ -22,11 +22,7 @@ pytestmark = [pytest.mark.fast]
 def test_resolve_lanes_dir_composes_lanes_filename(tmp_path: Path) -> None:
     """The seam returns ``feature_dir / lanes.json`` and nothing else."""
     # Topology-true: a real kitty-specs/<mission> feature dir layout.
-    feature_dir = (
-        tmp_path
-        / "kitty-specs"
-        / "read-path-error-fidelity-adoption-01KV8NPC"
-    )
+    feature_dir = tmp_path / "kitty-specs" / "read-path-error-fidelity-adoption-01KV8NPC"
     feature_dir.mkdir(parents=True)
 
     resolved = resolve_lanes_dir(feature_dir)
@@ -65,7 +61,4 @@ def test_no_ad_hoc_lanes_join_outside_the_seam_in_persistence() -> None:
     source = inspect.getsource(persistence_module)
     join_occurrences = source.count("feature_dir / LANES_FILENAME")
     # Exactly one: the single derivation inside resolve_lanes_dir.
-    assert join_occurrences == 1, (
-        "Expected exactly one feature_dir/lanes join (the seam); "
-        f"found {join_occurrences}"
-    )
+    assert join_occurrences == 1, f"Expected exactly one feature_dir/lanes join (the seam); found {join_occurrences}"

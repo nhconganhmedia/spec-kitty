@@ -15,6 +15,7 @@ from specify_cli.upgrade.migrations.m_0_12_0_documentation_mission import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 @pytest.fixture
 def migration() -> InstallDocumentationMission:
     """Create migration instance."""
@@ -108,9 +109,7 @@ def test_apply_installs_mission(migration: InstallDocumentationMission, tmp_path
     result = migration.apply(tmp_path)
 
     assert result.success
-    assert any(
-        "copied" in change.lower() or "documentation mission" in change.lower() for change in result.changes_made
-    )
+    assert any("copied" in change.lower() or "documentation mission" in change.lower() for change in result.changes_made)
 
     # Verify mission directory exists
     doc_mission = kittify / "missions" / "documentation"

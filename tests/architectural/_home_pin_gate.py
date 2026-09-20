@@ -171,9 +171,7 @@ VERDICT_FIELDS: frozenset[str] = frozenset(
 VERDICT_RELPATH = "research/home_pin_gate/verdict.yaml"
 #: The checked-in C-011 instrument. Never imported by the seam, never tidied, never
 #: re-implemented — ``discover()`` is compared *against* it, never derived *from* it.
-EVIDENCE_RELDIR = (
-    "kitty-specs/isolated-home-pin-guard-r1a-01KZNMA3/research/spec_kitty_home_pin_evidence"
-)
+EVIDENCE_RELDIR = "kitty-specs/isolated-home-pin-guard-r1a-01KZNMA3/research/spec_kitty_home_pin_evidence"
 
 #: Bounded because C-013 requires it, and generous because a timeout is a **datum**, never
 #: silently retried into a different answer.
@@ -216,10 +214,7 @@ def band(r_f: int, r: int) -> Band:
     make VOID the fourth band.
     """
     if r < FLOOR:
-        raise VoidWindowError(
-            f"|R| = {r} is below the visibility floor of {FLOOR}; VOID is a precondition "
-            "evaluated before banding, not a band"
-        )
+        raise VoidWindowError(f"|R| = {r} is below the visibility floor of {FLOOR}; VOID is a precondition evaluated before banding, not a band")
     ratio = r_f / r
     if ratio >= 1.0:
         return "proceed"
@@ -277,10 +272,7 @@ def stability(r_f: int, r: int) -> Stability:
     """Recompute the CONSEQUENCE class under every admissible ±1 perturbation."""
     base = band(r_f, r)
     base_consequence = consequence(base)
-    neighbours = tuple(
-        Perturbation(f, n, band(f, n), consequence(band(f, n)))
-        for f, n in admissible_perturbations(r_f, r)
-    )
+    neighbours = tuple(Perturbation(f, n, band(f, n), consequence(band(f, n))) for f, n in admissible_perturbations(r_f, r))
     stable = all(neighbour.consequence == base_consequence for neighbour in neighbours)
     return Stability(base, base_consequence, stable, neighbours)
 
@@ -329,9 +321,7 @@ class Site:
     is_member: bool
 
 
-def _shape_of(
-    tree: ast.Module, lineno: int, member: scan.Member | None
-) -> tuple[scan.Kind | None, frozenset[str]]:
+def _shape_of(tree: ast.Module, lineno: int, member: scan.Member | None) -> tuple[scan.Kind | None, frozenset[str]]:
     """``(kind, params)`` for the rename signature — at the keyed def, or the outermost def."""
     if member is not None:
         return member.kind, member.params
@@ -365,9 +355,7 @@ def effect_class_sites(root: Path) -> dict[MemberKey, Site]:
             key = scan.member_key(relpath, source, site.lineno)
             member = members.get(key)
             kind, params = _shape_of(tree, site.lineno, member)
-            keyed.append(
-                (key, Site(key, relpath, site.lineno, kind, params, value, member is not None))
-            )
+            keyed.append((key, Site(key, relpath, site.lineno, kind, params, value, member is not None)))
     return _without_collisions(keyed)
 
 
@@ -378,9 +366,7 @@ def _without_collisions(keyed: Sequence[tuple[MemberKey, Site]]) -> dict[MemberK
         grouped.setdefault(key, []).append(site)
     collisions = {key: sorted(s.lineno for s in v) for key, v in grouped.items() if len(v) > 1}
     if collisions:
-        raise DuplicateSiteKeyError(
-            f"{sorted(collisions)} effect-class site key collision(s): {collisions}"
-        )
+        raise DuplicateSiteKeyError(f"{sorted(collisions)} effect-class site key collision(s): {collisions}")
     return {key: sites[0] for key, sites in grouped.items()}
 
 
@@ -438,9 +424,7 @@ def _by_group(sites: Mapping[MemberKey, Site]) -> dict[tuple[str, Signature], li
     return grouped
 
 
-def detect_renames(
-    departures: Mapping[MemberKey, Site], arrivals: Mapping[MemberKey, Site]
-) -> RenameResult:
+def detect_renames(departures: Mapping[MemberKey, Site], arrivals: Mapping[MemberKey, Site]) -> RenameResult:
     """Pair a departure with an arrival **in the same file** on ``(value, params, kind)``.
 
     A pair must be a **unique mutual best match**: exactly one departure and exactly one arrival
@@ -715,11 +699,7 @@ def crosscheck_start_sha(sha: str, *, repo: Path) -> dict[str, object]:
         "instrument": f"{EVIDENCE_RELDIR}/clf.py (verbatim, via verify.py's derive())",
         "start_sha": sha,
         "symmetric_difference": difference,
-        "explanation": (
-            ""
-            if not difference
-            else "NON-EMPTY — see the record; a difference is explained, never tuned away"
-        ),
+        "explanation": ("" if not difference else "NON-EMPTY — see the record; a difference is explained, never tuned away"),
     }
 
 
@@ -770,18 +750,14 @@ def _stability_block(measurement: WindowMeasurement) -> dict[str, object]:
     }
 
 
-def verdict_document(
-    walk: WalkResult, *, invocation: str, crosscheck: Mapping[str, object]
-) -> dict[str, object]:
+def verdict_document(walk: WalkResult, *, invocation: str, crosscheck: Mapping[str, object]) -> dict[str, object]:
     """Build the verdict document. Its top-level key set **equals** :data:`VERDICT_FIELDS`.
 
     Raises when the walk was not accepted: there is no verdict to emit, and the operator decides.
     """
     accepted = walk.accepted
     if accepted is None:
-        raise ValueError(
-            "the walk produced no accepted window; the OPERATOR decides and no verdict is emitted"
-        )
+        raise ValueError("the walk produced no accepted window; the OPERATOR decides and no verdict is emitted")
     document: dict[str, object] = {
         "verdict": accepted.label,
         "start_sha": accepted.start_sha,
@@ -824,10 +800,7 @@ def verdict_document(
         "start_sha_crosscheck": dict(crosscheck),
     }
     if set(document) != VERDICT_FIELDS:
-        raise RuntimeError(
-            f"emitted key set {sorted(document)} != data-model.md's Verdict field list "
-            f"{sorted(VERDICT_FIELDS)}"
-        )
+        raise RuntimeError(f"emitted key set {sorted(document)} != data-model.md's Verdict field list {sorted(VERDICT_FIELDS)}")
     return document
 
 

@@ -5,6 +5,7 @@ is defined exactly once. Truthy tokens (case-insensitive, surrounding
 whitespace stripped): ``1``, ``true``, ``yes``, ``y``, ``on``. Everything else
 — including ``None`` and the empty string — is falsy.
 """
+
 from __future__ import annotations
 
 import os

@@ -48,9 +48,7 @@ TARGET = "feat/gate-read-surface-completion"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _set_origin_head_main(repo: Path) -> None:
@@ -149,10 +147,7 @@ def test_resolve_target_branch_resolves_primary_under_coord_topology(
         current_branch="feat/some-other-branch",
         respect_current=True,
     )
-    assert resolution.target == TARGET, (
-        "resolve_target_branch must anchor on the primary meta.json "
-        f"(got {resolution.target!r})"
-    )
+    assert resolution.target == TARGET, f"resolve_target_branch must anchor on the primary meta.json (got {resolution.target!r})"
 
 
 def test_write_twin_two_surface_behavior(coord_repo: Path) -> None:

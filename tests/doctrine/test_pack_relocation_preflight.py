@@ -58,12 +58,7 @@ PACKS_BUILT_IN = REPO_ROOT / "packs" / "built-in"
 FIXTURES = _THIS.parent / "fixtures"
 BASELINE_JSON = FIXTURES / "graph-identity.baseline.json"
 MANIFEST_JSON = FIXTURES / "content-manifest.json"
-OCCURRENCE_MAP = (
-    REPO_ROOT
-    / "kitty-specs"
-    / "relocate-builtin-doctrine-packs-01KYT87F"
-    / "occurrence_map.yaml"
-)
+OCCURRENCE_MAP = REPO_ROOT / "kitty-specs" / "relocate-builtin-doctrine-packs-01KYT87F" / "occurrence_map.yaml"
 
 # The 9 content kinds whose ``<kind>/built-in`` directory relocated to
 # ``packs/built-in/<kind>``. The value is the artefact glob each kind ships.
@@ -115,8 +110,7 @@ def test_moving_trees_are_retired_from_src_doctrine() -> None:
         if found:
             survivors[kind] = [p.relative_to(REPO_ROOT).as_posix() for p in found]
     assert not survivors, (
-        "artefacts still live under the retired src/charter/offering/<kind>/built-in "
-        f"trees (they must move to packs/built-in/<kind>): {survivors}"
+        f"artefacts still live under the retired src/charter/offering/<kind>/built-in trees (they must move to packs/built-in/<kind>): {survivors}"
     )
 
 
@@ -124,11 +118,7 @@ def test_moving_trees_are_present_under_packs_built_in() -> None:
     """Every moving kind must resolve at least one artefact under
     ``packs/built-in/<kind>`` — the relocation target (per-kind floor, so one
     kind's broken glob cannot hide behind another's population)."""
-    missing = [
-        kind
-        for kind, glob in MOVING_KIND_GLOBS.items()
-        if not _artefact_files(PACKS_BUILT_IN / kind, glob)
-    ]
+    missing = [kind for kind, glob in MOVING_KIND_GLOBS.items() if not _artefact_files(PACKS_BUILT_IN / kind, glob)]
     assert not missing, f"packs/built-in has zero artefacts for: {missing}"
 
 

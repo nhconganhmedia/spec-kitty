@@ -238,10 +238,7 @@ class TestDetectForbiddenKeysRowFamily:
             "payload": {"foo": "bar"},
         }
         findings = detect_forbidden_keys(row, "status.events.jsonl")
-        assert findings == [], (
-            "Lifecycle rows legitimately carry `event_type` and must not be "
-            "flagged. Regression of WP01 / issue #1122."
-        )
+        assert findings == [], "Lifecycle rows legitimately carry `event_type` and must not be flagged. Regression of WP01 / issue #1122."
 
     def test_lifecycle_row_specify_started_skipped(self) -> None:
         """Row 3: lifecycle row (Mission/SpecifyStarted) — check SKIPPED."""
@@ -345,10 +342,7 @@ class TestDetectForbiddenKeysRowFamily:
             "payload": {"wp_id": "WP01"},
         }
         findings = detect_forbidden_keys(row, "status.events.jsonl")
-        assert findings == [], (
-            "Issue #1142 regression: WorkPackage lifecycle rows must not "
-            "trigger FORBIDDEN_KEY findings."
-        )
+        assert findings == [], "Issue #1142 regression: WorkPackage lifecycle rows must not trigger FORBIDDEN_KEY findings."
 
     def test_lifecycle_row_project_skipped(self) -> None:
         """Issue #1142: ``Project`` lifecycle rows skip the FORBIDDEN_KEYS rule."""
@@ -469,9 +463,7 @@ class TestRunAuditRowFamily:
     lockstep.
     """
 
-    def test_fresh_mission_lifecycle_rows_yield_no_forbidden_key_findings(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fresh_mission_lifecycle_rows_yield_no_forbidden_key_findings(self, tmp_path: Path) -> None:
         kitty_specs = tmp_path / "kitty-specs"
         # Mission #1: only lifecycle rows (the user-visible bug scenario for #1122).
         _seed_mission(
@@ -499,20 +491,10 @@ class TestRunAuditRowFamily:
         report = run_audit(AuditOptions(repo_root=tmp_path, scan_root=kitty_specs))
 
         # No FORBIDDEN_KEY findings should be emitted against the lifecycle rows.
-        codes_001 = [
-            f.code
-            for m in report.missions
-            if m.mission_slug == "001-fresh-mission"
-            for f in m.findings
-        ]
-        assert "FORBIDDEN_KEY" not in codes_001, (
-            "WP01 regression (#1122): lifecycle rows triggered FORBIDDEN_KEY in "
-            f"run_audit output: {codes_001!r}"
-        )
+        codes_001 = [f.code for m in report.missions if m.mission_slug == "001-fresh-mission" for f in m.findings]
+        assert "FORBIDDEN_KEY" not in codes_001, f"WP01 regression (#1122): lifecycle rows triggered FORBIDDEN_KEY in run_audit output: {codes_001!r}"
 
-    def test_lifecycle_envelope_rows_yield_no_unknown_shape_findings(
-        self, tmp_path: Path
-    ) -> None:
+    def test_lifecycle_envelope_rows_yield_no_unknown_shape_findings(self, tmp_path: Path) -> None:
         kitty_specs = tmp_path / "kitty-specs"
         _seed_mission(
             kitty_specs,
@@ -535,21 +517,10 @@ class TestRunAuditRowFamily:
 
         report = run_audit(AuditOptions(repo_root=tmp_path, scan_root=kitty_specs))
 
-        unknown_findings = [
-            f
-            for m in report.missions
-            if m.mission_slug == "004-lifecycle-envelope"
-            for f in m.findings
-            if f.code == "UNKNOWN_SHAPE"
-        ]
-        assert unknown_findings == [], (
-            "Issue #1426 regression: lifecycle envelopes must not be checked "
-            f"against status_event_row. Got: {unknown_findings!r}"
-        )
+        unknown_findings = [f for m in report.missions if m.mission_slug == "004-lifecycle-envelope" for f in m.findings if f.code == "UNKNOWN_SHAPE"]
+        assert unknown_findings == [], f"Issue #1426 regression: lifecycle envelopes must not be checked against status_event_row. Got: {unknown_findings!r}"
 
-    def test_malformed_transition_row_still_flagged_in_run_audit(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_transition_row_still_flagged_in_run_audit(self, tmp_path: Path) -> None:
         kitty_specs = tmp_path / "kitty-specs"
         # Malformed: transition shape with lifecycle discriminator but no
         # aggregate_type=Mission. The audit must still raise FORBIDDEN_KEY.
@@ -570,16 +541,9 @@ class TestRunAuditRowFamily:
 
         report = run_audit(AuditOptions(repo_root=tmp_path, scan_root=kitty_specs))
 
-        codes_002 = [
-            f.code
-            for m in report.missions
-            if m.mission_slug == "002-malformed-transition"
-            for f in m.findings
-        ]
+        codes_002 = [f.code for m in report.missions if m.mission_slug == "002-malformed-transition" for f in m.findings]
         assert "FORBIDDEN_KEY" in codes_002, (
-            "Regression guard: a malformed status-transition row carrying "
-            "`event_type` must still be flagged. Got codes: "
-            f"{codes_002!r}"
+            f"Regression guard: a malformed status-transition row carrying `event_type` must still be flagged. Got codes: {codes_002!r}"
         )
 
     def test_mixed_rows_only_flag_the_malformed_one(self, tmp_path: Path) -> None:
@@ -624,15 +588,8 @@ class TestRunAuditRowFamily:
 
         report = run_audit(AuditOptions(repo_root=tmp_path, scan_root=kitty_specs))
 
-        forbidden_findings = [
-            f
-            for m in report.missions
-            if m.mission_slug == "003-mixed"
-            for f in m.findings
-            if f.code == "FORBIDDEN_KEY"
-        ]
+        forbidden_findings = [f for m in report.missions if m.mission_slug == "003-mixed" for f in m.findings if f.code == "FORBIDDEN_KEY"]
         assert len(forbidden_findings) == 1, (
-            "Expected exactly one FORBIDDEN_KEY finding (from the malformed "
-            f"row only). Got {len(forbidden_findings)}: {forbidden_findings!r}"
+            f"Expected exactly one FORBIDDEN_KEY finding (from the malformed row only). Got {len(forbidden_findings)}: {forbidden_findings!r}"
         )
         assert "event_type" in (forbidden_findings[0].detail or "")

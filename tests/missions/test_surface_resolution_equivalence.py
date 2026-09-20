@@ -232,15 +232,11 @@ def _assert_equivalent(left: Outcome, right: Outcome, *, lhs: str, rhs: str) -> 
     * one dir + one error → an unconditional divergence (the gate fires).
     """
     if left.is_dir and right.is_dir:
-        assert left.directory == right.directory, (
-            f"{lhs} resolved {left.directory} but {rhs} resolved {right.directory} "
-            "— directory divergence (C-004 gate)"
-        )
+        assert left.directory == right.directory, f"{lhs} resolved {left.directory} but {rhs} resolved {right.directory} — directory divergence (C-004 gate)"
         return
     if not left.is_dir and not right.is_dir:
         assert left.error_type is right.error_type and left.error_code == right.error_code, (
-            f"{lhs} raised {left.error_type}/{left.error_code} but {rhs} raised "
-            f"{right.error_type}/{right.error_code} — typed-error divergence (C-004 gate)"
+            f"{lhs} raised {left.error_type}/{left.error_code} but {rhs} raised {right.error_type}/{right.error_code} — typed-error divergence (C-004 gate)"
         )
         return
     raise AssertionError(
@@ -351,9 +347,7 @@ def _build_topology(repo_root: Path, *, topology: str, slug: str) -> None:
             topology=MissionTopology.SINGLE_BRANCH.value,
             flattened=True,
         )
-        (composed_primary / "status.events.jsonl").write_text(
-            '{"wp_id":"WP01","to_lane":"approved"}\n', encoding="utf-8"
-        )
+        (composed_primary / "status.events.jsonl").write_text('{"wp_id":"WP01","to_lane":"approved"}\n', encoding="utf-8")
         # Stale husk: a REAL registered ``-coord`` worktree carrying its OWN
         # ``meta.json`` (EVERY ``git worktree add`` checkout has one) + a DIVERGENT
         # (planned) status. The husk's meta is the detail that fires the surface
@@ -368,9 +362,7 @@ def _build_topology(repo_root: Path, *, topology: str, slug: str) -> None:
         husk = coord_root / "kitty-specs" / SLUG_WITH_MID8
         husk.mkdir(parents=True, exist_ok=True)
         _write_meta(husk, mission_id=MISSION_ID)
-        (husk / "status.events.jsonl").write_text(
-            '{"wp_id":"WP01","to_lane":"planned"}\n', encoding="utf-8"
-        )
+        (husk / "status.events.jsonl").write_text('{"wp_id":"WP01","to_lane":"planned"}\n', encoding="utf-8")
         return
 
     coord_slug = _coord_dir_slug(slug)
@@ -413,14 +405,8 @@ def _entry_points(repo_root: Path, slug: str, mid8: str) -> dict[str, Callable[[
     PRIMARY for a flattened-stale-coord mission rather than diverging on the husk.
     """
     return {
-        "resolve_mission_read_path": lambda: resolve_handle_to_read_path(
-            repo_root, slug, require_exists=True
-        ),
-        "resolve_status_surface_with_anchor": lambda: (
-            resolve_status_surface_with_anchor(
-                repo_root, slug, _stored_topology(repo_root, slug)
-            ).read_dir
-        ),
+        "resolve_mission_read_path": lambda: resolve_handle_to_read_path(repo_root, slug, require_exists=True),
+        "resolve_status_surface_with_anchor": lambda: resolve_status_surface_with_anchor(repo_root, slug, _stored_topology(repo_root, slug)).read_dir,
         "MissionStatus.load": lambda: MissionStatus.load(repo_root, slug).read_dir,
     }
 
@@ -586,21 +572,13 @@ def _apply_xfail(
     """
     cases: list[object] = []
     for test_id, topology, slug, mid8, xfail_reason in params:
-        marks = (
-            (pytest.mark.xfail(strict=True, reason=xfail_reason),)
-            if xfail_reason is not None
-            else ()
-        )
-        cases.append(
-            pytest.param(topology, slug, mid8, id=test_id, marks=marks)
-        )
+        marks = (pytest.mark.xfail(strict=True, reason=xfail_reason),) if xfail_reason is not None else ()
+        cases.append(pytest.param(topology, slug, mid8, id=test_id, marks=marks))
     return cases
 
 
 @pytest.mark.parametrize(("topology", "slug", "mid8"), _apply_xfail(_MATRIX))
-def test_entry_points_agree_per_cell(
-    tmp_path: Path, topology: str, slug: str, mid8: str
-) -> None:
+def test_entry_points_agree_per_cell(tmp_path: Path, topology: str, slug: str, mid8: str) -> None:
     """T006: every entry point agrees on the dir OR the typed error for the cell.
 
     Asserts the exact gate shapes via :func:`_assert_equivalent`: dir equality is
@@ -644,9 +622,7 @@ def test_ambiguous_mid8_handle_agrees(tmp_path: Path) -> None:
     canonical_name = "resolve_status_surface_with_anchor"
     canonical = outcomes[canonical_name]
     # The handle is genuinely ambiguous: the canonical authority MUST error.
-    assert not canonical.is_dir, (
-        "ambiguous mid8 must not resolve to a directory (FR-008 no silent first-match)"
-    )
+    assert not canonical.is_dir, "ambiguous mid8 must not resolve to a directory (FR-008 no silent first-match)"
     assert canonical.error_code == "MISSION_AMBIGUOUS_SELECTOR"
     for name, observed in outcomes.items():
         if name == canonical_name:
@@ -675,9 +651,7 @@ def test_create_first_write_window_resolves_primary(tmp_path: Path) -> None:
     canonical_name = "resolve_status_surface_with_anchor"
     canonical = outcomes[canonical_name]
     expected_primary = (tmp_path / "kitty-specs" / SLUG_WITH_MID8).resolve()
-    assert canonical.directory == expected_primary, (
-        "create→first-write window must resolve to the primary checkout (WP04 T016)"
-    )
+    assert canonical.directory == expected_primary, "create→first-write window must resolve to the primary checkout (WP04 T016)"
     for name, observed in outcomes.items():
         if name == canonical_name:
             continue
@@ -730,14 +704,8 @@ def test_pure_stored_topology_projects_surface_placement(
         MissionTopology.LANES_WITH_COORD: True,
     }
 
-    coordination_branch = (
-        COORD_BRANCH
-        if topology in (MissionTopology.COORD, MissionTopology.LANES_WITH_COORD)
-        else None
-    )
-    identity = IdentityFragment.derive(
-        mission_id=MISSION_ID, mission_slug=MISSION_SLUG
-    )
+    coordination_branch = COORD_BRANCH if topology in (MissionTopology.COORD, MissionTopology.LANES_WITH_COORD) else None
+    identity = IdentityFragment.derive(mission_id=MISSION_ID, mission_slug=MISSION_SLUG)
     branch_ref = BranchRefFragment(
         target_branch="feat/single-surface",
         coordination_branch=coordination_branch,
@@ -759,10 +727,7 @@ def test_pure_stored_topology_projects_surface_placement(
     # coordination, SINGLE_BRANCH/LANES → PRIMARY. Asserted via the topology
     # predicate, NOT a deleted per-ref enum.
     coord_cells = (MissionTopology.COORD, MissionTopology.LANES_WITH_COORD)
-    assert (
-        routes_through_coordination(topology)
-        is expected_routes_coord_by_topology[topology]
-    )
+    assert routes_through_coordination(topology) is expected_routes_coord_by_topology[topology]
     # PRIMARY (flattened) cells share the target ref; coord cells route the coord ref.
     if topology in coord_cells:
         assert routes_through_coordination(topology) is True
@@ -894,10 +859,7 @@ def _build_unbackfilled_mission(
 
 @pytest.mark.parametrize(
     ("topology", "has_coord", "has_lanes"),
-    [
-        pytest.param(t, c, lanes, id=t.value)
-        for (t, c, lanes) in _TOPOLOGY_AXIS
-    ],
+    [pytest.param(t, c, lanes, id=t.value) for (t, c, lanes) in _TOPOLOGY_AXIS],
 )
 @pytest.mark.parametrize(
     "transient",
@@ -924,23 +886,18 @@ def test_classify_on_read_equals_backfill_then_read(
     """
     # Leg A — classify-on-read: read the un-backfilled meta directly (no write).
     classify_dir = tmp_path / "kitty-specs" / "classify"
-    _build_unbackfilled_mission(
-        classify_dir, has_coord=has_coord, has_lanes=has_lanes, transient=transient
-    )
+    _build_unbackfilled_mission(classify_dir, has_coord=has_coord, has_lanes=has_lanes, transient=transient)
     classify_on_read = read_topology(classify_dir)
 
     # Leg B — backfill-then-read: persist via the production migration, then read.
     backfill_dir = tmp_path / "kitty-specs" / "backfill"
-    _build_unbackfilled_mission(
-        backfill_dir, has_coord=has_coord, has_lanes=has_lanes, transient=transient
-    )
+    _build_unbackfilled_mission(backfill_dir, has_coord=has_coord, has_lanes=has_lanes, transient=transient)
     result = backfill_mission_topology(backfill_dir)
     backfill_then_read = read_topology(backfill_dir)
 
     # The two legs converge (differential equivalence) ...
     assert classify_on_read is backfill_then_read, (
-        f"classify-on-read derived {classify_on_read} but backfill-then-read "
-        f"derived {backfill_then_read} — the classify arm is NOT behaviour-neutral"
+        f"classify-on-read derived {classify_on_read} but backfill-then-read derived {backfill_then_read} — the classify arm is NOT behaviour-neutral"
     )
     # ... AND both equal the expected cell (the absolute anchor, not pure leg-equality:
     # leg-vs-leg equality alone would pass even if BOTH derived the wrong topology).
@@ -982,10 +939,7 @@ def test_absolute_surface_placement_by_topology() -> None:
     assert set(expected_routes_through_coord) == set(MissionTopology)
 
     for topology, routes in expected_routes_through_coord.items():
-        assert routes_through_coordination(topology) is routes, (
-            f"{topology.value} expected routes_through_coordination={routes} "
-            "— surface-placement mapping mutant"
-        )
+        assert routes_through_coordination(topology) is routes, f"{topology.value} expected routes_through_coordination={routes} — surface-placement mapping mutant"
 
 
 # ---------------------------------------------------------------------------
@@ -1007,17 +961,13 @@ def _build_unbackfilled_flattened_with_husk(repo_root: Path) -> tuple[Path, Path
     primary = repo_root / "kitty-specs" / SLUG_WITH_MID8
     # NO ``topology`` key — the un-backfilled flattened shape (FR-005 / NFR-002).
     _write_meta(primary, mission_id=MISSION_ID, flattened=True)
-    (primary / "status.events.jsonl").write_text(
-        '{"wp_id":"WP01","to_lane":"approved"}\n', encoding="utf-8"
-    )
+    (primary / "status.events.jsonl").write_text('{"wp_id":"WP01","to_lane":"approved"}\n', encoding="utf-8")
     coord_root = repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord"
     _git(repo_root, "worktree", "add", "-q", "-b", COORD_BRANCH, str(coord_root))
     husk = coord_root / "kitty-specs" / SLUG_WITH_MID8
     husk.mkdir(parents=True, exist_ok=True)
     _write_meta(husk, mission_id=MISSION_ID)
-    (husk / "status.events.jsonl").write_text(
-        '{"wp_id":"WP01","to_lane":"planned"}\n', encoding="utf-8"
-    )
+    (husk / "status.events.jsonl").write_text('{"wp_id":"WP01","to_lane":"planned"}\n', encoding="utf-8")
     return primary, husk
 
 
@@ -1037,9 +987,7 @@ def test_unbackfilled_flattened_resolves_primary_not_husk(tmp_path: Path) -> Non
     OBSERVABLE resolved surface (the returned dir), never the internal call graph.
     """
     primary, husk = _build_unbackfilled_flattened_with_husk(tmp_path)
-    resolved = resolve_handle_to_read_path(
-        tmp_path, SLUG_WITH_MID8, require_exists=True
-    ).resolve()
+    resolved = resolve_handle_to_read_path(tmp_path, SLUG_WITH_MID8, require_exists=True).resolve()
 
     # Negative control: prove the husk is genuinely a DIFFERENT, present directory —
     # otherwise "resolves primary" could pass vacuously if the husk never existed.
@@ -1068,14 +1016,9 @@ def test_unbackfilled_flattened_repro_resolves_primary_after_wp06(
     """
     primary, husk = _build_unbackfilled_flattened_with_husk(tmp_path)
     try:
-        resolved = resolve_handle_to_read_path(
-            tmp_path, SLUG_WITH_MID8, require_exists=True
-        ).resolve()
+        resolved = resolve_handle_to_read_path(tmp_path, SLUG_WITH_MID8, require_exists=True).resolve()
     except StatusReadPathNotFound:  # pragma: no cover — defensive: not the fixed arm
-        pytest.fail(
-            "expected the un-backfilled flattened repro to resolve PRIMARY after "
-            "WP06's boundary absorption, but it raised StatusReadPathNotFound"
-        )
+        pytest.fail("expected the un-backfilled flattened repro to resolve PRIMARY after WP06's boundary absorption, but it raised StatusReadPathNotFound")
     # Negative control: the husk is a different, present dir (non-vacuous).
     assert husk.resolve().exists()
     assert husk.resolve() != primary.resolve()
@@ -1112,10 +1055,7 @@ def _primary_kind() -> MissionArtifactKind:
     loudly here rather than silently routing the test onto the STATUS leg.
     """
     kind = MissionArtifactKind.SPEC
-    assert is_primary_artifact_kind(kind), (
-        "SPEC must be a PRIMARY-partition kind to exercise the PRIMARY leg of "
-        "resolve_planning_read_dir (the #2136 bug leg)"
-    )
+    assert is_primary_artifact_kind(kind), "SPEC must be a PRIMARY-partition kind to exercise the PRIMARY leg of resolve_planning_read_dir (the #2136 bug leg)"
     return kind
 
 
@@ -1162,18 +1102,11 @@ def test_primary_read_seam_handle_equivalence(tmp_path: Path) -> None:
     bare_slug = resolve_planning_read_dir(tmp_path, MISSION_SLUG, kind=kind).resolve()
 
     # Absolute anchor: the composed handle resolves the real on-disk canonical dir.
-    assert composed == expected, (
-        f"composed handle resolved {composed}, expected the canonical PRIMARY dir "
-        f"{expected}"
-    )
+    assert composed == expected, f"composed handle resolved {composed}, expected the canonical PRIMARY dir {expected}"
     # Equivalence: the bare forms fold to the SAME canonical dir (FR-011 / #2136).
-    assert bare_mid8 == expected, (
-        f"bare mid8 {MID8!r} resolved {bare_mid8} but must fold to the canonical "
-        f"PRIMARY dir {expected} (handle-safe read seam — #2136)"
-    )
+    assert bare_mid8 == expected, f"bare mid8 {MID8!r} resolved {bare_mid8} but must fold to the canonical PRIMARY dir {expected} (handle-safe read seam — #2136)"
     assert bare_slug == expected, (
-        f"bare slug {MISSION_SLUG!r} resolved {bare_slug} but must fold to the "
-        f"canonical PRIMARY dir {expected} (handle-safe read seam — #2136)"
+        f"bare slug {MISSION_SLUG!r} resolved {bare_slug} but must fold to the canonical PRIMARY dir {expected} (handle-safe read seam — #2136)"
     )
 
 

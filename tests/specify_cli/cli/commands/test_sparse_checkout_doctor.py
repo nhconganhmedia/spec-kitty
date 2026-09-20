@@ -133,9 +133,7 @@ class _ScanReport:
     worktrees: list[_Worktree] = field(default_factory=list)
 
 
-def test_run_sparse_checkout_clean(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_sparse_checkout_clean(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(sc, "locate_project_root", lambda: tmp_path)
     import specify_cli.git.sparse_checkout as scan_mod
 
@@ -145,9 +143,7 @@ def test_run_sparse_checkout_clean(
     assert exc.value.exit_code == 0
 
 
-def test_run_sparse_checkout_detection_exits_1(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_sparse_checkout_detection_exits_1(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(sc, "locate_project_root", lambda: tmp_path)
     import specify_cli.git.sparse_checkout as scan_mod
 
@@ -161,9 +157,7 @@ def test_run_sparse_checkout_detection_exits_1(
     assert exc.value.exit_code == 1
 
 
-def test_run_sparse_checkout_ci_refusal(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_run_sparse_checkout_ci_refusal(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     monkeypatch.setattr(sc, "locate_project_root", lambda: tmp_path)
     import specify_cli.git.sparse_checkout as scan_mod
 

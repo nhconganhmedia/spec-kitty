@@ -71,13 +71,7 @@ def _build_coord_topology_repo(tmp_path: Path) -> tuple[Path, Path, Path]:
     primary_dir = repo_root / "kitty-specs" / _MISSION_SLUG
     _write_meta(primary_dir)
 
-    coord_dir = (
-        repo_root
-        / ".worktrees"
-        / f"{_MISSION_SLUG}-{_MID8}-coord"
-        / "kitty-specs"
-        / f"{_MISSION_SLUG}-{_MID8}"
-    )
+    coord_dir = repo_root / ".worktrees" / f"{_MISSION_SLUG}-{_MID8}-coord" / "kitty-specs" / f"{_MISSION_SLUG}-{_MID8}"
     _write_meta(coord_dir)
 
     return repo_root, primary_dir, coord_dir
@@ -208,7 +202,9 @@ def test_artifact_sufficiency_reads_coord_worktree_events(tmp_path: Path) -> Non
         coord_dir / "status.events.jsonl",
         [
             _status_event(
-                "WP01", "planned", "done",
+                "WP01",
+                "planned",
+                "done",
                 event_id="01KTXRVRTESTGATE00000000S1",
                 at="2026-06-12T09:00:00+00:00",
             ),
@@ -218,9 +214,7 @@ def test_artifact_sufficiency_reads_coord_worktree_events(tmp_path: Path) -> Non
     # Divergence sanity: no event log in the primary feature dir.
     assert not (primary_dir / "status.events.jsonl").exists()
 
-    assert _mission_artifacts_sufficient_for_empty_record(
-        primary_dir, repo_root=repo_root, mission_slug=_MISSION_SLUG
-    ) is True, (
+    assert _mission_artifacts_sufficient_for_empty_record(primary_dir, repo_root=repo_root, mission_slug=_MISSION_SLUG) is True, (
         "#1735 regression: the retrospect artifact-sufficiency check did not "
         "see the WP status events in the coordination worktree — it is still "
         "reading events through resolved.feature_dir instead of "
@@ -239,16 +233,16 @@ def test_artifact_sufficiency_falls_back_to_feature_dir_for_unresolvable_mission
         feature_dir / "status.events.jsonl",
         [
             _status_event(
-                "WP01", "planned", "done",
+                "WP01",
+                "planned",
+                "done",
                 event_id="01KTXRVRTESTGATE00000000S2",
                 at="2026-06-12T09:00:00+00:00",
             ),
         ],
     )
 
-    assert _mission_artifacts_sufficient_for_empty_record(
-        feature_dir, repo_root=tmp_path, mission_slug="legacy-mission-unresolvable"
-    ) is True
+    assert _mission_artifacts_sufficient_for_empty_record(feature_dir, repo_root=tmp_path, mission_slug="legacy-mission-unresolvable") is True
 
 
 def test_artifact_sufficiency_false_when_no_events_anywhere(tmp_path: Path) -> None:
@@ -256,6 +250,4 @@ def test_artifact_sufficiency_false_when_no_events_anywhere(tmp_path: Path) -> N
     repo_root, primary_dir, _coord_dir = _build_coord_topology_repo(tmp_path)
     _write_primary_artifacts(primary_dir)
 
-    assert _mission_artifacts_sufficient_for_empty_record(
-        primary_dir, repo_root=repo_root, mission_slug=_MISSION_SLUG
-    ) is False
+    assert _mission_artifacts_sufficient_for_empty_record(primary_dir, repo_root=repo_root, mission_slug=_MISSION_SLUG) is False

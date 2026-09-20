@@ -90,23 +90,15 @@ def unconsumed_emitters(topology: CoverageTopology) -> list[str]:
     """
     violations: list[str] = []
     for emitter in topology.emitters:
-        name_consumed = any(
-            fnmatch.fnmatch(name, glob)
-            for name in emitter.upload_names
-            for glob in topology.download_name_globs
-        )
+        name_consumed = any(fnmatch.fnmatch(name, glob) for name in emitter.upload_names for glob in topology.download_name_globs)
         if not name_consumed:
             violations.append(
-                f"{emitter.job}: upload names {emitter.upload_names or ()} match no "
-                f"aggregator download glob {topology.download_name_globs}",
+                f"{emitter.job}: upload names {emitter.upload_names or ()} match no aggregator download glob {topology.download_name_globs}",
             )
         violations.extend(
-            f"{emitter.job}: report {report!r} matches no aggregator "
-            f"consume glob {topology.report_file_globs}"
+            f"{emitter.job}: report {report!r} matches no aggregator consume glob {topology.report_file_globs}"
             for report in emitter.report_filenames
-            if not any(
-                fnmatch.fnmatch(report, glob) for glob in topology.report_file_globs
-            )
+            if not any(fnmatch.fnmatch(report, glob) for glob in topology.report_file_globs)
         )
     return violations
 

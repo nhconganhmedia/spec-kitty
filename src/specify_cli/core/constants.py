@@ -54,6 +54,7 @@ def is_occurrence_map_path(path: str) -> bool:
         return False
     return path.count("/") == 2
 
+
 # Named scalar aliases for individual built-in mission-type identifiers, used at
 # the CLI comparison sites.  The canonical *roster* (the full built-in set) is
 # ``charter.offering.missions.mission_type_repository.builtin_mission_type_ids`` (#2669) —

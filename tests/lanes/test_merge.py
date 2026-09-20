@@ -26,11 +26,8 @@ def _info_attributes_driver_lines(repo):
     attributes_path = common_dir / "info" / "attributes"
     if not attributes_path.exists():
         return []
-    return [
-        line
-        for line in attributes_path.read_text(encoding="utf-8").splitlines()
-        if "merge=spec-kitty-" in line
-    ]
+    return [line for line in attributes_path.read_text(encoding="utf-8").splitlines() if "merge=spec-kitty-" in line]
+
 
 pytestmark = pytest.mark.git_repo
 
@@ -436,9 +433,7 @@ class TestSquashDoesNotLeakInfoAttributes:
 
         assert _info_attributes_driver_lines(repo) == []
 
-        result = integrate_mission_into_target(
-            repo, "010-feat", manifest, strategy=MergeStrategy.SQUASH
-        )
+        result = integrate_mission_into_target(repo, "010-feat", manifest, strategy=MergeStrategy.SQUASH)
         assert result.success is True
 
         # info/attributes activation is gone post-merge: a later auto_rebase must
@@ -465,9 +460,7 @@ class TestSquashDoesNotLeakInfoAttributes:
         _commit(repo, "src/feature.py", "feature\n", "feature work")
         _run(["git", "checkout", "main"], repo)
 
-        integrate_mission_into_target(
-            repo, "010-feat", manifest, strategy=MergeStrategy.SQUASH
-        )
+        integrate_mission_into_target(repo, "010-feat", manifest, strategy=MergeStrategy.SQUASH)
         integrate_mission_into_target(
             repo,
             "010-feat",

@@ -120,6 +120,7 @@ def _build_doctrine_service(
     charter-internal callers that omit it see byte-identical kwargs (NFR-002).
     """
     from charter.offering.service import DoctrineService
+
     # Patch seam, see module docstring.
     from charter.activation.context import infer_repo_languages  # noqa: PLC0415
 
@@ -219,9 +220,7 @@ def _build_activation_aware_doctrine_service(
     from charter.activation.pack_context import PackContext
     from charter.activation.resolver import DoctrineService as ActivationAwareDoctrineService
 
-    resolved_org_roots = (
-        org_roots if org_roots is not None else _self_resolve_existing_org_roots(repo_root)
-    )
+    resolved_org_roots = org_roots if org_roots is not None else _self_resolve_existing_org_roots(repo_root)
     # Forward ``agent_profile_overlay_dir`` only when set: the common ``None``
     # case must reach ``_build_doctrine_service`` with the byte-identical
     # ``(repo_root, org_roots=...)`` call the ``charter.context`` monkeypatch
@@ -305,6 +304,4 @@ def build_activation_aware_doctrine_service(
     ``None`` keeps the delegation byte-identical (NFR-002); this stays a thin
     delegate — no second wrapper construction site (C-006).
     """
-    return _build_activation_aware_doctrine_service(
-        repo_root, agent_profile_overlay_dir=agent_profile_overlay_dir
-    )
+    return _build_activation_aware_doctrine_service(repo_root, agent_profile_overlay_dir=agent_profile_overlay_dir)

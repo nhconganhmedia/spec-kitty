@@ -68,8 +68,11 @@ def _make_pack(tmp_path: Path, name: str, *, fragment_yaml: str | None = None) -
     pack_dir = tmp_path / name
     drg_dir = pack_dir / "drg"
     drg_dir.mkdir(parents=True)
-    payload = fragment_yaml if fragment_yaml is not None else dedent(
-        f"""\
+    payload = (
+        fragment_yaml
+        if fragment_yaml is not None
+        else dedent(
+            f"""\
         pack_name: {name}
         source_kind: local_path
         source_ref: {pack_dir}
@@ -81,6 +84,7 @@ def _make_pack(tmp_path: Path, name: str, *, fragment_yaml: str | None = None) -
             title: "Fixture directive for {name}"
         edges: []
         """
+        )
     )
     (drg_dir / "fragment.yaml").write_text(payload)
     return pack_dir
@@ -123,9 +127,7 @@ class TestOrgDRGFragmentSchema:
                 "source_ref": "/nonexistent/acme",
                 "layer_index": 1,
                 "provenance_marker": "org",
-                "nodes": [
-                    {"id": f"x-{kind}", "kind": kind, "title": kind}
-                ],
+                "nodes": [{"id": f"x-{kind}", "kind": kind, "title": kind}],
                 "edges": [],
             }
         )
@@ -139,9 +141,7 @@ class TestOrgDRGFragmentSchema:
                     "source_ref": "/nonexistent/acme",
                     "layer_index": 1,
                     "provenance_marker": "org",
-                    "nodes": [
-                        {"id": "x", "kind": "frobnications", "title": "X"}
-                    ],
+                    "nodes": [{"id": "x", "kind": "frobnications", "title": "X"}],
                     "edges": [],
                 }
             )
@@ -192,15 +192,11 @@ class TestLoadOrgDrg:
         _make_config(tmp_path, "organisation_packs: []\n")
         assert load_org_drg(tmp_path) == []
 
-    def test_missing_organisation_packs_key_returns_empty_list(
-        self, tmp_path: Path
-    ) -> None:
+    def test_missing_organisation_packs_key_returns_empty_list(self, tmp_path: Path) -> None:
         _make_config(tmp_path, "other_setting: value\n")
         assert load_org_drg(tmp_path) == []
 
-    def test_one_fragment_per_configured_pack_in_declaration_order(
-        self, tmp_path: Path
-    ) -> None:
+    def test_one_fragment_per_configured_pack_in_declaration_order(self, tmp_path: Path) -> None:
         pack_a = _make_pack(tmp_path, "alpha")
         pack_b = _make_pack(tmp_path, "bravo")
         _make_config(
@@ -403,15 +399,9 @@ class TestLoadOrgDrgUnreadableFragmentDegrade:
         return unreadable
 
     def _drop_warnings(self, caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
-        return [
-            r
-            for r in caplog.records
-            if r.levelno == logging.WARNING and self._UNREADABLE_PACK_NAME in r.getMessage()
-        ]
+        return [r for r in caplog.records if r.levelno == logging.WARNING and self._UNREADABLE_PACK_NAME in r.getMessage()]
 
-    def test_unreadable_fragment_degrades_per_pack(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_unreadable_fragment_degrades_per_pack(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         """``strict=False, degrade_malformed=True`` drops ONLY the unreadable
         pack, with the operator-visible WARNING; the healthy sibling folds."""
         self._make_unreadable_chain(tmp_path)
@@ -442,9 +432,7 @@ class TestLoadOrgDrgUnreadableFragmentDegrade:
         os.name != "posix" or os.geteuid() == 0,
         reason="chmod-based unreadability needs POSIX and a non-root user",
     )
-    def test_permission_denied_fragment_degrades_per_pack(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_permission_denied_fragment_degrades_per_pack(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         """chmod-0 variant mirroring the validator-side
         ``test_permission_denied_fragment_is_a_finding``."""
         healthy = _make_pack(tmp_path, self._HEALTHY_PACK_NAME)
@@ -492,9 +480,7 @@ class TestMergeThreeLayers:
     def test_every_shipped_node_tagged_built_in(self) -> None:
         built_in = _built_in_with_node("directive:foo")
         merged = merge_three_layers(built_in=built_in, org_fragments=[], project=None)
-        assert all(
-            getattr(n, "provenance", None) == "built-in" for n in merged.nodes
-        )
+        assert all(getattr(n, "provenance", None) == "built-in" for n in merged.nodes)
 
     def test_org_fragment_nodes_tagged_with_pack_name(self) -> None:
         built_in = _empty_built_in()
@@ -505,18 +491,12 @@ class TestMergeThreeLayers:
                 "source_ref": "/nonexistent/acme",
                 "layer_index": 1,
                 "provenance_marker": "org",
-                "nodes": [
-                    {"id": "policy", "kind": "directives", "title": "Policy"}
-                ],
+                "nodes": [{"id": "policy", "kind": "directives", "title": "Policy"}],
                 "edges": [],
             }
         )
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[fragment], project=None
-        )
-        assert any(
-            getattr(n, "provenance", None) == "org:acme" for n in merged.nodes
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
+        assert any(getattr(n, "provenance", None) == "org:acme" for n in merged.nodes)
 
     def test_org_fragment_mission_step_contract_node_merges(self) -> None:
         built_in = _empty_built_in()
@@ -538,9 +518,7 @@ class TestMergeThreeLayers:
             }
         )
 
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[fragment], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
 
         node = merged.get_node("mission_step_contract:implement-step")
         assert node is not None
@@ -556,14 +534,10 @@ class TestMergeThreeLayers:
             nodes=[DRGNode(urn="tactic:project-only", kind=NodeKind.TACTIC)],
             edges=[],
         )
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[], project=project
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[], project=project)
         assert any(getattr(n, "provenance", None) == "project" for n in merged.nodes)
 
-    def test_shipped_invariant_override_is_permitted_with_warning(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_shipped_invariant_override_is_permitted_with_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         """An org pack overriding a shipped node URN is PERMITTED by the merge
         but surfaced as a WARNING (visible by design; a per-repo governance test
         decides sanction). Retired the prior hard-fail ``OrgDRGConflictError``
@@ -589,21 +563,14 @@ class TestMergeThreeLayers:
             }
         )
         with caplog.at_level(logging.WARNING, logger="charter.offering.drg.merge"):
-            merged = merge_three_layers(
-                built_in=built_in, org_fragments=[fragment], project=None
-            )
+            merged = merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
         assert merged is not None
         override_warnings = [
             rec.getMessage()
             for rec in caplog.records
-            if rec.levelno == logging.WARNING
-            and "caveman-comments" in rec.getMessage()
-            and "override" in rec.getMessage().lower()
+            if rec.levelno == logging.WARNING and "caveman-comments" in rec.getMessage() and "override" in rec.getMessage().lower()
         ]
-        assert override_warnings, (
-            "expected a same-kind-override WARNING naming 'caveman-comments', "
-            f"got {[r.getMessage() for r in caplog.records]}"
-        )
+        assert override_warnings, f"expected a same-kind-override WARNING naming 'caveman-comments', got {[r.getMessage() for r in caplog.records]}"
 
     def test_layer_rule_violation_hard_fails(self) -> None:
         """FR-005 / C-001: org node body_path into ``src/specify_cli/`` is
@@ -628,12 +595,8 @@ class TestMergeThreeLayers:
             }
         )
         with pytest.raises(OrgDRGConflictError) as exc_info:
-            merge_three_layers(
-                built_in=built_in, org_fragments=[fragment], project=None
-            )
-        assert any(
-            c.kind == "layer_rule_violation" for c in exc_info.value.conflicts
-        )
+            merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
+        assert any(c.kind == "layer_rule_violation" for c in exc_info.value.conflicts)
 
     def test_org_edge_tagged_with_pack_name(self) -> None:
         built_in = _empty_built_in()
@@ -653,12 +616,8 @@ class TestMergeThreeLayers:
                 ],
             }
         )
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[fragment], project=None
-        )
-        org_edges = [
-            e for e in merged.edges if getattr(e, "provenance", None) == "org:edge-pack"
-        ]
+        merged = merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
+        org_edges = [e for e in merged.edges if getattr(e, "provenance", None) == "org:edge-pack"]
         assert {e.relation for e in org_edges} == {Relation.REQUIRES}
         assert org_edges[0].relation == Relation.REQUIRES
 
@@ -693,19 +652,12 @@ class TestMergeThreeLayers:
         built_in = _empty_built_in()
         fragment = self._cross_pack_fragment("styleguide:caveman-comments")
 
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[fragment], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
 
-        cross_edges = [
-            e for e in merged.edges if e.target == "styleguide:caveman-comments"
-        ]
-        assert {(e.source, e.target, e.relation) for e in cross_edges} == {
-            ("directive:policy", "styleguide:caveman-comments", Relation.APPLIES)
-        }
+        cross_edges = [e for e in merged.edges if e.target == "styleguide:caveman-comments"]
+        assert {(e.source, e.target, e.relation) for e in cross_edges} == {("directive:policy", "styleguide:caveman-comments", Relation.APPLIES)}
         assert not [e for e in merged.edges if e.target.startswith("directive:caveman")], (
-            "the bridge must never invent a directive: kind for a target it "
-            "cannot resolve"
+            "the bridge must never invent a directive: kind for a target it cannot resolve"
         )
 
     def test_org_to_shipped_edge_with_an_unresolvable_bare_target_hard_fails(
@@ -720,13 +672,9 @@ class TestMergeThreeLayers:
         fragment = self._cross_pack_fragment("caveman-comments")
 
         with pytest.raises(OrgDRGConflictError) as excinfo:
-            merge_three_layers(
-                built_in=_empty_built_in(), org_fragments=[fragment], project=None
-            )
+            merge_three_layers(built_in=_empty_built_in(), org_fragments=[fragment], project=None)
 
-        assert [c.kind for c in excinfo.value.conflicts] == [
-            "unresolved_edge_endpoint"
-        ]
+        assert [c.kind for c in excinfo.value.conflicts] == ["unresolved_edge_endpoint"]
         assert excinfo.value.conflicts[0].target_id == "caveman-comments"
 
     def test_edge_with_unknown_relation_raises(self) -> None:
@@ -761,9 +709,7 @@ class TestMergeThreeLayers:
             }
         )
         with pytest.raises(UnknownRelationError) as exc_info:
-            merge_three_layers(
-                built_in=built_in, org_fragments=[fragment], project=None
-            )
+            merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
         assert exc_info.value.relation == "frobnicates"
         assert "rel-pack" in exc_info.value.source_marker
         assert "frobnicates" in str(exc_info.value)
@@ -796,9 +742,7 @@ class TestMergeThreeLayers:
             }
         )
         with pytest.raises(OrgDRGConflictError) as exc_info:
-            merge_three_layers(
-                built_in=built_in, org_fragments=[fragment], project=None
-            )
+            merge_three_layers(built_in=built_in, org_fragments=[fragment], project=None)
         kinds = {c.kind for c in exc_info.value.conflicts}
         assert {"node_override", "layer_rule_violation"} <= kinds
 

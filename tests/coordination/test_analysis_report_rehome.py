@@ -48,9 +48,7 @@ def test_kind_for_mission_file_classifies_analysis_report_specifically() -> None
     deletion (which would return ``None`` and mis-route via the unrecognized-path
     fallback) fails LOUDLY here.
     """
-    kind = kind_for_mission_file(
-        f"kitty-specs/demo-01ABCDEF/{_ANALYSIS_REPORT}", mission_slug="demo-01ABCDEF"
-    )
+    kind = kind_for_mission_file(f"kitty-specs/demo-01ABCDEF/{_ANALYSIS_REPORT}", mission_slug="demo-01ABCDEF")
     assert kind is MissionArtifactKind.ANALYSIS_REPORT
 
 
@@ -63,13 +61,9 @@ def test_analysis_report_is_primary_partition_and_not_coord_residue() -> None:
     stays disjoint-and-total.
     """
     assert is_primary_artifact_kind(MissionArtifactKind.ANALYSIS_REPORT)
-    assert not is_coord_residue_churn(
-        f"kitty-specs/demo-01ABCDEF/{_ANALYSIS_REPORT}", mission_slug="demo-01ABCDEF"
-    )
+    assert not is_coord_residue_churn(f"kitty-specs/demo-01ABCDEF/{_ANALYSIS_REPORT}", mission_slug="demo-01ABCDEF")
     # A still-COORD kind remains residue — proves the re-home was narrow.
-    assert is_coord_residue_churn(
-        "kitty-specs/demo-01ABCDEF/acceptance-matrix.json", mission_slug="demo-01ABCDEF"
-    )
+    assert is_coord_residue_churn("kitty-specs/demo-01ABCDEF/acceptance-matrix.json", mission_slug="demo-01ABCDEF")
     assert_partition_invariant()
 
 
@@ -133,16 +127,12 @@ def test_analysis_report_commits_to_primary_ref_and_is_absent_on_coord(
 
     rel = f"kitty-specs/{ctx.slug}/{_ANALYSIS_REPORT}"
     primary_show = _git(ctx.repo, "show", f"main:{rel}")
-    assert primary_show.returncode == 0, (
-        f"analysis-report.md is NOT on the primary ref 'main': {primary_show.stderr}"
-    )
+    assert primary_show.returncode == 0, f"analysis-report.md is NOT on the primary ref 'main': {primary_show.stderr}"
     assert "No blocking findings." in primary_show.stdout
 
     coord_show = _git(ctx.repo, "show", f"{ctx.coord_branch}:{rel}")
     assert coord_show.returncode != 0, (
-        "analysis-report.md WAS committed to the coordination ref "
-        f"{ctx.coord_branch!r} — a coord copy was made (re-home failed):\n"
-        f"{coord_show.stdout}"
+        f"analysis-report.md WAS committed to the coordination ref {ctx.coord_branch!r} — a coord copy was made (re-home failed):\n{coord_show.stdout}"
     )
 
 
@@ -248,8 +238,7 @@ def test_review_cycle_authored_lands_on_coord_ref_and_is_absent_on_primary(
     coord_rel = f"kitty-specs/{ctx.slug}/tasks/WP01/review-cycle-1.md"
     coord_show = _git(ctx.repo, "show", f"{ctx.coord_branch}:{coord_rel}")
     assert coord_show.returncode == 0, (
-        f"review-cycle-1.md is NOT on the coordination ref {ctx.coord_branch!r} "
-        f"(ADR 2026-08-03-1 requires it land there): {coord_show.stderr}"
+        f"review-cycle-1.md is NOT on the coordination ref {ctx.coord_branch!r} (ADR 2026-08-03-1 requires it land there): {coord_show.stderr}"
     )
     assert "Reviewer feedback:" in coord_show.stdout
 

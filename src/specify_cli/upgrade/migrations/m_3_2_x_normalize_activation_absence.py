@@ -162,6 +162,8 @@ def _per_artifact_activation_keys() -> tuple[str, ...]:
     )
 
     return tuple(key for key in ACTIVATION_YAML_KEYS if key not in _COARSE_ACTIVATION_KEYS)
+
+
 _LEGACY_BUNDLE_FILENAMES: tuple[str, ...] = (
     "governance.yaml",
     "directives.yaml",
@@ -255,10 +257,7 @@ def _config_carries_any_activation(config_data: dict[str, Any]) -> bool:
     before deciding whether writing fresh ``[]`` values into a bare
     config.yaml would be the sole, premature trigger for a LATER invocation.
     """
-    return any(
-        key in config_data
-        for key in (*_COARSE_ACTIVATION_KEYS, *_per_artifact_activation_keys())
-    )
+    return any(key in config_data for key in (*_COARSE_ACTIVATION_KEYS, *_per_artifact_activation_keys()))
 
 
 def _unify_promotion_pending(project_path: Path) -> bool:
@@ -275,9 +274,7 @@ def _unify_promotion_pending(project_path: Path) -> bool:
     return UnifyCharterActivationMigration().detect(project_path)
 
 
-def _should_defer_bare_config_write(
-    project_path: Path, config_data: dict[str, Any], charter_path: Path | None
-) -> bool:
+def _should_defer_bare_config_write(project_path: Path, config_data: dict[str, Any], charter_path: Path | None) -> bool:
     """True when normalizing into config.yaml now would arm the fold too late.
 
     Only relevant when config.yaml itself is the resolved activation store
@@ -376,9 +373,7 @@ class NormalizeActivationAbsenceMigration(BaseMigration):
         config_data = _load_yaml_mapping(_config_path(project_path))
         charter_path = _resolved_charter_yaml(project_path, config_data)
         activation = _store_activation_mapping(project_path, config_data)
-        if _missing_per_artifact_keys(activation) and not _should_defer_bare_config_write(
-            project_path, config_data, charter_path
-        ):
+        if _missing_per_artifact_keys(activation) and not _should_defer_bare_config_write(project_path, config_data, charter_path):
             return True
         return charter_path is not None and _CHARTER_POINTER_KEY not in config_data
 
@@ -387,8 +382,7 @@ class NormalizeActivationAbsenceMigration(BaseMigration):
             return True, ""
         return (
             False,
-            "every per-artifact activated_<kind> key is already explicit and "
-            "the charter: pointer is present; nothing to normalize",
+            "every per-artifact activated_<kind> key is already explicit and the charter: pointer is present; nothing to normalize",
         )
 
     def apply(self, project_path: Path, dry_run: bool = False) -> MigrationResult:

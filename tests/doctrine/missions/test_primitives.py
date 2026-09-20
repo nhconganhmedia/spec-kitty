@@ -16,8 +16,8 @@ It flows through the glossary middleware pipeline, accumulating state
 from charter.offering.missions.primitives import PrimitiveExecutionContext
 from glossary.strictness import Strictness
 import pytest
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 def _make_context(**overrides):

@@ -76,24 +76,17 @@ class TestMissionTypeNodeGeneration:
         # mission-type set), not incidental golden-count debt.
         assert len(self._shipped_mission_type_ids_and_labels()) == 4
 
-    def test_generates_exactly_one_node_per_shipped_mission_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_generates_exactly_one_node_per_shipped_mission_type(self, tmp_path: Path) -> None:
         output = tmp_path / "graph.yaml"
         graph = generate_graph(DOCTRINE_ROOT, output)
 
-        mission_type_nodes = [
-            n for n in graph.nodes if n.kind == NodeKind.MISSION_TYPE
-        ]
+        mission_type_nodes = [n for n in graph.nodes if n.kind == NodeKind.MISSION_TYPE]
         expected = self._shipped_mission_type_ids_and_labels()
 
         assert len(mission_type_nodes) == len(expected) == 4
 
         actual_by_urn = {n.urn: n.label for n in mission_type_nodes}
-        expected_by_urn = {
-            f"mission_type:{mission_id}": label
-            for mission_id, label in expected.items()
-        }
+        expected_by_urn = {f"mission_type:{mission_id}": label for mission_id, label in expected.items()}
         assert actual_by_urn == expected_by_urn
 
     def _shipped_action_sequences(self) -> dict[str, list[str]]:
@@ -108,14 +101,9 @@ class TestMissionTypeNodeGeneration:
         that survives the cutover unchanged.
         """
         repo = MissionTypeRepository(MISSION_TYPES_DIR)
-        return {
-            mission_type.id: list(mission_type.action_sequence or [])
-            for mission_type in repo.load_all()
-        }
+        return {mission_type.id: list(mission_type.action_sequence or []) for mission_type in repo.load_all()}
 
-    def test_mission_type_nodes_have_outbound_requires_edges(
-        self, tmp_path: Path
-    ) -> None:
+    def test_mission_type_nodes_have_outbound_requires_edges(self, tmp_path: Path) -> None:
         # Edge-complete contract: every mission_type node emits exactly one
         # ``requires`` edge per ``action_sequence`` step to its
         # ``action:<id>/<step>`` node. This re-pins the retired nodes-only
@@ -126,23 +114,12 @@ class TestMissionTypeNodeGeneration:
         sequences = self._shipped_action_sequences()
         for mission_id, steps in sequences.items():
             source_urn = f"mission_type:{mission_id}"
-            outbound_requires = {
-                edge.target
-                for edge in graph.edges
-                if edge.source == source_urn
-                and edge.relation is Relation.REQUIRES
-            }
-            expected_targets = {
-                f"action:{mission_id}/{step}" for step in steps
-            }
+            outbound_requires = {edge.target for edge in graph.edges if edge.source == source_urn and edge.relation is Relation.REQUIRES}
+            expected_targets = {f"action:{mission_id}/{step}" for step in steps}
 
             # The sequence is non-empty for every shipped mission type, so a
             # mission_type node with zero outbound edges would be a regression.
-            assert outbound_requires, (
-                f"{source_urn} has no outbound requires edges; the "
-                f"edge-complete contract was not applied."
-            )
+            assert outbound_requires, f"{source_urn} has no outbound requires edges; the edge-complete contract was not applied."
             assert outbound_requires == expected_targets, (
-                f"{source_urn} outbound requires targets {outbound_requires} "
-                f"do not match its action_sequence {expected_targets}."
+                f"{source_urn} outbound requires targets {outbound_requires} do not match its action_sequence {expected_targets}."
             )

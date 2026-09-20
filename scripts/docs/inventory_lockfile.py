@@ -99,10 +99,7 @@ class InventoryDrift:
 
     def summary(self) -> str:
         """One-line human summary of the drift."""
-        return (
-            f"added={len(self.added)} removed={len(self.removed)} "
-            f"changed={len(self.changed)}"
-        )
+        return f"added={len(self.added)} removed={len(self.removed)} changed={len(self.changed)}"
 
 
 # ---------------------------------------------------------------------------
@@ -152,11 +149,7 @@ def entry_for_page(rel_path: str, frontmatter: Mapping[str, Any]) -> PageInvento
     divio_type = _coerce_divio_type(frontmatter.get(_FM_DIVIO_TYPE))
 
     owning_raw = frontmatter.get(_FM_OWNING_WORKSTREAM)
-    owning_workstream = (
-        owning_raw.strip()
-        if isinstance(owning_raw, str) and owning_raw.strip()
-        else _DEFAULT_OWNING_WORKSTREAM
-    )
+    owning_workstream = owning_raw.strip() if isinstance(owning_raw, str) and owning_raw.strip() else _DEFAULT_OWNING_WORKSTREAM
 
     return PageInventoryEntry(
         path=rel_path,
@@ -173,9 +166,7 @@ def entry_for_page(rel_path: str, frontmatter: Mapping[str, Any]) -> PageInvento
 # ---------------------------------------------------------------------------
 
 
-def generate_inventory(
-    docs_root: Path, *, repo_root: Path | None = None
-) -> list[PageInventoryEntry]:
+def generate_inventory(docs_root: Path, *, repo_root: Path | None = None) -> list[PageInventoryEntry]:
     """Walk ``docs_root`` and emit a rollup of one entry per ``.md`` page.
 
     Entries are sorted alphabetically by repo-relative ``path`` for a
@@ -275,15 +266,8 @@ def compare_inventories(
 
     added = sorted(set(gen_by_path) - set(com_by_path))
     removed = sorted(set(com_by_path) - set(gen_by_path))
-    changed = sorted(
-        path
-        for path in set(gen_by_path) & set(com_by_path)
-        if _entry_fingerprint(gen_by_path[path])
-        != _entry_fingerprint(com_by_path[path])
-    )
-    return InventoryDrift(
-        added=tuple(added), removed=tuple(removed), changed=tuple(changed)
-    )
+    changed = sorted(path for path in set(gen_by_path) & set(com_by_path) if _entry_fingerprint(gen_by_path[path]) != _entry_fingerprint(com_by_path[path]))
+    return InventoryDrift(added=tuple(added), removed=tuple(removed), changed=tuple(changed))
 
 
 # ---------------------------------------------------------------------------
@@ -367,10 +351,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help=(
-            "Wired-but-off in Mission A: when set, drift exits 1. Default is "
-            "report-only (exit 0)."
-        ),
+        help=("Wired-but-off in Mission A: when set, drift exits 1. Default is report-only (exit 0)."),
     )
     return parser
 

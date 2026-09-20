@@ -123,11 +123,7 @@ def _write_tasks_md(feature_dir: Path) -> None:
     as a section in ``tasks.md``.  The fixture creates ``tasks/WP01.md`` but
     NOT ``tasks.md``; this helper provides the required counterpart.
     """
-    content = (
-        "# Work Packages\n\n"
-        "## WP01 - Fixture task\n\n"
-        "No dependencies.\n"
-    )
+    content = "# Work Packages\n\n## WP01 - Fixture task\n\nNo dependencies.\n"
     (feature_dir / "tasks.md").write_text(content, encoding="utf-8")
 
 
@@ -166,24 +162,16 @@ class TestMapRequirementsRoutesToPrimary:
         from specify_cli.missions._read_path_resolver import candidate_feature_dir_for_mission
 
         pre_fix_path = candidate_feature_dir_for_mission(ctx.repo, ctx.slug)
-        assert pre_fix_path == ctx.coord_feature_dir, (
-            "Pre-fix resolver must return the coord husk (RED anchor)"
-        )
-        assert not (pre_fix_path / "tasks" / "WP01.md").exists(), (
-            "tasks/WP01.md must be absent from coord husk (RED anchor proves test was red)"
-        )
+        assert pre_fix_path == ctx.coord_feature_dir, "Pre-fix resolver must return the coord husk (RED anchor)"
+        assert not (pre_fix_path / "tasks" / "WP01.md").exists(), "tasks/WP01.md must be absent from coord husk (RED anchor proves test was red)"
 
         # POST-FIX (current code): must resolve to PRIMARY where tasks/ exists.
         resolved = _map_requirements_feature_dir(ctx.repo, ctx.slug)
 
         assert resolved == ctx.primary_feature_dir, (
-            f"_map_requirements_feature_dir must return primary dir.\n"
-            f"  Expected : {ctx.primary_feature_dir}\n"
-            f"  Got      : {resolved}"
+            f"_map_requirements_feature_dir must return primary dir.\n  Expected : {ctx.primary_feature_dir}\n  Got      : {resolved}"
         )
-        assert (resolved / "tasks" / "WP01.md").exists(), (
-            "tasks/WP01.md must be present at the resolved primary dir"
-        )
+        assert (resolved / "tasks" / "WP01.md").exists(), "tasks/WP01.md must be present at the resolved primary dir"
 
 
 # ---------------------------------------------------------------------------
@@ -244,24 +232,15 @@ class TestListTasksRoutesToPrimary:
             mission_slug=ctx.slug,
             workspace_resolution=None,
         ):
-            result = runner.invoke(
-                app, ["list-tasks", "--mission", ctx.slug, "--json"]
-            )
+            result = runner.invoke(app, ["list-tasks", "--mission", ctx.slug, "--json"])
 
         # PRIMARY leg: exit 0 — tasks/ found on primary; WP01.md readable.
-        assert result.exit_code == 0, (
-            f"list-tasks must succeed when tasks/ exists on primary checkout.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
-        )
+        assert result.exit_code == 0, f"list-tasks must succeed when tasks/ exists on primary checkout.\nOutput: {result.output}\nException: {result.exception}"
 
         data = json.loads(result.output)
         tasks = data["tasks"]
         wp_ids = [t["work_package_id"] for t in tasks]
-        assert "WP01" in wp_ids, (
-            f"WP01 must appear in list-tasks output (from primary tasks/).\n"
-            f"Got wp_ids: {wp_ids}"
-        )
+        assert "WP01" in wp_ids, f"WP01 must appear in list-tasks output (from primary tasks/).\nGot wp_ids: {wp_ids}"
 
         # STATUS leg: lane must be in_progress (from COORD events), not planned
         # (primary DECOY fallback) or genesis (no events).
@@ -344,22 +323,15 @@ class TestFinalizeTasksRoutesToPrimary:
 
         # PRIMARY leg: exit 0 — tasks.md and tasks/ found on primary checkout.
         assert result.exit_code == 0, (
-            f"finalize-tasks --validate-only must succeed on a valid primary checkout.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
+            f"finalize-tasks --validate-only must succeed on a valid primary checkout.\nOutput: {result.output}\nException: {result.exception}"
         )
 
         data = json.loads(result.output)
-        assert data.get("result") == "validation_passed", (
-            f"Expected result='validation_passed'; got: {data.get('result')!r}"
-        )
+        assert data.get("result") == "validation_passed", f"Expected result='validation_passed'; got: {data.get('result')!r}"
 
         # PRIMARY leg: WP01 in dependencies map (parsed from primary tasks.md).
         deps = data.get("dependencies", {})
-        assert "WP01" in deps, (
-            f"WP01 must appear in dependencies map (parsed from primary tasks.md).\n"
-            f"Got dependencies: {deps}"
-        )
+        assert "WP01" in deps, f"WP01 must appear in dependencies map (parsed from primary tasks.md).\nGot dependencies: {deps}"
 
 
 # ---------------------------------------------------------------------------
@@ -409,32 +381,26 @@ class TestTasksStatusRoutesToPrimary:
         _set_coord_in_progress_events(ctx)
 
         runner = CliRunner()
-        with setup_mocked_env(
-            ctx.repo,
-            mission_slug=ctx.slug,
-            workspace_resolution=None,
-        ), patch(
-            "specify_cli.core.stale_detection.check_doing_wps_for_staleness",
-            return_value={},
+        with (
+            setup_mocked_env(
+                ctx.repo,
+                mission_slug=ctx.slug,
+                workspace_resolution=None,
+            ),
+            patch(
+                "specify_cli.core.stale_detection.check_doing_wps_for_staleness",
+                return_value={},
+            ),
         ):
-            result = runner.invoke(
-                app, ["status", "--mission", ctx.slug, "--json"]
-            )
+            result = runner.invoke(app, ["status", "--mission", ctx.slug, "--json"])
 
         # PRIMARY leg: exit 0 — tasks/ found on primary checkout.
-        assert result.exit_code == 0, (
-            f"tasks status must succeed when tasks/ exists on primary checkout.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
-        )
+        assert result.exit_code == 0, f"tasks status must succeed when tasks/ exists on primary checkout.\nOutput: {result.output}\nException: {result.exception}"
 
         data = json.loads(result.output)
         wps = data.get("work_packages", [])
         wp_ids = [wp["id"] for wp in wps]
-        assert "WP01" in wp_ids, (
-            f"WP01 must appear in status output (from primary tasks/).\n"
-            f"Got wp_ids: {wp_ids}"
-        )
+        assert "WP01" in wp_ids, f"WP01 must appear in status output (from primary tasks/).\nGot wp_ids: {wp_ids}"
 
         # STATUS leg: lane must be in_progress (from COORD events), not genesis
         # (no events) or planned (primary DECOY fallback).
@@ -483,19 +449,8 @@ class TestListDependentsRoutesToPrimary:
         # Add WP02.md to PRIMARY tasks/ declaring WP01 as a dependency.
         # Without this, WP01 has no dependents and the pre/post-fix output is
         # identical ("no dependents" in both cases).
-        wp02_content = (
-            "---\n"
-            "work_package_id: WP02\n"
-            "title: WP02 fixture dependency task\n"
-            "dependencies:\n"
-            "- WP01\n"
-            "---\n"
-            "# WP02\n\n"
-            "Depends on WP01.\n"
-        )
-        (ctx.primary_feature_dir / "tasks" / "WP02.md").write_text(
-            wp02_content, encoding="utf-8"
-        )
+        wp02_content = "---\nwork_package_id: WP02\ntitle: WP02 fixture dependency task\ndependencies:\n- WP01\n---\n# WP02\n\nDepends on WP01.\n"
+        (ctx.primary_feature_dir / "tasks" / "WP02.md").write_text(wp02_content, encoding="utf-8")
 
         runner = CliRunner()
         with setup_mocked_env(
@@ -503,16 +458,10 @@ class TestListDependentsRoutesToPrimary:
             mission_slug=ctx.slug,
             workspace_resolution=None,
         ):
-            result = runner.invoke(
-                app, ["list-dependents", "WP01", "--mission", ctx.slug, "--json"]
-            )
+            result = runner.invoke(app, ["list-dependents", "WP01", "--mission", ctx.slug, "--json"])
 
         # PRIMARY leg: exit 0 — feature_dir exists (primary dir).
-        assert result.exit_code == 0, (
-            f"list-dependents must succeed when primary tasks/ has WP01.md.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
-        )
+        assert result.exit_code == 0, f"list-dependents must succeed when primary tasks/ has WP01.md.\nOutput: {result.output}\nException: {result.exception}"
 
         data = json.loads(result.output)
         dependents = data.get("dependents", [])

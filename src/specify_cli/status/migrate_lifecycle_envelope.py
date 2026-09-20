@@ -138,9 +138,7 @@ def _content_hash(event_type: Any, payload: Any) -> str:
     matching pre/post hash proves migration touched nothing but the
     envelope -- MIG1's own acceptance evidence.
     """
-    canonical = json.dumps(
-        {"event_type": event_type, "payload": payload}, sort_keys=True
-    )
+    canonical = json.dumps({"event_type": event_type, "payload": payload}, sort_keys=True)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()  # noqa: TID251 -- file-integrity check (pre/post migration content proof), not a charter-hashed artifact
 
 
@@ -150,7 +148,6 @@ def _is_already_strict_shaped(row: dict[str, Any]) -> bool:
     if row.get("schema_version") != _STRICT_SCHEMA_VERSION:
         return False
     return all(key in row for key in _SYNTHESIZED_KEYS) and "aggregate_type" not in row
-
 
 
 def _generate_node_id() -> str:
@@ -169,6 +166,7 @@ def _generate_node_id() -> str:
 
     raw = f"{socket.gethostname()}:{getpass.getuser()}"
     return hashlib.sha256(raw.encode()).hexdigest()[:12]  # noqa: TID251 - charter freshness ban; derivation mirrors the deleted sync clock
+
 
 def _migrate_row(row: dict[str, Any]) -> tuple[dict[str, Any], MigrationAction]:
     """Return (possibly rewritten row, action) for one lifecycle envelope row.
@@ -218,11 +216,7 @@ def _read_raw_lines(path: Path) -> list[tuple[int, str]]:
     whatever a symlink at that path happens to point at.
     """
     text = _read_text_without_following_symlinks(path)
-    return [
-        (line_number, line)
-        for line_number, line in enumerate(text.splitlines(), start=1)
-        if line.strip()
-    ]
+    return [(line_number, line) for line_number, line in enumerate(text.splitlines(), start=1) if line.strip()]
 
 
 def _lock_for_log_path(log_path: Path) -> AbstractContextManager[Path | None]:
@@ -261,9 +255,7 @@ def _atomic_replace_file(path: Path, content: str) -> None:
     :mod:`specify_cli.status.store`'s writers.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, raw_tmp_path = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
-    )
+    fd, raw_tmp_path = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     tmp_path = Path(raw_tmp_path)
     replaced = False
     try:
@@ -279,9 +271,7 @@ def _atomic_replace_file(path: Path, content: str) -> None:
             tmp_path.unlink(missing_ok=True)
 
 
-def migrate_lifecycle_envelope(
-    log_path: Path, *, dry_run: bool = False
-) -> MigrationManifest:
+def migrate_lifecycle_envelope(log_path: Path, *, dry_run: bool = False) -> MigrationManifest:
     """One-shot, idempotent, all-or-nothing migration of *log_path*.
 
     Rewrites every legacy-shaped lifecycle row (event_type in

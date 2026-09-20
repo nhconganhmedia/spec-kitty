@@ -42,12 +42,8 @@ def _stub_charter_preflight(monkeypatch: pytest.MonkeyPatch) -> None:
     def _ok(*_args, **_kwargs):
         return CharterPreflightResult(passed=True, checks=(), blocked_reason=None)
 
-    monkeypatch.setattr(
-        "specify_cli.charter_runtime.preflight.hook.run_preflight_or_abort", _ok
-    )
-    monkeypatch.setattr(
-        "specify_cli.charter_runtime.preflight.hook.run_preflight_for_dashboard", _ok
-    )
+    monkeypatch.setattr("specify_cli.charter_runtime.preflight.hook.run_preflight_or_abort", _ok)
+    monkeypatch.setattr("specify_cli.charter_runtime.preflight.hook.run_preflight_for_dashboard", _ok)
 
 
 def _make_query_decision(mission_state: str = "specify"):
@@ -85,9 +81,7 @@ class TestBareNextDoesNotAdvance:
                 "runtime.next.runtime_bridge.query_current_state",
                 return_value=decision,
             ) as mock_query,
-            patch(
-                "specify_cli.cli.commands.next_cmd.decide_next"
-            ) as mock_decide,
+            patch("specify_cli.cli.commands.next_cmd.decide_next") as mock_decide,
         ):
             result = runner.invoke(
                 cli_app,
@@ -116,9 +110,7 @@ class TestBareNextDoesNotAdvance:
                 "runtime.next.runtime_bridge.query_current_state",
                 return_value=decision,
             ),
-            patch(
-                "specify_cli.cli.commands.next_cmd._emit_mission_next_invoked"
-            ) as mock_emit,
+            patch("specify_cli.cli.commands.next_cmd._emit_mission_next_invoked") as mock_emit,
         ):
             runner.invoke(cli_app, ["next", "--mission", "fixture-mission", "--json"])
 
@@ -184,12 +176,8 @@ class TestBareNextDoesNotAdvance:
                 "specify_cli.cli.commands.next_cmd.decide_next",
                 return_value=decision,
             ) as mock_decide,
-            patch(
-                "specify_cli.cli.commands.next_cmd._emit_mission_next_invoked"
-            ),
-            patch(
-                "runtime.next.runtime_bridge.query_current_state"
-            ) as mock_query,
+            patch("specify_cli.cli.commands.next_cmd._emit_mission_next_invoked"),
+            patch("runtime.next.runtime_bridge.query_current_state") as mock_query,
         ):
             runner.invoke(
                 cli_app,

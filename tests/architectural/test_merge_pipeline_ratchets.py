@@ -49,13 +49,7 @@ def _python_sources() -> list[Path]:
 
 def _update_ref_string_constants(tree: ast.AST) -> list[int]:
     """Line numbers of ``"update-ref"`` string constants (argv elements)."""
-    return [
-        node.lineno
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and node.value == "update-ref"
-    ]
+    return [node.lineno for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value == "update-ref"]
 
 
 def test_no_raw_update_ref_outside_ref_advance_helper() -> None:
@@ -68,13 +62,9 @@ def test_no_raw_update_ref_outside_ref_advance_helper() -> None:
         if relpath == REF_ADVANCE_RELPATH:
             continue
         tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
-        offenders.extend(
-            f"{relpath}:{lineno}" for lineno in _update_ref_string_constants(tree)
-        )
+        offenders.extend(f"{relpath}:{lineno}" for lineno in _update_ref_string_constants(tree))
     assert not offenders, (
-        "Raw `git update-ref` invocation(s) found outside "
-        "specify_cli/git/ref_advance.py — route them through "
-        f"advance_branch_ref() (#1826 / AC-B3): {offenders}"
+        f"Raw `git update-ref` invocation(s) found outside specify_cli/git/ref_advance.py — route them through advance_branch_ref() (#1826 / AC-B3): {offenders}"
     )
 
 
@@ -116,12 +106,7 @@ def _is_subprocess_run_call(
     ``module_names`` of just ``"subprocess"`` only covers the unaliased case
     (#296)."""
     func = node.func
-    if (
-        isinstance(func, ast.Attribute)
-        and func.attr == "run"
-        and isinstance(func.value, ast.Name)
-        and func.value.id in module_names
-    ):
+    if isinstance(func, ast.Attribute) and func.attr == "run" and isinstance(func.value, ast.Name) and func.value.id in module_names:
         return True
     return isinstance(func, ast.Name) and func.id in direct_run_names
 
@@ -141,9 +126,7 @@ def test_is_subprocess_run_call_matches_aliased_module_import() -> None:
     """#296: ``import subprocess as _subprocess`` (already live in
     ``invocation/executor.py``) presents as ``ast.Name(id="_subprocess")``,
     not ``ast.Name(id="subprocess")`` — the pre-#296 matcher missed it."""
-    tree = ast.parse(
-        "import subprocess as _subprocess\n_subprocess.run(['git', 'rebase'])\n"
-    )
+    tree = ast.parse("import subprocess as _subprocess\n_subprocess.run(['git', 'rebase'])\n")
     module_names, direct_run_names = _subprocess_run_names(tree)
     assert _is_subprocess_run_call(_single_call(tree), module_names, direct_run_names)
 
@@ -174,14 +157,9 @@ def test_lanes_merge_subprocess_calls_route_env_through_helper() -> None:
     missing_env = [
         node.lineno
         for node in ast.walk(tree)
-        if isinstance(node, ast.Call)
-        and _is_subprocess_run_call(node, module_names, direct_run_names)
-        and not any(kw.arg == "env" for kw in node.keywords)
+        if isinstance(node, ast.Call) and _is_subprocess_run_call(node, module_names, direct_run_names) and not any(kw.arg == "env" for kw in node.keywords)
     ]
-    assert not missing_env, (
-        "subprocess.run call(s) in lanes/merge.py without an env= keyword "
-        f"(must route through _make_merge_env, AC-F1): lines {missing_env}"
-    )
+    assert not missing_env, f"subprocess.run call(s) in lanes/merge.py without an env= keyword (must route through _make_merge_env, AC-F1): lines {missing_env}"
 
 
 def test_lanes_merge_no_bare_os_environ_outside_helper() -> None:
@@ -191,8 +169,7 @@ def test_lanes_merge_no_bare_os_environ_outside_helper() -> None:
     helper_spans: list[tuple[int, int]] = [
         (node.lineno, node.end_lineno or node.lineno)
         for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and node.name == "_make_merge_env"
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "_make_merge_env"
     ]
     assert helper_spans, "_make_merge_env must exist in lanes/merge.py (AC-F1)"
 
@@ -205,10 +182,7 @@ def test_lanes_merge_no_bare_os_environ_outside_helper() -> None:
         and node.value.id == "os"
         and not any(start <= node.lineno <= end for start, end in helper_spans)
     ]
-    assert not offenders, (
-        "bare os.environ access in lanes/merge.py outside _make_merge_env "
-        f"(AC-F1): lines {offenders}"
-    )
+    assert not offenders, f"bare os.environ access in lanes/merge.py outside _make_merge_env (AC-F1): lines {offenders}"
 
 
 def test_make_merge_env_matches_historical_inline_construction() -> None:
@@ -217,9 +191,7 @@ def test_make_merge_env_matches_historical_inline_construction() -> None:
     from specify_cli.lanes.merge import _make_merge_env
 
     expected = os.environ.copy()
-    expected["PATH"] = (
-        str(Path(sys.executable).parent) + os.pathsep + expected.get("PATH", "")
-    )
+    expected["PATH"] = str(Path(sys.executable).parent) + os.pathsep + expected.get("PATH", "")
     assert _make_merge_env() == expected
 
 
@@ -231,9 +203,7 @@ def _argv_includes_git_merge(node: ast.Call) -> bool:
     argv = node.args[0]
     if not isinstance(argv, ast.List):
         return False
-    return any(
-        isinstance(elt, ast.Constant) and elt.value == "merge" for elt in argv.elts
-    )
+    return any(isinstance(elt, ast.Constant) and elt.value == "merge" for elt in argv.elts)
 
 
 _REBASE_CHERRY_PICK_ARGV = frozenset({"rebase", "cherry-pick"})
@@ -249,10 +219,7 @@ def _argv_includes_rebase_or_cherry_pick(node: ast.Call) -> bool:
     argv = node.args[0]
     if not isinstance(argv, ast.List):
         return False
-    return any(
-        isinstance(elt, ast.Constant) and elt.value in _REBASE_CHERRY_PICK_ARGV
-        for elt in argv.elts
-    )
+    return any(isinstance(elt, ast.Constant) and elt.value in _REBASE_CHERRY_PICK_ARGV for elt in argv.elts)
 
 
 def test_rebase_and_cherry_pick_calls_route_env_through_helper_repo_wide() -> None:
@@ -355,9 +322,7 @@ def _absent_log_error() -> Exception:
     ],
     ids=["pre-schema-value", "absent-file", "absent-canonical-log"],
 )
-def test_genesis_fallback_catches_documented_expected_types(
-    tmp_path: Path, expected_exc: Exception
-) -> None:
+def test_genesis_fallback_catches_documented_expected_types(tmp_path: Path, expected_exc: Exception) -> None:
     """AC-F3: the two documented expected failure shapes (pre-schema lane
     value, absent log/WP file) fall back to GENESIS."""
     from unittest.mock import patch
@@ -377,8 +342,11 @@ def test_genesis_fallback_propagates_unexpected_exceptions(tmp_path: Path) -> No
     silently converted it into "unseeded WP" (#1736 dormant mask 1)."""
     from unittest.mock import patch
 
-    with patch(
-        "specify_cli.status.lane_reader.get_wp_lane",
-        side_effect=PermissionError("events log unreadable"),
-    ), pytest.raises(PermissionError):
+    with (
+        patch(
+            "specify_cli.status.lane_reader.get_wp_lane",
+            side_effect=PermissionError("events log unreadable"),
+        ),
+        pytest.raises(PermissionError),
+    ):
         _read_state(tmp_path)

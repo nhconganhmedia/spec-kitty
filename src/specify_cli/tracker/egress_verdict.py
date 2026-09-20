@@ -200,28 +200,18 @@ def _fault_message(destination: EgressDestination, raw: object) -> str:
 
 def _refused_message(destination: EgressDestination) -> str:
     """Compose the plain ``refused`` message."""
-    return (
-        f"tracker.egress is recorded as {EGRESS_REFUSED!r} in this project's own "
-        f".kittify/config.yaml; refusing tracker egress to {destination.value}"
-    )
+    return f"tracker.egress is recorded as {EGRESS_REFUSED!r} in this project's own .kittify/config.yaml; refusing tracker egress to {destination.value}"
 
 
 def _permit_message(destination: EgressDestination) -> str:
     """Compose the Channel-2 grant message (``LOCAL_SUBPROCESS`` + ``permitted`` only)."""
-    return (
-        f"tracker egress to {destination.value} is permitted by tracker.egress: "
-        f"{EGRESS_PERMITTED!r}, recorded in this project's own .kittify/config.yaml"
-    )
+    return f"tracker egress to {destination.value} is permitted by tracker.egress: {EGRESS_PERMITTED!r}, recorded in this project's own .kittify/config.yaml"
 
 
-_LOCAL_GRANT_REMEDY: Final = (
-    "record `tracker.egress: permitted` in this project's own .kittify/config.yaml"
-)
+_LOCAL_GRANT_REMEDY: Final = "record `tracker.egress: permitted` in this project's own .kittify/config.yaml"
 
 
-def tracker_egress_verdict(
-    root: Path | None, *, destination: EgressDestination, identifiers: str
-) -> TrackerEgressVerdict:
+def tracker_egress_verdict(root: Path | None, *, destination: EgressDestination, identifiers: str) -> TrackerEgressVerdict:
     """Decide whether tracker data may leave the machine for *destination*. Never raises.
 
     ``destination`` is required and keyword-only -- there is no default, so no call site can
@@ -242,15 +232,9 @@ def tracker_egress_verdict(
     del identifiers  # required declaration only, since Channel 1 retired
 
     if destination is EgressDestination.HOSTED_SERVICE:
-        channel2_state, channel2_raw = (
-            _resolve_channel2(root) if root is not None else (CHANNEL2_ABSENT, EGRESS_ABSENT)
-        )
+        channel2_state, channel2_raw = _resolve_channel2(root) if root is not None else (CHANNEL2_ABSENT, EGRESS_ABSENT)
         if channel2_state in (EGRESS_REFUSED, CHANNEL2_FAULT):
-            message = (
-                _fault_message(destination, channel2_raw)
-                if channel2_state == CHANNEL2_FAULT
-                else _refused_message(destination)
-            )
+            message = _fault_message(destination, channel2_raw) if channel2_state == CHANNEL2_FAULT else _refused_message(destination)
             return TrackerEgressVerdict(
                 refused=True,
                 refusing_channels=frozenset({CHANNEL_2}),
@@ -266,10 +250,7 @@ def tracker_egress_verdict(
             destination=destination,
             channel2_state=channel2_state,
             channel2_raw=channel2_raw,
-            message=(
-                f"tracker egress to {destination.value} rides the operator's authenticated "
-                "SaaS session; no local tracker.egress key applies"
-            ),
+            message=(f"tracker egress to {destination.value} rides the operator's authenticated SaaS session; no local tracker.egress key applies"),
             remedies=(),
         )
 
@@ -280,10 +261,7 @@ def tracker_egress_verdict(
             destination=destination,
             channel2_state=CHANNEL2_ABSENT,
             channel2_raw=EGRESS_ABSENT,
-            message=(
-                "no project root could be resolved, so no tracker.egress decision can be read; "
-                f"refusing tracker egress to {destination.value}"
-            ),
+            message=(f"no project root could be resolved, so no tracker.egress decision can be read; refusing tracker egress to {destination.value}"),
             remedies=(),
         )
 
@@ -305,10 +283,7 @@ def tracker_egress_verdict(
     elif channel2_state == EGRESS_REFUSED:
         message = _refused_message(destination)
     else:
-        message = (
-            f"no tracker.egress key is recorded in this project's own .kittify/config.yaml; "
-            f"refusing tracker egress to {destination.value}"
-        )
+        message = f"no tracker.egress key is recorded in this project's own .kittify/config.yaml; refusing tracker egress to {destination.value}"
     return TrackerEgressVerdict(
         refused=True,
         refusing_channels=frozenset({CHANNEL_2}),

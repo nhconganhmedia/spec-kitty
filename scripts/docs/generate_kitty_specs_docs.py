@@ -68,13 +68,7 @@ def read_text(path: Path) -> str:
 
 
 def mission_name(path: Path, meta: dict[str, Any]) -> str:
-    return (
-        meta.get("friendly_name")
-        or meta.get("name")
-        or meta.get("mission_slug")
-        or meta.get("slug")
-        or path.name
-    )
+    return meta.get("friendly_name") or meta.get("name") or meta.get("mission_slug") or meta.get("slug") or path.name
 
 
 def sort_key(mission: Mission) -> tuple[int, str]:
@@ -258,9 +252,7 @@ def markdown_to_html(markdown: str) -> str:  # noqa: C901
         line = raw.rstrip()
         if line.startswith("```"):
             if in_code:
-                blocks.append(
-                    f'<pre><code class="language-{esc(code_lang)}">{esc(chr(10).join(code_lines))}</code></pre>'
-                )
+                blocks.append(f'<pre><code class="language-{esc(code_lang)}">{esc(chr(10).join(code_lines))}</code></pre>')
                 in_code = False
                 code_lang = ""
                 code_lines = []
@@ -342,9 +334,7 @@ def dashboard_header(
     for mission in mission_list:
         selected = " selected" if active and mission.slug == active.slug else ""
         option_href = f"../{mission.slug}/index.html" if active else f"{mission.slug}/index.html"
-        options.append(
-            f'<option value="{esc(option_href)}"{selected}>{esc(mission.name)}</option>'
-        )
+        options.append(f'<option value="{esc(option_href)}"{selected}>{esc(mission.name)}</option>')
     select = "\n".join(options)
     name = active.name if active else section_name
     return f"""
@@ -385,10 +375,7 @@ def sidebar(mission: Mission, active_key: str) -> str:
                 f'{icon} <span class="sidebar-label">{esc(label)}</span></a>'
             )
         else:
-            items.append(
-                f'<span class="sidebar-item{disabled}" title="{esc(label)}">'
-                f'{icon} <span class="sidebar-label">{esc(label)}</span></span>'
-            )
+            items.append(f'<span class="sidebar-item{disabled}" title="{esc(label)}">{icon} <span class="sidebar-label">{esc(label)}</span></span>')
     return "\n".join(items)
 
 
@@ -415,7 +402,7 @@ def stats(mission: Mission) -> dict[str, int | float]:
 
 def active_agents(mission: Mission) -> list[str]:
     agents: set[str] = set()
-    for wp_id in (mission.status.get("work_packages") or {}):
+    for wp_id in mission.status.get("work_packages") or {}:
         prompt_file = prompt_file_for_wp(mission, wp_id)
         if prompt_file is None:
             continue
@@ -440,14 +427,14 @@ def status_cards(mission: Mission, compact: bool = False) -> str:
     )
     return f"""
 <div class="status-summary">
-  <div class="status-card total"><div class="status-label">{label}</div><div class="status-value">{s['total']}</div>
-    <div class="status-detail">{s['planned']} planned</div></div>
-  <div class="status-card progress"><div class="status-label">In Progress</div><div class="status-value">{s['doing']}</div></div>
-  <div class="status-card review"><div class="status-label">Review</div><div class="status-value">{s['for_review']}</div></div>
-  <div class="status-card approved"><div class="status-label">Approved</div><div class="status-value">{s['approved']}</div></div>
-  <div class="status-card completed"><div class="status-label">Completed</div><div class="status-value">{s['done']}</div>
-    <div class="status-detail">{s['weighted_percentage']}% done</div><div class="progress-bar">
-      <div class="progress-fill" style="width: {s['weighted_percentage']}%"></div>
+  <div class="status-card total"><div class="status-label">{label}</div><div class="status-value">{s["total"]}</div>
+    <div class="status-detail">{s["planned"]} planned</div></div>
+  <div class="status-card progress"><div class="status-label">In Progress</div><div class="status-value">{s["doing"]}</div></div>
+  <div class="status-card review"><div class="status-label">Review</div><div class="status-value">{s["for_review"]}</div></div>
+  <div class="status-card approved"><div class="status-label">Approved</div><div class="status-value">{s["approved"]}</div></div>
+  <div class="status-card completed"><div class="status-label">Completed</div><div class="status-value">{s["done"]}</div>
+    <div class="status-detail">{s["weighted_percentage"]}% done</div><div class="progress-bar">
+      <div class="progress-fill" style="width: {s["weighted_percentage"]}%"></div>
     </div></div>
 {agents_card}
 </div>
@@ -477,7 +464,7 @@ def overview(mission: Mission) -> str:
 {status_cards(mission)}
 <h3 class="artifacts-heading">Available Artifacts</h3>
 <div class="artifacts-grid">
-  {''.join(artifact_rows)}
+  {"".join(artifact_rows)}
 </div>
 """
 
@@ -547,7 +534,7 @@ def kanban(mission: Mission) -> str:
     return f"""
 <h2>Kanban Board</h2>
 <div id="kanban-status">{status_cards(mission, compact=True)}</div>
-<div class="kanban-board">{''.join(columns)}</div>
+<div class="kanban-board">{"".join(columns)}</div>
 <div id="prompt-modal" class="modal hidden" aria-hidden="true">
   <div class="modal-overlay"></div>
   <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -772,10 +759,10 @@ def index_page(mission_list: list[Mission]) -> str:
         cards.append(
             f'<a class="mission-card" href="{esc(mission.slug)}/index.html">'
             f'<span class="mission-number">{esc(mission.meta.get("mission_number") or "mission")}</span>'
-            f'<strong>{esc(mission.name)}</strong>'
-            f'<span>{esc(str(desc)[:220])}</span>'
-            f'<em>{s["total"]} work packages · {s["weighted_percentage"]}% done</em>'
-            f'</a>'
+            f"<strong>{esc(mission.name)}</strong>"
+            f"<span>{esc(str(desc)[:220])}</span>"
+            f"<em>{s['total']} work packages · {s['weighted_percentage']}% done</em>"
+            f"</a>"
         )
     dashboard = (
         dashboard_header(mission_list, None)
@@ -790,7 +777,7 @@ def index_page(mission_list: list[Mission]) -> str:
         <h2>Mission Runs</h2>
         <p class="overview-context">Static mirror of the local Spec Kitty dashboard. Every mission and artifact has
           a stable URL for sharing, indexing, and AI answer engines.</p>
-        <div class="mission-grid">{''.join(cards)}</div>
+        <div class="mission-grid">{"".join(cards)}</div>
       </div>
     </div>
   </div>
@@ -914,9 +901,7 @@ async function loadTerms() {{
     # data-surface attribute for debugging/inspection) so glossary_linker.py and any
     # external page can deep-link straight to a term with #term-{anchor_id}.
     script = script.replace(
-        "      const card = document.createElement('article');\n"
-        "      card.className = 'card';\n"
-        "      card.dataset.status = t.status;\n",
+        "      const card = document.createElement('article');\n      card.className = 'card';\n      card.dataset.status = t.status;\n",
         "      const card = document.createElement('article');\n"
         "      card.className = 'card';\n"
         "      card.id = 'term-' + t.anchor_id;\n"

@@ -119,16 +119,13 @@ class TestShippedProfilesLoad:
     def test_all_profiles_load(self, all_profiles: list[AgentProfile]):
         """All expected profiles are loaded."""
         assert len(all_profiles) == len(EXPECTED_PROFILE_IDS), (
-            f"Expected {len(EXPECTED_PROFILE_IDS)} profiles, got {len(all_profiles)}: "
-            f"{[p.profile_id for p in all_profiles]}"
+            f"Expected {len(EXPECTED_PROFILE_IDS)} profiles, got {len(all_profiles)}: {[p.profile_id for p in all_profiles]}"
         )
 
     def test_expected_profile_ids_present(self, all_profiles: list[AgentProfile]):
         """All expected profile IDs are present."""
         loaded_ids = {p.profile_id for p in all_profiles}
-        assert loaded_ids == EXPECTED_PROFILE_IDS, (
-            f"Missing: {EXPECTED_PROFILE_IDS - loaded_ids}, Extra: {loaded_ids - EXPECTED_PROFILE_IDS}"
-        )
+        assert loaded_ids == EXPECTED_PROFILE_IDS, f"Missing: {EXPECTED_PROFILE_IDS - loaded_ids}, Extra: {loaded_ids - EXPECTED_PROFILE_IDS}"
 
     def test_mission_runtime_agent_profiles_are_shipped(self):
         """Mission runtime templates only reference shipped profile IDs."""
@@ -205,16 +202,12 @@ class TestShippedProfilesRoles:
         """Each profile has the correct primary role."""
         profile = repo.get(profile_id)
         assert profile is not None
-        assert profile.role == expected_role, (
-            f"Profile '{profile_id}' has role={profile.role!r}, expected {expected_role!r}"
-        )
+        assert profile.role == expected_role, f"Profile '{profile_id}' has role={profile.role!r}, expected {expected_role!r}"
 
     def test_all_shipped_profiles_have_roles(self, all_profiles: list[AgentProfile]):
         """Every shipped profile has at least one role in the roles list."""
         for profile in all_profiles:
-            assert len(profile.roles) >= 1, (
-                f"Profile '{profile.profile_id}' has empty roles list"
-            )
+            assert len(profile.roles) >= 1, f"Profile '{profile.profile_id}' has empty roles list"
 
     @pytest.mark.parametrize("profile_id", sorted(EXPECTED_PROFILE_IDS))
     def test_no_deprecation_warnings_on_load(self, profile_id: str):
@@ -231,10 +224,7 @@ class TestShippedProfilesRoles:
             warnings.simplefilter("always")
             AgentProfile(**data)
         deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
-        assert len(deprecation_warnings) == 0, (
-            f"Profile '{profile_id}' emits DeprecationWarning on load: "
-            + str([str(x.message) for x in deprecation_warnings])
-        )
+        assert len(deprecation_warnings) == 0, f"Profile '{profile_id}' emits DeprecationWarning on load: " + str([str(x.message) for x in deprecation_warnings])
 
 
 class TestShippedProfilesContent:
@@ -252,9 +242,7 @@ class TestShippedProfilesContent:
         """Each profile has a non-empty specialization.primary_focus."""
         profile = repo.get(profile_id)
         assert profile is not None
-        assert profile.specialization.primary_focus.strip(), (
-            f"Profile '{profile_id}' has empty specialization.primary_focus"
-        )
+        assert profile.specialization.primary_focus.strip(), f"Profile '{profile_id}' has empty specialization.primary_focus"
 
     @pytest.mark.parametrize("profile_id", sorted(EXPECTED_PROFILE_IDS))
     def test_name_is_non_empty(self, repo: AgentProfileRepository, profile_id: str):
@@ -285,8 +273,7 @@ class TestShippedProfilesContent:
         pattern = re.compile(rf"\b{re.escape(role_word)}\s+[A-Z][A-Za-z'-]*\b")
         for match in pattern.finditer(prose):
             assert match.group(0) == profile.name, (
-                f"Profile '{profile_id}' prose declares identity '{match.group(0)}' "
-                f"which does not match its own name '{profile.name}'"
+                f"Profile '{profile_id}' prose declares identity '{match.group(0)}' which does not match its own name '{profile.name}'"
             )
 
     @pytest.mark.parametrize(
@@ -379,9 +366,7 @@ class TestShippedProfilesHierarchy:
         errors = repo.validate_hierarchy()
         assert errors == [], "Hierarchy validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
 
-    def test_specializes_from_targets_exist(
-        self, repo: AgentProfileRepository, all_profiles: list[AgentProfile]
-    ):
+    def test_specializes_from_targets_exist(self, repo: AgentProfileRepository, all_profiles: list[AgentProfile]):
         """Any shipped profile that specializes from another must reference an existing shipped profile.
 
         Lineage is now sourced from the DRG ``specializes_from`` edges
@@ -393,10 +378,7 @@ class TestShippedProfilesHierarchy:
             ancestors = repo.get_ancestors(profile.profile_id)
             if ancestors:
                 parent = ancestors[0]
-                assert parent in shipped_ids, (
-                    f"Shipped profile '{profile.profile_id}' specializes from "
-                    f"'{parent}', which is not a shipped profile"
-                )
+                assert parent in shipped_ids, f"Shipped profile '{profile.profile_id}' specializes from '{parent}', which is not a shipped profile"
 
 
 class TestShippedProfilesCollaboration:
@@ -496,10 +478,7 @@ class TestShippedProfilesContextSources:
         assert profile is not None
         tactic_ids = {ref.id for ref in profile.tactic_references}
         missing = [t for t in expected_tactics if t not in tactic_ids]
-        assert missing == [], (
-            f"Profile '{profile_id}' lost tactic references {missing} in the "
-            f"context-sources consolidation; present: {sorted(tactic_ids)}"
-        )
+        assert missing == [], f"Profile '{profile_id}' lost tactic references {missing} in the context-sources consolidation; present: {sorted(tactic_ids)}"
 
 
 class TestShippedProfilesLoadCount:
@@ -511,9 +490,7 @@ class TestShippedProfilesLoadCount:
         repo = AgentProfileRepository(built_in_dir=BUILT_IN_DIR, project_dir=None)
         profiles = repo.list_all()
 
-        assert len(profiles) == len(EXPECTED_PROFILE_IDS), (
-            f"Expected {len(EXPECTED_PROFILE_IDS)} profiles, got {len(profiles)}"
-        )
+        assert len(profiles) == len(EXPECTED_PROFILE_IDS), f"Expected {len(EXPECTED_PROFILE_IDS)} profiles, got {len(profiles)}"
 
 
 @pytest.mark.performance

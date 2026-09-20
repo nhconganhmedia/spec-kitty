@@ -92,9 +92,7 @@ class PackHealth:
             "discovered_count": self.discovered_count,
             "valid_count": self.valid_count,
             "healthy": self.healthy,
-            "invalid_profiles": [
-                _skipped_to_dict(profile) for profile in self.invalid_profiles
-            ],
+            "invalid_profiles": [_skipped_to_dict(profile) for profile in self.invalid_profiles],
         }
 
 
@@ -196,9 +194,7 @@ class DoctrineHealthReport:
 
     packs: list[PackHealth] = field(default_factory=list)
     org_drg: dict[str, object] = field(default_factory=dict)
-    glossary_packs: GlossaryPackHealth = field(
-        default_factory=_default_glossary_pack_health
-    )
+    glossary_packs: GlossaryPackHealth = field(default_factory=_default_glossary_pack_health)
 
     @property
     def healthy(self) -> bool:
@@ -216,15 +212,8 @@ class DoctrineHealthReport:
         * ``self.glossary_packs.healthy`` — an invalid glossary-pack file
           degrades the aggregate too (FR-012, SC-001).
         """
-        org_errors = (
-            self.org_drg.get("errors") if isinstance(self.org_drg, dict) else None
-        )
-        return (
-            bool(self.packs)
-            and all(pack.healthy for pack in self.packs)
-            and not org_errors
-            and self.glossary_packs.healthy
-        )
+        org_errors = self.org_drg.get("errors") if isinstance(self.org_drg, dict) else None
+        return bool(self.packs) and all(pack.healthy for pack in self.packs) and not org_errors and self.glossary_packs.healthy
 
     @property
     def invalid_profiles(self) -> list[SkippedProfile]:

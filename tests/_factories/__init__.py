@@ -109,7 +109,6 @@ def make_mission(
     overrides.setdefault("purpose_tldr", f"Deliver {title} cleanly for the team.")
     overrides.setdefault(
         "purpose_context",
-        f"This mission delivers {title} so product and engineering can move "
-        "forward with a clear outcome and shared understanding.",
+        f"This mission delivers {title} so product and engineering can move forward with a clear outcome and shared understanding.",
     )
     return create_mission_core(repo_root, mission_slug, topology=topology, **overrides)

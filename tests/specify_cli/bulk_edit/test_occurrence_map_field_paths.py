@@ -53,21 +53,13 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # A real, already-committed, schema-clean legacy map (C-OMAP-1 proof must be
 # against a committed map, not a fixture — see the WP prompt's binding note).
-_LEGACY_MAP_DIR = (
-    _REPO_ROOT
-    / "kitty-specs"
-    / "charter-ownership-consolidation-and-neutrality-hardening-01KPD880"
-)
+_LEGACY_MAP_DIR = _REPO_ROOT / "kitty-specs" / "charter-ownership-consolidation-and-neutrality-hardening-01KPD880"
 
 # B2's real, in-flight bulk-edit mission — the exemption set FR-002/SC-011
 # exists to make expressible.
-_B2_FEATURE_DIR = (
-    _REPO_ROOT / "kitty-specs" / "drg-edge-migration-extractor-retirement-01KYFV8C"
-)
+_B2_FEATURE_DIR = _REPO_ROOT / "kitty-specs" / "drg-edge-migration-extractor-retirement-01KYFV8C"
 
-_INVENTORY_MODULE_PATH = (
-    _REPO_ROOT / "scripts" / "doctrine" / "inline_reference_inventory.py"
-)
+_INVENTORY_MODULE_PATH = _REPO_ROOT / "scripts" / "doctrine" / "inline_reference_inventory.py"
 
 
 def _load_inventory_module() -> types.ModuleType:
@@ -223,25 +215,17 @@ class TestFieldPathExceptionLoading:
             )
         ]
 
-    def test_whole_file_exceptions_are_not_parsed_as_field_path(
-        self, tmp_path: Path
-    ) -> None:
-        data = _map_data(
-            [{"path": "**/migrations/*.py", "action": "do_not_change"}]
-        )
+    def test_whole_file_exceptions_are_not_parsed_as_field_path(self, tmp_path: Path) -> None:
+        data = _map_data([{"path": "**/migrations/*.py", "action": "do_not_change"}])
         _write(tmp_path, data)
         omap = load_occurrence_map(tmp_path)
         assert omap is not None
 
         assert omap.field_path_exceptions == []
         # Legacy whole-file exception is still present in the raw list.
-        assert omap.exceptions == [
-            {"path": "**/migrations/*.py", "action": "do_not_change"}
-        ]
+        assert omap.exceptions == [{"path": "**/migrations/*.py", "action": "do_not_change"}]
 
-    def test_absent_exceptions_block_yields_no_field_path_exceptions(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_exceptions_block_yields_no_field_path_exceptions(self, tmp_path: Path) -> None:
         data = _map_data(None)
         del data["exceptions"]
         _write(tmp_path, data)
@@ -249,9 +233,7 @@ class TestFieldPathExceptionLoading:
         assert omap is not None
         assert omap.field_path_exceptions == []
 
-    def test_validate_occurrence_map_accepts_valid_field_path_exception(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_occurrence_map_accepts_valid_field_path_exception(self, tmp_path: Path) -> None:
         data = _map_data(
             [
                 {
@@ -268,9 +250,7 @@ class TestFieldPathExceptionLoading:
         result = validate_occurrence_map(omap)
         assert result.valid, result.errors
 
-    def test_validate_occurrence_map_flags_blank_field_path(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_occurrence_map_flags_blank_field_path(self, tmp_path: Path) -> None:
         data = _map_data([{"path": "x.yaml", "field_path": "   ", "action": "do_not_change"}])
         _write(tmp_path, data)
         omap = load_occurrence_map(tmp_path)
@@ -280,9 +260,7 @@ class TestFieldPathExceptionLoading:
         assert not result.valid
         assert any("field_path" in e for e in result.errors)
 
-    def test_check_admissibility_still_requires_all_standard_categories(
-        self, tmp_path: Path
-    ) -> None:
+    def test_check_admissibility_still_requires_all_standard_categories(self, tmp_path: Path) -> None:
         """WP01 binding constraint: standard-category totality must survive
         the extension unchanged, even when field-path exceptions are present.
         """
@@ -382,11 +360,7 @@ class TestDiffCheckHonoursFieldPathExceptions:
         """Regression: a NON-field-scoped exception must still behave exactly
         as before — full-file override, not merely a pin.
         """
-        omap = _make_map(
-            exceptions=[
-                {"path": "**/migrations/*.py", "action": "do_not_change"}
-            ]
-        )
+        omap = _make_map(exceptions=[{"path": "**/migrations/*.py", "action": "do_not_change"}])
 
         assessment = assess_file("src/app/migrations/0001_init.py", omap)
 
@@ -408,10 +382,7 @@ class TestDiffCheckHonoursFieldPathExceptions:
         result = check_diff_compliance(["profiles/a.agent.yaml"], omap)
 
         assert result.passed is True
-        assert any(
-            "directive-references" in w and "profiles/a.agent.yaml" in w
-            for w in result.warnings
-        ), result.warnings
+        assert any("directive-references" in w and "profiles/a.agent.yaml" in w for w in result.warnings), result.warnings
 
 
 # ---------------------------------------------------------------------------
@@ -469,9 +440,7 @@ class TestB2RealExemptionSet:
         raw = [e for e in inventory.entries if e.disposition == inv.RAW_MATERIAL]
         gov_files = {e.path for e in gov}
         raw_files = {e.path for e in raw}
-        migrate_files = {
-            e.path for e in inventory.entries if e.disposition == inv.MIGRATE
-        }
+        migrate_files = {e.path for e in inventory.entries if e.disposition == inv.MIGRATE}
 
         # Occurrences (SC-011's own units) — see the docstring. 224 -> 92 after
         # the context-sources removal, then 92 -> 94 for minutes-mahad's two
@@ -610,13 +579,8 @@ class TestB2RealExemptionSet:
         assert raw_field_names == {"references"}
 
         raw_files = {e.path for e in raw}
-        migrate_field_names_in_raw_files = {
-            e.field_name for e in migrate if e.path in raw_files
-        }
-        assert "references" in migrate_field_names_in_raw_files, (
-            "the collision this test documents must actually be present, or "
-            "the boundary claim is untested"
-        )
+        migrate_field_names_in_raw_files = {e.field_name for e in migrate if e.path in raw_files}
+        assert "references" in migrate_field_names_in_raw_files, "the collision this test documents must actually be present, or the boundary claim is untested"
 
         for path in sorted(raw_files):
             data = _map_data(

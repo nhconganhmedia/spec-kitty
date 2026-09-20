@@ -49,15 +49,11 @@ class TestWorktreesClassificationByteIdentical:
             (Path("worktrees-adjacent/file.txt"), False),  # no leading dot
         ],
     )
-    def test_classification_matches_primitive(
-        self, tmp_path: Path, rel_path: Path, expected: bool
-    ) -> None:
+    def test_classification_matches_primitive(self, tmp_path: Path, rel_path: Path, expected: bool) -> None:
         """Classification result matches what surface_resolver.is_under_worktrees_segment returns."""
         # The primitive is the same function commit_router now calls directly.
         result = self._classify_via_surface_resolver(rel_path)
-        assert result is expected, (
-            f"is_under_worktrees_segment({rel_path!r}) returned {result!r}; expected {expected!r}"
-        )
+        assert result is expected, f"is_under_worktrees_segment({rel_path!r}) returned {result!r}; expected {expected!r}"
 
     def test_worktrees_staging_path(self, tmp_path: Path) -> None:
         """A realistic staging path rooted under .worktrees classifies as True."""
@@ -99,15 +95,11 @@ class TestCommitRouterImportDirection:
             if isinstance(node, ast.ImportFrom):
                 module = node.module or ""
                 if module.startswith("specify_cli.cli"):
-                    cli_imports.append(
-                        f"  line {node.lineno}: from {module} import "
-                        + ", ".join(alias.name for alias in node.names)
-                    )
+                    cli_imports.append(f"  line {node.lineno}: from {module} import " + ", ".join(alias.name for alias in node.names))
 
         assert not cli_imports, (
             "coordination/commit_router.py has forbidden 'specify_cli.cli' imports "
-            "(inverted layering — coordination must not reach into cli):\n"
-            + "\n".join(cli_imports)
+            "(inverted layering — coordination must not reach into cli):\n" + "\n".join(cli_imports)
         )
 
     def test_has_surface_resolver_import(self) -> None:
@@ -127,6 +119,5 @@ class TestCommitRouterImportDirection:
                         break
 
         assert found, (
-            "coordination/commit_router.py does NOT import is_under_worktrees_segment "
-            "from specify_cli.coordination.surface_resolver — the seam may be broken."
+            "coordination/commit_router.py does NOT import is_under_worktrees_segment from specify_cli.coordination.surface_resolver — the seam may be broken."
         )

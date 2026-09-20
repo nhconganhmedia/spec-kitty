@@ -79,8 +79,7 @@ def test_no_windows_illegal_filenames() -> None:
     assert not offenders, (
         "Tracked path(s) contain Windows-illegal character(s) "
         f"({', '.join(WINDOWS_ILLEGAL_CHARS)}) matched by the WINDOWS_ILLEGAL_CHARS "
-        "set -- Windows `git checkout` will exit 128 on these (see #2161):\n"
-        + "\n".join(f"  {path!r}: {chars}" for path, chars in sorted(offenders.items()))
+        "set -- Windows `git checkout` will exit 128 on these (see #2161):\n" + "\n".join(f"  {path!r}: {chars}" for path, chars in sorted(offenders.items()))
     )
 
 
@@ -99,8 +98,7 @@ def test_no_shell_expansion_telltale_filenames() -> None:
         "Tracked path(s) contain shell-expansion-leak telltale character(s) "
         f"({', '.join(SHELL_EXPANSION_TELLTALE_CHARS)}) matched by the "
         "SHELL_EXPANSION_TELLTALE_CHARS set -- likely an unexpanded shell "
-        "substitution leaked into the working tree:\n"
-        + "\n".join(f"  {path!r}: {chars}" for path, chars in sorted(offenders.items()))
+        "substitution leaked into the working tree:\n" + "\n".join(f"  {path!r}: {chars}" for path, chars in sorted(offenders.items()))
     )
 
 

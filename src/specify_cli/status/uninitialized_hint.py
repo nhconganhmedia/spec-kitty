@@ -103,11 +103,7 @@ def feature_event_log_missing_error(feature_dir: Path) -> str:
     root_cause = cycle_root_cause(feature_dir)
     if root_cause is not None:
         return f"Canonical status not found for feature '{slug}': {root_cause}"
-    return (
-        f"Canonical status not found for feature '{slug}'. "
-        f"Run 'spec-kitty agent mission finalize-tasks --mission {slug}' "
-        f"to bootstrap the event log."
-    )
+    return f"Canonical status not found for feature '{slug}'. Run 'spec-kitty agent mission finalize-tasks --mission {slug}' to bootstrap the event log."
 
 
 def uninitialized_status_error(
@@ -122,11 +118,5 @@ def uninitialized_status_error(
     """
     root_cause = cycle_root_cause(feature_dir)
     if root_cause is not None:
-        return (
-            f"WP {wp_id} has no canonical status in feature {mission_slug}: "
-            f"{root_cause}"
-        )
-    return (
-        f"WP {wp_id} has no canonical status in feature {mission_slug}. "
-        f"Run `spec-kitty agent mission finalize-tasks --mission {mission_slug}` to initialize."
-    )
+        return f"WP {wp_id} has no canonical status in feature {mission_slug}: {root_cause}"
+    return f"WP {wp_id} has no canonical status in feature {mission_slug}. Run `spec-kitty agent mission finalize-tasks --mission {mission_slug}` to initialize."

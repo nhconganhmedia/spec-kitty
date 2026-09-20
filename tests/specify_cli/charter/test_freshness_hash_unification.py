@@ -191,9 +191,7 @@ def test_freshness_charter_source_reads_real_charter_yaml(tmp_path: Path) -> Non
         ("bom_crlf", b"\xef\xbb\xbf# Charter\r\n\r\nBOM + CRLF.\r\n"),
     ],
 )
-def test_c2e_no_noop_despite_stale_for_crlf_or_bom(
-    tmp_path: Path, label: str, raw_bytes: bytes
-) -> None:
+def test_c2e_no_noop_despite_stale_for_crlf_or_bom(tmp_path: Path, label: str, raw_bytes: bytes) -> None:
     """C2-e live-reproduced drift: ``sync`` noop while ``charter status``
     stale — this is the ``charter.md``/``metadata.yaml`` surface pair, still
     unrelated to (and unaffected by) this mission's ``charter.yaml``

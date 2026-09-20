@@ -27,18 +27,32 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 # Helpers
 # ---------------------------------------------------------------------------
 
-EXPECTED_REGISTRY_KEYS = frozenset({
-    # Pattern A
-    "claude",
-    # Pattern B — "roo" removed (Roo Code shut down 2026-05-15, C-007)
-    "cursor", "windsurf", "copilot", "kiro", "gemini", "llxprt",
-    # Pattern C
-    "codex", "opencode", "antigravity",
-    # Pattern D
-    "pi", "vibe", "letta",
-    # Pattern E
-    "qwen", "kilocode", "auggie", "q",
-})
+EXPECTED_REGISTRY_KEYS = frozenset(
+    {
+        # Pattern A
+        "claude",
+        # Pattern B — "roo" removed (Roo Code shut down 2026-05-15, C-007)
+        "cursor",
+        "windsurf",
+        "copilot",
+        "kiro",
+        "gemini",
+        "llxprt",
+        # Pattern C
+        "codex",
+        "opencode",
+        "antigravity",
+        # Pattern D
+        "pi",
+        "vibe",
+        "letta",
+        # Pattern E
+        "qwen",
+        "kilocode",
+        "auggie",
+        "q",
+    }
+)
 
 
 def _make_content(
@@ -57,6 +71,7 @@ def _agents_md_writer(harness_key: str = "codex") -> AgentsMdWriter:
 # ---------------------------------------------------------------------------
 # AgentsMdWriter — can_write
 # ---------------------------------------------------------------------------
+
 
 class TestAgentsMdWriterCanWrite:
     def test_can_write_always_true_when_dir_missing(self, tmp_path: Path) -> None:
@@ -79,6 +94,7 @@ class TestAgentsMdWriterCanWrite:
 # AgentsMdWriter — has_presence
 # ---------------------------------------------------------------------------
 
+
 class TestAgentsMdWriterHasPresence:
     def test_false_when_agents_md_absent(self, tmp_path: Path) -> None:
         assert _agents_md_writer().has_presence(tmp_path) is False
@@ -96,6 +112,7 @@ class TestAgentsMdWriterHasPresence:
 # ---------------------------------------------------------------------------
 # AgentsMdWriter — write
 # ---------------------------------------------------------------------------
+
 
 class TestAgentsMdWriterWrite:
     def test_first_write_creates_agents_md(self, tmp_path: Path) -> None:
@@ -129,6 +146,7 @@ class TestAgentsMdWriterWrite:
 # AgentsMdWriter — remove
 # ---------------------------------------------------------------------------
 
+
 class TestAgentsMdWriterRemove:
     def test_remove_strips_section_leaves_other_content(self, tmp_path: Path) -> None:
         target = tmp_path / "AGENTS.md"
@@ -156,6 +174,7 @@ class TestAgentsMdWriterRemove:
 # Registry completeness
 # ---------------------------------------------------------------------------
 
+
 class TestRegistryCompleteness:
     def test_all_expected_keys_present(self) -> None:
         """WRITER_REGISTRY must cover all 17 harness keys — no silent gaps."""
@@ -175,6 +194,7 @@ class TestRegistryCompleteness:
 # ---------------------------------------------------------------------------
 # Pattern B spot-checks via get_writer
 # ---------------------------------------------------------------------------
+
 
 class TestPatternBRegistry:
     def test_cursor_rules_path(self) -> None:
@@ -210,6 +230,7 @@ class TestPatternBRegistry:
 # check_dir refinement on MarkdownRulesWriter
 # ---------------------------------------------------------------------------
 
+
 class TestMarkdownRulesWriterCheckDir:
     def test_can_write_with_check_dir_true_when_dir_exists(self, tmp_path: Path) -> None:
         cursor_dir = tmp_path / ".cursor"
@@ -241,9 +262,7 @@ class TestMarkdownRulesWriterCheckDir:
         # .cursor/rules/ does NOT exist — should return False
         assert writer.can_write(tmp_path) is False
 
-    def test_can_write_with_check_dir_true_even_if_rules_subdir_absent(
-        self, tmp_path: Path
-    ) -> None:
+    def test_can_write_with_check_dir_true_even_if_rules_subdir_absent(self, tmp_path: Path) -> None:
         """check_dir=".cursor" succeeds when .cursor/ exists but .cursor/rules/ doesn't."""
         (tmp_path / ".cursor").mkdir()
         # .cursor/rules/ does NOT exist
@@ -270,6 +289,7 @@ class TestMarkdownRulesWriterCheckDir:
 # Dual Pattern C/D write to same AGENTS.md — idempotency under multiple writers
 # ---------------------------------------------------------------------------
 
+
 class TestDualPatternCDWriteIdempotency:
     def test_two_pattern_c_writers_no_duplicate_section(self, tmp_path: Path) -> None:
         """When two Pattern C harnesses write to AGENTS.md, only one section exists."""
@@ -284,6 +304,7 @@ class TestDualPatternCDWriteIdempotency:
     def test_pattern_c_then_pattern_d_no_duplicate_section(self, tmp_path: Path) -> None:
         """Pattern C write followed by Pattern D write — still exactly one section."""
         from specify_cli.session_presence.writers.skills_preamble import SkillsPreambleWriter as SPW
+
         codex_writer = AgentsMdWriter("codex")
         pi_writer = SPW("pi")
         content = _make_content()

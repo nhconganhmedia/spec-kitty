@@ -85,9 +85,7 @@ class VersionDetector:
         auto_discover_migrations()
         current = self.detect_version()
         from_version = "0.0.0" if current == "unknown" else current
-        applicable: list[BaseMigration] = MigrationRegistry.get_applicable(
-            from_version, target_version, project_path=self.project_path
-        )
+        applicable: list[BaseMigration] = MigrationRegistry.get_applicable(from_version, target_version, project_path=self.project_path)
         return applicable
 
     def get_needed_migrations(self, target_version: str) -> list[str]:

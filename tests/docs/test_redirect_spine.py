@@ -299,10 +299,7 @@ def test_frozen_snapshot_is_the_closed_mission_149_key_census() -> None:
 def test_regen_reproduces_every_prior_baseline_redirect() -> None:
     derived = _derived()
     missing = sorted(set(FROZEN_PRIOR_REDIRECT_KEYS) - set(derived))
-    assert missing == [], (
-        f"{len(missing)} prior baseline redirect(s) dropped by the collapsed spine "
-        f"(coverage regression, NFR-010): {missing[:10]}"
-    )
+    assert missing == [], f"{len(missing)} prior baseline redirect(s) dropped by the collapsed spine (coverage regression, NFR-010): {missing[:10]}"
 
 
 def test_regen_is_a_strict_superset_adding_new_archive_entries() -> None:
@@ -311,9 +308,7 @@ def test_regen_is_a_strict_superset_adding_new_archive_entries() -> None:
     assert len(derived) > len(FROZEN_PRIOR_REDIRECT_KEYS)
     for key in NEW_ARCHIVE_TO_CHANGELOG_KEYS:
         assert key in derived, f"new archive->changelog redirect missing: {key}"
-        assert derived[key].startswith("changelog/"), (
-            f"{key} should redirect into changelog/, got {derived[key]}"
-        )
+        assert derived[key].startswith("changelog/"), f"{key} should redirect into changelog/, got {derived[key]}"
 
 
 def test_archive_twice_move_is_composed_to_changelog() -> None:
@@ -322,9 +317,7 @@ def test_archive_twice_move_is_composed_to_changelog() -> None:
     derived = _derived()
     for key in COMPOSED_SHADOW_KEYS:
         assert key in derived
-        assert derived[key].startswith("changelog/"), (
-            f"{key} still points at a dead archive/ target: {derived[key]}"
-        )
+        assert derived[key].startswith("changelog/"), f"{key} still points at a dead archive/ target: {derived[key]}"
         assert not derived[key].startswith("archive/")
 
 
@@ -337,9 +330,7 @@ def test_non_archive_prior_values_are_stable() -> None:
         expected = committed.get(key)
         if expected is None or expected.startswith("archive/"):
             continue  # archive-origin keys are intentionally composed to changelog/
-        assert derived[key] == expected, (
-            f"carried redirect {key} drifted: expected {expected}, got {derived[key]}"
-        )
+        assert derived[key] == expected, f"carried redirect {key} drifted: expected {expected}, got {derived[key]}"
 
 
 # --- NFR-010: no dead redirect targets on the built site ---
@@ -351,10 +342,7 @@ def test_coverage_reports_zero_dead_targets(tmp_path: Path) -> None:
     site = _stage_full_site(tmp_path, baseline, derived)
 
     result = generate(derived, site)
-    assert result.dead_targets == [], (
-        f"redirect stubs point at missing targets (no-404 invariant): "
-        f"{result.dead_targets[:10]}"
-    )
+    assert result.dead_targets == [], f"redirect stubs point at missing targets (no-404 invariant): {result.dead_targets[:10]}"
 
     uncovered = check_coverage(baseline, derived, site)
     assert uncovered == [], f"uncovered baseline URLs (NFR-010): {uncovered[:10]}"

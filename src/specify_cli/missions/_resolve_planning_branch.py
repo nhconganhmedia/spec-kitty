@@ -123,13 +123,7 @@ def load_mission_target_branch(feature_dir: Path) -> str:
         # The fail-closed reader wraps both a JSON syntax error and a
         # read/decode (OSError) failure into MissionMetaReadError -- the same
         # two failure modes the pre-#2091 local try/except caught as ValueError.
-        raise PlanningBranchResolutionFailed(
-            f"meta.json at {meta_path} is unreadable: {exc}. "
-            "Re-run with --target-branch <ref> to override."
-        ) from exc
+        raise PlanningBranchResolutionFailed(f"meta.json at {meta_path} is unreadable: {exc}. Re-run with --target-branch <ref> to override.") from exc
     if data is None:
-        raise PlanningBranchResolutionFailed(
-            f"meta.json not found at {meta_path}. "
-            "Re-run with --target-branch <ref> to override."
-        )
+        raise PlanningBranchResolutionFailed(f"meta.json not found at {meta_path}. Re-run with --target-branch <ref> to override.")
     return resolve_planning_branch_from_meta(data)

@@ -21,58 +21,64 @@ pytestmark = pytest.mark.fast
 
 def test_forbidden_control_keys_matches_f3_forbidden_keys_v1():
     # m1-contract-drafts/F3.md:103
-    assert frozenset(
-        {
-            "token",
-            "authorization",
-            "bearer",
-            "password",
-            "detail",
-            "team",
-            "team_id",
-            "deployment",
-            "deployment_id",
-            "membership",
-            "role",
-            "user_id",
-            "url",
-            "runtime_url",
-        }
-    ) == sanitizer.FORBIDDEN_CONTROL_KEYS
+    assert (
+        frozenset(
+            {
+                "token",
+                "authorization",
+                "bearer",
+                "password",
+                "detail",
+                "team",
+                "team_id",
+                "deployment",
+                "deployment_id",
+                "membership",
+                "role",
+                "user_id",
+                "url",
+                "runtime_url",
+            }
+        )
+        == sanitizer.FORBIDDEN_CONTROL_KEYS
+    )
     assert sanitizer.FORBIDDEN_CONTROL_KEYS_VERSION == 1
 
 
 def test_forbidden_observation_keys_matches_f1_set():
     # m1-contract-drafts/F1.md:162-166
-    assert frozenset(
-        {
-            "detail",
-            "message",
-            "text",
-            "prose",
-            "body",
-            "command_text",
-            "stdout",
-            "stderr",
-            "user",
-            "user_id",
-            "email",
-            "actor",
-            "team",
-            "team_id",
-            "team_slug",
-            "deployment",
-            "deployment_id",
-            "token",
-            "authorization",
-            "bearer",
-            "password",
-            "secret",
-            "url",
-            "runtime_url",
-            "branch",
-        }
-    ) == sanitizer.FORBIDDEN_OBSERVATION_KEYS
+    assert (
+        frozenset(
+            {
+                "detail",
+                "message",
+                "text",
+                "prose",
+                "body",
+                "command_text",
+                "stdout",
+                "stderr",
+                "user",
+                "user_id",
+                "email",
+                "actor",
+                "team",
+                "team_id",
+                "team_slug",
+                "deployment",
+                "deployment_id",
+                "token",
+                "authorization",
+                "bearer",
+                "password",
+                "secret",
+                "url",
+                "runtime_url",
+                "branch",
+            }
+        )
+        == sanitizer.FORBIDDEN_OBSERVATION_KEYS
+    )
     assert sanitizer.FORBIDDEN_OBSERVATION_KEYS_VERSION == "v1"
 
 
@@ -123,9 +129,7 @@ def test_assert_clean_key_match_is_case_sensitive_by_design():
     # oversight — see sanitizer.py's module docstring. A differently-cased
     # key is therefore NOT caught by either forbidden set.
     sanitizer.assert_clean({"args": {"Token": "x"}})
-    sanitizer.assert_clean(
-        {"args": {"USER": "robert"}}, forbidden=sanitizer.FORBIDDEN_OBSERVATION_KEYS
-    )
+    sanitizer.assert_clean({"args": {"USER": "robert"}}, forbidden=sanitizer.FORBIDDEN_OBSERVATION_KEYS)
 
 
 def test_assert_clean_never_repairs_only_raises():

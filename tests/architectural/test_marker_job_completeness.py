@@ -78,20 +78,13 @@ if TYPE_CHECKING:
 
 pytestmark = pytest.mark.architectural
 
-_ROUTE_MANIFEST = (
-    Path(__file__).resolve().parents[2]
-    / "docs/reports/test-sanitation/assertive-test-suite-sanitation-01KZME3P/raw/"
-    "wp07-route-manifest.yaml"
-)
+_ROUTE_MANIFEST = Path(__file__).resolve().parents[2] / "docs/reports/test-sanitation/assertive-test-suite-sanitation-01KZME3P/raw/wp07-route-manifest.yaml"
 
 # ``unit``/``contract`` are the authoring-taxonomy defaults the mission routes;
 # they are structurally ineligible for any routing exemption.
 INELIGIBLE_FOR_EXEMPTION = frozenset({"unit", "contract"})
 
-_ORCH_REASON = (
-    "Orchestrator agent-contract marker; no gate selects `-m orchestrator_*` "
-    "and zero collected tests currently carry it."
-)
+_ORCH_REASON = "Orchestrator agent-contract marker; no gate selects `-m orchestrator_*` and zero collected tests currently carry it."
 
 # Reasoned allowlist (state iii): markers with ZERO collected carriers today, so
 # no test runs under them and no gate need select them. Each reason states the
@@ -103,30 +96,12 @@ CI_INVISIBLE: dict[str, str] = {
         "the sanitation census removed its final carrier, so zero collected "
         "tests currently carry it."
     ),
-    "platform_darwin": (
-        "macOS-only tests; no suite-running workflow configures a macOS runner "
-        "and no collected test carries the marker (reserved OS marker)."
-    ),
-    "platform_linux": (
-        "Linux-only OS marker; no gate selects `-m platform_linux` and zero "
-        "collected tests carry it (reserved)."
-    ),
-    "live_adapter": (
-        "Calls the real Anthropic API; every suite deselects it via "
-        "`-m 'not live_adapter'` and no collected test carries it."
-    ),
-    "exploratory": (
-        "Human-driven exploratory tests explicitly opted out of CI (pytest.ini "
-        "documents `-m 'not exploratory'`); zero collected carriers."
-    ),
-    "core_agent": (
-        "Core-tier agent availability gate (fails if the agent is absent); no "
-        "CI job selects `-m core_agent` and zero collected tests carry it."
-    ),
-    "extended_agent": (
-        "Extended-tier agent gate (skips if unavailable); no CI job selects it "
-        "and zero collected tests carry it."
-    ),
+    "platform_darwin": ("macOS-only tests; no suite-running workflow configures a macOS runner and no collected test carries the marker (reserved OS marker)."),
+    "platform_linux": ("Linux-only OS marker; no gate selects `-m platform_linux` and zero collected tests carry it (reserved)."),
+    "live_adapter": ("Calls the real Anthropic API; every suite deselects it via `-m 'not live_adapter'` and no collected test carries it."),
+    "exploratory": ("Human-driven exploratory tests explicitly opted out of CI (pytest.ini documents `-m 'not exploratory'`); zero collected carriers."),
+    "core_agent": ("Core-tier agent availability gate (fails if the agent is absent); no CI job selects `-m core_agent` and zero collected tests carry it."),
+    "extended_agent": ("Extended-tier agent gate (skips if unavailable); no CI job selects it and zero collected tests carry it."),
     "orchestrator_availability": _ORCH_REASON,
     "orchestrator_fixtures": _ORCH_REASON,
     "orchestrator_happy_path": _ORCH_REASON,
@@ -155,33 +130,22 @@ def structural_marker_violations(
     inv = set(ci_invisible)
     out: list[str] = []
     out += [
-        f"CI_INVISIBLE marker {m!r} is not registered in pytest.ini "
-        "(reverse-containment: a marker deleted from the registry but left in "
-        "the ledger must red)"
+        f"CI_INVISIBLE marker {m!r} is not registered in pytest.ini (reverse-containment: a marker deleted from the registry but left in the ledger must red)"
         for m in sorted(inv - registered)
     ]
     out += [
-        f"CI_INVISIBLE marker {m!r} has an empty reason (C-003 shrink-only "
-        "ledgers require a per-entry reason)"
+        f"CI_INVISIBLE marker {m!r} has an empty reason (C-003 shrink-only ledgers require a per-entry reason)"
         for m in sorted(inv)
         if not (ci_invisible.get(m) or "").strip()
     ]
     for m in sorted(INELIGIBLE_FOR_EXEMPTION):
         if m in inv:
             out.append(
-                f"{m!r} is INELIGIBLE for CI_INVISIBLE — the authoring-default "
-                "marker must be positively selected by a real gate, never "
-                "exempted (renata MEDIUM-3)"
+                f"{m!r} is INELIGIBLE for CI_INVISIBLE — the authoring-default marker must be positively selected by a real gate, never exempted (renata MEDIUM-3)"
             )
         if m not in routed_by_marker:
-            out.append(
-                f"{m!r} MUST be ROUTED-BY-MARKER — a gate's `-m` must positively "
-                "select it (the #2034 core guarantee); it currently is not"
-            )
-    out += [
-        f"{m!r} is both ROUTED-BY-MARKER and CI_INVISIBLE — pick exactly one state"
-        for m in sorted(routed_by_marker & inv)
-    ]
+            out.append(f"{m!r} MUST be ROUTED-BY-MARKER — a gate's `-m` must positively select it (the #2034 core guarantee); it currently is not")
+    out += [f"{m!r} is both ROUTED-BY-MARKER and CI_INVISIBLE — pick exactly one state" for m in sorted(routed_by_marker & inv)]
     return out
 
 
@@ -262,16 +226,12 @@ def test_wp07_changed_classes_have_one_owner_and_only_secondary_overlap() -> Non
         owner = routes[changed_class["owner_route"]]
         assert owner["role"] == "owner", f"{class_id} owner is not role=owner"
         for route_id in changed_class["secondary_routes"]:
-            assert routes[route_id]["role"] in secondary_roles, (
-                f"{class_id} overlap {route_id} is not an explicit secondary role"
-            )
+            assert routes[route_id]["role"] in secondary_roles, f"{class_id} overlap {route_id} is not an explicit secondary role"
 
 
 def test_negated_marker_tokens_is_sign_aware() -> None:
     """Unit-level guard for the excluded-set extractor backing the ⊇ check."""
-    assert negated_marker_tokens("(unit or contract) and not (fast or slow)") == frozenset(
-        {"fast", "slow"}
-    )
+    assert negated_marker_tokens("(unit or contract) and not (fast or slow)") == frozenset({"fast", "slow"})
     assert negated_marker_tokens("not not fast") == frozenset()
 
 
@@ -332,4 +292,3 @@ def test_faultinjection_residual_missing_routed_marker_reds() -> None:
     runnable = {"fast", "integration", "git_repo"}
     missing = runnable - negated
     assert missing == {"fast"}, missing
-

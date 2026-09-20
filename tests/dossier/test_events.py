@@ -326,9 +326,7 @@ class TestEmitArtifactIndexed:
         payload = captured_emissions[0]["payload"]
         assert payload["provenance"] == {"actor_id": "agent-ivan", "actor_kind": "llm"}
 
-    def test_dossier_shaped_provenance_raises_loudly_instead_of_dropping(
-        self, captured_emissions: list[dict[str, Any]], namespace: LocalNamespaceTuple
-    ) -> None:
+    def test_dossier_shaped_provenance_raises_loudly_instead_of_dropping(self, captured_emissions: list[dict[str, Any]], namespace: LocalNamespaceTuple) -> None:
         """PR-CONTRACT-001: this package's own artifact-level provenance
         shape (``source_kind``/``actor_id``/``captured_at``, see
         ``dossier.models.ArtifactRef.provenance``) is NOT the canonical

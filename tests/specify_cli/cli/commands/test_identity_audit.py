@@ -79,9 +79,7 @@ def test_scope_to_mission_matches_existing_state(tmp_path: Path) -> None:
     assert [s.slug for s in result] == ["083-a"]
 
 
-def test_scope_to_mission_unmatched_resolves_existing_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scope_to_mission_unmatched_resolves_existing_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # When the slug is not in all_states but a matching dir exists, the mission
     # is classified directly. Stub the resolver + classifier to the dir.
     target = tmp_path / "kitty-specs" / "084-b"
@@ -95,9 +93,7 @@ def test_scope_to_mission_unmatched_resolves_existing_dir(
     assert [s.slug for s in result] == ["084-b"]
 
 
-def test_scope_to_mission_unmatched_missing_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scope_to_mission_unmatched_missing_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # Resolver yields a non-existent path → no scoped states.
     _stub_placement_seam(monkeypatch, tmp_path / "nope")
     states = [_state("083-a", "assigned")]
@@ -159,9 +155,7 @@ def test_print_identity_human_full(capsys: pytest.CaptureFixture[str]) -> None:
         "legacy_paths": ["kitty-specs/083-a"],
         "orphan_paths": ["kitty-specs/084-b"],
     }
-    ia._print_identity_human(
-        states, {}, {}, summary, {"legacy"}, True, "legacy"
-    )
+    ia._print_identity_human(states, {}, {}, summary, {"legacy"}, True, "legacy")
 
 
 # --- _read_stored_topology ---------------------------------------------------
@@ -176,9 +170,7 @@ def test_read_stored_topology_missing_meta(tmp_path: Path) -> None:
 def test_read_stored_topology_valid(tmp_path: Path) -> None:
     d = tmp_path / "083-a"
     d.mkdir()
-    (d / "meta.json").write_text(
-        json.dumps({"topology": "lanes", "flattened": True}), encoding="utf-8"
-    )
+    (d / "meta.json").write_text(json.dumps({"topology": "lanes", "flattened": True}), encoding="utf-8")
     row = ia._read_stored_topology(d)
     assert row["topology"] == "lanes"
     assert row["flattened"] is True
@@ -231,9 +223,7 @@ def test_print_topology_human_smoke() -> None:
 # --- entrypoints: exit-code contract -----------------------------------------
 
 
-def test_run_identity_audit_mission_not_found(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_identity_audit_mission_not_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status as status_mod
 
     monkeypatch.setattr(status_mod, "audit_repo", lambda *_a: [])
@@ -244,9 +234,7 @@ def test_run_identity_audit_mission_not_found(
     assert exc.value.exit_code == 1
 
 
-def test_run_identity_audit_json_fail_on_exits_1(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_identity_audit_json_fail_on_exits_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status as status_mod
 
     states = [_state("083-a", "legacy")]
@@ -259,9 +247,7 @@ def test_run_identity_audit_json_fail_on_exits_1(
     assert exc.value.exit_code == 1
 
 
-def test_run_identity_audit_human_clean_exits_0(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_identity_audit_human_clean_exits_0(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status as status_mod
 
     states = [_state("083-a", "assigned")]
@@ -278,9 +264,7 @@ def test_run_identity_audit_human_clean_exits_0(
     assert exc.value.exit_code == 0
 
 
-def test_run_topology_audit_not_found(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_topology_audit_not_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "kitty-specs").mkdir()
     # Resolver yields a non-existent dir → no rows → exit(1).
     _stub_placement_seam(monkeypatch, tmp_path / "nope")

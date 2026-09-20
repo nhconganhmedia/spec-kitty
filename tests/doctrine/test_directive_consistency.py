@@ -115,16 +115,10 @@ def test_all_referenced_directives_have_matching_files_and_titles() -> None:
     index = _directive_index()
     for code, expected_title in refs.items():
         canonical = normalize_directive_id(code)
-        assert canonical in index, (
-            f"Missing directive file for code {code} (resolved to {canonical}); "
-            f"known directive ids: {sorted(index)}"
-        )
+        assert canonical in index, f"Missing directive file for code {code} (resolved to {canonical}); known directive ids: {sorted(index)}"
 
         _filename, actual_title = index[canonical]
-        assert actual_title == expected_title, (
-            f"Directive title mismatch for code {code}: "
-            f"expected '{expected_title}', got '{actual_title}'"
-        )
+        assert actual_title == expected_title, f"Directive title mismatch for code {code}: expected '{expected_title}', got '{actual_title}'"
 
 
 def test_directive_files_validate_against_schema() -> None:
@@ -187,8 +181,7 @@ def test_no_directive_carries_inline_tactic_refs() -> None:
     assert not offenders, (
         "Inline `tactic_refs` reintroduced on shipped directives — all "
         "cross-artifact relationships must live in packs/built-in/directive.graph.yaml "
-        "(see WP02 of excise-doctrine-curation-and-inline-references-01KP54J6):\n"
-        + "\n".join(offenders)
+        "(see WP02 of excise-doctrine-curation-and-inline-references-01KP54J6):\n" + "\n".join(offenders)
     )
 
 
@@ -272,6 +265,7 @@ def test_directive_references_resolve_to_known_artifacts() -> None:
 # Tactic cross-reference graph: loop detection
 # ---------------------------------------------------------------------------
 
+
 def _build_tactic_ref_graph() -> dict[str, list[str]]:
     """Return adjacency list: tactic_id -> [referenced tactic_ids].
 
@@ -329,10 +323,7 @@ def test_tactic_reference_graph_has_no_cycles() -> None:
     graph = _build_tactic_ref_graph()
     assert graph, "No tactics found to build reference graph"
     cycles = _detect_cycles(graph)
-    assert not cycles, (
-        "Cyclic tactic references detected (would cause infinite resolution loops):\n"
-        + "\n".join(" -> ".join(cycle) for cycle in cycles)
-    )
+    assert not cycles, "Cyclic tactic references detected (would cause infinite resolution loops):\n" + "\n".join(" -> ".join(cycle) for cycle in cycles)
 
 
 def test_tactic_references_resolve_to_known_tactics() -> None:
@@ -356,9 +347,7 @@ def test_tactic_references_resolve_to_known_tactics() -> None:
                     ref_id = str(ref.get("id", "")).strip()
                     if ref_id and ref_id not in tactic_ids:
                         step_title = step.get("title", "?")
-                        unresolved.append(
-                            f"{tactic_id} step '{step_title}': reference '{ref_id}' not found"
-                        )
+                        unresolved.append(f"{tactic_id} step '{step_title}': reference '{ref_id}' not found")
     assert not unresolved, "Unresolved tactic-to-tactic references:\n" + "\n".join(unresolved)
 
 
@@ -378,6 +367,7 @@ def test_tactic_references_resolve_to_known_tactics() -> None:
 # specifically anti-pattern-kinded is WP04's dedicated validator test
 # (INV-004), not duplicated here.
 # ---------------------------------------------------------------------------
+
 
 def _shipped_directive_ids() -> set[str]:
     ids: set[str] = set()
@@ -414,6 +404,5 @@ def test_no_paradigm_carries_inline_tactic_refs() -> None:
     assert not offenders, (
         "Inline `tactic_refs` reintroduced on shipped paradigms — all "
         "relationships must live in src/charter/offering/paradigm.graph.yaml "
-        "(see WP02 of excise-doctrine-curation-and-inline-references-01KP54J6):\n"
-        + "\n".join(offenders)
+        "(see WP02 of excise-doctrine-curation-and-inline-references-01KP54J6):\n" + "\n".join(offenders)
     )

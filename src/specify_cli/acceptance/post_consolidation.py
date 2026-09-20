@@ -123,9 +123,7 @@ class PostConsolidationResult:
                 f"on the consolidated tree at {self.consolidation_ref!r}: "
                 f"{len(self.verified)} deferred invariant(s) cleared."
             )
-        named = "; ".join(
-            f"{v.invariant_id} ({v.result}): {v.evidence}" for v in self.violations
-        )
+        named = "; ".join(f"{v.invariant_id} ({v.result}): {v.evidence}" for v in self.violations)
         return (
             f"Post-consolidation verification FAILED for {self.mission_slug!r} on "
             f"the consolidated tree at {self.consolidation_ref!r}: "
@@ -145,9 +143,7 @@ class PostConsolidationResult:
             raise PostConsolidationViolation(self.failure_message(), self.violations)
 
 
-def _post_consolidation_context(
-    consolidated_tree: Path, consolidation_ref: str, mission_slug: str
-) -> GateExecutionContext:
+def _post_consolidation_context(consolidated_tree: Path, consolidation_ref: str, mission_slug: str) -> GateExecutionContext:
     """The gate context a deferred invariant is re-judged against (C6).
 
     Surface is the consolidated tree, stamped :attr:`TopologySurface.CONSOLIDATED`,
@@ -200,9 +196,7 @@ def _rejudge(
     demoted — a later run can still resolve it.
     """
     pending = _reset_to_pending(invariant)
-    judged = enforce_negative_invariants(
-        consolidated_tree, [pending], context=context
-    )[0]
+    judged = enforce_negative_invariants(consolidated_tree, [pending], context=context)[0]
     if judged.result not in TERMINAL_INVARIANT_RESULTS:
         return invariant
     return judged
@@ -244,9 +238,7 @@ def verify_deferred_invariants(
     if matrix is None:
         return PostConsolidationResult(mission_slug, consolidation_ref)
 
-    context = _post_consolidation_context(
-        consolidated_tree, consolidation_ref, mission_slug
-    )
+    context = _post_consolidation_context(consolidated_tree, consolidation_ref, mission_slug)
     verified: list[str] = []
     violations: list[InvariantViolation] = []
     rejudged: list[NegativeInvariant] = []

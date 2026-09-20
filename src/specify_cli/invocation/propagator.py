@@ -154,8 +154,7 @@ def _projection_rule_for(record: OpEvent) -> Any | None:
         event_kind = EventKind(record.event)
     except ValueError:
         logger.warning(
-            "Op %s has an unrecognised event kind %r; not projecting it "
-            "(no projection-policy row applies)",
+            "Op %s has an unrecognised event kind %r; not projecting it (no projection-policy row applies)",
             record.invocation_id,
             record.event,
         )
@@ -169,8 +168,7 @@ def _projection_rule_for(record: OpEvent) -> Any | None:
         mode = ModeOfWork(raw_mode)
     except ValueError:
         logger.warning(
-            "Op %s declares an unrecognised mode_of_work %r; not projecting it "
-            "(the record's disclosure policy cannot be determined)",
+            "Op %s declares an unrecognised mode_of_work %r; not projecting it (the record's disclosure policy cannot be determined)",
             record.invocation_id,
             raw_mode,
         )
@@ -233,9 +231,7 @@ def _send_event(client: Any, event_dict: dict[str, object]) -> None:
         asyncio.run(client.send_event(event_dict))
 
 
-def _log_propagation_error(
-    repo_root: Path, record: OpEvent, error: str
-) -> None:
+def _log_propagation_error(repo_root: Path, record: OpEvent, error: str) -> None:
     """Append propagation failure to the local error log.  Never raises."""
     try:
         error_log = repo_root / PROPAGATION_ERRORS_PATH
@@ -265,9 +261,7 @@ class InvocationSaaSPropagator:
 
     def __init__(self, repo_root: Path) -> None:
         self._repo_root = repo_root
-        self._executor: ThreadPoolExecutor = ThreadPoolExecutor(
-            max_workers=1, thread_name_prefix="invocation-saas"
-        )
+        self._executor: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="invocation-saas")
         self._pending: list[Future[None]] = []
         atexit.register(self._shutdown)
 

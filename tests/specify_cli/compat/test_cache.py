@@ -305,9 +305,7 @@ class TestMissingOrCorrupt:
         assert path.exists()
 
     @pytest.mark.skipif(sys.platform == "win32", reason="POSIX write failure path")
-    def test_posix_short_write_preserves_existing_cache(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_posix_short_write_preserves_existing_cache(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A failed temp-file write must leave the previous cache readable."""
         path = tmp_path / "upgrade-nag.json"
         cache = NagCache(path)
@@ -467,9 +465,9 @@ class TestHasFreshData:
         """
         fetched = _NOW - timedelta(hours=1)
         record = _make_record(
-            latest_version=_VERSION,   # installed == latest, no update
+            latest_version=_VERSION,  # installed == latest, no update
             fetched_at=fetched,
-            last_shown_at=None,        # nag never shown
+            last_shown_at=None,  # nag never shown
         )
         # is_fresh should be False (nag never shown)
         assert NagCache.is_fresh(record, throttle_seconds=86400, now=_NOW, current_cli_version=_VERSION) is False
@@ -493,6 +491,7 @@ class TestHasFreshData:
         fetched = _NOW + timedelta(seconds=3600)
         record = _make_record(fetched_at=fetched, last_shown_at=None)
         assert NagCache.has_fresh_data(record, throttle_seconds=86400, now=_NOW, current_cli_version=_VERSION) is False
+
 
 # ---------------------------------------------------------------------------
 # Serialisation helpers

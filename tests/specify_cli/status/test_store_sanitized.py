@@ -124,9 +124,7 @@ def test_pii_absent_from_status_events_jsonl(
     lines = _read_written_lines(tmp_path)
     assert len(lines) == 1, "Expected exactly one line written"
     all_keys = _all_keys_recursive(lines[0])
-    assert pii_field not in all_keys, (
-        f"PII field {pii_field!r} must not appear in written event; found keys: {all_keys}"
-    )
+    assert pii_field not in all_keys, f"PII field {pii_field!r} must not appear in written event; found keys: {all_keys}"
 
 
 @pytest.mark.parametrize("non_pii_field", NON_PII_FIELDS)
@@ -140,9 +138,7 @@ def test_non_pii_fields_preserved_in_status_events_jsonl(
 
     lines = _read_written_lines(tmp_path)
     assert len(lines) == 1
-    assert non_pii_field in lines[0], (
-        f"Non-PII field {non_pii_field!r} must be preserved; got keys: {set(lines[0].keys())}"
-    )
+    assert non_pii_field in lines[0], f"Non-PII field {non_pii_field!r} must be preserved; got keys: {set(lines[0].keys())}"
 
 
 # ---------------------------------------------------------------------------
@@ -175,9 +171,7 @@ def test_pii_absent_from_atomic_batch_write(
     assert len(lines) == 2, "Expected two lines written"
     for line in lines:
         all_keys = _all_keys_recursive(line)
-        assert pii_field not in all_keys, (
-            f"PII field {pii_field!r} must not appear in any written event; found keys: {all_keys}"
-        )
+        assert pii_field not in all_keys, f"PII field {pii_field!r} must not appear in any written event; found keys: {all_keys}"
 
 
 # ---------------------------------------------------------------------------
@@ -218,8 +212,7 @@ def test_pii_absent_from_decision_point_opened_event_top_level(
     assert len(lines) == 1
     # Only check top-level keys for this test
     assert pii_field not in lines[0], (
-        f"PII field {pii_field!r} must not appear at top level in written DecisionPointOpened event; "
-        f"found keys: {set(lines[0].keys())}"
+        f"PII field {pii_field!r} must not appear at top level in written DecisionPointOpened event; found keys: {set(lines[0].keys())}"
     )
 
 
@@ -250,10 +243,7 @@ def test_pii_absent_from_decision_point_opened_event_nested(
     lines = _read_written_lines(tmp_path)
     assert len(lines) == 1
     all_keys = _all_keys_recursive(lines[0])
-    assert pii_field not in all_keys, (
-        f"PII field {pii_field!r} must not appear in written DecisionPointOpened event; "
-        f"found keys: {all_keys}"
-    )
+    assert pii_field not in all_keys, f"PII field {pii_field!r} must not appear in written DecisionPointOpened event; found keys: {all_keys}"
 
 
 @pytest.mark.parametrize("pii_field", _RECURSIVE_PII_FIELDS)
@@ -284,10 +274,7 @@ def test_pii_absent_from_decision_point_resolved_event(
     lines = _read_written_lines(tmp_path)
     assert len(lines) == 1
     all_keys = _all_keys_recursive(lines[0])
-    assert pii_field not in all_keys, (
-        f"PII field {pii_field!r} must not appear in written DecisionPointResolved event; "
-        f"found keys: {all_keys}"
-    )
+    assert pii_field not in all_keys, f"PII field {pii_field!r} must not appear in written DecisionPointResolved event; found keys: {all_keys}"
 
 
 def test_non_pii_fields_preserved_in_decision_event(tmp_path: Path) -> None:
@@ -374,9 +361,7 @@ def test_sanitizer_is_called_in_append_events_atomic(
     ]
     append_events_atomic(tmp_path, events)
 
-    assert call_count["n"] == 2, (
-        f"sanitize_event_for_log must be called once per event; called {call_count['n']} times"
-    )
+    assert call_count["n"] == 2, f"sanitize_event_for_log must be called once per event; called {call_count['n']} times"
 
 
 def test_sanitizer_is_called_in_append_raw_event(

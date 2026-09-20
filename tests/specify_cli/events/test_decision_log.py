@@ -40,6 +40,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 # Payload factories
 # ---------------------------------------------------------------------------
 
+
 def _actor() -> RuntimeActorIdentity:
     return RuntimeActorIdentity(actor_id="test-agent", actor_type="llm")
 
@@ -80,6 +81,7 @@ def _answered_payload(
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_log(
     tmp_path: Path,
     *,
@@ -107,6 +109,7 @@ def _read_lines(path: Path) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # T011-A: commit triggered on answer but NOT on request
 # ---------------------------------------------------------------------------
+
 
 class TestCommitTriggered:
     def test_commit_triggered_on_answer_not_request(self, tmp_path: Path) -> None:
@@ -145,6 +148,7 @@ class TestCommitTriggered:
 # ---------------------------------------------------------------------------
 # T011-B: JSONL append behavior — correct lines, valid JSON
 # ---------------------------------------------------------------------------
+
 
 class TestAppendBehavior:
     def test_request_appends_one_line(self, tmp_path: Path) -> None:
@@ -194,6 +198,7 @@ class TestAppendBehavior:
 # T011-C: Orphaned request (crash before answer) — one line, no commit
 # ---------------------------------------------------------------------------
 
+
 class TestOrphanedRequest:
     def test_orphaned_request_no_commit(self, tmp_path: Path) -> None:
         with patch("specify_cli.events.decision_log.safe_commit") as mock_commit:
@@ -209,9 +214,7 @@ class TestOrphanedRequest:
 # T011-D: PII fields absent from decisions.events.jsonl
 # ---------------------------------------------------------------------------
 
-_PII_FIELDS = frozenset(
-    {"machine_name", "hostname", "workspace_path", "developer_name", "developer_email"}
-)
+_PII_FIELDS = frozenset({"machine_name", "hostname", "workspace_path", "developer_name", "developer_email"})
 
 
 class TestNoPII:
@@ -247,6 +250,7 @@ class TestNoPII:
 # ---------------------------------------------------------------------------
 # T011-E: safe_commit failure is swallowed, not re-raised
 # ---------------------------------------------------------------------------
+
 
 class TestSafeCommitFailureSwallowed:
     def test_protected_branch_refused_does_not_reraise(self, tmp_path: Path) -> None:
@@ -299,6 +303,7 @@ class TestSafeCommitFailureSwallowed:
 # ---------------------------------------------------------------------------
 # T011-G: Delegation — other events reach inner emitter
 # ---------------------------------------------------------------------------
+
 
 class TestDelegation:
     def _make_tracking_inner(self) -> MagicMock:
@@ -386,6 +391,7 @@ class TestDelegation:
 # T011-H: decisions_file path is correct
 # ---------------------------------------------------------------------------
 
+
 class TestDecisionsFilePath:
     def test_decisions_file_under_kitty_specs(self, tmp_path: Path) -> None:
         log = _make_log(tmp_path, mission_slug="some-mission-01KT11")
@@ -427,9 +433,7 @@ class TestMissionIdInEnvelope:
 
         decisions_file = tmp_path / "kitty-specs" / slug / "decisions.events.jsonl"
         lines = _read_lines(decisions_file)
-        assert lines[0]["mission_id"] == ulid, (
-            f"envelope must use ULID '{ulid}', got '{lines[0]['mission_id']}'"
-        )
+        assert lines[0]["mission_id"] == ulid, f"envelope must use ULID '{ulid}', got '{lines[0]['mission_id']}'"
         assert lines[0]["mission_id"] != slug, "slug must not be used as mission_id"
 
     def test_no_slug_fallback_when_no_mission_id(self, tmp_path: Path) -> None:
@@ -453,10 +457,7 @@ class TestMissionIdInEnvelope:
 
         decisions_file = tmp_path / "kitty-specs" / slug / "decisions.events.jsonl"
         lines = _read_lines(decisions_file)
-        assert lines[0]["mission_id"] is None, (
-            f"mission_id must be None (null), not the slug {slug!r}; "
-            f"got {lines[0]['mission_id']!r}"
-        )
+        assert lines[0]["mission_id"] is None, f"mission_id must be None (null), not the slug {slug!r}; got {lines[0]['mission_id']!r}"
         assert lines[0]["mission_id"] != slug, "slug must never be persisted as mission_id"
 
 
@@ -475,19 +476,20 @@ class TestMissionSlugTraversalGuard:
     these tests to fail because no ValueError would be raised.
     """
 
-    @pytest.mark.parametrize("bad_slug", [
-        "../escaped",
-        "../../etc/passwd",
-        "foo/bar",
-        "foo\\bar",
-        ".hidden",
-        "a..b",
-        "",
-        "   ",
-    ])
-    def test_traversal_slug_rejected_at_construction(
-        self, tmp_path: Path, bad_slug: str
-    ) -> None:
+    @pytest.mark.parametrize(
+        "bad_slug",
+        [
+            "../escaped",
+            "../../etc/passwd",
+            "foo/bar",
+            "foo\\bar",
+            ".hidden",
+            "a..b",
+            "",
+            "   ",
+        ],
+    )
+    def test_traversal_slug_rejected_at_construction(self, tmp_path: Path, bad_slug: str) -> None:
         """A traversal mission_slug must raise ValueError, no file created."""
         with pytest.raises(ValueError):
             DecisionGitLog(

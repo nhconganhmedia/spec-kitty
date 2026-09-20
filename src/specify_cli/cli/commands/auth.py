@@ -56,9 +56,7 @@ def login(
 
     if machine and headless:
         console.print(
-            "[red]X --machine and --headless are mutually exclusive:[/red] "
-            "--machine is already non-interactive (client credentials exchange, "
-            "no device flow)."
+            "[red]X --machine and --headless are mutually exclusive:[/red] --machine is already non-interactive (client credentials exchange, no device flow)."
         )
         raise typer.Exit(2)
 
@@ -81,9 +79,7 @@ def logout(
     try:
         from specify_cli.cli.commands._auth_logout import logout_impl
     except ImportError as exc:
-        console.print(
-            "[red]Error:[/red] Logout is not yet implemented (waiting on WP06)."
-        )
+        console.print("[red]Error:[/red] Logout is not yet implemented (waiting on WP06).")
         raise typer.Exit(1) from exc
 
     try:
@@ -99,9 +95,7 @@ def status() -> None:
     try:
         from specify_cli.cli.commands._auth_status import status_impl
     except ImportError as exc:
-        console.print(
-            "[red]Error:[/red] Status is not yet implemented (waiting on WP07)."
-        )
+        console.print("[red]Error:[/red] Status is not yet implemented (waiting on WP07).")
         raise typer.Exit(1) from exc
 
     status_impl()
@@ -117,9 +111,7 @@ def whoami() -> None:
 
 @app.command()
 def doctor(
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit findings as JSON."
-    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit findings as JSON."),
     unstick_lock: bool = typer.Option(
         False,
         "--unstick-lock",
@@ -128,9 +120,7 @@ def doctor(
     stuck_threshold: float = typer.Option(
         60.0,
         "--stuck-threshold",
-        help=(
-            "Age (seconds) above which the refresh lock is considered stuck."
-        ),
+        help=("Age (seconds) above which the refresh lock is considered stuck."),
     ),
     server: bool = typer.Option(
         False,

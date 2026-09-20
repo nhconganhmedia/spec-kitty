@@ -56,7 +56,6 @@ __all__ = [
 _PLANNING_LEDGER_ROOTS = ("kitty-specs/", ".kittify/")
 
 
-
 def compute_incomplete_dependents(wp_id: str, feature_dir: Path, graph: dict[str, list[str]]) -> list[str]:
     """Return dependents of ``wp_id`` that are not yet complete (pure).
 
@@ -137,18 +136,14 @@ def _check_dependent_warnings(repo_root: Path, mission_slug: str, wp_id: str, ta
     # the SAME resolution resolve_feature_dir_for_mission produced for this
     # read — so read_events inside compute_incomplete_dependents keeps reading
     # the coordination worktree's event log for a coord-topology mission.
-    feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
     # WP06 / FR-004 / C-001 per-leg split: build_dependency_graph reads tasks/ from PRIMARY
     # (WORK_PACKAGE_TASK-partition); compute_incomplete_dependents reads status.events.jsonl
     # from the coord-aware feature_dir above.  Do NOT change build_dependency_graph's signature
     # — route by passing primary_dir at the CALLER only. The out-of-loop callers (policy/
     # merge_gates) now apply this SAME per-leg reroute at their own call sites (#3439 / FR-003
     # /FR-005 lifted the earlier C-009 deferral).
-    primary_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    primary_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
 
     # Build dependency graph from PRIMARY (tasks/ lives there, not on coord husk).
     try:

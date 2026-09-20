@@ -68,10 +68,7 @@ def test_doctor_py_source_never_hand_imports_the_env_file_sibling() -> None:
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "command":
             for keyword in node.keywords:
                 if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
-                    assert keyword.value.value != "env-file", (
-                        "doctor.py must not hand-write an @app.command(name='env-file') "
-                        "shell (discovery seam regression)"
-                    )
+                    assert keyword.value.value != "env-file", "doctor.py must not hand-write an @app.command(name='env-file') shell (discovery seam regression)"
 
 
 def test_register_is_idempotent_safe_to_call_directly() -> None:
@@ -139,9 +136,7 @@ class TestDoctorEnvFileCli:
         assert payload["issues"] == []
         assert "governed_vars" in payload
 
-    def test_json_output_flags_missing_ignore_coverage(
-        self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_json_output_flags_missing_ignore_coverage(self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         env_path = _repo_env_path(tmp_path)
         env_path.parent.mkdir(parents=True)
         env_path.write_text("SPEC_KITTY_NON_INTERACTIVE=1\n", encoding="utf-8")
@@ -178,9 +173,7 @@ class TestDoctorEnvFileCli:
 
 
 class TestGovernedVarRedaction:
-    def test_printable_var_from_real_env_shows_value(
-        self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_printable_var_from_real_env_shows_value(self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SPEC_KITTY_NON_INTERACTIVE", "1")
         monkeypatch.setattr(_env_file_doctor, "locate_project_root", lambda *a, **k: tmp_path)
 
@@ -192,9 +185,7 @@ class TestGovernedVarRedaction:
         assert entry["tier"] == "real_env"
         assert entry["value"] == "1"
 
-    def test_secret_var_from_real_env_never_shows_value(
-        self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_secret_var_from_real_env_never_shows_value(self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SPEC_KITTY_SAAS_TOKEN", "tok_fixture_supersecret_notreal")
         monkeypatch.setattr(_env_file_doctor, "locate_project_root", lambda *a, **k: tmp_path)
 
@@ -206,9 +197,7 @@ class TestGovernedVarRedaction:
         assert entry["value"] is None
         assert "tok_fixture_supersecret_notreal" not in result.output
 
-    def test_var_set_only_in_repo_tier_shows_repo_tier(
-        self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_var_set_only_in_repo_tier_shows_repo_tier(self, tmp_path: Path, isolated_home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         env_path = _repo_env_path(tmp_path)
         env_path.parent.mkdir(parents=True)
         env_path.write_text("SPEC_KITTY_TEAM_SLUG=my-team\n", encoding="utf-8")

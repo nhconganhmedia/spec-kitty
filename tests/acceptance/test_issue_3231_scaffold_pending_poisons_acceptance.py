@@ -73,9 +73,7 @@ def test_scaffold_pending_row_does_not_poison_acceptance_verdict() -> None:
 
     real_criteria = [c for c in merged["criteria"] if c["criterion_id"] != "AC-001"]
     assert real_criteria, "sanity: the real, filled criteria survived the merge"
-    assert all(c["pass_fail"] == "pass" for c in real_criteria), (
-        "sanity: every real criterion is 'pass'; only the scaffold placeholder is 'pending'"
-    )
+    assert all(c["pass_fail"] == "pass" for c in real_criteria), "sanity: every real criterion is 'pass'; only the scaffold placeholder is 'pending'"
 
     # Guard: a single admitted scaffold placeholder must not make the
     # aggregate 'pending' and block acceptance despite every real criterion

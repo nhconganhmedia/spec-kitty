@@ -165,9 +165,7 @@ class TestOtherMissionRuntimeStateNotExempt:
 
 class TestReviewableSurfaceStillClassifies:
     @pytest.mark.parametrize("basename", ["spec.md", "plan.md", "tasks.md"])
-    def test_planning_artifacts_are_not_exempt_even_under_own_feature_dir(
-        self, basename: str
-    ) -> None:
+    def test_planning_artifacts_are_not_exempt_even_under_own_feature_dir(self, basename: str) -> None:
         path = f"{OWN_FEATURE_DIR}/{basename}"
         result = assess_file(path, _make_map(), feature_dir_rel=OWN_FEATURE_DIR)
 
@@ -252,12 +250,8 @@ class TestCheckReviewDiffComplianceAnchoring:
 
         feature_dir = repo / OWN_FEATURE_DIR
         feature_dir.mkdir(parents=True)
-        (feature_dir / "meta.json").write_text(
-            json.dumps({"change_mode": "bulk_edit"}), encoding="utf-8"
-        )
-        (feature_dir / "occurrence_map.yaml").write_text(
-            REVIEW_DIFF_OCCURRENCE_MAP, encoding="utf-8"
-        )
+        (feature_dir / "meta.json").write_text(json.dumps({"change_mode": "bulk_edit"}), encoding="utf-8")
+        (feature_dir / "occurrence_map.yaml").write_text(REVIEW_DIFF_OCCURRENCE_MAP, encoding="utf-8")
         (repo / "README.md").write_text("placeholder\n", encoding="utf-8")
         _commit(repo, "initial")
         return repo, feature_dir
@@ -279,9 +273,7 @@ class TestCheckReviewDiffComplianceAnchoring:
         assert result.passed is True
         assert all(a.source == "runtime-state" for a in result.assessments)
 
-    def test_other_missions_runtime_file_not_exempt_end_to_end(
-        self, tmp_path: Path
-    ) -> None:
+    def test_other_missions_runtime_file_not_exempt_end_to_end(self, tmp_path: Path) -> None:
         repo, feature_dir = self._make_repo_with_mission(tmp_path)
         other_dir = repo / OTHER_FEATURE_DIR
         other_dir.mkdir(parents=True)
@@ -298,7 +290,4 @@ class TestCheckReviewDiffComplianceAnchoring:
 
         assert result is not None
         assert result.passed is False
-        assert any(
-            a.path.endswith("status.events.jsonl") and a.source != "runtime-state"
-            for a in result.assessments
-        )
+        assert any(a.path.endswith("status.events.jsonl") and a.source != "runtime-state" for a in result.assessments)

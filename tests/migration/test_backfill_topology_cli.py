@@ -23,9 +23,7 @@ _LOCATE_ROOT = "specify_cli.cli.commands.migrate_cmd.locate_project_root"
 
 def _write_meta(feature_dir: Path, meta: dict[str, Any]) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 @pytest.fixture()
@@ -112,6 +110,4 @@ def test_mission_scoping(specs_root: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["summary"]["total"] == 1
     assert payload["results"][0]["slug"] == "mission-b"
-    assert "topology" not in json.loads(
-        (specs_root / "kitty-specs" / "mission-a" / "meta.json").read_text()
-    )
+    assert "topology" not in json.loads((specs_root / "kitty-specs" / "mission-a" / "meta.json").read_text())

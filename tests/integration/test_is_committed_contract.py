@@ -131,12 +131,8 @@ class TestIsCommittedCallerContract:
         )
 
         # Drive through the patched caller — this is what the caller chain would produce.
-        spec_read_dir = mission_feature_resolution._planning_read_dir(
-            ctx.repo, ctx.slug, artifact_type="spec"
-        )
-        assert spec_read_dir == ctx.coord_feature_dir, (
-            "Monkeypatch did not take effect — test setup error."
-        )
+        spec_read_dir = mission_feature_resolution._planning_read_dir(ctx.repo, ctx.slug, artifact_type="spec")
+        assert spec_read_dir == ctx.coord_feature_dir, "Monkeypatch did not take effect — test setup error."
 
         # Coord husk carries no spec.md (STATUS-only surface): the HEAD of the coord
         # branch has no kitty-specs/ tree -> is_committed -> False.

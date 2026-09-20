@@ -50,22 +50,16 @@ from .models import MissionFinding, Severity
 
 #: Coordination write-path keys — persisted to ``meta.json`` by the coordination
 #: topology/flatten primitives and the branch-strategy ``pr_bound`` write-back.
-META_COORDINATION_KEYS: frozenset[str] = frozenset(
-    {"coordination_branch", "topology", "flattened", "pr_bound"}
-)
+META_COORDINATION_KEYS: frozenset[str] = frozenset({"coordination_branch", "topology", "flattened", "pr_bound"})
 
 #: Canonical identity keys (identity model 083+), minted at mission create and
 #: not part of the ``MissionMeta*`` writer TypedDicts.
 _META_IDENTITY_KEYS: frozenset[str] = frozenset({"mission_id", "mission_number"})
 
 #: Every field the canonical mission-metadata writer persists.
-_META_WRITER_KEYS: frozenset[str] = frozenset(
-    MissionMetaRequired.__annotations__
-) | frozenset(MissionMetaOptional.__annotations__)
+_META_WRITER_KEYS: frozenset[str] = frozenset(MissionMetaRequired.__annotations__) | frozenset(MissionMetaOptional.__annotations__)
 
-_META_KNOWN_KEYS: frozenset[str] = (
-    _META_WRITER_KEYS | META_COORDINATION_KEYS | _META_IDENTITY_KEYS
-)
+_META_KNOWN_KEYS: frozenset[str] = _META_WRITER_KEYS | META_COORDINATION_KEYS | _META_IDENTITY_KEYS
 
 # ---------------------------------------------------------------------------
 # Known key sets per artifact type
@@ -221,13 +215,9 @@ KNOWN_TOP_LEVEL_KEYS_BY_ARTIFACT: dict[str, frozenset[str]] = {
 # findings against legitimate lifecycle keys (``event_type``,
 # ``aggregate_type``), blocking canary scenarios 1 + 2 with
 # ``TeamSpace migration required. Finding codes: FORBIDDEN_KEY``.
-LIFECYCLE_AGGREGATE_TYPES: frozenset[str] = frozenset(
-    {"Mission", "Project", "WorkPackage", "MissionDossier"}
-)
+LIFECYCLE_AGGREGATE_TYPES: frozenset[str] = frozenset({"Mission", "Project", "WorkPackage", "MissionDossier"})
 STATUS_TRANSITION_DISCRIMINATORS: frozenset[str] = frozenset({"from_lane", "to_lane"})
-DECISIONPOINT_STATUS_EVENT_KEYS: frozenset[str] = KNOWN_TOP_LEVEL_KEYS_BY_ARTIFACT[
-    "decision_event_row"
-]
+DECISIONPOINT_STATUS_EVENT_KEYS: frozenset[str] = KNOWN_TOP_LEVEL_KEYS_BY_ARTIFACT["decision_event_row"]
 
 
 def is_mission_lifecycle_row(row: Mapping[str, Any]) -> bool:

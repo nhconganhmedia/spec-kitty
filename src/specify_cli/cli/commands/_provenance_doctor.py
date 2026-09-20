@@ -58,15 +58,10 @@ def run_provenance_audit(repo_root: Path, *, json_output: bool) -> None:
         raise typer.Exit(1 if leaks else 0)
 
     if not leaks:
-        console.print(
-            "[green]Provenance[/green]: no absolute built-in-pack source_path leaks found."
-        )
+        console.print("[green]Provenance[/green]: no absolute built-in-pack source_path leaks found.")
         raise typer.Exit(0)
 
-    console.print(
-        f"\n[bold yellow]Provenance leak(s)[/bold yellow] -- {len(leaks)} absolute "
-        "built-in-pack source_path(s)\n"
-    )
+    console.print(f"\n[bold yellow]Provenance leak(s)[/bold yellow] -- {len(leaks)} absolute built-in-pack source_path(s)\n")
     for leak in leaks:
         console.print(f"  • [yellow]{leak}[/yellow]")
     console.print(f"\n  [dim]Heal with:[/dim] {_HEAL_HINT}\n")

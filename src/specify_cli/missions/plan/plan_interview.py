@@ -67,9 +67,7 @@ def _get_mission_id(repo_root: Path, mission_slug: str) -> str | None:
     NFR-002) instead of the kind-blind ``resolve_planning_read_dir`` —
     behavior-neutral since PRIMARY_METADATA is PRIMARY-partition.
     """
-    feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     with contextlib.suppress(Exception):
         data = load_meta_or_empty(feature_dir)
         return data.get("mission_id") or None
@@ -114,10 +112,7 @@ def run_plan_interview(  # noqa: C901
 
     interactive = is_interactive()
     if not interactive:
-        console.print(
-            "[dim]Non-interactive: taking defaults for the plan interview "
-            "(no prompts; questions recorded as deferred).[/dim]"
-        )
+        console.print("[dim]Non-interactive: taking defaults for the plan interview (no prompts; questions recorded as deferred).[/dim]")
 
     from specify_cli.decisions import service as _dm_service
     from specify_cli.decisions.models import OriginFlow as _DmOriginFlow
@@ -214,10 +209,7 @@ def run_plan_interview(  # noqa: C901
             and not _already_widened
         ):
             widen_suffix = " | [w]iden"
-        hint_line = (
-            f"[enter]=accept default | [text]=type answer{widen_suffix}"
-            " | [d]efer | [!cancel]"
-        )
+        hint_line = f"[enter]=accept default | [text]=type answer{widen_suffix} | [d]efer | [!cancel]"
         # #2876: the hint's bracketed keys are literal text, not Rich markup.
         # Unescaped, Rich eats [enter]/[text]/[d]/[w] as style tags and the
         # operator sees "=accept default | =type answer | efer | [!cancel]".
@@ -238,12 +230,7 @@ def run_plan_interview(  # noqa: C901
             except (KeyboardInterrupt, EOFError):
                 raise typer.Exit() from None
 
-            if (
-                raw.strip().lower() == "w"
-                and widen_flow is not None
-                and current_decision_id is not None
-                and mission_id is not None
-            ):
+            if raw.strip().lower() == "w" and widen_flow is not None and current_decision_id is not None and mission_id is not None:
                 from kernel.clock import now_utc
 
                 from specify_cli.widen.models import WidenAction, WidenPendingEntry
@@ -290,10 +277,7 @@ def run_plan_interview(  # noqa: C901
                                 )
                             )
                         except Exception as exc:  # noqa: BLE001
-                            console.print(
-                                "[red]Could not save pending widen marker: "
-                                f"{exc}. Question was NOT parked.[/red]"
-                            )
+                            console.print(f"[red]Could not save pending widen marker: {exc}. Question was NOT parked.[/red]")
                             continue
                     user_answer = ""
                     break

@@ -34,9 +34,7 @@ _DELIVERABLE_REL = "src/foo.py"
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=True
-    ).stdout.strip()
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=True).stdout.strip()
 
 
 def _make_lane_worktree(tmp_path: Path) -> tuple[Path, Path]:
@@ -68,9 +66,7 @@ def _make_lane_worktree(tmp_path: Path) -> tuple[Path, Path]:
     (lane_wt / _DELIVERABLE_REL).write_text("print('work')\n", encoding="utf-8")
     # A coord-partition artifact that surfaced in the lane worktree (the #2549
     # leak surface) — must NEVER be committed to the lane branch.
-    (lane_wt / _STATUS_REL).write_text(
-        '{"event_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}\n', encoding="utf-8"
-    )
+    (lane_wt / _STATUS_REL).write_text('{"event_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}\n', encoding="utf-8")
     return repo, lane_wt
 
 
@@ -93,16 +89,11 @@ def test_mt_2549_leak_surface_is_real(tmp_path: Path) -> None:
     unguarded = {p.relative_to(lane_wt).as_posix() for p in _lane_deliverable_paths(lane_wt, filtered)}
     # The runtime-state deny-list does NOT strip the coord-partition status file:
     # it reaches the raw deliverable set. THIS is the #2549 leak surface.
-    assert _STATUS_REL in unguarded, (
-        "expected the coord-residue status file to reach the raw deliverable set "
-        f"(the #2549 leak surface); got {sorted(unguarded)!r}"
-    )
+    assert _STATUS_REL in unguarded, f"expected the coord-residue status file to reach the raw deliverable set (the #2549 leak surface); got {sorted(unguarded)!r}"
     assert _DELIVERABLE_REL in unguarded
 
 
-def test_mt_2549_status_never_committed_on_lane_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mt_2549_status_never_committed_on_lane_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Drive the REAL ``_mt_commit_lane_deliverables`` and assert the resulting
     lane-branch commit carries the code deliverable but NOT the coord-residue
     status file (Seam-A closes the #2549 leak). Pre-fix this commit would include
@@ -156,13 +147,6 @@ def test_mt_2549_status_never_committed_on_lane_branch(
 
     _mt_commit_lane_deliverables(st)
 
-    committed = set(
-        _git(lane_wt, "show", "--name-only", "--pretty=format:", "HEAD").splitlines()
-    )
-    assert _DELIVERABLE_REL in committed, (
-        f"the genuine code deliverable must be committed to the lane; got {committed!r}"
-    )
-    assert _STATUS_REL not in committed, (
-        "#2549 regression: a coord-partition status file was committed onto the "
-        f"lane branch {_LANE_BRANCH!r}: {committed!r}"
-    )
+    committed = set(_git(lane_wt, "show", "--name-only", "--pretty=format:", "HEAD").splitlines())
+    assert _DELIVERABLE_REL in committed, f"the genuine code deliverable must be committed to the lane; got {committed!r}"
+    assert _STATUS_REL not in committed, f"#2549 regression: a coord-partition status file was committed onto the lane branch {_LANE_BRANCH!r}: {committed!r}"

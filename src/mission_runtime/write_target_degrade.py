@@ -64,6 +64,7 @@ __all__ = ["resolve_write_target_or_degrade"]
 # closes that hole exactly the way every sibling ``resolution.py`` call site
 # already does.
 
+
 def resolve_write_target_or_degrade(
     repo_root: Path,
     mission_slug: str,

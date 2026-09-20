@@ -39,9 +39,7 @@ def tmp_repo_without_config(tmp_path: Path) -> Path:
 def tmp_repo_with_empty_scopes(tmp_path: Path) -> Path:
     """Repo with config.yaml that omits charter_scopes entirely."""
     (tmp_path / ".kittify").mkdir()
-    (tmp_path / ".kittify" / "config.yaml").write_text(
-        yaml.safe_dump({"some_other_key": "value"})
-    )
+    (tmp_path / ".kittify" / "config.yaml").write_text(yaml.safe_dump({"some_other_key": "value"}))
     return tmp_path
 
 
@@ -107,9 +105,7 @@ def test_resolve_with_empty_scopes_returns_default(
     """config.yaml without charter_scopes key — still default path."""
     from charter.activation.scope import CharterScope
 
-    scope = CharterScope.resolve(
-        tmp_repo_with_empty_scopes, tmp_repo_with_empty_scopes
-    )
+    scope = CharterScope.resolve(tmp_repo_with_empty_scopes, tmp_repo_with_empty_scopes)
     assert scope.config_source == "repo_root_default"
 
 

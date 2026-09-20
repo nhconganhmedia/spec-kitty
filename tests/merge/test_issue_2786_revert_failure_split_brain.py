@@ -119,9 +119,7 @@ def _revert_forced_to_fail() -> Iterator[list[list[str]]]:
     def fake_run(cmd, *args, **kwargs):  # type: ignore[no-untyped-def]
         if isinstance(cmd, list) and "revert" in cmd and "--abort" not in cmd:
             intercepted.append(list(cmd))
-            return subprocess.CompletedProcess(
-                cmd, returncode=1, stdout="", stderr=_INJECTED_REVERT_FAILURE
-            )
+            return subprocess.CompletedProcess(cmd, returncode=1, stdout="", stderr=_INJECTED_REVERT_FAILURE)
         return real_run(cmd, *args, **kwargs)
 
     with patch("specify_cli.merge.executor.subprocess.run", side_effect=fake_run):
@@ -137,9 +135,7 @@ def _reduce_coord_lanes(repo: Path, feature_dir: Path) -> tuple[Lane, Lane]:
     reduction of the coordination worktree's rolled-back WORKING-tree event log.
     Both legs are git-reducible — no marker/doctor surface is consulted.
     """
-    committed_lane = wp_lane_actor_from_events(
-        _committed_coord_events(repo, feature_dir), WP_ID
-    ).lane
+    committed_lane = wp_lane_actor_from_events(_committed_coord_events(repo, feature_dir), WP_ID).lane
     working_lane = wp_lane_actor_from_events(_working_coord_events(repo), WP_ID).lane
     return committed_lane, working_lane
 
@@ -179,8 +175,7 @@ def _run_merge_with_target_and_revert_failing(
         except BaseException as exc:  # noqa: BLE001 — the act under test raises by design
             return exc, intercepted
     raise AssertionError(
-        "precondition: injected target-advance failure did not propagate — the "
-        "merge unexpectedly succeeded, so the #2711/#2786 rollback path never ran."
+        "precondition: injected target-advance failure did not propagate — the merge unexpectedly succeeded, so the #2711/#2786 rollback path never ran."
     )
 
 
@@ -223,8 +218,7 @@ def test_swallowed_revert_failure_re_opens_2711_split_brain(tmp_path: Path) -> N
     # Non-vacuity witness B: the merge failed via the injected target-advance fault
     # (AFTER the pre-target ``done`` commit), so a ``done`` genuinely landed.
     assert isinstance(exc, RuntimeError) and _INJECTED_TARGET_FAILURE in str(exc), (
-        "precondition: the merge must fail via the injected target-advance fault "
-        f"(RuntimeError, AFTER the pre-target done commit); got {exc!r}"
+        f"precondition: the merge must fail via the injected target-advance fault (RuntimeError, AFTER the pre-target done commit); got {exc!r}"
     )
 
     # Non-vacuity witness C: the swallowed-revert branch was genuinely exercised —
@@ -239,10 +233,7 @@ def test_swallowed_revert_failure_re_opens_2711_split_brain(tmp_path: Path) -> N
 
     # Precondition: the working tree DID roll back to ``approved`` (the byte-restore
     # leg still runs after the swallowed revert failure).
-    assert working_lane_pre == Lane.APPROVED, (
-        "precondition: the rolled-back working tree should reduce to ``approved``; "
-        f"got {working_lane_pre}"
-    )
+    assert working_lane_pre == Lane.APPROVED, f"precondition: the rolled-back working tree should reduce to ``approved``; got {working_lane_pre}"
 
     # Pre-heal WITNESS (the strand exists): the swallowed revert leaves the
     # committed coordination reduction stranded at ``done`` — the exact incoherence
@@ -261,9 +252,7 @@ def test_swallowed_revert_failure_re_opens_2711_split_brain(tmp_path: Path) -> N
     # AttributeError/infra early-abort). The strand is left in place — the heal
     # no-ops today.
     resume_exc, _resume_reverts = _run_merge_with_target_and_revert_failing(repo)
-    assert isinstance(resume_exc, RuntimeError) and _INJECTED_TARGET_FAILURE in str(
-        resume_exc
-    ), (
+    assert isinstance(resume_exc, RuntimeError) and _INJECTED_TARGET_FAILURE in str(resume_exc), (
         "the ``merge --resume`` heal step must RUN through to the injected "
         "target-advance fault (proving the resume reached the rollback path, not "
         f"an infra/AttributeError early-abort); got {resume_exc!r}"

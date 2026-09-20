@@ -35,16 +35,8 @@ def test_apply_installs_both_drivers_attributes_and_config(tmp_path: Path) -> No
     attributes = (tmp_path / ".gitattributes").read_text(encoding="utf-8")
     assert _META_ENTRY in attributes
     assert _TRACES_ENTRY in attributes
-    assert (
-        _git(["config", "--local", "--get", "merge.spec-kitty-meta.driver"], tmp_path)
-        .stdout.strip()
-        == "spec-kitty merge-driver-meta %O %A %B"
-    )
-    assert (
-        _git(["config", "--local", "--get", "merge.spec-kitty-traces.driver"], tmp_path)
-        .stdout.strip()
-        == "spec-kitty merge-driver-traces %O %A %B"
-    )
+    assert _git(["config", "--local", "--get", "merge.spec-kitty-meta.driver"], tmp_path).stdout.strip() == "spec-kitty merge-driver-meta %O %A %B"
+    assert _git(["config", "--local", "--get", "merge.spec-kitty-traces.driver"], tmp_path).stdout.strip() == "spec-kitty merge-driver-traces %O %A %B"
     assert migration.detect(tmp_path) is False
 
 

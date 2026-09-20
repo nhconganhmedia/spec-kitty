@@ -30,13 +30,9 @@ def test_spec_commit_unprotected(tmp_path: Path) -> None:
     artifact = tmp_path / "spec.md"
     artifact.write_text("# Spec\n", encoding="utf-8")
 
-    unprotected_policy = ProtectionPolicy(
-        protected_branches=frozenset(), operator_hatch_active=False
-    )
+    unprotected_policy = ProtectionPolicy(protected_branches=frozenset(), operator_hatch_active=False)
 
-    fake_result = CommitRouterResult(
-        status="committed", placement_ref="main", commit_hash="abc1234"
-    )
+    fake_result = CommitRouterResult(status="committed", placement_ref="main", commit_hash="abc1234")
 
     app = _make_app()
     runner = CliRunner()
@@ -69,9 +65,7 @@ def test_spec_commit_protected_calls_commit_for_mission(tmp_path: Path) -> None:
     artifact = tmp_path / "spec.md"
     artifact.write_text("# Spec\n", encoding="utf-8")
 
-    protected_policy = ProtectionPolicy(
-        protected_branches=frozenset({"main"}), operator_hatch_active=False
-    )
+    protected_policy = ProtectionPolicy(protected_branches=frozenset({"main"}), operator_hatch_active=False)
 
     coord_result = CommitRouterResult(
         status="committed",
@@ -156,9 +150,7 @@ def test_spec_commit_slug_derived_from_path(tmp_path: Path) -> None:
     artifact.write_text("# Spec\n", encoding="utf-8")
 
     policy = ProtectionPolicy(protected_branches=frozenset(), operator_hatch_active=False)
-    committed_result = CommitRouterResult(
-        status="committed", placement_ref="main", commit_hash="abc123"
-    )
+    committed_result = CommitRouterResult(status="committed", placement_ref="main", commit_hash="abc123")
 
     captured_slug: list[str] = []
 
@@ -231,9 +223,7 @@ def test_spec_commit_json_output(tmp_path: Path) -> None:
     artifact.write_text("# Spec\n", encoding="utf-8")
 
     policy = ProtectionPolicy(protected_branches=frozenset(), operator_hatch_active=False)
-    committed_result = CommitRouterResult(
-        status="committed", placement_ref="main", commit_hash="abc123"
-    )
+    committed_result = CommitRouterResult(status="committed", placement_ref="main", commit_hash="abc123")
 
     app = _make_app()
     runner = CliRunner()

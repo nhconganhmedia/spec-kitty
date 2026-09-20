@@ -458,9 +458,7 @@ class MigrationRunner:
                 try:
                     migration_needed = migration.detect(worktree)
                 except GitignorePathError as exc:
-                    result["errors"].append(
-                        f"Worktree {worktree.name}: Cannot safely detect {migration.migration_id}: {exc}"
-                    )
+                    result["errors"].append(f"Worktree {worktree.name}: Cannot safely detect {migration.migration_id}: {exc}")
                     if not dry_run and self._record_migration_result(
                         wt_metadata,
                         wt_kittify,
@@ -493,9 +491,7 @@ class MigrationRunner:
                 try:
                     migration_result = migration.apply(worktree, dry_run=dry_run)
                 except GitignorePathError as exc:
-                    result["errors"].append(
-                        f"Worktree {worktree.name}: Cannot apply {migration.migration_id}: {exc}"
-                    )
+                    result["errors"].append(f"Worktree {worktree.name}: Cannot apply {migration.migration_id}: {exc}")
                     continue
                 if migration_result.manual_review_required:
                     worktree_manual_review = True

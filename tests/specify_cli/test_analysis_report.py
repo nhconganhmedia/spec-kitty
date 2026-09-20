@@ -183,10 +183,7 @@ def test_analysis_report_stales_on_pipe_table_description_change(tmp_path):
     (feature_dir / "spec.md").write_text("# Spec\n\nFR-001.\n", encoding="utf-8")
     (feature_dir / "plan.md").write_text("# Plan\n", encoding="utf-8")
     (feature_dir / "tasks.md").write_text(
-        "# Tasks\n\n"
-        "| ID | Description | Status |\n"
-        "|----|--------------|--------|\n"
-        "| T001 | Do the thing | [ ] |\n",
+        "# Tasks\n\n| ID | Description | Status |\n|----|--------------|--------|\n| T001 | Do the thing | [ ] |\n",
         encoding="utf-8",
     )
     write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body="# Report\n\nPASS\n")
@@ -194,10 +191,7 @@ def test_analysis_report_stales_on_pipe_table_description_change(tmp_path):
 
     # Substantive change to the row's description text: still goes stale.
     (feature_dir / "tasks.md").write_text(
-        "# Tasks\n\n"
-        "| ID | Description | Status |\n"
-        "|----|--------------|--------|\n"
-        "| T001 | Do a DIFFERENT thing | [ ] |\n",
+        "# Tasks\n\n| ID | Description | Status |\n|----|--------------|--------|\n| T001 | Do a DIFFERENT thing | [ ] |\n",
         encoding="utf-8",
     )
     freshness = check_analysis_report_current(feature_dir, repo_root)
@@ -222,7 +216,9 @@ def test_charter_hash_resolves_canonical_root_from_worktree(tmp_path):
     worktree = tmp_path / "wt"
     subprocess.run(
         ["git", "worktree", "add", "-b", "lane", str(worktree)],
-        cwd=main, check=True, capture_output=True,
+        cwd=main,
+        check=True,
+        capture_output=True,
     )
     # Diverge the worktree-local copy: hashing it instead of the canonical
     # charter is exactly the #1823 bug.
@@ -300,10 +296,7 @@ def test_implement_gate_blocks_missing_analysis_report(tmp_path, capsys):
     assert "analysis_report_required" in out
     # Missing-report branch now emits a two-step recovery (WP03 / FR-005).
     assert "Run step 1: /spec-kitty.analyze" in out
-    assert (
-        "Run step 2: spec-kitty agent mission record-analysis "
-        "--mission sample-01KS --input-file -"
-    ) in out
+    assert ("Run step 2: spec-kitty agent mission record-analysis --mission sample-01KS --input-file -") in out
 
 
 def test_require_analysis_report_missing_emits_two_step_recovery(tmp_path, capsys):
@@ -319,10 +312,7 @@ def test_require_analysis_report_missing_emits_two_step_recovery(tmp_path, capsy
     out = capsys.readouterr().out
     assert "Error: analysis_report_required:" in out
     assert "Run step 1: /spec-kitty.analyze" in out
-    assert (
-        "Run step 2: spec-kitty agent mission record-analysis "
-        "--mission my-mission --input-file -"
-    ) in out
+    assert ("Run step 2: spec-kitty agent mission record-analysis --mission my-mission --input-file -") in out
 
 
 def test_require_analysis_report_carrier_format_emits_recovery_command(tmp_path, capsys):
@@ -335,17 +325,7 @@ def test_require_analysis_report_carrier_format_emits_recovery_command(tmp_path,
 
     # Write a carrier-format file (analysis-findings/v1 schema, not outer-wrapper).
     carrier_content = (
-        "---\n"
-        "schema: analysis-findings/v1\n"
-        "findings: []\n"
-        "counts:\n"
-        "  critical: 0\n"
-        "  high: 0\n"
-        "  medium: 0\n"
-        "  low: 0\n"
-        "verdict_hint: ready\n"
-        "---\n\n"
-        "Report body.\n"
+        "---\nschema: analysis-findings/v1\nfindings: []\ncounts:\n  critical: 0\n  high: 0\n  medium: 0\n  low: 0\nverdict_hint: ready\n---\n\nReport body.\n"
     )
     report_path = feature_dir / ANALYSIS_REPORT_FILENAME
     report_path.write_text(carrier_content, encoding="utf-8")
@@ -635,14 +615,7 @@ def test_record_analysis_succeeds_on_protected_branch_via_materialize(tmp_path, 
 
 def _carrier(findings_yaml: str, counts_yaml: str, *, hint: str | None = None) -> str:
     hint_line = f"verdict_hint: {hint}\n" if hint else ""
-    return (
-        "---\n"
-        "schema: analysis-findings/v1\n"
-        f"findings:\n{findings_yaml}"
-        f"counts: {counts_yaml}\n"
-        f"{hint_line}"
-        "---\n\n"
-    )
+    return f"---\nschema: analysis-findings/v1\nfindings:\n{findings_yaml}counts: {counts_yaml}\n{hint_line}---\n\n"
 
 
 def test_find1_verdict_ignores_scary_prose_when_no_blocking_findings(tmp_path):
@@ -653,11 +626,13 @@ def test_find1_verdict_ignores_scary_prose_when_no_blocking_findings(tmp_path):
     feature_dir = repo_root / "kitty-specs" / "sample-01KS"
     _write_required_artifacts(feature_dir)
 
-    body = _carrier(
-        "  - {id: A1, severity: low, category: style, summary: nit}\n"
-        "  - {id: A2, severity: medium, category: coverage, summary: gap}\n",
-        "{critical: 0, high: 0, medium: 1, low: 1, info: 0}",
-    ) + "We found CRITICAL HIGH issues that BLOCK everything (prose only).\n"
+    body = (
+        _carrier(
+            "  - {id: A1, severity: low, category: style, summary: nit}\n  - {id: A2, severity: medium, category: coverage, summary: gap}\n",
+            "{critical: 0, high: 0, medium: 1, low: 1, info: 0}",
+        )
+        + "We found CRITICAL HIGH issues that BLOCK everything (prose only).\n"
+    )
 
     result = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body=body)
     assert result.verdict == VERDICT_READY
@@ -674,10 +649,13 @@ def test_find1_verdict_blocked_despite_reassuring_prose(tmp_path):
     feature_dir = repo_root / "kitty-specs" / "sample-01KS"
     _write_required_artifacts(feature_dir)
 
-    body = _carrier(
-        "  - {id: C1, severity: critical, category: charter, summary: violation}\n",
-        "{critical: 1, high: 0, medium: 0, low: 0, info: 0}",
-    ) + "No issues at all. PASS. READY FOR IMPLEMENTATION.\n"
+    body = (
+        _carrier(
+            "  - {id: C1, severity: critical, category: charter, summary: violation}\n",
+            "{critical: 1, high: 0, medium: 0, low: 0, info: 0}",
+        )
+        + "No issues at all. PASS. READY FOR IMPLEMENTATION.\n"
+    )
 
     result = write_analysis_report(feature_dir=feature_dir, repo_root=repo_root, body=body)
     assert result.verdict == VERDICT_BLOCKED
@@ -777,17 +755,7 @@ def test_implement_gate_detects_carrier_format_file(tmp_path):
 
     # Write a carrier-format file (analysis-findings/v1 schema, not outer-wrapper)
     carrier_content = (
-        "---\n"
-        "schema: analysis-findings/v1\n"
-        "findings: []\n"
-        "counts:\n"
-        "  critical: 0\n"
-        "  high: 0\n"
-        "  medium: 0\n"
-        "  low: 0\n"
-        "verdict_hint: ready\n"
-        "---\n\n"
-        "Report body.\n"
+        "---\nschema: analysis-findings/v1\nfindings: []\ncounts:\n  critical: 0\n  high: 0\n  medium: 0\n  low: 0\nverdict_hint: ready\n---\n\nReport body.\n"
     )
     (feature_dir / ANALYSIS_REPORT_FILENAME).write_text(carrier_content, encoding="utf-8")
 

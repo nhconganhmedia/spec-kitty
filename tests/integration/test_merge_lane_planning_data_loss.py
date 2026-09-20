@@ -271,9 +271,7 @@ def _write_meta(feature_dir: Path, slug: str, *, mission_id: str | None = None) 
     }
     if mission_id is not None:
         meta["mission_id"] = mission_id
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _write_lanes_manifest(
@@ -489,9 +487,7 @@ def _real_invariant_external_mocks(repo_root: Path):
         }
 
 
-def _bootstrap_legacy_planning_only_mission(
-    repo: Path, slug: str, *, baseline_merge_commit: str | None = "0" * 40
-) -> Path:
+def _bootstrap_legacy_planning_only_mission(repo: Path, slug: str, *, baseline_merge_commit: str | None = "0" * 40) -> Path:
     """Bootstrap a LEGACY planning-only mission (meta.json WITHOUT mission_id).
 
     ``mission_number`` is null (needs assignment) and, by default, a
@@ -514,9 +510,7 @@ def _bootstrap_legacy_planning_only_mission(
     }
     if baseline_merge_commit is not None:
         meta["baseline_merge_commit"] = baseline_merge_commit
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     _write_lanes_manifest(
         feature_dir,
@@ -567,9 +561,7 @@ class TestLegacyPlanningOnlyMetaInvariant:
     membership the invariant flags ``meta.json`` and fails the merge.
     """
 
-    def test_legacy_planning_only_meta_json_does_not_trip_invariant(
-        self, tmp_path: Path
-    ) -> None:
+    def test_legacy_planning_only_meta_json_does_not_trip_invariant(self, tmp_path: Path) -> None:
         slug = "legacy-planning-only-meta-invariant"
         _init_git_repo(tmp_path)
         feature_dir = _bootstrap_legacy_planning_only_mission(tmp_path, slug)
@@ -592,8 +584,7 @@ class TestLegacyPlanningOnlyMetaInvariant:
         # invariant ran against a genuinely-dirty meta.json that sorts first.
         post_meta = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
         assert isinstance(post_meta.get("mission_number"), int), (
-            "fixture precondition: mission_number must have been assigned so "
-            "meta.json is dirty when the invariant runs"
+            "fixture precondition: mission_number must have been assigned so meta.json is dirty when the invariant runs"
         )
 
         # The dirtied meta.json must be in the committed path set (F2 fix:
@@ -601,10 +592,7 @@ class TestLegacyPlanningOnlyMetaInvariant:
         committed_paths: set[str] = set()
         for call in mocks["safe_commit"].call_args_list:
             committed_paths.update(_rel_paths(call.kwargs.get("paths"), tmp_path))
-        assert f"kitty-specs/{slug}/meta.json" in committed_paths, (
-            "F2 regression: planning-only mission_number meta.json was not "
-            "committed after merge."
-        )
+        assert f"kitty-specs/{slug}/meta.json" in committed_paths, "F2 regression: planning-only mission_number meta.json was not committed after merge."
 
     def test_meta_json_membership_is_load_bearing(self, tmp_path: Path) -> None:
         """Prove meta.json tolerance in the merge invariant is load-bearing.
@@ -644,9 +632,7 @@ class TestLegacyPlanningOnlyMetaInvariant:
         real_is_self_bookkeeping_churn = coherence_mod.is_self_bookkeeping_churn
         classified_lines: list[str] = []
 
-        def classify_without_meta_membership(
-            lines: list[str], expected_paths: set[str], **kwargs: object
-        ) -> tuple[list[str], int]:
+        def classify_without_meta_membership(lines: list[str], expected_paths: set[str], **kwargs: object) -> tuple[list[str], int]:
             # Drop the F2 membership to recreate the pre-fix expected_paths.
             # Forward any keyword-only args (e.g. ``residue_predicate``) intact so
             # this spy stays signature-agnostic to the production classifier.
@@ -711,9 +697,7 @@ class TestPostMergePorcelainHole:
     ``typer.Exit``.
     """
 
-    def test_unexpected_first_sorting_tracked_file_is_caught(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unexpected_first_sorting_tracked_file_is_caught(self, tmp_path: Path) -> None:
         slug = "post-merge-porcelain-hole"
         _init_git_repo(tmp_path)
         _bootstrap_legacy_planning_only_mission(tmp_path, slug)
@@ -760,8 +744,7 @@ def _write_wp_file(feature_dir: Path, wp_id: str, *, agent: str = "researcher-ry
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
     (tasks_dir / f"{wp_id}.md").write_text(
-        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} planning\n"
-        f"agent: {agent}\ndependencies: []\n---\n\nBody.\n",
+        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} planning\nagent: {agent}\ndependencies: []\n---\n\nBody.\n",
         encoding="utf-8",
     )
 
@@ -926,9 +909,7 @@ class TestPlanningOnlyDoneMarkingPersists:
     https://github.com/Priivacy-ai/spec-kitty/issues/1726.
     """
 
-    def test_planning_only_done_events_are_persisted_and_readable(
-        self, tmp_path: Path
-    ) -> None:
+    def test_planning_only_done_events_are_persisted_and_readable(self, tmp_path: Path) -> None:
         from specify_cli.status.models import Lane
         from specify_cli.status.reducer import reduce
         from specify_cli.status.store import read_events
@@ -954,9 +935,7 @@ class TestPlanningOnlyDoneMarkingPersists:
         assert pre.work_packages["WP01"]["lane"] == Lane.APPROVED.value
         assert pre.work_packages["WP02"]["lane"] == Lane.APPROVED.value
         # coordination_branch must be absent for this primary-checkout case.
-        assert "coordination_branch" not in json.loads(
-            (feature_dir / "meta.json").read_text(encoding="utf-8")
-        )
+        assert "coordination_branch" not in json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
 
         _git(tmp_path, "add", ".")
         _git(tmp_path, "commit", "-m", f"chore({slug}): bootstrap approved planning mission")
@@ -984,19 +963,12 @@ class TestPlanningOnlyDoneMarkingPersists:
         # The real done-marking pipeline must have persisted a done transition
         # for every WP, readable back from the canonical event log.
         post = reduce(read_events(feature_dir))
-        assert post.work_packages["WP01"]["lane"] == Lane.DONE.value, (
-            "F1 regression: WP01 did not reach done in the persisted event log."
-        )
-        assert post.work_packages["WP02"]["lane"] == Lane.DONE.value, (
-            "F1 regression: WP02 did not reach done in the persisted event log."
-        )
+        assert post.work_packages["WP01"]["lane"] == Lane.DONE.value, "F1 regression: WP01 did not reach done in the persisted event log."
+        assert post.work_packages["WP02"]["lane"] == Lane.DONE.value, "F1 regression: WP02 did not reach done in the persisted event log."
         # And the done transitions are concretely present in the JSONL log.
         done_events = [e for e in read_events(feature_dir) if e.to_lane == Lane.DONE]
         done_wps = {e.wp_id for e in done_events}
-        assert done_wps == {"WP01", "WP02"}, (
-            f"F1 regression: expected persisted done transitions for WP01/WP02, "
-            f"got {done_wps!r}."
-        )
+        assert done_wps == {"WP01", "WP02"}, f"F1 regression: expected persisted done transitions for WP01/WP02, got {done_wps!r}."
 
 
 class TestPlanningArtifactReachesTarget:
@@ -1009,9 +981,7 @@ class TestPlanningArtifactReachesTarget:
     state outside git (status emit, dossier sync, SaaS emit, etc.).
     """
 
-    def test_planning_artifact_on_main_reaches_target_after_merge(
-        self, tmp_path: Path
-    ) -> None:
+    def test_planning_artifact_on_main_reaches_target_after_merge(self, tmp_path: Path) -> None:
         """Design-correct case: planning artifact lives on planning_base (main).
 
         Per research.md D4, planning_artifact WPs "execute in the canonical
@@ -1099,8 +1069,7 @@ class TestPlanningArtifactReachesTarget:
 
         # The actual data-loss check.  Both files must be on main after merge.
         assert _file_on_branch(tmp_path, "main", code_relpath), (
-            f"FR-001 regression: code file {code_relpath} did not reach main "
-            f"after merge.  ``git ls-tree main -- {code_relpath}`` returned empty."
+            f"FR-001 regression: code file {code_relpath} did not reach main after merge.  ``git ls-tree main -- {code_relpath}`` returned empty."
         )
         assert _file_on_branch(tmp_path, "main", planning_relpath), (
             f"FR-001 regression (load-bearing): planning artifact "
@@ -1110,9 +1079,7 @@ class TestPlanningArtifactReachesTarget:
             f"FR-001 forbids."
         )
 
-    def test_planning_artifact_only_merge_does_not_require_mission_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_planning_artifact_only_merge_does_not_require_mission_branch(self, tmp_path: Path) -> None:
         """All-planning research missions close from the target branch without a mission branch.
 
         Runs the REAL done-marking pipeline (``_mark_wp_merged_done`` /
@@ -1198,12 +1165,8 @@ class TestPlanningArtifactReachesTarget:
         # event log (no mocked call-contract to inspect — the persisted outcome
         # is the assertion).
         post = reduce(read_events(feature_dir))
-        assert post.work_packages["WP01"]["lane"] == Lane.DONE.value, (
-            "WP01 did not reach done in the persisted event log."
-        )
-        assert post.work_packages["WP02"]["lane"] == Lane.DONE.value, (
-            "WP02 did not reach done in the persisted event log."
-        )
+        assert post.work_packages["WP01"]["lane"] == Lane.DONE.value, "WP01 did not reach done in the persisted event log."
+        assert post.work_packages["WP02"]["lane"] == Lane.DONE.value, "WP02 did not reach done in the persisted event log."
 
         meta = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
         assert isinstance(meta.get("mission_number"), int)
@@ -1218,9 +1181,7 @@ class TestPlanningArtifactReachesTarget:
         assert f"kitty-specs/{slug}/status.events.jsonl" in committed_paths
         assert f"kitty-specs/{slug}/status.json" in committed_paths
 
-    def test_planning_only_bookkeeping_reaches_target_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_planning_only_bookkeeping_reaches_target_branch(self, tmp_path: Path) -> None:
         """The status pair must land ON THE TARGET BRANCH — intent, not just request.
 
         The sibling test above mocks ``commit_merge_bookkeeping`` (a boundary
@@ -1281,22 +1242,14 @@ class TestPlanningArtifactReachesTarget:
 
         # INTENT: read the append-only event log back from main's COMMITTED tree
         # (not the working tree) and prove both WPs are done on the target branch.
-        events_text = _git(
-            tmp_path, "show", f"main:kitty-specs/{slug}/status.events.jsonl"
-        ).stdout
+        events_text = _git(tmp_path, "show", f"main:kitty-specs/{slug}/status.events.jsonl").stdout
         target_snapshot = reduce(read_events_from_text(feature_dir, events_text))
-        assert target_snapshot.work_packages["WP01"]["lane"] == Lane.DONE.value, (
-            "WP01 is not done on the target branch — the done event did not reach main."
-        )
-        assert target_snapshot.work_packages["WP02"]["lane"] == Lane.DONE.value, (
-            "WP02 is not done on the target branch — the done event did not reach main."
-        )
+        assert target_snapshot.work_packages["WP01"]["lane"] == Lane.DONE.value, "WP01 is not done on the target branch — the done event did not reach main."
+        assert target_snapshot.work_packages["WP02"]["lane"] == Lane.DONE.value, "WP02 is not done on the target branch — the done event did not reach main."
         # The derived snapshot must accompany its source log on the target branch.
         _git(tmp_path, "show", f"main:kitty-specs/{slug}/status.json")
 
-    def test_planning_artifact_on_phantom_lane_branch_is_NOT_reached(
-        self, tmp_path: Path
-    ) -> None:
+    def test_planning_artifact_on_phantom_lane_branch_is_NOT_reached(self, tmp_path: Path) -> None:
         """Design-boundary negative case (research.md D4).
 
         Per ``lane_branch_name``, ``lane-planning`` resolves to the
@@ -1375,9 +1328,7 @@ class TestPlanningArtifactReachesTarget:
             )
 
         # Code file did reach main.
-        assert _file_on_branch(tmp_path, "main", code_relpath), (
-            "Sanity: code file from lane-a should still reach main."
-        )
+        assert _file_on_branch(tmp_path, "main", code_relpath), "Sanity: code file from lane-a should still reach main."
 
         # Phantom planning artifact did NOT reach main — by design.
         # ``lane_branch_name("lane-planning", planning_base_branch="main")``
@@ -1425,9 +1376,7 @@ def _write_coord_retaining_meta(feature_dir: Path, slug: str) -> None:
         "retain_branches": True,
         "retain_worktrees": True,
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _invoke_merge_cli(repo: Path, extra_args: list[str]) -> object:
@@ -1470,9 +1419,7 @@ class TestRetentionConstraintSurvivesCleanup:
     """
 
     @pytest.mark.regression
-    def test_default_merge_honors_coord_retention_policy(
-        self, tmp_path: Path
-    ) -> None:
+    def test_default_merge_honors_coord_retention_policy(self, tmp_path: Path) -> None:
         slug = _RETENTION_SLUG
         _init_git_repo(tmp_path)
 
@@ -1515,9 +1462,7 @@ class TestRetentionConstraintSurvivesCleanup:
         # worktree.
         from specify_cli.lanes.branch_naming import worktree_path as _worktree_path_helper
 
-        lane_worktree = _worktree_path_helper(
-            tmp_path, slug, mission_id=_RETENTION_MISSION_ID, lane_id="lane-a"
-        )
+        lane_worktree = _worktree_path_helper(tmp_path, slug, mission_id=_RETENTION_MISSION_ID, lane_id="lane-a")
         _git(
             tmp_path,
             "worktree",
@@ -1527,12 +1472,8 @@ class TestRetentionConstraintSurvivesCleanup:
         )
 
         assert lane_worktree.exists(), "fixture invalid: lane worktree must exist pre-merge"
-        assert _branch_exists(tmp_path, _RETENTION_MISSION_BRANCH), (
-            "fixture invalid: mission/coordination branch must exist pre-merge"
-        )
-        assert _branch_exists(tmp_path, lane_a_branch), (
-            "fixture invalid: lane branch must exist pre-merge"
-        )
+        assert _branch_exists(tmp_path, _RETENTION_MISSION_BRANCH), "fixture invalid: mission/coordination branch must exist pre-merge"
+        assert _branch_exists(tmp_path, lane_a_branch), "fixture invalid: lane branch must exist pre-merge"
 
         with (
             _real_merge_external_mocks(tmp_path),
@@ -1553,9 +1494,7 @@ class TestRetentionConstraintSurvivesCleanup:
 
         exit_code = getattr(result, "exit_code", None)
         assert exit_code == 0, (
-            f"merge must succeed for this fixture (output: "
-            f"{getattr(result, 'output', None)!r}, "
-            f"exception: {getattr(result, 'exception', None)!r})"
+            f"merge must succeed for this fixture (output: {getattr(result, 'output', None)!r}, exception: {getattr(result, 'exception', None)!r})"
         )
 
         # ANCHOR (INV-1 / FR-002): the mission/coordination branch survives.
@@ -1566,10 +1505,7 @@ class TestRetentionConstraintSurvivesCleanup:
             "resolve_merge_retention(), not an unconditional True."
         )
         # ANCHOR: a non-planning LANE branch survives.
-        assert _branch_exists(tmp_path, lane_a_branch), (
-            "#3131 P1 regression: the DEFAULT merge deleted the lane branch "
-            "despite meta.json's retain_branches=true."
-        )
+        assert _branch_exists(tmp_path, lane_a_branch), "#3131 P1 regression: the DEFAULT merge deleted the lane branch despite meta.json's retain_branches=true."
         # ANCHOR: the lane WORKTREE survives (explicitly not the merge scratch
         # worktree — this is `.worktrees/<slug>-<mid8>-lane-<id>`).
         assert lane_worktree.exists(), (
@@ -1628,9 +1564,7 @@ class TestRetentionConstraintSurvivesCleanup:
 
         from specify_cli.lanes.branch_naming import worktree_path as _worktree_path_helper
 
-        lane_worktree = _worktree_path_helper(
-            tmp_path, slug, mission_id=_RETENTION_MISSION_ID, lane_id="lane-a"
-        )
+        lane_worktree = _worktree_path_helper(tmp_path, slug, mission_id=_RETENTION_MISSION_ID, lane_id="lane-a")
         _git(tmp_path, "worktree", "add", str(lane_worktree), lane_a_branch)
 
         with (
@@ -1652,22 +1586,14 @@ class TestRetentionConstraintSurvivesCleanup:
 
         exit_code = getattr(result, "exit_code", None)
         assert exit_code == 0, (
-            f"merge must succeed for this fixture (output: "
-            f"{getattr(result, 'output', None)!r}, "
-            f"exception: {getattr(result, 'exception', None)!r})"
+            f"merge must succeed for this fixture (output: {getattr(result, 'output', None)!r}, exception: {getattr(result, 'exception', None)!r})"
         )
         assert not _branch_exists(tmp_path, mission_branch), (
-            "explicit --delete-branch must still delete the mission/coordination "
-            "branch even though meta.json retains it -- the override path must "
-            "stay reachable."
+            "explicit --delete-branch must still delete the mission/coordination branch even though meta.json retains it -- the override path must stay reachable."
         )
-        assert not _branch_exists(tmp_path, lane_a_branch), (
-            "explicit --delete-branch must still delete the lane branch."
-        )
+        assert not _branch_exists(tmp_path, lane_a_branch), "explicit --delete-branch must still delete the lane branch."
         assert not lane_worktree.exists(), (
-            "explicit --remove-worktree must still remove the lane worktree "
-            "even though meta.json retains it -- the override path must stay "
-            "reachable."
+            "explicit --remove-worktree must still remove the lane worktree even though meta.json retains it -- the override path must stay reachable."
         )
         # FR-005/FR-006: an explicit CLI delete over a retaining policy must be
         # recorded as an operator-visible override notice, never silent.
@@ -1675,9 +1601,7 @@ class TestRetentionConstraintSurvivesCleanup:
         assert "explicit delete overrode retention policy for branches" in output
         assert "explicit delete overrode retention policy for worktrees" in output
 
-    def test_malformed_retention_value_is_treated_as_retaining(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_retention_value_is_treated_as_retaining(self, tmp_path: Path) -> None:
         """#3131 INV-4/T011: a malformed (non-boolean) ``retain_branches`` /
         ``retain_worktrees`` value in meta.json must NEVER ``bool()``-coerce
         to a delete — it resolves to retaining (fail-closed), with a
@@ -1726,9 +1650,7 @@ class TestRetentionConstraintSurvivesCleanup:
 
         from specify_cli.lanes.branch_naming import worktree_path as _worktree_path_helper
 
-        lane_worktree = _worktree_path_helper(
-            tmp_path, slug, mission_id=_RETENTION_MISSION_ID, lane_id="lane-a"
-        )
+        lane_worktree = _worktree_path_helper(tmp_path, slug, mission_id=_RETENTION_MISSION_ID, lane_id="lane-a")
         _git(tmp_path, "worktree", "add", str(lane_worktree), lane_a_branch)
 
         with (
@@ -1743,26 +1665,16 @@ class TestRetentionConstraintSurvivesCleanup:
 
         exit_code = getattr(result, "exit_code", None)
         assert exit_code == 0, (
-            f"merge must succeed for this fixture (output: "
-            f"{getattr(result, 'output', None)!r}, "
-            f"exception: {getattr(result, 'exception', None)!r})"
+            f"merge must succeed for this fixture (output: {getattr(result, 'output', None)!r}, exception: {getattr(result, 'exception', None)!r})"
         )
-        assert _branch_exists(tmp_path, mission_branch), (
-            "INV-4 regression: a malformed retain_branches value resolved to "
-            "delete instead of fail-closed retain."
-        )
+        assert _branch_exists(tmp_path, mission_branch), "INV-4 regression: a malformed retain_branches value resolved to delete instead of fail-closed retain."
         assert _branch_exists(tmp_path, lane_a_branch)
-        assert lane_worktree.exists(), (
-            "INV-4 regression: a malformed retain_worktrees value resolved to "
-            "delete instead of fail-closed retain."
-        )
+        assert lane_worktree.exists(), "INV-4 regression: a malformed retain_worktrees value resolved to delete instead of fail-closed retain."
         output = getattr(result, "output", "") or ""
         assert "malformed retain_branches value in meta.json" in output
         assert "malformed retain_worktrees value in meta.json" in output
 
-    def test_dry_run_forecast_reflects_coord_retention_end_to_end(
-        self, tmp_path: Path
-    ) -> None:
+    def test_dry_run_forecast_reflects_coord_retention_end_to_end(self, tmp_path: Path) -> None:
         """#3131 FR-008/SC-003: the CLI ``merge --dry-run`` path (not just the
         forecast seam in isolation) threads the unset tri-state flags through
         ``resolve_merge_retention`` and reports the RESOLVED retain decision.
@@ -1799,15 +1711,10 @@ class TestRetentionConstraintSurvivesCleanup:
             ["--mission", slug, "--dry-run", "--json"],
         )
         exit_code = getattr(result, "exit_code", None)
-        assert exit_code == 0, (
-            f"dry-run must succeed (output: {getattr(result, 'output', None)!r}, "
-            f"exception: {getattr(result, 'exception', None)!r})"
-        )
+        assert exit_code == 0, f"dry-run must succeed (output: {getattr(result, 'output', None)!r}, exception: {getattr(result, 'exception', None)!r})"
         output = getattr(result, "output", "") or ""
         # The forecast prints a JSON object (possibly after a preamble line).
-        json_line = next(
-            line for line in output.splitlines() if line.strip().startswith("{")
-        )
+        json_line = next(line for line in output.splitlines() if line.strip().startswith("{"))
         payload = json.loads(json_line)
         # FR-008: resolved retain decision, not the flag-echo default.
         assert payload["delete_branch"] is False, (

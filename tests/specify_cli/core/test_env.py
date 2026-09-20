@@ -79,10 +79,7 @@ def test_pre_review_gate_skip_reason_none_when_unset_or_falsy() -> None:
 
 
 def test_pre_review_gate_skip_reason_names_its_own_var_when_set() -> None:
-    assert (
-        pre_review_gate_skip_reason({PRE_REVIEW_GATE_SKIP_ENV_VAR: "1"})
-        == "SPEC_KITTY_SKIP_PRE_REVIEW_GATE is set"
-    )
+    assert pre_review_gate_skip_reason({PRE_REVIEW_GATE_SKIP_ENV_VAR: "1"}) == "SPEC_KITTY_SKIP_PRE_REVIEW_GATE is set"
 
 
 def test_pre_review_gate_no_longer_reads_sync_disable_vocabulary() -> None:
@@ -99,17 +96,11 @@ def test_moment_handlers_disabled_reason_none_when_nothing_set() -> None:
 
 
 def test_moment_handlers_disabled_reason_for_own_name() -> None:
-    assert (
-        moment_handlers_disabled_reason({"SPEC_KITTY_NO_MOMENT_HANDLERS": "on"})
-        == "SPEC_KITTY_NO_MOMENT_HANDLERS is set"
-    )
+    assert moment_handlers_disabled_reason({"SPEC_KITTY_NO_MOMENT_HANDLERS": "on"}) == "SPEC_KITTY_NO_MOMENT_HANDLERS is set"
 
 
 def test_moment_handlers_disabled_reason_folds_in_kill_switch() -> None:
-    assert (
-        moment_handlers_disabled_reason({"SPEC_KITTY_SYNC_DISABLE": "1"})
-        == "SPEC_KITTY_SYNC_DISABLE is set"
-    )
+    assert moment_handlers_disabled_reason({"SPEC_KITTY_SYNC_DISABLE": "1"}) == "SPEC_KITTY_SYNC_DISABLE is set"
 
 
 def test_moment_handlers_disabled_reason_honors_deprecated_alias(
@@ -122,11 +113,7 @@ def test_moment_handlers_disabled_reason_honors_deprecated_alias(
         warnings.simplefilter("always")
         reason = moment_handlers_disabled_reason({"SPEC_KITTY_SYNC_MINIMAL_IMPORT": "1"})
     assert reason == "SPEC_KITTY_SYNC_MINIMAL_IMPORT is set"
-    assert any(
-        issubclass(w.category, DeprecationWarning)
-        and "SPEC_KITTY_NO_MOMENT_HANDLERS" in str(w.message)
-        for w in recwarn.list
-    )
+    assert any(issubclass(w.category, DeprecationWarning) and "SPEC_KITTY_NO_MOMENT_HANDLERS" in str(w.message) for w in recwarn.list)
 
 
 def test_deprecated_alias_warns_once_per_process(
@@ -139,9 +126,7 @@ def test_deprecated_alias_warns_once_per_process(
         moment_handlers_disabled_reason({"SPEC_KITTY_SYNC_MINIMAL_IMPORT": "1"})
         # A second read in the same process must not warn again.
         moment_handlers_disabled_reason({"SPEC_KITTY_SYNC_MINIMAL_IMPORT": "1"})
-    deprecations = [
-        w for w in recwarn.list if issubclass(w.category, DeprecationWarning)
-    ]
+    deprecations = [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
     assert len(deprecations) == 1
 
 
@@ -153,13 +138,8 @@ def test_moment_handler_gate_own_name_wins_over_deprecated_alias(
     deprecation warning does not fire because the alias is never reached."""
     monkeypatch.setattr("specify_cli.core.env._deprecation_warned", set())
     env = {"SPEC_KITTY_NO_MOMENT_HANDLERS": "1", "SPEC_KITTY_SYNC_MINIMAL_IMPORT": "1"}
-    assert (
-        moment_handlers_disabled_reason(env)
-        == "SPEC_KITTY_NO_MOMENT_HANDLERS is set"
-    )
-    assert not [
-        w for w in recwarn.list if issubclass(w.category, DeprecationWarning)
-    ]
+    assert moment_handlers_disabled_reason(env) == "SPEC_KITTY_NO_MOMENT_HANDLERS is set"
+    assert not [w for w in recwarn.list if issubclass(w.category, DeprecationWarning)]
 
 
 def test_moment_handlers_disabled_reason_defaults_to_os_environ(

@@ -59,9 +59,7 @@ ALL_HANDLE_FORMS = (SLUG_WITH_MID8, SLUG, MID8, MISSION_ID)
 
 
 def _git(repo_root: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True)
 
 
 def _init_repo(repo_root: Path) -> None:
@@ -141,13 +139,8 @@ def test_retrospective_home_converges_with_read_seam(tmp_path: Path, handle: str
     write_dir = resolve_retrospective_home(repo_root, handle).resolve()
     read_dir = candidate_feature_dir_for_mission(repo_root, handle).resolve()
 
-    assert write_dir == read_dir, (
-        f"write seam resolved {write_dir} but read seam resolved {read_dir} "
-        f"for handle {handle!r} — #2136 write/read divergence"
-    )
-    assert write_dir.name == SLUG_WITH_MID8, (
-        f"handle {handle!r} resolved {write_dir.name!r}, expected {SLUG_WITH_MID8!r}"
-    )
+    assert write_dir == read_dir, f"write seam resolved {write_dir} but read seam resolved {read_dir} for handle {handle!r} — #2136 write/read divergence"
+    assert write_dir.name == SLUG_WITH_MID8, f"handle {handle!r} resolved {write_dir.name!r}, expected {SLUG_WITH_MID8!r}"
 
 
 def test_retrospective_home_raises_on_ambiguous_handle(tmp_path: Path) -> None:
@@ -160,9 +153,7 @@ def test_retrospective_home_raises_on_ambiguous_handle(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("handle", ALL_HANDLE_FORMS)
-def test_review_cycle_pointer_read_converges_with_write_dir(
-    tmp_path: Path, handle: str
-) -> None:
+def test_review_cycle_pointer_read_converges_with_write_dir(tmp_path: Path, handle: str) -> None:
     """SITE 2: the ``review-cycle://`` pointer read resolves the WRITTEN artifact.
 
     The write seam (``create_rejected_review_cycle`` →
@@ -202,10 +193,7 @@ def test_review_cycle_pointer_read_converges_with_write_dir(
     # file the writer actually wrote (the canonical ``<slug>-<mid8>`` dir).
     resolved = resolve_review_cycle_pointer(repo_root, created.pointer)
 
-    assert resolved.path is not None, (
-        f"pointer {created.pointer!r} resolved to no path — the read leg composed "
-        f"a divergent dir from the write location (#2136)"
-    )
+    assert resolved.path is not None, f"pointer {created.pointer!r} resolved to no path — the read leg composed a divergent dir from the write location (#2136)"
     assert resolved.path.resolve() == created.artifact_path.resolve()
     assert resolved.path.parent.parent.parent.name == SLUG_WITH_MID8
 
@@ -222,12 +210,9 @@ def test_planning_read_dir_work_package_converges(tmp_path: Path, handle: str) -
     repo_root = tmp_path
     _seed_composed_mission(repo_root)
 
-    resolved = resolve_planning_read_dir(
-        repo_root, handle, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-    ).resolve()
+    resolved = resolve_planning_read_dir(repo_root, handle, kind=MissionArtifactKind.WORK_PACKAGE_TASK).resolve()
     assert resolved.name == SLUG_WITH_MID8, (
-        f"WORK_PACKAGE_TASK read of handle {handle!r} resolved {resolved.name!r}, "
-        f"expected {SLUG_WITH_MID8!r} (#2136 placement divergence)"
+        f"WORK_PACKAGE_TASK read of handle {handle!r} resolved {resolved.name!r}, expected {SLUG_WITH_MID8!r} (#2136 placement divergence)"
     )
 
 
@@ -235,9 +220,7 @@ def test_planning_read_dir_work_package_raises_on_ambiguous(tmp_path: Path) -> N
     """SITE 3 seam: an ambiguous handle propagates MissionSelectorAmbiguous."""
     ambig = _seed_two_mid8_colliding_missions(tmp_path)
     with pytest.raises(MissionSelectorAmbiguous):
-        resolve_planning_read_dir(
-            tmp_path, ambig, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-        )
+        resolve_planning_read_dir(tmp_path, ambig, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
 
 
 def test_mission_handle_bare_human_slug_folds_to_composed_dir(tmp_path: Path) -> None:
@@ -256,8 +239,7 @@ def test_mission_handle_bare_human_slug_folds_to_composed_dir(tmp_path: Path) ->
 
     resolved = _resolve_mission_handle(repo_root, SLUG)
     assert resolved.feature_dir.name == SLUG_WITH_MID8, (
-        f"bare human slug {SLUG!r} resolved {resolved.feature_dir.name!r}, "
-        f"expected {SLUG_WITH_MID8!r} (#2136 fallback-leg divergence)"
+        f"bare human slug {SLUG!r} resolved {resolved.feature_dir.name!r}, expected {SLUG_WITH_MID8!r} (#2136 fallback-leg divergence)"
     )
     # Identity is parsed from the real on-disk meta, not re-derived.
     assert resolved.mission_id == MISSION_ID

@@ -54,9 +54,7 @@ _COORD_CALLER_KIND = MissionArtifactKind.STATUS_STATE
 _PRIMARY_CALLER_KIND = MissionArtifactKind.TASKS_INDEX
 
 
-def _fake_resolve_placement_only(
-    _repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind
-) -> CommitTarget:
+def _fake_resolve_placement_only(_repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind) -> CommitTarget:
     """Kind-aware placement stub matching ``test_commit_router_partition.py``'s
     convention: PRIMARY kinds -> the primary ref, everything else -> coord."""
     if is_primary_artifact_kind(kind):
@@ -74,26 +72,19 @@ class TestKindNoneRoutesPrimaryUnderCoordCaller:
     own partition (the #2533-class hole this WP closes)."""
 
     @pytest.mark.parametrize("kind_none_path", [_META_PATH, _UNRECOGNIZED_PATH])
-    def test_solo_kind_none_path_routes_primary(
-        self, kind_none_path: str, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_solo_kind_none_path_routes_primary(self, kind_none_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(commit_router, "resolve_placement_only", _fake_resolve_placement_only)
 
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (Path(kind_none_path),), "m", kind=_COORD_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (Path(kind_none_path),), "m", kind=_COORD_CALLER_KIND)
 
         assert len(groups) == 1  # (single-partition; kind asserted below)
         group_kind, group_files = groups[0]
         assert is_primary_artifact_kind(group_kind), (
-            f"{kind_none_path!r} (kind=None) must route PRIMARY under a "
-            f"COORD-kind caller ({_COORD_CALLER_KIND!r}); got {group_kind!r}"
+            f"{kind_none_path!r} (kind=None) must route PRIMARY under a COORD-kind caller ({_COORD_CALLER_KIND!r}); got {group_kind!r}"
         )
         assert Path(kind_none_path) in group_files
 
-    def test_mixed_batch_kind_none_joins_the_primary_bucket_not_the_coord_caller(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mixed_batch_kind_none_joins_the_primary_bucket_not_the_coord_caller(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """A kind=None path bundled alongside a genuine coord-residue file,
         under a COORD-kind caller, lands in the PRIMARY group -- not the
         COORD one -- proving the split, not merely a solo-file coincidence."""
@@ -101,9 +92,7 @@ class TestKindNoneRoutesPrimaryUnderCoordCaller:
 
         meta = Path(_META_PATH)
         residue = Path(_COORD_RESIDUE_PATH)
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (meta, residue), "m", kind=_COORD_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (meta, residue), "m", kind=_COORD_CALLER_KIND)
 
         files_by_kind = dict(groups)
         primary_kind = next(k for k, files in groups if meta in files)
@@ -123,33 +112,24 @@ class TestKindClassifierNoLongerDrivesTheSplit:
     churn on the retired classifier's call shape.
     """
 
-    def test_unrecognized_path_disagrees_with_the_retired_classifier(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unrecognized_path_disagrees_with_the_retired_classifier(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(commit_router, "resolve_placement_only", _fake_resolve_placement_only)
 
         path = Path(_UNRECOGNIZED_PATH)
         assert kind_for_mission_file(path, mission_slug="m") is None, (
-            "fixture assumption: gap-analysis.md must be kind=None for this "
-            "test to exercise the retired classifier's fallback branch"
+            "fixture assumption: gap-analysis.md must be kind=None for this test to exercise the retired classifier's fallback branch"
         )
         # The retired classifier's answer: kind_for_mission_file(...) or kind == kind.
         retired_classifier_answer = _COORD_CALLER_KIND
 
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (path,), "m", kind=_COORD_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (path,), "m", kind=_COORD_CALLER_KIND)
         group_kind, _files = groups[0]
         assert group_kind != retired_classifier_answer, (
-            "the split still agrees with the retired "
-            "'kind_for_mission_file(...) or kind' classifier -- the swap "
-            "onto the residue predicate did not take effect"
+            "the split still agrees with the retired 'kind_for_mission_file(...) or kind' classifier -- the swap onto the residue predicate did not take effect"
         )
         assert is_primary_artifact_kind(group_kind)
 
-    def test_membership_is_immune_to_kind_for_mission_files_return_value(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_membership_is_immune_to_kind_for_mission_files_return_value(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """``kind_for_mission_file`` MAY still be consulted post-swap (to pick
         a representative kind for ref resolution on a genuinely mixed batch)
         -- but its return value must never decide PARTITION MEMBERSHIP.
@@ -159,13 +139,9 @@ class TestKindClassifierNoLongerDrivesTheSplit:
         the file into the COORD group: membership is decided exclusively by
         ``is_coordination_artifact_residue_path``."""
         monkeypatch.setattr(commit_router, "resolve_placement_only", _fake_resolve_placement_only)
-        monkeypatch.setattr(
-            commit_router, "kind_for_mission_file", lambda *_a, **_kw: _COORD_CALLER_KIND
-        )
+        monkeypatch.setattr(commit_router, "kind_for_mission_file", lambda *_a, **_kw: _COORD_CALLER_KIND)
 
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (Path(_META_PATH),), "m", kind=_COORD_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (Path(_META_PATH),), "m", kind=_COORD_CALLER_KIND)
         assert len(groups) == 1  # (single-partition; kind asserted below)
         group_kind, group_files = groups[0]
         assert is_primary_artifact_kind(group_kind), (
@@ -193,52 +169,36 @@ class TestCallerIsPrimaryBucketsStayAbsolute:
     absolutely.
     """
 
-    def test_primary_caller_mixed_batch_routes_each_file_to_its_absolute_ref(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_primary_caller_mixed_batch_routes_each_file_to_its_absolute_ref(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(commit_router, "resolve_placement_only", _fake_resolve_placement_only)
 
         primary_file = Path(_PRIMARY_PATH)
         coord_file = Path(_COORD_RESIDUE_PATH)
 
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (primary_file, coord_file), "m", kind=_PRIMARY_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (primary_file, coord_file), "m", kind=_PRIMARY_CALLER_KIND)
 
         assert len(groups) == 2  # (primary+coord split; kinds asserted below)
         files_by_kind = dict(groups)
         primary_group_kind = next(k for k, files in groups if primary_file in files)
         coord_group_kind = next(k for k, files in groups if coord_file in files)
 
-        ref_by_kind = {
-            kind: commit_router.resolve_placement_only(Path("/tmp"), "m", kind=kind).ref
-            for kind, _files in groups
-        }
+        ref_by_kind = {kind: commit_router.resolve_placement_only(Path("/tmp"), "m", kind=kind).ref for kind, _files in groups}
 
-        assert ref_by_kind[primary_group_kind] == _PRIMARY_REF, (
-            "a PRIMARY file under a PRIMARY-kind caller must land on the "
-            "PRIMARY ref"
-        )
+        assert ref_by_kind[primary_group_kind] == _PRIMARY_REF, "a PRIMARY file under a PRIMARY-kind caller must land on the PRIMARY ref"
         assert ref_by_kind[coord_group_kind] == _COORD_REF, (
-            "a coord-residue file under a PRIMARY-kind caller must STILL "
-            "land on the COORD ref -- refs must never invert for a PRIMARY "
-            "caller (squad RISK-4)"
+            "a coord-residue file under a PRIMARY-kind caller must STILL land on the COORD ref -- refs must never invert for a PRIMARY caller (squad RISK-4)"
         )
         assert coord_file not in files_by_kind[primary_group_kind]
         assert primary_file not in files_by_kind[coord_group_kind]
 
-    def test_primary_caller_kind_none_path_stays_in_the_callers_own_primary_group(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_primary_caller_kind_none_path_stays_in_the_callers_own_primary_group(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """The fast path is unaffected: under a PRIMARY-kind caller, a
         kind=None file (already PRIMARY per the residue authority) is never
         split into a second group -- single group, caller's own kind, no
         extra ``resolve_placement_only`` call (byte-identical fast path)."""
         calls: list[MissionArtifactKind] = []
 
-        def _spy_resolve(
-            _repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind
-        ) -> CommitTarget:
+        def _spy_resolve(_repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind) -> CommitTarget:
             calls.append(kind)
             return _fake_resolve_placement_only(_repo_root, _mission_slug, kind=kind)
 
@@ -247,15 +207,10 @@ class TestCallerIsPrimaryBucketsStayAbsolute:
         spec_file = Path(_PRIMARY_PATH)
         meta_file = Path(_META_PATH)
 
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (spec_file, meta_file), "m", kind=_PRIMARY_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (spec_file, meta_file), "m", kind=_PRIMARY_CALLER_KIND)
 
         assert groups == [(_PRIMARY_CALLER_KIND, (spec_file, meta_file))]
-        assert calls == [], (
-            "a batch that is entirely the caller's own partition must take "
-            "the zero-resolve fast path"
-        )
+        assert calls == [], "a batch that is entirely the caller's own partition must take the zero-resolve fast path"
 
 
 class TestCommitForMissionEndToEndPrimaryCallerRefsNotInverted:
@@ -264,9 +219,7 @@ class TestCommitForMissionEndToEndPrimaryCallerRefsNotInverted:
     ``_group_files_by_partition`` helper), that a PRIMARY-kind caller's mixed
     batch commits the coord-residue file to the COORD ref."""
 
-    def test_primary_caller_end_to_end_commits_land_on_absolute_refs(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_primary_caller_end_to_end_commits_land_on_absolute_refs(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         mission_slug = "001-demo"
         feature_dir = tmp_path / "kitty-specs" / mission_slug
         feature_dir.mkdir(parents=True)
@@ -280,12 +233,8 @@ class TestCommitForMissionEndToEndPrimaryCallerRefsNotInverted:
         coord_worktree.mkdir(parents=True)
 
         monkeypatch.setattr(commit_router, "resolve_placement_only", _fake_resolve_placement_only)
-        monkeypatch.setattr(
-            commit_router, "resolve_topology", lambda *_a, **_kw: MissionTopology.COORD
-        )
-        monkeypatch.setattr(
-            commit_router, "_resolve_mission_target_branch", lambda *_a, **_kw: _PRIMARY_REF
-        )
+        monkeypatch.setattr(commit_router, "resolve_topology", lambda *_a, **_kw: MissionTopology.COORD)
+        monkeypatch.setattr(commit_router, "_resolve_mission_target_branch", lambda *_a, **_kw: _PRIMARY_REF)
 
         def _fake_materialise(
             repo_root: Path,

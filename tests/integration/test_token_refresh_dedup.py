@@ -22,6 +22,7 @@ from specify_cli.auth.transport import (
 
 pytestmark = [pytest.mark.integration]
 
+
 @pytest.fixture(autouse=True)
 def _reset_dedup() -> None:
     """Each test starts with a fresh dedup window."""
@@ -124,7 +125,4 @@ class TestTokenRefreshDedup:
 
         captured = capsys.readouterr()
         occurrences = captured.err.count("Authentication expired")
-        assert occurrences == 1, (
-            f"Expected exactly one user-facing token-refresh line, got {occurrences}\n"
-            f"stderr was:\n{captured.err}"
-        )
+        assert occurrences == 1, f"Expected exactly one user-facing token-refresh line, got {occurrences}\nstderr was:\n{captured.err}"

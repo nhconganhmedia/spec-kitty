@@ -54,7 +54,10 @@ class TestCheckLaneStaleness:
         _run(["git", "branch", "kitty/mission-feat-lane-a"], repo)
 
         result = check_lane_staleness(
-            _lane(), "kitty/mission-feat-lane-a", "kitty/mission-feat", repo,
+            _lane(),
+            "kitty/mission-feat-lane-a",
+            "kitty/mission-feat",
+            repo,
         )
         assert result.is_stale is False
 
@@ -74,7 +77,10 @@ class TestCheckLaneStaleness:
         _run(["git", "checkout", "main"], repo)
 
         result = check_lane_staleness(
-            _lane(), "kitty/mission-feat-lane-a", "kitty/mission-feat", repo,
+            _lane(),
+            "kitty/mission-feat-lane-a",
+            "kitty/mission-feat",
+            repo,
         )
         assert result.is_stale is False
 
@@ -94,7 +100,10 @@ class TestCheckLaneStaleness:
         _run(["git", "checkout", "main"], repo)
 
         result = check_lane_staleness(
-            _lane(), "kitty/mission-feat-lane-a", "kitty/mission-feat", repo,
+            _lane(),
+            "kitty/mission-feat-lane-a",
+            "kitty/mission-feat",
+            repo,
         )
         assert result.is_stale is True
         assert "src/views.py" in result.stale_files
@@ -150,7 +159,10 @@ class TestCheckLaneStaleness:
         _run(["git", "checkout", "main"], repo)
 
         result = check_lane_staleness(
-            _lane(), "kitty/mission-feat-lane-a", "kitty/mission-feat", repo,
+            _lane(),
+            "kitty/mission-feat-lane-a",
+            "kitty/mission-feat",
+            repo,
         )
         assert result.is_stale is True
         assert result.stale_files == ["src/a.py"]
@@ -161,14 +173,18 @@ class TestStaleRemediation:
 
     def test_lane_workspace_gets_worktree_remediation(self):
         remediation = _stale_remediation(
-            _lane(lane_id="lane-a"), "kitty/mission-feat-lane-a", "kitty/mission-feat",
+            _lane(lane_id="lane-a"),
+            "kitty/mission-feat-lane-a",
+            "kitty/mission-feat",
         )
         assert "cd .worktrees/*-lane-a" in remediation
         assert "git merge kitty/mission-feat" in remediation
 
     def test_planning_lane_gets_repo_root_remediation(self):
         remediation = _stale_remediation(
-            _lane(lane_id="lane-planning"), "main", "kitty/mission-feat",
+            _lane(lane_id="lane-planning"),
+            "main",
+            "kitty/mission-feat",
         )
         assert ".worktrees/" not in remediation
         assert "repository-root checkout" in remediation
@@ -185,7 +201,9 @@ class TestStaleRemediation:
         -- followed by `git add`, instead of leaving the operator stuck on an
         unreconcilable conflict."""
         remediation = _stale_remediation(
-            _lane(lane_id="lane-planning"), "main", "kitty/mission-feat",
+            _lane(lane_id="lane-planning"),
+            "main",
+            "kitty/mission-feat",
         )
         assert "spec-kitty agent status materialize" in remediation
         assert "git add" in remediation

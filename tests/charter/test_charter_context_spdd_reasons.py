@@ -109,13 +109,7 @@ def _write_config_yaml(tmp_path: Path, **activated: list[str]) -> Path:
 
 
 def _empty_governance() -> str:
-    return (
-        "doctrine:\n"
-        "  selected_paradigms: []\n"
-        "  selected_directives: []\n"
-        "  available_tools: []\n"
-        "  template_set: software-dev-default\n"
-    )
+    return "doctrine:\n  selected_paradigms: []\n  selected_directives: []\n  available_tools: []\n  template_set: software-dev-default\n"
 
 
 # ---------------------------------------------------------------------------
@@ -137,18 +131,11 @@ class TestActivation:
     def test_unrelated_directives_returns_false(self, tmp_path: Path) -> None:
         _write_governance(
             tmp_path,
-            "doctrine:\n"
-            "  selected_paradigms: []\n"
-            "  selected_directives:\n"
-            "    - DIRECTIVE_001\n"
-            "    - DIRECTIVE_024\n"
-            "  available_tools: []\n",
+            "doctrine:\n  selected_paradigms: []\n  selected_directives:\n    - DIRECTIVE_001\n    - DIRECTIVE_024\n  available_tools: []\n",
         )
         _write_directives(
             tmp_path,
-            "directives:\n"
-            "  - id: DIRECTIVE_001\n"
-            "    title: Some other directive\n",
+            "directives:\n  - id: DIRECTIVE_001\n    title: Some other directive\n",
         )
         assert is_spdd_reasons_active(tmp_path) is False
 
@@ -162,14 +149,9 @@ class TestActivation:
         # of config.yaml's content).
         _write_governance(
             tmp_path,
-            "doctrine:\n"
-            "  selected_paradigms: []\n"
-            "  selected_directives: []\n"
-            "  available_tools: []\n",
+            "doctrine:\n  selected_paradigms: []\n  selected_directives: []\n  available_tools: []\n",
         )
-        _write_config_yaml(
-            tmp_path, activated_paradigms=["structured-prompt-driven-development"]
-        )
+        _write_config_yaml(tmp_path, activated_paradigms=["structured-prompt-driven-development"])
         assert is_spdd_reasons_active(tmp_path) is True
 
     # Case 4
@@ -178,11 +160,7 @@ class TestActivation:
         # write and activate the tactic via .kittify/config.yaml instead.
         _write_governance(
             tmp_path,
-            "doctrine:\n"
-            "  selected_paradigms: []\n"
-            "  selected_directives: []\n"
-            "  selected_tactics: []\n"
-            "  available_tools: []\n",
+            "doctrine:\n  selected_paradigms: []\n  selected_directives: []\n  selected_tactics: []\n  available_tools: []\n",
         )
         _write_config_yaml(tmp_path, activated_tactics=["reasons-canvas-fill"])
         assert is_spdd_reasons_active(tmp_path) is True
@@ -193,11 +171,7 @@ class TestActivation:
         # write and activate the tactic via .kittify/config.yaml instead.
         _write_governance(
             tmp_path,
-            "doctrine:\n"
-            "  selected_paradigms: []\n"
-            "  selected_directives: []\n"
-            "  selected_tactics: []\n"
-            "  available_tools: []\n",
+            "doctrine:\n  selected_paradigms: []\n  selected_directives: []\n  selected_tactics: []\n  available_tools: []\n",
         )
         _write_config_yaml(tmp_path, activated_tactics=["reasons-canvas-review"])
         assert is_spdd_reasons_active(tmp_path) is True
@@ -208,10 +182,7 @@ class TestActivation:
         # write and activate DIRECTIVE_038 via .kittify/config.yaml instead.
         _write_governance(
             tmp_path,
-            "doctrine:\n"
-            "  selected_paradigms: []\n"
-            "  selected_directives: []\n"
-            "  available_tools: []\n",
+            "doctrine:\n  selected_paradigms: []\n  selected_directives: []\n  available_tools: []\n",
         )
         _write_config_yaml(tmp_path, activated_directives=["DIRECTIVE_038"])
         assert is_spdd_reasons_active(tmp_path) is True
@@ -230,9 +201,7 @@ class TestActivation:
         # entirely -- leaving it there would make the OLD body's
         # _directives_select_pack return True regardless of config.yaml.
         _write_directives(tmp_path, "directives: []\n")
-        _write_config_yaml(
-            tmp_path, activated_directives=["038-structured-prompt-boundary"]
-        )
+        _write_config_yaml(tmp_path, activated_directives=["038-structured-prompt-boundary"])
         assert is_spdd_reasons_active(tmp_path) is True
 
     # Case 7
@@ -307,10 +276,7 @@ class TestCharterContextInactive:
             if is_spdd_reasons_active(Path(td)):
                 append_spdd_reasons_guidance(lines, "demo-mission", action)
 
-        assert lines == baseline, (
-            f"inactive baseline must not gain SPDD/REASONS lines for action={action}; "
-            f"got: {lines!r}"
-        )
+        assert lines == baseline, f"inactive baseline must not gain SPDD/REASONS lines for action={action}; got: {lines!r}"
         assert "SPDD/REASONS Guidance" not in "\n".join(lines)
 
 
@@ -403,14 +369,9 @@ class TestCharterContextActive:
         # the legacy selector and activate via .kittify/config.yaml.
         _write_governance(
             tmp_path,
-            "doctrine:\n"
-            "  selected_paradigms: []\n"
-            "  selected_directives: []\n"
-            "  available_tools: []\n",
+            "doctrine:\n  selected_paradigms: []\n  selected_directives: []\n  available_tools: []\n",
         )
-        _write_config_yaml(
-            tmp_path, activated_paradigms=["structured-prompt-driven-development"]
-        )
+        _write_config_yaml(tmp_path, activated_paradigms=["structured-prompt-driven-development"])
         clear_activation_cache()
 
     def test_active_render_stays_active_for_every_action(self, tmp_path: Path) -> None:
@@ -475,12 +436,8 @@ class TestParadigmRoundTrip:
             )
         )
         charter_yaml_path = _charter_yaml_path(tmp_path)
-        save_charter_yaml(
-            charter_yaml_path, {"governance": gov.model_dump(mode="json")}
-        )
-        _write_config_yaml(
-            tmp_path, activated_paradigms=["structured-prompt-driven-development"]
-        )
+        save_charter_yaml(charter_yaml_path, {"governance": gov.model_dump(mode="json")})
+        _write_config_yaml(tmp_path, activated_paradigms=["structured-prompt-driven-development"])
 
         assert is_spdd_reasons_active(tmp_path) is True
 
@@ -513,9 +470,7 @@ class TestSelectedTacticsRoundTrip:
     def setup_method(self) -> None:
         clear_activation_cache()
 
-    def test_tactic_only_selection_round_trips_to_governance_and_activates(
-        self, tmp_path: Path
-    ) -> None:
+    def test_tactic_only_selection_round_trips_to_governance_and_activates(self, tmp_path: Path) -> None:
         from charter.activation.charter_yaml_io import save_charter_yaml
         from charter.activation.compiler import compile_charter
         from charter.activation.interview import default_interview
@@ -598,9 +553,7 @@ class TestSelectedTacticsRoundTrip:
             charter_yaml_path,
             {"governance": governance_no_tactics.model_dump(mode="json")},
         )
-        _write_config_yaml(
-            tmp_path, activated_tactics=sorted(pack_context.activated_tactics)
-        )
+        _write_config_yaml(tmp_path, activated_tactics=sorted(pack_context.activated_tactics))
 
         clear_activation_cache()
         assert is_spdd_reasons_active(tmp_path) is True

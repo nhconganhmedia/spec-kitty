@@ -66,10 +66,7 @@ def load_action_index(missions_root: Path, mission: str, action: str) -> ActionI
     data = _read_index_yaml(index_path)
 
     if not isinstance(data, dict):
-        raise ActionIndexError(
-            f"Expected a YAML mapping at <root> in {index_path}; "
-            f"got {type(data).__name__}"
-        )
+        raise ActionIndexError(f"Expected a YAML mapping at <root> in {index_path}; got {type(data).__name__}")
 
     return ActionIndex(
         action=str(data.get("action", action)),
@@ -94,10 +91,7 @@ def _read_index_yaml(index_path: Path) -> object:
         yaml = YAML(typ="safe")
         return yaml.load(index_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, YAMLError) as exc:
-        raise ActionIndexError(
-            f"Could not read or parse action index at {index_path}: "
-            f"{type(exc).__name__}: {exc}"
-        ) from exc
+        raise ActionIndexError(f"Could not read or parse action index at {index_path}: {type(exc).__name__}: {exc}") from exc
 
 
 def _require_list(data: dict[object, object], key: str, index_path: Path) -> list[str]:
@@ -108,7 +102,5 @@ def _require_list(data: dict[object, object], key: str, index_path: Path) -> lis
     """
     raw = data.get(key, [])
     if not isinstance(raw, list):
-        raise ActionIndexError(
-            f"Expected a list for {key!r} in {index_path}; got {type(raw).__name__}"
-        )
+        raise ActionIndexError(f"Expected a list for {key!r} in {index_path}; got {type(raw).__name__}")
     return [str(item) for item in raw if item is not None]

@@ -98,9 +98,7 @@ def test_merge_preserves_coord_lane_history_against_clobbering_copy() -> None:
     assert merged_ids.count("01EVT0000000000000000PLAN") == 1
     # The genuinely-new envelope event is carried, appended after coord history.
     assert "01ENV0000000000000000001" in merged_ids
-    assert merged_ids.index("01ENV0000000000000000001") > merged_ids.index(
-        "01EVT00000000000PROGRESS"
-    )
+    assert merged_ids.index("01ENV0000000000000000001") > merged_ids.index("01EVT00000000000PROGRESS")
     # Coord history keeps its order (the reducer processes in file order).
     assert merged_ids[:3] == [
         "01EVT0000000000000000PLAN",
@@ -117,10 +115,7 @@ def test_merge_is_noop_when_incoming_is_subset() -> None:
         + "\n"
     ).encode()
     # Incoming carries nothing coord lacks.
-    incoming = (
-        _lane_event("01EVT0000000000000000PLAN", "2026-06-01T01:00:00+00:00", "planned", "planned")
-        + "\n"
-    ).encode()
+    incoming = (_lane_event("01EVT0000000000000000PLAN", "2026-06-01T01:00:00+00:00", "planned", "planned") + "\n").encode()
 
     merged = _merge_event_log_bytes(coord, incoming)
 
@@ -130,10 +125,7 @@ def test_merge_is_noop_when_incoming_is_subset() -> None:
 def test_merge_carries_new_transition_from_incoming() -> None:
     # The just-emitted transition can legitimately live only in the incoming copy;
     # it must be appended (chronologically newest), not dropped.
-    coord = (
-        _lane_event("01EVT0000000000000CLAIM", "2026-06-01T02:00:00+00:00", "planned", "claimed")
-        + "\n"
-    ).encode()
+    coord = (_lane_event("01EVT0000000000000CLAIM", "2026-06-01T02:00:00+00:00", "planned", "claimed") + "\n").encode()
     incoming = (
         _lane_event("01EVT0000000000000CLAIM", "2026-06-01T02:00:00+00:00", "planned", "claimed")
         + "\n"

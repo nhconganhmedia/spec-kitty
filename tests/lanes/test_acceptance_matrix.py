@@ -120,8 +120,7 @@ class TestPersistence:
                 AcceptanceCriterion("AC-01", "Test passes", "automated_test", pass_fail="pass"),
             ],
             negative_invariants=[
-                NegativeInvariant("NI-01", "No legacy route", "grep_absence",
-                                  verification_command="/old-route", result="confirmed_absent"),
+                NegativeInvariant("NI-01", "No legacy route", "grep_absence", verification_command="/old-route", result="confirmed_absent"),
             ],
         )
         write_acceptance_matrix(tmp_path, matrix)
@@ -206,7 +205,9 @@ class TestPersistence:
 class TestManualEvidence:
     def test_valid_manual_qa(self):
         c = AcceptanceCriterion(
-            "AC-01", "Check dashboard", "manual_qa",
+            "AC-01",
+            "Check dashboard",
+            "manual_qa",
             evidence="http://localhost:8000/dashboard",
             verified_at="2026-04-03T12:00:00Z",
             verified_by="qa-operator",
@@ -251,10 +252,7 @@ class TestManualEvidence:
         errors = validate_matrix_evidence(m)
 
         assert "AC-01: pass_fail must be one of fail, pass, pending; got 'failed'" in errors
-        assert (
-            "NI-01: result must be one of confirmed_absent, deferred_to_consolidation, "
-            "pending, still_present, verification_error; got 'absent'"
-        ) in errors
+        assert ("NI-01: result must be one of confirmed_absent, deferred_to_consolidation, pending, still_present, verification_error; got 'absent'") in errors
 
 
 class TestNegativeInvariants:
@@ -265,7 +263,8 @@ class TestNegativeInvariants:
 
         invariants = [
             NegativeInvariant(
-                "NI-01", "No legacy route",
+                "NI-01",
+                "No legacy route",
                 "grep_absence",
                 verification_command="old_legacy_route",
             ),
@@ -279,7 +278,8 @@ class TestNegativeInvariants:
 
         invariants = [
             NegativeInvariant(
-                "NI-01", "No forbidden call",
+                "NI-01",
+                "No forbidden call",
                 "grep_absence",
                 verification_command="forbidden[",
             ),
@@ -300,7 +300,8 @@ class TestNegativeInvariants:
 
         invariants = [
             NegativeInvariant(
-                "NI-01", "No legacy route",
+                "NI-01",
+                "No legacy route",
                 "grep_absence",
                 verification_command="old_legacy_route",
             ),
@@ -316,7 +317,8 @@ class TestNegativeInvariants:
 
         invariants = [
             NegativeInvariant(
-                "NI-01", "No legacy route",
+                "NI-01",
+                "No legacy route",
                 "grep_absence",
                 verification_command="old_legacy_route",
             ),
@@ -362,34 +364,30 @@ class TestNegativeInvariants:
         pattern = "old_legacy_route"
         # Prose path that mentions the pattern (the mission's own WP/spec text).
         (tmp_path / "kitty-specs" / "m").mkdir(parents=True)
-        (tmp_path / "kitty-specs" / "m" / "spec.md").write_text(
-            f"We removed the {pattern} surface entirely.\n", encoding="utf-8"
-        )
+        (tmp_path / "kitty-specs" / "m" / "spec.md").write_text(f"We removed the {pattern} surface entirely.\n", encoding="utf-8")
         # Code dir that is genuinely clean of the pattern.
         (tmp_path / "src").mkdir()
         (tmp_path / "src" / "app.py").write_text("def main(): pass\n")
 
         scoped = NegativeInvariant(
-            "NI-01", "No legacy route in code",
+            "NI-01",
+            "No legacy route in code",
             "grep_absence",
             verification_command=pattern,
             scope="src",
         )
-        assert enforce_negative_invariants(tmp_path, [scoped])[0].result == (
-            "confirmed_absent"
-        )
+        assert enforce_negative_invariants(tmp_path, [scoped])[0].result == ("confirmed_absent")
 
         # Sanity: the SAME invariant without a scope finds the prose mention and
         # (wrongly, for the mission's purpose) reports still_present — proving the
         # scope is what excludes the false positive.
         unscoped = NegativeInvariant(
-            "NI-02", "No legacy route anywhere",
+            "NI-02",
+            "No legacy route anywhere",
             "grep_absence",
             verification_command=pattern,
         )
-        assert enforce_negative_invariants(tmp_path, [unscoped])[0].result == (
-            "still_present"
-        )
+        assert enforce_negative_invariants(tmp_path, [unscoped])[0].result == ("still_present")
 
     def test_grep_absence_scope_still_catches_offender_in_scope(self, tmp_path):
         """A scoped invariant still reports still_present when the pattern IS
@@ -402,7 +400,8 @@ class TestNegativeInvariants:
         (tmp_path / "docs" / "guide.md").write_text("nothing here\n")
 
         scoped = NegativeInvariant(
-            "NI-01", "No legacy route in code",
+            "NI-01",
+            "No legacy route in code",
             "grep_absence",
             verification_command=pattern,
             scope="src",
@@ -415,7 +414,8 @@ class TestNegativeInvariants:
     def test_custom_command_pass(self, tmp_path):
         invariants = [
             NegativeInvariant(
-                "NI-01", "No stale files",
+                "NI-01",
+                "No stale files",
                 "custom_command",
                 verification_command=f'"{sys.executable}" -c "import sys; sys.exit(0)"',
             ),
@@ -426,9 +426,10 @@ class TestNegativeInvariants:
     def test_custom_command_preserves_posix_command_substitution(self, tmp_path):
         invariants = [
             NegativeInvariant(
-                "NI-01", "No stale files",
+                "NI-01",
+                "No stale files",
                 "custom_command",
-                verification_command='test -z "$(printf \'\')"',
+                verification_command="test -z \"$(printf '')\"",
             ),
         ]
 
@@ -439,7 +440,8 @@ class TestNegativeInvariants:
     def test_custom_command_fail(self, tmp_path):
         invariants = [
             NegativeInvariant(
-                "NI-01", "Check fails",
+                "NI-01",
+                "Check fails",
                 "custom_command",
                 verification_command=f'"{sys.executable}" -c "import sys; sys.exit(1)"',
             ),
@@ -450,7 +452,8 @@ class TestNegativeInvariants:
     def test_custom_command_missing_executable_returns_evidence(self, tmp_path):
         invariants = [
             NegativeInvariant(
-                "NI-01", "Check fails",
+                "NI-01",
+                "Check fails",
                 "custom_command",
                 verification_command="definitely-not-a-spec-kitty-command",
             ),
@@ -465,7 +468,8 @@ class TestNegativeInvariants:
     def test_custom_command_posix_shell_syntax_fails_clear_on_windows(self, tmp_path):
         invariants = [
             NegativeInvariant(
-                "NI-01", "No stale files",
+                "NI-01",
+                "No stale files",
                 "custom_command",
                 verification_command='python -c "print(1)" && echo done',
             ),

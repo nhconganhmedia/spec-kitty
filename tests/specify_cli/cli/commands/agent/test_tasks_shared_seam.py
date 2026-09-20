@@ -74,15 +74,11 @@ def test_patched_get_main_repo_root_intercepts_find_mission_slug(tmp_path: Path)
         patch(f"{_TASKS}.get_main_repo_root", side_effect=_SentinelHit) as root_mock,
         pytest.raises(_SentinelHit),
     ):
-        tasks._find_mission_slug(
-            "tasks-py-degod-wave2-01KWH9EQ", json_output=True, repo_root=tmp_path
-        )
+        tasks._find_mission_slug("tasks-py-degod-wave2-01KWH9EQ", json_output=True, repo_root=tmp_path)
     root_mock.assert_called_once_with(tmp_path)
 
 
-def test_ambiguous_handle_maps_to_shared_json_envelope(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_ambiguous_handle_maps_to_shared_json_envelope(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """#241: an ambiguous handle from the ``placement_seam`` short-circuit call
 
     (which runs BEFORE ``resolve_mission_handle``) must land on the shared
@@ -92,9 +88,7 @@ def test_ambiguous_handle_maps_to_shared_json_envelope(
     """
     from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 
-    exc = MissionSelectorAmbiguous(
-        handle="charter", candidates=["020-charter", "030-charter"]
-    )
+    exc = MissionSelectorAmbiguous(handle="charter", candidates=["020-charter", "030-charter"])
     seam_mock = MagicMock()
     seam_mock.read_dir.side_effect = exc
     with (
@@ -124,9 +118,7 @@ def test_patched_get_main_repo_root_intercepts_ensure_target_branch(tmp_path: Pa
         patch(f"{_TASKS}.get_main_repo_root", side_effect=_SentinelHit) as root_mock,
         pytest.raises(_SentinelHit),
     ):
-        tasks._ensure_target_branch_checked_out(
-            tmp_path, "tasks-py-degod-wave2-01KWH9EQ", True
-        )
+        tasks._ensure_target_branch_checked_out(tmp_path, "tasks-py-degod-wave2-01KWH9EQ", True)
     root_mock.assert_called_once_with(tmp_path)
 
 
@@ -136,9 +128,7 @@ def test_patched_get_main_repo_root_intercepts_check_unchecked_subtasks(tmp_path
         patch(f"{_TASKS}.get_main_repo_root", side_effect=_SentinelHit) as root_mock,
         pytest.raises(_SentinelHit),
     ):
-        tasks._check_unchecked_subtasks(
-            tmp_path, "tasks-py-degod-wave2-01KWH9EQ", "WP01", False
-        )
+        tasks._check_unchecked_subtasks(tmp_path, "tasks-py-degod-wave2-01KWH9EQ", "WP01", False)
     root_mock.assert_called_once_with(tmp_path)
 
 
@@ -155,9 +145,7 @@ def test_patched_get_main_repo_root_intercepts_validate_ready_for_review(
         patch(f"{_TASKS}.get_main_repo_root", side_effect=_SentinelHit) as root_mock,
         pytest.raises(_SentinelHit),
     ):
-        tasks._validate_ready_for_review(
-            tmp_path, "tasks-py-degod-wave2-01KWH9EQ", "WP01", False
-        )
+        tasks._validate_ready_for_review(tmp_path, "tasks-py-degod-wave2-01KWH9EQ", "WP01", False)
     root_mock.assert_called_once_with(tmp_path)
 
 
@@ -221,13 +209,9 @@ def test_patched_workspace_and_subprocess_intercept_wp_branch_merged(tmp_path: P
     is_ancestor_ok = MagicMock(returncode=0)
     with (
         patch(f"{_TASKS}.resolve_workspace_for_wp", return_value=workspace) as ws_mock,
-        patch(
-            f"{_TASKS}.subprocess.run", side_effect=[rev_parse_ok, is_ancestor_ok]
-        ) as run_mock,
+        patch(f"{_TASKS}.subprocess.run", side_effect=[rev_parse_ok, is_ancestor_ok]) as run_mock,
     ):
-        merged, message = tasks._wp_branch_merged_into_target(
-            tmp_path, "mission-x", "WP01", "degod-follow-ups"
-        )
+        merged, message = tasks._wp_branch_merged_into_target(tmp_path, "mission-x", "WP01", "degod-follow-ups")
     assert merged is True
     assert "kitty/mission-x-lane-a" in message
     ws_mock.assert_called_once_with(tmp_path, "mission-x", "WP01")
@@ -242,9 +226,7 @@ def test_patched_topology_symbols_intercept_review_currency_branch(tmp_path: Pat
     with (
         patch(f"{_TASKS}.resolve_placement_only", return_value=placement) as place_mock,
         patch(f"{_TASKS}.resolve_topology", return_value=topology) as topo_mock,
-        patch(
-            f"{_TASKS}.routes_through_coordination", return_value=True
-        ) as routes_mock,
+        patch(f"{_TASKS}.routes_through_coordination", return_value=True) as routes_mock,
     ):
         branch = tasks._review_currency_check_branch(
             main_repo_root=tmp_path,
@@ -262,9 +244,7 @@ def test_patched_kitty_specs_alias_intercepts_guard(tmp_path: Path) -> None:
     """The dynamically-named ``tasks._list_wp_branch_kitty_specs_changes`` alias
     remains the guard's live patch seam (test_tasks.py precedent, 2 sites)."""
     marker = ["kitty-specs/mission-x/spec.md"]
-    with patch(
-        f"{_TASKS}._list_wp_branch_kitty_specs_changes", return_value=marker
-    ) as alias_mock:
+    with patch(f"{_TASKS}._list_wp_branch_kitty_specs_changes", return_value=marker) as alias_mock:
         result = tasks._list_wp_branch_specs_changes_for_guard(tmp_path, "degod-follow-ups")
     assert result == marker
     alias_mock.assert_called_once_with(worktree_path=tmp_path, base_branch="degod-follow-ups")
@@ -288,15 +268,11 @@ def test_patched_filter_intercepts_list_wp_branch_changes(tmp_path: Path) -> Non
             "specify_cli.core.vcs.git.subprocess.run",
             side_effect=[merge_base, name_only],
         ),
-        patch(
-            f"{_TASKS}._filter_by_planning_tip_content", return_value=marker
-        ) as filter_mock,
+        patch(f"{_TASKS}._filter_by_planning_tip_content", return_value=marker) as filter_mock,
     ):
         result = tasks._list_wp_branch_mission_specs_changes(tmp_path, "degod-follow-ups")
     assert result == marker
-    filter_mock.assert_called_once_with(
-        tmp_path, ["kitty-specs/mission-x/tasks.md"], "degod-follow-ups"
-    )
+    filter_mock.assert_called_once_with(tmp_path, ["kitty-specs/mission-x/tasks.md"], "degod-follow-ups")
 
 
 def test_patched_locate_project_root_intercepts_list_tasks_command() -> None:
@@ -308,9 +284,7 @@ def test_patched_locate_project_root_intercepts_list_tasks_command() -> None:
     """
     runner = CliRunner()
     with patch(f"{_TASKS}.locate_project_root", return_value=None) as locate_mock:
-        result = runner.invoke(
-            tasks.app, ["list-tasks", "--json", "--mission", "mission-x"]
-        )
+        result = runner.invoke(tasks.app, ["list-tasks", "--json", "--mission", "mission-x"])
     assert result.exit_code == 1
     assert '"error": "Could not locate project root"' in result.stdout
     locate_mock.assert_called_once()

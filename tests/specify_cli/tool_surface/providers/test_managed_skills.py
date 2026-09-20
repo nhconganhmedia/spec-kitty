@@ -65,9 +65,7 @@ def _write_manifest(project: Path, entries: list[dict[str, str]]) -> None:
         "spec_kitty_version": "",
         "entries": entries,
     }
-    (kittify / "skills-manifest.json").write_text(
-        json.dumps(payload), encoding="utf-8"
-    )
+    (kittify / "skills-manifest.json").write_text(json.dumps(payload), encoding="utf-8")
 
 
 def _entry(
@@ -108,8 +106,9 @@ def test_project_assessment_exposes_effects_but_blocks_uncoordinated_global_cont
     assert isinstance(provider, AssessingSurfaceProvider)
     consent = ApplyConsent(automatic=True)
     before = snapshot({"sandbox": tmp_path})
-    assessment = provider.assess(AssessmentInputs(OperationRoot("project", "project", project), consent=consent), (),
-                                 selections=(SurfaceSelection("codex", managed_skill_definition()),))
+    assessment = provider.assess(
+        AssessmentInputs(OperationRoot("project", "project", project), consent=consent), (), selections=(SurfaceSelection("codex", managed_skill_definition()),)
+    )
     assert assessment.effects and not assessment.complete
     assert any(item.code == "managed_skills_global_context_required" for item in assessment.diagnostics)
     with provider.recheck(assessment) as diagnostics:
@@ -121,7 +120,10 @@ def test_project_assessment_exposes_effects_but_blocks_uncoordinated_global_cont
 @pytest.mark.parametrize("pointer", [False, True], ids=["legacy", "pointer"])
 @pytest.mark.parametrize("missing", [True, False], ids=["missing-key", "explicit-empty"])
 def test_managed_provisioning_descriptor_admission(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, pointer: bool, missing: bool,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    pointer: bool,
+    missing: bool,
 ) -> None:
     from specify_cli.tool_surface.operations import AssessmentInputs
     from tests.upgrade.preview_support.snapshot import assert_unchanged, net_delta, snapshot
@@ -135,6 +137,7 @@ def test_managed_provisioning_descriptor_admission(
     consent = installation.project_skills.consent
     # Neither the bare provider nor direct installer can skip original paired preflight.
     from specify_cli.skills.installer import apply_skill_installation
+
     for results in (provider.apply_installation(installation, consent), apply_skill_installation(installation, consent)):
         assert all(result.outcome == "precondition_changed" and not result.succeeded for result in results)
     assert_unchanged(before, snapshot({"sandbox": tmp_path}))
@@ -148,28 +151,32 @@ def test_managed_provisioning_descriptor_admission(
     effects = installation.global_assets.effects + installation.project_skills.effects
     assert {effect.id for effect in effects} == {item for result in results for item in result.succeeded}
     delta = net_delta(after_provision, snapshot({"sandbox": tmp_path}))
-    assert {(effect.destination, effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode)
-            for effect in effects} == {
-        (tmp_path / item.path, item.action, item.after.kind, item.after.sha256, item.after.target, item.after.mode)
-        for item in delta
+    assert {(effect.destination, effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode) for effect in effects} == {
+        (tmp_path / item.path, item.action, item.after.kind, item.after.sha256, item.after.target, item.after.mode) for item in delta
     }
     # Actual post-provisioning canonical rendering/selection is identical; no new
     # mission-type selector is invented, and manifest timestamps do not churn.
     steady = snapshot({"sandbox": tmp_path})
     fresh = assess_skill_installation(
-        AssessmentInputs(installation.project_skills.root, consent=consent), registry, installation.agent_keys,
+        AssessmentInputs(installation.project_skills.root, consent=consent),
+        registry,
+        installation.agent_keys,
     )
     assert fresh.project_skills.complete and fresh.global_assets.complete
     assert not fresh.project_skills.effects and not fresh.global_assets.effects
-    assert all(result.outcome == "skipped" and not result.skipped and not result.succeeded
-               for result in provider.apply_installation(fresh, consent))
+    assert all(result.outcome == "skipped" and not result.skipped and not result.succeeded for result in provider.apply_installation(fresh, consent))
     assert_unchanged(steady, snapshot({"sandbox": tmp_path}))
     assert all(result.outcome == "precondition_changed" for result in provider.apply_installation(installation, consent))
 
 
 def _provisioning_installation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, pointer: bool = False, missing: bool = True,
-    *, packaged: bool = False, agents: tuple[str, ...] = ("codex", "copilot"),
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    pointer: bool = False,
+    missing: bool = True,
+    *,
+    packaged: bool = False,
+    agents: tuple[str, ...] = ("codex", "copilot"),
 ) -> tuple[_PreparedMissionTypeActivations, SkillInstallationAssessment, SkillRegistry]:
     from specify_cli.tool_surface.operations import ApplyConsent, AssessmentInputs, OperationRoot
     from tests.upgrade.preview_support.snapshot import assert_unchanged, snapshot
@@ -194,7 +201,8 @@ def _provisioning_installation(
     consent = ApplyConsent(automatic=True)
     installation = assess_skill_installation(
         AssessmentInputs(OperationRoot("project", "project", project), projected=provisioning, consent=consent),
-        registry, agents,
+        registry,
+        agents,
     )
     assert_unchanged(before, snapshot({"sandbox": tmp_path}))
     return provisioning, installation, registry
@@ -202,7 +210,9 @@ def _provisioning_installation(
 
 @pytest.mark.parametrize("changed", ["config", "already-provisioned", "source", "global", "consent", "incomplete"])
 def test_managed_provisioning_original_pair_refuses_before_writes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, changed: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    changed: str,
 ) -> None:
     from dataclasses import replace
     from specify_cli.tool_surface.operations import ApplyConsent
@@ -232,11 +242,24 @@ def test_managed_provisioning_original_pair_refuses_before_writes(
     assert_unchanged(before, snapshot({"sandbox": tmp_path}))
 
 
-@pytest.mark.parametrize("changed", [
-    "not-applied", "bytes", "replace", "mode", "hardlink", "source", "config-pointer", "global", "destination-link",
-])
+@pytest.mark.parametrize(
+    "changed",
+    [
+        "not-applied",
+        "bytes",
+        "replace",
+        "mode",
+        "hardlink",
+        "source",
+        "config-pointer",
+        "global",
+        "destination-link",
+    ],
+)
 def test_managed_provisioning_poststate_refuses_both_before_skill_writes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, changed: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    changed: str,
 ) -> None:
     import os
     from tests.upgrade.preview_support.snapshot import assert_unchanged, snapshot
@@ -245,11 +268,13 @@ def test_managed_provisioning_poststate_refuses_both_before_skill_writes(
     destination = tmp_path / "project/.agents/skills/a/SKILL.md"
     if changed == "destination-link":
         from specify_cli.tool_surface.operations import AssessmentInputs
+
         destination.parent.mkdir(parents=True)
         destination.write_text("user content")
         installation = assess_skill_installation(
             AssessmentInputs(installation.project_skills.root, projected=provisioning, consent=installation.project_skills.consent),
-            registry, installation.agent_keys,
+            registry,
+            installation.agent_keys,
         )
     provider = ManagedSkillsProvider()
     consent = installation.project_skills.consent
@@ -285,7 +310,8 @@ def test_managed_provisioning_poststate_refuses_both_before_skill_writes(
 
 
 def test_managed_provisioning_package_three_families_retains_bytes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from specify_cli.skills import installer
     from specify_cli.tool_surface.operations import AssessmentInputs
@@ -294,12 +320,18 @@ def test_managed_provisioning_package_three_families_retains_bytes(
     provisioning, original, registry = _provisioning_installation(tmp_path, monkeypatch, packaged=True, agents=("codex",))
     consent = original.project_skills.consent
     installation = assess_skill_installation(
-        AssessmentInputs(original.project_skills.root, projected=provisioning, consent=consent), registry, ("codex",),
-        runtime=True, commands=True, command_agent_keys=["claude"],
+        AssessmentInputs(original.project_skills.root, projected=provisioning, consent=consent),
+        registry,
+        ("codex",),
+        runtime=True,
+        commands=True,
+        command_agent_keys=["claude"],
     )
     assert installation.global_assets.complete and installation.project_skills.complete
+
     def forbidden(*args: object, **kwargs: object) -> None:
         raise AssertionError("Apply must not reprepare or rerender")
+
     monkeypatch.setattr(installer, "prepare_mission_type_activations", forbidden)
     monkeypatch.setattr(installer, "ensure_skill_frontmatter", forbidden)
     monkeypatch.setattr(SkillRegistry, "snapshot_catalog", forbidden)
@@ -313,15 +345,15 @@ def test_managed_provisioning_package_three_families_retains_bytes(
     effects = installation.global_assets.effects + installation.project_skills.effects
     assert len(effects) > 300
     assert {effect.id for effect in effects} == {item for result in results for item in result.succeeded}
-    assert {(effect.destination, effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode)
-            for effect in effects} == {
+    assert {(effect.destination, effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode) for effect in effects} == {
         (tmp_path / item.path, item.action, item.after.kind, item.after.sha256, item.after.target, item.after.mode)
         for item in net_delta(before, snapshot({"sandbox": tmp_path}))
     }
 
 
 def test_managed_provisioning_empty_selection_and_context_cleanup(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from tests.upgrade.preview_support.snapshot import assert_unchanged, snapshot
 
@@ -342,16 +374,16 @@ def test_managed_provisioning_empty_selection_and_context_cleanup(
         assert provisioning.apply()
         results = provider.apply_installation(installation, consent)
         assert {result.owner_key: result.outcome for result in results} == {
-            "global_assets": "skipped", "managed_skills": "skipped",
+            "global_assets": "skipped",
+            "managed_skills": "skipped",
         }
         assert not installation.project_skills.effects
-        assert {item for result in results for item in result.succeeded} == {
-            effect.id for effect in installation.project_skills.effects
-        }
+        assert {item for result in results for item in result.succeeded} == {effect.id for effect in installation.project_skills.effects}
 
 
 def test_managed_provisioning_requires_automatic_consent_before_provisioning(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from specify_cli.tool_surface.operations import ApplyConsent, AssessmentInputs
     from tests.upgrade.preview_support.snapshot import assert_unchanged, snapshot
@@ -359,7 +391,9 @@ def test_managed_provisioning_requires_automatic_consent_before_provisioning(
     provisioning, original, registry = _provisioning_installation(tmp_path, monkeypatch)
     consent = ApplyConsent(automatic=False)
     installation = assess_skill_installation(
-        AssessmentInputs(original.project_skills.root, projected=provisioning, consent=consent), registry, ("codex",),
+        AssessmentInputs(original.project_skills.root, projected=provisioning, consent=consent),
+        registry,
+        ("codex",),
     )
     before = snapshot({"sandbox": tmp_path})
     with ManagedSkillsProvider().preflight_installation(installation, consent) as errors:
@@ -368,7 +402,8 @@ def test_managed_provisioning_requires_automatic_consent_before_provisioning(
 
 
 def test_managed_provisioning_shared_update_preserves_unknown_and_unselected(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from specify_cli.tool_surface.operations import AssessmentInputs
     from tests.upgrade.preview_support.snapshot import net_delta, snapshot
@@ -389,11 +424,12 @@ def test_managed_provisioning_shared_update_preserves_unknown_and_unselected(
         path.write_text("user authored, not canonical")
     provisioning = prepare_mission_type_activations(root.path)
     installation = assess_skill_installation(
-        AssessmentInputs(root, projected=provisioning, consent=consent), registry, ("copilot",),
+        AssessmentInputs(root, projected=provisioning, consent=consent),
+        registry,
+        ("copilot",),
     )
     updates = [effect for effect in installation.project_skills.effects if effect.path == ".agents/skills/a/SKILL.md"]
-    backups = [effect for effect in installation.project_skills.effects
-               if ".migration-backup/" in effect.path and effect.after.kind == "file"]
+    backups = [effect for effect in installation.project_skills.effects if ".migration-backup/" in effect.path and effect.after.kind == "file"]
     assert len(updates) == len(backups) == 1
     for effect in (*updates, *backups):
         assert effect.logical_owners == ("codex", "copilot")
@@ -428,7 +464,9 @@ def test_managed_provisioning_shared_update_preserves_unknown_and_unselected(
 
 @pytest.mark.parametrize("authority", ["canonical-source", "skill-manifest"])
 def test_managed_provisioning_rejects_skill_authority_overlap(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, authority: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    authority: str,
 ) -> None:
     from specify_cli.skills.installer import assess_project_skills
     from specify_cli.tool_surface.operations import AssessmentInputs
@@ -449,7 +487,9 @@ def test_managed_provisioning_rejects_skill_authority_overlap(
     before = snapshot({"sandbox": tmp_path})
     provisioning = prepare_mission_type_activations(project)
     assessment = assess_project_skills(
-        AssessmentInputs(original.project_skills.root, projected=provisioning), SkillRegistry(source), ("codex",),
+        AssessmentInputs(original.project_skills.root, projected=provisioning),
+        SkillRegistry(source),
+        ("codex",),
     )
     assert not assessment.complete and any("overlaps" in item.message for item in assessment.diagnostics)
     assert_unchanged(before, snapshot({"sandbox": tmp_path}))
@@ -457,10 +497,15 @@ def test_managed_provisioning_rejects_skill_authority_overlap(
 
 def _bind_consumer_home(home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     for key, suffix in {
-        "HOME": "", "USERPROFILE": "", "SPEC_KITTY_HOME": ".kittify",
-        "XDG_CONFIG_HOME": ".config", "XDG_DATA_HOME": ".local/share",
-        "XDG_STATE_HOME": ".local/state", "XDG_CACHE_HOME": ".cache",
-        "APPDATA": "appdata", "LOCALAPPDATA": "localappdata",
+        "HOME": "",
+        "USERPROFILE": "",
+        "SPEC_KITTY_HOME": ".kittify",
+        "XDG_CONFIG_HOME": ".config",
+        "XDG_DATA_HOME": ".local/share",
+        "XDG_STATE_HOME": ".local/state",
+        "XDG_CACHE_HOME": ".cache",
+        "APPDATA": "appdata",
+        "LOCALAPPDATA": "localappdata",
         "OPENCODE_CONFIG_DIR": ".config/opencode",
     }.items():
         monkeypatch.setenv(key, str(home / suffix))
@@ -468,7 +513,9 @@ def _bind_consumer_home(home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.mark.parametrize("all_families", [False, True])
 def test_coordinated_provider_dispatch_keeps_both_owner_batches(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, all_families: bool,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    all_families: bool,
 ) -> None:
     from specify_cli.skills.installer import assess_skill_installation
     from specify_cli.tool_surface.model import SurfaceSelection
@@ -487,19 +534,26 @@ def test_coordinated_provider_dispatch_keeps_both_owner_batches(
     root = OperationRoot("project", "project", project)
     before = snapshot({"sandbox": tmp_path})
     installation = assess_skill_installation(
-        AssessmentInputs(root, consent=consent), registry, ("codex",),
-        runtime=all_families, commands=all_families, command_agent_keys=["claude"],
+        AssessmentInputs(root, consent=consent),
+        registry,
+        ("codex",),
+        runtime=all_families,
+        commands=all_families,
+        command_agent_keys=["claude"],
     )
     provider = ManagedSkillsProvider(registry_factory=lambda: registry)
-    assessment = provider.assess(AssessmentInputs(root, projected=installation, consent=consent), (),
-                                 selections=(SurfaceSelection("codex", managed_skill_definition()),))
+    assessment = provider.assess(
+        AssessmentInputs(root, projected=installation, consent=consent), (), selections=(SurfaceSelection("codex", managed_skill_definition()),)
+    )
     assert assessment is installation.project_skills and assessment.complete
     assert_unchanged(before, snapshot({"sandbox": tmp_path}))
     dispatched: list[tuple[OwnerAssessment, ...]] = []
     real_dispatch = SurfaceRepairService.apply_assessments
 
     def observe_dispatch(
-        service: SurfaceRepairService, assessments: Sequence[OwnerAssessment], explicit_consent: ApplyConsent,
+        service: SurfaceRepairService,
+        assessments: Sequence[OwnerAssessment],
+        explicit_consent: ApplyConsent,
     ) -> tuple[OwnerApplyResult, ...]:
         dispatched.append(tuple(assessments))
         results: tuple[OwnerApplyResult, ...] = real_dispatch(service, assessments, explicit_consent)
@@ -508,20 +562,24 @@ def test_coordinated_provider_dispatch_keeps_both_owner_batches(
     monkeypatch.setattr(SurfaceRepairService, "apply_assessments", observe_dispatch)
     results = provider.apply_installation(installation, consent)
     assert dispatched == [(installation.global_assets, assessment)]
-    assert all(result.outcome == "applied" for result in results), [
-        (result.owner_key, result.outcome, result.diagnostics) for result in results
-    ]
+    assert all(result.outcome == "applied" for result in results), [(result.owner_key, result.outcome, result.diagnostics) for result in results]
     effects = installation.global_assets.effects + assessment.effects
     assert {effect.id for effect in effects} == {effect_id for result in results for effect_id in result.succeeded}
-    expected = {(effect.destination.relative_to(tmp_path).as_posix(), effect.action, effect.after.kind,
-                 effect.after.sha256, effect.after.target, effect.after.mode) for effect in effects}
-    assert {(effect.path, effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode)
-            for effect in net_delta(before, snapshot({"sandbox": tmp_path}))} == expected
+    expected = {
+        (effect.destination.relative_to(tmp_path).as_posix(), effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode)
+        for effect in effects
+    }
+    assert {
+        (effect.path, effect.action, effect.after.kind, effect.after.sha256, effect.after.target, effect.after.mode)
+        for effect in net_delta(before, snapshot({"sandbox": tmp_path}))
+    } == expected
 
 
 @pytest.mark.parametrize("route", ["direct", "provider", "paired-provider"])
 def test_paired_consumer_config_change_refuses_before_any_write(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, route: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    route: str,
 ) -> None:
     from specify_cli.skills.installer import assess_skill_installation, apply_skill_installation
     from specify_cli.tool_surface.model import SurfaceSelection
@@ -552,14 +610,17 @@ def test_paired_consumer_config_change_refuses_before_any_write(
     else:
         provider = ManagedSkillsProvider(registry_factory=lambda: registry)
         assessment = provider.assess(
-            AssessmentInputs(inputs.root, projected=installation, consent=consent), (),
+            AssessmentInputs(inputs.root, projected=installation, consent=consent),
+            (),
             selections=(SurfaceSelection("codex", managed_skill_definition()),),
         )
         assert assessment is installation.project_skills
         results = (
-            provider.apply_installation(installation, consent) if route == "paired-provider"
+            provider.apply_installation(installation, consent)
+            if route == "paired-provider"
             else SurfaceRepairService([GlobalSkillAssetsProvider(), provider]).apply_assessments(
-                (installation.global_assets, assessment), consent,
+                (installation.global_assets, assessment),
+                consent,
             )
         )
     changes = net_delta(before, snapshot({"sandbox": tmp_path}))
@@ -569,7 +630,8 @@ def test_paired_consumer_config_change_refuses_before_any_write(
 
 
 def test_paired_provider_global_change_refuses_project_and_context_does_not_leak(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from specify_cli.skills.installer import assess_skill_installation
     from specify_cli.tool_surface.operations import ApplyConsent, AssessmentInputs, OperationRoot
@@ -606,7 +668,9 @@ def test_paired_provider_global_change_refuses_project_and_context_does_not_leak
 
 @pytest.mark.parametrize("refusal", ["consent", "incomplete", "dispatch-error"])
 def test_paired_provider_refusal_and_exception_release_context(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, refusal: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    refusal: str,
 ) -> None:
     from dataclasses import replace
     from collections.abc import Sequence
@@ -624,13 +688,18 @@ def test_paired_provider_refusal_and_exception_release_context(
     registry = SkillRegistry(tmp_path / "source")
     consent = ApplyConsent(automatic=True)
     installation = assess_skill_installation(
-        AssessmentInputs(OperationRoot("project", "project", project), consent=consent), registry, ("codex",),
+        AssessmentInputs(OperationRoot("project", "project", project), consent=consent),
+        registry,
+        ("codex",),
     )
     provider = ManagedSkillsProvider(registry_factory=lambda: registry)
     before = snapshot({"sandbox": tmp_path})
     if refusal == "dispatch-error":
+
         def fail_dispatch(
-            service: SurfaceRepairService, assessments: Sequence[OwnerAssessment], explicit_consent: ApplyConsent,
+            service: SurfaceRepairService,
+            assessments: Sequence[OwnerAssessment],
+            explicit_consent: ApplyConsent,
         ) -> tuple[OwnerApplyResult, ...]:
             _ = service, assessments, explicit_consent
             raise RuntimeError("injected dispatch exception")
@@ -639,8 +708,7 @@ def test_paired_provider_refusal_and_exception_release_context(
         with pytest.raises(RuntimeError, match="injected dispatch exception"):
             provider.apply_installation(installation, consent)
     else:
-        changed = (replace(installation, project_skills=replace(installation.project_skills, complete=False))
-                   if refusal == "incomplete" else installation)
+        changed = replace(installation, project_skills=replace(installation.project_skills, complete=False)) if refusal == "incomplete" else installation
         explicit = ApplyConsent(automatic=True, overwrite_paths=(".agents/skills/a/SKILL.md",)) if refusal == "consent" else consent
         results = provider.apply_installation(changed, explicit)
         assert all(result.outcome == "precondition_changed" for result in results)
@@ -653,7 +721,9 @@ def test_paired_provider_refusal_and_exception_release_context(
 
 @pytest.mark.parametrize("dry_run", [True, False])
 def test_real_provider_never_reports_preserved_unknown_content_repaired(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, dry_run: bool,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    dry_run: bool,
 ) -> None:
     from specify_cli.tool_surface.status import SurfaceStatus
     from tests.upgrade.preview_support.snapshot import assert_unchanged, snapshot
@@ -677,7 +747,8 @@ def test_real_provider_never_reports_preserved_unknown_content_repaired(
 
 
 def test_real_provider_partial_failure_reports_paths_not_count_prefix(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from specify_cli.skills import installer
 
@@ -876,9 +947,7 @@ def test_managed_skills_repair_without_manifest_installs_expected(
     assert (home / ".agents/skills/a/SKILL.md").is_file()
     manifest = load_manifest(project)
     assert manifest is not None
-    assert [entry.installed_path for entry in manifest.entries] == [
-        ".agents/skills/a/SKILL.md"
-    ]
+    assert [entry.installed_path for entry in manifest.entries] == [".agents/skills/a/SKILL.md"]
 
 
 class _StubVerifyResult:
@@ -902,9 +971,7 @@ class _StubInstaller:
         self._failed = failed
         self.calls: list[Path] = []
 
-    def repair_skills(
-        self, project_path: Path, verify_result: object, registry: object
-    ) -> tuple[int, int]:
+    def repair_skills(self, project_path: Path, verify_result: object, registry: object) -> tuple[int, int]:
         self.calls.append(project_path)
         return self._repaired, self._failed
 
@@ -1078,9 +1145,7 @@ def _make_real_registry(tool_keys: list[str]) -> object:
     return registry
 
 
-def test_doctrine_vs_command_skill_in_doctor_output(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctrine_vs_command_skill_in_doctor_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """doctor tool-surfaces output separates doctrine and command kinds."""
     import specify_cli.tool_surface.service as svc
 
@@ -1098,9 +1163,7 @@ def test_doctrine_vs_command_skill_in_doctor_output(
         [_entry("codex", ".agents/skills/a/SKILL.md", h1, skill_name="a")],
     )
     # An empty command-skills manifest so the command-skill provider runs too.
-    (tmp_path / ".kittify" / "command-skills-manifest.json").write_text(
-        json.dumps({"schema_version": 1, "entries": []}), encoding="utf-8"
-    )
+    (tmp_path / ".kittify" / "command-skills-manifest.json").write_text(json.dumps({"schema_version": 1, "entries": []}), encoding="utf-8")
     outcome = run_tool_surfaces(tmp_path, ["codex"])
     kinds = {s.instance.definition.kind for s in outcome.report.surfaces}
     assert ToolSurfaceKind.DOCTRINE_SKILL in kinds
@@ -1111,9 +1174,7 @@ def test_doctrine_vs_command_skill_in_doctor_output(
     assert "command_skill" in surface_kinds
 
 
-def test_run_tool_surfaces_kind_filter_doctrine_only(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_tool_surfaces_kind_filter_doctrine_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.tool_surface.service as svc
     from specify_cli.tool_surface.service import run_tool_surfaces
 
@@ -1134,9 +1195,7 @@ def test_run_tool_surfaces_kind_filter_doctrine_only(
         tmp_path,
         [_entry("codex", ".agents/skills/a/SKILL.md", h1, skill_name="a")],
     )
-    (tmp_path / ".kittify" / "command-skills-manifest.json").write_text(
-        json.dumps({"schema_version": 1, "entries": []}), encoding="utf-8"
-    )
+    (tmp_path / ".kittify" / "command-skills-manifest.json").write_text(json.dumps({"schema_version": 1, "entries": []}), encoding="utf-8")
     kind = svc.surface_kind_from_token("doctrine-skill")
     assert kind == ToolSurfaceKind.DOCTRINE_SKILL
     outcome = run_tool_surfaces(tmp_path, ["codex"], kinds=[kind])
@@ -1476,7 +1535,10 @@ def test_shared_parent_composition_rejects_error_bearing_complete_owner(
 @pytest.mark.parametrize("missing_parent", [False, True])
 @pytest.mark.parametrize("damage", [None, "unapplied", "replace", "hardlink", "parent", "source"])
 def test_absent_authority_paired_owners_require_canonical_creation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, missing_parent: bool, damage: str | None,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    missing_parent: bool,
+    damage: str | None,
 ) -> None:
     import os
     from specify_cli.skills.command_installer import prepare_commands
@@ -1523,13 +1585,13 @@ def test_absent_authority_paired_owners_require_canonical_creation(
         assert not (project / ".agents/skills").exists()
         assert not (project / ".kittify/skills-manifest.json").exists()
     else:
-        assert all(result.outcome in {"applied", "skipped"} for result in results), [
-            (result.owner_key, result.diagnostics) for result in results
-        ]
+        assert all(result.outcome in {"applied", "skipped"} for result in results), [(result.owner_key, result.diagnostics) for result in results]
         assert (project / ".kittify/skills-manifest.json").exists()
         steady = snapshot({"sandbox": tmp_path})
         fresh = assess_skill_installation(
-            AssessmentInputs(inputs.root, consent=consent), SkillRegistry.from_package(), ("codex",),
+            AssessmentInputs(inputs.root, consent=consent),
+            SkillRegistry.from_package(),
+            ("codex",),
         )
         assert fresh.project_skills.complete and not fresh.project_skills.effects
         assert fresh.global_assets.complete and not fresh.global_assets.effects

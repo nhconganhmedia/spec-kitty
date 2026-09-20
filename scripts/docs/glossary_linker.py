@@ -89,9 +89,7 @@ GLOSSARY_LINK_CLASS = "glossary-link"
 # metadata: a ``<title>`` must be plain text, and linking it also desynchronises
 # it from the ``og:title`` meta the SEO verifier pins to the plain title (V-09).
 SKIP_TAG_NAMES: Final[frozenset[str]] = frozenset({"code", "pre", "script", "style", "a", "head", "title"})
-VOID_ELEMENTS: Final[frozenset[str]] = frozenset(
-    {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
-)
+VOID_ELEMENTS: Final[frozenset[str]] = frozenset({"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"})
 
 _TAG_SPLIT_RE = re.compile(r"(<[^>]+>)")
 _TAG_NAME_RE = re.compile(r"^</?\s*([a-zA-Z][a-zA-Z0-9:_-]*)")
@@ -165,9 +163,7 @@ def _is_self_closing_tag(token: str, name: str | None) -> bool:
     return token.rstrip().endswith("/>") or name in VOID_ELEMENTS
 
 
-def _replace_first_mentions(
-    text: str, pattern: re.Pattern[str], term_by_key: dict[str, LinkTerm], linked: set[str]
-) -> tuple[str, int]:
+def _replace_first_mentions(text: str, pattern: re.Pattern[str], term_by_key: dict[str, LinkTerm], linked: set[str]) -> tuple[str, int]:
     """Link the first not-yet-linked term match in ``text``; leave the rest untouched."""
     added = 0
 

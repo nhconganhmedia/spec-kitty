@@ -118,9 +118,7 @@ _STATUS_PHASE_KEY = "status_phase"
 
 #: Remediation hint appended to every fail-closed abort message (T007) --
 #: hoisted so it is defined exactly once (Sonar S1192).
-_REMEDIATION_TEMPLATE = (
-    "run `spec-kitty migrate backfill-runtime-state --mission {slug} --dry-run` to inspect"
-)
+_REMEDIATION_TEMPLATE = "run `spec-kitty migrate backfill-runtime-state --mission {slug} --dry-run` to inspect"
 
 
 def _iter_mission_dirs(project_path: Path) -> list[Path]:
@@ -194,15 +192,10 @@ def _failure_detail(result: CutoverResult) -> str:
 def _abort_message(result: CutoverResult) -> str:
     """Operator-actionable abort message naming the mission and the mismatch (NFR-005)."""
     remediation = _REMEDIATION_TEMPLATE.format(slug=result.slug)
-    return (
-        f"Runtime-state cutover aborted: mission {result.slug!r} failed fail-closed "
-        f"verify ({_failure_detail(result)}); {remediation}"
-    )
+    return f"Runtime-state cutover aborted: mission {result.slug!r} failed fail-closed verify ({_failure_detail(result)}); {remediation}"
 
 
-def _cutover_corpus(
-    missions: list[Path], *, dry_run: bool
-) -> tuple[list[CutoverResult], str | None]:
+def _cutover_corpus(missions: list[Path], *, dry_run: bool) -> tuple[list[CutoverResult], str | None]:
     """Walk *missions* calling :func:`cutover_mission`, aborting on the first failure.
 
     Returns ``(results, abort_message)``. ``abort_message`` is ``None`` on a
@@ -232,9 +225,7 @@ def _cutover_corpus(
             # (carried on the exception) so _partial_writes below reports the
             # genuine on-disk residue instead of silently under-reporting it
             # via a fresh CutoverResult defaulting seeded_count back to 0.
-            result = CutoverResult(
-                slug=feature_dir.name, flipped=False, error=str(exc), seeded_count=exc.seeded_count
-            )
+            result = CutoverResult(slug=feature_dir.name, flipped=False, error=str(exc), seeded_count=exc.seeded_count)
         results.append(result)
         if _mission_failed(result, dry_run=dry_run):
             return results, _abort_message(result)
@@ -265,13 +256,9 @@ def _partial_writes(results: list[CutoverResult], project_path: Path) -> list[Pa
     for result in results:
         mission_dir = kitty_specs / result.slug
         if result.seeded_count > 0:
-            writes.append(
-                PartialWrite(mission=result.slug, path=str(mission_dir / _STATUS_EVENTS_FILENAME))
-            )
+            writes.append(PartialWrite(mission=result.slug, path=str(mission_dir / _STATUS_EVENTS_FILENAME)))
         if result.flipped:
-            writes.append(
-                PartialWrite(mission=result.slug, path=str(mission_dir / _META_FILENAME))
-            )
+            writes.append(PartialWrite(mission=result.slug, path=str(mission_dir / _META_FILENAME)))
     return writes
 
 
@@ -337,9 +324,7 @@ class RuntimeStateBackfillMigration(BaseMigration):
                 partial_writes=_partial_writes(results, project_path),
             )
 
-        return MigrationResult(
-            success=True, changes_made=_summarize_changes(results, dry_run=dry_run)
-        )
+        return MigrationResult(success=True, changes_made=_summarize_changes(results, dry_run=dry_run))
 
 
 __all__ = ["RuntimeStateBackfillMigration"]

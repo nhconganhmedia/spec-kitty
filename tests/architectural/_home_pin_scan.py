@@ -233,20 +233,12 @@ def find_module_references(tree: ast.Module, *, names: frozenset[str]) -> set[tu
     hits: set[tuple[str, int]] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            hits |= {
-                (alias.name.split(".")[0], node.lineno)
-                for alias in node.names
-                if alias.name.split(".")[0] in names
-            }
+            hits |= {(alias.name.split(".")[0], node.lineno) for alias in node.names if alias.name.split(".")[0] in names}
         elif isinstance(node, ast.ImportFrom) and node.module is not None:
             root = node.module.split(".")[0]
             if root in names:
                 hits.add((root, node.lineno))
-        elif (
-            isinstance(node, ast.Attribute)
-            and isinstance(node.value, ast.Name)
-            and node.value.id in names
-        ):
+        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id in names:
             hits.add((node.value.id, node.lineno))
     return hits
 
@@ -488,9 +480,7 @@ def module_level_bindings(tree: ast.Module) -> dict[str, ast.expr]:
 def _binding_pairs(node: ast.AST) -> list[tuple[str, ast.expr]]:
     """``(name, value)`` pairs a single node binds, for the three binding statements modelled."""
     if isinstance(node, ast.Assign):
-        return [
-            (target.id, node.value) for target in node.targets if isinstance(target, ast.Name)
-        ]
+        return [(target.id, node.value) for target in node.targets if isinstance(target, ast.Name)]
     if isinstance(node, ast.AnnAssign) and node.value is not None:
         return [(node.target.id, node.value)] if isinstance(node.target, ast.Name) else []
     if isinstance(node, ast.withitem) and isinstance(node.optional_vars, ast.Name):
@@ -500,11 +490,7 @@ def _binding_pairs(node: ast.AST) -> list[tuple[str, ast.expr]]:
 
 def withitem_bound_names(tree: ast.Module) -> frozenset[str]:
     """Names bound by a ``with … as`` item — the receivers ``WITHITEM-VALUE-REF`` is about."""
-    return frozenset(
-        node.optional_vars.id
-        for node in ast.walk(tree)
-        if isinstance(node, ast.withitem) and isinstance(node.optional_vars, ast.Name)
-    )
+    return frozenset(node.optional_vars.id for node in ast.walk(tree) if isinstance(node, ast.withitem) and isinstance(node.optional_vars, ast.Name))
 
 
 def resolve_value(node: ast.AST, bindings: Mapping[str, ast.AST]) -> str | None:
@@ -532,9 +518,7 @@ def _resolve(node: ast.AST, bindings: Mapping[str, ast.AST], seen: frozenset[str
     return None
 
 
-def _resolve_name(
-    node: ast.Name, bindings: Mapping[str, ast.AST], seen: frozenset[str]
-) -> str | None:
+def _resolve_name(node: ast.Name, bindings: Mapping[str, ast.AST], seen: frozenset[str]) -> str | None:
     if node.id in OWNER_PARAM_NAMES:
         return TMP_PATH
     bound = bindings.get(node.id)
@@ -543,9 +527,7 @@ def _resolve_name(
     return _resolve(bound, bindings, seen | {node.id})
 
 
-def _resolve_joined(
-    node: ast.JoinedStr, bindings: Mapping[str, ast.AST], seen: frozenset[str]
-) -> str | None:
+def _resolve_joined(node: ast.JoinedStr, bindings: Mapping[str, ast.AST], seen: frozenset[str]) -> str | None:
     parts: list[str] = []
     for value in node.values:
         if isinstance(value, ast.Constant) and isinstance(value.value, str):
@@ -560,9 +542,7 @@ def _resolve_joined(
     return "".join(parts)
 
 
-def _resolve_call(
-    node: ast.Call, bindings: Mapping[str, ast.AST], seen: frozenset[str]
-) -> str | None:
+def _resolve_call(node: ast.Call, bindings: Mapping[str, ast.AST], seen: frozenset[str]) -> str | None:
     callee = _callee_name(node.func)
     if callee is None:
         return None
@@ -589,9 +569,7 @@ def _is_os_path(node: ast.expr) -> bool:
     return isinstance(node, ast.Name) and node.id == "path"
 
 
-def _resolve_binop(
-    node: ast.BinOp, bindings: Mapping[str, ast.AST], seen: frozenset[str]
-) -> str | None:
+def _resolve_binop(node: ast.BinOp, bindings: Mapping[str, ast.AST], seen: frozenset[str]) -> str | None:
     left = _resolve(node.left, bindings, seen)
     if left is None:
         return None
@@ -661,9 +639,7 @@ def _apply_percent(
     return result
 
 
-def value_sub_forms(
-    node: ast.expr, bindings: Mapping[str, ast.AST], *, withitem_names: frozenset[str]
-) -> frozenset[str]:
+def value_sub_forms(node: ast.expr, bindings: Mapping[str, ast.AST], *, withitem_names: frozenset[str]) -> frozenset[str]:
     """Which widened value sub-forms a value expression uses, following its bindings.
 
     The tokens are the suffixes FR-007's table names — ``OSPATHJOIN`` / ``PERCENT`` / ``FORMAT``
@@ -752,10 +728,7 @@ class Attribution:
 def def_chain(tree: ast.Module, lineno: int) -> tuple[FunctionNode, ...]:
     """The enclosing ``def``/``async def`` chain containing ``lineno``, **outermost first**."""
     enclosing = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and node.lineno <= lineno <= (node.end_lineno or node.lineno)
+        node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.lineno <= lineno <= (node.end_lineno or node.lineno)
     ]
     return tuple(sorted(enclosing, key=lambda node: node.lineno))
 
@@ -936,8 +909,7 @@ def discover(root: Path, *, prefilter: bool = True) -> set[Member]:
     than silently deduplicating.
     """
     keyed: list[tuple[MemberKey, _SiteRecord]] = [
-        (member_key(record.relpath, record.source, record.site.lineno), record)
-        for record in _scan_records(root, prefilter)
+        (member_key(record.relpath, record.source, record.site.lineno), record) for record in _scan_records(root, prefilter)
     ]
     _assert_exactly_one(keyed)
     return {
@@ -993,9 +965,7 @@ def _assert_exactly_one(keyed: Sequence[tuple[MemberKey, _SiteRecord]]) -> None:
     )
 
 
-def kind_distribution(
-    root: Path, *, at: Literal["keyed", "innermost"] = "keyed", prefilter: bool = True
-) -> dict[str, int]:
+def kind_distribution(root: Path, *, at: Literal["keyed", "innermost"] = "keyed", prefilter: bool = True) -> dict[str, int]:
     """The ``kind`` distribution at the **keyed** def or at the **innermost** def.
 
     C-012(4): **this mapping, not the key set, is how C-004 is mechanised.** Measured over the
@@ -1093,17 +1063,13 @@ def inert_hits(limb_id: str, root: Path) -> set[tuple[str, int]]:
         key, token = _VALUE_SUB_FORM_IDS[limb_id]
         return _value_sub_form_hits(corpus, key=key, token=token)
     if limb_id == "WITHITEM-VALUE-REF":
-        return _value_sub_form_hits(corpus, key=NEEDLE, token="WITHITEM-REF") | _value_sub_form_hits(
-            corpus, key=HOME_KEY, token="WITHITEM-REF"
-        )
+        return _value_sub_form_hits(corpus, key=NEEDLE, token="WITHITEM-REF") | _value_sub_form_hits(corpus, key=HOME_KEY, token="WITHITEM-REF")
     if limb_id == "SCOPE-EXPLICIT":
         return _scope_explicit_hits(corpus)
     return _assignment_bound_key_hits(corpus)
 
 
-def bindings_for_site(
-    tree: ast.Module, site: WriteSite, module_bindings: Mapping[str, ast.expr]
-) -> dict[str, ast.expr]:
+def bindings_for_site(tree: ast.Module, site: WriteSite, module_bindings: Mapping[str, ast.expr]) -> dict[str, ast.expr]:
     """Module-level bindings overlaid with the site's own outermost enclosing ``def`` scope.
 
     **One assembler, used by both consumers.** ``discover`` and the inert-registry matchers need
@@ -1115,9 +1081,7 @@ def bindings_for_site(
     return {**module_bindings, **collect_bindings(scope)}
 
 
-def _write_form_hits(
-    corpus: Corpus, *, key: str, form: WriteForm, bare: bool | None
-) -> set[tuple[str, int]]:
+def _write_form_hits(corpus: Corpus, *, key: str, form: WriteForm, bare: bool | None) -> set[tuple[str, int]]:
     hits: set[tuple[str, int]] = set()
     for relpath, tree in corpus:
         for site in find_write_sites(tree, key=key):
@@ -1167,9 +1131,7 @@ def _scope_explicit_hits(corpus: Corpus) -> set[tuple[str, int]]:
 
 def _has_explicit_scope(node: FunctionNode) -> bool:
     return any(
-        isinstance(decorator, ast.Call)
-        and _decorator_name(decorator) == "fixture"
-        and any(keyword.arg == "scope" for keyword in decorator.keywords)
+        isinstance(decorator, ast.Call) and _decorator_name(decorator) == "fixture" and any(keyword.arg == "scope" for keyword in decorator.keywords)
         for decorator in node.decorator_list
     )
 
@@ -1227,8 +1189,7 @@ GENERATED_BY = "tests/architectural/_home_pin_scan.py"
 #: flag sends them nowhere at all. ``test_the_shipped_regeneration_command_names_every_flag_it_needs``
 #: PARSES this string against :func:`build_parser` rather than eyeballing it.
 REGENERATION_COMMAND = (
-    "python -m tests.architectural._home_pin_scan --root tests --frozen-at-sha <sha> "
-    "--owed-to '#3121' --exempt-module tests.architectural._home_pin_exempt"
+    "python -m tests.architectural._home_pin_scan --root tests --frozen-at-sha <sha> --owed-to '#3121' --exempt-module tests.architectural._home_pin_exempt"
 )
 CENSUS_PATH = "tests/architectural/census/spec_kitty_home_pin_R1a.yaml"
 BASELINE_PATH = "tests/architectural/spec_kitty_home_pin_baseline.yaml"
@@ -1328,8 +1289,7 @@ def _render_fragility_note(fragility: Sequence[Fragility]) -> str:
         f"{row.relpath}:{row.lineno} (held by unused "
         f"{', '.join(sorted(row.unused_silhouette_params))}"
         + (
-            "; MemberKey qualname is the INNERMOST scope and differs from the keyed def "
-            f"`{row.keyed_qualname}`, so this row is also C-004's only real-tree witness"
+            f"; MemberKey qualname is the INNERMOST scope and differs from the keyed def `{row.keyed_qualname}`, so this row is also C-004's only real-tree witness"
             if row.key_qualname_differs
             else ""
         )
@@ -1337,8 +1297,7 @@ def _render_fragility_note(fragility: Sequence[Fragility]) -> str:
         for row in fragility
     )
     return (
-        f"{FRAGILITY_NOTE_BASE} KNOWN-FRAGILE ROWS, named by the generator: {entries}. Removing "
-        "the unused parameter drops the row from the class with nothing red."
+        f"{FRAGILITY_NOTE_BASE} KNOWN-FRAGILE ROWS, named by the generator: {entries}. Removing the unused parameter drops the row from the class with nothing red."
     )
 
 
@@ -1357,9 +1316,7 @@ def _key_set_payload(keys: Iterable[MemberKey]) -> str:
     return "\n".join("\t".join(key) for key in sorted(keys))
 
 
-def render_census(
-    members: Iterable[Member], *, sha: str, owed_to: str, fragility: Sequence[Fragility] = ()
-) -> str:
+def render_census(members: Iterable[Member], *, sha: str, owed_to: str, fragility: Sequence[Fragility] = ()) -> str:
     """The frozen census: a header of scalars and one row per member, sorted by key.
 
     Row columns are exactly ``{key, lineno, kind, home_partition}``. ``frozen_at_sha`` and
@@ -1500,8 +1457,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     live_tombstones = tombstones & {member.key for member in census_members}
     if live_tombstones:
         raise SystemExit(
-            "tombstone manifest names members whose pin is still in the tree (a tombstone requires a "
-            f"real removal, not a hidden one): {sorted(live_tombstones)}"
+            f"tombstone manifest names members whose pin is still in the tree (a tombstone requires a real removal, not a hidden one): {sorted(live_tombstones)}"
         )
 
     args.census_out.parent.mkdir(parents=True, exist_ok=True)
@@ -1515,9 +1471,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
         encoding="utf-8",
     )
-    args.baseline_out.write_text(
-        render_baseline(census_members, exempt=exempt, tombstones=tombstones), encoding="utf-8"
-    )
+    args.baseline_out.write_text(render_baseline(census_members, exempt=exempt, tombstones=tombstones), encoding="utf-8")
     return 0
 
 

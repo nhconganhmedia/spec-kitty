@@ -97,17 +97,21 @@ def _make_coord_mission(repo_root: Path) -> dict[str, Any]:
     # distinct status file so we can tell it apart from the primary
     # checkout's view.
     coord_path = CoordinationWorkspace.resolve(
-        repo_root, f"{mission_slug}-{mid8}", mid8,
+        repo_root,
+        f"{mission_slug}-{mid8}",
+        mid8,
     )
     coord_feature_dir = coord_path / "kitty-specs" / f"{mission_slug}-{mid8}"
     coord_feature_dir.mkdir(parents=True, exist_ok=True)
     (coord_feature_dir / "status.json").write_text(
-        json.dumps({"source": "coord"}, indent=2), encoding="utf-8",
+        json.dumps({"source": "coord"}, indent=2),
+        encoding="utf-8",
     )
     # And drop a divergent file in the primary checkout to prove the
     # resolver does not return it.
     (feature_dir / "status.json").write_text(
-        json.dumps({"source": "primary"}, indent=2), encoding="utf-8",
+        json.dumps({"source": "primary"}, indent=2),
+        encoding="utf-8",
     )
 
     # Build a lane worktree the operator can stand in.
@@ -152,7 +156,8 @@ def _make_legacy_mission(repo_root: Path) -> dict[str, Any]:
         encoding="utf-8",
     )
     (feature_dir / "status.json").write_text(
-        json.dumps({"source": "primary"}, indent=2), encoding="utf-8",
+        json.dumps({"source": "primary"}, indent=2),
+        encoding="utf-8",
     )
     _run(repo_root, "git", "add", "kitty-specs")
     _run(repo_root, "git", "commit", "-m", "seed legacy mission")
@@ -196,7 +201,9 @@ def test_resolver_prefers_coord_worktree(
 ) -> None:
     """The resolver returns the coord worktree when one exists on disk."""
     resolved = resolve_mission_read_path(
-        repo_root, coord_mission["mission_slug"], coord_mission["mid8"],
+        repo_root,
+        coord_mission["mission_slug"],
+        coord_mission["mid8"],
     )
     assert resolved == coord_mission["coord_feature_dir"]
     # Confirm it carries the coord-source status.json.
@@ -210,7 +217,9 @@ def test_resolver_falls_back_to_primary_for_legacy(
 ) -> None:
     """A legacy mission with no coord worktree falls back to the primary checkout."""
     resolved = resolve_mission_read_path(
-        repo_root, legacy_mission["mission_slug"], legacy_mission["mid8"],
+        repo_root,
+        legacy_mission["mission_slug"],
+        legacy_mission["mid8"],
     )
     assert resolved == legacy_mission["primary_feature_dir"]
     data = json.loads((resolved / "status.json").read_text())
@@ -223,7 +232,10 @@ def test_resolver_raises_when_required_and_missing(
     """``require_exists=True`` surfaces ``STATUS_READ_PATH_NOT_FOUND``."""
     with pytest.raises(StatusReadPathNotFound) as exc_info:
         resolve_mission_read_path(
-            repo_root, "no-such-mission", "01XXXXXX", require_exists=True,
+            repo_root,
+            "no-such-mission",
+            "01XXXXXX",
+            require_exists=True,
         )
     assert exc_info.value.error_code == STATUS_READ_PATH_NOT_FOUND_CODE
 
@@ -238,13 +250,17 @@ def test_resolver_is_cwd_independent(
     # From primary root
     monkeypatch.chdir(repo_root)
     from_primary = resolve_mission_read_path(
-        repo_root, coord_mission["mission_slug"], coord_mission["mid8"],
+        repo_root,
+        coord_mission["mission_slug"],
+        coord_mission["mid8"],
     )
 
     # From inside the lane worktree
     monkeypatch.chdir(coord_mission["lane_worktree"])
     from_lane = resolve_mission_read_path(
-        repo_root, coord_mission["mission_slug"], coord_mission["mid8"],
+        repo_root,
+        coord_mission["mission_slug"],
+        coord_mission["mid8"],
     )
 
     # From an unrelated CWD
@@ -252,7 +268,9 @@ def test_resolver_is_cwd_independent(
     unrelated.mkdir()
     monkeypatch.chdir(unrelated)
     from_random = resolve_mission_read_path(
-        repo_root, coord_mission["mission_slug"], coord_mission["mid8"],
+        repo_root,
+        coord_mission["mission_slug"],
+        coord_mission["mid8"],
     )
 
     assert from_primary == from_lane == from_random == coord_mission["coord_feature_dir"]

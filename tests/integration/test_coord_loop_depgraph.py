@@ -56,10 +56,7 @@ def _make_wp_task_content(wp_id: str, *, dependencies: list[str] | None = None) 
     dep_lines = ""
     if dependencies:
         dep_lines = "dependencies:\n" + "".join(f"- {d}\n" for d in dependencies)
-    return (
-        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} test task\n"
-        f"{dep_lines}---\n# {wp_id}\n"
-    )
+    return f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} test task\n{dep_lines}---\n# {wp_id}\n"
 
 
 def _mock_workspace(branch_name: str | None = None) -> MagicMock:
@@ -81,9 +78,7 @@ class TestCheckDependentWarningsRoutesToPrimary:
     compute_incomplete_dependents reads status events from the coord-aware feature_dir.
     """
 
-    def test_red_proof_coord_husk_has_no_tasks_dir(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_red_proof_coord_husk_has_no_tasks_dir(self, coord_topology_mission: CoordTopologyContext) -> None:
         """Gate-blind RED proof: pre-fix, coord-aware resolver returns husk with no tasks/.
 
         Before WP06, ``_check_dependent_warnings`` called
@@ -104,18 +99,13 @@ class TestCheckDependentWarningsRoutesToPrimary:
 
         # The coord-aware resolver returns the husk (status-only).
         pre_fix_path = candidate_feature_dir_for_mission(ctx.repo, ctx.slug)
-        assert pre_fix_path == ctx.coord_feature_dir, (
-            "RED anchor: coord-aware resolver must return the coord husk"
-        )
+        assert pre_fix_path == ctx.coord_feature_dir, "RED anchor: coord-aware resolver must return the coord husk"
         # The husk has no tasks/ — build_dependency_graph(husk) returns {}.
         assert not (pre_fix_path / "tasks").exists(), (
-            "RED anchor: tasks/ must be absent from coord husk; "
-            "build_dependency_graph(husk) would return {} → no warning even with WP02 dep"
+            "RED anchor: tasks/ must be absent from coord husk; build_dependency_graph(husk) would return {} → no warning even with WP02 dep"
         )
 
-    def test_dependency_warning_reads_graph_from_primary(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_dependency_warning_reads_graph_from_primary(self, coord_topology_mission: CoordTopologyContext) -> None:
         """GREEN: _check_dependent_warnings prints WP02 warning when dep found on PRIMARY.
 
         Setup: WP02.md with ``dependencies: [WP01]`` is added to PRIMARY tasks/.
@@ -160,9 +150,7 @@ class TestCheckDependentWarningsRoutesToPrimary:
         seen: dict[MissionArtifactKind, Path] = {}
         real_read_dir = PlacementSeam.read_dir
 
-        def _spy_read_dir(
-            seam: PlacementSeam, kind: MissionArtifactKind
-        ) -> Path:
+        def _spy_read_dir(seam: PlacementSeam, kind: MissionArtifactKind) -> Path:
             resolved: Path = real_read_dir(seam, kind)
             seen[kind] = resolved
             return resolved
@@ -177,12 +165,8 @@ class TestCheckDependentWarningsRoutesToPrimary:
                 f"{module}.console",
             ) as mock_console,
         ):
-            mock_console.print.side_effect = lambda *a, **kw: printed_args.append(
-                " ".join(str(x) for x in a)
-            )
-            _check_dependent_warnings(
-                ctx.repo, ctx.slug, "WP01", "for_review", json_mode=False
-            )
+            mock_console.print.side_effect = lambda *a, **kw: printed_args.append(" ".join(str(x) for x in a))
+            _check_dependent_warnings(ctx.repo, ctx.slug, "WP01", "for_review", json_mode=False)
 
         # The dependency warning must mention WP02 — proves graph was built from PRIMARY.
         assert any("WP02" in msg for msg in printed_args), (
@@ -197,9 +181,7 @@ class TestCheckDependentWarningsRoutesToPrimary:
         assert seen[MissionArtifactKind.WORK_PACKAGE_TASK] == ctx.primary_feature_dir
         assert seen[MissionArtifactKind.STATUS_STATE] == ctx.coord_feature_dir
 
-    def test_neutrality_flat_topology(
-        self, flat_topology_mission: FlatTopologyContext
-    ) -> None:
+    def test_neutrality_flat_topology(self, flat_topology_mission: FlatTopologyContext) -> None:
         """Flat topology: _check_dependent_warnings returns silently when no dependents."""
         from specify_cli.cli.commands.agent.tasks_dependency_graph import (
             _check_dependent_warnings,
@@ -217,18 +199,10 @@ class TestCheckDependentWarningsRoutesToPrimary:
             patch(f"{module}.resolve_workspace_for_wp", return_value=_mock_workspace()),
             patch(f"{module}.console") as mock_console,
         ):
-            _check_dependent_warnings(
-                ctx.repo, ctx.slug, "WP01", "for_review", json_mode=False
-            )
+            _check_dependent_warnings(ctx.repo, ctx.slug, "WP01", "for_review", json_mode=False)
             # No dependents declared → no print calls about dependents.
-            dep_prints = [
-                " ".join(str(a) for a in call.args)
-                for call in mock_console.print.call_args_list
-                if "depend on" in " ".join(str(a) for a in call.args)
-            ]
-            assert not dep_prints, (
-                f"Unexpected dependency warning on flat topology: {dep_prints}"
-            )
+            dep_prints = [" ".join(str(a) for a in call.args) for call in mock_console.print.call_args_list if "depend on" in " ".join(str(a) for a in call.args)]
+            assert not dep_prints, f"Unexpected dependency warning on flat topology: {dep_prints}"
 
 
 # ---------------------------------------------------------------------------
@@ -244,9 +218,7 @@ class TestValidateReadyForReviewRoutesToPrimary:
     repo returns EMPTY (linked worktrees are not tracked by the main repo's git status).
     """
 
-    def test_red_proof_husk_invisible_to_main_repo_git_status(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_red_proof_husk_invisible_to_main_repo_git_status(self, coord_topology_mission: CoordTopologyContext) -> None:
         """Gate-blind RED proof: pre-fix, dirty primary research.md bypasses the gate.
 
         Before WP06, ``feature_dir = resolve_feature_dir_for_mission(...)`` returned
@@ -264,9 +236,7 @@ class TestValidateReadyForReviewRoutesToPrimary:
         ctx = coord_topology_mission
 
         # Coord husk carries no meta.json (planning artifacts are on PRIMARY only).
-        assert not (ctx.coord_feature_dir / "meta.json").exists(), (
-            "RED anchor: meta.json must be absent from coord husk"
-        )
+        assert not (ctx.coord_feature_dir / "meta.json").exists(), "RED anchor: meta.json must be absent from coord husk"
 
         # Write a dirty research.md to PRIMARY (not committed → dirty).
         research_file = ctx.primary_feature_dir / "research.md"
@@ -290,9 +260,7 @@ class TestValidateReadyForReviewRoutesToPrimary:
         # Cleanup — leave primary dirty for the GREEN test.
         research_file.unlink()
 
-    def test_research_artifact_check_blocks_on_dirty_primary(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_research_artifact_check_blocks_on_dirty_primary(self, coord_topology_mission: CoordTopologyContext) -> None:
         """GREEN: _validate_ready_for_review detects dirty research.md on PRIMARY.
 
         After WP06, ``feature_dir = resolve_planning_read_dir(kind=RESEARCH)`` →
@@ -344,22 +312,15 @@ class TestValidateReadyForReviewRoutesToPrimary:
             if research_file.exists():
                 research_file.unlink()
 
-        assert not is_valid, (
-            "After WP06, _validate_ready_for_review must detect the dirty research.md "
-            "on PRIMARY and return is_valid=False."
-        )
-        assert guidance, (
-            "Expected non-empty guidance list when blocking dirty files are found on PRIMARY."
-        )
+        assert not is_valid, "After WP06, _validate_ready_for_review must detect the dirty research.md on PRIMARY and return is_valid=False."
+        assert guidance, "Expected non-empty guidance list when blocking dirty files are found on PRIMARY."
         # At least one guidance line should mention the file or advise git commit.
         guidance_text = "\n".join(guidance)
         assert "kitty-specs" in guidance_text or "research.md" in guidance_text or "uncommitted" in guidance_text.lower(), (
             f"Guidance text should reference the research artifacts.\nGot: {guidance_text}"
         )
 
-    def test_research_gate_passes_when_primary_is_clean(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_research_gate_passes_when_primary_is_clean(self, coord_topology_mission: CoordTopologyContext) -> None:
         """GREEN neutrality: gate passes when no dirty files exist on PRIMARY."""
         from specify_cli.cli.commands.agent.tasks_parsing_validation import (
             _validate_ready_for_review,
@@ -390,16 +351,10 @@ class TestValidateReadyForReviewRoutesToPrimary:
             console=_SilentConsole(),
         )
 
-        assert is_valid, (
-            f"Gate must pass when PRIMARY is clean.\nguidance: {guidance}"
-        )
-        assert guidance == [], (
-            f"No blocking guidance expected when PRIMARY is clean.\nguidance: {guidance}"
-        )
+        assert is_valid, f"Gate must pass when PRIMARY is clean.\nguidance: {guidance}"
+        assert guidance == [], f"No blocking guidance expected when PRIMARY is clean.\nguidance: {guidance}"
 
-    def test_neutrality_flat_topology_clean_primary(
-        self, flat_topology_mission: FlatTopologyContext
-    ) -> None:
+    def test_neutrality_flat_topology_clean_primary(self, flat_topology_mission: FlatTopologyContext) -> None:
         """Flat topology: gate passes when primary is clean (no regression)."""
         from specify_cli.cli.commands.agent.tasks_parsing_validation import (
             _validate_ready_for_review,
@@ -429,9 +384,7 @@ class TestValidateReadyForReviewRoutesToPrimary:
             console=_SilentConsole(),
         )
 
-        assert is_valid, (
-            f"Flat topology gate must pass when primary is clean.\nguidance: {guidance}"
-        )
+        assert is_valid, f"Flat topology gate must pass when primary is clean.\nguidance: {guidance}"
 
 
 # ---------------------------------------------------------------------------
@@ -448,9 +401,7 @@ class TestValidateTasksRoutesToPrimary:
     single-leg read entirely on the planning surface — there is no STATUS leg.
     """
 
-    def test_red_proof_coord_husk_has_no_legacy_tasks_subdirs(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_red_proof_coord_husk_has_no_legacy_tasks_subdirs(self, coord_topology_mission: CoordTopologyContext) -> None:
         """Gate-blind RED proof: pre-fix, scan_all_tasks_for_mismatches on coord husk returns {}.
 
         Before WP06, ``feature_dir = resolve_feature_dir_for_slug(repo_root, slug)``
@@ -465,18 +416,11 @@ class TestValidateTasksRoutesToPrimary:
         ctx = coord_topology_mission
 
         # Coord husk has no tasks/ → scan returns {} silently (pre-fix bug).
-        assert not (ctx.coord_feature_dir / "tasks").exists(), (
-            "RED anchor: coord husk must have no tasks/ directory"
-        )
+        assert not (ctx.coord_feature_dir / "tasks").exists(), "RED anchor: coord husk must have no tasks/ directory"
         result = scan_all_tasks_for_mismatches(ctx.coord_feature_dir)
-        assert result == {}, (
-            f"RED anchor: scan on coord husk must return empty dict (no tasks/ subdir).\n"
-            f"Got: {result}"
-        )
+        assert result == {}, f"RED anchor: scan on coord husk must return empty dict (no tasks/ subdir).\nGot: {result}"
 
-    def test_validate_tasks_detects_mismatch_on_primary(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_validate_tasks_detects_mismatch_on_primary(self, coord_topology_mission: CoordTopologyContext) -> None:
         """GREEN: validate_tasks --mission finds legacy frontmatter mismatch on PRIMARY.
 
         A legacy WP99.md is placed in ``tasks/planned/`` on PRIMARY with
@@ -518,19 +462,11 @@ class TestValidateTasksRoutesToPrimary:
         ):
             result = runner.invoke(app, ["--mission", ctx.slug])
 
-        assert result.exit_code == 1, (
-            f"validate_tasks must exit 1 when mismatch found on PRIMARY.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
-        )
+        assert result.exit_code == 1, f"validate_tasks must exit 1 when mismatch found on PRIMARY.\nOutput: {result.output}\nException: {result.exception}"
         output = result.output
-        assert "mismatch" in output.lower() or "WP99" in output or "Needs Fix" in output, (
-            f"Output must mention the mismatch or WP99.\nFull output: {output}"
-        )
+        assert "mismatch" in output.lower() or "WP99" in output or "Needs Fix" in output, f"Output must mention the mismatch or WP99.\nFull output: {output}"
 
-    def test_validate_tasks_reads_frontmatter_from_primary(
-        self, coord_topology_mission: CoordTopologyContext
-    ) -> None:
+    def test_validate_tasks_reads_frontmatter_from_primary(self, coord_topology_mission: CoordTopologyContext) -> None:
         """GREEN: validate_tasks only scans the PRIMARY planning surface, not the coord husk.
 
         A legacy WP file with a lane frontmatter mismatch is seeded into the COORD
@@ -575,17 +511,11 @@ class TestValidateTasksRoutesToPrimary:
             result = runner.invoke(app, ["--mission", ctx.slug])
 
         assert result.exit_code == 0, (
-            f"validate_tasks must exit 0: PRIMARY is clean; coord-husk mismatch is invisible.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
+            f"validate_tasks must exit 0: PRIMARY is clean; coord-husk mismatch is invisible.\nOutput: {result.output}\nException: {result.exception}"
         )
-        assert "consistent" in result.output.lower() or "0" in result.output, (
-            f"Expected 0-mismatch output.\nFull output: {result.output}"
-        )
+        assert "consistent" in result.output.lower() or "0" in result.output, f"Expected 0-mismatch output.\nFull output: {result.output}"
 
-    def test_neutrality_flat_topology(
-        self, flat_topology_mission: FlatTopologyContext
-    ) -> None:
+    def test_neutrality_flat_topology(self, flat_topology_mission: FlatTopologyContext) -> None:
         """Flat topology: validate_tasks exits 0 when no legacy mismatches on primary."""
         import typer
         from typer.testing import CliRunner
@@ -610,8 +540,4 @@ class TestValidateTasksRoutesToPrimary:
         ):
             result = runner.invoke(app, ["--mission", ctx.slug])
 
-        assert result.exit_code == 0, (
-            f"Flat topology: must exit 0 when no legacy mismatches.\n"
-            f"Output: {result.output}\n"
-            f"Exception: {result.exception}"
-        )
+        assert result.exit_code == 0, f"Flat topology: must exit 0 when no legacy mismatches.\nOutput: {result.output}\nException: {result.exception}"

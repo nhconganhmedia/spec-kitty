@@ -315,9 +315,7 @@ def _find_dict_assign(tree: ast.Module, dict_name: str) -> ast.Dict | None:
         targets, value = _assign_targets_and_value(node)
         if targets is None:
             continue
-        if any(isinstance(t, ast.Name) and t.id == dict_name for t in targets) and isinstance(
-            value, ast.Dict
-        ):
+        if any(isinstance(t, ast.Name) and t.id == dict_name for t in targets) and isinstance(value, ast.Dict):
             return value
     return None
 
@@ -458,9 +456,7 @@ def resolve_symbol_key(
     seen = _seen or frozenset()
     if marker in seen:
         return None  # cyclical facade chain -> fail-closed, never loop
-    inner = resolve_symbol_key(
-        attr, resolved_module, corpus[resolved_module], corpus=corpus, _seen=seen | {marker}
-    )
+    inner = resolve_symbol_key(attr, resolved_module, corpus[resolved_module], corpus=corpus, _seen=seen | {marker})
     if inner is None:
         return None
     return SymbolKey(bare_name=bare_name, body_hash=inner.body_hash)
@@ -513,9 +509,7 @@ def classify_collisions(corpus: Mapping[str, CorpusModule]) -> dict[str, list[Lo
             key = resolve_symbol_key(bare_name, module_path, module, corpus=corpus)
             if key is None:
                 continue
-            index.setdefault(bare_name, []).append(
-                Location(module_path=module_path, bare_name=bare_name, body_hash=key.body_hash)
-            )
+            index.setdefault(bare_name, []).append(Location(module_path=module_path, bare_name=bare_name, body_hash=key.body_hash))
     return index
 
 
@@ -672,12 +666,7 @@ def bind_call_accessor_aliases(
             target, value = node.targets[0], node.value
         elif isinstance(node, ast.AnnAssign):
             target, value = node.target, node.value
-        if not (
-            isinstance(target, ast.Name)
-            and isinstance(value, ast.Call)
-            and isinstance(value.func, ast.Name)
-            and value.func.id in factories
-        ):
+        if not (isinstance(target, ast.Name) and isinstance(value, ast.Call) and isinstance(value.func, ast.Name) and value.func.id in factories):
             continue
         aliases[target.id] = factories[value.func.id]
     return aliases
@@ -696,12 +685,7 @@ def record_call_chain_attr_edges(
     by the known ``_runtime_bridge_module()`` call sites.
     """
     for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Attribute)
-            and isinstance(node.value, ast.Call)
-            and isinstance(node.value.func, ast.Name)
-            and node.value.func.id in factories
-        ):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id in factories:
             per_symbol.setdefault(factories[node.value.func.id], set()).add(node.attr)
 
 

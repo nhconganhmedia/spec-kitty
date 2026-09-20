@@ -32,16 +32,14 @@ from charter.offering.drg.validator import validate_graph
 
 pytestmark = [pytest.mark.unit]
 
+
 def _make_shipped_graph(
     nodes: list[tuple[str, NodeKind]] | None = None,
     edges: list[tuple[str, str, Relation]] | None = None,
 ) -> DRGGraph:
     """Build a minimal shipped DRGGraph for testing."""
     drg_nodes = [DRGNode(urn=urn, kind=kind) for urn, kind in (nodes or [])]
-    drg_edges = [
-        DRGEdge(source=src, target=tgt, relation=rel)
-        for src, tgt, rel in (edges or [])
-    ]
+    drg_edges = [DRGEdge(source=src, target=tgt, relation=rel) for src, tgt, rel in (edges or [])]
     return DRGGraph(
         schema_version="1.0",
         generated_at="2026-04-17T00:00:00+00:00",
@@ -100,9 +98,7 @@ class TestSerializationHelperExtraction:
 
     def test_node_helper_still_omits_empty_tags(self) -> None:
         """Byte-stability for the common overlay node: an empty ``tags`` stays out."""
-        node = DRGNode(
-            urn="directive:PROJECT_001", kind=NodeKind.DIRECTIVE, label="A label"
-        )
+        node = DRGNode(urn="directive:PROJECT_001", kind=NodeKind.DIRECTIVE, label="A label")
         assert project_drg._node_to_dict(node) == {
             "urn": "directive:PROJECT_001",
             "kind": "directive",
@@ -129,6 +125,7 @@ class TestSerializationHelperExtraction:
 # ---------------------------------------------------------------------------
 # 1. Basic overlay composition
 # ---------------------------------------------------------------------------
+
 
 class TestEmitProjectLayer:
     """Tests for emit_project_layer()."""
@@ -220,13 +217,12 @@ class TestEmitProjectLayer:
 # 2. Edge derivation from source_urns
 # ---------------------------------------------------------------------------
 
+
 class TestEdgeDerivedFromSourceUrns:
     """Tests for edges derived from SynthesisTarget.source_urns."""
 
     def test_directive_source_urn_produces_requires_edge(self) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         target = _make_target(
             kind="directive",
             artifact_id="PROJECT_001",
@@ -234,18 +230,14 @@ class TestEdgeDerivedFromSourceUrns:
             source_section=None,
         )
         graph = emit_project_layer([target], "0.1.0", shipped)
-        assert {(e.source, e.target, e.relation) for e in graph.edges} == {
-            ("directive:PROJECT_001", "directive:DIRECTIVE_003", Relation.REQUIRES)
-        }
+        assert {(e.source, e.target, e.relation) for e in graph.edges} == {("directive:PROJECT_001", "directive:DIRECTIVE_003", Relation.REQUIRES)}
         edge = graph.edges[0]
         assert edge.source == "directive:PROJECT_001"
         assert edge.target == "directive:DIRECTIVE_003"
         assert edge.relation == Relation.REQUIRES
 
     def test_tactic_source_urn_produces_applies_edge(self) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         target = _make_target(
             kind="tactic",
             slug="how-we-apply-003",
@@ -254,9 +246,7 @@ class TestEdgeDerivedFromSourceUrns:
             source_section=None,
         )
         graph = emit_project_layer([target], "0.1.0", shipped)
-        assert {(e.source, e.target, e.relation) for e in graph.edges} == {
-            ("tactic:how-we-apply-003", "directive:DIRECTIVE_003", Relation.APPLIES)
-        }
+        assert {(e.source, e.target, e.relation) for e in graph.edges} == {("tactic:how-we-apply-003", "directive:DIRECTIVE_003", Relation.APPLIES)}
         assert graph.edges[0].relation == Relation.APPLIES
 
     def test_multiple_source_urns_produce_multiple_edges(self) -> None:
@@ -289,13 +279,12 @@ class TestEdgeDerivedFromSourceUrns:
 # 3. Additive-only enforcement (FR-020 / EC-6, T023)
 # ---------------------------------------------------------------------------
 
+
 class TestAdditiveOnlyEnforcement:
     """Tests for FR-020 / EC-6 — no shadowing of shipped URNs."""
 
     def test_colliding_node_urn_raises_validation_error(self) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:PROJECT_001", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:PROJECT_001", NodeKind.DIRECTIVE)])
         target = _make_target(kind="directive", artifact_id="PROJECT_001")
         with pytest.raises(ProjectDRGValidationError) as exc_info:
             emit_project_layer([target], "0.1.0", shipped)
@@ -303,9 +292,7 @@ class TestAdditiveOnlyEnforcement:
         assert "FR-020" in str(exc_info.value)
 
     def test_error_names_colliding_urn(self) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("tactic:how-we-apply-directive-003", NodeKind.TACTIC)]
-        )
+        shipped = _make_shipped_graph(nodes=[("tactic:how-we-apply-directive-003", NodeKind.TACTIC)])
         target = _make_target(
             kind="tactic",
             slug="how-we-apply-directive-003",
@@ -339,9 +326,7 @@ class TestAdditiveOnlyEnforcement:
         # So we place a "pre-existing" edge in shipped from the project URN to a shipped node.
         shipped = _make_shipped_graph(
             nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)],
-            edges=[
-                ("directive:PROJECT_001", "directive:DIRECTIVE_003", Relation.REQUIRES)
-            ],
+            edges=[("directive:PROJECT_001", "directive:DIRECTIVE_003", Relation.REQUIRES)],
         )
         # NOTE: shipped graph has a dangling edge (PROJECT_001 not in nodes) — that's
         # intentional for this test to exercise the EC-6 edge collision path.
@@ -356,9 +341,7 @@ class TestAdditiveOnlyEnforcement:
         assert "Duplicate edge" in str(exc_info.value)
 
     def test_disjoint_urns_succeed(self) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         target = _make_target(
             kind="directive",
             artifact_id="PROJECT_001",
@@ -373,6 +356,7 @@ class TestAdditiveOnlyEnforcement:
 # ---------------------------------------------------------------------------
 # 4. YAML serialization round-trip via persist() + load_graph()
 # ---------------------------------------------------------------------------
+
 
 class TestPersistRoundTrip:
     """Tests for persist() — YAML serialization."""
@@ -401,9 +385,7 @@ class TestPersistRoundTrip:
         assert loaded.generated_by == graph.generated_by
 
     def test_persisted_graph_passes_validate_graph(self, tmp_path: Path) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         target = _make_target(
             kind="directive",
             artifact_id="PROJECT_001",
@@ -452,13 +434,12 @@ class TestPersistRoundTrip:
 # 5. Integration: merged graph from emit_project_layer + shipped validates
 # ---------------------------------------------------------------------------
 
+
 class TestMergedGraphValidation:
     """Integration: merged (shipped + project) graph validates end-to-end."""
 
     def test_merged_graph_validates_with_edges(self) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         target = _make_target(
             kind="directive",
             artifact_id="PROJECT_001",
@@ -491,6 +472,7 @@ class TestMergedGraphValidation:
 # 6. Kind-admission map (M6 / #3038): agent_profile is admitted; asset is not.
 # ---------------------------------------------------------------------------
 
+
 class TestKindAdmission:
     """`_node_kind_for` admits the project-tier emittable-kind allowlist."""
 
@@ -517,6 +499,7 @@ class TestKindAdmission:
 # ---------------------------------------------------------------------------
 # 7. Project-tier agent_profile walk (T006) + compose guards (T007/T008).
 # ---------------------------------------------------------------------------
+
 
 def _write_profile(root: Path, name: str, profile_id: str, display: str | None = "Reviewer Rhonda") -> Path:
     profiles_dir = root / ".kittify" / "doctrine" / "agent_profiles"
@@ -555,9 +538,7 @@ class TestProjectProfileWalk:
         profiles_dir = tmp_path / ".kittify" / "doctrine" / "agent_profiles"
         (profiles_dir / "nested").mkdir(parents=True, exist_ok=True)
         (profiles_dir / "zeta.agent.yaml").write_text("profile-id: zeta\nname: Zeta\n", encoding="utf-8")
-        (profiles_dir / "nested" / "alpha.agent.yaml").write_text(
-            "profile-id: alpha\nname: Alpha\n", encoding="utf-8"
-        )
+        (profiles_dir / "nested" / "alpha.agent.yaml").write_text("profile-id: alpha\nname: Alpha\n", encoding="utf-8")
         urns = [n.urn for n in walk_project_agent_profile_nodes(tmp_path)]
         assert urns == ["agent_profile:alpha", "agent_profile:zeta"]
 
@@ -604,9 +585,7 @@ class TestComposeProjectProfileNodes:
     def test_walked_profile_collision_with_built_in_rejected(self, tmp_path: Path) -> None:
         """T008 / INV-1: a project profile URN colliding with a built-in node is rejected."""
         _write_profile(tmp_path, "researcher-ryan", "researcher-ryan")
-        shipped = _make_shipped_graph(
-            nodes=[("agent_profile:researcher-ryan", NodeKind.AGENT_PROFILE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("agent_profile:researcher-ryan", NodeKind.AGENT_PROFILE)])
         with pytest.raises(ProjectDRGValidationError):
             emit_project_layer([], "0.1.0", shipped, project_root=tmp_path)
 
@@ -617,12 +596,8 @@ class TestComposeProjectProfileNodes:
         profiles_dir = tmp_path / ".kittify" / "doctrine" / "agent_profiles"
         (profiles_dir / "a").mkdir(parents=True, exist_ok=True)
         (profiles_dir / "b").mkdir(parents=True, exist_ok=True)
-        (profiles_dir / "a" / "dup.agent.yaml").write_text(
-            "profile-id: dup\nname: Dup A\n", encoding="utf-8"
-        )
-        (profiles_dir / "b" / "dup.agent.yaml").write_text(
-            "profile-id: dup\nname: Dup B\n", encoding="utf-8"
-        )
+        (profiles_dir / "a" / "dup.agent.yaml").write_text("profile-id: dup\nname: Dup A\n", encoding="utf-8")
+        (profiles_dir / "b" / "dup.agent.yaml").write_text("profile-id: dup\nname: Dup B\n", encoding="utf-8")
         shipped = _make_shipped_graph()
         with pytest.raises(MalformedProjectProfileError, match=r"dup"):
             emit_project_layer([], "0.1.0", shipped, project_root=tmp_path)

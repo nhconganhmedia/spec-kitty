@@ -98,9 +98,7 @@ _WP_ID = "WP01"
 
 def _init_repo(path: Path) -> None:
     subprocess.run(["git", "init", "-b", "main"], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], cwd=path, check=True, capture_output=True
-    )
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=path, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
         cwd=path,
@@ -116,9 +114,7 @@ def _unprotect_main(repo: Path) -> None:
     """
     kittify_dir = repo / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "protection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("protection:\n  protected_branches: []\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "test: unprotect main"],
@@ -233,9 +229,7 @@ def _seed_rejection_result_event(feature_dir: Path, wp_id: str, *, seq: int) -> 
             force=False,
             execution_mode="worktree",
             reason="rejected on review",
-            review_result=ReviewResult(
-                reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
         ),
     )
 
@@ -266,9 +260,7 @@ class _FaultInjectableCoordRouter:
     def feature_write_dir(self, mission: MissionHandle) -> Path:
         return self.write_dir
 
-    def commit_status(
-        self, request: TransitionRequest, *, capability: GuardCapability
-    ) -> CommitStatusResult:
+    def commit_status(self, request: TransitionRequest, *, capability: GuardCapability) -> CommitStatusResult:
         self.status_calls.append(request)
         if self.emit_should_fail:
             raise RuntimeError("T047: simulated transition-emit failure")
@@ -291,13 +283,8 @@ class _FaultInjectableCoordRouter:
             self.artifact_entered.set()
         if self.artifact_release is not None and not self.artifact_release.wait(10):
             raise TimeoutError("test did not release the first queued verdict writer")
-        result = self.real_router.commit_artifact(
-            mission, paths, message, kind=kind, policy=policy
-        )
-        if (
-            self.artifact_wait_after_commit is not None
-            and not self.artifact_wait_after_commit.wait(10)
-        ):
+        result = self.real_router.commit_artifact(mission, paths, message, kind=kind, policy=policy)
+        if self.artifact_wait_after_commit is not None and not self.artifact_wait_after_commit.wait(10):
             raise TimeoutError("preceding writer did not commit its status event")
         return result
 
@@ -366,18 +353,10 @@ def _wp_dir(repo: Path) -> Path:
 
 def _approved_verdict_events(feature_dir: Path) -> list[StatusEvent]:
     """Return authoritative approval events for the test WP."""
-    return [
-        event
-        for event in read_events(feature_dir)
-        if event.wp_id == _WP_ID
-        and event.review_result is not None
-        and event.review_result.verdict == "approved"
-    ]
+    return [event for event in read_events(feature_dir) if event.wp_id == _WP_ID and event.review_result is not None and event.review_result.verdict == "approved"]
 
 
-def _assert_event_references_durable_evidence(
-    repo: Path, event: StatusEvent, payload: dict[str, object]
-) -> None:
+def _assert_event_references_durable_evidence(repo: Path, event: StatusEvent, payload: dict[str, object]) -> None:
     """Assert one event points to the exact governed-ref evidence bytes."""
     review_result = event.review_result
     assert review_result is not None
@@ -547,16 +526,8 @@ def test_lanes_automatic_approval_commits_transition_and_trailing_note(
         text=True,
     ).stdout.splitlines()
     payloads = [json.loads(line) for line in committed_events if line.strip()]
-    assert any(
-        row.get("to_lane") == "approved"
-        and (row.get("review_result") or {}).get("verdict") == "approved"
-        for row in payloads
-    )
-    assert any(
-        row.get("kind") == "annotation"
-        and (row.get("delta") or {}).get("note") == "LANES approval note"
-        for row in payloads
-    )
+    assert any(row.get("to_lane") == "approved" and (row.get("review_result") or {}).get("verdict") == "approved" for row in payloads)
+    assert any(row.get("kind") == "annotation" and (row.get("delta") or {}).get("note") == "LANES approval note" for row in payloads)
 
     committed_paths = subprocess.run(
         ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
@@ -614,9 +585,7 @@ def test_unbackfilled_legacy_lanes_annotation_remains_uncommitted(
         transaction_meta_exists=True,
     )
 
-    assert not _status_transition._lanes_annotation_transaction_available(
-        identity, mission_slug
-    )
+    assert not _status_transition._lanes_annotation_transaction_available(identity, mission_slug)
 
 
 def _rejection_args(feedback: Path, reviewer: str) -> _MoveTaskArgs:
@@ -660,9 +629,7 @@ def _assert_queued_rejection_records(
     assert first_event is not None
     assert second_event is not None
     assert first_event.review_result is not None
-    assert second_event.review_result is not None, (
-        "second queued rejection lost its exact ReviewResult on planned -> planned"
-    )
+    assert second_event.review_result is not None, "second queued rejection lost its exact ReviewResult on planned -> planned"
 
     first_result = first_event.review_result
     second_result = second_event.review_result
@@ -671,12 +638,8 @@ def _assert_queued_rejection_records(
     assert first_resolved.path is not None
     assert second_resolved.path is not None
     assert first_resolved.path != second_resolved.path
-    assert ReviewCycleArtifact.from_file(first_resolved.path).body == (
-        first_feedback.read_text(encoding="utf-8")
-    )
-    assert ReviewCycleArtifact.from_file(second_resolved.path).body == (
-        second_feedback.read_text(encoding="utf-8")
-    )
+    assert ReviewCycleArtifact.from_file(first_resolved.path).body == (first_feedback.read_text(encoding="utf-8"))
+    assert ReviewCycleArtifact.from_file(second_resolved.path).body == (second_feedback.read_text(encoding="utf-8"))
 
     first_blob = first_resolved.path.read_bytes()
     second_blob = second_resolved.path.read_bytes()
@@ -734,9 +697,7 @@ def _assert_queued_rejection_records(
     assert current.result == second_result
 
 
-@pytest.mark.parametrize(
-    "drop_serialized_result", [False, True], ids=["canonical", "causal-mutation"]
-)
+@pytest.mark.parametrize("drop_serialized_result", [False, True], ids=["canonical", "causal-mutation"])
 def test_two_queued_rejections_preserve_each_exact_cycle_and_event(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -780,9 +741,7 @@ def test_two_queued_rejections_preserve_each_exact_cycle_and_event(
     real_queue = _tvp.acquire_verdict_save_queue
 
     @contextmanager
-    def _observed_queue(
-        repository: Path, *, timeout_seconds: float = 10.0
-    ) -> Iterator[Path]:
+    def _observed_queue(repository: Path, *, timeout_seconds: float = 10.0) -> Iterator[Path]:
         if threading.current_thread().name == "queued-rejection-second":
             second_queue_attempted.set()
         with real_queue(repository, timeout_seconds=timeout_seconds) as lock_path:
@@ -872,9 +831,7 @@ def test_two_queued_rejections_preserve_each_exact_cycle_and_event(
         )
 
 
-@pytest.mark.parametrize(
-    "drop_serialized_result", [False, True], ids=["canonical", "causal-mutation"]
-)
+@pytest.mark.parametrize("drop_serialized_result", [False, True], ids=["canonical", "causal-mutation"])
 @pytest.mark.performance
 def test_two_queued_rejections_completes_within_budget(
     tmp_path: Path,
@@ -914,9 +871,7 @@ def test_two_queued_rejections_completes_within_budget(
     real_queue = _tvp.acquire_verdict_save_queue
 
     @contextmanager
-    def _observed_queue(
-        repository: Path, *, timeout_seconds: float = 10.0
-    ) -> Iterator[Path]:
+    def _observed_queue(repository: Path, *, timeout_seconds: float = 10.0) -> Iterator[Path]:
         if threading.current_thread().name == "queued-rejection-second":
             second_queue_attempted.set()
         with real_queue(repository, timeout_seconds=timeout_seconds) as lock_path:
@@ -984,7 +939,8 @@ def test_two_queued_rejections_completes_within_budget(
 
 
 def test_failed_transition_emit_is_reverted_leaving_no_committed_verdict(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """T047/T048 GREEN: a transition-emit failure no longer leaves a committed
     orphan -- ``_mt_execute_with_verdict_revert`` catches the failure and
@@ -1025,23 +981,16 @@ def test_failed_transition_emit_is_reverted_leaving_no_committed_verdict(
     # about: the reverted cycle-2 must not be promoted over cycle-1).
     latest = ReviewCycleArtifact.latest(wp_dir)
     assert latest is not None and latest.cycle_number == 1, (
-        f"expected the pre-existing rejected cycle 1 to still be the reader-"
-        f"visible latest after the revert, got {latest}"
+        f"expected the pre-existing rejected cycle 1 to still be the reader-visible latest after the revert, got {latest}"
     )
 
     # (b) The orphan file itself is gone from disk...
     artifact = wp_dir / "review-cycle-2.md"
-    assert not artifact.exists(), (
-        "the reverted verdict write is still present on disk -- the "
-        "compensator did not delete it"
-    )
+    assert not artifact.exists(), "the reverted verdict write is still present on disk -- the compensator did not delete it"
     # ...AND not merely deleted-but-uncommitted (that would be a NEW,
     # partially-reverted orphan shape) -- HEAD's tree must not contain it,
     # and the working tree must be clean (the deletion itself was committed).
-    assert not _git_head_has_file(repo, relpath), (
-        "review-cycle-2.md is still reachable at HEAD -- the deletion was "
-        "never committed (partially-reverted state)"
-    )
+    assert not _git_head_has_file(repo, relpath), "review-cycle-2.md is still reachable at HEAD -- the deletion was never committed (partially-reverted state)"
     # Scoped to the WP's own tasks dir (not repo-wide): the fixture's own
     # ``status.events.jsonl`` is deliberately left untracked by ``_setup_
     # fixture`` (a different, unrelated concern from the verdict artifact)
@@ -1064,17 +1013,12 @@ def test_failed_transition_emit_is_reverted_leaving_no_committed_verdict(
     # in history ever".
     log = _git_log_files(repo)
     assert "review-cycle-2.md" in log, (
-        "the revert should be a NEW commit undoing the write, not a history "
-        f"rewrite -- the original commit should still appear in git log:\n{log}"
+        f"the revert should be a NEW commit undoing the write, not a history rewrite -- the original commit should still appear in git log:\n{log}"
     )
 
     # (c) The WP's lane is STILL in_review -- the transition never completed.
-    lane = _read_transactional_wp_lane(
-        feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo
-    )
-    assert lane == Lane.IN_REVIEW, (
-        f"expected the lane to still be in_review after the failed transition emit, got {lane}"
-    )
+    lane = _read_transactional_wp_lane(feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo)
+    assert lane == Lane.IN_REVIEW, f"expected the lane to still be in_review after the failed transition emit, got {lane}"
 
 
 def test_retry_after_reverted_orphan_records_the_genuine_approval(
@@ -1125,23 +1069,15 @@ def test_retry_after_reverted_orphan_records_the_genuine_approval(
     )
 
     # A GENUINE new write happened this time (cycle 2 again -- the deleted slot is free).
-    assert len(retry_coord.status_calls) >= 1, (
-        "the retry never even attempted the transition emit -- this test is "
-        "not exercising the described retry path"
-    )
+    assert len(retry_coord.status_calls) >= 1, "the retry never even attempted the transition emit -- this test is not exercising the described retry path"
     artifact = wp_dir / "review-cycle-2.md"
-    assert artifact.exists(), (
-        "the retry did not write a new verdict artifact -- with the orphan "
-        "actually reverted, the no-op guard must not fire this time"
-    )
+    assert artifact.exists(), "the retry did not write a new verdict artifact -- with the orphan actually reverted, the no-op guard must not fire this time"
     artifact_text = artifact.read_text(encoding="utf-8")
     assert "approval:genuine-retry" in artifact_text, (
-        "the retry's OWN approval_ref did not make it into the recorded "
-        "artifact -- 'records the correct verdict' (SC-003) is failing"
+        "the retry's OWN approval_ref did not make it into the recorded artifact -- 'records the correct verdict' (SC-003) is failing"
     )
     assert "approval:first-failed-attempt" not in artifact_text, (
-        "the artifact still carries the FIRST FAILED attempt's stale "
-        "reference -- the revert did not actually clear the prior write"
+        "the artifact still carries the FIRST FAILED attempt's stale reference -- the revert did not actually clear the prior write"
     )
     # WP06 (FR-003/SC-007): ``ReviewCycleArtifact`` no longer carries a
     # ``verdict`` field -- the approval write's own synthesized body
@@ -1150,21 +1086,12 @@ def test_retry_after_reverted_orphan_records_the_genuine_approval(
     assert latest_after_retry is not None and latest_after_retry.body.startswith("Approved by ")
 
     status = _git_status(repo)
-    assert "review-cycle-2.md" not in status, (
-        f"the retry's write is not committed:\n{status}"
-    )
+    assert "review-cycle-2.md" not in status, f"the retry's write is not committed:\n{status}"
     relpath = f"kitty-specs/{_MISSION}/tasks/{_WP_ID}-test/review-cycle-2.md"
-    assert _git_head_has_file(repo, relpath), (
-        "the retry's genuine write is not reachable at HEAD"
-    )
+    assert _git_head_has_file(repo, relpath), "the retry's genuine write is not reachable at HEAD"
 
-    lane_after_retry = _read_transactional_wp_lane(
-        feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo
-    )
-    assert lane_after_retry == Lane.APPROVED, (
-        f"expected the retry's transition emit to succeed and move the lane "
-        f"to approved, got {lane_after_retry}"
-    )
+    lane_after_retry = _read_transactional_wp_lane(feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo)
+    assert lane_after_retry == Lane.APPROVED, f"expected the retry's transition emit to succeed and move the lane to approved, got {lane_after_retry}"
 
 
 # ---------------------------------------------------------------------------
@@ -1190,9 +1117,7 @@ class _ProtectedBranchRefusingCommitRouter:
             raise AssertionError("feature_write_dir is not used by this reproduction")
         return self.write_dir
 
-    def commit_status(
-        self, request: object, *, capability: GuardCapability
-    ) -> CommitStatusResult:
+    def commit_status(self, request: object, *, capability: GuardCapability) -> CommitStatusResult:
         raise AssertionError("commit_status is not used by this reproduction")
 
     def commit_artifact(
@@ -1316,9 +1241,7 @@ def _seed_rejected_cycle_1(repo: Path, mission_slug: str, wp_id: str) -> None:
     _seed_rejection_result_event(repo / "kitty-specs" / mission_slug, wp_id, seq=0)
 
 
-def test_pre_fix_naive_commit_router_gating_crashes_on_protected_target_branch(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_pre_fix_naive_commit_router_gating_crashes_on_protected_target_branch(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """T050 originally reproduced the PRE-FIX defect this WP's Objective
     section describes -- gating the review-cycle-artifact ``commit_router``
     on ``resolved_auto_commit`` ALONE (ignoring ``skip_target_branch_commit``,
@@ -1349,9 +1272,7 @@ def test_pre_fix_naive_commit_router_gating_crashes_on_protected_target_branch(
     subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _seed_rejected_cycle_1(repo, _MISSION, _WP_ID)
 
-    st = _minimal_state(
-        repo, resolved_auto_commit=True, skip_target_branch_commit=True
-    )
+    st = _minimal_state(repo, resolved_auto_commit=True, skip_target_branch_commit=True)
     router = _ProtectedBranchRefusingCommitRouter()
 
     # The naive, pre-fix expression this WP replaces (tasks_verdict_
@@ -1371,14 +1292,10 @@ def test_pre_fix_naive_commit_router_gating_crashes_on_protected_target_branch(
         )
 
     assert router.artifact_calls, (
-        "the naive gate must still ATTEMPT the protected-branch commit -- "
-        "that unwanted attempt, not a crash, is what the fixed gate avoids"
+        "the naive gate must still ATTEMPT the protected-branch commit -- that unwanted attempt, not a crash, is what the fixed gate avoids"
     )
-    assert any(
-        "Failed to commit review-cycle" in record.message for record in caplog.records
-    ), (
-        "the refused protected-branch commit must still be logged as a "
-        f"WARNING (T026), never silently dropped; records={caplog.records}"
+    assert any("Failed to commit review-cycle" in record.message for record in caplog.records), (
+        f"the refused protected-branch commit must still be logged as a WARNING (T026), never silently dropped; records={caplog.records}"
     )
 
 
@@ -1415,10 +1332,7 @@ def test_protected_target_branch_retains_evidence_but_refuses_automatic_success(
         _tvp._persist_approved_review_cycle(st, ports)
     signal = failure.value.signal
 
-    assert router.artifact_calls == [], (
-        "commit_artifact was invoked despite skip_target_branch_commit=True -- "
-        "the protected-branch attempt should never happen"
-    )
+    assert router.artifact_calls == [], "commit_artifact was invoked despite skip_target_branch_commit=True -- the protected-branch attempt should never happen"
     assert signal is not None
     assert signal.durably_persisted is False
     assert signal.skip_reason == _tvp._DURABILITY_REASON_PROTECTED_TARGET_BRANCH
@@ -1461,9 +1375,7 @@ def test_protected_target_branch_retains_evidence_but_refuses_automatic_success(
 # ---------------------------------------------------------------------------
 
 
-def test_no_auto_commit_announces_the_non_durable_write_on_console(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_no_auto_commit_announces_the_non_durable_write_on_console(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """T049: ``--no-auto-commit`` is FR-013's ONE sanctioned non-durable path.
     The console notice (this module's owned half of the durability signal --
     the ``--json`` key requires ``_mt_output``/``_MoveTaskState`` in
@@ -1512,9 +1424,7 @@ def test_no_auto_commit_announces_the_non_durable_write_on_console(
     assert latest.body.startswith("Approved by ")
 
 
-def test_json_output_suppresses_the_durability_console_notice(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_json_output_suppresses_the_durability_console_notice(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The console notice must stay silent under ``--json`` (matching this
     module's established ``if not json_output:`` pattern) -- a machine
     consumer is expected to read the (currently unwired) ``--json`` key
@@ -1587,9 +1497,7 @@ def test_ordinary_auto_commit_path_reports_durably_persisted_true(
     assert "review-cycle-2.md" not in status, f"expected a real commit:\n{status}"
 
 
-def test_automatic_verdict_commit_runs_inside_checkout_queue(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_automatic_verdict_commit_runs_inside_checkout_queue(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T017: automatic allocation/commit/read-back owns the checkout queue."""
     repo = tmp_path
     _init_repo(repo)
@@ -1626,9 +1534,7 @@ def test_automatic_verdict_commit_runs_inside_checkout_queue(
     assert verdict_save_queue_is_held(repo) is False
 
 
-def test_evidence_git_runs_without_allocation_lock_and_inside_checkout_queue(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_evidence_git_runs_without_allocation_lock_and_inside_checkout_queue(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T017/T019: directly observe evidence staging and read-back in Git."""
     repo = tmp_path
     _init_repo(repo)
@@ -1664,21 +1570,11 @@ def test_evidence_git_runs_without_allocation_lock_and_inside_checkout_queue(
             finally:
                 allocation_lock_depth -= 1
 
-    def _observing_subprocess_run(
-        command: Sequence[str], *args: object, **kwargs: object
-    ) -> subprocess.CompletedProcess[bytes]:
+    def _observing_subprocess_run(command: Sequence[str], *args: object, **kwargs: object) -> subprocess.CompletedProcess[bytes]:
         invocation: str | None = None
-        if (
-            len(command) == 5
-            and command[:4] == ["git", "add", "--force", "--"]
-            and command[4].endswith("review-cycle-2.md")
-        ):
+        if len(command) == 5 and command[:4] == ["git", "add", "--force", "--"] and command[4].endswith("review-cycle-2.md"):
             invocation = "stage"
-        elif (
-            len(command) == 3
-            and command[:2] == ["git", "show"]
-            and command[2].endswith("review-cycle-2.md")
-        ):
+        elif len(command) == 3 and command[:2] == ["git", "show"] and command[2].endswith("review-cycle-2.md"):
             invocation = "readback"
         if invocation is not None:
             observations.append(
@@ -1702,9 +1598,7 @@ def test_evidence_git_runs_without_allocation_lock_and_inside_checkout_queue(
     ]
 
 
-def test_local_only_verdict_bypasses_checkout_queue(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_local_only_verdict_bypasses_checkout_queue(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T020: local-only remains non-durable and never acquires the queue."""
     repo = tmp_path
     _init_repo(repo)
@@ -1769,14 +1663,10 @@ def test_queue_busy_fails_before_evidence_allocation(
     assert not (_wp_dir(repo) / "review-cycle-2.md").exists()
     assert _approved_verdict_events(feature_dir) == []
     assert coord.status_calls == []
-    assert _read_transactional_wp_lane(
-        feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo
-    ) == Lane.IN_REVIEW
+    assert _read_transactional_wp_lane(feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo) == Lane.IN_REVIEW
 
 
-def test_automatic_commit_failure_is_error_envelope_and_emits_no_status(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_automatic_commit_failure_is_error_envelope_and_emits_no_status(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """T018/T021/T022: retained evidence cannot masquerade as command success."""
     repo = tmp_path
     feature_dir = _setup_fixture(repo)
@@ -1816,16 +1706,12 @@ def test_invalid_transition_is_structured_refusal_without_event_or_evidence(
     events_before = [event.event_id for event in read_events(feature_dir)]
     coord = _FaultInjectableCoordRouter(write_dir=feature_dir)
 
-    def _refuse_transition(
-        _request: TransitionRequest, *, capability: GuardCapability
-    ) -> CommitStatusResult:
+    def _refuse_transition(_request: TransitionRequest, *, capability: GuardCapability) -> CommitStatusResult:
         del capability
         raise TransitionError("opaque concurrent state refusal")
 
     monkeypatch.setattr(coord, "commit_status", _refuse_transition)
-    real_current_lane: Callable[[_tmt._MoveTaskState], str] = (
-        _tmt._mt_current_event_lane
-    )
+    real_current_lane: Callable[[_tmt._MoveTaskState], str] = _tmt._mt_current_event_lane
     lane_reads = 0
 
     def _authoritative_lane_changed(st: _tmt._MoveTaskState) -> str:
@@ -1860,9 +1746,7 @@ def test_invalid_transition_is_structured_refusal_without_event_or_evidence(
     }
     assert [event.event_id for event in read_events(feature_dir)] == events_before
     assert not (_wp_dir(repo) / "review-cycle-2.md").exists()
-    assert not _git_head_has_file(
-        repo, f"kitty-specs/{_MISSION}/tasks/{_WP_ID}-test/review-cycle-2.md"
-    )
+    assert not _git_head_has_file(repo, f"kitty-specs/{_MISSION}/tasks/{_WP_ID}-test/review-cycle-2.md")
 
 
 @pytest.mark.parametrize(
@@ -1905,12 +1789,8 @@ def test_adverse_automatic_commit_outcomes_are_typed_and_retain_evidence(
     assert payload["destination_ref"] is not None
     assert "event_id" not in payload
     assert _approved_verdict_events(feature_dir) == []
-    assert not _git_head_has_file(
-        repo, f"kitty-specs/{_MISSION}/tasks/{_WP_ID}-test/review-cycle-2.md"
-    )
-    assert _read_transactional_wp_lane(
-        feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo
-    ) == Lane.IN_REVIEW
+    assert not _git_head_has_file(repo, f"kitty-specs/{_MISSION}/tasks/{_WP_ID}-test/review-cycle-2.md")
+    assert _read_transactional_wp_lane(feature_dir=feature_dir, mission_slug=_MISSION, wp_id=_WP_ID, repo_root=repo) == Lane.IN_REVIEW
 
 
 @pytest.mark.parametrize("behavior", ["error", "raise"])
@@ -2021,9 +1901,7 @@ def test_real_command_retry_after_post_commit_interruption_is_idempotent(
     assert approval_ref in (repo / str(payload["evidence_ref"])).read_text(encoding="utf-8")
 
 
-def test_verified_approval_event_never_rebuilds_reference_from_approval_ref(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_verified_approval_event_never_rebuilds_reference_from_approval_ref(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """T019: verified cycle identity, never the caller token, reaches the event."""
     repo = tmp_path
     feature_dir = _setup_fixture(repo)
@@ -2044,9 +1922,7 @@ def test_verified_approval_event_never_rebuilds_reference_from_approval_ref(
     assert approved_events[0].review_result.reference != approval_ref
 
 
-def test_queue_is_released_before_event_status_execution(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_queue_is_released_before_event_status_execution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T017/T019: event/status mutation begins only after queue release."""
     repo = tmp_path
     feature_dir = _setup_fixture(repo)
@@ -2100,9 +1976,7 @@ def test_execute_failure_without_pending_write_reports_the_original_error_only(
     monkeypatch.setattr(_tmt, "_mt_finalize_plan", lambda st, ports: None)
     monkeypatch.setattr(_tmt, "_mt_execute", _raising_mt_execute)
     revert_calls: list[object] = []
-    monkeypatch.setattr(
-        _tmt, "revert_committed_verdict_write", lambda *a: revert_calls.append(a)
-    )
+    monkeypatch.setattr(_tmt, "revert_committed_verdict_write", lambda *a: revert_calls.append(a))
     ports = _fake_ports(feature_dir, _FaultInjectableCoordRouter(write_dir=feature_dir))
 
     with pytest.raises(typer.Exit) as exc_info:
@@ -2114,9 +1988,7 @@ def test_execute_failure_without_pending_write_reports_the_original_error_only(
     assert payload["error"] == "simulated unrelated execute failure"
 
 
-def test_execute_failure_with_failed_revert_surfaces_a_compound_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_execute_failure_with_failed_revert_surfaces_a_compound_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """A durable write DID happen (real ``_mt_finalize_plan``); the compensator
     itself then fails to undo it (stubbed ``VerdictRevertError``). This is a
     COMPOUNDED failure and must NOT be silently swallowed into the original
@@ -2174,9 +2046,7 @@ def test_execute_failure_with_revert_queue_busy_surfaces_durably_persisted_true(
     real_acquire = _tvp.acquire_verdict_save_queue
     calls: list[Path] = []
 
-    def _acquire_then_busy(
-        repository: Path, *, timeout_seconds: float = 10.0
-    ) -> AbstractContextManager[Path]:
+    def _acquire_then_busy(repository: Path, *, timeout_seconds: float = 10.0) -> AbstractContextManager[Path]:
         calls.append(repository)
         if len(calls) == 1:
             # The ORIGINAL write's own queue acquisition -- must succeed for
@@ -2220,9 +2090,7 @@ def test_execute_failure_with_revert_queue_busy_surfaces_durably_persisted_true(
 # ---------------------------------------------------------------------------
 
 
-def test_json_output_surfaces_durably_persisted_true_end_to_end(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_json_output_surfaces_durably_persisted_true_end_to_end(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The durability signal computed in ``tasks_verdict_persistence.py``
     actually reaches the ``--json`` envelope ``_mt_output`` builds in
     ``tasks_move_task.py`` -- the ownership-widening wiring this WP was
@@ -2243,9 +2111,7 @@ def test_json_output_surfaces_durably_persisted_true_end_to_end(
     assert "verdict_durability_skip_reason" not in payload
 
 
-def test_json_output_surfaces_skip_reason_end_to_end_for_no_auto_commit(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_json_output_surfaces_skip_reason_end_to_end_for_no_auto_commit(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """``--no-auto-commit`` end-to-end: the ``--json`` envelope carries both
     keys (explicit ``false``, plus the distinguishing reason) -- never a bare
     missing key for a machine consumer to infer non-durability from.
@@ -2275,9 +2141,7 @@ def test_json_output_surfaces_skip_reason_end_to_end_for_no_auto_commit(
     assert approved_events[0].review_result.feedback_path is None
 
 
-def test_json_ownership_refusal_is_typed_and_writes_no_verdict_authority(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_json_ownership_refusal_is_typed_and_writes_no_verdict_authority(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """A policy-valid refusal remains nonzero and proves it wrote nothing."""
     repo = tmp_path
     feature_dir = _setup_fixture(repo)
@@ -2320,10 +2184,7 @@ def test_json_ownership_refusal_is_typed_and_writes_no_verdict_authority(
     assert payload == {
         "result": "error",
         "code": "ownership_refusal",
-        "error": (
-            "Agent mismatch: WP01 is assigned to 'reviewer-b', not "
-            "'reviewer-a'. Use --force to override."
-        ),
+        "error": ("Agent mismatch: WP01 is assigned to 'reviewer-b', not 'reviewer-a'. Use --force to override."),
         "current_lane": "in_review",
         "requested_lane": "planned",
         "assigned_agent": "reviewer-b",

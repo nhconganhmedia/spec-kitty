@@ -34,9 +34,7 @@ def _write_meta(feature_dir: Path, meta: dict[str, object]) -> None:
     (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 
-def _seed_primary_mission(
-    tmp_path: Path, *, slug: str, mission_id: str | None = None
-) -> Path:
+def _seed_primary_mission(tmp_path: Path, *, slug: str, mission_id: str | None = None) -> Path:
     """Seed a canonical ``kitty-specs/<slug>/meta.json`` (matches the pattern
     ``tests/specify_cli/missions/test_read_path_handle_resolution.py::_seed_mission``
     uses for identity-form ambiguity fixtures)."""
@@ -122,12 +120,8 @@ def test_ambiguous_primary_handle_raises(tmp_path: Path) -> None:
 
     Mirrors ``test_read_path_handle_resolution.py::test_ambiguous_handle_raises_structured_error``.
     """
-    _seed_primary_mission(
-        tmp_path, slug="083-alpha", mission_id="01AAAAAAAAAAAAAAAAAAAAAAAA"
-    )
-    _seed_primary_mission(
-        tmp_path, slug="083-beta", mission_id="01BBBBBBBBBBBBBBBBBBBBBBBB"
-    )
+    _seed_primary_mission(tmp_path, slug="083-alpha", mission_id="01AAAAAAAAAAAAAAAAAAAAAAAA")
+    _seed_primary_mission(tmp_path, slug="083-beta", mission_id="01BBBBBBBBBBBBBBBBBBBBBBBB")
 
     feature_dir = tmp_path / "kitty-specs" / "083-alpha"  # irrelevant: raise precedes fallback
 
@@ -250,9 +244,7 @@ def test_consumer_contract_five_tuple_positions_match_fixture(tmp_path: Path) ->
         "repo_root",
         "feature_dir",
     ]
-    assert list(
-        inspect.signature(consumer_planning_artifact_source_dir).parameters
-    ) == ["repo_root", "feature_dir", "mission_slug"]
+    assert list(inspect.signature(consumer_planning_artifact_source_dir).parameters) == ["repo_root", "feature_dir", "mission_slug"]
 
 
 def test_sibling_symbols_importable_and_callable_alongside_resolver(tmp_path: Path) -> None:

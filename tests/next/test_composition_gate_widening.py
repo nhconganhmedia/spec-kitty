@@ -101,14 +101,10 @@ def test_builtin_software_dev_short_circuits_without_run_dir(tmp_path: Path) -> 
     correctness does not depend on template-on-disk state.
     We patch ``_resolve_step_agent_profile`` and assert it was never called.
     """
-    with patch(
-        "runtime.next.runtime_bridge_composition._resolve_step_agent_profile"
-    ) as mock_resolve:
+    with patch("runtime.next.runtime_bridge_composition._resolve_step_agent_profile") as mock_resolve:
         # Charter lookup returns True for software-dev/specify before
         # _resolve_step_agent_profile (frozen-template path) is ever reached.
-        result = _should_dispatch_via_composition(
-            "software-dev", "specify", run_dir=tmp_path, repo_root=_REPO_ROOT
-        )
+        result = _should_dispatch_via_composition("software-dev", "specify", run_dir=tmp_path, repo_root=_REPO_ROOT)
 
     assert result is True
     mock_resolve.assert_not_called()
@@ -128,9 +124,7 @@ def test_unknown_mission_with_run_dir_but_no_template_returns_false(
     tmp_path: Path,
 ) -> None:
     """Run dir exists but no frozen template — gate stays closed."""
-    assert (
-        _should_dispatch_via_composition("custom", "step1", run_dir=tmp_path) is False
-    )
+    assert _should_dispatch_via_composition("custom", "step1", run_dir=tmp_path) is False
 
 
 def test_custom_mission_with_agent_profile_returns_true(tmp_path: Path) -> None:
@@ -148,12 +142,7 @@ def test_custom_mission_with_agent_profile_returns_true(tmp_path: Path) -> None:
         ],
     )
 
-    assert (
-        _should_dispatch_via_composition(
-            "custom-mission", "step1", run_dir=run_dir
-        )
-        is True
-    )
+    assert _should_dispatch_via_composition("custom-mission", "step1", run_dir=run_dir) is True
 
 
 def test_custom_mission_with_contract_ref_returns_true(tmp_path: Path) -> None:
@@ -171,12 +160,7 @@ def test_custom_mission_with_contract_ref_returns_true(tmp_path: Path) -> None:
         ],
     )
 
-    assert (
-        _should_dispatch_via_composition(
-            "custom-mission", "step1", run_dir=run_dir
-        )
-        is True
-    )
+    assert _should_dispatch_via_composition("custom-mission", "step1", run_dir=run_dir) is True
 
 
 def test_custom_mission_without_agent_profile_returns_false(tmp_path: Path) -> None:
@@ -194,12 +178,7 @@ def test_custom_mission_without_agent_profile_returns_false(tmp_path: Path) -> N
         ],
     )
 
-    assert (
-        _should_dispatch_via_composition(
-            "custom-mission", "step1", run_dir=run_dir
-        )
-        is False
-    )
+    assert _should_dispatch_via_composition("custom-mission", "step1", run_dir=run_dir) is False
 
 
 def test_custom_mission_with_empty_string_agent_profile_returns_false(
@@ -219,12 +198,7 @@ def test_custom_mission_with_empty_string_agent_profile_returns_false(
         ],
     )
 
-    assert (
-        _should_dispatch_via_composition(
-            "custom-mission", "step1", run_dir=run_dir
-        )
-        is False
-    )
+    assert _should_dispatch_via_composition("custom-mission", "step1", run_dir=run_dir) is False
 
 
 def test_custom_mission_unknown_step_returns_false(tmp_path: Path) -> None:
@@ -242,12 +216,7 @@ def test_custom_mission_unknown_step_returns_false(tmp_path: Path) -> None:
         ],
     )
 
-    assert (
-        _should_dispatch_via_composition(
-            "custom-mission", "step_does_not_exist", run_dir=run_dir
-        )
-        is False
-    )
+    assert _should_dispatch_via_composition("custom-mission", "step_does_not_exist", run_dir=run_dir) is False
 
 
 # ---------------------------------------------------------------------------
@@ -395,18 +364,9 @@ def test_resolve_step_agent_profile_normalizes_legacy_tasks_substep(
         ],
     )
 
-    assert (
-        _resolve_step_agent_profile(run_dir, "tasks_outline")
-        == "architect-alphonso"
-    )
-    assert (
-        _resolve_step_agent_profile(run_dir, "tasks_packages")
-        == "architect-alphonso"
-    )
-    assert (
-        _resolve_step_agent_profile(run_dir, "tasks_finalize")
-        == "architect-alphonso"
-    )
+    assert _resolve_step_agent_profile(run_dir, "tasks_outline") == "architect-alphonso"
+    assert _resolve_step_agent_profile(run_dir, "tasks_packages") == "architect-alphonso"
+    assert _resolve_step_agent_profile(run_dir, "tasks_finalize") == "architect-alphonso"
 
 
 def test_resolve_step_agent_profile_empty_string_returns_none(tmp_path: Path) -> None:

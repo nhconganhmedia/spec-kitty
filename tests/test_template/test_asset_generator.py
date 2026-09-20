@@ -16,6 +16,7 @@ from specify_cli.core.config import AGENT_COMMAND_CONFIG
 
 pytestmark = [pytest.mark.unit]
 
+
 def _write_template(path: Path, with_agent_script: bool = True) -> None:
     agent_block = "agent_scripts:\n  sh: source env\n" if with_agent_script else ""
     path.write_text(
@@ -464,8 +465,7 @@ After {SCRIPT}
     # selected; `activated_paradigms` is what PackContext.from_config
     # actually resolves and is the field this helper's rewrite reads.
     (kittify_dir / "config.yaml").write_text(
-        "activated_paradigms:\n"
-        "  - structured-prompt-driven-development\n",
+        "activated_paradigms:\n  - structured-prompt-driven-development\n",
         encoding="utf-8",
     )
 
@@ -512,11 +512,7 @@ def test_bundled_software_dev_templates_have_descriptions(tmp_path: Path) -> Non
     # relocated mission-steps/ from src/charter/offering/missions/mission-steps to
     # packs/built-in/missions/mission-steps.
     doctrine_templates_dir = repo_root / "packs" / "built-in" / "missions" / "mission-steps" / "software-dev"
-    template_files = (
-        sorted(legacy_templates_dir.glob("*.md"))
-        if legacy_templates_dir.is_dir()
-        else sorted(doctrine_templates_dir.glob("*/prompt.md"))
-    )
+    template_files = sorted(legacy_templates_dir.glob("*.md")) if legacy_templates_dir.is_dir() else sorted(doctrine_templates_dir.glob("*/prompt.md"))
     assert template_files, "no command templates discovered — fixture is wrong"
 
     for template_file in template_files:

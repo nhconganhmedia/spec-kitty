@@ -129,9 +129,7 @@ def _write_feedback_file(tmp_path: Path) -> Path:
     """Write a minimal non-empty review feedback markdown file."""
     fb = tmp_path / "feedback.md"
     fb.write_text(
-        "**Issue**: Backward-transition regression test feedback.\n"
-        "\n"
-        "Re-implement the change with the canonical wire shape.\n",
+        "**Issue**: Backward-transition regression test feedback.\n\nRe-implement the change with the canonical wire shape.\n",
         encoding="utf-8",
     )
     return fb
@@ -216,9 +214,7 @@ class TestReviewRejectionFamily:
         the supplied evidence; truthfully forced where it does not)."""
         mission_slug = f"test-mission-{starting_lane.replace('_', '-')}"
         wp_id = "WP05"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane=starting_lane
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane=starting_lane)
         feedback = _write_feedback_file(tmp_path)
 
         result = _invoke_move(
@@ -241,18 +237,13 @@ class TestReviewRejectionFamily:
 
         events = _read_latest_events_for_wp(feature_dir, wp_id)
         emitted = events[-1]
-        assert str(emitted.from_lane) == starting_lane, (
-            f"Expected from_lane={starting_lane}, got {emitted.from_lane}"
-        )
+        assert str(emitted.from_lane) == starting_lane, f"Expected from_lane={starting_lane}, got {emitted.from_lane}"
         assert str(emitted.to_lane) == "planned"
         assert emitted.force is expected_force, (
-            f"{starting_lane} -> planned: expected persisted force={expected_force}; "
-            f"got force={emitted.force} reason={emitted.reason!r}"
+            f"{starting_lane} -> planned: expected persisted force={expected_force}; got force={emitted.force} reason={emitted.reason!r}"
         )
         assert emitted.reason is not None
-        assert emitted.reason.startswith(expected_prefix), (
-            f"reason must start with {expected_prefix!r}; got {emitted.reason!r}"
-        )
+        assert emitted.reason.startswith(expected_prefix), f"reason must start with {expected_prefix!r}; got {emitted.reason!r}"
 
 
 class TestForwardControl:
@@ -262,9 +253,7 @@ class TestForwardControl:
         """A forward step preserves force=False and a non-rewind reason."""
         mission_slug = "test-mission-forward-control"
         wp_id = "WP05"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="planned"
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="planned")
 
         result = _invoke_move(
             tmp_path=tmp_path,
@@ -286,20 +275,14 @@ class TestForwardControl:
         emitted = events[-1]
         assert str(emitted.from_lane) == "planned"
         assert str(emitted.to_lane) == "claimed"
-        assert emitted.force is False, (
-            f"Forward move must not auto-promote force=True; reason={emitted.reason}"
-        )
-        assert emitted.reason is None or not emitted.reason.startswith(
-            "backward rewind: "
-        ), f"Forward emit must not use the rewind reason; got {emitted.reason!r}"
+        assert emitted.force is False, f"Forward move must not auto-promote force=True; reason={emitted.reason}"
+        assert emitted.reason is None or not emitted.reason.startswith("backward rewind: "), f"Forward emit must not use the rewind reason; got {emitted.reason!r}"
 
 
 class TestForwardSkipAheadExpansion:
     """Forward skip-ahead expansion preserved via _lane_targets_for_emit."""
 
-    def test_planned_to_in_progress_expands_intermediate(
-        self, tmp_path: Path
-    ) -> None:
+    def test_planned_to_in_progress_expands_intermediate(self, tmp_path: Path) -> None:
         """``planned → in_progress`` emits two events (via claimed).
 
         FORWARD_ORDER index 0 → 2, so ``_lane_targets_for_emit`` returns
@@ -308,9 +291,7 @@ class TestForwardSkipAheadExpansion:
         """
         mission_slug = "test-mission-forward-skip"
         wp_id = "WP05"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="planned"
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="planned")
 
         events_before = len(_read_latest_events_for_wp(feature_dir, wp_id))
 
@@ -334,8 +315,7 @@ class TestForwardSkipAheadExpansion:
         new_events = events[events_before:]
         # Two new events emitted: planned->claimed and claimed->in_progress.
         assert len(new_events) == 2, (
-            f"Expected 2 new events for forward skip-ahead; got "
-            f"{len(new_events)}: {[(str(e.from_lane), str(e.to_lane)) for e in new_events]}"
+            f"Expected 2 new events for forward skip-ahead; got {len(new_events)}: {[(str(e.from_lane), str(e.to_lane)) for e in new_events]}"
         )
         assert (str(new_events[0].from_lane), str(new_events[0].to_lane)) == (
             "planned",
@@ -348,9 +328,7 @@ class TestForwardSkipAheadExpansion:
         # No auto-promotion on forward emits.
         for ev in new_events:
             assert ev.force is False
-            assert ev.reason is None or not ev.reason.startswith(
-                "backward rewind: "
-            )
+            assert ev.reason is None or not ev.reason.startswith("backward rewind: ")
 
 
 class TestExplicitForceBackward:
@@ -361,9 +339,7 @@ class TestExplicitForceBackward:
         existing ``"Force move to planned"`` fallback (auto-promote bypassed)."""
         mission_slug = "test-mission-explicit-force"
         wp_id = "WP05"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="in_review"
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="in_review")
         feedback = _write_feedback_file(tmp_path)
 
         result = _invoke_move(
@@ -392,17 +368,11 @@ class TestExplicitForceBackward:
         assert emitted.force is True
         # Auto-promote path is bypassed when force is explicit (FR-011);
         # the reason falls through to the standing fallback.
-        assert emitted.reason == "Force move to Lane.PLANNED" or emitted.reason == (
-            "Force move to planned"
-        ), (
-            f"Explicit --force must use the existing fallback reason; "
-            f"got {emitted.reason!r}"
+        assert emitted.reason == "Force move to Lane.PLANNED" or emitted.reason == ("Force move to planned"), (
+            f"Explicit --force must use the existing fallback reason; got {emitted.reason!r}"
         )
         # And it must NOT be the auto-promoted rewind shape.
-        assert not (emitted.reason or "").startswith("backward rewind: "), (
-            f"Explicit --force must not synthesize the auto-promote reason; "
-            f"got {emitted.reason!r}"
-        )
+        assert not (emitted.reason or "").startswith("backward rewind: "), f"Explicit --force must not synthesize the auto-promote reason; got {emitted.reason!r}"
 
 
 class TestBackwardEmitFeedbackRef:
@@ -412,9 +382,7 @@ class TestBackwardEmitFeedbackRef:
         """The auto-promoted reason ends with ``": review-cycle://…"``."""
         mission_slug = "test-mission-feedback-ref"
         wp_id = "WP05"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="in_review"
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="in_review")
         feedback = _write_feedback_file(tmp_path)
 
         result = _invoke_move(
@@ -443,28 +411,19 @@ class TestBackwardEmitFeedbackRef:
         assert emitted.reason is not None
         # Prefix:
         prefix = "backward rewind: in_review -> planned"
-        assert emitted.reason.startswith(prefix), (
-            f"reason must start with {prefix!r}; got {emitted.reason!r}"
-        )
+        assert emitted.reason.startswith(prefix), f"reason must start with {prefix!r}; got {emitted.reason!r}"
         # Feedback-ref segment:
-        suffix = emitted.reason[len(prefix):]
-        assert suffix.startswith(": review-cycle://"), (
-            f"reason must include ': review-cycle://...' segment after the "
-            f"prefix; got {emitted.reason!r}"
-        )
+        suffix = emitted.reason[len(prefix) :]
+        assert suffix.startswith(": review-cycle://"), f"reason must include ': review-cycle://...' segment after the prefix; got {emitted.reason!r}"
         # The URI mentions the mission slug + a review-cycle file.
         assert mission_slug in emitted.reason
         assert "review-cycle-" in emitted.reason
 
-    def test_backward_emit_note_is_preserved_after_canonical_prefix(
-        self, tmp_path: Path
-    ) -> None:
+    def test_backward_emit_note_is_preserved_after_canonical_prefix(self, tmp_path: Path) -> None:
         """A user note must not replace the required backward-rewind audit text."""
         mission_slug = "test-mission-note-preserved"
         wp_id = "WP05"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="approved"
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="approved")
         feedback = _write_feedback_file(tmp_path)
         note = "Reviewer requested a simpler implementation."
 
@@ -538,9 +497,7 @@ def _load_approved_rewind_fixture() -> FixtureCase | None:
 class TestApprovedRewindWireShape:
     """FR-009: auto-promoted ``approved → planned`` matches Mission 1's fixture."""
 
-    def test_approved_to_planned_matches_mission1_fixture(
-        self, tmp_path: Path
-    ) -> None:
+    def test_approved_to_planned_matches_mission1_fixture(self, tmp_path: Path) -> None:
         """Wire shape (``force``, ``reason``-prefix, ``from_lane``, ``to_lane``)
         matches ``wp-status-changed-approved-rewind-valid``.
 
@@ -549,9 +506,7 @@ class TestApprovedRewindWireShape:
         """
         mission_slug = "test-mission-fr009"
         wp_id = "WP07"
-        feature_dir, _wp_file = _build_feature_in_lane(
-            tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="approved"
-        )
+        feature_dir, _wp_file = _build_feature_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="approved")
         feedback = _write_feedback_file(tmp_path)
 
         result = _invoke_move(
@@ -583,9 +538,7 @@ class TestApprovedRewindWireShape:
         assert str(emitted.from_lane) == "approved"
         assert str(emitted.to_lane) == "planned"
         assert emitted.reason is not None
-        assert emitted.reason.startswith(expected_prefix), (
-            f"reason must start with {expected_prefix!r}; got {emitted.reason!r}"
-        )
+        assert emitted.reason.startswith(expected_prefix), f"reason must start with {expected_prefix!r}; got {emitted.reason!r}"
 
         # Cross-check against Mission 1's fixture if available.
         fixture = _load_approved_rewind_fixture()
@@ -608,17 +561,11 @@ class TestApprovedRewindWireShape:
         # #3307: the CLI emit now conforms to the fixture's ``force`` bit. The
         # lane/reason wire shape (FR-009) remains normative and IS cross-checked.
         if f_force is not None:
-            assert emitted.force == bool(f_force), (
-                f"CLI force must match fixture force; got emitted={emitted.force} "
-                f"fixture={f_force}"
-            )
+            assert emitted.force == bool(f_force), f"CLI force must match fixture force; got emitted={emitted.force} fixture={f_force}"
         if f_from is not None:
             assert str(emitted.from_lane) == f_from == "approved"
         if f_to is not None:
             assert str(emitted.to_lane) == f_to == "planned"
         if f_reason is not None:
             assert isinstance(f_reason, str)
-            assert f_reason.startswith(expected_prefix), (
-                f"Fixture reason must start with {expected_prefix!r}; "
-                f"got {f_reason!r}"
-            )
+            assert f_reason.startswith(expected_prefix), f"Fixture reason must start with {expected_prefix!r}; got {f_reason!r}"

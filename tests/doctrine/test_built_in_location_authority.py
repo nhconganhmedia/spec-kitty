@@ -85,9 +85,7 @@ class TestBuiltInDirCarveOut:
         assert kind.name in str(excinfo.value)
 
     def test_carve_out_is_exactly_the_three_documented_kinds(self) -> None:
-        assert frozenset(_CARVE_OUT_KINDS) == frozenset(
-            {ArtifactKind.MISSION_STEP_CONTRACT, ArtifactKind.TEMPLATE, ArtifactKind.ANTI_PATTERN}
-        )
+        assert frozenset(_CARVE_OUT_KINDS) == frozenset({ArtifactKind.MISSION_STEP_CONTRACT, ArtifactKind.TEMPLATE, ArtifactKind.ANTI_PATTERN})
 
 
 class TestCarveOutIsComputedNotHandListed:
@@ -98,18 +96,14 @@ class TestCarveOutIsComputedNotHandListed:
     a hand-listed complement in ``pack_paths.py`` could not react to this.
     """
 
-    def test_flipping_template_to_true_stops_the_raise(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_flipping_template_to_true_stops_the_raise(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setitem(artifact_kinds._HAS_BUILT_IN_CONTENT_DIR, "template", True)
         # No raise now -- proves built_in_dir reads the live attribute, not a
         # separately hand-listed set in pack_paths.py.
         resolved = built_in_dir(ArtifactKind.TEMPLATE)
         assert resolved == resolve_pack_root("built-in") / ArtifactKind.TEMPLATE.plural
 
-    def test_flipping_directive_to_false_starts_raising(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_flipping_directive_to_false_starts_raising(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setitem(artifact_kinds._HAS_BUILT_IN_CONTENT_DIR, "directive", False)
         with pytest.raises(BuiltInContentDirNotAvailable):
             built_in_dir(ArtifactKind.DIRECTIVE)

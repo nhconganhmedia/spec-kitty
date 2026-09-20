@@ -141,9 +141,7 @@ def test_asset_list_empty_prints_message_and_exits_zero(tmp_path: Path, monkeypa
 
     empty_built_in = tmp_path / "shipped" / "assets" / "built-in"
     empty_built_in.mkdir(parents=True)
-    monkeypatch.setattr(
-        asset_module, "_build_asset_repository", lambda: AssetRepository(built_in_dir=empty_built_in)
-    )
+    monkeypatch.setattr(asset_module, "_build_asset_repository", lambda: AssetRepository(built_in_dir=empty_built_in))
 
     result = runner.invoke(doctrine_app, ["asset", "list"], catch_exceptions=False)
     assert result.exit_code == 0, result.output
@@ -161,9 +159,7 @@ def test_asset_path_escape_exits_nonzero_naming_it(tmp_path: Path, monkeypatch: 
         mime="text/plain",
         blob_path="../../../../etc/passwd",
     )
-    monkeypatch.setattr(
-        asset_module, "_build_asset_repository", lambda: AssetRepository(built_in_dir=built_in)
-    )
+    monkeypatch.setattr(asset_module, "_build_asset_repository", lambda: AssetRepository(built_in_dir=built_in))
 
     result = runner.invoke(doctrine_app, ["asset", "path", "evil"], catch_exceptions=False)
     assert result.exit_code != 0

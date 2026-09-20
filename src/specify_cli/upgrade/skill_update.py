@@ -152,9 +152,7 @@ def apply_text_replacements(
     if context_filter is not None and not context_filter(file_path):
         return False
 
-    project_root = (
-        trusted_root.resolve() if trusted_root is not None else _project_root_for_skill_path(file_path)
-    )
+    project_root = trusted_root.resolve() if trusted_root is not None else _project_root_for_skill_path(file_path)
     if project_root is None:
         # Fail-closed: the file is not under a recognized skill root, so the
         # HOME-managed-symlink write guard cannot anchor it. Refuse to read or

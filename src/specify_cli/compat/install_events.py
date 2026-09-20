@@ -58,7 +58,7 @@ class UvToolInstallationVerified:
     - LOW:    exit_code != 0
     """
 
-    receipt_path: Path | None         # path to uv-receipt.toml post-upgrade
-    entrypoint_match: bool            # True if spec-kitty entrypoint is present post-upgrade
-    package_binding: str              # package name + specifier from receipt, or "unknown"
+    receipt_path: Path | None  # path to uv-receipt.toml post-upgrade
+    entrypoint_match: bool  # True if spec-kitty entrypoint is present post-upgrade
+    package_binding: str  # package name + specifier from receipt, or "unknown"
     confidence: VerificationConfidence

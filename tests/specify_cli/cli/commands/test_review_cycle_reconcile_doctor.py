@@ -67,7 +67,10 @@ def _init_git_repo(repo_root: Path) -> None:
 
 
 def _write_meta(
-    feature_dir: Path, *, coordination_branch: str | None, topology: str = "coord",
+    feature_dir: Path,
+    *,
+    coordination_branch: str | None,
+    topology: str = "coord",
 ) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
     meta: dict[str, object] = {
@@ -334,7 +337,8 @@ def test_review_cycle_wp_dir_shape_is_wp_slug_keyed(tmp_path: Path) -> None:
 
 
 def test_doctor_review_cycle_reconcile_json_reports_finding(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     repo_root = tmp_path
     feature_dir = _build_deleted_coord_branch_mission(repo_root)
@@ -360,7 +364,8 @@ def test_doctor_review_cycle_reconcile_json_reports_finding(
 
 
 def test_doctor_review_cycle_reconcile_reports_clean_for_mission_with_nothing_stranded(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     repo_root = tmp_path
     _build_deleted_coord_branch_mission(repo_root)
@@ -376,7 +381,8 @@ def test_doctor_review_cycle_reconcile_reports_clean_for_mission_with_nothing_st
 
 
 def test_doctor_review_cycle_reconcile_human_output_names_every_finding(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     repo_root = tmp_path
     feature_dir = _build_deleted_coord_branch_mission(repo_root)
@@ -392,7 +398,8 @@ def test_doctor_review_cycle_reconcile_human_output_names_every_finding(
 
 
 def test_doctor_review_cycle_reconcile_mission_scope_excludes_other_missions(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """``--mission`` scopes the sweep to one mission only."""
     repo_root = tmp_path
@@ -411,7 +418,8 @@ def test_doctor_review_cycle_reconcile_mission_scope_excludes_other_missions(
     monkeypatch.setattr(doctor_module, "locate_project_root", lambda *a, **k: repo_root)
 
     result = runner.invoke(
-        doctor_module.app, ["review-cycle-reconcile", "--json", "--mission", _SLUG_WITH_MID8],
+        doctor_module.app,
+        ["review-cycle-reconcile", "--json", "--mission", _SLUG_WITH_MID8],
     )
 
     assert result.exit_code == 0, result.output

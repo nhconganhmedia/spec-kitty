@@ -85,6 +85,7 @@ class TestManifestV2Shape:
 # Bucket B — Filesystem I/O helpers
 # ---------------------------------------------------------------------------
 
+
 class TestReadGitignoreLines:
     def test_returns_empty_list_when_gitignore_missing(self, tmp_path: Path) -> None:
         """Arrange: no .gitignore;
@@ -181,6 +182,7 @@ class TestEnumerateOutOfScopeFiles:
 # Bucket C — Rendering helpers
 # ---------------------------------------------------------------------------
 
+
 class TestRenderHuman:
     def test_renders_compliant_message_when_bundle_is_compliant(self, capsys) -> None:  # type: ignore[no-untyped-def]
         """Arrange: report with bundle_compliant=True;
@@ -223,6 +225,7 @@ class TestRenderHuman:
 # Bucket A — CLI orchestration (via CliRunner)
 # ---------------------------------------------------------------------------
 
+
 class TestValidateCLI:
     def test_validate_exits_nonzero_when_resolver_raises_not_inside_repo(self, tmp_path: Path) -> None:
         """Arrange: cwd is not inside a git repo;
@@ -230,8 +233,7 @@ class TestValidateCLI:
         Assert: exit code 2."""
         from charter.resolution import NotInsideRepositoryError
 
-        with patch("specify_cli.cli.commands.charter_bundle.resolve_canonical_repo_root",
-                   side_effect=NotInsideRepositoryError("not a repo")):
+        with patch("specify_cli.cli.commands.charter_bundle.resolve_canonical_repo_root", side_effect=NotInsideRepositoryError("not a repo")):
             result = runner.invoke(app, ["validate"])
 
         assert result.exit_code == 2

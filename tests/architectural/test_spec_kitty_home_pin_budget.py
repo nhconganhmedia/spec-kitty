@@ -67,8 +67,7 @@ def test_the_enumerated_set_equals_an_inline_rglob() -> None:
     missing = expected - enumerated
     extra = enumerated - expected
     assert enumerated == expected, (
-        f"the walk does not match a plain rglob — missing {sorted(missing)[:5]}, "
-        f"extra {sorted(extra)[:5]}. NFR-001 permits RAISING the budget and never narrowing."
+        f"the walk does not match a plain rglob — missing {sorted(missing)[:5]}, extra {sorted(extra)[:5]}. NFR-001 permits RAISING the budget and never narrowing."
     )
     print(f"[reported, not asserted] enumerated {len(enumerated)} .py files under {TESTS_ROOT}")
 

@@ -56,16 +56,12 @@ def test_augment_renderer_is_project_local() -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "tool_key", ["auggie", "augment", FORMAT_AUGMENT_AGENT]
-)
+@pytest.mark.parametrize("tool_key", ["auggie", "augment", FORMAT_AUGMENT_AGENT])
 def test_can_render_returns_true_for_known_aliases(tool_key: str) -> None:
     assert AugmentProfileRenderer().can_render(tool_key) is True
 
 
-@pytest.mark.parametrize(
-    "tool_key", ["claude", "codex", "q", "copilot", "unknown"]
-)
+@pytest.mark.parametrize("tool_key", ["claude", "codex", "q", "copilot", "unknown"])
 def test_can_render_returns_false_for_other_tools(tool_key: str) -> None:
     assert AugmentProfileRenderer().can_render(tool_key) is False
 

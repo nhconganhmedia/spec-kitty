@@ -92,6 +92,7 @@ def _deprecation_warning() -> None:
     """
     typer.secho(_DEPRECATION_NOTICE, fg=typer.colors.YELLOW, err=True)
 
+
 pack_app = typer.Typer(
     name="pack",
     help="Validate or assemble doctrine packs.",
@@ -143,10 +144,7 @@ def fetch(
 
     repo_root = locate_project_root()
     if repo_root is None:
-        console.print(
-            "[red]Could not locate spec-kitty project root.[/red] "
-            "Run from inside a project containing .kittify/."
-        )
+        console.print("[red]Could not locate spec-kitty project root.[/red] Run from inside a project containing .kittify/.")
         raise typer.Exit(1)
 
     registry = load_pack_registry(repo_root)
@@ -164,10 +162,7 @@ def fetch(
         target_packs = [p for p in registry.packs if p.name == pack_name]
         if not target_packs:
             names = ", ".join(registry.names()) or "(none)"
-            console.print(
-                f"[red]Pack '{pack_name}' not found.[/red] "
-                f"Configured packs: {names}"
-            )
+            console.print(f"[red]Pack '{pack_name}' not found.[/red] Configured packs: {names}")
             raise typer.Exit(1)
 
     if dry_run:
@@ -178,15 +173,9 @@ def fetch(
             try:
                 target = pack.local_path_root(repo_root)
             except OrgPackEnvVarUnsetError as exc:
-                console.print(
-                    f"Would fetch pack '[bold]{pack.name}[/bold]' from {origin} "
-                    f"— [red]cannot resolve target: {exc}[/red]"
-                )
+                console.print(f"Would fetch pack '[bold]{pack.name}[/bold]' from {origin} — [red]cannot resolve target: {exc}[/red]")
                 continue
-            console.print(
-                f"Would fetch pack '[bold]{pack.name}[/bold]' from {origin} "
-                f"into {target}"
-            )
+            console.print(f"Would fetch pack '[bold]{pack.name}[/bold]' from {origin} into {target}")
         return
 
     any_failed = False
@@ -194,10 +183,7 @@ def fetch(
         result = fetch_pack(pack, repo_root)
         if result.ok:
             suffix = " (unchanged)" if result.unchanged else ""
-            console.print(
-                f"[green]Pack '{pack.name}': {result.artifacts_written} "
-                f"artifacts{suffix}[/green]"
-            )
+            console.print(f"[green]Pack '{pack.name}': {result.artifacts_written} artifacts{suffix}[/green]")
             if result.pack_version:
                 console.print(f"  Version: {result.pack_version}")
         else:
@@ -309,9 +295,7 @@ def regenerate_graph(
                 raise typer.Exit(1) from exc
             # Freshness covers BOTH the DRG fragments and the generated
             # pack-manifest.yaml — either drifting registers as stale.
-            fresh = _read_graph_source(generated_dir) == _read_graph_source(
-                doctrine_root
-            ) and builtin_manifest_is_fresh(doctrine_root)
+            fresh = _read_graph_source(generated_dir) == _read_graph_source(doctrine_root) and builtin_manifest_is_fresh(doctrine_root)
         _emit_regen_result(
             status="fresh" if fresh else "stale",
             path=doctrine_root,
@@ -348,11 +332,7 @@ def _read_graph_source(doctrine_dir: Path) -> dict[str, str]:
     source all register as stale.
     """
     single = doctrine_dir / "graph.yaml"
-    files = (
-        [single]
-        if single.is_file()
-        else sorted(doctrine_dir.glob("*.graph.yaml"))
-    )
+    files = [single] if single.is_file() else sorted(doctrine_dir.glob("*.graph.yaml"))
     return {p.name: p.read_text(encoding="utf-8") for p in files}
 
 
@@ -376,14 +356,9 @@ def _emit_regen_result(
     elif status == "fresh":
         console.print(f"[green]DRG graph is fresh:[/green] {path}")
     elif status == "stale":
-        console.print(
-            f"[red]DRG graph is stale:[/red] {path}\n"
-            "Run [bold]spec-kitty doctrine regenerate-graph[/bold] and commit the result."
-        )
+        console.print(f"[red]DRG graph is stale:[/red] {path}\nRun [bold]spec-kitty doctrine regenerate-graph[/bold] and commit the result.")
     elif status == "invalid":
-        console.print(
-            f"[red]DRG graph failed validation:[/red] {detail or '(no detail)'}"
-        )
+        console.print(f"[red]DRG graph failed validation:[/red] {detail or '(no detail)'}")
 
 
 # ----------------------------------------------------------------------
@@ -437,10 +412,7 @@ def pack_assemble(
     force: bool = typer.Option(
         False,
         "--force",
-        help=(
-            "Resolve artifact-id conflicts by last-pack-wins and drop "
-            "duplicate DRG edges silently."
-        ),
+        help=("Resolve artifact-id conflicts by last-pack-wins and drop duplicate DRG edges silently."),
     ),
     json_output: bool = typer.Option(
         False,
@@ -495,13 +467,7 @@ def pack_assemble(
 #: kinds ``doctrine new`` supports.
 _STUB_TEMPLATES: dict[ArtifactKind, str] = {
     # Directive: id must match [A-Z][A-Z0-9_-]*; intent + title required.
-    ArtifactKind.DIRECTIVE: (
-        'schema_version: "1.0"\n'
-        "id: {artifact_id}\n"
-        "title: TODO short title\n"
-        "intent: TODO why this directive exists\n"
-        "enforcement: advisory\n"
-    ),
+    ArtifactKind.DIRECTIVE: ('schema_version: "1.0"\nid: {artifact_id}\ntitle: TODO short title\nintent: TODO why this directive exists\nenforcement: advisory\n'),
     # Tactic: needs at least one step.
     ArtifactKind.TACTIC: (
         'schema_version: "1.0"\n'
@@ -514,13 +480,7 @@ _STUB_TEMPLATES: dict[ArtifactKind, str] = {
     ),
     # Styleguide: needs at least one principle (min_length=1).
     ArtifactKind.STYLEGUIDE: (
-        'schema_version: "1.0"\n'
-        "id: {artifact_id}\n"
-        "title: TODO short title\n"
-        "scope: code\n"
-        "principles:\n"
-        "  - TODO first principle\n"
-        "applies_to_languages: []\n"
+        'schema_version: "1.0"\nid: {artifact_id}\ntitle: TODO short title\nscope: code\nprinciples:\n  - TODO first principle\napplies_to_languages: []\n'
     ),
     # Toolguide: guide_path must match ^src/charter/offering/.+\.md$.
     ArtifactKind.TOOLGUIDE: (
@@ -531,12 +491,7 @@ _STUB_TEMPLATES: dict[ArtifactKind, str] = {
         "guide_path: src/charter/offering/toolguides/{artifact_id}.md\n"
         "summary: TODO one-line summary\n"
     ),
-    ArtifactKind.PARADIGM: (
-        'schema_version: "1.0"\n'
-        "id: {artifact_id}\n"
-        "name: TODO short name\n"
-        "summary: TODO one-line summary of the paradigm\n"
-    ),
+    ArtifactKind.PARADIGM: ('schema_version: "1.0"\nid: {artifact_id}\nname: TODO short name\nsummary: TODO one-line summary of the paradigm\n'),
     # Procedure: name + purpose + entry/exit + min 1 step.
     ArtifactKind.PROCEDURE: (
         'schema_version: "1.0"\n'
@@ -571,12 +526,7 @@ _STUB_TEMPLATES: dict[ArtifactKind, str] = {
     ),
     # Asset: loose-contract sidecar manifest (AssetManifest, extra=forbid) —
     # required id/mime/path, optional title, and NO schema_version field.
-    ArtifactKind.ASSET: (
-        "id: {artifact_id}\n"
-        "mime: text/plain\n"
-        "path: TODO-relative-path-under-assets.txt\n"
-        "title: TODO asset display name\n"
-    ),
+    ArtifactKind.ASSET: ("id: {artifact_id}\nmime: text/plain\npath: TODO-relative-path-under-assets.txt\ntitle: TODO asset display name\n"),
 }
 
 
@@ -607,10 +557,7 @@ def _resolve_scaffoldable_kind(raw_kind: str) -> ArtifactKind:
         kind = None
     if kind is None or kind not in _STUB_TEMPLATES:
         valid = ", ".join(sorted(member.value for member in _STUB_TEMPLATES))
-        console.print(
-            f"[red]Unknown artifact kind '{raw_kind}'.[/red] "
-            f"Expected one of: {valid}."
-        )
+        console.print(f"[red]Unknown artifact kind '{raw_kind}'.[/red] Expected one of: {valid}.")
         raise typer.Exit(2)
     return kind
 
@@ -629,8 +576,7 @@ def _resolve_scaffold_root(
         return pack
     if repo_root is None:
         raise typer.BadParameter(
-            "Could not locate spec-kitty project root. Run from inside a project "
-            "containing .kittify/ or pass --pack to target an explicit pack directory."
+            "Could not locate spec-kitty project root. Run from inside a project containing .kittify/ or pass --pack to target an explicit pack directory."
         )
     return repo_root / ".kittify" / "doctrine"
 
@@ -639,11 +585,7 @@ def _resolve_scaffold_root(
 def new(
     kind: str = typer.Argument(
         ...,
-        help=(
-            "Artifact kind (singular): one of "
-            + ", ".join(sorted(member.value for member in _STUB_TEMPLATES))
-            + "."
-        ),
+        help=("Artifact kind (singular): one of " + ", ".join(sorted(member.value for member in _STUB_TEMPLATES)) + "."),
     ),
     artifact_id: str = typer.Argument(
         ...,
@@ -653,10 +595,7 @@ def new(
     pack: Path | None = typer.Option(
         None,
         "--pack",
-        help=(
-            "Scaffold inside a doctrine pack directory instead of the project layer. "
-            "When omitted, the stub lands under .kittify/doctrine/."
-        ),
+        help=("Scaffold inside a doctrine pack directory instead of the project layer. When omitted, the stub lands under .kittify/doctrine/."),
     ),
 ) -> None:
     """Scaffold a stub doctrine artifact YAML (FR-016).
@@ -683,17 +622,13 @@ def new(
     # here via the charter.activation.kind_vocabulary facade per the runtime -> charter
     # -> doctrine boundary), so the stub lands exactly where the loader will
     # look for it.
-    target_dir_name = (
-        plural if pack is not None else PROJECT_KIND_DIRS[artifact_kind]
-    )
+    target_dir_name = plural if pack is not None else PROJECT_KIND_DIRS[artifact_kind]
     target_dir = doctrine_root / target_dir_name
     target_dir.mkdir(parents=True, exist_ok=True)
     target_path = target_dir / _artifact_filename(artifact_kind, artifact_id)
 
     if target_path.exists():
-        console.print(
-            f"[red]Refusing to overwrite existing file:[/red] {target_path}"
-        )
+        console.print(f"[red]Refusing to overwrite existing file:[/red] {target_path}")
         raise typer.Exit(1)
 
     stub_text = _stub_template(artifact_kind, artifact_id)
@@ -710,17 +645,11 @@ def new(
     try:
         schema_cls.model_validate(parsed)
     except Exception as exc:  # noqa: BLE001 — surface to operator verbatim
-        console.print(
-            f"[red]Internal error:[/red] stub for kind '{artifact_kind.value}' failed "
-            f"schema validation: {exc}"
-        )
+        console.print(f"[red]Internal error:[/red] stub for kind '{artifact_kind.value}' failed schema validation: {exc}")
         raise typer.Exit(1) from exc
 
     target_path.write_text(stub_text, encoding="utf-8")
-    console.print(
-        f"[green]Created stub artifact:[/green] {target_path}\n"
-        f"Run [bold]spec-kitty doctrine validate {target_path}[/bold] to confirm."
-    )
+    console.print(f"[green]Created stub artifact:[/green] {target_path}\nRun [bold]spec-kitty doctrine validate {target_path}[/bold] to confirm.")
 
 
 # ----------------------------------------------------------------------
@@ -769,20 +698,11 @@ def _check_applies_to_languages(data: dict[str, object]) -> str | None:
     raw = data.get("applies_to_languages")
     if not isinstance(raw, list):
         return None
-    bad = [
-        str(token)
-        for token in raw
-        if isinstance(token, str)
-        and token.strip().lower() in _APPLIES_TO_LANGUAGES_SENTINELS
-    ]
+    bad = [str(token) for token in raw if isinstance(token, str) and token.strip().lower() in _APPLIES_TO_LANGUAGES_SENTINELS]
     if not bad:
         return None
     quoted = ", ".join(f"'{t}'" for t in bad)
-    return (
-        f"`any`/`all` are not language tokens — "
-        f"omit `applies_to_languages` to mean always-applicable "
-        f"(found: {quoted})"
-    )
+    return f"`any`/`all` are not language tokens — omit `applies_to_languages` to mean always-applicable (found: {quoted})"
 
 
 def _validate_single_artifact(
@@ -800,10 +720,7 @@ def _validate_single_artifact(
 
     detected = _detect_artifact_kind(path)
     if detected is None:
-        return False, (
-            f"unrecognised artifact filename suffix (expected one of "
-            f"{', '.join(sorted(_SUFFIX_TO_KIND))})"
-        )
+        return False, (f"unrecognised artifact filename suffix (expected one of {', '.join(sorted(_SUFFIX_TO_KIND))})")
     plural, _singular = detected
     try:
         data = YAML(typ="safe").load(path.read_text(encoding="utf-8"))
@@ -828,10 +745,7 @@ def _validate_single_artifact(
 def validate(
     path: Path = typer.Argument(
         ...,
-        help=(
-            "Artifact YAML file or a directory containing project-layer "
-            "doctrine artifacts (recurses into per-kind subdirectories)."
-        ),
+        help=("Artifact YAML file or a directory containing project-layer doctrine artifacts (recurses into per-kind subdirectories)."),
     ),
 ) -> None:
     """Validate project-layer doctrine artifacts against their schemas (FR-017).
@@ -847,16 +761,10 @@ def validate(
         console.print(f"[red]Path not found:[/red] {path}")
         raise typer.Exit(2)
 
-    targets: list[Path] = (
-        [path]
-        if path.is_file()
-        else sorted(p for p in path.rglob("*.yaml") if _detect_artifact_kind(p))
-    )
+    targets: list[Path] = [path] if path.is_file() else sorted(p for p in path.rglob("*.yaml") if _detect_artifact_kind(p))
 
     if not targets:
-        console.print(
-            f"[yellow]No doctrine artifact files found under {path}.[/yellow]"
-        )
+        console.print(f"[yellow]No doctrine artifact files found under {path}.[/yellow]")
         raise typer.Exit(0)
 
     failures: list[tuple[Path, str]] = []
@@ -869,13 +777,9 @@ def validate(
             console.print(f"[red]FAIL[/red] {target}: {err}")
 
     if failures:
-        console.print(
-            f"\n[red]{len(failures)} of {len(targets)} artifact(s) failed validation.[/red]"
-        )
+        console.print(f"\n[red]{len(failures)} of {len(targets)} artifact(s) failed validation.[/red]")
         raise typer.Exit(1)
-    console.print(
-        f"\n[green]{len(targets)} artifact(s) passed validation.[/green]"
-    )
+    console.print(f"\n[green]{len(targets)} artifact(s) passed validation.[/green]")
     raise typer.Exit(0)
 
 
@@ -953,10 +857,7 @@ def org_init(
     template: str | None = typer.Option(
         None,
         "--template",
-        help=(
-            "Local template directory or git URL (HTTPS/SSH; optional #branch). "
-            "When omitted, scaffolds the minimal three-file pack."
-        ),
+        help=("Local template directory or git URL (HTTPS/SSH; optional #branch). When omitted, scaffolds the minimal three-file pack."),
     ),
     org_name: str | None = typer.Option(
         None,
@@ -1003,10 +904,7 @@ def org_init(
 def _run_minimal_scaffold(pack_path: Path, *, force: bool) -> None:
     """Write the legacy three-file org pack skeleton."""
     if pack_path.exists() and not force:
-        console.print(
-            f"[red]Target directory already exists:[/red] {pack_path}\n"
-            "Pass [bold]--force[/bold] to overwrite."
-        )
+        console.print(f"[red]Target directory already exists:[/red] {pack_path}\nPass [bold]--force[/bold] to overwrite.")
         raise typer.Exit(1)
 
     pack_path.mkdir(parents=True, exist_ok=True)
@@ -1020,9 +918,7 @@ def _run_minimal_scaffold(pack_path: Path, *, force: bool) -> None:
     console.print("  org-charter.yaml")
     console.print("  drg/fragment.yaml")
     console.print("  README.md")
-    console.print(
-        f"\nRun [bold]spec-kitty doctrine org validate {pack_path}[/bold] to confirm."
-    )
+    console.print(f"\nRun [bold]spec-kitty doctrine org validate {pack_path}[/bold] to confirm.")
 
 
 def _run_template_render(
@@ -1039,10 +935,7 @@ def _run_template_render(
     from specify_cli.doctrine.template_render.pipeline import render_org_pack
 
     if not org_name:
-        console.print(
-            "[red]ORG_NAME is required when --template is set[/red] "
-            "(org_name.required)."
-        )
+        console.print("[red]ORG_NAME is required when --template is set[/red] (org_name.required).")
         raise typer.Exit(1)
 
     err = render_org_pack(
@@ -1060,14 +953,8 @@ def _run_template_render(
         raise typer.Exit(1)
 
     console.print(f"[green]Org doctrine rendered at:[/green] {pack_path}")
-    console.print(
-        "  Full template tree written (minus .templateignore); "
-        "ORG_NAME / LOCAL_PATH tokens substituted."
-    )
-    console.print(
-        f"\nRun [bold]spec-kitty doctrine org validate {pack_path}/pack[/bold] "
-        "or your template's quality-check if applicable."
-    )
+    console.print("  Full template tree written (minus .templateignore); ORG_NAME / LOCAL_PATH tokens substituted.")
+    console.print(f"\nRun [bold]spec-kitty doctrine org validate {pack_path}/pack[/bold] or your template's quality-check if applicable.")
 
 
 # ----------------------------------------------------------------------
@@ -1111,6 +998,7 @@ def org_validate(
 # ----------------------------------------------------------------------
 # mission-type list — enumerate all doctrine-layer mission types (FR-013)
 # ----------------------------------------------------------------------
+
 
 #: Dataclass-free record type for a mission-type row.
 class _MissionTypeRow:
@@ -1172,10 +1060,7 @@ def mission_type_list(
     rows.sort(key=lambda r: (r.source_layer != "built-in", r.id))
 
     if json_output:
-        data = [
-            {"id": r.id, "source_layer": r.source_layer, "display_name": r.display_name}
-            for r in rows
-        ]
+        data = [{"id": r.id, "source_layer": r.source_layer, "display_name": r.display_name} for r in rows]
         console.print_json(json.dumps(data))
         return
 

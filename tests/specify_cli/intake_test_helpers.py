@@ -40,9 +40,7 @@ def patched_intake_command_environment(
     """
     with ExitStack() as stack:
         if patch_cwd:
-            stack.enter_context(
-                patch("specify_cli.cli.commands.intake.Path.cwd", return_value=tmp_path)
-            )
+            stack.enter_context(patch("specify_cli.cli.commands.intake.Path.cwd", return_value=tmp_path))
         stack.enter_context(
             patch(
                 "specify_cli.cli.commands.intake._resolve_repo_root",
@@ -58,14 +56,10 @@ def patched_intake_command_environment(
             # terminal is the ``SPEC_KITTY_FORCE_INTERACTIVE`` escape hatch (env,
             # immune to the stdin swap). The intake.sys mock is kept for the
             # module's other ``sys.stdin`` use (the capped payload read).
-            stack.enter_context(
-                patch.dict("os.environ", {"SPEC_KITTY_FORCE_INTERACTIVE": "1"})
-            )
+            stack.enter_context(patch.dict("os.environ", {"SPEC_KITTY_FORCE_INTERACTIVE": "1"}))
             mock_sys = stack.enter_context(patch("specify_cli.cli.commands.intake.sys"))
             mock_sys.stdin.isatty.return_value = True
         elif tty is False:
-            stack.enter_context(
-                patch.dict("os.environ", {"SPEC_KITTY_NON_INTERACTIVE": "1"})
-            )
+            stack.enter_context(patch.dict("os.environ", {"SPEC_KITTY_NON_INTERACTIVE": "1"}))
             stack.enter_context(patch("sys.stdin.isatty", return_value=False))
         yield

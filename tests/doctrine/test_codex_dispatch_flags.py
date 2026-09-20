@@ -28,13 +28,7 @@ def test_shipped_doctrine_skills_do_not_dispatch_codex_with_full_auto() -> None:
 
 def test_implement_review_codex_dispatch_uses_explicit_git_capable_sandbox() -> None:
     skill_path = DOCTRINE_SOURCE_ROOT / "skills" / "spec-kitty-implement-review" / "SKILL.md"
-    matrix_path = (
-        DOCTRINE_SOURCE_ROOT
-        / "skills"
-        / "spec-kitty-implement-review"
-        / "references"
-        / "agent-dispatch-matrix.md"
-    )
+    matrix_path = DOCTRINE_SOURCE_ROOT / "skills" / "spec-kitty-implement-review" / "references" / "agent-dispatch-matrix.md"
 
     skill = skill_path.read_text(encoding="utf-8")
     matrix = matrix_path.read_text(encoding="utf-8")

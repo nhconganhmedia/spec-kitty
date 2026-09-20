@@ -101,9 +101,7 @@ def _make_state(**overrides: Any) -> _MoveTaskState:
 def test_skip_flag_skips_gate_without_touching_workspace() -> None:
     """``--skip-pre-review-gate`` never resolves a workspace or runs pytest."""
     st = _make_state(skip_pre_review_gate=True)
-    with patch(
-        f"{_MODULE}._mt_resolve_pre_review_workspace", side_effect=_WorkspaceTouched
-    ) as workspace_mock:
+    with patch(f"{_MODULE}._mt_resolve_pre_review_workspace", side_effect=_WorkspaceTouched) as workspace_mock:
         tasks_move_task._mt_run_pre_review_gate(st)
     workspace_mock.assert_not_called()
     assert st.pre_review_gate_metadata is not None
@@ -113,16 +111,12 @@ def test_skip_flag_skips_gate_without_touching_workspace() -> None:
 
 
 @pytest.mark.parametrize("env_var", ["SPEC_KITTY_SKIP_PRE_REVIEW_GATE"])
-def test_disable_env_var_skips_gate_without_touching_workspace(
-    env_var: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_disable_env_var_skips_gate_without_touching_workspace(env_var: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """The gate's own opt-out env var short-circuits the gate the same way
     as the explicit flag — no workspace resolution, no subprocess."""
     monkeypatch.setenv(env_var, "1")
     st = _make_state()
-    with patch(
-        f"{_MODULE}._mt_resolve_pre_review_workspace", side_effect=_WorkspaceTouched
-    ) as workspace_mock:
+    with patch(f"{_MODULE}._mt_resolve_pre_review_workspace", side_effect=_WorkspaceTouched) as workspace_mock:
         tasks_move_task._mt_run_pre_review_gate(st)
     workspace_mock.assert_not_called()
     assert st.pre_review_gate_metadata is not None
@@ -130,26 +124,20 @@ def test_disable_env_var_skips_gate_without_touching_workspace(
 
 
 @pytest.mark.parametrize("falsy_value", ["0", "false", "", "no"])
-def test_falsy_env_value_does_not_skip_gate(
-    falsy_value: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_falsy_env_value_does_not_skip_gate(falsy_value: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """A present-but-falsy env var must NOT trip the skip — only recognized
     truthy tokens (the ``core.env.is_truthy`` grammar) do."""
     monkeypatch.setenv("SPEC_KITTY_SKIP_PRE_REVIEW_GATE", falsy_value)
 
 
 @pytest.mark.parametrize("env_var", ["SPEC_KITTY_SYNC_DISABLE", "SPEC_KITTY_SYNC_MINIMAL_IMPORT"])
-def test_sync_disable_vocabulary_no_longer_skips_gate(
-    env_var: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_disable_vocabulary_no_longer_skips_gate(env_var: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """#3980: disarming sync must not silently skip a review gate — the gate
     no longer reads the sync-disable vocabulary, so a truthy value there
     leaves the gate enforcing (the workspace is still resolved)."""
     monkeypatch.setenv(env_var, "1")
     st = _make_state()
-    with patch(
-        f"{_MODULE}._mt_resolve_pre_review_workspace", return_value=None
-    ) as workspace_mock:
+    with patch(f"{_MODULE}._mt_resolve_pre_review_workspace", return_value=None) as workspace_mock:
         tasks_move_task._mt_run_pre_review_gate(st)
     workspace_mock.assert_called_once()
 
@@ -187,9 +175,7 @@ def test_default_still_attempts_to_resolve_workspace_and_run_gate() -> None:
     """With no flag and no env var set, the gate is NOT skipped — it still
     resolves the workspace exactly as before this fix."""
     st = _make_state()
-    with patch(
-        f"{_MODULE}._mt_resolve_pre_review_workspace", return_value=None
-    ) as workspace_mock:
+    with patch(f"{_MODULE}._mt_resolve_pre_review_workspace", return_value=None) as workspace_mock:
         tasks_move_task._mt_run_pre_review_gate(st)
     workspace_mock.assert_called_once()
     assert st.pre_review_gate_metadata is not None
@@ -290,9 +276,7 @@ def test_no_progress_notice_when_scope_is_empty() -> None:
 def test_non_for_review_lane_returns_before_any_skip_logic() -> None:
     st = _make_state(skip_pre_review_gate=True)
     st.target_lane = Lane.IN_PROGRESS
-    with patch(
-        f"{_MODULE}._mt_resolve_pre_review_workspace", side_effect=_WorkspaceTouched
-    ) as workspace_mock:
+    with patch(f"{_MODULE}._mt_resolve_pre_review_workspace", side_effect=_WorkspaceTouched) as workspace_mock:
         tasks_move_task._mt_run_pre_review_gate(st)
     workspace_mock.assert_not_called()
     assert st.pre_review_gate_metadata is None
@@ -313,11 +297,7 @@ def test_skip_pre_review_gate_flag_is_registered_on_move_task_help() -> None:
     group = get_command(app)
     assert isinstance(group, click.Group)
     click_command = group.commands["move-task"]
-    option = next(
-        param
-        for param in click_command.params
-        if isinstance(param, click.Option) and param.name == "skip_pre_review_gate"
-    )
+    option = next(param for param in click_command.params if isinstance(param, click.Option) and param.name == "skip_pre_review_gate")
     assert "--skip-pre-review-gate" in option.opts
     assert option.default is False
     assert "SPEC_KITTY_SKIP_PRE_REVIEW_GATE" in (option.help or "")

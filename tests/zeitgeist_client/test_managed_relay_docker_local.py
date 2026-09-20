@@ -104,9 +104,7 @@ def _docker_available() -> bool:
 def _image_ready() -> bool:
     if not _docker_available():
         return False
-    result = subprocess.run(
-        ["docker", "image", "inspect", IMAGE], capture_output=True, text=True, timeout=10, env=_docker_env()
-    )
+    result = subprocess.run(["docker", "image", "inspect", IMAGE], capture_output=True, text=True, timeout=10, env=_docker_env())
     return result.returncode == 0
 
 
@@ -131,9 +129,7 @@ pytestmark = [
 
 
 def _run(args: list[str], *, tolerate: tuple[str, ...] = ()) -> subprocess.CompletedProcess:
-    result = subprocess.run(
-        ["docker", *args], capture_output=True, text=True, timeout=CMD_TIMEOUT_S, env=_docker_env()
-    )
+    result = subprocess.run(["docker", *args], capture_output=True, text=True, timeout=CMD_TIMEOUT_S, env=_docker_env())
     if result.returncode != 0 and not any(marker in (result.stderr or "").lower() for marker in tolerate):
         raise AssertionError(f"`docker {' '.join(args)}` exited {result.returncode}: {result.stderr}")
     return result
@@ -233,9 +229,7 @@ def relay() -> Generator[_RelayHandle, None, None]:
 
 def _mint(relay: _RelayHandle, *, sub: str, kind: str = "presence", ttl_s: float = 300.0) -> str:
     now = now_epoch()
-    return mint_capability_token(
-        relay.capability_key, sub=sub, team=TEAM, deployment=DEPLOYMENT, repo=REPO, kind=kind, iat=now, exp=now + ttl_s
-    )
+    return mint_capability_token(relay.capability_key, sub=sub, team=TEAM, deployment=DEPLOYMENT, repo=REPO, kind=kind, iat=now, exp=now + ttl_s)
 
 
 def _raw_status(relay: _RelayHandle, *, authorization_value: str, capability_value: str) -> int:
@@ -304,9 +298,7 @@ def test_watch_receives_a_real_frame_with_two_independent_secrets(relay: _RelayH
     from a SaaS-issued two-credential checkout."""
     watch_jwt = _mint(relay, sub="watch-actor")
     stream = filtered_stream.FilteredStream(
-        filtered_stream.TeamStreamConfig(
-            relay_url=relay.base_url, relay_token=relay.shared_token, capability_credential=watch_jwt
-        )
+        filtered_stream.TeamStreamConfig(relay_url=relay.base_url, relay_token=relay.shared_token, capability_credential=watch_jwt)
     )
     frames: list[filtered_stream.LiveFrame] = []
     error: list[BaseException] = []
@@ -334,9 +326,7 @@ def test_watch_receives_a_real_frame_with_two_independent_secrets(relay: _RelayH
         # probes hit the identical race and resolved it the same way, a
         # bounded retry rather than a fixed sleep-and-hope).
         publish_jwt = _mint(relay, sub="publish-actor")
-        publish_client = _client(
-            relay, token=relay.shared_token, capability_credential=publish_jwt, session_id="publish-sess"
-        )
+        publish_client = _client(relay, token=relay.shared_token, capability_credential=publish_jwt, session_id="publish-sess")
         deadline = time.monotonic() + 10.0
         while time.monotonic() < deadline and not frames:
             result = publish_client.presence("file_edit", path="src/watch_demo.py")
@@ -404,9 +394,7 @@ def test_single_credential_shared_token_as_capability_is_403(relay: _RelayHandle
     passes the outer ``Authorization`` gate (it IS ``relay.shared_token``)
     but ``managed_auth.py`` rejects it as an invalid capability signature
     -- a real, reproduced ``403``."""
-    client = _client(
-        relay, token=relay.shared_token, capability_credential=None, session_id="misconfig-capability-sess"
-    )
+    client = _client(relay, token=relay.shared_token, capability_credential=None, session_id="misconfig-capability-sess")
     result = client.presence("file_edit", path="src/misconfig_capability.py")
     assert result.outcome == transport.OfferOutcome.REJECTED
     status = _raw_status(relay, authorization_value=relay.shared_token, capability_value=relay.shared_token)

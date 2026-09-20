@@ -163,8 +163,7 @@ def main(argv: list[str]) -> int:
             print(f"run {run_idx + 1}/{n_runs}: {elapsed:.4f}s")
 
         print()
-        print("-- 1 profiled run (cProfile instrumentation inflates elapsed"
-              " time; use only for the per-phase relative breakdown) --")
+        print("-- 1 profiled run (cProfile instrumentation inflates elapsed time; use only for the per-phase relative breakdown) --")
         profiled_elapsed, last_profile = run_profiled(corpus)
         print(f"profiled run elapsed (inflated): {profiled_elapsed:.4f}s")
 

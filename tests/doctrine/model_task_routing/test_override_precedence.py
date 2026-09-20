@@ -109,9 +109,7 @@ def test_override_wins_over_step_offer_every_time() -> None:
         ("medium", "medium"),
     ],
 )
-def test_override_wins_regardless_of_agreement_with_offer(
-    step_offer: str, override: str
-) -> None:
+def test_override_wins_regardless_of_agreement_with_offer(step_offer: str, override: str) -> None:
     """The override wins whether it agrees, disagrees, or coincides with
     the step's offer -- precedence is unconditional, not a tie-break."""
     from charter.offering.model_task_routing.evaluator import evaluate

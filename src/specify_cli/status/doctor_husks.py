@@ -61,10 +61,7 @@ class HuskReport:
             "worktrees_dir": self.worktrees_dir,
             "healthy": self.healthy,
             "registration_error": self.registration_error,
-            "husks": [
-                {"path": entry.path, "registered": entry.registered}
-                for entry in self.husks
-            ],
+            "husks": [{"path": entry.path, "registered": entry.registered} for entry in self.husks],
         }
 
 
@@ -107,17 +104,11 @@ def registered_worktree_paths(repo_root: Path) -> RegisteredWorktreePaths:
     )
     registered: set[Path] = set()
     if result.returncode != 0:
-        detail = (
-            result.stderr.strip()
-            or result.stdout.strip()
-            or f"exit {result.returncode}"
-        )
-        return RegisteredWorktreePaths(
-            error=f"git worktree list --porcelain failed: {detail}"
-        )
+        detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
+        return RegisteredWorktreePaths(error=f"git worktree list --porcelain failed: {detail}")
     for line in result.stdout.splitlines():
         if line.startswith("worktree "):
-            raw = line[len("worktree "):].strip()
+            raw = line[len("worktree ") :].strip()
             try:
                 registered.add(Path(raw).resolve())
             except OSError:
@@ -146,9 +137,7 @@ def scan_workspace_husks(repo_root: Path) -> HuskReport:
         husks.append(
             HuskEntry(
                 path=str(entry.relative_to(repo_root)),
-                registered=None
-                if registered.error is not None
-                else entry.resolve() in registered.paths,
+                registered=None if registered.error is not None else entry.resolve() in registered.paths,
             )
         )
     return HuskReport(

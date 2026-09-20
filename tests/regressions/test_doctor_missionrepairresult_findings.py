@@ -44,6 +44,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestPrintOverdueDetailsSignature:
     """Verify the type annotation fix for _print_overdue_details.
 
@@ -62,10 +63,7 @@ class TestPrintOverdueDetailsSignature:
         assert report_param is not None, "Function has no 'report' parameter"
         annotation = report_param.annotation
         # Post-fix: must NOT be the bare 'object' type
-        assert annotation is not object, (
-            "report parameter is still annotated as 'object' — fix not applied. "
-            "Should be ShimRegistryReport."
-        )
+        assert annotation is not object, "report parameter is still annotated as 'object' — fix not applied. Should be ShimRegistryReport."
 
     def test_report_parameter_annotated_as_shim_registry_report(self) -> None:
         """_print_overdue_details 'report' parameter must be ShimRegistryReport.
@@ -79,13 +77,9 @@ class TestPrintOverdueDetailsSignature:
         annotation = report_param.annotation
         # Accept both direct class reference and 'from __future__ import annotations' string
         if isinstance(annotation, str):
-            assert "ShimRegistryReport" in annotation, (
-                f"Expected ShimRegistryReport in annotation, got: {annotation!r}"
-            )
+            assert "ShimRegistryReport" in annotation, f"Expected ShimRegistryReport in annotation, got: {annotation!r}"
         else:
-            assert annotation is ShimRegistryReport, (
-                f"Expected ShimRegistryReport, got: {annotation!r}"
-            )
+            assert annotation is ShimRegistryReport, f"Expected ShimRegistryReport, got: {annotation!r}"
 
     def test_function_callable_with_shim_registry_report_empty(self) -> None:
         """_print_overdue_details accepts ShimRegistryReport with no entries.

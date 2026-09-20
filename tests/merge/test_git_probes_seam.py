@@ -60,16 +60,14 @@ def test_linear_history_rejection_is_fail_open() -> None:
 
 def test_classify_porcelain_lines_buckets_correctly() -> None:
     lines = [
-        " M src/changed.py",     # tracked modification -> offending
-        "?? untracked.txt",      # untracked -> skipped, counted
-        "M  kitty-specs/x.md",   # staged, but expected -> dropped
-        "",                      # blank -> ignored
-        "bad",                   # malformed shape -> ignored
-        " D removed.py",         # deletion -> offending
+        " M src/changed.py",  # tracked modification -> offending
+        "?? untracked.txt",  # untracked -> skipped, counted
+        "M  kitty-specs/x.md",  # staged, but expected -> dropped
+        "",  # blank -> ignored
+        "bad",  # malformed shape -> ignored
+        " D removed.py",  # deletion -> offending
     ]
-    offending, skipped = git_probes._classify_porcelain_lines(
-        lines, expected_paths={"kitty-specs/x.md"}
-    )
+    offending, skipped = git_probes._classify_porcelain_lines(lines, expected_paths={"kitty-specs/x.md"})
     assert offending == [" M src/changed.py", " D removed.py"]
     assert skipped == 1
 

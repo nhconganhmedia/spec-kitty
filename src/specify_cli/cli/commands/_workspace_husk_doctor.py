@@ -76,14 +76,9 @@ def _emit_workspace_husk_fix(repo_root: Path, json_output: bool) -> None:
     for removed in fix_result.removed:
         console.print(f"[green]Removed husk:[/green] {removed}")
     for skipped in fix_result.skipped_registered:
-        console.print(
-            f"[yellow]Preserved registered worktree:[/yellow] {skipped} "
-            "(repair manually: `git worktree repair` or `git worktree remove <path>`)"
-        )
+        console.print(f"[yellow]Preserved registered worktree:[/yellow] {skipped} (repair manually: `git worktree repair` or `git worktree remove <path>`)")
     for skipped in fix_result.skipped_appeared_valid:
-        console.print(
-            f"[yellow]Skipped path that became a git worktree:[/yellow] {skipped}"
-        )
+        console.print(f"[yellow]Skipped path that became a git worktree:[/yellow] {skipped}")
     if not report.husks:
         console.print("[green]No workspace husks found.[/green]")
     stale_results = _refresh_stale_coord_worktrees(repo_root)
@@ -125,7 +120,8 @@ _COORD_SUFFIX = "-coord"
 
 
 def _registered_coord_worktrees(
-    repo_root: Path, registered: RegisteredWorktreePaths,
+    repo_root: Path,
+    registered: RegisteredWorktreePaths,
 ) -> list[Path]:
     """Return registered coord worktrees under ``.worktrees/``.
 
@@ -140,11 +136,7 @@ def _registered_coord_worktrees(
     return [
         entry
         for entry in sorted(worktrees_dir.iterdir(), key=lambda p: p.name)
-        if (
-            entry.is_dir()
-            and entry.name.endswith(_COORD_SUFFIX)
-            and entry.resolve() in registered.paths
-        )
+        if (entry.is_dir() and entry.name.endswith(_COORD_SUFFIX) and entry.resolve() in registered.paths)
     ]
 
 
@@ -152,27 +144,33 @@ def _coord_worktree_needs_refresh(worktree: Path, repo_root: Path) -> tuple[bool
     """Return (is_stale, branch_name).  is_stale=False when up-to-date or unreadable."""
     branch_result = subprocess.run(
         ["git", "-C", str(worktree), "symbolic-ref", "--short", "HEAD"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     branch = branch_result.stdout.strip() if branch_result.returncode == 0 else ""
     if not branch:
         return False, ""
     head_result = subprocess.run(
         ["git", "-C", str(worktree), "rev-parse", "HEAD"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     tip_result = subprocess.run(
         ["git", "-C", str(repo_root), "rev-parse", f"refs/heads/{branch}"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     head_sha = head_result.stdout.strip() if head_result.returncode == 0 else ""
     tip_sha = tip_result.stdout.strip() if tip_result.returncode == 0 else ""
     if not head_sha or not tip_sha or head_sha == tip_sha:
         return False, branch
     ancestor = subprocess.run(
-        ["git", "-C", str(repo_root), "merge-base", "--is-ancestor",
-         head_sha, tip_sha],
-        capture_output=True, check=False,
+        ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", head_sha, tip_sha],
+        capture_output=True,
+        check=False,
     )
     return ancestor.returncode == 0, branch
 
@@ -198,9 +196,9 @@ def _refresh_stale_coord_worktrees(
             outcomes.append((str(worktree), "already_current"))
             continue
         merge = subprocess.run(
-            ["git", "-C", str(worktree), "merge", "--ff-only",
-             f"refs/heads/{branch}"],
-            capture_output=True, check=False,
+            ["git", "-C", str(worktree), "merge", "--ff-only", f"refs/heads/{branch}"],
+            capture_output=True,
+            check=False,
         )
         outcomes.append((str(worktree), "refreshed" if merge.returncode == 0 else "failed"))
     return outcomes

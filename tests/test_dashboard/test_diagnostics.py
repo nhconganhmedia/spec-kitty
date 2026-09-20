@@ -16,15 +16,14 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 def _install_manifest_stubs(monkeypatch, worktree_path: Path) -> None:
     """Provide lightweight manifest + worktree stubs for diagnostics tests."""
 
     class FakeManifest:
         def __init__(self, kittify_dir: Path, *, mission_type: str | None = None) -> None:
             self.kittify_dir = kittify_dir
-            self.mission_dir = (
-                kittify_dir / "missions" / mission_type if mission_type else None
-            )
+            self.mission_dir = kittify_dir / "missions" / mission_type if mission_type else None
 
         def get_expected_files(self) -> dict[str, list[str]]:
             return {
@@ -104,9 +103,9 @@ def test_run_diagnostics_reports_manifest_and_worktree_state(monkeypatch, tmp_pa
 
     def fake_run(args, cwd=None, capture_output=False, text=False, check=False, **kwargs):  # noqa: D401 - pytest helper
         """Return the active branch name for diagnostics."""
-        assert args == ['git', 'branch', '--show-current']
+        assert args == ["git", "branch", "--show-current"]
         assert cwd == project_dir
-        return types.SimpleNamespace(stdout='feature/testing\n', returncode=0)
+        return types.SimpleNamespace(stdout="feature/testing\n", returncode=0)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
     monkeypatch.setattr("specify_cli.core.git_ops.resolve_primary_branch", lambda _: "main")
@@ -141,7 +140,7 @@ def test_run_diagnostics_without_feature_dir_shows_no_context(monkeypatch, tmp_p
     _configure_common_patches(monkeypatch, worktree_dir)
 
     def fake_run(args, cwd=None, capture_output=False, text=False, check=False, **kwargs):
-        return types.SimpleNamespace(stdout='main\n', returncode=0)
+        return types.SimpleNamespace(stdout="main\n", returncode=0)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
     monkeypatch.setattr("specify_cli.core.git_ops.resolve_primary_branch", lambda _: "main")
@@ -168,7 +167,7 @@ def test_run_diagnostics_with_feature_dir_resolves_mission(monkeypatch, tmp_path
     _configure_common_patches(monkeypatch, worktree_dir)
 
     def fake_run(args, cwd=None, capture_output=False, text=False, check=False, **kwargs):
-        return types.SimpleNamespace(stdout='main\n', returncode=0)
+        return types.SimpleNamespace(stdout="main\n", returncode=0)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
     monkeypatch.setattr("specify_cli.core.git_ops.resolve_primary_branch", lambda _: "main")

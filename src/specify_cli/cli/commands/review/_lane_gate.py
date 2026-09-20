@@ -38,75 +38,42 @@ def check_wp_lanes(
     needed in this module (traced, not assumed).
     """
     snapshot = materialize(feature_dir)
-    non_done = [
-        wp_id
-        for wp_id, state in snapshot.work_packages.items()
-        if state.get("lane") != "done"
-    ]
+    non_done = [wp_id for wp_id, state in snapshot.work_packages.items() if state.get("lane") != "done"]
     if non_done:
-        console.print(
-            f"  [red]✗[/red]  WP lane check: {len(non_done)} WP(s) not in done"
-        )
+        console.print(f"  [red]✗[/red]  WP lane check: {len(non_done)} WP(s) not in done")
         for wp_id in non_done:
             lane_val = snapshot.work_packages[wp_id].get("lane", "unknown")
             console.print(f"       {wp_id}: {lane_val}")
-            findings.append(
-                {"type": "wp_not_done", "wp_id": wp_id, "lane": str(lane_val)}
-            )
+            findings.append({"type": "wp_not_done", "wp_id": wp_id, "lane": str(lane_val)})
     else:
-        console.print(
-            f"  [green]✓[/green]  WP lane check: all {len(snapshot.work_packages)} WP(s) in done"
-        )
+        console.print(f"  [green]✓[/green]  WP lane check: all {len(snapshot.work_packages)} WP(s) in done")
 
     review_artifact_conflicts = find_rejected_review_artifact_conflicts(feature_dir)
     if review_artifact_conflicts:
-        console.print(
-            "  [red]✗[/red]  Review artifact consistency: blocking latest review "
-            "artifact exists for terminal WP(s)"
-        )
+        console.print("  [red]✗[/red]  Review artifact consistency: blocking latest review artifact exists for terminal WP(s)")
         for conflict in review_artifact_conflicts:
             diagnostic = review_artifact_finding_diagnostic(
                 conflict,
                 repo_root=repo_root,
             )
-            console.print(
-                f"       {format_review_artifact_finding(conflict, repo_root=repo_root)}"
-            )
+            console.print(f"       {format_review_artifact_finding(conflict, repo_root=repo_root)}")
             console.print(f"       diagnostic_code: {diagnostic['diagnostic_code']}")
-            console.print(
-                f"       branch_or_work_package: {diagnostic['branch_or_work_package']}"
-            )
-            console.print(
-                f"       violated_invariant: {diagnostic['violated_invariant']}"
-            )
+            console.print(f"       branch_or_work_package: {diagnostic['branch_or_work_package']}")
+            console.print(f"       violated_invariant: {diagnostic['violated_invariant']}")
             for line in cast(list[str], diagnostic["remediation"]):
                 console.print(f"       remediation: {line}")
             finding: dict[str, str] = {
                 "type": "rejected_review_artifact",
                 "wp_id": conflict.wp_id,
                 "lane": conflict.lane,
-                "artifact_path": (
-                    str(conflict.artifact_path)
-                    if conflict.artifact_path is not None
-                    else "<no review artifact>"
-                ),
+                "artifact_path": (str(conflict.artifact_path) if conflict.artifact_path is not None else "<no review artifact>"),
                 "diagnostic_code": str(diagnostic["diagnostic_code"]),
-                "branch_or_work_package": str(
-                    diagnostic["branch_or_work_package"]
-                ),
+                "branch_or_work_package": str(diagnostic["branch_or_work_package"]),
                 "violated_invariant": str(diagnostic["violated_invariant"]),
-                "remediation": "; ".join(
-                    str(line) for line in cast(list[str], diagnostic["remediation"])
-                ),
+                "remediation": "; ".join(str(line) for line in cast(list[str], diagnostic["remediation"])),
             }
             if "latest_review_cycle_verdict" in diagnostic:
-                finding["latest_review_cycle_verdict"] = str(
-                    diagnostic["latest_review_cycle_verdict"]
-                )
-            findings.append(
-                finding
-            )
+                finding["latest_review_cycle_verdict"] = str(diagnostic["latest_review_cycle_verdict"])
+            findings.append(finding)
     else:
-        console.print(
-            "  [green]✓[/green]  Review artifact consistency: no terminal WP has a blocking latest review artifact"
-        )
+        console.print("  [green]✓[/green]  Review artifact consistency: no terminal WP has a blocking latest review artifact")

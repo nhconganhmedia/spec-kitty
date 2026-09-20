@@ -47,13 +47,9 @@ def _diagnose_catalog_miss(
     construction time), avoiding the need to thread ``repo_root`` through
     every renderer.
     """
-    scope_filtered: frozenset[str] | set[str] = getattr(
-        repository, "scope_filtered_ids", frozenset()
-    )
+    scope_filtered: frozenset[str] | set[str] = getattr(repository, "scope_filtered_ids", frozenset())
     if isinstance(scope_filtered, (set, frozenset)) and missing_id in scope_filtered:
-        active_languages: list[str] | None = getattr(
-            repository, "_active_languages", None
-        )
+        active_languages: list[str] | None = getattr(repository, "_active_languages", None)
         return classify_scope_filtered_miss(missing_id, active_languages)
     return classify_catalog_miss(missing_id, _available_catalog_ids(repository))
 

@@ -96,9 +96,7 @@ class ProfileRegistry:
         self._merged = self._build_merged_profiles(service)
         self._local = self._build_local_profiles(service)
 
-    def _build_merged_profiles(
-        self, service: DoctrineService
-    ) -> dict[str, AgentProfile]:
+    def _build_merged_profiles(self, service: DoctrineService) -> dict[str, AgentProfile]:
         """Build the routing catalog: activation-gated doctrine + legacy project.
 
         The doctrine layers (built-in + org + project) come from the
@@ -111,18 +109,14 @@ class ProfileRegistry:
         gated = service.agent_profiles
         inner_repo = service.agent_profile_repository
         merged: dict[str, AgentProfile] = {
-            profile_id: profile
-            for profile_id, profile in gated.items()
-            if inner_repo.get_provenance(profile_id) in _DOCTRINE_ROUTING_LAYERS
+            profile_id: profile for profile_id, profile in gated.items() if inner_repo.get_provenance(profile_id) in _DOCTRINE_ROUTING_LAYERS
         }
         for profile in self._repo.list_all():
             if self._repo.get_provenance(profile.profile_id) == _LAYER_PROJECT:
                 merged[profile.profile_id] = profile
         return merged
 
-    def _build_local_profiles(
-        self, service: DoctrineService
-    ) -> dict[str, AgentProfile]:
+    def _build_local_profiles(self, service: DoctrineService) -> dict[str, AgentProfile]:
         """Build the local-resolution catalog (#4120): every layer, same gate.
 
         The routing catalog above deliberately excludes the doctrine *project*

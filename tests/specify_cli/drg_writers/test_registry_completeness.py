@@ -104,15 +104,16 @@ class _GraphWithNovelField(DRGGraph):
 
 
 def _mutated_node() -> _NodeWithNovelFields:
-    return _NodeWithNovelFields(
-        urn="anti_pattern:x", kind=NodeKind.ANTI_PATTERN, label="L", tags=["t"]
-    )
+    return _NodeWithNovelFields(urn="anti_pattern:x", kind=NodeKind.ANTI_PATTERN, label="L", tags=["t"])
 
 
 def _mutated_edge() -> _EdgeWithNovelFields:
     return _EdgeWithNovelFields(
-        source="tactic:a", target="tactic:b", relation=Relation.REQUIRES,
-        when="w", reason="r",
+        source="tactic:a",
+        target="tactic:b",
+        relation=Relation.REQUIRES,
+        when="w",
+        reason="r",
     )
 
 
@@ -176,9 +177,7 @@ def test_every_mapping_writer_preserves_a_novel_node_field() -> None:
     for writer in MAPPING_WRITERS:
         emitted = set(writer.node_to_mapping(node))
         assert "novel_scalar" in emitted, f"{writer.name} dropped novel_scalar"
-        assert "novel_empty" in emitted, (
-            f"{writer.name} dropped novel_empty (the empty-value hole, W-1a)"
-        )
+        assert "novel_empty" in emitted, f"{writer.name} dropped novel_empty (the empty-value hole, W-1a)"
 
 
 def test_every_mapping_writer_preserves_a_novel_edge_field() -> None:
@@ -186,9 +185,7 @@ def test_every_mapping_writer_preserves_a_novel_edge_field() -> None:
     for writer in MAPPING_WRITERS:
         emitted = set(writer.edge_to_mapping(edge))
         assert "novel_scalar" in emitted, f"{writer.name} dropped novel_scalar"
-        assert "novel_empty" in emitted, (
-            f"{writer.name} dropped novel_empty (the empty-value hole, W-1a)"
-        )
+        assert "novel_empty" in emitted, f"{writer.name} dropped novel_empty (the empty-value hole, W-1a)"
 
 
 # ---------------------------------------------------------------------------
@@ -215,9 +212,7 @@ def test_every_document_writer_preserves_a_novel_graph_field() -> None:
     )
     for writer in DOCUMENT_WRITERS:
         emitted = set(writer.document_to_mapping(graph))
-        assert "novel_document_key" in emitted, (
-            f"{writer.name} dropped novel_document_key (W-2)"
-        )
+        assert "novel_document_key" in emitted, f"{writer.name} dropped novel_document_key (W-2)"
 
 
 # ---------------------------------------------------------------------------
@@ -268,7 +263,5 @@ def test_the_failure_message_names_the_member_and_the_missing_field() -> None:
 def test_no_live_registry_member_drops_a_node_field() -> None:
     """The same W-5 scan over the live registry yields no report (all derived)."""
     assert MAPPING_WRITERS  # non-empty, so the scan is not vacuous
-    reports = [
-        _node_drop_report(w, _full_node(), _expected_node_keys()) for w in MAPPING_WRITERS
-    ]
+    reports = [_node_drop_report(w, _full_node(), _expected_node_keys()) for w in MAPPING_WRITERS]
     assert all(r is None for r in reports), [r for r in reports if r]

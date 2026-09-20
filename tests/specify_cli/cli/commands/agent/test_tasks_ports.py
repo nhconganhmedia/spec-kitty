@@ -90,9 +90,7 @@ class FakeFsReader:
     anchor_dir: Path = Path("/fake/primary/kitty-specs/mission")
     calls: list[tuple[str, object]] = field(default_factory=list)
 
-    def planning_read_dir(
-        self, mission: MissionHandle, *, kind: MissionArtifactKind
-    ) -> Path:
+    def planning_read_dir(self, mission: MissionHandle, *, kind: MissionArtifactKind) -> Path:
         self.calls.append(("planning_read_dir", kind))
         return self.planning_dirs.get(kind, self.default_planning_dir)
 
@@ -115,13 +113,9 @@ class FakeCoordCommitRouter:
 
     write_dir: Path = Path("/fake/coord/.worktrees/mission-coord/kitty-specs/mission")
     status_result: CommitStatusResult = CommitStatusResult(event=None, skipped=False)
-    artifact_result: CommitArtifactResult = CommitArtifactResult(
-        status="committed", placement_ref="primary", commit_hash="0" * 40
-    )
+    artifact_result: CommitArtifactResult = CommitArtifactResult(status="committed", placement_ref="primary", commit_hash="0" * 40)
     status_calls: list[tuple[str, GuardCapability]] = field(default_factory=list)
-    artifact_calls: list[tuple[str, tuple[Path, ...], str, MissionArtifactKind]] = (
-        field(default_factory=list)
-    )
+    artifact_calls: list[tuple[str, tuple[Path, ...], str, MissionArtifactKind]] = field(default_factory=list)
 
     def feature_write_dir(self, mission: MissionHandle) -> Path:
         return self.write_dir
@@ -144,9 +138,7 @@ class FakeCoordCommitRouter:
         kind: MissionArtifactKind,
         policy: ProtectionPolicy,
     ) -> CommitArtifactResult:
-        self.artifact_calls.append(
-            (mission.mission_slug, tuple(paths), message, kind)
-        )
+        self.artifact_calls.append((mission.mission_slug, tuple(paths), message, kind))
         return self.artifact_result
 
 
@@ -215,13 +207,8 @@ def test_fakes_satisfy_protocols_runtime_checkable() -> None:
 def test_fakes_are_deterministic_and_record_calls() -> None:
     """Fakes return seeded values and record every call (T010)."""
     handle = _handle(Path("/does/not/exist"))
-    fs = FakeFsReader(
-        planning_dirs={MissionArtifactKind.WORK_PACKAGE_TASK: Path("/seed/wp")}
-    )
-    assert (
-        fs.planning_read_dir(handle, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
-        == Path("/seed/wp")
-    )
+    fs = FakeFsReader(planning_dirs={MissionArtifactKind.WORK_PACKAGE_TASK: Path("/seed/wp")})
+    assert fs.planning_read_dir(handle, kind=MissionArtifactKind.WORK_PACKAGE_TASK) == Path("/seed/wp")
     assert fs.wp_tasks_dir(handle) == fs.tasks_dir
     assert fs.primary_anchor_dir(handle) == fs.anchor_dir
     assert fs.calls == [
@@ -252,10 +239,7 @@ def test_real_render_default_is_compact_bytes() -> None:
 
     payload = {"result": "success", "wp_id": "WP04", "count": 2}
     assert RealRender().json_envelope(payload) == json.dumps(payload)
-    assert (
-        RealRender().json_envelope(payload)
-        == '{"result": "success", "wp_id": "WP04", "count": 2}'
-    )
+    assert RealRender().json_envelope(payload) == '{"result": "success", "wp_id": "WP04", "count": 2}'
 
 
 def test_real_render_indent_two_is_indented_bytes() -> None:
@@ -267,12 +251,8 @@ def test_real_render_indent_two_is_indented_bytes() -> None:
     import json
 
     payload = {"result": "success", "wp_id": "WP04", "count": 2}
-    assert RealRender(indent=2).json_envelope(payload) == json.dumps(
-        payload, indent=2
-    )
-    assert RealRender(indent=2).json_envelope(payload) == (
-        '{\n  "result": "success",\n  "wp_id": "WP04",\n  "count": 2\n}'
-    )
+    assert RealRender(indent=2).json_envelope(payload) == json.dumps(payload, indent=2)
+    assert RealRender(indent=2).json_envelope(payload) == ('{\n  "result": "success",\n  "wp_id": "WP04",\n  "count": 2\n}')
 
 
 # ===========================================================================
@@ -342,14 +322,9 @@ def test_no_ports_flag_on_tasks_command_surface() -> None:
     introspection and surface as an unwanted ``--ports`` option. Proving its
     absence proves the injection stays on the extracted orchestrator helper.
     """
-    offenders = [
-        (cmd, opt)
-        for cmd, opt in _iter_command_param_opts()
-        if "ports" in opt.lower()
-    ]
+    offenders = [(cmd, opt) for cmd, opt in _iter_command_param_opts() if "ports" in opt.lower()]
     assert offenders == [], (
-        f"Unexpected ports-like flag on the tasks command surface: {offenders}. "
-        "Injection must stay on _do_<cmd>(*, ports=None), never the @app.command."
+        f"Unexpected ports-like flag on the tasks command surface: {offenders}. Injection must stay on _do_<cmd>(*, ports=None), never the @app.command."
     )
 
 
@@ -389,9 +364,7 @@ def test_commit_status_and_commit_artifact_route_to_disjoint_seams() -> None:
     handle = _handle(Path("/repo"))
 
     coord.commit_status(
-        TransitionRequest(
-            mission_slug=_SLUG, wp_id="WP02", to_lane="claimed", actor="randy-reducer"
-        ),
+        TransitionRequest(mission_slug=_SLUG, wp_id="WP02", to_lane="claimed", actor="randy-reducer"),
         capability=GuardCapability.STANDARD,
     )
     assert coord.status_calls == [(_SLUG, GuardCapability.STANDARD)]
@@ -463,8 +436,7 @@ def test_primary_anchor_dir_has_no_separate_canonicalizer_fold() -> None:
     # primitive in prose to explain why the fold was dropped (redundant with
     # the seam's internal fold); only an actual call would mean it was not.
     assert "_canonicalize_primary_read_handle(" not in source, (
-        "primary_anchor_dir should no longer pre-fold the handle -- the seam's "
-        "PRIMARY leg already does so internally (WP08 T036)"
+        "primary_anchor_dir should no longer pre-fold the handle -- the seam's PRIMARY leg already does so internally (WP08 T036)"
     )
     assert "placement_seam" in source
     assert "MissionArtifactKind.PRIMARY_METADATA" in source
@@ -566,9 +538,7 @@ def test_fr010_only_status_partition_kind_matches_the_blind_dir(
     choice for the pre30 guard even though it is the only path-equal one.
     """
     blind = resolve_feature_dir_for_mission(coord_ctx.repo, coord_ctx.slug)
-    status_dir = resolve_planning_read_dir(
-        coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.STATUS_STATE
-    )
+    status_dir = resolve_planning_read_dir(coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.STATUS_STATE)
     assert status_dir == blind == coord_ctx.coord_feature_dir
 
 
@@ -597,9 +567,7 @@ def test_fr010_guard_outcome_is_byte_identical_across_legs(
     assert blind_outcome == "no-op"  # sanity: modern fixture, guard does not fire
 
     for kind in _PRIMARY_GUARD_KINDS:
-        primary_dir = resolve_planning_read_dir(
-            coord_ctx.repo, coord_ctx.slug, kind=kind
-        )
+        primary_dir = resolve_planning_read_dir(coord_ctx.repo, coord_ctx.slug, kind=kind)
         assert _guard_outcome(primary_dir) == blind_outcome, kind
 
 
@@ -609,9 +577,7 @@ def test_fr010_guard_does_not_mutate_either_leg(
     """FR-010: the guard is a pure no-op — it mutates neither the husk nor the
     primary tree (non-fakeable: snapshot rglob before/after)."""
     blind = resolve_feature_dir_for_mission(coord_ctx.repo, coord_ctx.slug)
-    primary = resolve_planning_read_dir(
-        coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    primary = resolve_planning_read_dir(coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
     for leg in (blind, primary):
         before = set(leg.rglob("*"))
         check_pre30_layout(leg)
@@ -648,16 +614,12 @@ def test_fr010_move_task_status_read_must_stay_on_coord_husk(
 
     # A PRIMARY-partition kind resolves a DIFFERENT dir — collapsing the shared
     # status read onto it would break the coord-authority event-log read.
-    primary_read = resolve_planning_read_dir(
-        coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    primary_read = resolve_planning_read_dir(coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
     assert primary_read != coord_husk
     assert primary_read == coord_ctx.primary_feature_dir
 
     # The ONLY coord-husk-preserving kind for the shared status read is a
     # STATUS-partition kind — this is the pin move_task's guard may adopt while
     # keeping the event-log read byte-identical to the coord husk.
-    status_read = resolve_planning_read_dir(
-        coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.STATUS_STATE
-    )
+    status_read = resolve_planning_read_dir(coord_ctx.repo, coord_ctx.slug, kind=MissionArtifactKind.STATUS_STATE)
     assert status_read == coord_husk

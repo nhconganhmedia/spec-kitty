@@ -55,9 +55,7 @@ class AmazonQProfileRenderer:
         """Return ``True`` for the three Amazon Q tool-key aliases."""
         return tool_key in {"q", "amazon-q", FORMAT_AMAZON_Q_AGENT}
 
-    def output_path(
-        self, tool_key: str, profile: ProfilePathIdentity, project_root: Path
-    ) -> Path:
+    def output_path(self, tool_key: str, profile: ProfilePathIdentity, project_root: Path) -> Path:
         """Return the user-global path for ``profile``.
 
         ``tool_key`` and ``project_root`` are accepted to satisfy the
@@ -66,13 +64,7 @@ class AmazonQProfileRenderer:
         always under ``~/.aws/``, independent of the project.
         """
         _ = tool_key, project_root
-        return (
-            Path.home()
-            / _AWS_DIR
-            / _AMAZONQ_SUBDIR
-            / _CLI_AGENTS_SUBDIR
-            / f"{profile.profile_id}{_JSON_SUFFIX}"
-        )
+        return Path.home() / _AWS_DIR / _AMAZONQ_SUBDIR / _CLI_AGENTS_SUBDIR / f"{profile.profile_id}{_JSON_SUFFIX}"
 
     def render(self, profile: AgentProfile) -> str:
         """Return a JSON string for the Amazon Q CLI agent spec."""

@@ -52,9 +52,7 @@ SCHEMA_VERSION = "1"
 #: assertion. ``manifest_hash`` is excluded because it is the self field;
 #: ``generated_at`` / ``generated_by`` are volatile provenance that must not
 #: perturb a re-generation of otherwise-identical content (NFR-003).
-HASH_EXCLUDED_FIELDS: frozenset[str] = frozenset(
-    {"manifest_hash", "generated_at", "generated_by"}
-)
+HASH_EXCLUDED_FIELDS: frozenset[str] = frozenset({"manifest_hash", "generated_at", "generated_by"})
 
 _FETCHED_PROVENANCE_FIELDS: frozenset[str] = frozenset(
     {
@@ -67,9 +65,7 @@ _FETCHED_PROVENANCE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-_GENERATED_PACK_SOURCE_TYPES: frozenset[str] = frozenset(
-    {"api", "artifactory", "assemble", "git", "https"}
-)
+_GENERATED_PACK_SOURCE_TYPES: frozenset[str] = frozenset({"api", "artifactory", "assemble", "git", "https"})
 
 
 class Constituent(BaseModel):
@@ -142,18 +138,13 @@ class PackManifest(BaseModel):
     charter: CharterProfile | None = None
 
     @model_serializer(mode="wrap")
-    def _serialize_manifest(
-        self, handler: SerializerFunctionWrapHandler
-    ) -> dict[str, Any]:
+    def _serialize_manifest(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
         """Serialize manifest variants consistently on every Pydantic path."""
         data: dict[str, Any] = handler(self)
         for field_name in _FETCHED_PROVENANCE_FIELDS:
             if data.get(field_name) is not None:
                 continue
-            if (
-                field_name == "pack_version"
-                and self.source_type in _GENERATED_PACK_SOURCE_TYPES
-            ):
+            if field_name == "pack_version" and self.source_type in _GENERATED_PACK_SOURCE_TYPES:
                 continue
             data.pop(field_name, None)
         if self.constituents is None:
@@ -161,9 +152,7 @@ class PackManifest(BaseModel):
         return data
 
     @classmethod
-    def __get_pydantic_json_schema__(
-        cls, core_schema: Any, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
+    def __get_pydantic_json_schema__(cls, core_schema: Any, handler: GetJsonSchemaHandler) -> dict[str, Any]:
         """Keep the declared serialization schema as strict as validation."""
         schema = dict(core_schema)
         if handler.mode == "serialization":
@@ -216,15 +205,9 @@ def finalize_pack_manifest(manifest: PackManifest) -> PackManifest:
     Constituents are normalized to canonical ``(kind, id)`` order first so the
     hash and serialized bytes are order-independent of the caller.
     """
-    ordered_constituents = (
-        None
-        if manifest.constituents is None
-        else sort_constituents(manifest.constituents)
-    )
+    ordered_constituents = None if manifest.constituents is None else sort_constituents(manifest.constituents)
     ordered = manifest.model_copy(update={"constituents": ordered_constituents})
-    return ordered.model_copy(
-        update={"manifest_hash": compute_pack_manifest_hash(ordered)}
-    )
+    return ordered.model_copy(update={"manifest_hash": compute_pack_manifest_hash(ordered)})
 
 
 # ---------------------------------------------------------------------------
@@ -239,11 +222,7 @@ def dump_pack_manifest_bytes(manifest: PackManifest) -> bytes:
     single source of truth for YAML serialization) so the bytes are stable
     under identical inputs. Constituents are canonically ordered first.
     """
-    ordered_constituents = (
-        None
-        if manifest.constituents is None
-        else sort_constituents(manifest.constituents)
-    )
+    ordered_constituents = None if manifest.constituents is None else sort_constituents(manifest.constituents)
     ordered = manifest.model_copy(update={"constituents": ordered_constituents})
     serialized: bytes = canonical_yaml(_manifest_payload(ordered))
     return serialized
@@ -348,9 +327,7 @@ def absorb_synthesis_manifest(manifest: SynthesisManifest) -> PackManifest:
         schema_version=manifest.schema_version,
         built_in_only=manifest.built_in_only,
     )
-    return finalize_pack_manifest(
-        PackManifest(constituents=constituents, charter=profile)
-    )
+    return finalize_pack_manifest(PackManifest(constituents=constituents, charter=profile))
 
 
 __all__ = [

@@ -5,6 +5,7 @@ isolation (the dual-CWD parity behaviour is covered by
 ``tests/architectural/test_execution_context_parity.py``). Fast, hermetic,
 no git / no filesystem.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -130,9 +131,7 @@ def test_to_dict_excludes_fragments_preserving_substrate_shape() -> None:
             coordination_branch=None,
             destination_ref=CommitTarget(ref="main"),
         ),
-        status_surface=StatusSurfaceFragment(
-            status_read_dir=surface, status_write_dir=surface
-        ),
+        status_surface=StatusSurfaceFragment(status_read_dir=surface, status_write_dir=surface),
     )
     data = ctx.to_dict()
     for fragment_field in (
@@ -161,9 +160,7 @@ def test_optional_fragments_can_be_attached() -> None:
         execution_workspace=Path("/repo/.worktrees/demo-lane-a"),
         allowed_command_cwd=Path("/repo"),
     )
-    placement = ArtifactPlacementFragment(
-        placement_ref=CommitTarget(ref="main")
-    )
+    placement = ArtifactPlacementFragment(placement_ref=CommitTarget(ref="main"))
     ctx = MissionExecutionContext(
         action="implement",
         mission_slug="demo",

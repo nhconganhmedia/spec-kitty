@@ -241,12 +241,8 @@ def _render_text(
         resolver_directives,
     ) = _resolve_governance_summary(repo_root)
 
-    effective_resolver_directives: list[str] = (
-        [] if suppress_project_resolver else resolver_directives
-    )
-    merged_directive_ids = tuple(
-        dict.fromkeys(list(directive_ids) + effective_resolver_directives)
-    )
+    effective_resolver_directives: list[str] = [] if suppress_project_resolver else resolver_directives
+    merged_directive_ids = tuple(dict.fromkeys(list(directive_ids) + effective_resolver_directives))
 
     lines: list[str] = [
         "Governance:",

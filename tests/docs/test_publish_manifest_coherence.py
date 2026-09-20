@@ -100,10 +100,7 @@ def _stage_docs_tree(root: Path) -> tuple[Path, Path]:
 
 
 def _derived_paths(docs: Path, docfx: Path) -> set[str]:
-    return {
-        strip_site(u, SITE_URL)
-        for u in derive_urls_from_source(docs, docfx, site_url=SITE_URL)
-    }
+    return {strip_site(u, SITE_URL) for u in derive_urls_from_source(docs, docfx, site_url=SITE_URL)}
 
 
 # --- Gate 1 (#2357): baseline coverage ---------------------------------------
@@ -155,9 +152,7 @@ def test_gate1_fixture_excludes_only_the_documented_generated_shape(
     """
     docs, docfx = _stage_docs_tree(tmp_path)
     derived = _derived_paths(docs, docfx)
-    baseline_paths = sorted(
-        derived | {"kitty-specs/index.html", "how-to/also-missing.html"}
-    )
+    baseline_paths = sorted(derived | {"kitty-specs/index.html", "how-to/also-missing.html"})
 
     uncovered = uncovered_urls(baseline_paths, derived, redirect_map={})
 
@@ -216,8 +211,7 @@ def test_gate2_fixture_has_teeth_on_unpublished_toc_href(tmp_path: Path) -> None
     docs, docfx = _stage_docs_tree(tmp_path)
     toc = docs / "toc.yml"
     toc.write_text(
-        "- name: Home\n  href: index.md\n"
-        "- name: Release Goals\n  href: release-goals/index.md\n",
+        "- name: Home\n  href: index.md\n- name: Release Goals\n  href: release-goals/index.md\n",
         encoding="utf-8",
     )
     derived = _derived_paths(docs, docfx)
@@ -235,8 +229,7 @@ def test_gate2_fixture_green_once_toc_href_targets_a_published_page(
     docs, docfx = _stage_docs_tree(tmp_path)
     toc = docs / "toc.yml"
     toc.write_text(
-        "- name: Home\n  href: index.md\n"
-        "- name: How-To\n  href: how-to/create-plan.md\n",
+        "- name: Home\n  href: index.md\n- name: How-To\n  href: how-to/create-plan.md\n",
         encoding="utf-8",
     )
     derived = _derived_paths(docs, docfx)
@@ -255,9 +248,7 @@ def test_gate2_fixture_excludes_only_the_documented_generated_shape(
     docs, docfx = _stage_docs_tree(tmp_path)
     toc = docs / "toc.yml"
     toc.write_text(
-        "- name: Home\n  href: index.md\n"
-        "- name: Mission Runs\n  href: kitty-specs/index.html\n"
-        "- name: Ghost\n  href: how-to/ghost.md\n",
+        "- name: Home\n  href: index.md\n- name: Mission Runs\n  href: kitty-specs/index.html\n- name: Ghost\n  href: how-to/ghost.md\n",
         encoding="utf-8",
     )
     derived = _derived_paths(docs, docfx)

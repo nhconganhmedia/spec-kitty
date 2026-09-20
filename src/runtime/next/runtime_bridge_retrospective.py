@@ -343,8 +343,7 @@ def _build_retrospective_facilitator_callback(
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "Retrospective record written but RetrospectiveCaptured emit "
-                "failed for mission %s; emitting RetrospectiveCaptureFailed.",
+                "Retrospective record written but RetrospectiveCaptured emit failed for mission %s; emitting RetrospectiveCaptureFailed.",
                 mission_slug,
                 exc_info=exc,
             )
@@ -383,11 +382,7 @@ def _resolve_retrospective_policy_for_runtime(
 
 def _retrospective_blocks_completion(policy: Any) -> bool:
     """Return True for the explicit strict pre-completion gate policy."""
-    return (
-        bool(getattr(policy, "enabled", False))
-        and getattr(policy, "timing", None) == "before_completion"
-        and getattr(policy, "failure_policy", None) == "block"
-    )
+    return bool(getattr(policy, "enabled", False)) and getattr(policy, "timing", None) == "before_completion" and getattr(policy, "failure_policy", None) == "block"
 
 
 def _run_retrospective_learning_capture(
@@ -418,9 +413,7 @@ def _run_retrospective_learning_capture(
     # is still observed — see module docstring §retrospective-pair risk.
     from runtime.next import runtime_bridge as _rb  # noqa: PLC0415
 
-    resolved_provenance: ProvenanceKind = provenance_kind or (
-        "runtime_strict_gate" if block_on_failure else "runtime_post_completion"
-    )
+    resolved_provenance: ProvenanceKind = provenance_kind or ("runtime_strict_gate" if block_on_failure else "runtime_post_completion")
     callback = _rb._build_retrospective_facilitator_callback(
         mission_slug=mission_slug,
         repo_root=repo_root,

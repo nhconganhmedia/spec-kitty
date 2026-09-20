@@ -22,6 +22,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit]
 
+
 def _format_failure(result: NeutralityLintResult) -> str:
     """Render a reviewer-actionable failure message per contract C-3.
 
@@ -151,8 +152,7 @@ def test_default_scan_roots_include_relocated_builtin_missions(tmp_path: Path) -
     )
 
     assert any(hit.term_id == "PY-001" for hit in result.hits), (
-        f"Expected PY-001 ('pytest') hit from relocated packs/built-in/missions "
-        f"templates; got hits={result.hits}"
+        f"Expected PY-001 ('pytest') hit from relocated packs/built-in/missions templates; got hits={result.hits}"
     )
 
 
@@ -223,9 +223,7 @@ def test_setup_doctor_failure_signatures_are_allowlisted(tmp_path: Path) -> None
     """The setup-doctor failure catalog may mention Python recovery commands."""
     repo_root = Path(__file__).resolve().parents[2]
     target = repo_root / "src" / "charter" / "offering" / "skills" / "spec-kitty-setup-doctor" / "references" / "common-failure-signatures.md"
-    project_allowlist = (
-        repo_root / "src" / "charter" / "activation" / "neutrality" / "language_scoped_allowlist.yaml"
-    )
+    project_allowlist = repo_root / "src" / "charter" / "activation" / "neutrality" / "language_scoped_allowlist.yaml"
 
     empty_allowlist = tmp_path / "allow.yaml"
     empty_allowlist.write_text("schema_version: '1'\npaths: []\n", encoding="utf-8")
@@ -376,7 +374,7 @@ def test_case_sensitive_false_matches_literal_and_regex_terms(tmp_path: Path) ->
         "    case_sensitive: false\n"
         "  - id: PY-901\n"
         "    kind: regex\n"
-        "    pattern: \"\\\\bpip install\\\\b\"\n"
+        '    pattern: "\\\\bpip install\\\\b"\n'
         "    rationale: Case-insensitive regex regression fixture.\n"
         "    case_sensitive: false\n",
         encoding="utf-8",
@@ -413,7 +411,7 @@ def test_banned_terms_remain_case_sensitive_by_default(tmp_path: Path) -> None:
         "    rationale: Default-sensitive literal regression fixture.\n"
         "  - id: PY-901\n"
         "    kind: regex\n"
-        "    pattern: \"\\\\bpip install\\\\b\"\n"
+        '    pattern: "\\\\bpip install\\\\b"\n'
         "    rationale: Default-sensitive regex regression fixture.\n",
         encoding="utf-8",
     )

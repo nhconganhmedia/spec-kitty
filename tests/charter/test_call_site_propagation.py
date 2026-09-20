@@ -49,6 +49,7 @@ from kernel.errors import KittyInternalConsistencyError
 
 pytestmark = [pytest.mark.unit]
 
+
 def _write_ambiguous_yaml(path: Path) -> None:
     """Write bytes that the chokepoint cannot resolve confidently — the
     detector returns a ``best`` candidate whose ``chaos`` keeps the
@@ -270,10 +271,7 @@ def test_doctrine_service_agent_profiles_empty_frozenset_returns_empty() -> None
     wrapper = DoctrineService(mock_inner, pack_context=pack_ctx)
     result = wrapper.agent_profiles
 
-    assert result == {}, (
-        "activated_agent_profiles=frozenset() must return an empty dict "
-        "(explicit opt-out), not the full profile set."
-    )
+    assert result == {}, "activated_agent_profiles=frozenset() must return an empty dict (explicit opt-out), not the full profile set."
 
 
 def test_doctrine_service_agent_profiles_specific_ids_returns_subset() -> None:
@@ -292,6 +290,4 @@ def test_doctrine_service_agent_profiles_specific_ids_returns_subset() -> None:
     wrapper = DoctrineService(mock_inner, pack_context=pack_ctx)
     result = wrapper.agent_profiles
 
-    assert set(result.keys()) == {"alpha", "gamma"}, (
-        "Only activated profile IDs should be returned."
-    )
+    assert set(result.keys()) == {"alpha", "gamma"}, "Only activated profile IDs should be returned."

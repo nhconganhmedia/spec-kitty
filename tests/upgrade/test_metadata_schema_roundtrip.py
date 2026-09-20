@@ -100,9 +100,7 @@ def test_save_after_material_change_preserves_schema_version(tmp_path: Path) -> 
     assert wrote is True, "a new migration record is material and must force a write"
 
     on_disk = yaml.safe_load((kdir / "metadata.yaml").read_text(encoding="utf-8"))
-    assert on_disk["spec_kitty"]["schema_version"] == _ARBITRARY_SCHEMA_VERSION, (
-        "schema_version must survive a save() triggered by an unrelated metadata change"
-    )
+    assert on_disk["spec_kitty"]["schema_version"] == _ARBITRARY_SCHEMA_VERSION, "schema_version must survive a save() triggered by an unrelated metadata change"
 
     # Re-loading confirms the round-trip is stable across repeated cycles.
     reloaded = ProjectMetadata.load(kdir)
@@ -133,12 +131,7 @@ def test_mask_volatile_metadata_does_not_mask_schema_version_line() -> None:
     """The compare-before-write mask must no longer neutralize schema_version
     lines: a real schema_version change has to be visible to the
     masked-equality check so the write is not incorrectly skipped."""
-    before = (
-        "spec_kitty:\n"
-        "  version: '3.2.0'\n"
-        "  last_upgraded_at: '2026-01-01T00:00:00+00:00'\n"
-        "  schema_version: 2\n"
-    )
+    before = "spec_kitty:\n  version: '3.2.0'\n  last_upgraded_at: '2026-01-01T00:00:00+00:00'\n  schema_version: 2\n"
     after = (
         "spec_kitty:\n"
         "  version: '3.2.0'\n"
@@ -146,29 +139,15 @@ def test_mask_volatile_metadata_does_not_mask_schema_version_line() -> None:
         "  schema_version: 3\n"  # material: must NOT be masked away
     )
 
-    assert _mask_volatile_metadata(before) != _mask_volatile_metadata(after), (
-        "a legitimate schema_version change must not be masked into equality"
-    )
+    assert _mask_volatile_metadata(before) != _mask_volatile_metadata(after), "a legitimate schema_version change must not be masked into equality"
 
 
 def test_mask_volatile_metadata_still_masks_last_upgraded_at() -> None:
     """last_upgraded_at remains volatile/masked (issue #1871 behaviour intact)."""
-    before = (
-        "spec_kitty:\n"
-        "  version: '3.2.0'\n"
-        "  last_upgraded_at: '2026-01-01T00:00:00+00:00'\n"
-        "  schema_version: 3\n"
-    )
-    after = (
-        "spec_kitty:\n"
-        "  version: '3.2.0'\n"
-        "  last_upgraded_at: '2026-06-13T12:00:00+00:00'\n"
-        "  schema_version: 3\n"
-    )
+    before = "spec_kitty:\n  version: '3.2.0'\n  last_upgraded_at: '2026-01-01T00:00:00+00:00'\n  schema_version: 3\n"
+    after = "spec_kitty:\n  version: '3.2.0'\n  last_upgraded_at: '2026-06-13T12:00:00+00:00'\n  schema_version: 3\n"
 
-    assert _mask_volatile_metadata(before) == _mask_volatile_metadata(after), (
-        "last_upgraded_at alone must still compare equal (no-op upgrades stay silent)"
-    )
+    assert _mask_volatile_metadata(before) == _mask_volatile_metadata(after), "last_upgraded_at alone must still compare equal (no-op upgrades stay silent)"
 
 
 def test_compare_before_write_skips_when_only_timestamp_differs(tmp_path: Path) -> None:

@@ -117,9 +117,7 @@ def _setup_fixture_repo(tmp_path: Path) -> None:
     # ``mission_type_activations`` is provisioned so ``PackContext.from_config``
     # (WP04, C-A1: the provisioned charter is the sole activation authority)
     # does not hard-fail on a genuinely absent key.
-    (tmp_path / ".kittify" / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 def _write_graph_fixture(tmp_path: Path) -> None:
@@ -231,9 +229,7 @@ class TestBuildContextV2:
         assert result.mode == "compact"
         assert result.first_load is False
 
-    def test_json_undeclared_action_with_resolved_type_returns_compact(
-        self, tmp_path: Path
-    ) -> None:
+    def test_json_undeclared_action_with_resolved_type_returns_compact(self, tmp_path: Path) -> None:
         """AC-2 companion (WP02, #3596, ADR
         2026-08-21-1-charter-gate-predicate-inversion, squad S3).
 
@@ -267,9 +263,7 @@ class TestBuildContextV2:
             patch("charter.activation.catalog.resolve_doctrine_root", return_value=tmp_path),
             patch("charter.offering.drg.validator.assert_valid"),
         ):
-            payload = build_charter_context_json(
-                tmp_path, action="custom-action", mission_type="software-dev"
-            )
+            payload = build_charter_context_json(tmp_path, action="custom-action", mission_type="software-dev")
 
         assert payload["mode"] == "compact"
         assert payload["directives"] == []
@@ -284,10 +278,7 @@ class TestBuildContextV2:
         # on is retired (sync() no longer scrapes anything); governance is
         # hand-authored directly in charter.yaml now.
         (tmp_path / ".kittify" / "charter" / "charter.yaml").write_text(
-            "governance:\n"
-            "  doctrine:\n"
-            "    governance_references:\n"
-            "      - spec/constitution.md\n",
+            "governance:\n  doctrine:\n    governance_references:\n      - spec/constitution.md\n",
             encoding="utf-8",
         )
 
@@ -333,11 +324,7 @@ class TestBuildContextV2:
         # hand-authored directly in charter.yaml now -- the charter.md
         # fenced-YAML extraction this fixture used to rely on is retired.
         (tmp_path / ".kittify" / "charter" / "charter.yaml").write_text(
-            "governance:\n"
-            "  doctrine:\n"
-            "    governance_references:\n"
-            "      - spec/constitution.md\n"
-            "      - docs/missing-governance.md\n",
+            "governance:\n  doctrine:\n    governance_references:\n      - spec/constitution.md\n      - docs/missing-governance.md\n",
             encoding="utf-8",
         )
 
@@ -414,7 +401,10 @@ class TestBuildContextV2:
             patch("charter.activation.sync.ensure_charter_bundle_fresh", return_value=None),
         ):
             result = build_charter_context(
-                tmp_path, action="implement", depth=2, mark_loaded=False,
+                tmp_path,
+                action="implement",
+                depth=2,
+                mark_loaded=False,
                 mission_type="software-dev",
             )
 
@@ -497,7 +487,10 @@ class TestBuildContextV2:
             patch("charter.activation.sync.ensure_charter_bundle_fresh", return_value=None),
         ):
             result = build_charter_context(
-                tmp_path, action="implement", depth=2, mark_loaded=False,
+                tmp_path,
+                action="implement",
+                depth=2,
+                mark_loaded=False,
                 mission_type="software-dev",
             )
 
@@ -591,9 +584,7 @@ class TestBuildContextV2:
         assert result.mode == "missing"
         assert "Charter file not found" in result.text
 
-    def test_charter_yaml_absence_does_not_regress_charter_md_only_bootstrap(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_yaml_absence_does_not_regress_charter_md_only_bootstrap(self, tmp_path: Path) -> None:
         """Backward-compat pin: charter.md present, charter.yaml absent still renders.
 
         This is the shape a large swath of the pre-existing suite seeds
@@ -663,9 +654,7 @@ class TestBuildContextV2:
         result = self._call(tmp_path)
         assert result.references_count >= 0
 
-    def test_build_context_uses_fallback_summary_when_policy_section_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_build_context_uses_fallback_summary_when_policy_section_missing(self, tmp_path: Path) -> None:
         _setup_fixture_repo(tmp_path)
         charter_path = tmp_path / ".kittify" / "charter" / "charter.md"
         charter_path.write_text("# Project Charter\n", encoding="utf-8")
@@ -687,9 +676,7 @@ class TestBuildContextV2:
             result = self._call(tmp_path, depth=d)
             assert result.depth == d
 
-    def test_json_compact_mode_reports_project_charter_and_all_directives(
-        self, tmp_path: Path
-    ) -> None:
+    def test_json_compact_mode_reports_project_charter_and_all_directives(self, tmp_path: Path) -> None:
         """Compact JSON still exposes project-local charter facts."""
         _setup_fixture_repo(tmp_path)
         charter_dir = tmp_path / ".kittify" / "charter"
@@ -835,9 +822,7 @@ class TestBuildContextV2:
             ),
             patch("charter.activation.context._build_doctrine_service", side_effect=RuntimeError("no service")),
         ):
-            assert _project_directive_entries(tmp_path) == [
-                {"id": "DIRECTIVE_001", "source": "builtin"}
-            ]
+            assert _project_directive_entries(tmp_path) == [{"id": "DIRECTIVE_001", "source": "builtin"}]
 
         directive = SimpleNamespace(id="DIR-LOCAL", title="Local", description="")
         with (
@@ -848,9 +833,7 @@ class TestBuildContextV2:
             patch("charter.activation.resolver.resolve_project_governance", side_effect=RuntimeError("no resolver")),
             patch("charter.activation.context._build_doctrine_service", side_effect=RuntimeError("no service")),
         ):
-            assert _project_directive_entries(tmp_path) == [
-                {"id": "DIR-LOCAL", "source": "project", "title": "Local"}
-            ]
+            assert _project_directive_entries(tmp_path) == [{"id": "DIR-LOCAL", "source": "project", "title": "Local"}]
 
         repo = SimpleNamespace(
             get=lambda artifact_id: SimpleNamespace(
@@ -952,9 +935,7 @@ def test_action_doctrine_keys_off_meta_json_not_template_set(tmp_path: Path) -> 
 
     feature_dir = tmp_path / "kitty-specs" / "883-doc-mission"
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        '{"mission_type": "documentation"}', encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text('{"mission_type": "documentation"}', encoding="utf-8")
 
     yaml = YAML(typ="safe")
     mock_graph = DRGGraph.model_validate(yaml.load(StringIO(_LEAK_GRAPH_YAML)))
@@ -1099,12 +1080,7 @@ class TestNoPerActionFiltering:
         # Collect all string literals in the function body (skip docstring)
         body_nodes = func_def.body
         # Skip the first statement if it's the docstring
-        if (
-            body_nodes
-            and isinstance(body_nodes[0], ast.Expr)
-            and isinstance(body_nodes[0].value, ast.Constant)
-            and isinstance(body_nodes[0].value.value, str)
-        ):
+        if body_nodes and isinstance(body_nodes[0], ast.Expr) and isinstance(body_nodes[0].value, ast.Constant) and isinstance(body_nodes[0].value.value, str):
             body_nodes = body_nodes[1:]
 
         action_names = {"specify", "plan", "implement", "review", "tasks"}
@@ -1149,9 +1125,7 @@ class TestNoPerActionFiltering:
                         ):
                             # Check if other side has string constants matching actions
                             for other in [test.left, *test.comparators]:
-                                if isinstance(other, ast.Constant) and isinstance(
-                                    other.value, str
-                                ):
+                                if isinstance(other, ast.Constant) and isinstance(other.value, str):
                                     action_names = {
                                         "specify",
                                         "plan",
@@ -1160,21 +1134,15 @@ class TestNoPerActionFiltering:
                                         "tasks",
                                     }
                                     assert other.value.lower() not in action_names, (
-                                        f"Found conditional on action parameter: "
-                                        f"comparison with '{other.value}'. "
-                                        f"FR-009 prohibits per-action filtering."
+                                        f"Found conditional on action parameter: comparison with '{other.value}'. FR-009 prohibits per-action filtering."
                                     )
 
 
-def test_build_doctrine_service_prefers_repo_src_overlay(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_build_doctrine_service_prefers_repo_src_overlay(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     calls: dict[str, object] = {}
 
     class StubDoctrineService:
-        def __init__(
-            self, *, built_in_root: Path | None = None, project_root: Path | None, active_languages: list[str]
-        ) -> None:
+        def __init__(self, *, built_in_root: Path | None = None, project_root: Path | None, active_languages: list[str]) -> None:
             calls["built_in_root"] = built_in_root
             calls["project_root"] = project_root
             calls["active_languages"] = active_languages
@@ -1206,9 +1174,7 @@ def test_build_doctrine_service_prefers_repo_src_overlay(
     }
 
 
-def test_build_doctrine_service_uses_compiled_charter_languages_end_to_end(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_build_doctrine_service_uses_compiled_charter_languages_end_to_end(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """WP02/T010: the real (non-monkeypatched) infer_repo_languages resolution.
 
     Writes a real compiled-charter fixture (charter.yaml with the
@@ -1225,9 +1191,7 @@ def test_build_doctrine_service_uses_compiled_charter_languages_end_to_end(
     calls: dict[str, object] = {}
 
     class StubDoctrineService:
-        def __init__(
-            self, *, built_in_root: Path | None = None, project_root: Path | None, active_languages: list[str]
-        ) -> None:
+        def __init__(self, *, built_in_root: Path | None = None, project_root: Path | None, active_languages: list[str]) -> None:
             calls["active_languages"] = active_languages
 
     built_in_root = tmp_path / "shipped-doctrine"

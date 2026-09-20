@@ -3,6 +3,7 @@
 Exercises every row of the R-2 behavioral matrix from
 ``contracts/canonical-root-resolver.contract.md``.
 """
+
 from __future__ import annotations
 
 import platform
@@ -12,7 +13,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from charter.resolution import (    GitCommonDirUnavailableError,
+from charter.resolution import (
+    GitCommonDirUnavailableError,
     NotInsideRepositoryError,
     resolve_canonical_repo_root,
 )
@@ -59,12 +61,14 @@ def repo_with_worktree(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, 
     subprocess.run(["git", "-C", str(root), "add", "README.md"], check=True, capture_output=True)
     subprocess.run(
         ["git", "-C", str(root), "commit", "-m", "seed", "--quiet"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     worktree = root.parent / (root.name + "-wt")
     subprocess.run(
         ["git", "-C", str(root), "worktree", "add", "-B", "wt-branch", str(worktree)],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     resolve_canonical_repo_root.cache_clear()
     return root, worktree
@@ -104,9 +108,7 @@ def test_inside_dot_git_raises_not_inside_repo(fresh_repo: Path) -> None:
 def test_linked_worktree_returns_main_checkout(repo_with_worktree: tuple[Path, Path]) -> None:
     main_root, worktree = repo_with_worktree
     result = resolve_canonical_repo_root(worktree)
-    assert result == main_root.resolve(), (
-        f"Expected main checkout {main_root}, got {result}"
-    )
+    assert result == main_root.resolve(), f"Expected main checkout {main_root}, got {result}"
     # Subdirectory of the worktree must resolve the same way.
     (worktree / "deep" / "nest").mkdir(parents=True)
     sub_result = resolve_canonical_repo_root(worktree / "deep" / "nest")
@@ -164,7 +166,8 @@ def test_sparse_checkout_returns_main_root(fresh_repo: Path) -> None:
     # Enable sparse-checkout (no patterns; behavior should be unchanged).
     subprocess.run(
         ["git", "-C", str(fresh_repo), "config", "core.sparseCheckout", "true"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     resolve_canonical_repo_root.cache_clear()
     result = resolve_canonical_repo_root(fresh_repo)
@@ -176,7 +179,8 @@ def test_detached_head_returns_main_root(repo_with_worktree: tuple[Path, Path]) 
     # Detach HEAD on the main checkout.
     subprocess.run(
         ["git", "-C", str(main_root), "checkout", "--detach", "--quiet"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     resolve_canonical_repo_root.cache_clear()
     result = resolve_canonical_repo_root(main_root)
@@ -201,31 +205,35 @@ def test_submodule_resolves_to_submodule_working_tree(
     for repo in (superproject, subproject):
         subprocess.run(["git", "init", "--quiet", str(repo)], check=True, capture_output=True)
         for key, val in (("user.email", "t@e.com"), ("user.name", "T")):
-            subprocess.run(
-                ["git", "-C", str(repo), "config", key, val], check=True, capture_output=True
-            )
+            subprocess.run(["git", "-C", str(repo), "config", key, val], check=True, capture_output=True)
     (subproject / "README.md").write_text("sub seed\n")
-    subprocess.run(
-        ["git", "-C", str(subproject), "add", "README.md"], check=True, capture_output=True
-    )
+    subprocess.run(["git", "-C", str(subproject), "add", "README.md"], check=True, capture_output=True)
     subprocess.run(
         ["git", "-C", str(subproject), "commit", "-m", "seed", "--quiet"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     (superproject / "README.md").write_text("super seed\n")
-    subprocess.run(
-        ["git", "-C", str(superproject), "add", "README.md"], check=True, capture_output=True
-    )
+    subprocess.run(["git", "-C", str(superproject), "add", "README.md"], check=True, capture_output=True)
     subprocess.run(
         ["git", "-C", str(superproject), "commit", "-m", "seed", "--quiet"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     add_result = subprocess.run(
         [
-            "git", "-C", str(superproject), "-c", "protocol.file.allow=always",
-            "submodule", "add", str(subproject), "submod",
+            "git",
+            "-C",
+            str(superproject),
+            "-c",
+            "protocol.file.allow=always",
+            "submodule",
+            "add",
+            str(subproject),
+            "submod",
         ],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if add_result.returncode != 0:
         pytest.skip(f"git submodule add unsupported in this environment: {add_result.stderr}")

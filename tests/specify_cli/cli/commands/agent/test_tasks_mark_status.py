@@ -277,11 +277,7 @@ def test_existing_checkbox_unchanged(tmp_path: Path) -> None:
 
 def test_existing_pipe_table_unchanged(tmp_path: Path) -> None:
     slug = "008-pipe-table"
-    original = (
-        "# Tasks\n\n| ID | Description | WP | Status |\n"
-        "|----|-------------|----|--------|\n"
-        "| T001 | First task | WP01 | [ ] |\n"
-    )
+    original = "# Tasks\n\n| ID | Description | WP | Status |\n|----|-------------|----|--------|\n| T001 | First task | WP01 | [ ] |\n"
     mission_dir = _write_mission(
         tmp_path,
         slug,
@@ -298,12 +294,7 @@ def test_existing_pipe_table_unchanged(tmp_path: Path) -> None:
 
 def test_event_append_failure_returns_error_without_mutating_tasks_md(tmp_path: Path) -> None:
     slug = "009-event-failure"
-    original = (
-        "# Tasks\n\n## WP01\n\n"
-        "| ID | Description | WP | Status |\n"
-        "|----|-------------|----|--------|\n"
-        "| T001 | First task | WP01 | [ ] |\n"
-    )
+    original = "# Tasks\n\n## WP01\n\n| ID | Description | WP | Status |\n|----|-------------|----|--------|\n| T001 | First task | WP01 | [ ] |\n"
     mission_dir = _write_mission(tmp_path, slug, original)
 
     with (

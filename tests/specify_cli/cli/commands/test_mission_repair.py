@@ -41,14 +41,19 @@ _TARGET_BRANCH = "main"
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True,
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
 def _init_repo(repo: Path) -> None:
     repo.mkdir(parents=True, exist_ok=True)
     subprocess.run(
-        ["git", "init", "-qb", _TARGET_BRANCH, str(repo)], check=True, capture_output=True,
+        ["git", "init", "-qb", _TARGET_BRANCH, str(repo)],
+        check=True,
+        capture_output=True,
     )
     _git(repo, "config", "user.email", "test@test.com")
     _git(repo, "config", "user.name", "Test")
@@ -145,7 +150,8 @@ def _patch_root(monkeypatch: pytest.MonkeyPatch, repo: Path) -> None:
 
 @pytest.mark.non_sandbox
 def test_ff_candidate_coord_behind_forwards_with_zero_data_loss(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     repo = tmp_path / "repo"
     mission_slug = "coord-behind-mission"
@@ -162,16 +168,15 @@ def test_ff_candidate_coord_behind_forwards_with_zero_data_loss(
     assert _git(repo, "rev-parse", _COORD_BRANCH).stdout.strip() == target_sha
     assert _git(coord_worktree, "rev-parse", "HEAD").stdout.strip() == target_sha
     # Zero data loss: the forwarded content is present in the coord worktree.
-    assert (
-        coord_worktree / "kitty-specs" / mission_slug / "status.events.jsonl"
-    ).read_text(encoding="utf-8") == "target-advanced-event\n"
+    assert (coord_worktree / "kitty-specs" / mission_slug / "status.events.jsonl").read_text(encoding="utf-8") == "target-advanced-event\n"
     # And the source content is untouched.
     assert (feature_dir / "status.events.jsonl").read_text(encoding="utf-8") == "target-advanced-event\n"
 
 
 @pytest.mark.non_sandbox
 def test_ff_candidate_target_behind_forwards_reverse_direction(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     """The reverse direction: primary/target is the stale partition, not coord.
 
@@ -202,7 +207,9 @@ def test_ff_candidate_target_behind_forwards_reverse_direction(
 
 @pytest.mark.non_sandbox
 def test_divergent_refuses_with_diff_and_mutates_nothing(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     repo = tmp_path / "repo"
     mission_slug = "diverged-mission"
@@ -232,7 +239,9 @@ def test_divergent_refuses_with_diff_and_mutates_nothing(
 
 @pytest.mark.non_sandbox
 def test_divergent_diff_is_scoped_to_the_mission_directory(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """The diff names THIS mission's diverged content, not repo-wide noise."""
     repo = tmp_path / "repo"
@@ -269,7 +278,8 @@ def test_clean_mission_is_a_noop(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 
 
 def test_legacy_mission_without_coordination_branch_is_a_noop(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     """No ``coordination_branch`` -> nothing to reconcile; must not raise."""
     repo = tmp_path / "repo"
@@ -299,7 +309,9 @@ def test_unknown_mission_exits_1(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 
 @pytest.mark.non_sandbox
 def test_ff_candidate_with_dirty_worktree_refuses_and_mutates_nothing(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     repo = tmp_path / "repo"
     mission_slug = "dirty-coord-mission"
@@ -338,7 +350,8 @@ def test_repair_command_registered_on_mission_app() -> None:
 
 @pytest.mark.non_sandbox
 def test_repair_reachable_end_to_end_via_cli(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     """The registered CLI command actually drives the real repair logic, not a stub."""
     from specify_cli.cli.commands.agent.mission import app as mission_app

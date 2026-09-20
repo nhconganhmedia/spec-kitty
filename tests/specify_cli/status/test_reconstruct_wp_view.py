@@ -143,11 +143,7 @@ def _seed_claim(
             policy_metadata={
                 "agent": agent,
                 "shell_pid": shell_pid,
-                **(
-                    {"shell_pid_created_at": shell_pid_created_at}
-                    if shell_pid_created_at is not None
-                    else {}
-                ),
+                **({"shell_pid_created_at": shell_pid_created_at} if shell_pid_created_at is not None else {}),
             },
         ),
     )
@@ -510,12 +506,7 @@ def test_three_consumers_return_same_resolved_state(tmp_path: Path) -> None:
     assert scanner_row["agent"] == board_row["agent"] == wp.agent == view.resolved.agent == "snapshot-agent"
     assert scanner_row["assignee"] == board_row["assignee"] == wp.assignee == view.resolved.assignee == "snapshot-assignee"
     assert board_row["shell_pid"] == wp.shell_pid == view.resolved.shell_pid == "99999"
-    assert (
-        board_row["shell_pid_created_at"]
-        == wp.shell_pid_created_at
-        == view.resolved.shell_pid_created_at
-        == "2026-01-01T00:00:00+00:00"
-    )
+    assert board_row["shell_pid_created_at"] == wp.shell_pid_created_at == view.resolved.shell_pid_created_at == "2026-01-01T00:00:00+00:00"
     assert board_row["subtasks"] == wp.subtasks == view.resolved.subtasks
     assert scanner_row["subtasks"] == list(view.authored.subtasks)
     assert scanner_row["subtasks_total"] == len(view.authored.subtasks) == 2

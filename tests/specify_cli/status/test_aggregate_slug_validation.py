@@ -10,6 +10,7 @@ Exception-type rule: use ``type(exc) is InvalidMissionSlug`` not isinstance — 
 subclasses ValueError, so isinstance(ValueError) would wrongly pass on a leaked raw ValueError;
 the exact-type check catches that regression.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -38,10 +39,7 @@ def test_validate_mission_slug_raises_invalid_mission_slug(label: str, bad_slug:
     with pytest.raises(InvalidMissionSlug) as exc_info:
         MissionStatus._validate_mission_slug(bad_slug)
     # Exact-type check: must not leak a raw ValueError even if the delegate raises one.
-    assert type(exc_info.value) is InvalidMissionSlug, (
-        f"Expected exact type InvalidMissionSlug for slug {bad_slug!r}, "
-        f"got {type(exc_info.value).__name__}"
-    )
+    assert type(exc_info.value) is InvalidMissionSlug, f"Expected exact type InvalidMissionSlug for slug {bad_slug!r}, got {type(exc_info.value).__name__}"
 
 
 # ---------------------------------------------------------------------------

@@ -193,7 +193,7 @@ def render_command_template(
             body_text += "\n"
         body_text = body_text.replace("\\", "\\\\").replace('"""', '""\\"')
         # For TOML files, embed the version marker as a comment in the prompt body
-        return f"description = {description_literal}\n\nprompt = \"\"\"\n{version_marker}{body_text}\"\"\"\n"
+        return f'description = {description_literal}\n\nprompt = """\n{version_marker}{body_text}"""\n'
 
     # Markdown output: preserve the template's YAML frontmatter on line 1 so
     # agents (e.g. Claude Code) can read the `description` field for their

@@ -31,6 +31,7 @@ _yaml.default_flow_style = False
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _write_directive(
     pack_dir: Path,
     *,
@@ -155,9 +156,7 @@ class TestValidatePack:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        assert any(
-            issue.artifact_type == "directives" for issue in result.errors
-        )
+        assert any(issue.artifact_type == "directives" for issue in result.errors)
 
     def test_duplicate_id(self, tmp_path: Path) -> None:
         _write_directive(
@@ -174,9 +173,7 @@ class TestValidatePack:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        duplicate_errors = [
-            e for e in result.errors if "duplicate id" in e.message
-        ]
+        duplicate_errors = [e for e in result.errors if "duplicate id" in e.message]
         assert len(duplicate_errors) == 1
         assert duplicate_errors[0].artifact_id == "ACME-004"
 
@@ -203,16 +200,10 @@ class TestValidatePack:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        dangling = [
-            e
-            for e in result.errors
-            if e.artifact_type == "drg" and "dangling" in e.message.lower()
-        ]
+        dangling = [e for e in result.errors if e.artifact_type == "drg" and "dangling" in e.message.lower()]
         assert dangling, result.errors
 
-    def test_drg_fragment_stray_top_level_key_reports_structured_issue(
-        self, tmp_path: Path
-    ) -> None:
+    def test_drg_fragment_stray_top_level_key_reports_structured_issue(self, tmp_path: Path) -> None:
         # A DRG fragment declaring a top-level key ``DRGGraph`` does not define
         # raises ``DRGGraphSchemaError`` at the load boundary (T009, NFR-006).
         # ``validate_pack`` must surface this as a structured ``ValidationIssue``
@@ -237,18 +228,12 @@ class TestValidatePack:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        schema_errors = [
-            e
-            for e in result.errors
-            if e.artifact_type == "drg" and e.category == "schema_invalid"
-        ]
+        schema_errors = [e for e in result.errors if e.artifact_type == "drg" and e.category == "schema_invalid"]
         assert schema_errors, result.errors
         assert "not_a_real_field" in schema_errors[0].message
         assert schema_errors[0].file == str(drg / "010-stray-key.graph.yaml")
 
-    def test_drg_edge_resolves_against_pack_artifacts(
-        self, tmp_path: Path
-    ) -> None:
+    def test_drg_edge_resolves_against_pack_artifacts(self, tmp_path: Path) -> None:
         # Edge URNs that resolve to the pack's own directives must NOT error.
         _write_directive(tmp_path, artifact_id="ACME-100")
         _write_directive(tmp_path, artifact_id="ACME-101")
@@ -304,9 +289,7 @@ class TestValidatePack:
 
         # The duplicate is advisory, not fatal.
         assert result.ok is True, result.errors
-        advisories = [
-            a for a in result.advisories if "duplicate edge" in a.message
-        ]
+        advisories = [a for a in result.advisories if "duplicate edge" in a.message]
         assert advisories
 
     def test_built_in_id_collision_advisory(self, tmp_path: Path) -> None:
@@ -437,15 +420,8 @@ class TestIntentAwareCollision:
         result = validate_pack(tmp_path)
 
         assert result.ok is True, result.errors
-        collision_advisories = [
-            a
-            for a in result.advisories
-            if a.artifact_id == _BUILT_IN_TACTIC_ID
-            and a.category == "same_id_collision"
-        ]
-        assert collision_advisories == [], (
-            "Declared `enhances` must suppress same_id_collision advisory."
-        )
+        collision_advisories = [a for a in result.advisories if a.artifact_id == _BUILT_IN_TACTIC_ID and a.category == "same_id_collision"]
+        assert collision_advisories == [], "Declared `enhances` must suppress same_id_collision advisory."
 
     def test_overrides_suppresses_collision_advisory(self, tmp_path: Path) -> None:
         """Case 4: declared `overrides` against a valid built-in -> no advisory."""
@@ -462,15 +438,8 @@ class TestIntentAwareCollision:
         result = validate_pack(tmp_path)
 
         assert result.ok is True, result.errors
-        collision_advisories = [
-            a
-            for a in result.advisories
-            if a.artifact_id == _BUILT_IN_TACTIC_ID
-            and a.category == "same_id_collision"
-        ]
-        assert collision_advisories == [], (
-            "Declared `overrides` must suppress same_id_collision advisory."
-        )
+        collision_advisories = [a for a in result.advisories if a.artifact_id == _BUILT_IN_TACTIC_ID and a.category == "same_id_collision"]
+        assert collision_advisories == [], "Declared `overrides` must suppress same_id_collision advisory."
 
     def test_same_id_collision_uses_reworded_wording(self, tmp_path: Path) -> None:
         """Case 5: same-ID collision, no declaration -> reworded advisory.
@@ -485,16 +454,8 @@ class TestIntentAwareCollision:
 
         result = validate_pack(tmp_path)
 
-        matched = [
-            a
-            for a in result.advisories
-            if a.artifact_id == _BUILT_IN_TACTIC_ID
-            and a.category == "same_id_collision"
-        ]
-        assert matched, (
-            "Same-ID collision without declared intent MUST produce an "
-            f"advisory. Saw advisories: {result.advisories}"
-        )
+        matched = [a for a in result.advisories if a.artifact_id == _BUILT_IN_TACTIC_ID and a.category == "same_id_collision"]
+        assert matched, f"Same-ID collision without declared intent MUST produce an advisory. Saw advisories: {result.advisories}"
         msg = matched[0].message
         assert "field-merge" in msg, msg
         assert f"enhances: {_BUILT_IN_TACTIC_ID}" in msg, msg
@@ -512,12 +473,8 @@ class TestIntentAwareCollision:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        conflict_errors = [
-            e for e in result.errors if e.category == "intent_conflict"
-        ]
-        assert conflict_errors, (
-            f"Both-fields-set MUST emit `intent_conflict`. Errors: {result.errors}"
-        )
+        conflict_errors = [e for e in result.errors if e.category == "intent_conflict"]
+        assert conflict_errors, f"Both-fields-set MUST emit `intent_conflict`. Errors: {result.errors}"
         assert conflict_errors[0].artifact_id == "rogue-tactic"
         assert "mutually exclusive" in conflict_errors[0].message
 
@@ -535,13 +492,8 @@ class TestIntentAwareCollision:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        unknown_errors = [
-            e for e in result.errors if e.category == "unknown_target"
-        ]
-        assert unknown_errors, (
-            f"Unknown `enhances` target MUST emit `unknown_target`. "
-            f"Errors: {result.errors}"
-        )
+        unknown_errors = [e for e in result.errors if e.category == "unknown_target"]
+        assert unknown_errors, f"Unknown `enhances` target MUST emit `unknown_target`. Errors: {result.errors}"
         assert "totally-bogus-id" in unknown_errors[0].message
         assert "enhances" in unknown_errors[0].message
 
@@ -559,19 +511,12 @@ class TestIntentAwareCollision:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        unknown_errors = [
-            e for e in result.errors if e.category == "unknown_target"
-        ]
-        assert unknown_errors, (
-            f"Unknown `overrides` target MUST emit `unknown_target`. "
-            f"Errors: {result.errors}"
-        )
+        unknown_errors = [e for e in result.errors if e.category == "unknown_target"]
+        assert unknown_errors, f"Unknown `overrides` target MUST emit `unknown_target`. Errors: {result.errors}"
         assert "totally-bogus-id" in unknown_errors[0].message
         assert "overrides" in unknown_errors[0].message
 
-    def test_json_output_includes_new_categories(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_output_includes_new_categories(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         """T038: `category` field surfaces in JSON output for the new error kinds."""
         _write_tactic(
             tmp_path,
@@ -592,9 +537,7 @@ class TestIntentAwareCollision:
 
 
 class TestRenderValidationResult:
-    def test_json_output(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_output(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _write_directive(tmp_path, artifact_id="ACME-300")
         result = validate_pack(tmp_path)
         render_validation_result(result, json_output=True)
@@ -605,12 +548,8 @@ class TestRenderValidationResult:
         payload = _json.loads(captured.strip())
         assert payload["ok"] is True
 
-    def test_human_output_lists_errors_and_summary(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        _write_directive(
-            tmp_path, artifact_id="ACME-400", drop_title=True
-        )
+    def test_human_output_lists_errors_and_summary(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        _write_directive(tmp_path, artifact_id="ACME-400", drop_title=True)
         result = validate_pack(tmp_path)
         render_validation_result(result, json_output=False)
         captured = capsys.readouterr().out
@@ -658,10 +597,7 @@ class TestAssetManifestValidation:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        assert any(
-            issue.artifact_type == "assets" and issue.category == "schema_invalid"
-            for issue in result.errors
-        ), result.errors
+        assert any(issue.artifact_type == "assets" and issue.category == "schema_invalid" for issue in result.errors), result.errors
 
     def test_blank_id_fails_schema(self, tmp_path: Path) -> None:
         _write_asset_manifest(
@@ -673,10 +609,7 @@ class TestAssetManifestValidation:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        assert any(
-            issue.artifact_type == "assets" and issue.category == "schema_invalid"
-            for issue in result.errors
-        ), result.errors
+        assert any(issue.artifact_type == "assets" and issue.category == "schema_invalid" for issue in result.errors), result.errors
 
     def test_path_escape_via_dotdot_rejected(self, tmp_path: Path) -> None:
         """T016: an escaping ``path`` is rejected as ``asset_path_escape``."""
@@ -690,9 +623,7 @@ class TestAssetManifestValidation:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        escape_errors = [
-            e for e in result.errors if e.category == "asset_path_escape"
-        ]
+        escape_errors = [e for e in result.errors if e.category == "asset_path_escape"]
         assert escape_errors, result.errors
         assert escape_errors[0].artifact_id == "acme-logo-escape"
 
@@ -708,9 +639,7 @@ class TestAssetManifestValidation:
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        escape_errors = [
-            e for e in result.errors if e.category == "asset_path_escape"
-        ]
+        escape_errors = [e for e in result.errors if e.category == "asset_path_escape"]
         assert escape_errors, result.errors
         assert escape_errors[0].artifact_id == "acme-logo-absolute"
 
@@ -801,10 +730,7 @@ class TestAssetManifestValidation:
         result = validate_pack(tmp_path)
 
         assert result.ok is True, result.errors
-        assert not any(
-            issue.artifact_type == "assets"
-            for issue in (*result.errors, *result.advisories)
-        ), (result.errors, result.advisories)
+        assert not any(issue.artifact_type == "assets" for issue in (*result.errors, *result.advisories)), (result.errors, result.advisories)
 
     def test_multiple_assets_independent(self, tmp_path: Path) -> None:
         """Multiple manifests in one pack are each validated independently."""
@@ -850,9 +776,7 @@ class TestProfileSkippedDiagnostics:
         """
     )
 
-    def test_post_merge_skip_surfaces_as_profile_skipped_issue(
-        self, tmp_path: Path
-    ) -> None:
+    def test_post_merge_skip_surfaces_as_profile_skipped_issue(self, tmp_path: Path) -> None:
         """AC-1: a profile that passes ``AgentProfile.model_validate`` in
         isolation (proven standalone-valid by
         ``tests/doctrine/test_agent_profile_model_field.py``'s
@@ -876,9 +800,7 @@ class TestProfileSkippedDiagnostics:
 
         result = validate_pack(tmp_path)
 
-        skipped_issues = [
-            issue for issue in result.errors if issue.category == "profile_skipped"
-        ]
+        skipped_issues = [issue for issue in result.errors if issue.category == "profile_skipped"]
         assert skipped_issues, result.errors
         issue = skipped_issues[0]
         assert issue.severity == "error"
@@ -887,9 +809,7 @@ class TestProfileSkippedDiagnostics:
         assert issue.file == str(profile_path)
         assert "role" in issue.message and "roles" in issue.message
 
-    def test_helper_calls_repository_skipped_profiles_directly(
-        self, tmp_path: Path
-    ) -> None:
+    def test_helper_calls_repository_skipped_profiles_directly(self, tmp_path: Path) -> None:
         """AC-4: the helper reuses ``AgentProfileRepository.skipped_profiles()``
         directly rather than hand-rolling a second skip-detection heuristic.
 
@@ -904,18 +824,14 @@ class TestProfileSkippedDiagnostics:
         agent_profiles_dir = tmp_path / "agent_profiles"
         agent_profiles_dir.mkdir()
 
-        with patch(
-            "charter.offering.agent_profiles.repository.AgentProfileRepository.skipped_profiles"
-        ) as mock_skipped_profiles:
+        with patch("charter.offering.agent_profiles.repository.AgentProfileRepository.skipped_profiles") as mock_skipped_profiles:
             mock_skipped_profiles.return_value = []
             issues = _check_profile_skipped_diagnostics(tmp_path, set())
 
         mock_skipped_profiles.assert_called_once_with()
         assert issues == []
 
-    def test_schema_invalid_profile_is_not_double_reported(
-        self, tmp_path: Path
-    ) -> None:
+    def test_schema_invalid_profile_is_not_double_reported(self, tmp_path: Path) -> None:
         """AC-2: a profile file with an undeclared key (the already-fixed
         acute case — ``AgentProfile.model_config`` has ``extra="forbid"``)
         is caught by the existing generic per-file schema scan as
@@ -944,14 +860,10 @@ class TestProfileSkippedDiagnostics:
 
         result = validate_pack(tmp_path)
 
-        file_issues = [
-            issue for issue in result.errors if issue.file == str(profile_path)
-        ]
+        file_issues = [issue for issue in result.errors if issue.file == str(profile_path)]
         assert len(file_issues) == 1, file_issues
         assert file_issues[0].category == "schema_invalid"
-        assert not any(
-            issue.category == "profile_skipped" for issue in file_issues
-        )
+        assert not any(issue.category == "profile_skipped" for issue in file_issues)
 
     def test_clean_pack_has_no_profile_skipped_issue(self, tmp_path: Path) -> None:
         """AC-3: a pack with no profile problems produces no ``profile_skipped``
@@ -977,14 +889,9 @@ class TestProfileSkippedDiagnostics:
         result = validate_pack(tmp_path)
 
         assert result.ok is True, result.errors
-        assert not any(
-            issue.category == "profile_skipped"
-            for issue in (*result.errors, *result.advisories)
-        )
+        assert not any(issue.category == "profile_skipped" for issue in (*result.errors, *result.advisories))
 
-    def test_absent_agent_profiles_directory_is_safe_and_exercised(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_agent_profiles_directory_is_safe_and_exercised(self, tmp_path: Path) -> None:
         """AC-5: a pack whose ``agent_profiles/`` directory is entirely
         absent does not raise, produces no ``profile_skipped`` issue, and —
         per the spec's Edge Cases bullet 2 — this is proven by actually
@@ -997,19 +904,14 @@ class TestProfileSkippedDiagnostics:
 
         result = validate_pack(tmp_path)
 
-        assert not any(
-            issue.category == "profile_skipped"
-            for issue in (*result.errors, *result.advisories)
-        )
+        assert not any(issue.category == "profile_skipped" for issue in (*result.errors, *result.advisories))
 
         # Direct-call assertion: prove the check path actually executed
         # against the absent-directory case, not swallowed by a broad
         # try/except that would make the assertion above vacuous.
         assert _check_profile_skipped_diagnostics(tmp_path, set()) == []
 
-    def test_repository_construction_failure_is_guarded(
-        self, tmp_path: Path
-    ) -> None:
+    def test_repository_construction_failure_is_guarded(self, tmp_path: Path) -> None:
         """PR-M-001: a raise while resolving ``AgentProfileRepository``'s
         built-in content directory must not propagate as an uncaught
         traceback. The raise path is real (not hypothetical): ``__init__``
@@ -1040,9 +942,7 @@ class TestProfileSkippedDiagnostics:
         assert issues[0].category == "profile_skipped"
         assert issues[0].artifact_type == "agent_profiles"
 
-    def test_validate_pack_survives_repository_construction_failure(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validate_pack_survives_repository_construction_failure(self, tmp_path: Path) -> None:
         """PR-M-001: the same raise must not crash ``validate_pack`` (and by
         extension the ``pack_validate`` / ``org_validate`` CLI entry
         points), which is the concrete failure the finding describes — a
@@ -1081,9 +981,7 @@ class TestDrgRootGraphMissing:
         """
     )
 
-    def test_drg_only_fragment_no_pack_root_graph_fires_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_drg_only_fragment_no_pack_root_graph_fires_error(self, tmp_path: Path) -> None:
         """AC-1 + AC-4: a pack with ``drg/010-security.graph.yaml`` and no
         pack-root ``*.graph.yaml`` produces a ``drg_root_graph_missing``
         error (default ``check_drg_root=True``), and ``pack validate``'s
@@ -1095,19 +993,13 @@ class TestDrgRootGraphMissing:
         """
         drg = tmp_path / "drg"
         drg.mkdir()
-        (drg / "010-security.graph.yaml").write_text(
-            self._MINIMAL_FRAGMENT_YAML, encoding="utf-8"
-        )
+        (drg / "010-security.graph.yaml").write_text(self._MINIMAL_FRAGMENT_YAML, encoding="utf-8")
         assert not sorted(tmp_path.glob("*.graph.yaml"))
 
         result = validate_pack(tmp_path)
 
         assert result.ok is False
-        root_missing = [
-            issue
-            for issue in result.errors
-            if issue.category == "drg_root_graph_missing"
-        ]
+        root_missing = [issue for issue in result.errors if issue.category == "drg_root_graph_missing"]
         assert root_missing, result.errors
         issue = root_missing[0]
         assert issue.severity == "error"
@@ -1118,36 +1010,23 @@ class TestDrgRootGraphMissing:
 
         from specify_cli.cli.commands.doctrine import app as doctrine_app
 
-        cli_result = CliRunner().invoke(
-            doctrine_app, ["pack", "validate", str(tmp_path)]
-        )
+        cli_result = CliRunner().invoke(doctrine_app, ["pack", "validate", str(tmp_path)])
         assert cli_result.exit_code == 1, cli_result.output
 
-    def test_pack_root_graph_present_suppresses_diagnostic(
-        self, tmp_path: Path
-    ) -> None:
+    def test_pack_root_graph_present_suppresses_diagnostic(self, tmp_path: Path) -> None:
         """AC-2: a pack-root ``*.graph.yaml`` present (alongside ``drg/``
         fragments) produces no ``drg_root_graph_missing`` diagnostic.
         """
         drg = tmp_path / "drg"
         drg.mkdir()
-        (drg / "010-security.graph.yaml").write_text(
-            self._MINIMAL_FRAGMENT_YAML, encoding="utf-8"
-        )
-        (tmp_path / "pack.graph.yaml").write_text(
-            self._MINIMAL_FRAGMENT_YAML, encoding="utf-8"
-        )
+        (drg / "010-security.graph.yaml").write_text(self._MINIMAL_FRAGMENT_YAML, encoding="utf-8")
+        (tmp_path / "pack.graph.yaml").write_text(self._MINIMAL_FRAGMENT_YAML, encoding="utf-8")
 
         result = validate_pack(tmp_path)
 
-        assert not any(
-            issue.category == "drg_root_graph_missing"
-            for issue in (*result.errors, *result.advisories)
-        )
+        assert not any(issue.category == "drg_root_graph_missing" for issue in (*result.errors, *result.advisories))
 
-    def test_neither_root_graph_nor_drg_dir_no_diagnostic(
-        self, tmp_path: Path
-    ) -> None:
+    def test_neither_root_graph_nor_drg_dir_no_diagnostic(self, tmp_path: Path) -> None:
         """AC-3: a pack with neither a pack-root graph nor a ``drg/``
         directory at all produces no diagnostic — this check is about a
         *mismatch*, not about requiring DRG content to exist.
@@ -1157,14 +1036,9 @@ class TestDrgRootGraphMissing:
 
         result = validate_pack(tmp_path)
 
-        assert not any(
-            issue.category == "drg_root_graph_missing"
-            for issue in (*result.errors, *result.advisories)
-        )
+        assert not any(issue.category == "drg_root_graph_missing" for issue in (*result.errors, *result.advisories))
 
-    def test_near_miss_pack_root_filename_does_not_satisfy_check(
-        self, tmp_path: Path
-    ) -> None:
+    def test_near_miss_pack_root_filename_does_not_satisfy_check(self, tmp_path: Path) -> None:
         """AC-5: a pack-root file named e.g. ``notes.graph.yaml.bak`` (a
         near-miss that does not match ``*.graph.yaml``) does not satisfy
         the pack-root requirement — the AC-1 diagnostic still fires. This
@@ -1174,18 +1048,10 @@ class TestDrgRootGraphMissing:
         """
         drg = tmp_path / "drg"
         drg.mkdir()
-        (drg / "010-security.graph.yaml").write_text(
-            self._MINIMAL_FRAGMENT_YAML, encoding="utf-8"
-        )
-        (tmp_path / "notes.graph.yaml.bak").write_text(
-            "not a real graph", encoding="utf-8"
-        )
+        (drg / "010-security.graph.yaml").write_text(self._MINIMAL_FRAGMENT_YAML, encoding="utf-8")
+        (tmp_path / "notes.graph.yaml.bak").write_text("not a real graph", encoding="utf-8")
 
         result = validate_pack(tmp_path)
 
-        root_missing = [
-            issue
-            for issue in result.errors
-            if issue.category == "drg_root_graph_missing"
-        ]
+        root_missing = [issue for issue in result.errors if issue.category == "drg_root_graph_missing"]
         assert root_missing, result.errors

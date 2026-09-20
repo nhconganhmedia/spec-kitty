@@ -106,15 +106,11 @@ def test_c001_refuse_arm_intercepts_through_tasks_namespace(tmp_path: Path) -> N
         tasks_map_requirements._mr_resolve_context(st)
     assert exc_info.value.exit_code == 1
     locate_mock.assert_called_once()
-    sparse_mock.assert_called_once_with(
-        tmp_path, command="spec-kitty agent tasks map-requirements"
-    )
+    sparse_mock.assert_called_once_with(tmp_path, command="spec-kitty agent tasks map-requirements")
     slug_mock.assert_called_once()
     branch_mock.assert_called_once_with(tmp_path, "034-feature", True)
     placement_mock.assert_called_once()
-    protected_mock.assert_called_once_with(
-        "main", tmp_path, "spec-kitty agent tasks map-requirements"
-    )
+    protected_mock.assert_called_once_with("main", tmp_path, "spec-kitty agent tasks map-requirements")
     skip_mock.assert_not_called()
     error_mock.assert_called_once_with(True, "protected: refuse")
 
@@ -136,9 +132,7 @@ def test_c001_protected_gate_not_consulted_when_auto_commit_resolves_false(
             return_value=(tmp_path, "main"),
         ),
         patch(f"{_TASKS}.get_auto_commit_default", return_value=False) as auto_mock,
-        patch(
-            f"{_TASKS}._protected_branch_status_commit_error"
-        ) as protected_mock,
+        patch(f"{_TASKS}._protected_branch_status_commit_error") as protected_mock,
     ):
         tasks_map_requirements._mr_resolve_context(st)
     auto_mock.assert_called_once_with(tmp_path)
@@ -214,9 +208,7 @@ def test_patched_map_requirements_feature_dir_intercepts_resolve_read_dirs(
     st.main_repo_root = tmp_path
     st.mission_slug = "034-feature"
     with (
-        patch(
-            f"{_TASKS}._map_requirements_feature_dir", side_effect=_SentinelHit
-        ) as dir_mock,
+        patch(f"{_TASKS}._map_requirements_feature_dir", side_effect=_SentinelHit) as dir_mock,
         pytest.raises(_SentinelHit),
     ):
         tasks_map_requirements._mr_resolve_read_dirs(st, ports=MagicMock())
@@ -276,16 +268,11 @@ def test_patched_protection_policy_intercepts_auto_commit(tmp_path: Path) -> Non
     st.mission_slug = "034-feature"
     st.new_mappings = {"WP01": ["FR-001"]}
     ports = MagicMock()
-    ports.coord.commit_artifact.return_value = SimpleNamespace(
-        status="committed", commit_hash="abc123", placement_ref="main"
-    )
+    ports.coord.commit_artifact.return_value = SimpleNamespace(status="committed", commit_hash="abc123", placement_ref="main")
     with patch(f"{_TASKS}.ProtectionPolicy") as policy_cls:
         tasks_map_requirements._mr_auto_commit(st, ports)
     policy_cls.resolve.assert_called_once_with(tmp_path)
-    assert (
-        ports.coord.commit_artifact.call_args.kwargs["policy"]
-        is policy_cls.resolve.return_value
-    )
+    assert ports.coord.commit_artifact.call_args.kwargs["policy"] is policy_cls.resolve.return_value
     assert st.committed is True
     assert st.commit_sha == "abc123"
     assert st.commit_result_payload == {
@@ -348,9 +335,7 @@ def test_patched_output_error_intercepts_do_map_requirements_exception_arm() -> 
     ``_mr_*`` phase siblings by bare same-module name (the ratchet-closure
     invariant), so the phases themselves are deliberately NOT patch targets."""
     with (
-        patch(
-            f"{_TASKS}.locate_project_root", side_effect=RuntimeError("boom")
-        ),
+        patch(f"{_TASKS}.locate_project_root", side_effect=RuntimeError("boom")),
         patch(f"{_TASKS}._output_error") as error_mock,
         pytest.raises(typer.Exit) as exc_info,
     ):

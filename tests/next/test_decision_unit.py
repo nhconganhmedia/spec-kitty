@@ -34,6 +34,8 @@ from runtime.next.decision import (
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 def _seed_wp_lane(feature_dir: Path, wp_id: str, lane: str) -> None:
     """Seed a WP into a specific lane in the event log."""
     event = StatusEvent(
@@ -346,9 +348,7 @@ class TestDecideNextOwnedCheckout:
     dispatch decision from the (separately unit-tested, tests/next/
     test_runtime_bridge_unit.py) owned-checkout resolution itself."""
 
-    def test_effective_root_threads_to_runtime_bridge(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_effective_root_threads_to_runtime_bridge(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         import runtime.next.runtime_bridge as runtime_bridge_module
 
         captured: dict[str, object] = {}
@@ -372,24 +372,18 @@ class TestDecideNextOwnedCheckout:
                 timestamp="2026-01-01T00:00:00+00:00",
             )
 
-        monkeypatch.setattr(
-            runtime_bridge_module, "decide_next_via_runtime", _fake_decide_next_via_runtime
-        )
+        monkeypatch.setattr(runtime_bridge_module, "decide_next_via_runtime", _fake_decide_next_via_runtime)
 
         owned_root = tmp_path / "owned-checkout"
         decoy_repo_root = tmp_path / "decoy-primary-never-read"
 
-        decision = decide_next(
-            "claude", "owned-mission", "success", decoy_repo_root, effective_root=owned_root
-        )
+        decision = decide_next("claude", "owned-mission", "success", decoy_repo_root, effective_root=owned_root)
 
         assert decision.kind == DecisionKind.terminal
         assert captured["args"] == ("claude", "owned-mission", "success", decoy_repo_root)
         assert captured["effective_root"] == owned_root
 
-    def test_without_effective_root_uses_the_plain_three_positional_form(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_without_effective_root_uses_the_plain_three_positional_form(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Anti-vacuity: omitting ``effective_root`` must NOT thread the kwarg
         at all -- proving the two call shapes genuinely diverge rather than
         ``effective_root=None`` being passed unconditionally either way."""
@@ -409,9 +403,7 @@ class TestDecideNextOwnedCheckout:
                 timestamp="2026-01-01T00:00:00+00:00",
             )
 
-        monkeypatch.setattr(
-            runtime_bridge_module, "decide_next_via_runtime", _fake_decide_next_via_runtime
-        )
+        monkeypatch.setattr(runtime_bridge_module, "decide_next_via_runtime", _fake_decide_next_via_runtime)
 
         decide_next("claude", "plain-mission", "success", tmp_path)
 
@@ -682,10 +674,7 @@ class TestDecisionKindSerialisation:
         for member in DecisionKind:
             enum_output = json.dumps({"kind": member})
             str_output = json.dumps({"kind": member.value})
-            assert enum_output == str_output, (
-                f"DecisionKind.{member.name} serialises to {enum_output!r}, "
-                f"expected {str_output!r}"
-            )
+            assert enum_output == str_output, f"DecisionKind.{member.name} serialises to {enum_output!r}, expected {str_output!r}"
 
     def test_to_dict_kind_field_is_bare_string(self, tmp_path: Path) -> None:
         """Decision.to_dict() emits kind as a bare string, not an enum repr."""

@@ -121,9 +121,7 @@ def setup_mocked_env(
     with ExitStack() as stack:
         # Always patch the path-root resolvers.
         for attr in _DEFAULT_RESOLVERS:
-            stack.enter_context(
-                patch(f"{command_module}.{attr}", return_value=tmp_path)
-            )
+            stack.enter_context(patch(f"{command_module}.{attr}", return_value=tmp_path))
 
         # Pre-mutation branch guard (returns a (path, branch) tuple).
         stack.enter_context(
@@ -143,9 +141,7 @@ def setup_mocked_env(
             )
 
         if workspace_resolution is not None:
-            if isinstance(workspace_resolution, type) and issubclass(
-                workspace_resolution, BaseException
-            ):
+            if isinstance(workspace_resolution, type) and issubclass(workspace_resolution, BaseException):
                 kw: dict[str, Any] = {"side_effect": workspace_resolution}
             else:
                 kw = {"return_value": workspace_resolution}
@@ -166,8 +162,6 @@ def setup_mocked_env(
 
         if extra_patches:
             for attr, value in extra_patches.items():
-                stack.enter_context(
-                    patch(f"{command_module}.{attr}", return_value=value)
-                )
+                stack.enter_context(patch(f"{command_module}.{attr}", return_value=value))
 
         yield

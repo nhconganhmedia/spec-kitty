@@ -251,15 +251,11 @@ def test_receipt_id_is_content_addressed_over_the_decision(state_root: Path, mon
     item = outbox_approval.submit(repo="spec-kitty", audience="team-a", content="go ahead")
     receipt = _approve_with_correct_challenge(monkeypatch, item, actor="robert")
 
-    expected = outbox_approval._receipt_hash(
-        item_id=item.item_id, decision="approved", actor="robert", decided_at=receipt.decided_at
-    )
+    expected = outbox_approval._receipt_hash(item_id=item.item_id, decision="approved", actor="robert", decided_at=receipt.decided_at)
     assert receipt.receipt_id == expected
 
 
-def test_approving_an_already_approved_item_again_returns_the_same_receipt_without_a_new_gesture(
-    state_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_approving_an_already_approved_item_again_returns_the_same_receipt_without_a_new_gesture(state_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     item = outbox_approval.submit(repo="spec-kitty", audience="team-a", content="go ahead")
     first_receipt = _approve_with_correct_challenge(monkeypatch, item)
 

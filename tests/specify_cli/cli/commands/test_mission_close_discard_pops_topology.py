@@ -49,9 +49,7 @@ _SLUG = f"discard-pops-topology-{_MID8}"
 
 def _write_meta(feature_dir: Path, fields: dict[str, object]) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(fields, indent=2) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(fields, indent=2) + "\n", encoding="utf-8")
 
 
 def test_discard_flatten_pops_topology_not_just_coordination_branch(
@@ -76,19 +74,14 @@ def test_discard_flatten_pops_topology_not_just_coordination_branch(
     _flatten_discarded_mission(feature_dir)
 
     meta = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
-    assert "coordination_branch" not in meta, (
-        "coordination_branch must be cleared by the discard flatten"
-    )
+    assert "coordination_branch" not in meta, "coordination_branch must be cleared by the discard flatten"
     assert "topology" not in meta, (
         "#3219 latent bug: a discarded coord mission still carried a stored "
         "'topology' value, so it could route back through coordination and "
         "hit CoordinationBranchDeleted -- the discard flatten must pop "
         "'topology' too, not just 'coordination_branch'"
     )
-    assert meta.get("flattened") is True, (
-        "a discarded coord mission must record flattened=True (parity with "
-        "merge's #3086 flatten and `doctor coordination --fix`)"
-    )
+    assert meta.get("flattened") is True, "a discarded coord mission must record flattened=True (parity with merge's #3086 flatten and `doctor coordination --fix`)"
 
 
 def test_discard_flatten_is_tolerant_of_missing_meta_json(tmp_path: Path) -> None:
@@ -117,9 +110,5 @@ def test_discard_flatten_is_noop_for_non_coord_mission(tmp_path: Path) -> None:
     _flatten_discarded_mission(feature_dir)
 
     meta = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
-    assert meta.get("topology") == "single_branch", (
-        "a non-coord mission's topology must not be popped by the discard flatten"
-    )
-    assert "flattened" not in meta, (
-        "a non-coord mission must not be marked flattened by the discard flatten"
-    )
+    assert meta.get("topology") == "single_branch", "a non-coord mission's topology must not be popped by the discard flatten"
+    assert "flattened" not in meta, "a non-coord mission must not be marked flattened by the discard flatten"

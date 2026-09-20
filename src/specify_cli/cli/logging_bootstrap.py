@@ -98,9 +98,7 @@ def _build_handler() -> logging.Handler:
         )
     except ImportError:  # pragma: no cover — Rich is always present in the CLI venv
         handler = logging.StreamHandler(sys.stderr)
-        handler.setFormatter(
-            logging.Formatter("%(levelname)s  %(message)s")
-        )
+        handler.setFormatter(logging.Formatter("%(levelname)s  %(message)s"))
 
     handler.setLevel(logging.WARNING)
     # Tag so the idempotency guard can recognise it.
@@ -172,11 +170,7 @@ def install_cli_logging_bootstrap(*, json_mode: bool = False) -> None:
                 handler.setLevel(_SILENCED_HANDLER_LEVELS[handler_id])
         for handler_id in list(_SILENCED_HANDLER_LEVELS):
             del _SILENCED_HANDLER_LEVELS[handler_id]
-    root.handlers[:] = [
-        handler
-        for handler in root.handlers
-        if not getattr(handler, _JSON_NULL_HANDLER_SENTINEL, False)
-    ]
+    root.handlers[:] = [handler for handler in root.handlers if not getattr(handler, _JSON_NULL_HANDLER_SENTINEL, False)]
 
     # If the root logger already has handlers, adding another would cause
     # double-printing.  Respect existing configuration.

@@ -66,18 +66,14 @@ def _write_flat_agent_profile(pack_root: Path, profile_id: str) -> None:
     """Write a flat-layout agent profile: ``<pack>/agent_profiles/<id>.agent.yaml``."""
     profiles_dir = pack_root / "agent_profiles"
     profiles_dir.mkdir(parents=True, exist_ok=True)
-    (profiles_dir / f"{profile_id}.agent.yaml").write_text(
-        _AGENT_PROFILE_TEMPLATE.format(pid=profile_id), encoding="utf-8"
-    )
+    (profiles_dir / f"{profile_id}.agent.yaml").write_text(_AGENT_PROFILE_TEMPLATE.format(pid=profile_id), encoding="utf-8")
 
 
 def _write_flat_directive(pack_root: Path, stem: str, declared_id: str) -> None:
     """Write a flat-layout directive: ``<pack>/directives/<stem>.directive.yaml``."""
     directives_dir = pack_root / "directives"
     directives_dir.mkdir(parents=True, exist_ok=True)
-    (directives_dir / f"{stem}.directive.yaml").write_text(
-        _DIRECTIVE_TEMPLATE.format(did=declared_id, title=stem), encoding="utf-8"
-    )
+    (directives_dir / f"{stem}.directive.yaml").write_text(_DIRECTIVE_TEMPLATE.format(did=declared_id, title=stem), encoding="utf-8")
 
 
 def _write_config_with_org_pack(project_root: Path, pack_local_path: str) -> None:
@@ -89,13 +85,7 @@ def _write_config_with_org_pack(project_root: Path, pack_local_path: str) -> Non
     fixtures must provision it like a real ``spec-kitty init``/``upgrade`` would.
     """
     (project_root / ".kittify" / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: orgzilla\n"
-        f"        local_path: {pack_local_path}\n"
-        "mission_type_activations:\n"
-        "  - software-dev\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: orgzilla\n        local_path: {pack_local_path}\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
 
@@ -195,14 +185,10 @@ class TestMultiKindFlatLayout:
         activate = _invoke(project_root, "activate", "agent-profile", "orgzilla-org-analyst")
         assert activate.exit_code == 0, activate.output
 
-        deactivate = _invoke(
-            project_root, "deactivate", "agent-profile", "orgzilla-org-analyst"
-        )
+        deactivate = _invoke(project_root, "deactivate", "agent-profile", "orgzilla-org-analyst")
         assert deactivate.exit_code == 0, deactivate.output
         data = yaml.safe_load((project_root / ".kittify" / "config.yaml").read_text())
-        assert "orgzilla-org-analyst" not in (
-            data.get("activated_agent_profiles") or []
-        )
+        assert "orgzilla-org-analyst" not in (data.get("activated_agent_profiles") or [])
 
     def test_both_kinds_resolve_from_same_flat_pack(self, project_root: Path) -> None:
         """C-006: the flat org-layer scan serves >= 2 kinds from one pack."""

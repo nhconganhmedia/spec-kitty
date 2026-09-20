@@ -176,9 +176,7 @@ def _seed_mission(
         ev = dict(raw)
         ev["feature_slug"] = slug
         events.append(ev)
-    (feature_dir / "status.events.jsonl").write_text(
-        "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
     if write_data_model:
         (feature_dir / "data-model.md").write_text("# Data Model\n\nEntities.\n", encoding="utf-8")
@@ -197,9 +195,7 @@ def _run_create(repo_root: Path, slug: str) -> dict[str, object]:
         "specify_cli.cli.commands.retrospect.locate_project_root",
         return_value=repo_root,
     ):
-        result = RUNNER.invoke(
-            retrospect_app, ["create", "--mission", slug, "--json"]
-        )
+        result = RUNNER.invoke(retrospect_app, ["create", "--mission", slug, "--json"])
     assert result.exit_code == 0, f"create failed (exit {result.exit_code}):\n{result.output}"
     return json.loads(result.output)
 
@@ -237,10 +233,7 @@ def test_tracer_content_yields_sourced_finding(tmp_path: Path) -> None:
     record = read_gen_record(Path(str(data["record_path"])))
 
     trace_ev_ids = _trace_evidence_ids(record)
-    assert trace_ev_ids, (
-        "expected at least one evidence_ref pointing at traces/*.md; "
-        f"got {[r.path for r in record.evidence_refs]}"
-    )
+    assert trace_ev_ids, f"expected at least one evidence_ref pointing at traces/*.md; got {[r.path for r in record.evidence_refs]}"
 
     sourced = [
         f
@@ -249,9 +242,7 @@ def test_tracer_content_yields_sourced_finding(tmp_path: Path) -> None:
     ]
     assert sourced, "expected at least one finding sourced from the tracer file"
     # The friction entries should surface as tooling-category findings.
-    assert any(f.category == "tooling" for f in sourced), (
-        f"expected a tooling-category tracer finding; got {[f.category for f in sourced]}"
-    )
+    assert any(f.category == "tooling" for f in sourced), f"expected a tooling-category tracer finding; got {[f.category for f in sourced]}"
 
 
 # ---------------------------------------------------------------------------
@@ -280,10 +271,7 @@ def test_no_entity_mission_has_no_false_data_model_gap(tmp_path: Path) -> None:
     data = _run_create(tmp_path, slug)
     record = read_gen_record(Path(str(data["record_path"])))
 
-    assert not _has_data_model_gap(record), (
-        "no-entity mission must NOT flag a missing data-model.md gap; "
-        f"gaps={[g.summary for g in record.gaps]}"
-    )
+    assert not _has_data_model_gap(record), f"no-entity mission must NOT flag a missing data-model.md gap; gaps={[g.summary for g in record.gaps]}"
 
 
 def test_entity_mission_keeps_data_model_gap(tmp_path: Path) -> None:
@@ -304,10 +292,7 @@ def test_entity_mission_keeps_data_model_gap(tmp_path: Path) -> None:
     data = _run_create(tmp_path, slug)
     record = read_gen_record(Path(str(data["record_path"])))
 
-    assert _has_data_model_gap(record), (
-        "entity-bearing mission with no data-model.md MUST still flag the gap; "
-        f"gaps={[g.summary for g in record.gaps]}"
-    )
+    assert _has_data_model_gap(record), f"entity-bearing mission with no data-model.md MUST still flag the gap; gaps={[g.summary for g in record.gaps]}"
 
 
 # ---------------------------------------------------------------------------

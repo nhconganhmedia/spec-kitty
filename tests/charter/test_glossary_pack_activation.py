@@ -51,9 +51,7 @@ def _write_config(tmp_path: Path, content: str) -> None:
 class TestGlossaryPackDefaultOnEndToEnd:
     """The built-in pack resolves as active with zero manual activation."""
 
-    def test_no_config_at_all_resolves_glossary_pack_active(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_config_at_all_resolves_glossary_pack_active(self, tmp_path: Path) -> None:
         """No ``.kittify/config.yaml`` whatsoever -> full built-in fallback.
 
         ``PackContext.from_config`` on a directory with no config file at
@@ -79,9 +77,7 @@ class TestGlossaryPackDefaultOnEndToEnd:
             "not shipping active by default."
         )
 
-    def test_minimal_config_with_no_activation_keys_resolves_active(
-        self, tmp_path: Path
-    ) -> None:
+    def test_minimal_config_with_no_activation_keys_resolves_active(self, tmp_path: Path) -> None:
         """A real ``config.yaml`` present, but no ``activated_kinds`` key.
 
         This is the shape every un-migrated / freshly-bootstrapped project
@@ -89,8 +85,7 @@ class TestGlossaryPackDefaultOnEndToEnd:
         """
         _write_config(
             tmp_path,
-            "vcs:\n  type: git\nagents:\n  available:\n    - claude\n"
-            "mission_type_activations:\n  - software-dev\n",
+            "vcs:\n  type: git\nagents:\n  available:\n    - claude\nmission_type_activations:\n  - software-dev\n",
         )
         pack_context = PackContext.from_config(tmp_path)
         assert "glossary_packs" in pack_context.activated_kinds
@@ -100,9 +95,7 @@ class TestGlossaryPackDefaultOnEndToEnd:
         urns = {node.urn for node in filtered.nodes}
         assert _PACK_URN in urns
 
-    def test_negative_control_explicit_activated_kinds_without_glossary_packs(
-        self, tmp_path: Path
-    ) -> None:
+    def test_negative_control_explicit_activated_kinds_without_glossary_packs(self, tmp_path: Path) -> None:
         """Non-vacuity proof: an explicit ``activated_kinds`` that OMITS
         ``glossary_packs`` (but includes other kinds) must filter the
         built-in pack node OUT.
@@ -114,8 +107,7 @@ class TestGlossaryPackDefaultOnEndToEnd:
         """
         _write_config(
             tmp_path,
-            "vcs:\n  type: git\nactivated_kinds:\n  - directives\n  - tactics\n"
-            "mission_type_activations:\n  - software-dev\n",
+            "vcs:\n  type: git\nactivated_kinds:\n  - directives\n  - tactics\nmission_type_activations:\n  - software-dev\n",
         )
         pack_context = PackContext.from_config(tmp_path)
         assert "glossary_packs" not in pack_context.activated_kinds
@@ -156,14 +148,10 @@ class TestGlossaryPackCascadeIsGeneric:
     def project_root(self, tmp_path: Path) -> Path:
         kittify = tmp_path / ".kittify"
         kittify.mkdir()
-        (kittify / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
         return tmp_path
 
-    def test_activate_glossary_pack_with_cascade_all_writes_config(
-        self, project_root: Path
-    ) -> None:
+    def test_activate_glossary_pack_with_cascade_all_writes_config(self, project_root: Path) -> None:
         result = _invoke(
             project_root,
             "activate",
@@ -178,9 +166,7 @@ class TestGlossaryPackCascadeIsGeneric:
         data = yaml.safe_load(config.read_text())
         assert "spec-kitty-core" in data["activated_glossary_packs"]
 
-    def test_deactivate_glossary_pack_with_cascade_all_removes_from_config(
-        self, project_root: Path
-    ) -> None:
+    def test_deactivate_glossary_pack_with_cascade_all_removes_from_config(self, project_root: Path) -> None:
         _invoke(
             project_root,
             "activate",
@@ -203,9 +189,7 @@ class TestGlossaryPackCascadeIsGeneric:
         data = yaml.safe_load(config.read_text())
         assert "spec-kitty-core" not in data.get("activated_glossary_packs", [])
 
-    def test_activate_unknown_glossary_pack_id_exits_1_without_mutating(
-        self, project_root: Path
-    ) -> None:
+    def test_activate_unknown_glossary_pack_id_exits_1_without_mutating(self, project_root: Path) -> None:
         """Same fail-closed contract every other kind gets -- proves no
         glossary-pack-specific shortcut bypasses ID validation."""
         result = runner.invoke(

@@ -253,9 +253,7 @@ _TESTING_DELIVERED_AT_D2_ONLY: frozenset[str] = frozenset(
 #: the profile->hub and event-storming edges are ``suggests`` on the profile channel
 #: and inert. ``_PROFILE_UNREACHABLE`` is unchanged (153); ``_PROFILE_RESCUES``
 #: 4 -> 2 because development-bdd and reverse-speccing entered the action channel.
-_TESTING_BDD_MUTATION_WIRED: frozenset[str] = (
-    _TESTING_DELIVERED_AT_D1 | _TESTING_DELIVERED_AT_D2_ONLY
-)
+_TESTING_BDD_MUTATION_WIRED: frozenset[str] = _TESTING_DELIVERED_AT_D1 | _TESTING_DELIVERED_AT_D2_ONLY
 
 #: #3063 family-E (ANALYSIS / TERMINOLOGY / REASONS-CANVAS family) is INERT --
 #: it moves NO reachability pin (measured with the WP08 helper, not assumed). Its
@@ -742,9 +740,7 @@ def graph() -> DRGGraph:
 class TestActionChannelReachability:
     """The action channel is measured by CALLING ``resolve_context`` (R-1)."""
 
-    def test_action_helper_calls_resolve_context_not_a_reimplemented_walk(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_action_helper_calls_resolve_context_not_a_reimplemented_walk(self, graph: DRGGraph) -> None:
         """Union over action seeds equals the per-seed ``resolve_context`` union.
 
         If the helper reimplemented the walk, this equality against a direct
@@ -756,9 +752,6 @@ class TestActionChannelReachability:
         for seed in seeds:
             direct |= resolve_context(graph, seed, depth=_ACTION_D1_DEPTH).artifact_urns
         assert action_channel_reachable(graph, seeds, _ACTION_D1_DEPTH) == frozenset(direct)
-
-
-
 
     def test_common_docs_cluster_and_asset_are_action_reachable(self, graph: DRGGraph) -> None:
         """FR-015 / WP09 acceptance (spec User Story 4, scenario 3): every wired
@@ -776,14 +769,10 @@ class TestActionChannelReachability:
             reachable = action_channel_reachable(graph, action_seed_urns(graph), depth)
             missing = sorted((_COMMON_DOCS_WIRED | {_COMMON_DOCS_ASSET}) - reachable)
             assert not missing, (
-                f"wired common-docs artefacts still unreachable at d={depth} "
-                f"(wired to an unreachable source, or the scope edge is absent): "
-                f"{missing}"
+                f"wired common-docs artefacts still unreachable at d={depth} (wired to an unreachable source, or the scope edge is absent): {missing}"
             )
 
-    def test_ddd_family_is_action_reachable_at_specify_grain(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_ddd_family_is_action_reachable_at_specify_grain(self, graph: DRGGraph) -> None:
         """#3063 family-A acceptance (operator interview outcome): the specify
         grain must reach the DDD paradigm and its strategic-design family.
 
@@ -800,14 +789,10 @@ class TestActionChannelReachability:
             reachable = action_channel_reachable(graph, action_seed_urns(graph), depth)
             missing = sorted(_DDD_FAMILY_WIRED - reachable)
             assert not missing, (
-                f"DDD family still unreachable at d={depth} "
-                f"(paradigm not scoped by an action, or a member is wired only to "
-                f"an unreachable source): {missing}"
+                f"DDD family still unreachable at d={depth} (paradigm not scoped by an action, or a member is wired only to an unreachable source): {missing}"
             )
 
-    def test_testing_bdd_family_is_action_reachable_at_implement_review(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_testing_bdd_family_is_action_reachable_at_implement_review(self, graph: DRGGraph) -> None:
         """#3063 family-D acceptance (operator ACCEPT-DELIVERY ruling): the BDD +
         test-quality members must be action-reachable at implement/review.
 
@@ -823,17 +808,11 @@ class TestActionChannelReachability:
         """
         r_d1 = action_channel_reachable(graph, action_seed_urns(graph), _ACTION_D1_DEPTH)
         missing_d1 = sorted(_TESTING_DELIVERED_AT_D1 - r_d1)
-        assert not missing_d1, (
-            "BDD + test-quality members still unreachable at d=1 "
-            f"(a hub is not action-scoped, or an edge is absent): {missing_d1}"
-        )
+        assert not missing_d1, f"BDD + test-quality members still unreachable at d=1 (a hub is not action-scoped, or an edge is absent): {missing_d1}"
 
         r_d2 = action_channel_reachable(graph, action_seed_urns(graph), _ACTION_D2_DEPTH)
         missing_d2 = sorted(_TESTING_BDD_MUTATION_WIRED - r_d2)
-        assert not missing_d2, (
-            "family-D delivered members still unreachable at d=2: "
-            f"{missing_d2}"
-        )
+        assert not missing_d2, f"family-D delivered members still unreachable at d=2: {missing_d2}"
         # The DIRECTIVE_041 fan-out is INERT by design: its members stay
         # unreachable. Guards against a future edit that accidentally makes
         # that family eager.
@@ -882,15 +861,11 @@ class TestProfileChannelReachability:
             for depth in (_ACTION_D1_DEPTH, _ACTION_D2_DEPTH):
                 assert resolve_context(graph, seed, depth=depth).artifact_urns == frozenset()
 
-    def test_profile_channel_is_fail_closed_on_empty_configuration(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_profile_channel_is_fail_closed_on_empty_configuration(self, graph: DRGGraph) -> None:
         """``profile: str | None`` — an unconfigured caller reaches NOTHING, not
         the whole graph (R-3b: it must not repeat the fail-open shape FR-018
         retires)."""
         assert profile_channel_reachable(graph, frozenset()) == frozenset()
-
-
 
 
 @pytest.mark.doctrine
@@ -904,9 +879,7 @@ class TestSixEdgesReachabilityWiring:
     anti-requirements: set-equality alone does not force these edges to exist).
     """
 
-    def test_disciplined_refactoring_is_action_reachable_via_refactoring_procedure(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_disciplined_refactoring_is_action_reachable_via_refactoring_procedure(self, graph: DRGGraph) -> None:
         """Edge 1: ``procedure:refactoring --suggests--> DISCIPLINED_REFACTORING``.
 
         Was action-unreachable before this mission (see
@@ -916,9 +889,7 @@ class TestSixEdgesReachabilityWiring:
         reach = action_channel_reachable(graph, action_seed_urns(graph), _ACTION_D2_DEPTH)
         assert "directive:DISCIPLINED_REFACTORING" in reach
 
-    def test_reconcile_change_scope_tensions_is_action_reachable_via_024_and_025(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_reconcile_change_scope_tensions_is_action_reachable_via_024_and_025(self, graph: DRGGraph) -> None:
         """Edges 2/3: ``DIRECTIVE_024``/``DIRECTIVE_025 --suggests--> RECONCILE``.
 
         RECONCILE leaves ``_ACTIVATED_BUT_ORPHANED`` (incidence,
@@ -930,9 +901,7 @@ class TestSixEdgesReachabilityWiring:
             reach = action_channel_reachable(graph, action_seed_urns(graph), depth)
             assert "directive:RECONCILE_CHANGE_SCOPE_TENSIONS" in reach
 
-    def test_use_mutation_testing_is_action_reachable_via_directive_030(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_use_mutation_testing_is_action_reachable_via_directive_030(self, graph: DRGGraph) -> None:
         """Edge 4: ``DIRECTIVE_030 --suggests--> USE_MUTATION_TESTING_...``.
 
         Was action-unreachable before this mission; the already action-scoped
@@ -942,9 +911,7 @@ class TestSixEdgesReachabilityWiring:
         reach = action_channel_reachable(graph, action_seed_urns(graph), _ACTION_D2_DEPTH)
         assert "directive:USE_MUTATION_TESTING_TO_VALIDATE_TEST_QUALITY" in reach
 
-    def test_spike_timebox_policy_is_profile_reachable_via_researcher_robbie(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_spike_timebox_policy_is_profile_reachable_via_researcher_robbie(self, graph: DRGGraph) -> None:
         """``agent_profile:researcher-robbie --requires--> spike-timebox-policy``,
         data-driven from robbie's ``operating-procedures`` field (M3: the former
         curated hand-pin was retired once the field became a first-class edge
@@ -952,9 +919,7 @@ class TestSixEdgesReachabilityWiring:
         reach = profile_channel_reachable(graph, agent_profile_seed_urns(graph))
         assert "procedure:spike-timebox-policy" in reach
 
-    def test_glossary_maintenance_workflow_is_profile_reachable_via_lexical_larry(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_glossary_maintenance_workflow_is_profile_reachable_via_lexical_larry(self, graph: DRGGraph) -> None:
         """Edge 6a: ``agent_profile:lexical-larry --suggests--> glossary-
         maintenance-workflow`` (larry FEEDS the workflow; ``suggests``, not
         ``requires`` — carla owns acceptance). ``suggests`` is in
@@ -962,17 +927,13 @@ class TestSixEdgesReachabilityWiring:
         reach = profile_channel_reachable(graph, agent_profile_seed_urns(graph))
         assert "procedure:glossary-maintenance-workflow" in reach
 
-    def test_meeting_minutes_pipeline_is_profile_reachable_via_minutes_mahad(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_meeting_minutes_pipeline_is_profile_reachable_via_minutes_mahad(self, graph: DRGGraph) -> None:
         """Edge 6b: ``agent_profile:minutes-mahad --requires--> meeting-
         minutes-pipeline`` — mahad's own text: "the primary agent for" it."""
         reach = profile_channel_reachable(graph, agent_profile_seed_urns(graph))
         assert "procedure:meeting-minutes-pipeline" in reach
 
-    def test_removing_the_disciplined_refactoring_edge_reintroduces_unreachability(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_removing_the_disciplined_refactoring_edge_reintroduces_unreachability(self, graph: DRGGraph) -> None:
         """SC-001 delete-edge negative control (Renata F3).
 
         Removing edge 1 from a COPY of the shipped graph must revert
@@ -988,17 +949,11 @@ class TestSixEdgesReachabilityWiring:
         trimmed_edges = [
             e
             for e in graph.edges
-            if not (
-                e.source == "procedure:refactoring"
-                and e.target == "directive:DISCIPLINED_REFACTORING"
-                and e.relation is Relation.SUGGESTS
-            )
+            if not (e.source == "procedure:refactoring" and e.target == "directive:DISCIPLINED_REFACTORING" and e.relation is Relation.SUGGESTS)
         ]
         assert len(trimmed_edges) == len(graph.edges) - 1, "expected to remove exactly one edge"
         trimmed_graph = graph.model_copy(update={"edges": trimmed_edges})
-        reach = action_channel_reachable(
-            trimmed_graph, action_seed_urns(trimmed_graph), _ACTION_D2_DEPTH
-        )
+        reach = action_channel_reachable(trimmed_graph, action_seed_urns(trimmed_graph), _ACTION_D2_DEPTH)
         assert "directive:DISCIPLINED_REFACTORING" not in reach
         # The companion guard (T006) must independently name it too: its
         # ``measured`` set is exactly ``activatable-kind and not action-reachable``,
@@ -1011,9 +966,7 @@ class TestSixEdgesReachabilityWiring:
 #: walk-activation. The cross-check below scopes its search to THIS section so a
 #: forgotten ledger row genuinely fails (a whole-document scan would pass on a
 #: member that happens to appear elsewhere in the doc).
-_WIRING_TABLE_PATH: Path = (
-    _REPO_ROOT / "docs" / "plans" / "doctrine" / "delivery-reachability-wiring-table.md"
-)
+_WIRING_TABLE_PATH: Path = _REPO_ROOT / "docs" / "plans" / "doctrine" / "delivery-reachability-wiring-table.md"
 _LEDGER_SECTION_START = "## Composition ledger (NFR-002) — profile-channel walk-activation"
 _LEDGER_SECTION_END = "## Composition ledger (NFR-004) — counts this WP moves"
 
@@ -1028,18 +981,10 @@ def _profile_channel_ledger_text() -> str:
     """
     text = _WIRING_TABLE_PATH.read_text(encoding="utf-8")
     start = text.find(_LEDGER_SECTION_START)
-    assert start != -1, (
-        f"profile-channel walk-activation ledger header not found in "
-        f"{_WIRING_TABLE_PATH} — the T013 ledger section is missing"
-    )
+    assert start != -1, f"profile-channel walk-activation ledger header not found in {_WIRING_TABLE_PATH} — the T013 ledger section is missing"
     end = text.find(_LEDGER_SECTION_END, start)
-    assert end != -1, (
-        f"ledger section end header {_LEDGER_SECTION_END!r} not found after the "
-        f"start header in {_WIRING_TABLE_PATH}"
-    )
+    assert end != -1, f"ledger section end header {_LEDGER_SECTION_END!r} not found after the start header in {_WIRING_TABLE_PATH}"
     return text[start:end]
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -1079,11 +1024,7 @@ def _shipped_reachability_partition(
     action_reach = action_channel_reachable(graph, action_seeds, _ACTION_D2_DEPTH)
     profile_reach = profile_channel_reachable(graph, profile_seeds)
     kind_of = {n.urn: n.kind for n in graph.nodes}
-    measured = {
-        n.urn
-        for n in graph.nodes
-        if n.urn not in action_reach and kind_of[n.urn] not in _BY_DESIGN_UNREACHABLE_KINDS
-    } - action_seeds - profile_seeds
+    measured = {n.urn for n in graph.nodes if n.urn not in action_reach and kind_of[n.urn] not in _BY_DESIGN_UNREACHABLE_KINDS} - action_seeds - profile_seeds
     dead = frozenset(u for u in measured if u not in profile_reach)
     profile_delivered = frozenset(measured - dead)
     return frozenset(measured), dead, profile_delivered
@@ -1153,21 +1094,15 @@ class TestReachabilityCompanionGuard:
         so it is genuinely unreachable from either channel — yet it must be
         ABSENT from ``measured`` because its kind is excluded by design."""
         sample = next(n.urn for n in graph.nodes if n.kind is NodeKind.MISSION_STEP_CONTRACT)
-        action_reach = action_channel_reachable(
-            graph, action_seed_urns(graph), _ACTION_D2_DEPTH
-        )
+        action_reach = action_channel_reachable(graph, action_seed_urns(graph), _ACTION_D2_DEPTH)
         assert sample not in action_reach, "fixture assumption: the sample must be unreachable"
         measured, _dead, _profile_delivered = _shipped_reachability_partition(graph)
         assert sample not in measured
 
-    def test_measured_calls_canonical_helpers_not_a_reimplemented_walk(
-        self, graph: DRGGraph
-    ) -> None:
+    def test_measured_calls_canonical_helpers_not_a_reimplemented_walk(self, graph: DRGGraph) -> None:
         """R-1: the partition helper must be a thin composition of the
         canonical helpers, not an independent walk that could drift."""
-        action_reach = action_channel_reachable(
-            graph, action_seed_urns(graph), _ACTION_D2_DEPTH
-        )
+        action_reach = action_channel_reachable(graph, action_seed_urns(graph), _ACTION_D2_DEPTH)
         measured, _dead, _profile_delivered = _shipped_reachability_partition(graph)
         for urn in measured:
             assert urn not in action_reach
@@ -1177,8 +1112,7 @@ class TestReachabilityCompanionGuard:
 #: wiring-table doc). Section-scoped (not a whole-document scan) so a forgotten
 #: row genuinely fails rather than passing on an incidental mention elsewhere.
 _COMPANION_LEDGER_SECTION_START = (
-    "## Composition ledger (NFR-002/NFR-004) — reachability companion metric "
-    "(mission `drg-reachability-metric-wiring-01KZS5VR`, WP01, #3009 point 3)"
+    "## Composition ledger (NFR-002/NFR-004) — reachability companion metric (mission `drg-reachability-metric-wiring-01KZS5VR`, WP01, #3009 point 3)"
 )
 
 
@@ -1190,10 +1124,7 @@ def _companion_ledger_text() -> str:
     """
     text = _WIRING_TABLE_PATH.read_text(encoding="utf-8")
     start = text.find(_COMPANION_LEDGER_SECTION_START)
-    assert start != -1, (
-        "reachability companion-metric ledger header not found in "
-        f"{_WIRING_TABLE_PATH} — the T007 ledger section is missing"
-    )
+    assert start != -1, f"reachability companion-metric ledger header not found in {_WIRING_TABLE_PATH} — the T007 ledger section is missing"
     return text[start:]
 
 
@@ -1214,9 +1145,7 @@ class TestActionUnreachableShippedLedgerCoverage:
         measured, _dead, _profile_delivered = _shipped_reachability_partition(graph)
         still_unreachable = sorted(_WIRED_THIS_MISSION & measured)
         assert not still_unreachable, (
-            "these _WIRED_THIS_MISSION members are still in the live "
-            "action-unreachable measured set -- the wiring did not take "
-            f"effect: {still_unreachable}"
+            f"these _WIRED_THIS_MISSION members are still in the live action-unreachable measured set -- the wiring did not take effect: {still_unreachable}"
         )
 
     def test_action_unreachable_shipped_members_have_ledger_coverage(self) -> None:

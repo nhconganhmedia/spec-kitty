@@ -138,9 +138,7 @@ class _FakeAtexit:
     def __init__(self) -> None:
         self.registered: list[Callable[[], None]] = []
 
-    def register(
-        self, func: Callable[[], None], *args: object, **kwargs: object
-    ) -> Callable[[], None]:
+    def register(self, func: Callable[[], None], *args: object, **kwargs: object) -> Callable[[], None]:
         self.registered.append(func)
         return func
 
@@ -212,18 +210,14 @@ def _worktree_is_registered(repo_root: Path, worktree_dir: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def test_snapshot_delta_reaps_new_and_preserves_preexisting(
-    temp_repo: Path, _fake_tmp_root: Path
-) -> None:
+def test_snapshot_delta_reaps_new_and_preserves_preexisting(temp_repo: Path, _fake_tmp_root: Path) -> None:
     repo = temp_repo
 
     # Pre-existing (before baseline): a real tracked mission, a real branch,
     # a REGISTERED worktree (with its own matching branch).
     _seed_mission_dir(repo, "test-feature-existing", commit=True)
     _seed_branch(repo, "kitty/mission-test-feature-existing")
-    existing_worktree = _seed_registered_worktree(
-        repo, "test-feature-existing-wt", "kitty/mission-test-feature-existing-wt"
-    )
+    existing_worktree = _seed_registered_worktree(repo, "test-feature-existing-wt", "kitty/mission-test-feature-existing-wt")
 
     baseline = root_conftest.capture_reaper_snapshot(repo)
 
@@ -250,9 +244,7 @@ def test_snapshot_delta_reaps_new_and_preserves_preexisting(
     assert _worktree_is_registered(repo, existing_worktree)
 
 
-def test_new_registered_worktree_is_not_reaped_only_husk_is(
-    temp_repo: Path, _fake_tmp_root: Path
-) -> None:
+def test_new_registered_worktree_is_not_reaped_only_husk_is(temp_repo: Path, _fake_tmp_root: Path) -> None:
     """FR-001: only git-unregistered husks are reaped, never a real worktree.
 
     A worktree created via a genuine ``git worktree add`` during the session
@@ -264,9 +256,7 @@ def test_new_registered_worktree_is_not_reaped_only_husk_is(
     repo = temp_repo
     baseline = root_conftest.capture_reaper_snapshot(repo)
 
-    real_new_worktree = _seed_registered_worktree(
-        repo, "test-feature-real-new", "kitty/mission-test-feature-real-new"
-    )
+    real_new_worktree = _seed_registered_worktree(repo, "test-feature-real-new", "kitty/mission-test-feature-real-new")
     husk = _seed_unregistered_worktree_husk(repo, "test-feature-husk-new")
 
     result = root_conftest.reap_session_delta(repo, baseline)
@@ -293,9 +283,7 @@ def test_assert_no_leaked_test_residue_reds_on_leak() -> None:
 
 
 def test_assert_no_leaked_test_residue_green_when_empty() -> None:
-    clean = root_conftest.ReapResult(
-        removed_mission_dirs=(), removed_branches=(), removed_worktree_dirs=()
-    )
+    clean = root_conftest.ReapResult(removed_mission_dirs=(), removed_branches=(), removed_worktree_dirs=())
     root_conftest.assert_no_leaked_test_residue(clean)  # must not raise
 
 
@@ -304,9 +292,7 @@ def test_assert_no_leaked_test_residue_green_when_empty() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_sweep_tmp_residue_delta_sweeps_prompt_only_and_leaves_home(
-    temp_repo: Path, _fake_tmp_root: Path
-) -> None:
+def test_sweep_tmp_residue_delta_sweeps_prompt_only_and_leaves_home(temp_repo: Path, _fake_tmp_root: Path) -> None:
     """``sweep_tmp_residue`` (pytest_sessionfinish path) touches PROMPTS, not HOME.
 
     Decoupling regression guard: the sweep must delta-sweep the WP02 prompt
@@ -482,8 +468,6 @@ def test_current_run_test_home_dirs_serial_targets_own_run_uid(
     assert expected.name.startswith("serial-")
 
 
-
-
 # ---------------------------------------------------------------------------
 # NFR-001 — controller gate + end-to-end hook wiring
 # ---------------------------------------------------------------------------
@@ -500,9 +484,7 @@ def test_controller_gate_worker_never_snapshots_or_reaps(
     worker_session = _worker_session()
 
     root_conftest.pytest_sessionstart(cast(pytest.Session, worker_session))
-    assert (
-        getattr(worker_session.config, root_conftest._REAPER_SNAPSHOT_ATTR, None) is None
-    ), "a worker must never take a reaper snapshot"
+    assert getattr(worker_session.config, root_conftest._REAPER_SNAPSHOT_ATTR, None) is None, "a worker must never take a reaper snapshot"
     assert _captured_atexit == [], "a worker must never register the HOME reaper"
 
     leak = _seed_mission_dir(temp_repo, "test-feature-worker-leak", commit=False)
@@ -514,9 +496,7 @@ def test_controller_gate_worker_never_snapshots_or_reaps(
     assert worker_session.exitstatus == 0
 
 
-def test_pytest_sessionfinish_reds_and_selfheals_on_leak(
-    temp_repo: Path, _fake_tmp_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_pytest_sessionfinish_reds_and_selfheals_on_leak(temp_repo: Path, _fake_tmp_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(root_conftest, "REPO_ROOT", temp_repo)
     session = _controller_session()
 
@@ -530,9 +510,7 @@ def test_pytest_sessionfinish_reds_and_selfheals_on_leak(
     assert session.exitstatus == 1
 
 
-def test_pytest_sessionfinish_retains_installed_basetemp_after_leak(
-    temp_repo: Path, _fake_tmp_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_pytest_sessionfinish_retains_installed_basetemp_after_leak(temp_repo: Path, _fake_tmp_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A residue failure downgrades the installed basetemp outcome to failed.
 
     ``pytest_sessionfinish`` initially marks an otherwise-green session as
@@ -555,9 +533,7 @@ def test_pytest_sessionfinish_retains_installed_basetemp_after_leak(
     assert outcome.succeeded is False
 
 
-def test_pytest_sessionfinish_stays_green_without_leak(
-    temp_repo: Path, _fake_tmp_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_pytest_sessionfinish_stays_green_without_leak(temp_repo: Path, _fake_tmp_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(root_conftest, "REPO_ROOT", temp_repo)
     session = _controller_session()
 

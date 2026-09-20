@@ -1,4 +1,5 @@
 """``spec-kitty charter lint`` command (WP06 per-subcommand split)."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -46,18 +47,13 @@ def _print_charter_lint_banner(
     from specify_cli.charter_runtime.lint import GraphState as _GraphState  # local alias
 
     if report.graph_state is _GraphState.MISSING:
-        console.print(
-            "[bold]Charter Lint:[/bold] no lintable graph found — "
-            "run `spec-kitty charter synthesize`"
-        )
+        console.print("[bold]Charter Lint:[/bold] no lintable graph found — run `spec-kitty charter synthesize`")
         return True
 
     console.print("[bold]Charter Lint - layers:[/bold]")
     console.print(r"  [dim]\[built-in][/dim]")
     if report.graph_state is _GraphState.BUILT_IN_ONLY and not org_layer_summary:
-        console.print(
-            r"  [dim]\[no project overlay — run `spec-kitty charter synthesize`][/dim]"
-        )
+        console.print(r"  [dim]\[no project overlay — run `spec-kitty charter synthesize`][/dim]")
     else:
         for org_marker in org_layer_summary:
             console.print(rf"  [dim]\[{org_marker}][/dim]")
@@ -68,20 +64,14 @@ def _print_charter_lint_banner(
         return False
 
     if report.graph_state is _GraphState.BUILT_IN_ONLY:
-        console.print(
-            "[green]No decay detected[/green] [dim](in built-in graph)[/dim]"
-        )
+        console.print("[green]No decay detected[/green] [dim](in built-in graph)[/dim]")
     else:
         console.print("[green]No decay detected[/green]")
-    console.print(
-        f"[dim]Scanned {report.drg_node_count} nodes in {report.duration_seconds:.2f}s[/dim]"
-    )
+    console.print(f"[dim]Scanned {report.drg_node_count} nodes in {report.duration_seconds:.2f}s[/dim]")
     return True
 
 
-def _load_org_layer(
-    repo_root: Any, *, output_json: bool
-) -> tuple[list[str], list[OrgDRGFragment]]:
+def _load_org_layer(repo_root: Any, *, output_json: bool) -> tuple[list[str], list[OrgDRGFragment]]:
     """Load configured org DRG packs for ``charter lint`` (Slice F WP06 / FR-003).
 
     Returns ``(org_layer_summary, org_fragments)`` so the caller can attribute
@@ -109,9 +99,7 @@ def _load_org_layer(
             raise typer.Exit(code=1) from exc
         # Unknown failure shape — log and continue without org layer.
         if not output_json:
-            console.print(
-                f"[yellow]warning:[/yellow] org-layer skipped (load error): {exc}"
-            )
+            console.print(f"[yellow]warning:[/yellow] org-layer skipped (load error): {exc}")
     else:
         # Type-narrow against the public Pydantic schema so a regression
         # that returns the wrong shape fails fast at the CLI boundary — this
@@ -188,37 +176,23 @@ def charter_lint(
             edges=[],
         )
         try:
-            merge_three_layers(
-                built_in=empty_built_in, org_fragments=org_fragments, project=None
-            )
+            merge_three_layers(built_in=empty_built_in, org_fragments=org_fragments, project=None)
         except OrgDRGConflictError as exc:
             # ``exc.conflicts`` is a list of ``OrgDRGConflict`` records;
             # re-format with the conflict kind named so operators see
             # which org pack(s) misbehaved.
             conflicts: list[OrgDRGConflict] = list(exc.conflicts)
             if output_json:
-                details = "; ".join(
-                    f"kind={c.kind} target_id={c.target_id} layers={c.conflicting_layers}"
-                    for c in conflicts
-                )
+                details = "; ".join(f"kind={c.kind} target_id={c.target_id} layers={c.conflicting_layers}" for c in conflicts)
                 _emit_error(
                     console,
                     json_output=True,
-                    message=(
-                        f"Charter Lint: {len(conflicts)} org-layer conflict(s) detected"
-                        + (f": {details}" if details else "")
-                    ),
+                    message=(f"Charter Lint: {len(conflicts)} org-layer conflict(s) detected" + (f": {details}" if details else "")),
                 )
                 raise typer.Exit(code=1) from exc
-            console.print(
-                f"[red]Charter Lint:[/red] {len(conflicts)} org-layer "
-                f"conflict(s) detected"
-            )
+            console.print(f"[red]Charter Lint:[/red] {len(conflicts)} org-layer conflict(s) detected")
             for c in conflicts:
-                console.print(
-                    f"  - kind={c.kind} target_id={c.target_id} "
-                    f"layers={c.conflicting_layers}"
-                )
+                console.print(f"  - kind={c.kind} target_id={c.target_id} layers={c.conflicting_layers}")
             raise typer.Exit(code=1) from exc
 
     if output_json:
@@ -233,10 +207,7 @@ def charter_lint(
     if _print_charter_lint_banner(report, org_layer_summary):
         return
 
-    console.print(
-        f"\n[bold]Charter Lint[/bold] — {len(report.findings)} finding(s)"
-        f" in {report.duration_seconds:.2f}s\n"
-    )
+    console.print(f"\n[bold]Charter Lint[/bold] — {len(report.findings)} finding(s) in {report.duration_seconds:.2f}s\n")
     for finding in report.findings:
         severity_color = {
             "low": "dim",
@@ -244,10 +215,7 @@ def charter_lint(
             "high": "red",
             "critical": "bold red",
         }.get(finding.severity, "white")
-        console.print(
-            f"  [{severity_color}][{finding.severity.upper()}][/{severity_color}]"
-            f" [{finding.category}] {finding.type}: {finding.id}"
-        )
+        console.print(f"  [{severity_color}][{finding.severity.upper()}][/{severity_color}] [{finding.category}] {finding.type}: {finding.id}")
         console.print(f"    {finding.message}")
         if finding.remediation_hint:
             console.print(f"    [dim]→ {finding.remediation_hint}[/dim]")

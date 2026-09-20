@@ -68,16 +68,10 @@ class TestMissionRoutesThroughCoordinationCorruptMeta:
             "mission_slug": self._SLUG,
             "coordination_branch": f"kitty/mission-{self._SLUG}",
         }
-        (feature_dir / "meta.json").write_text(
-            json.dumps(meta, sort_keys=True, indent=2), encoding="utf-8"
-        )
+        (feature_dir / "meta.json").write_text(json.dumps(meta, sort_keys=True, indent=2), encoding="utf-8")
         subprocess.run(["git", "add", "kitty-specs"], cwd=repo_root, check=True)
-        subprocess.run(
-            ["git", "commit", "-q", "-m", "seed mission"], cwd=repo_root, check=True
-        )
-        subprocess.run(
-            ["git", "branch", f"kitty/mission-{self._SLUG}"], cwd=repo_root, check=True
-        )
+        subprocess.run(["git", "commit", "-q", "-m", "seed mission"], cwd=repo_root, check=True)
+        subprocess.run(["git", "branch", f"kitty/mission-{self._SLUG}"], cwd=repo_root, check=True)
         return feature_dir
 
     def test_valid_coord_meta_routes_true(self, tmp_path: Path) -> None:
@@ -95,6 +89,5 @@ class TestMissionRoutesThroughCoordinationCorruptMeta:
         (feature_dir / "meta.json").write_text("{ not valid json", encoding="utf-8")
 
         assert _mission_routes_through_coordination(self._SLUG, tmp_path) is False, (
-            "corrupt meta.json must degrade _mission_routes_through_coordination "
-            "to False, not raise MissionMetaReadError"
+            "corrupt meta.json must degrade _mission_routes_through_coordination to False, not raise MissionMetaReadError"
         )

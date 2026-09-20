@@ -196,9 +196,7 @@ def is_missing_canonical_status_error(exc: BaseException) -> bool:
     return isinstance(exc, CanonicalStatusNotFoundError)
 
 
-def missing_canonical_status_message(
-    wp_id: str, mission_slug: str, feature_dir: Path | None = None
-) -> str:
+def missing_canonical_status_message(wp_id: str, mission_slug: str, feature_dir: Path | None = None) -> str:
     """Return a consistent hard-fail message for missing canonical status.
 
     When *feature_dir* is provided, surface an unresolved WP dependency cycle as
@@ -512,7 +510,4 @@ def event_is_review_claim(event: StatusEvent) -> bool:
     ``to_lane == IN_PROGRESS`` carrying the ``"action-review-claim"``
     ``review_ref`` sentinel.
     """
-    return bool(
-        event.to_lane == Lane.IN_REVIEW
-        or (event.to_lane == Lane.IN_PROGRESS and event.review_ref == "action-review-claim")
-    )
+    return bool(event.to_lane == Lane.IN_REVIEW or (event.to_lane == Lane.IN_PROGRESS and event.review_ref == "action-review-claim"))

@@ -43,9 +43,7 @@ def _lineage_drg(*pairs: tuple[str, str]) -> DRGGraph:
     Nodes are synthesized for every referenced profile id.
     """
     ids = {pid for pair in pairs for pid in pair}
-    nodes = [
-        DRGNode(urn=f"agent_profile:{pid}", kind=NodeKind.AGENT_PROFILE) for pid in sorted(ids)
-    ]
+    nodes = [DRGNode(urn=f"agent_profile:{pid}", kind=NodeKind.AGENT_PROFILE) for pid in sorted(ids)]
     edges = [
         DRGEdge(
             source=f"agent_profile:{child}",
@@ -99,9 +97,7 @@ class TestSkippedDiagnostics:
         """A profile lacking profile-id is recorded, not silently dropped."""
         built_in = tmp_path / "built-in"
         built_in.mkdir()
-        (built_in / "noid.agent.yaml").write_text(
-            "name: No Id\nroles: [implementer]\npurpose: x\n", encoding="utf-8"
-        )
+        (built_in / "noid.agent.yaml").write_text("name: No Id\nroles: [implementer]\npurpose: x\n", encoding="utf-8")
 
         repo = AgentProfileRepository(built_in_dir=built_in, project_dir=None, drg=_empty_drg())
 
@@ -199,9 +195,7 @@ class TestLineageViaDRG:
         built_in = tmp_path / "built-in"
         built_in.mkdir()
         for name in ("base", "child", "grandchild", "sibling"):
-            (built_in / f"{name}.agent.yaml").write_text(
-                _profile_yaml(name, primary_focus=f"{name} focus"), encoding="utf-8"
-            )
+            (built_in / f"{name}.agent.yaml").write_text(_profile_yaml(name, primary_focus=f"{name} focus"), encoding="utf-8")
         drg = _lineage_drg(("child", "base"), ("grandchild", "child"), ("sibling", "base"))
         return AgentProfileRepository(built_in_dir=built_in, project_dir=None, drg=drg)
 

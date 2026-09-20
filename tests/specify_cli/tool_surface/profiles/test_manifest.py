@@ -178,11 +178,7 @@ def test_load_legacy_six_field_entry_populates_with_none_provenance(
 def test_source_hash_change_is_independent_of_file_hash(tmp_path: Path) -> None:
     """Source YAML changed but rendered output unchanged -> only source drifts."""
     manifest = ProfileManifest.load(tmp_path)
-    manifest.record(
-        _provenance_entry(
-            "drift-dan", file_hash="sha256:out", source_hash="sha256:src-v1"
-        )
-    )
+    manifest.record(_provenance_entry("drift-dan", file_hash="sha256:out", source_hash="sha256:src-v1"))
     manifest.save()
 
     recorded = ProfileManifest.load(tmp_path).all_entries()[0]
@@ -196,11 +192,7 @@ def test_source_hash_change_is_independent_of_file_hash(tmp_path: Path) -> None:
 def test_file_hash_change_is_independent_of_source_hash(tmp_path: Path) -> None:
     """Rendered output edited but source unchanged -> only file drifts."""
     manifest = ProfileManifest.load(tmp_path)
-    manifest.record(
-        _provenance_entry(
-            "drift-dora", file_hash="sha256:out-edited", source_hash="sha256:src"
-        )
-    )
+    manifest.record(_provenance_entry("drift-dora", file_hash="sha256:out-edited", source_hash="sha256:src"))
     manifest.save()
 
     recorded = ProfileManifest.load(tmp_path).all_entries()[0]

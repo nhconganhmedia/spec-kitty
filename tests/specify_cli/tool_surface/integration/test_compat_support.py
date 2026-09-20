@@ -67,9 +67,7 @@ def test_write_controlled_project_creates_marker_files(tmp_path: Path) -> None:
     assert root == tmp_path
     config = (tmp_path / ".kittify" / "config.yaml").read_text(encoding="utf-8")
     assert "- codex" in config
-    manifest = json.loads(
-        (tmp_path / ".kittify" / "command-skills-manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((tmp_path / ".kittify" / "command-skills-manifest.json").read_text(encoding="utf-8"))
     assert manifest == cs.EMPTY_MANIFEST
 
 

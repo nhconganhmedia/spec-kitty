@@ -118,8 +118,7 @@ def test_positive_finding_for_co_activated_unreconciled_pair(tmp_path: Path) -> 
     """
     ctx = _ctx_with_config(
         tmp_path,
-        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\n"
-        "activated_tactics: []\n",
+        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\nactivated_tactics: []\n",
     )
 
     findings = scan_unreconciled_tensions(ctx)
@@ -148,8 +147,7 @@ def test_non_finding_when_only_one_side_active(tmp_path: Path) -> None:
     """Only one side of a declared tension pair active -> zero findings."""
     ctx = _ctx_with_config(
         tmp_path,
-        f"activated_directives:\n  - {_STEM_024}\n"
-        "activated_tactics: []\n",
+        f"activated_directives:\n  - {_STEM_024}\nactivated_tactics: []\n",
     )
 
     findings = scan_unreconciled_tensions(ctx)
@@ -171,19 +169,8 @@ def test_sc002_live_before_after_real_built_in_pack(tmp_path: Path) -> None:
     change-apply-smallest-viable-diff, reconcile-change-scope-tensions),
     never a synthetic fixture graph.
     """
-    with_reconciler = (
-        f"activated_directives:\n"
-        f"  - {_STEM_024}\n"
-        f"  - {_STEM_025}\n"
-        f"  - {_STEM_RECONCILER}\n"
-        f"activated_tactics:\n  - {_STEM_TACTIC}\n"
-    )
-    without_reconciler = (
-        f"activated_directives:\n"
-        f"  - {_STEM_024}\n"
-        f"  - {_STEM_025}\n"
-        f"activated_tactics:\n  - {_STEM_TACTIC}\n"
-    )
+    with_reconciler = f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\n  - {_STEM_RECONCILER}\nactivated_tactics:\n  - {_STEM_TACTIC}\n"
+    without_reconciler = f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\nactivated_tactics:\n  - {_STEM_TACTIC}\n"
 
     # 1. Out of the box (reconciler active): coherent, zero findings.
     ctx_before = _ctx_with_config(tmp_path, with_reconciler)
@@ -216,9 +203,7 @@ def test_sc002_live_before_after_real_built_in_pack(tmp_path: Path) -> None:
 
 
 @pytest.mark.doctrine
-def test_half_reconciled_pair_still_flagged(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_half_reconciled_pair_still_flagged(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A reconciler with only ONE reconciles_tension edge still leaves the pair flagged.
 
     Uses real doctrine stems/URNs (024, 025, the built-in reconciler) so the
@@ -243,17 +228,11 @@ def test_half_reconciled_pair_still_flagged(
             # NOTE: no reconciles_tension edge to _URN_025 -- half-reconciled.
         ],
     )
-    monkeypatch.setattr(
-        drg_helpers, "load_validated_graph", lambda repo_root: half_reconciled_graph
-    )
+    monkeypatch.setattr(drg_helpers, "load_validated_graph", lambda repo_root: half_reconciled_graph)
 
     ctx = _ctx_with_config(
         tmp_path,
-        f"activated_directives:\n"
-        f"  - {_STEM_024}\n"
-        f"  - {_STEM_025}\n"
-        f"  - {_STEM_RECONCILER}\n"
-        "activated_tactics: []\n",
+        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\n  - {_STEM_RECONCILER}\nactivated_tactics: []\n",
     )
 
     findings = scan_unreconciled_tensions(ctx)
@@ -272,9 +251,7 @@ _URN_RECONCILER_2 = "directive:DIRECTIVE_001"
 
 
 @pytest.mark.doctrine
-def test_two_distinct_reconcilers_bridge_pair_per_side(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_two_distinct_reconcilers_bridge_pair_per_side(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Two DISTINCT active reconcilers, each bridging one side, clear the pair.
 
     ADR Decision 3 (2026-07-21-1-in-tension-with-drg-edge.md) blesses
@@ -318,18 +295,11 @@ def test_two_distinct_reconcilers_bridge_pair_per_side(
             ),
         ],
     )
-    monkeypatch.setattr(
-        drg_helpers, "load_validated_graph", lambda repo_root: two_distinct_reconcilers_graph
-    )
+    monkeypatch.setattr(drg_helpers, "load_validated_graph", lambda repo_root: two_distinct_reconcilers_graph)
 
     ctx = _ctx_with_config(
         tmp_path,
-        f"activated_directives:\n"
-        f"  - {_STEM_024}\n"
-        f"  - {_STEM_025}\n"
-        f"  - {_STEM_RECONCILER}\n"
-        f"  - {_STEM_RECONCILER_2}\n"
-        "activated_tactics: []\n",
+        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\n  - {_STEM_RECONCILER}\n  - {_STEM_RECONCILER_2}\nactivated_tactics: []\n",
     )
 
     findings = scan_unreconciled_tensions(ctx)
@@ -343,9 +313,7 @@ def test_two_distinct_reconcilers_bridge_pair_per_side(
 
 
 @pytest.mark.doctrine
-def test_dedup_symmetric_authoring(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_dedup_symmetric_authoring(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A tension pair authored (or discoverable) from both directions dedupes to one finding."""
     both_directions_graph = _make_graph(
         nodes=[
@@ -357,14 +325,11 @@ def test_dedup_symmetric_authoring(
             DRGEdge(source=_URN_025, target=_URN_024, relation=Relation.IN_TENSION_WITH),
         ],
     )
-    monkeypatch.setattr(
-        drg_helpers, "load_validated_graph", lambda repo_root: both_directions_graph
-    )
+    monkeypatch.setattr(drg_helpers, "load_validated_graph", lambda repo_root: both_directions_graph)
 
     ctx = _ctx_with_config(
         tmp_path,
-        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\n"
-        "activated_tactics: []\n",
+        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\nactivated_tactics: []\n",
     )
 
     findings = scan_unreconciled_tensions(ctx)
@@ -379,14 +344,11 @@ def test_dedup_symmetric_authoring(
 
 
 @pytest.mark.doctrine
-def test_fail_closed_on_scan_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fail_closed_on_scan_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A forced scan error lands in verification_errors, never a silently empty list."""
     ctx = _ctx_with_config(
         tmp_path,
-        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\n"
-        "activated_tactics: []\n",
+        f"activated_directives:\n  - {_STEM_024}\n  - {_STEM_025}\nactivated_tactics: []\n",
     )
 
     def _boom(_ctx: ProjectContext) -> list[TensionFinding]:
@@ -397,10 +359,7 @@ def test_fail_closed_on_scan_error(
     report = run_consistency_check(ctx)
 
     assert report.unreconciled_tensions == []
-    assert any("tension" in err for err in report.verification_errors), (
-        f"Expected a tension-scan failure in verification_errors, got: "
-        f"{report.verification_errors}"
-    )
+    assert any("tension" in err for err in report.verification_errors), f"Expected a tension-scan failure in verification_errors, got: {report.verification_errors}"
     assert report.coherent is False
 
 
@@ -410,9 +369,7 @@ def test_fail_closed_on_scan_error(
 
 
 @pytest.mark.doctrine
-def test_always_on_under_implicit_all_active(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_always_on_under_implicit_all_active(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The tension scan runs even when config.yaml has no explicit activation list.
 
     Decision DM-01KY1XHEH2T9RDX8ZCHCSV2VA0 ("Always on: the tension check
@@ -448,9 +405,7 @@ def test_always_on_under_implicit_all_active(
             # unreconciled tension under implicit all-active.
         ],
     )
-    monkeypatch.setattr(
-        drg_helpers, "load_validated_graph", lambda repo_root: unreconciled_graph
-    )
+    monkeypatch.setattr(drg_helpers, "load_validated_graph", lambda repo_root: unreconciled_graph)
 
     # Implicit all-active: no activated_directives/activated_tactics/... keys
     # at all, so _has_explicit_activation(raw_activated_by_kind) is False.

@@ -188,9 +188,7 @@ class CharterRenameMigration(BaseMigration):
                                 shutil.move(str(item), str(dest))
                                 changes.append(f"Merged {item.name} from constitution/ to charter/")
                             else:
-                                warnings.append(
-                                    f"Skipped {item.name} (already exists in charter/)"
-                                )
+                                warnings.append(f"Skipped {item.name} (already exists in charter/)")
                         # Remove the now-empty (or residual) constitution dir
                         shutil.rmtree(constitution_dir)
                         changes.append("Removed residual .kittify/constitution/ after merge")
@@ -252,9 +250,7 @@ class CharterRenameMigration(BaseMigration):
             for file_path in sorted(agent_dir.glob("spec-kitty.*.md")):
                 if not file_path.is_file():
                     continue
-                self._rewrite_file(
-                    file_path, project_path, dry_run, changes, errors, read_only=True
-                )
+                self._rewrite_file(file_path, project_path, dry_run, changes, errors, read_only=True)
 
     def _rewrite_file(
         self,
@@ -345,10 +341,7 @@ class CharterRenameMigration(BaseMigration):
                 else:
                     try:
                         shutil.move(str(old_skill), str(new_skill))
-                        changes.append(
-                            f"Renamed {agent_root}/skills/spec-kitty-constitution-doctrine/ "
-                            f"-> spec-kitty-charter-doctrine/"
-                        )
+                        changes.append(f"Renamed {agent_root}/skills/spec-kitty-constitution-doctrine/ -> spec-kitty-charter-doctrine/")
                         # Rewrite content inside skill files
                         for file_path in sorted(new_skill.rglob("*")):
                             if file_path.is_file() and file_path.suffix in _TEXT_SUFFIXES:

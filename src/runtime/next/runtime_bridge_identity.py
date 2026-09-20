@@ -110,9 +110,7 @@ def _primary_runtime_feature_dir(repo_root: Path, mission_slug: str) -> Path:
     """
     from mission_runtime import MissionArtifactKind, placement_seam
 
-    result: Path = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    result: Path = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     return result
 
 
@@ -134,9 +132,7 @@ def _resolve_coordination_branch(mission_slug: str, repo_root: Path) -> str:
 
     # load_meta_or_empty (post-#2091 silent contract) absorbs a missing or
     # malformed meta.json to {}, matching the prior try/except-{} absorption.
-    meta: dict[str, Any] = load_meta_or_empty(
-        _rb._primary_runtime_feature_dir(repo_root, mission_slug)
-    )
+    meta: dict[str, Any] = load_meta_or_empty(_rb._primary_runtime_feature_dir(repo_root, mission_slug))
     branch = meta.get("coordination_branch")
     if isinstance(branch, str) and branch.strip():
         return branch.strip()

@@ -47,23 +47,17 @@ def _write_config(tmp_path: Path, content: str) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def test_detect_returns_true_when_key_absent(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_detect_returns_true_when_key_absent(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     _write_config(tmp_path, "agents:\n  available:\n    - claude\n")
     assert migration.detect(tmp_path) is True
 
 
-def test_detect_returns_true_when_key_empty_list(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_detect_returns_true_when_key_empty_list(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     _write_config(tmp_path, "mission_type_activations: []\n")
     assert migration.detect(tmp_path) is True
 
 
-def test_detect_returns_false_when_key_present(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_detect_returns_false_when_key_present(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     _write_config(
         tmp_path,
         "mission_type_activations:\n  - software-dev\n",
@@ -71,9 +65,7 @@ def test_detect_returns_false_when_key_present(
     assert migration.detect(tmp_path) is False
 
 
-def test_detect_returns_false_when_no_config(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_detect_returns_false_when_no_config(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     assert migration.detect(tmp_path) is False
 
 
@@ -82,26 +74,20 @@ def test_detect_returns_false_when_no_config(
 # ---------------------------------------------------------------------------
 
 
-def test_can_apply_no_config(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_can_apply_no_config(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     ok, reason = migration.can_apply(tmp_path)
     assert ok is True
     assert reason == ""
 
 
-def test_can_apply_valid_config(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_can_apply_valid_config(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     _write_config(tmp_path, "agents:\n  available:\n    - claude\n")
     ok, reason = migration.can_apply(tmp_path)
     assert ok is True
     assert reason == ""
 
 
-def test_can_apply_returns_false_when_path_is_directory(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_can_apply_returns_false_when_path_is_directory(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     config_dir = tmp_path / ".kittify"
     config_dir.mkdir(parents=True)
     # Create config.yaml as a directory (edge case)
@@ -116,13 +102,9 @@ def test_can_apply_returns_false_when_path_is_directory(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_adds_all_four_builtins(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_apply_adds_all_four_builtins(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Migration adds all four built-in mission types when key is absent."""
-    config_file = _write_config(
-        tmp_path, "agents:\n  available:\n    - claude\n"
-    )
+    config_file = _write_config(tmp_path, "agents:\n  available:\n    - claude\n")
 
     result = migration.apply(tmp_path)
 
@@ -139,9 +121,7 @@ def test_apply_adds_all_four_builtins(
     assert sorted(written) == sorted(builtin_mission_type_ids())
 
 
-def test_apply_adds_all_four_builtins_minimal_config(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_apply_adds_all_four_builtins_minimal_config(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Works on a minimal config.yaml with no pre-existing sections."""
     config_file = _write_config(tmp_path, "{}\n")
     result = migration.apply(tmp_path)
@@ -159,9 +139,7 @@ def test_apply_adds_all_four_builtins_minimal_config(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_idempotent_when_entries_already_present(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_apply_idempotent_when_entries_already_present(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Migration is a no-op when mission_type_activations already has entries."""
     original = "mission_type_activations:\n  - software-dev\n"
     config_file = _write_config(tmp_path, original)
@@ -173,9 +151,7 @@ def test_apply_idempotent_when_entries_already_present(
     assert config_file.read_text(encoding="utf-8") == original
 
 
-def test_apply_idempotent_preserves_partial_custom_list(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_apply_idempotent_preserves_partial_custom_list(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """A user-curated list (e.g., only software-dev) is never modified."""
     original = "mission_type_activations:\n  - software-dev\n  - research\n"
     config_file = _write_config(tmp_path, original)
@@ -186,9 +162,7 @@ def test_apply_idempotent_preserves_partial_custom_list(
 
     yaml = YAML(typ="safe")
     data = yaml.load(config_file.read_text()) or {}
-    assert sorted(data["mission_type_activations"]) == sorted(
-        ["software-dev", "research"]
-    )
+    assert sorted(data["mission_type_activations"]) == sorted(["software-dev", "research"])
 
 
 # ---------------------------------------------------------------------------
@@ -196,21 +170,11 @@ def test_apply_idempotent_preserves_partial_custom_list(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_preserves_agents_section(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_apply_preserves_agents_section(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Other config sections are untouched after migration."""
     config_file = _write_config(
         tmp_path,
-        (
-            "agents:\n"
-            "  available:\n"
-            "    - claude\n"
-            "    - opencode\n"
-            "  auto_commit: true\n"
-            "org_packs:\n"
-            "  - my-pack\n"
-        ),
+        ("agents:\n  available:\n    - claude\n    - opencode\n  auto_commit: true\norg_packs:\n  - my-pack\n"),
     )
 
     migration.apply(tmp_path)
@@ -231,9 +195,7 @@ def test_apply_preserves_agents_section(
 # ---------------------------------------------------------------------------
 
 
-def test_dry_run_does_not_write(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_dry_run_does_not_write(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Dry-run returns success and changes but does not write to disk."""
     original = "agents:\n  available:\n    - claude\n"
     config_file = _write_config(tmp_path, original)
@@ -246,9 +208,7 @@ def test_dry_run_does_not_write(
     assert config_file.read_text(encoding="utf-8") == original
 
 
-def test_dry_run_idempotent_when_already_present(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_dry_run_idempotent_when_already_present(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Dry-run is a no-op (and succeeds) when key already exists."""
     original = "mission_type_activations:\n  - software-dev\n"
     config_file = _write_config(tmp_path, original)
@@ -264,9 +224,7 @@ def test_dry_run_idempotent_when_already_present(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_no_config_returns_success(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_apply_no_config_returns_success(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """Gracefully handles a project with no config.yaml."""
     result = migration.apply(tmp_path)
     assert result.success
@@ -278,16 +236,9 @@ def test_apply_no_config_returns_success(
 # ---------------------------------------------------------------------------
 
 
-def test_ruamel_roundtrip_preserves_comments(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration
-) -> None:
+def test_ruamel_roundtrip_preserves_comments(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration) -> None:
     """ruamel.yaml round-trip should not destroy inline comments."""
-    config_with_comment = (
-        "# Main config\n"
-        "agents:\n"
-        "  available:\n"
-        "    - claude  # primary agent\n"
-    )
+    config_with_comment = "# Main config\nagents:\n  available:\n    - claude  # primary agent\n"
     config_file = _write_config(tmp_path, config_with_comment)
 
     migration.apply(tmp_path)
@@ -318,9 +269,7 @@ def test_builtin_ids_match_expected_canonical_set() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_apply_reads_live_from_accessor_at_call_time(
-    tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_apply_reads_live_from_accessor_at_call_time(tmp_path: Path, migration: ActivateBuiltinMissionTypesMigration, monkeypatch: pytest.MonkeyPatch) -> None:
     """apply() resolves the written set from the live accessor at call time.
 
     A synthetic mission-type YAML injected via a monkeypatched
@@ -331,26 +280,13 @@ def test_apply_reads_live_from_accessor_at_call_time(
     # Mission doctrine-consumer-surface-missions-extraction-01KZ6G6H (FR-005)
     # relocated mission_types/ from src/charter/offering/missions/mission_types to
     # packs/built-in/missions/mission_types.
-    shipped_dir = (
-        Path(__file__).resolve().parents[2]
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "mission_types"
-    )
+    shipped_dir = Path(__file__).resolve().parents[2] / "packs" / "built-in" / "missions" / "mission_types"
     synthetic_root = tmp_path / "mission_types_src"
     synthetic_root.mkdir()
     for yaml_file in shipped_dir.glob("*.yaml"):
-        (synthetic_root / yaml_file.name).write_text(
-            yaml_file.read_text(encoding="utf-8"), encoding="utf-8"
-        )
+        (synthetic_root / yaml_file.name).write_text(yaml_file.read_text(encoding="utf-8"), encoding="utf-8")
     (synthetic_root / "analysis.yaml").write_text(
-        "schema_version: 1\n"
-        "id: analysis\n"
-        'display_name: "Analysis"\n'
-        "action_sequence:\n"
-        "  - specify\n"
-        "  - plan\n",
+        'schema_version: 1\nid: analysis\ndisplay_name: "Analysis"\naction_sequence:\n  - specify\n  - plan\n',
         encoding="utf-8",
     )
 

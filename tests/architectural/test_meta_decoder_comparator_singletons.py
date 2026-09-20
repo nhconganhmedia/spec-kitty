@@ -199,17 +199,13 @@ def scan_inline_field_literals(src_root: Path) -> list[_Located]:
 
 def _scan_tree_for_inline_literals(tree: ast.Module, rel: str) -> list[_Located]:
     """Inline VCS-lock field literals in one module (canonical declaration excluded)."""
-    parents: dict[int, ast.AST] = {
-        id(child): node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)
-    }
+    parents: dict[int, ast.AST] = {id(child): node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
     # Node ids belonging to a canonical ``*VCS_LOCK_META_FIELDS = <rhs>``
     # assignment RHS — the one sanctioned literal, excluded from the scan.
     sanctioned: set[int] = set()
     for node in ast.walk(tree):
         value, targets = _assign_targets(node)
-        if value is not None and any(
-            isinstance(t, ast.Name) and _is_vcs_lock_field_set_name(t.id) for t in targets
-        ):
+        if value is not None and any(isinstance(t, ast.Name) and _is_vcs_lock_field_set_name(t.id) for t in targets):
             sanctioned.update(id(sub) for sub in ast.walk(value))
     found: list[_Located] = []
     for node in ast.walk(tree):
@@ -240,8 +236,7 @@ def test_single_vcs_lock_comparator() -> None:
     )
     only = defs[0]
     assert only.name == CANONICAL_COMPARATOR and only.rel_path == _CANONICAL_REL, (
-        f"the sole comparator must be {_CANONICAL_REL}:{CANONICAL_COMPARATOR}; "
-        f"found {only.rel_path}:{only.name}"
+        f"the sole comparator must be {_CANONICAL_REL}:{CANONICAL_COMPARATOR}; found {only.rel_path}:{only.name}"
     )
 
 
@@ -256,8 +251,7 @@ def test_single_named_field_set() -> None:
     )
     only = decls[0]
     assert only.name == CANONICAL_FIELD_SET and only.rel_path == _CANONICAL_REL, (
-        f"the sole field-set must be {_CANONICAL_REL}:{CANONICAL_FIELD_SET}; "
-        f"found {only.rel_path}:{only.name}"
+        f"the sole field-set must be {_CANONICAL_REL}:{CANONICAL_FIELD_SET}; found {only.rel_path}:{only.name}"
     )
 
 
@@ -269,10 +263,7 @@ def test_no_inline_vcs_lock_field_literals() -> None:
     """
     literals = scan_inline_field_literals(SRC_ROOT)
     where = sorted(f"{loc.rel_path}:{loc.lineno}" for loc in literals)
-    assert literals == [], (
-        "NFR-002: inline VCS-lock field-set literal(s) found (use "
-        f"kernel.vcs_lock.{CANONICAL_FIELD_SET} instead):\n  " + "\n  ".join(where)
-    )
+    assert literals == [], f"NFR-002: inline VCS-lock field-set literal(s) found (use kernel.vcs_lock.{CANONICAL_FIELD_SET} instead):\n  " + "\n  ".join(where)
 
 
 # =========================================================================== #
@@ -294,19 +285,9 @@ def _fn_of(source: str) -> ast.FunctionDef:
 
 def test_references_field_set_detects_named_and_inline() -> None:
     """A comparator that reads the named field-set OR an inline literal is detected."""
-    named = _fn_of(
-        "def cmp(before, after):\n"
-        "    return all(k in VCS_LOCK_META_FIELDS for k in before)\n"
-    )
-    forked_named = _fn_of(
-        "def cmp(before, after):\n"
-        "    return all(k in _VCS_LOCK_META_FIELDS for k in before)\n"
-    )
-    inline = _fn_of(
-        "def cmp(before, after):\n"
-        '    fields = frozenset({"vcs", "vcs_locked_at"})\n'
-        "    return fields\n"
-    )
+    named = _fn_of("def cmp(before, after):\n    return all(k in VCS_LOCK_META_FIELDS for k in before)\n")
+    forked_named = _fn_of("def cmp(before, after):\n    return all(k in _VCS_LOCK_META_FIELDS for k in before)\n")
+    inline = _fn_of('def cmp(before, after):\n    fields = frozenset({"vcs", "vcs_locked_at"})\n    return fields\n')
     assert _references_field_set(named) is True
     assert _references_field_set(forked_named) is True
     assert _references_field_set(inline) is True
@@ -314,10 +295,7 @@ def test_references_field_set_detects_named_and_inline() -> None:
 
 def test_references_field_set_excludes_routing_wrapper() -> None:
     """A wrapper that delegates to the kernel comparator is NOT itself a comparator."""
-    wrapper = _fn_of(
-        "def wrapper(before, after):\n"
-        "    return is_vcs_lock_only_change(before, after)\n"
-    )
+    wrapper = _fn_of("def wrapper(before, after):\n    return is_vcs_lock_only_change(before, after)\n")
     assert _references_field_set(wrapper) is False
 
 

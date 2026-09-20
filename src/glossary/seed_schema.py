@@ -37,10 +37,7 @@ class GlossarySeedTerm(BaseModel):
         if not v:
             raise ValueError("surface must not be empty")
         if v != v.lower().strip():
-            raise ValueError(
-                f"surface must be normalized (lowercase, trimmed): "
-                f"got {v!r}, expected {v.lower().strip()!r}"
-            )
+            raise ValueError(f"surface must be normalized (lowercase, trimmed): got {v!r}, expected {v.lower().strip()!r}")
         return v
 
     @field_validator("definition")

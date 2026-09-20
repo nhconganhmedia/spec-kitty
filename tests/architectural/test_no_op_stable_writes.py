@@ -127,12 +127,7 @@ def _synthesize_unchanged_pack(repo_root: Path, run_id: str) -> None:
         synthesize,
     )
 
-    fixture_root = (
-        Path(__file__).resolve().parent.parent
-        / "charter"
-        / "fixtures"
-        / "synthesizer"
-    )
+    fixture_root = Path(__file__).resolve().parent.parent / "charter" / "fixtures" / "synthesizer"
     target = SynthesisTarget(
         kind="directive",
         slug="mission-type-scope-directive",
@@ -190,9 +185,7 @@ def test_charter_synthesis_is_no_op_stable(tmp_path: Path) -> None:
     _synthesize_unchanged_pack(repo, run_id="01AAAAAAAAAAAAAAAAAAAAAAAA")
     _commit_all(repo, "baseline charter synthesis")
     # Baseline must be clean modulo the non-deterministic graph overlay.
-    assert _porcelain_lines(repo, exclude=(_GRAPH_OVERLAY_RELPATH,)) == [], (
-        "baseline commit left the tree dirty"
-    )
+    assert _porcelain_lines(repo, exclude=(_GRAPH_OVERLAY_RELPATH,)) == [], "baseline commit left the tree dirty"
 
     # Second governed run — fresh run_id, identical inputs (the #1912 no-op).
     _synthesize_unchanged_pack(repo, run_id="01BBBBBBBBBBBBBBBBBBBBBBBB")
@@ -283,7 +276,4 @@ def test_status_json_materialize_is_no_op_stable(tmp_path: Path) -> None:
     _materialize_status(feature_dir)
 
     dirty = _porcelain(repo)
-    assert dirty == "", (
-        "status.json re-materialize dirtied the tree (#524/#1914): "
-        f"{dirty.splitlines()!r}. A byte-identical snapshot must skip the write."
-    )
+    assert dirty == "", f"status.json re-materialize dirtied the tree (#524/#1914): {dirty.splitlines()!r}. A byte-identical snapshot must skip the write."

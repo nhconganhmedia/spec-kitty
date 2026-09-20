@@ -150,6 +150,7 @@ register(
     ),
 )
 
+
 # --- Tactic ---
 def _tactic_fixups(schema: dict) -> dict:
     _add_item_patterns(schema, {})
@@ -225,22 +226,15 @@ register(
 def _procedure_fixups(schema: dict) -> dict:
     props = schema.get("properties", {})
     if "notes" in props:
-        props["notes"]["description"] = (
-            "Free-form notes, rationale, or supplementary material "
-            "that does not fit into structured fields."
-        )
+        props["notes"]["description"] = "Free-form notes, rationale, or supplementary material that does not fit into structured fields."
     if "anti_patterns" in props:
-        props["anti_patterns"]["description"] = (
-            "Common mistakes or failure modes to avoid when following this procedure."
-        )
+        props["anti_patterns"]["description"] = "Common mistakes or failure modes to avoid when following this procedure."
     # Add reason description in procedure_reference
     defs = schema.get("definitions", {})
     ref_def = defs.get("procedure_reference", {})
     ref_props = ref_def.get("properties", {})
     if "reason" in ref_props:
-        ref_props["reason"]["description"] = (
-            "Why this reference is relevant to the procedure."
-        )
+        ref_props["reason"]["description"] = "Why this reference is relevant to the procedure."
     return schema
 
 
@@ -345,10 +339,7 @@ def _styleguide_fixups(schema: dict) -> dict:
             "good/bad examples."
         )
     if "tooling" in props:
-        props["tooling"]["description"] = (
-            "Recommended tools for enforcing the styleguide (formatters, linters, "
-            "type checkers, test runners, etc.)."
-        )
+        props["tooling"]["description"] = "Recommended tools for enforcing the styleguide (formatters, linters, type checkers, test runners, etc.)."
     # T024/T025: restore the structural_lint_config / point_in_time_marker
     # contract the standard pipeline cannot derive from `dict[str, Any]` alone.
     # See the adjudication comment above the constants.
@@ -356,9 +347,7 @@ def _styleguide_fixups(schema: dict) -> dict:
         defs = schema.setdefault("definitions", {})
         defs["point_in_time_marker"] = _POINT_IN_TIME_MARKER_DEF
         defs["structural_lint_config"] = _STRUCTURAL_LINT_CONFIG_DEF
-        props["structural_lint_config"] = {
-            "$ref": "#/definitions/structural_lint_config"
-        }
+        props["structural_lint_config"] = {"$ref": "#/definitions/structural_lint_config"}
     return schema
 
 
@@ -402,9 +391,7 @@ def _model_task_fixups(schema: dict) -> dict:
     if "generated_at" in props:
         props["generated_at"]["format"] = "date-time"
     if "source_snapshot" in props:
-        props["source_snapshot"]["description"] = (
-            "Optional source snapshot ID/hash for traceability."
-        )
+        props["source_snapshot"]["description"] = "Optional source snapshot ID/hash for traceability."
     # Add format: uri to cost.pricing_source_url
     defs = schema.get("definitions", {})
     cost_def = defs.get("model_cost", {})
@@ -449,20 +436,23 @@ def _annotate_def(defs: dict, def_key: str, desc_map: dict) -> None:
 def _agent_profile_fixups(schema: dict) -> dict:
     """Add descriptions matching the hand-written schema."""
     props = schema.get("properties", {})
-    _set_descriptions(props, {
-        "profile-id": "Unique identifier for this agent profile (kebab-case)",
-        "name": "Human-readable name for this agent",
-        "description": "Optional brief description",
-        "schema-version": "Schema version for compatibility",
-        "purpose": "The agent's primary purpose or mission statement",
-        "role": "Agent role - deprecated scalar form; prefer roles array",
-        "avatar-image": "Path or URL to agent avatar image",
-        "capabilities": "List of capabilities this agent can perform",
-        "specializes-from": "Parent profile ID this agent specializes from (for hierarchy)",
-        "routing-priority": "Priority for routing tasks to this agent (0-100, higher is more preferred)",
-        "max-concurrent-tasks": "Maximum number of tasks this agent can handle concurrently",
-        "initialization-declaration": "Agent's initialization prompt or declaration",
-    })
+    _set_descriptions(
+        props,
+        {
+            "profile-id": "Unique identifier for this agent profile (kebab-case)",
+            "name": "Human-readable name for this agent",
+            "description": "Optional brief description",
+            "schema-version": "Schema version for compatibility",
+            "purpose": "The agent's primary purpose or mission statement",
+            "role": "Agent role - deprecated scalar form; prefer roles array",
+            "avatar-image": "Path or URL to agent avatar image",
+            "capabilities": "List of capabilities this agent can perform",
+            "specializes-from": "Parent profile ID this agent specializes from (for hierarchy)",
+            "routing-priority": "Priority for routing tasks to this agent (0-100, higher is more preferred)",
+            "max-concurrent-tasks": "Maximum number of tasks this agent can handle concurrently",
+            "initialization-declaration": "Agent's initialization prompt or declaration",
+        },
+    )
 
     if "self-review-protocol" in props:
         srp = props["self-review-protocol"]
@@ -473,41 +463,60 @@ def _agent_profile_fixups(schema: dict) -> dict:
     # The retired ``agent_context_sources`` definition was removed in mission
     # doctrine-drg-silent-drop-boundary-01M0PE7E; references now live solely on
     # the top-level ``*-references`` surface.
-    _annotate_def(defs, "agent_specialization", {
-        "primary-focus": "Primary area of specialization",
-        "secondary-awareness": "Secondary areas agent is aware of",
-        "avoidance-boundary": "What this agent explicitly avoids",
-        "success-definition": "How success is defined for this agent",
-    })
-    _annotate_def(defs, "agent_collaboration", {
-        "handoff-to": "Roles/agents this agent hands off to",
-        "handoff-from": "Roles/agents that hand off to this agent",
-        "works-with": "Roles/agents this agent collaborates with",
-        "output-artifacts": "Artifacts this agent produces",
-        "operating-procedures": "Procedures this agent follows",
-        "canonical-verbs": "Standard verbs for this agent's actions",
-    })
-    _annotate_def(defs, "agent_mode_default", {
-        "mode": "Mode name",
-        "description": "Mode description",
-        "use-case": "When to use this mode",
-    })
-    _annotate_def(defs, "agent_specialization_context", {
-        "languages": "Programming languages this agent specializes in",
-        "frameworks": "Frameworks this agent knows",
-        "file-patterns": "File patterns this agent matches (glob patterns)",
-        "domain-keywords": "Domain keywords for matching",
-        "writing-style": "Preferred writing styles",
-        "complexity-preference": "Task complexity preferences (low, medium, high)",
-    })
-    _annotate_def(defs, "agent_directive_reference", {
-        "code": "Directive code",
-        "name": "Directive name",
-        "rationale": "Why this directive is referenced",
-    })
+    _annotate_def(
+        defs,
+        "agent_specialization",
+        {
+            "primary-focus": "Primary area of specialization",
+            "secondary-awareness": "Secondary areas agent is aware of",
+            "avoidance-boundary": "What this agent explicitly avoids",
+            "success-definition": "How success is defined for this agent",
+        },
+    )
+    _annotate_def(
+        defs,
+        "agent_collaboration",
+        {
+            "handoff-to": "Roles/agents this agent hands off to",
+            "handoff-from": "Roles/agents that hand off to this agent",
+            "works-with": "Roles/agents this agent collaborates with",
+            "output-artifacts": "Artifacts this agent produces",
+            "operating-procedures": "Procedures this agent follows",
+            "canonical-verbs": "Standard verbs for this agent's actions",
+        },
+    )
+    _annotate_def(
+        defs,
+        "agent_mode_default",
+        {
+            "mode": "Mode name",
+            "description": "Mode description",
+            "use-case": "When to use this mode",
+        },
+    )
+    _annotate_def(
+        defs,
+        "agent_specialization_context",
+        {
+            "languages": "Programming languages this agent specializes in",
+            "frameworks": "Frameworks this agent knows",
+            "file-patterns": "File patterns this agent matches (glob patterns)",
+            "domain-keywords": "Domain keywords for matching",
+            "writing-style": "Preferred writing styles",
+            "complexity-preference": "Task complexity preferences (low, medium, high)",
+        },
+    )
+    _annotate_def(
+        defs,
+        "agent_directive_reference",
+        {
+            "code": "Directive code",
+            "name": "Directive name",
+            "rationale": "Why this directive is referenced",
+        },
+    )
 
-    for ref_def_name in ("agent_tactic_reference", "agent_toolguide_reference",
-                         "agent_styleguide_reference"):
+    for ref_def_name in ("agent_tactic_reference", "agent_toolguide_reference", "agent_styleguide_reference"):
         ref_props = defs.get(ref_def_name, {}).get("properties", {})
         kind = ref_def_name.replace("agent_", "").replace("_reference", "").capitalize()
         if "id" in ref_props:
@@ -515,11 +524,15 @@ def _agent_profile_fixups(schema: dict) -> dict:
         if "rationale" in ref_props:
             ref_props["rationale"]["description"] = f"Why this {kind.lower()} is referenced"
 
-    _annotate_def(defs, "self_review_step", {
-        "name": "Step name",
-        "command": "Command to run for this step",
-        "gate": "Pass/fail criteria for this step",
-    })
+    _annotate_def(
+        defs,
+        "self_review_step",
+        {
+            "name": "Step name",
+            "command": "Command to run for this step",
+            "gate": "Pass/fail criteria for this step",
+        },
+    )
     return schema
 
 
@@ -617,8 +630,7 @@ def _process_variant(raw: dict, title: str) -> dict:
 
     # Order: type, title, additionalProperties, required, properties
     ordered: dict[str, Any] = {}
-    for key in ("title", "type", "additionalProperties", "required", "properties",
-                "allOf"):
+    for key in ("title", "type", "additionalProperties", "required", "properties", "allOf"):
         if key in schema:
             ordered[key] = schema[key]
     for key in schema:
@@ -627,10 +639,7 @@ def _process_variant(raw: dict, title: str) -> dict:
 
     # Order property definitions
     if "properties" in ordered:
-        ordered["properties"] = {
-            k: dict(_order_property(v)) if isinstance(v, dict) else v
-            for k, v in ordered["properties"].items()
-        }
+        ordered["properties"] = {k: dict(_order_property(v)) if isinstance(v, dict) else v for k, v in ordered["properties"].items()}
 
     return ordered
 
@@ -655,7 +664,7 @@ def _rewrite_refs(obj: Any, old_prefix: str, new_prefix: str, renames: dict[str,
         result = {}
         for k, v in obj.items():
             if k == "$ref" and isinstance(v, str) and v.startswith(old_prefix):
-                old_name = v[len(old_prefix):]
+                old_name = v[len(old_prefix) :]
                 new_name = renames.get(old_name, _pascal_to_snake(old_name))
                 result[k] = f"{new_prefix}{new_name}"
             else:
@@ -683,7 +692,7 @@ def _remove_titles(obj: Any, *, inside_properties: bool = False) -> Any:
                 continue
             # When recursing into a "properties" dict, mark that we are
             # now at the level where keys are real field names.
-            child_inside_props = (k == "properties")
+            child_inside_props = k == "properties"
             result[k] = _remove_titles(v, inside_properties=child_inside_props)
         return result
     elif isinstance(obj, list):
@@ -745,9 +754,7 @@ _UNMAPPED_ARTIFACT_KIND = (
 )
 
 
-def _inline_artifact_kind_refs(
-    obj: Any, defs: dict, reference_kinds: list[str] | None = None
-) -> Any:
+def _inline_artifact_kind_refs(obj: Any, defs: dict, reference_kinds: list[str] | None = None) -> Any:
     """Replace $ref to ArtifactKind with the frozen reference-kind enum."""
     if isinstance(obj, dict):
         if "$ref" in obj:
@@ -761,9 +768,7 @@ def _inline_artifact_kind_refs(
                     "enum": list(reference_kinds),
                     "description": obj.get("description", "Doctrine artifact type being referenced."),
                 }
-        return {
-            k: _inline_artifact_kind_refs(v, defs, reference_kinds) for k, v in obj.items()
-        }
+        return {k: _inline_artifact_kind_refs(v, defs, reference_kinds) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [_inline_artifact_kind_refs(item, defs, reference_kinds) for item in obj]
     return obj
@@ -774,9 +779,7 @@ def _is_enum_def(defn: dict) -> bool:
     return isinstance(defn, dict) and "enum" in defn and defn.get("type") == "string"
 
 
-def _inline_all_enum_refs(
-    obj: Any, defs: dict, reference_kinds: list[str] | None = None
-) -> Any:
+def _inline_all_enum_refs(obj: Any, defs: dict, reference_kinds: list[str] | None = None) -> Any:
     """Replace all $ref to StrEnum definitions with inline enum values.
 
     Unlike ``_inline_artifact_kind_refs`` which only handles ArtifactKind,
@@ -799,7 +802,7 @@ def _inline_all_enum_refs(
             for prefix in ("#/$defs/", "#/definitions/"):
                 if not ref.startswith(prefix):
                     continue
-                def_name = ref[len(prefix):]
+                def_name = ref[len(prefix) :]
                 if def_name in defs and _is_enum_def(defs[def_name]):
                     members = defs[def_name]["enum"]
                     if def_name == "ArtifactKind":
@@ -828,7 +831,7 @@ def _inline_all_refs(obj: Any, defs: dict, renames: dict[str, str]) -> Any:
         if "$ref" in obj and len(obj) == 1:
             ref = obj["$ref"]
             if ref.startswith("#/$defs/"):
-                def_name = ref[len("#/$defs/"):]
+                def_name = ref[len("#/$defs/") :]
                 if def_name in defs:
                     # Recursively inline nested refs in the definition body
                     return _inline_all_refs(dict(defs[def_name]), defs, renames)
@@ -865,8 +868,7 @@ def _add_minlength_to_string_fields(obj: Any, required_fields: list[str] | None 
     for field_name, prop_def in props.items():
         if not isinstance(prop_def, dict):
             continue
-        if (prop_def.get("type") == "string" and field_name in required
-                and "pattern" not in prop_def and "minLength" not in prop_def):
+        if prop_def.get("type") == "string" and field_name in required and "pattern" not in prop_def and "minLength" not in prop_def:
             prop_def["minLength"] = 1
 
     # Recurse into definitions
@@ -974,10 +976,7 @@ def _deep_order(schema: dict) -> dict:
             if isinstance(defn, dict):
                 ordered_defn = dict(_order_definition(defn))
                 if "properties" in ordered_defn:
-                    ordered_defn["properties"] = {
-                        k: dict(_order_property(v)) if isinstance(v, dict) else v
-                        for k, v in ordered_defn["properties"].items()
-                    }
+                    ordered_defn["properties"] = {k: dict(_order_property(v)) if isinstance(v, dict) else v for k, v in ordered_defn["properties"].items()}
                 ordered_defs[def_name] = ordered_defn
             else:
                 ordered_defs[def_name] = defn
@@ -985,17 +984,11 @@ def _deep_order(schema: dict) -> dict:
 
     # Order top-level properties
     if "properties" in result:
-        result["properties"] = {
-            k: dict(_order_property(v)) if isinstance(v, dict) else v
-            for k, v in result["properties"].items()
-        }
+        result["properties"] = {k: dict(_order_property(v)) if isinstance(v, dict) else v for k, v in result["properties"].items()}
 
     # Order oneOf entries (for import-candidate)
     if "oneOf" in result:
-        result["oneOf"] = [
-            _deep_order_variant(v) if isinstance(v, dict) else v
-            for v in result["oneOf"]
-        ]
+        result["oneOf"] = [_deep_order_variant(v) if isinstance(v, dict) else v for v in result["oneOf"]]
 
     return result
 
@@ -1003,7 +996,11 @@ def _deep_order(schema: dict) -> dict:
 def _deep_order_variant(variant: dict) -> dict:
     """Order keys within a oneOf variant (no definitions section)."""
     key_order = [
-        "title", "type", "additionalProperties", "required", "properties",
+        "title",
+        "type",
+        "additionalProperties",
+        "required",
+        "properties",
         "allOf",
     ]
     ordered: dict[str, Any] = {}
@@ -1014,10 +1011,7 @@ def _deep_order_variant(variant: dict) -> dict:
         if key not in ordered:
             ordered[key] = variant[key]
     if "properties" in ordered:
-        ordered["properties"] = {
-            k: dict(_order_property(v)) if isinstance(v, dict) else v
-            for k, v in ordered["properties"].items()
-        }
+        ordered["properties"] = {k: dict(_order_property(v)) if isinstance(v, dict) else v for k, v in ordered["properties"].items()}
     return ordered
 
 
@@ -1055,11 +1049,7 @@ def generate_schema(stem: str) -> dict:
     # decide whether the reference enum tracks the live vocabulary.
     reference_kinds = _REFERENCE_KINDS_BY_SCHEMA.get(stem)
     enum_defs = {k for k, v in defs.items() if _is_enum_def(v)}
-    schema = (
-        _inline_all_enum_refs(raw, defs, reference_kinds)
-        if enum_defs - {"ArtifactKind"}
-        else _inline_artifact_kind_refs(raw, defs, reference_kinds)
-    )
+    schema = _inline_all_enum_refs(raw, defs, reference_kinds) if enum_defs - {"ArtifactKind"} else _inline_artifact_kind_refs(raw, defs, reference_kinds)
 
     # Phase 2: rename $defs → definitions, rewrite $ref paths
     if "$defs" in schema:
@@ -1180,9 +1170,7 @@ def main() -> int:
             print(f"  Generated: {path.name}")
 
     if args.check and not all_ok:
-        print(
-            "\nSchemas are stale. Run `python scripts/generate_schemas.py` to update."
-        )
+        print("\nSchemas are stale. Run `python scripts/generate_schemas.py` to update.")
         return 1
 
     return 0

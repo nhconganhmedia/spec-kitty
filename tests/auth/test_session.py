@@ -29,6 +29,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 def _now() -> datetime:
     return now_utc()
 
@@ -241,9 +242,7 @@ def test_from_dict_coerces_naive_expiry_fields_to_utc() -> None:
     assert session.is_refresh_token_expired() is False
 
 
-def _make_session_with_teams(
-    teams: list[Team], *, default_team_id: str | None = None
-) -> StoredSession:
+def _make_session_with_teams(teams: list[Team], *, default_team_id: str | None = None) -> StoredSession:
     """Build a StoredSession with a custom team list for require_private_team_id tests."""
     now = _now()
     return StoredSession(

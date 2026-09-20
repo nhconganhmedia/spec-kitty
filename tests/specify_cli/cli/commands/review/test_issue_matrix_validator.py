@@ -110,19 +110,13 @@ class TestValidateHappyPath:
         assert result.rows[0].verdict == IssueMatrixVerdict.FIXED
 
     def test_linkified_issue_normalized(self, tmp_path: Path) -> None:
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| [#456](https://github.com/Priivacy-ai/spec-kitty/issues/456) | fixed | ref |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| [#456](https://github.com/Priivacy-ai/spec-kitty/issues/456) | fixed | ref |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert result.rows[0].issue == "#456"
 
     def test_deferred_with_followup_valid_handle(self, tmp_path: Path) -> None:
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #10 | deferred-with-followup | Follow-up: #999 deferred |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #10 | deferred-with-followup | Follow-up: #999 deferred |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert result.passed
@@ -174,12 +168,7 @@ class TestMissingFile:
 
 class TestMultiTableRule:
     def test_two_tables_fires_multi_table(self, tmp_path: Path) -> None:
-        content = (
-            "# Matrix\n\n"
-            f"{_VALID_HEADER}\n{_VALID_ROW}\n\n"
-            "## Summary\n\n"
-            "| verdict | count |\n|---------|-------|\n| fixed | 1 |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n{_VALID_ROW}\n\n## Summary\n\n| verdict | count |\n|---------|-------|\n| fixed | 1 |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert not result.passed
@@ -220,10 +209,7 @@ class TestSchemaDriftUnknownColumn:
 
 class TestVerdictUnknown:
     def test_invalid_verdict_fires_diagnostic(self, tmp_path: Path) -> None:
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #2 | deferred | some_ref |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #2 | deferred | some_ref |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert not result.passed
@@ -235,10 +221,7 @@ class TestInMissionVerdict:
     def test_in_mission_is_valid_verdict(self, tmp_path: Path) -> None:
         # `in-mission` is a recognized (non-terminal) verdict: it must parse
         # cleanly and not raise ISSUE_MATRIX_VERDICT_UNKNOWN.
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #7 | in-mission | WP14 (this mission) |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #7 | in-mission | WP14 (this mission) |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert result.passed
@@ -247,10 +230,7 @@ class TestInMissionVerdict:
     def test_in_mission_needs_no_followup_handle(self, tmp_path: Path) -> None:
         # Unlike deferred-with-followup, in-mission requires no #NNN handle —
         # only a non-empty evidence_ref (the owning WP).
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #7 | in-mission | WP14 |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #7 | in-mission | WP14 |\n"
         result = validate_issue_matrix(_write_matrix(tmp_path, content))
         assert result.passed
         codes = [d["diagnostic_code"] for d in result.diagnostics]
@@ -279,32 +259,21 @@ class TestEvidenceRefEmpty:
 
 class TestDeferredWithoutHandle:
     def test_deferred_tbd_fires_diagnostic(self, tmp_path: Path) -> None:
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #4 | deferred-with-followup | TBD |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #4 | deferred-with-followup | TBD |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert not result.passed
         codes = [d["diagnostic_code"] for d in result.diagnostics]
-        assert (
-            str(MissionReviewDiagnostic.ISSUE_MATRIX_DEFERRED_WITHOUT_HANDLE) in codes
-        )
+        assert str(MissionReviewDiagnostic.ISSUE_MATRIX_DEFERRED_WITHOUT_HANDLE) in codes
 
     def test_deferred_with_hash_passes(self, tmp_path: Path) -> None:
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #5 | deferred-with-followup | see #888 |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #5 | deferred-with-followup | see #888 |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert result.passed
 
     def test_deferred_with_followup_colon_passes(self, tmp_path: Path) -> None:
-        content = (
-            f"# Matrix\n\n{_VALID_HEADER}\n"
-            "| #6 | deferred-with-followup | Follow-up: file issue later |\n"
-        )
+        content = f"# Matrix\n\n{_VALID_HEADER}\n| #6 | deferred-with-followup | Follow-up: file issue later |\n"
         p = _write_matrix(tmp_path, content)
         result = validate_issue_matrix(p)
         assert result.passed

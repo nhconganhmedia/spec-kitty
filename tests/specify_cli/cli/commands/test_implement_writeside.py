@@ -43,9 +43,7 @@ _PLANNING_BRANCH = "mission/2533-wp02-writeside-demo"
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
 
 def _init_repo(repo: Path, *, branch: str) -> None:
@@ -118,9 +116,7 @@ def _fake_bookkeeping_transaction(calls: list[tuple[str, list[str]]]) -> type:
     return _FakeBookkeepingTransaction
 
 
-def _seeded_coord_mission(
-    tmp_path: Path, *, monkeypatch: pytest.MonkeyPatch
-) -> tuple[Path, Path, str, str, str, list[tuple[str, list[str]]]]:
+def _seeded_coord_mission(tmp_path: Path, *, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, str, str, str, list[tuple[str, list[str]]]]:
     """Build a coord mission with a committed ``spec.md`` baseline and a
     real (but empty) coordination branch, then monkeypatch
     ``BookkeepingTransaction`` to record every ``acquire()`` call.
@@ -179,9 +175,7 @@ class TestPartitionAwarePlanningArtifactCommit:
     coordination ref -- via two transactions, not one collapsed commit.
     """
 
-    def test_dirty_primary_lands_on_target_dirty_coord_lands_on_coord(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_dirty_primary_lands_on_target_dirty_coord_lands_on_coord(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """RED (pre-fix): both files commit through ONE transaction to the
         coordination branch -- ``spec.md`` (a PRIMARY kind) would land on
         coordination, never ``_PLANNING_BRANCH``. GREEN (post-fix): the
@@ -193,9 +187,7 @@ class TestPartitionAwarePlanningArtifactCommit:
             _commit_planning_artifacts_transaction,
         )
 
-        repo, feature_dir, mission_slug, spec_rel, events_rel, calls = _seeded_coord_mission(
-            tmp_path, monkeypatch=monkeypatch
-        )
+        repo, feature_dir, mission_slug, spec_rel, events_rel, calls = _seeded_coord_mission(tmp_path, monkeypatch=monkeypatch)
         mission_id = "01J9WP02WRITESIDEXXXXXXXXX"
         coord_branch = f"kitty/mission-{mission_slug}-{mission_id[:8]}"
 
@@ -213,8 +205,7 @@ class TestPartitionAwarePlanningArtifactCommit:
         events_destinations = [ref for ref, paths in calls if events_rel in paths]
 
         assert spec_destinations == [_PLANNING_BRANCH], (
-            f"expected spec.md (PRIMARY) to be committed to the primary/target "
-            f"ref {_PLANNING_BRANCH!r}; got {spec_destinations!r} (all calls: {calls!r})"
+            f"expected spec.md (PRIMARY) to be committed to the primary/target ref {_PLANNING_BRANCH!r}; got {spec_destinations!r} (all calls: {calls!r})"
         )
         assert events_destinations == [coord_branch], (
             f"expected status.events.jsonl (COORD-residue) to be committed to "
@@ -225,18 +216,14 @@ class TestPartitionAwarePlanningArtifactCommit:
         # mixes both partitions under one destination_ref.
         assert len(calls) == 2, f"expected two transactions, got {calls!r}"
 
-    def test_only_dirty_primary_uses_a_single_transaction(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_only_dirty_primary_uses_a_single_transaction(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When the batch is entirely PRIMARY, only one transaction runs, to
         the primary/target ref -- no spurious empty coordination commit."""
         from specify_cli.cli.commands.implement import (
             _commit_planning_artifacts_transaction,
         )
 
-        repo, feature_dir, mission_slug, spec_rel, _events_rel, calls = _seeded_coord_mission(
-            tmp_path, monkeypatch=monkeypatch
-        )
+        repo, feature_dir, mission_slug, spec_rel, _events_rel, calls = _seeded_coord_mission(tmp_path, monkeypatch=monkeypatch)
 
         _commit_planning_artifacts_transaction(
             repo_root=repo,
@@ -258,9 +245,7 @@ class TestNonCoordinationMissionCommitCollapsesToOneTransaction:
     must not touch this path (mirrors ``commit_router._group_files_by_partition``'s
     own fast-path collapse when there is no genuine ref divergence)."""
 
-    def test_no_coord_branch_collapses_primary_and_coord_shaped_paths(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_coord_branch_collapses_primary_and_coord_shaped_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.implement import (
             _commit_planning_artifacts_transaction,
         )
@@ -327,9 +312,7 @@ class TestNarrowTripleProtectedPlanningBranchFailsClosed:
     triple without re-seeding the repo on ``main``.
     """
 
-    def test_protected_planning_branch_raises_placement_resolution_required(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_protected_planning_branch_raises_placement_resolution_required(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.implement import (
             _commit_planning_artifacts_transaction,
         )
@@ -338,9 +321,7 @@ class TestNarrowTripleProtectedPlanningBranchFailsClosed:
         )
         from specify_cli.core.errors import PlacementResolutionRequired
 
-        repo, feature_dir, mission_slug, spec_rel, events_rel, calls = _seeded_coord_mission(
-            tmp_path, monkeypatch=monkeypatch
-        )
+        repo, feature_dir, mission_slug, spec_rel, events_rel, calls = _seeded_coord_mission(tmp_path, monkeypatch=monkeypatch)
 
         with pytest.raises(PlacementResolutionRequired) as excinfo:
             _commit_planning_artifacts_transaction(
@@ -404,9 +385,7 @@ class TestSeamAPartitionGuard:
         )
 
         with pytest.raises(PrimaryKindReachedCoordStagingError):
-            _guard_planning_commit_partition(
-                [self._p("lanes.json")], destination_is_coord=True
-            )
+            _guard_planning_commit_partition([self._p("lanes.json")], destination_is_coord=True)
 
     def test_coord_kind_reaching_primary_or_lane_raises(self) -> None:
         """NEGATIVE (COORD->primary/lane): a coord-residue status file on a
@@ -417,9 +396,7 @@ class TestSeamAPartitionGuard:
         )
 
         with pytest.raises(PrimaryKindReachedCoordStagingError):
-            _guard_planning_commit_partition(
-                [self._p("status.events.jsonl")], destination_is_coord=False
-            )
+            _guard_planning_commit_partition([self._p("status.events.jsonl")], destination_is_coord=False)
 
     def test_primary_commit_with_meta_and_lanes_succeeds(self) -> None:
         """POSITIVE: a PRIMARY-destination commit carrying ``lanes.json`` +

@@ -48,9 +48,7 @@ _NAIVE_FSTRING_BRANCH = f"kitty/mission-{_NNN_SLUG}"  # the wrong, never-created
 
 
 class TestCheckMissionBranchMid8:
-    def test_mid8_mission_resolves_canonical_branch_not_fstring(
-        self, tmp_path: Path
-    ) -> None:
+    def test_mid8_mission_resolves_canonical_branch_not_fstring(self, tmp_path: Path) -> None:
         """RED-first (#1978): preflight must look for the seam-composed branch.
 
         Before the fix, ``expected_branch`` falls back to ``f"kitty/mission-{slug}"``
@@ -69,39 +67,33 @@ class TestCheckMissionBranchMid8:
             "specify_cli.merge.preflight._has_branch_ref",
             side_effect=has_ref,
         ):
-            exists, blocker = _check_mission_branch(
-                _NNN_SLUG, tmp_path, mission_id=_MISSION_ID
-            )
+            exists, blocker = _check_mission_branch(_NNN_SLUG, tmp_path, mission_id=_MISSION_ID)
 
         assert exists is True, (
-            "preflight must resolve the canonical mid8-era branch, not the naive "
-            "f-string compose that drops the mid8 / keeps the stale NNN- prefix"
+            "preflight must resolve the canonical mid8-era branch, not the naive f-string compose that drops the mid8 / keeps the stale NNN- prefix"
         )
         assert blocker is None
 
-    def test_mid8_mission_blocker_reports_canonical_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_mid8_mission_blocker_reports_canonical_branch(self, tmp_path: Path) -> None:
         """When the canonical branch is genuinely missing, the blocker names it."""
-        with patch(
-            "specify_cli.merge.preflight._has_branch_ref",
-            return_value=False,
-        ), patch(
-            "specify_cli.merge.preflight.run_command",
-            return_value=(0, "abc1234def5678\n", ""),
+        with (
+            patch(
+                "specify_cli.merge.preflight._has_branch_ref",
+                return_value=False,
+            ),
+            patch(
+                "specify_cli.merge.preflight.run_command",
+                return_value=(0, "abc1234def5678\n", ""),
+            ),
         ):
-            exists, blocker = _check_mission_branch(
-                _NNN_SLUG, tmp_path, mission_id=_MISSION_ID
-            )
+            exists, blocker = _check_mission_branch(_NNN_SLUG, tmp_path, mission_id=_MISSION_ID)
 
         assert exists is False
         assert blocker is not None
         assert blocker["expected_branch"] == _CANONICAL_BRANCH
         assert blocker["expected_branch"] != _NAIVE_FSTRING_BRANCH
 
-    def test_embedded_mid8_slug_without_mission_id_resolves(
-        self, tmp_path: Path
-    ) -> None:
+    def test_embedded_mid8_slug_without_mission_id_resolves(self, tmp_path: Path) -> None:
         """A slug already carrying its mid8 tail resolves without a declared id."""
         slug = "mission-identity-seam-and-1908-panel-01KV6510"
         canonical = f"kitty/mission-{slug}"
@@ -114,9 +106,7 @@ class TestCheckMissionBranchMid8:
         assert exists is True
         assert blocker is None
 
-    def test_legacy_nnn_slug_without_mission_id_resolves(
-        self, tmp_path: Path
-    ) -> None:
+    def test_legacy_nnn_slug_without_mission_id_resolves(self, tmp_path: Path) -> None:
         """A pre-083 legacy NNN- slug still composes the legacy branch."""
         slug = "017-my-legacy-feature"
         canonical = f"kitty/mission-{slug}"
@@ -172,9 +162,7 @@ class TestTargetBranchSyncRemediationMid8:
             mission_branch=None,
             mission_id=_MISSION_ID,
         )
-        focused_pr_line = next(
-            line for line in lines if "git switch -c" in line
-        )
+        focused_pr_line = next(line for line in lines if "git switch -c" in line)
         assert _CANONICAL_BRANCH in focused_pr_line
         assert _NAIVE_FSTRING_BRANCH not in focused_pr_line
 
@@ -207,10 +195,13 @@ class TestCheckMissionBranchResolverWarning:
         reset_legacy_failover_warning()
         slug = "mission-identity-seam-and-1908-panel-01KV6510"
         canonical = f"kitty/mission-{slug}"
-        with patch(
-            "specify_cli.merge.preflight._has_branch_ref",
-            side_effect=lambda _repo, ref: ref == canonical,
-        ), warnings.catch_warnings(record=True) as caught:
+        with (
+            patch(
+                "specify_cli.merge.preflight._has_branch_ref",
+                side_effect=lambda _repo, ref: ref == canonical,
+            ),
+            warnings.catch_warnings(record=True) as caught,
+        ):
             warnings.simplefilter("always")
             exists, blocker = _check_mission_branch(slug, tmp_path, mission_id=None)
 
@@ -224,19 +215,18 @@ class TestCheckMissionBranchResolverWarning:
         reset_legacy_failover_warning()
         slug = "017-my-legacy-feature"
         canonical = f"kitty/mission-{slug}"
-        with patch(
-            "specify_cli.merge.preflight._has_branch_ref",
-            side_effect=lambda _repo, ref: ref == canonical,
-        ), warnings.catch_warnings(record=True) as caught:
+        with (
+            patch(
+                "specify_cli.merge.preflight._has_branch_ref",
+                side_effect=lambda _repo, ref: ref == canonical,
+            ),
+            warnings.catch_warnings(record=True) as caught,
+        ):
             warnings.simplefilter("always")
             # Two preflight checks in the same process: the deprecation warning
             # must fire AT MOST once (one-shot guard).
-            first_exists, first_blocker = _check_mission_branch(
-                slug, tmp_path, mission_id=None
-            )
-            _second_exists, _second_blocker = _check_mission_branch(
-                slug, tmp_path, mission_id=None
-            )
+            first_exists, first_blocker = _check_mission_branch(slug, tmp_path, mission_id=None)
+            _second_exists, _second_blocker = _check_mission_branch(slug, tmp_path, mission_id=None)
 
         assert first_exists is True
         assert first_blocker is None
@@ -257,9 +247,7 @@ class TestWorktreeTeardownSeamRouting:
     the allocator path for the embedded-mid8 case (this mission's own shape).
     """
 
-    def test_embedded_mission_teardown_matches_allocator_path(
-        self, tmp_path: Path
-    ) -> None:
+    def test_embedded_mission_teardown_matches_allocator_path(self, tmp_path: Path) -> None:
         """Teardown seam path == the WP03 allocator's on-disk worktree path."""
         slug = "mission-identity-seam-and-1908-panel-01KV6510"
         lane_id = "lane-b"
@@ -268,26 +256,19 @@ class TestWorktreeTeardownSeamRouting:
         allocator_path = tmp_path / ".worktrees" / f"{slug}-{lane_id}"
 
         # What the routed teardown now resolves, fed the REAL mission_id.
-        teardown_path = worktree_path(
-            tmp_path, slug, mission_id=_MISSION_ID, lane_id=lane_id
-        )
+        teardown_path = worktree_path(tmp_path, slug, mission_id=_MISSION_ID, lane_id=lane_id)
 
         assert teardown_path == allocator_path, (
-            "the routed teardown must resolve the SAME path the allocator created; "
-            "the old no-mid8 f-string is the resolution the seam now subsumes"
+            "the routed teardown must resolve the SAME path the allocator created; the old no-mid8 f-string is the resolution the seam now subsumes"
         )
 
-    def test_teardown_seam_keeps_mid8_segment_for_nnn_slug(
-        self, tmp_path: Path
-    ) -> None:
+    def test_teardown_seam_keeps_mid8_segment_for_nnn_slug(self, tmp_path: Path) -> None:
         """With a real mission_id the seam keeps the mid8 — the old bare guess dropped it."""
         slug = "057-foo-bar"
         lane_id = "lane-a"
 
         old_bare_guess = tmp_path / ".worktrees" / f"{slug}-{lane_id}"
-        teardown_path = worktree_path(
-            tmp_path, slug, mission_id=_MISSION_ID, lane_id=lane_id
-        )
+        teardown_path = worktree_path(tmp_path, slug, mission_id=_MISSION_ID, lane_id=lane_id)
 
         # The seam now embeds the mid8 (and strips the stale NNN- prefix); the old
         # bare f-string guess that the routing replaces did neither.

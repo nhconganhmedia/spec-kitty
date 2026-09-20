@@ -30,16 +30,12 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 def _global_sync_root(report: StateRootsReport) -> Path:
     """Return the resolved global-sync root from a state-roots report."""
-    return next(
-        r.resolved_path for r in report.roots if r.name == "global_sync"
-    )
+    return next(r.resolved_path for r in report.roots if r.name == "global_sync")
 
 
 def _sync_config_present(report: StateRootsReport) -> bool:
     """Return whether the ``sync_config`` surface was reported present."""
-    return next(
-        s.present for s in report.surfaces if s.surface.name == "sync_config"
-    )
+    return next(s.present for s in report.surfaces if s.surface.name == "sync_config")
 
 
 def test_reported_root_matches_runtime_root_with_env(tmp_path, monkeypatch):

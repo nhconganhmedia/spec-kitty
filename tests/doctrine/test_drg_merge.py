@@ -134,9 +134,7 @@ class TestBehaviorPreservation:
             ],
         )
 
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[org], project=project
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[org], project=project)
 
         # --- Recompute the expected node-URN → provenance mapping. ---
         expected_node_provenance = {
@@ -146,9 +144,7 @@ class TestBehaviorPreservation:
             "tactic:play": "org:acme",
             "tactic:proj-t": "project",
         }
-        actual_node_provenance = {
-            n.urn: getattr(n, "provenance", None) for n in merged.nodes
-        }
+        actual_node_provenance = {n.urn: getattr(n, "provenance", None) for n in merged.nodes}
         assert actual_node_provenance == expected_node_provenance
 
         # --- Recompute the expected edge set (source, target, relation, prov). ---
@@ -157,10 +153,7 @@ class TestBehaviorPreservation:
             ("tactic:play", "directive:policy", Relation.REQUIRES, "org:acme"),
             ("tactic:proj-t", "directive:shipped-d", Relation.SUGGESTS, "project"),
         }
-        actual_edges = {
-            (e.source, e.target, e.relation, getattr(e, "provenance", None))
-            for e in merged.edges
-        }
+        actual_edges = {(e.source, e.target, e.relation, getattr(e, "provenance", None)) for e in merged.edges}
         assert actual_edges == expected_edges
 
         # Graph header is inherited from the built-in layer (preserved).
@@ -168,9 +161,7 @@ class TestBehaviorPreservation:
         assert merged.generated_by == built_in.generated_by
 
     def test_empty_inputs_round_trip(self) -> None:
-        merged = merge_three_layers(
-            built_in=_graph(), org_fragments=[], project=None
-        )
+        merged = merge_three_layers(built_in=_graph(), org_fragments=[], project=None)
         assert merged.nodes == []
         assert merged.edges == []
 
@@ -198,17 +189,11 @@ class TestSpecializesFromAndUnknownRelation:
                 },
             ],
         )
-        merged = merge_three_layers(
-            built_in=_graph(), org_fragments=[org], project=None
-        )
-        lineage_edges = [
-            e for e in merged.edges if e.relation is Relation.SPECIALIZES_FROM
-        ]
+        merged = merge_three_layers(built_in=_graph(), org_fragments=[org], project=None)
+        lineage_edges = [e for e in merged.edges if e.relation is Relation.SPECIALIZES_FROM]
         # cardinality-is-contract: merge must not duplicate the lineage edge when layers re-declare it; the projection collapses duplicates
         assert len(lineage_edges) == 1
-        assert {(e.source, e.target) for e in lineage_edges} == {
-            ("agent_profile:child", "agent_profile:parent")
-        }
+        assert {(e.source, e.target) for e in lineage_edges} == {("agent_profile:child", "agent_profile:parent")}
         assert lineage_edges[0].source == "agent_profile:child"
         assert lineage_edges[0].target == "agent_profile:parent"
         assert getattr(lineage_edges[0], "provenance", None) == "org:lineage-pack"
@@ -246,9 +231,7 @@ class TestSpecializesFromAndUnknownRelation:
             ],
             edges=[{"source": "a", "target": "b", "relation": "refines"}],
         )
-        merged = merge_three_layers(
-            built_in=_graph(), org_fragments=[org], project=None
-        )
+        merged = merge_three_layers(built_in=_graph(), org_fragments=[org], project=None)
         # cardinality-is-contract: merge yields exactly one edge; projecting only .relation collapses duplicate/extra edges
         assert len(merged.edges) == 1
         assert {e.relation for e in merged.edges} == {Relation.REFINES}
@@ -265,18 +248,14 @@ class TestSpecializesFromAndUnknownRelation:
             ],
             edges=[{"source": "a", "target": "b", "relation": "extends"}],
         )
-        merged = merge_three_layers(
-            built_in=_graph(), org_fragments=[org], project=None
-        )
+        merged = merge_three_layers(built_in=_graph(), org_fragments=[org], project=None)
         # cardinality-is-contract: merge yields exactly one edge; projecting only .relation collapses duplicate/extra edges
         assert len(merged.edges) == 1
         assert {e.relation for e in merged.edges} == {Relation.SPECIALIZES_FROM}
         assert merged.edges[0].relation is Relation.SPECIALIZES_FROM
 
     @pytest.mark.parametrize("relation", [r.value for r in Relation])
-    def test_bridge_preserves_every_canonical_relation_verbatim(
-        self, relation: str
-    ) -> None:
+    def test_bridge_preserves_every_canonical_relation_verbatim(self, relation: str) -> None:
         """Relation-fidelity guard (#2079): every canonical ``Relation`` authored on
         a fragment edge survives bridging with the SAME relation — no silent relabel.
         Covers ``refines`` / ``overrides`` / ``replaces`` and the full vocabulary."""
@@ -288,9 +267,7 @@ class TestSpecializesFromAndUnknownRelation:
             ],
             edges=[{"source": "a", "target": "b", "relation": relation}],
         )
-        merged = merge_three_layers(
-            built_in=_graph(), org_fragments=[org], project=None
-        )
+        merged = merge_three_layers(built_in=_graph(), org_fragments=[org], project=None)
         # cardinality-is-contract: merge yields exactly one edge per mapped relation; the projection collapses a duplicated edge
         assert len(merged.edges) == 1
         assert {e.relation.value for e in merged.edges} == {relation}
@@ -303,12 +280,8 @@ class TestSpecializesFromAndUnknownRelation:
         the ``refines`` / ``extends`` downgrade."""
         from charter.offering.drg.merge import _RELATION_ALIASES
 
-        offenders = {
-            k: v for k, v in _RELATION_ALIASES.items() if v is Relation.APPLIES
-        }
-        assert not offenders, (
-            f"relation alias(es) map to the inert APPLIES sink: {offenders}"
-        )
+        offenders = {k: v for k, v in _RELATION_ALIASES.items() if v is Relation.APPLIES}
+        assert not offenders, f"relation alias(es) map to the inert APPLIES sink: {offenders}"
 
     def test_refines_is_canonical_not_aliased(self) -> None:
         """#2079 precedence pin: REFINES is a canonical ``Relation``, so an authored
@@ -354,12 +327,7 @@ class TestThreeSourceParity:
             org_fragments=[],
             project=None,
         )
-        assert any(
-            e.relation is Relation.SPECIALIZES_FROM
-            and e.source == "agent_profile:child"
-            and e.target == "agent_profile:parent"
-            for e in merged.edges
-        )
+        assert any(e.relation is Relation.SPECIALIZES_FROM and e.source == "agent_profile:child" and e.target == "agent_profile:parent" for e in merged.edges)
 
     def test_org_valid_lineage_edge_present(self) -> None:
         org = _fragment(
@@ -376,15 +344,8 @@ class TestThreeSourceParity:
                 }
             ],
         )
-        merged = merge_three_layers(
-            built_in=_graph(), org_fragments=[org], project=None
-        )
-        assert any(
-            e.relation is Relation.SPECIALIZES_FROM
-            and e.source == "agent_profile:child"
-            and e.target == "agent_profile:parent"
-            for e in merged.edges
-        )
+        merged = merge_three_layers(built_in=_graph(), org_fragments=[org], project=None)
+        assert any(e.relation is Relation.SPECIALIZES_FROM and e.source == "agent_profile:child" and e.target == "agent_profile:parent" for e in merged.edges)
 
     def test_project_valid_lineage_edge_present(self) -> None:
         merged = merge_three_layers(
@@ -392,12 +353,7 @@ class TestThreeSourceParity:
             org_fragments=[],
             project=self._shipped_lineage_graph(),
         )
-        assert any(
-            e.relation is Relation.SPECIALIZES_FROM
-            and e.source == "agent_profile:child"
-            and e.target == "agent_profile:parent"
-            for e in merged.edges
-        )
+        assert any(e.relation is Relation.SPECIALIZES_FROM and e.source == "agent_profile:child" and e.target == "agent_profile:parent" for e in merged.edges)
 
     def test_shipped_unknown_relation_rejected(self) -> None:
         """The shipped/project tiers reject an unknown relation at DRGEdge
@@ -447,9 +403,7 @@ class TestThreeSourceParity:
 
 
 class TestInvariantsPreserved:
-    def test_same_kind_org_override_of_shipped_node_succeeds(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_same_kind_org_override_of_shipped_node_succeeds(self, caplog: pytest.LogCaptureFixture) -> None:
         """A SAME-KIND org override now wins in place: the org node substitutes
         the built-in, a ``node_override``/``org_override`` conflict is recorded,
         a WARNING is emitted, and the merge does NOT raise. (Previously this
@@ -471,20 +425,14 @@ class TestInvariantsPreserved:
         )
 
         with caplog.at_level(logging.WARNING, logger="charter.offering.drg.merge"):
-            merged = merge_three_layers(
-                built_in=built_in, org_fragments=[org], project=None
-            )
+            merged = merge_three_layers(built_in=built_in, org_fragments=[org], project=None)
 
         # Org node wins in place (provenance + label substituted).
         node = next(n for n in merged.nodes if n.urn == "directive:locked")
         assert node.provenance == "org:rogue"
         assert node.label == "Override"
         # A WARNING is emitted for operator visibility.
-        assert any(
-            record.levelno == logging.WARNING
-            and "directive:locked" in record.getMessage()
-            for record in caplog.records
-        )
+        assert any(record.levelno == logging.WARNING and "directive:locked" in record.getMessage() for record in caplog.records)
 
     def test_same_kind_org_override_records_org_override_conflict(self) -> None:
         """The permitted override is queryable as a non-fatal conflict record
@@ -494,9 +442,7 @@ class TestInvariantsPreserved:
         )
         from charter.offering.drg.merge import _tag_source  # noqa: PLC0415
 
-        built_in_node = _tag_source(
-            DRGNode(urn="tactic:shared", kind=NodeKind.TACTIC), "built-in"
-        )
+        built_in_node = _tag_source(DRGNode(urn="tactic:shared", kind=NodeKind.TACTIC), "built-in")
         merged_nodes = {"tactic:shared": built_in_node}
         conflicts: list[OrgDRGConflict] = []
         org_node_model = OrgDRGFragment.model_validate(
@@ -525,9 +471,7 @@ class TestInvariantsPreserved:
 
         # cardinality-is-contract: a single node override records exactly one conflict; the projection collapses duplicate conflict records
         assert len(conflicts) == 1
-        assert {(c.kind, c.resolution_applied) for c in conflicts} == {
-            ("node_override", "org_override")
-        }
+        assert {(c.kind, c.resolution_applied) for c in conflicts} == {("node_override", "org_override")}
         assert conflicts[0].kind == "node_override"
         assert conflicts[0].resolution_applied == "org_override"
         # Substitution happened in place.
@@ -552,9 +496,7 @@ class TestInvariantsPreserved:
         # A built-in node whose reported kind drifts from its URN prefix
         # (model_construct bypasses the urn/kind validator to simulate the
         # un-validated input the guard exists to catch).
-        drifted_builtin = DRGNode.model_construct(
-            urn="directive:locked", kind=NodeKind.TACTIC, label="built-in"
-        )
+        drifted_builtin = DRGNode.model_construct(urn="directive:locked", kind=NodeKind.TACTIC, label="built-in")
         merged_nodes: dict[str, DRGNode] = {"directive:locked": drifted_builtin}
         conflicts: list[OrgDRGConflict] = []
         org_drg = _tag_source(
@@ -595,9 +537,7 @@ class TestInvariantsPreserved:
         )
         with pytest.raises(OrgDRGConflictError) as exc_info:
             merge_three_layers(built_in=_graph(), org_fragments=[org], project=None)
-        assert any(
-            c.kind == "layer_rule_violation" for c in exc_info.value.conflicts
-        )
+        assert any(c.kind == "layer_rule_violation" for c in exc_info.value.conflicts)
 
 
 class TestProvenanceDeclaredField:
@@ -640,9 +580,7 @@ class TestProvenanceDeclaredField:
                 )
             ],
         )
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[], project=None)
         assert all(n.provenance == "built-in" for n in merged.nodes)
         assert all(e.provenance == "built-in" for e in merged.edges)
 
@@ -659,9 +597,7 @@ class TestReplaceableBuiltinsPolicy:
     def _write_policy(self, root: Path, body: str) -> None:
         policy_dir = root / ".kittify" / "doctrine"
         policy_dir.mkdir(parents=True, exist_ok=True)
-        (policy_dir / "replaceable-builtins.yaml").write_text(
-            body, encoding="utf-8"
-        )
+        (policy_dir / "replaceable-builtins.yaml").write_text(body, encoding="utf-8")
 
     def test_absent_file_forbids_every_override(self, tmp_path: Path) -> None:
         from charter.offering.drg.override_policy import load_replaceable_builtins
@@ -676,15 +612,11 @@ class TestReplaceableBuiltinsPolicy:
 
         self._write_policy(
             tmp_path,
-            "replaceable_builtins:\n"
-            "  - urn: directive:risk-appetite\n"
-            "    reason: Our org sets a different risk posture.\n",
+            "replaceable_builtins:\n  - urn: directive:risk-appetite\n    reason: Our org sets a different risk posture.\n",
         )
         policy = load_replaceable_builtins(tmp_path)
         assert policy.is_allowed("directive:risk-appetite") is True
-        assert policy.reason_for("directive:risk-appetite") == (
-            "Our org sets a different risk posture."
-        )
+        assert policy.reason_for("directive:risk-appetite") == ("Our org sets a different risk posture.")
         # A non-listed URN is fail-closed forbidden.
         assert policy.is_allowed("directive:mission-scope") is False
 
@@ -714,9 +646,7 @@ class TestReplaceableBuiltinsPolicy:
             "key: [unclosed\n",  # YAML parse error
         ],
     )
-    def test_malformed_policy_fails_closed_loud(
-        self, tmp_path: Path, body: str
-    ) -> None:
+    def test_malformed_policy_fails_closed_loud(self, tmp_path: Path, body: str) -> None:
         from charter.offering.drg.override_policy import (
             OverridePolicyError,
             load_replaceable_builtins,
@@ -733,9 +663,7 @@ class TestReplaceableBuiltinsPolicy:
         policy = load_replaceable_builtins(tmp_path)
         assert policy.entries == ()
 
-    def test_null_entries_and_null_reason_normalise_to_empty(
-        self, tmp_path: Path
-    ) -> None:
+    def test_null_entries_and_null_reason_normalise_to_empty(self, tmp_path: Path) -> None:
         """A ``null`` ``replaceable_builtins`` value and a ``null`` reason both
         normalise to empty (fail-closed-friendly, not an error)."""
         from charter.offering.drg.override_policy import load_replaceable_builtins
@@ -780,9 +708,7 @@ class TestGlobalURNUniquenessScan:
             edges=[],
         )
         with pytest.raises(DuplicateURNError) as exc_info:
-            merge_three_layers(
-                built_in=_graph(), org_fragments=[pack_one, pack_two], project=None
-            )
+            merge_three_layers(built_in=_graph(), org_fragments=[pack_one, pack_two], project=None)
         err = exc_info.value
         assert err.code == "duplicate_asset_id"
         assert err.urn == "asset:logo"
@@ -797,9 +723,7 @@ class TestGlobalURNUniquenessScan:
         normally a PERMITTED override (``_resolve_builtin_collision``); the
         new global scan overrides that tolerance specifically for TEMPLATE
         (and ASSET) and hard-fails with ``duplicate_template_id``."""
-        built_in = _graph(
-            nodes=[DRGNode(urn="template:x", kind=NodeKind.TEMPLATE, label="Shipped")]
-        )
+        built_in = _graph(nodes=[DRGNode(urn="template:x", kind=NodeKind.TEMPLATE, label="Shipped")])
         org = _fragment(
             "acme",
             nodes=[{"id": "x", "kind": "templates", "title": "Org"}],
@@ -815,17 +739,13 @@ class TestGlobalURNUniquenessScan:
     def test_single_owner_asset_and_template_merge_cleanly(self) -> None:
         """(c) One asset and one template, each declared exactly once across
         the three layers, merge without error and land in the output graph."""
-        built_in = _graph(
-            nodes=[DRGNode(urn="template:shipped-tpl", kind=NodeKind.TEMPLATE)]
-        )
+        built_in = _graph(nodes=[DRGNode(urn="template:shipped-tpl", kind=NodeKind.TEMPLATE)])
         org = _fragment(
             "acme",
             nodes=[{"id": "logo", "kind": "assets", "title": "Logo"}],
             edges=[],
         )
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[org], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[org], project=None)
         urns = {n.urn for n in merged.nodes}
         assert "template:shipped-tpl" in urns
         assert "asset:logo" in urns
@@ -838,11 +758,7 @@ class TestGlobalURNUniquenessScan:
         built-in ``directive:x`` (same URN, same kind, neither asset nor
         template) is UNCHANGED — still a permitted, non-fatal override, never
         routed through :class:`DuplicateURNError`."""
-        built_in = _graph(
-            nodes=[
-                DRGNode(urn="directive:x", kind=NodeKind.DIRECTIVE, label="Built-in")
-            ]
-        )
+        built_in = _graph(nodes=[DRGNode(urn="directive:x", kind=NodeKind.DIRECTIVE, label="Built-in")])
         org = _fragment(
             "acme",
             nodes=[{"id": "x", "kind": "directives", "title": "Override"}],
@@ -857,9 +773,7 @@ class TestGlobalURNUniquenessScan:
         """The scan is prefix-scoped: a duplicate ``tactic:`` URN (a 9-kind
         collision, resolved by the existing override machinery) must never be
         mistaken for an asset/template duplicate."""
-        built_in = _graph(
-            nodes=[DRGNode(urn="tactic:shared", kind=NodeKind.TACTIC, label="Base")]
-        )
+        built_in = _graph(nodes=[DRGNode(urn="tactic:shared", kind=NodeKind.TACTIC, label="Base")])
         org = _fragment(
             "acme",
             nodes=[{"id": "shared", "kind": "tactics", "title": "Override"}],

@@ -947,11 +947,7 @@ _DIRECT_ACTIVATION_ONLY: frozenset[str] = frozenset(
 #: + ``_NOT_A_TRAVERSAL_TARGET`` + ``_ACTIVATED_BUT_ORPHANED`` (now empty) +
 #: ``_DIRECT_ACTIVATION_ONLY``).
 _INTENTIONAL_ORPHANS: frozenset[str] = (
-    _EDGELESS_BY_CONSTRUCTION
-    | _AWAITING_REFERENCES
-    | _NOT_A_TRAVERSAL_TARGET
-    | _ACTIVATED_BUT_ORPHANED
-    | _DIRECT_ACTIVATION_ONLY
+    _EDGELESS_BY_CONSTRUCTION | _AWAITING_REFERENCES | _NOT_A_TRAVERSAL_TARGET | _ACTIVATED_BUT_ORPHANED | _DIRECT_ACTIVATION_ONLY
 )
 
 #: The pure-extractor figure (22) and the shipped-graph figure (21) differ by
@@ -985,9 +981,7 @@ _SHIPPED_ORPHANS: frozenset[str] = _INTENTIONAL_ORPHANS - _ORPHANS_RESOLVED_BY_O
 
 #: software-dev steps that are not action-sequence members (retrospect lives
 #: outside every type's step directory and is asserted separately).
-_SOFTWARE_DEV_NON_SEQUENCE_STEPS = frozenset(
-    {"accept", "analyze", "charter", "research", "tasks-finalize", "tasks-outline", "tasks-packages"}
-)
+_SOFTWARE_DEV_NON_SEQUENCE_STEPS = frozenset({"accept", "analyze", "charter", "research", "tasks-finalize", "tasks-outline", "tasks-packages"})
 
 
 #: The hand-pinned authored action_sequence per built-in type. Post-WP07 the
@@ -1030,9 +1024,7 @@ def _describe_orphan_drift(measured: set[str], expected: frozenset[str]) -> str:
     if appeared:
         lines.append(
             "NEW orphans -- these nodes are incident to no edge and nothing "
-            "declares that acceptable:\n"
-            + "\n".join(f"    + {urn}" for urn in appeared)
-            + "\n  Either give the node an edge a traversal follows, or add it to "
+            "declares that acceptable:\n" + "\n".join(f"    + {urn}" for urn in appeared) + "\n  Either give the node an edge a traversal follows, or add it to "
             "the bucket that explains why it has none."
         )
     if resolved:
@@ -1053,17 +1045,14 @@ class TestDRGZeroDelta:
         graph = generate_graph(DOCTRINE_ROOT, tmp_path / "graph.yaml")
 
         assert len(graph.nodes) == _EXPECTED_NODE_COUNT, (
-            "pure regeneration node count drifted from the packs/built-in "
-            "inventory -- a shipped artifact was dropped or mis-minted"
+            "pure regeneration node count drifted from the packs/built-in inventory -- a shipped artifact was dropped or mis-minted"
         )
         # Edge floor (see the _EXPECTED_NODE_COUNT note above): exact edge integrity
         # is guaranteed by regenerate-graph --check and by the byte-identity test.
         assert len(graph.edges) >= len(graph.nodes)
 
         orphans = _orphan_urns(graph.nodes, graph.edges)
-        assert orphans == _INTENTIONAL_ORPHANS, _describe_orphan_drift(
-            orphans, _INTENTIONAL_ORPHANS
-        )
+        assert orphans == _INTENTIONAL_ORPHANS, _describe_orphan_drift(orphans, _INTENTIONAL_ORPHANS)
 
     def test_shipped_graph_orphans_are_the_pure_set_minus_the_overlay(self) -> None:
         """The two figures (pure 29, shipped 21) differ by a stated cause.
@@ -1074,9 +1063,7 @@ class TestDRGZeroDelta:
         """
         shipped = load_built_in_graph()
         orphans = _orphan_urns(shipped.nodes, shipped.edges)
-        assert orphans == _SHIPPED_ORPHANS, _describe_orphan_drift(
-            orphans, _SHIPPED_ORPHANS
-        )
+        assert orphans == _SHIPPED_ORPHANS, _describe_orphan_drift(orphans, _SHIPPED_ORPHANS)
 
     def test_the_overlay_really_does_wire_the_nodes_it_is_credited_with(self) -> None:
         """Floor for the derivation above.
@@ -1093,9 +1080,7 @@ class TestDRGZeroDelta:
             overlay_targets.add(edge.source)
             overlay_targets.add(edge.target)
         assert overlay_targets >= _ORPHANS_RESOLVED_BY_OVERLAY, (
-            "these nodes are credited to the hand-authored overlay but no "
-            "overlay edge touches them: "
-            f"{sorted(_ORPHANS_RESOLVED_BY_OVERLAY - overlay_targets)}"
+            f"these nodes are credited to the hand-authored overlay but no overlay edge touches them: {sorted(_ORPHANS_RESOLVED_BY_OVERLAY - overlay_targets)}"
         )
 
     def test_the_orphan_partition_is_disjoint_and_total(self) -> None:
@@ -1112,9 +1097,7 @@ class TestDRGZeroDelta:
             _ACTIVATED_BUT_ORPHANED,
             _DIRECT_ACTIVATION_ONLY,
         )
-        assert sum(len(part) for part in parts) == len(_INTENTIONAL_ORPHANS), (
-            "the orphan buckets overlap -- a URN is filed under two reasons"
-        )
+        assert sum(len(part) for part in parts) == len(_INTENTIONAL_ORPHANS), "the orphan buckets overlap -- a URN is filed under two reasons"
 
     def test_shipped_graph_is_fresh_and_byte_identical(self) -> None:
         """A fresh regeneration + the hand-authored overlay matches the shipped graph.
@@ -1129,15 +1112,9 @@ class TestDRGZeroDelta:
         regenerated = generate_reference_graph_with_overlay(DOCTRINE_ROOT)
 
         assert {n.urn for n in regenerated.nodes} == {n.urn for n in shipped.nodes}
-        assert {
-            (e.source, e.target, e.relation.value) for e in regenerated.edges
-        } == {(e.source, e.target, e.relation.value) for e in shipped.edges}
+        assert {(e.source, e.target, e.relation.value) for e in regenerated.edges} == {(e.source, e.target, e.relation.value) for e in shipped.edges}
         # Node count is the inventory-derived shipped figure (pure + overlay).
-        assert (
-            len(regenerated.nodes)
-            == len(shipped.nodes)
-            == shipped_builtin_node_count()
-        )
+        assert len(regenerated.nodes) == len(shipped.nodes) == shipped_builtin_node_count()
         # No frozen edge integer: the SET equality asserted above already proves the
         # regenerated and shipped edge sets are byte-identical (the in-process
         # equivalent of regenerate-graph --check). Assert their sizes agree exactly
@@ -1178,13 +1155,9 @@ class TestResidualOrphanWiring:
         the expected ``(source, target)`` pair -- not merely *some* inbound edge."""
         graph = generate_graph(DOCTRINE_ROOT, tmp_path / "graph.yaml")
         inbound_pairs = {(edge.source, edge.target) for edge in graph.edges}
-        missing = sorted(
-            pair for pair in _RESIDUAL_FRONTMATTER_PROMOTIONS if pair not in inbound_pairs
-        )
+        missing = sorted(pair for pair in _RESIDUAL_FRONTMATTER_PROMOTIONS if pair not in inbound_pairs)
         assert not missing, (
-            "these #3009-residual orphans still lack a pure-graph frontmatter "
-            "inbound edge from their owning directive (promotion did not take "
-            f"effect): {missing}"
+            f"these #3009-residual orphans still lack a pure-graph frontmatter inbound edge from their owning directive (promotion did not take effect): {missing}"
         )
 
     def test_deployable_skill_authoring_is_direct_activation_only(self) -> None:
@@ -1206,33 +1179,19 @@ class TestNonSequenceStepsMintNoEdge:
 
     def test_software_dev_non_sequence_steps_mint_no_edge(self) -> None:
         edges = extract_mission_type_edges(DOCTRINE_ROOT)
-        sw_dev_targets = {
-            e.target
-            for e in edges
-            if e.source == "mission_type:software-dev" and e.relation is Relation.REQUIRES
-        }
+        sw_dev_targets = {e.target for e in edges if e.source == "mission_type:software-dev" and e.relation is Relation.REQUIRES}
 
-        steps = MissionStepRepository.default().resolve_all_for_mission_type(
-            "software-dev", pack_context=None
-        )
-        non_sequence_step_ids = {
-            step_id for step_id, step in steps.items() if not step.in_action_sequence
-        }
+        steps = MissionStepRepository.default().resolve_all_for_mission_type("software-dev", pack_context=None)
+        non_sequence_step_ids = {step_id for step_id, step in steps.items() if not step.in_action_sequence}
 
         assert non_sequence_step_ids == _SOFTWARE_DEV_NON_SEQUENCE_STEPS
         for step_id in non_sequence_step_ids:
-            assert f"action:software-dev/{step_id}" not in sw_dev_targets, (
-                f"{step_id} is in_action_sequence:false but minted a requires edge"
-            )
+            assert f"action:software-dev/{step_id}" not in sw_dev_targets, f"{step_id} is in_action_sequence:false but minted a requires edge"
 
     def test_retrospect_never_appears_as_a_requires_edge_target(self) -> None:
         """``retrospect`` is not a member of any shipped type's action sequence."""
         edges = extract_mission_type_edges(DOCTRINE_ROOT)
-        retrospect_targets = {
-            e.target
-            for e in edges
-            if e.relation is Relation.REQUIRES and e.target.endswith("/retrospect")
-        }
+        retrospect_targets = {e.target for e in edges if e.relation is Relation.REQUIRES and e.target.endswith("/retrospect")}
         assert not retrospect_targets
 
 
@@ -1247,13 +1206,6 @@ class TestProjectedEdgeSetMatchesActionSequence:
         assert sequences, "expected at least one shipped mission type"
         for mission_id, steps in sequences.items():
             source_urn = f"mission_type:{mission_id}"
-            emitted = [
-                e.target
-                for e in edges
-                if e.source == source_urn and e.relation is Relation.REQUIRES
-            ]
+            emitted = [e.target for e in edges if e.source == source_urn and e.relation is Relation.REQUIRES]
             expected = [f"action:{mission_id}/{step}" for step in steps]
-            assert emitted == expected, (
-                f"{source_urn}: projected edges {emitted} != "
-                f"raw action_sequence-derived edges {expected}"
-            )
+            assert emitted == expected, f"{source_urn}: projected edges {emitted} != raw action_sequence-derived edges {expected}"

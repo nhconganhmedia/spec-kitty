@@ -97,12 +97,8 @@ class TestContextGenericArtifactIncludeExcludesNonBareProbeableKinds:
         # references), so the patch target must follow the code, not stay
         # on ``charter.activation.context`` (which merely re-exports these names for
         # FR-009 test-import preservation and the orchestrator's own calls).
-        monkeypatch.setattr(
-            template_include_mod, "_render_directive_include", _fake_directive_include
-        )
-        monkeypatch.setattr(
-            template_include_mod, "_render_tactic_include", _fake_tactic_include
-        )
+        monkeypatch.setattr(template_include_mod, "_render_directive_include", _fake_directive_include)
+        monkeypatch.setattr(template_include_mod, "_render_tactic_include", _fake_tactic_include)
         monkeypatch.setattr(
             template_include_mod,
             "_render_doctrine_artifact_include",
@@ -127,11 +123,7 @@ class TestContextGenericArtifactIncludeExcludesNonBareProbeableKinds:
         # The candidate set queried is EXACTLY the canonical
         # non-excluded universe — proves the filter routes through
         # _NON_AUGMENTATION_ELIGIBLE_KINDS, not a private single-member check.
-        expected = {
-            member.value
-            for member in ArtifactKind
-            if member not in _NON_AUGMENTATION_ELIGIBLE_KINDS
-        }
+        expected = {member.value for member in ArtifactKind if member not in _NON_AUGMENTATION_ELIGIBLE_KINDS}
         assert queried == expected
         assert ArtifactKind.TEMPLATE.value not in expected  # sanity
         assert ArtifactKind.ASSET.value not in expected  # sanity
@@ -168,9 +160,7 @@ class TestKindVocabularyHandlesNewKinds:
         assert KV_ID_FIELD_BY_KIND.get(kind, "id") == "id"
 
     @pytest.mark.parametrize("kind", _NEW_KINDS)
-    def test_resolve_artifact_urn_raises_documented_error_not_a_crash(
-        self, kind, tmp_path: Path
-    ):
+    def test_resolve_artifact_urn_raises_documented_error_not_a_crash(self, kind, tmp_path: Path):
         # No artifacts exist under the empty doctrine_root; the resolver must
         # surface the documented UnknownArtifactIdError, never a raw KeyError
         # or AttributeError.
@@ -181,9 +171,7 @@ class TestKindVocabularyHandlesNewKinds:
         with pytest.raises(UnknownArtifactIdError):
             resolve_config_id("asset:some-id", doctrine_root=tmp_path)
 
-    def test_resolve_config_id_handles_template_urn_without_crash(
-        self, tmp_path: Path
-    ):
+    def test_resolve_config_id_handles_template_urn_without_crash(self, tmp_path: Path):
         with pytest.raises(UnknownArtifactIdError):
             resolve_config_id("template:some-id", doctrine_root=tmp_path)
 
@@ -306,9 +294,7 @@ class TestCascadeCandidateFilterIsCharterActivatableDriven:
 
     def test_requires_edges_admit_exactly_the_activatable_kinds(self) -> None:
         graph = _one_of_each_kind_graph("agent_profile:filter-src", Relation.REQUIRES)
-        result = cascade_activation_targets(
-            graph, "agent_profile:filter-src", CascadeScope.all()
-        )
+        result = cascade_activation_targets(graph, "agent_profile:filter-src", CascadeScope.all())
         assert set(result.activated) == {kind.value for kind in CHARTER_ACTIVATABLE_KINDS}
         assert ArtifactKind.TEMPLATE.value not in result.activated
         assert ArtifactKind.ASSET.value not in result.activated
@@ -321,9 +307,7 @@ class TestCascadeCandidateFilterIsCharterActivatableDriven:
         # canonical membership test regardless of which followed relation reached
         # the node.
         graph = _one_of_each_kind_graph("agent_profile:scope-src", Relation.SCOPE)
-        result = cascade_activation_targets(
-            graph, "agent_profile:scope-src", CascadeScope.all()
-        )
+        result = cascade_activation_targets(graph, "agent_profile:scope-src", CascadeScope.all())
         assert set(result.activated) == {kind.value for kind in CHARTER_ACTIVATABLE_KINDS}
         assert ArtifactKind.TEMPLATE.value not in result.activated
         assert ArtifactKind.ASSET.value not in result.activated

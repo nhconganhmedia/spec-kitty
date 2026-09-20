@@ -28,13 +28,15 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir.mkdir(parents=True)
 
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-            "friendly_name": "Skip Test Mission",
-            "mission_number": None,
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+                "friendly_name": "Skip Test Mission",
+                "mission_number": None,
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text("# Spec\n", encoding="utf-8")
@@ -44,9 +46,7 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
 
 
 @pytest.mark.integration
-def test_strict_flow_skip_with_non_empty_reason(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_strict_flow_skip_with_non_empty_reason(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """emit_skipped with non-empty skip_reason: event emitted, no ValueError.
 
     Directly invokes emit_skipped (WP03 surface) with the resolved
@@ -80,15 +80,9 @@ def test_strict_flow_skip_with_non_empty_reason(
 
     events_path = feature_dir / "status.events.jsonl"
     assert events_path.exists()
-    events = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     skipped_events = [e for e in events if e.get("type") == "RetrospectiveSkipped"]
-    assert skipped_events, (
-        f"Expected RetrospectiveSkipped event; got: {[e.get('type') for e in events]}"
-    )
+    assert skipped_events, f"Expected RetrospectiveSkipped event; got: {[e.get('type') for e in events]}"
 
     skipped = skipped_events[0]
     assert skipped["skip_reason"] == skip_reason

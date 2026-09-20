@@ -9,6 +9,7 @@ Verifies:
 No ``unittest.mock`` — the point is that the function is testable with a
 ``tmp_path`` filesystem alone (pure path after coord-worktree materialisation).
 """
+
 from __future__ import annotations
 
 import json
@@ -51,9 +52,7 @@ class TestResolveLinesDirCoordTopology:
     pre-symmetry C-LANES-1 behaviour) broke coord-topology ``implement``.
     """
 
-    def test_returns_primary_surface_even_when_coord_worktree_exists(
-        self, tmp_path: Path
-    ) -> None:
+    def test_returns_primary_surface_even_when_coord_worktree_exists(self, tmp_path: Path) -> None:
         # Slug embeds the mid8 so mid8_from_slug can extract it.
         slug = f"my-mission-{_TEST_MID8}"
 
@@ -78,9 +77,7 @@ class TestResolveLinesDirCoordTopology:
         primary_dir = tmp_path / KITTY_SPECS_DIR / slug
         _write_meta(primary_dir, coordination_branch=_COORD_BRANCH)
 
-        coord_mission_dir = (
-            tmp_path / ".worktrees" / f"{slug}-coord" / KITTY_SPECS_DIR / slug
-        )
+        coord_mission_dir = tmp_path / ".worktrees" / f"{slug}-coord" / KITTY_SPECS_DIR / slug
         coord_mission_dir.mkdir(parents=True)
 
         result = _resolve_lanes_dir(tmp_path, slug)
@@ -93,9 +90,7 @@ class TestResolveLinesDirCoordTopology:
 class TestResolveLinesDirFlatTopology:
     """No coord worktree: ``_resolve_lanes_dir`` must return the primary dir."""
 
-    def test_returns_primary_when_no_coordination_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_returns_primary_when_no_coordination_branch(self, tmp_path: Path) -> None:
         # Flat slug — no mid8 tail; no coord worktree created.
         slug = "my-mission-flat"
 
@@ -106,9 +101,7 @@ class TestResolveLinesDirFlatTopology:
 
         assert result == primary_dir
 
-    def test_returns_primary_when_meta_omits_coordination_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_returns_primary_when_meta_omits_coordination_branch(self, tmp_path: Path) -> None:
         """Explicit check that a meta without coordination_branch → primary."""
         slug = "legacy-mission"
 

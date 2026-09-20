@@ -12,6 +12,7 @@ the ``_find_mission_slug`` boundary short-circuits) kept consuming the RAW
 operator handle, so a mid8 handle yielded ``kitty-specs/<mid8>/`` surfaces,
 ``legacy-<mid8>`` identity, and a COORDINATION→FLATTENED placement flip.
 """
+
 from __future__ import annotations
 
 import json
@@ -96,9 +97,7 @@ def _seed_mission(
         "to_lane": "claimed",
         "wp_id": "WP01",
     }
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(event) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(event) + "\n", encoding="utf-8")
     return feature_dir
 
 
@@ -112,8 +111,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
     (r / ".kittify" / "config.yaml").write_text(
-        "project:\n  uuid: matrix-project-uuid-1234\n"
-        "agents:\n  available:\n    - claude\n",
+        "project:\n  uuid: matrix-project-uuid-1234\nagents:\n  available:\n    - claude\n",
         encoding="utf-8",
     )
     _seed_mission(r, slug=_FULL_SLUG, mission_id=_MISSION_ID)
@@ -146,16 +144,13 @@ def test_status_surface_identical_across_handle_forms(repo: Path, handle: str) -
     baseline = resolve_status_surface_with_anchor(repo, _FULL_SLUG)
     resolved = resolve_status_surface_with_anchor(repo, handle)
     assert resolved.surface_path == baseline.surface_path, (
-        f"handle {handle!r} must resolve the SAME status surface as the full "
-        f"slug — never the wrong-but-plausible kitty-specs/{handle}/ path"
+        f"handle {handle!r} must resolve the SAME status surface as the full slug — never the wrong-but-plausible kitty-specs/{handle}/ path"
     )
     assert resolved.primary_anchor == baseline.primary_anchor
 
 
 @pytest.mark.parametrize("handle", [_COORD_SLUG, _COORD_MID8, "091"])
-def test_coord_status_surface_identical_across_handle_forms(
-    repo: Path, handle: str
-) -> None:
+def test_coord_status_surface_identical_across_handle_forms(repo: Path, handle: str) -> None:
     baseline = resolve_status_surface_with_anchor(repo, _COORD_SLUG)
     resolved = resolve_status_surface_with_anchor(repo, handle)
     assert resolved.surface_path == baseline.surface_path
@@ -168,18 +163,12 @@ def test_coord_status_surface_identical_across_handle_forms(
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_flattened_placement_identical_across_handle_forms(
-    repo: Path, handle: str
-) -> None:
+def test_flattened_placement_identical_across_handle_forms(repo: Path, handle: str) -> None:
     # STATUS_STATE (topology-routed kind) keeps the handle-invariance property
     # under the now-required kind (write-surface-coherence WP02 / T031): a
     # flattened mission routes to target_branch for any kind.
-    baseline = resolve_placement_only(
-        repo, _FULL_SLUG, kind=MissionArtifactKind.STATUS_STATE
-    )
-    placement = resolve_placement_only(
-        repo, handle, kind=MissionArtifactKind.STATUS_STATE
-    )
+    baseline = resolve_placement_only(repo, _FULL_SLUG, kind=MissionArtifactKind.STATUS_STATE)
+    placement = resolve_placement_only(repo, handle, kind=MissionArtifactKind.STATUS_STATE)
     assert placement == baseline  # ref-only CommitTarget equality (C-007)
     # FR-001b: routing reads the STORED topology, handle-invariant — a flattened
     # mission never routes through coordination, regardless of handle form.
@@ -209,15 +198,11 @@ def test_coord_placement_never_flips_to_flattened(repo: Path, handle: str) -> No
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_action_context_identity_identical_across_handle_forms(
-    repo: Path, handle: str
-) -> None:
+def test_action_context_identity_identical_across_handle_forms(repo: Path, handle: str) -> None:
     baseline = resolve_action_context(repo, action="status", feature=_FULL_SLUG)
     ctx = resolve_action_context(repo, action="status", feature=handle)
 
-    assert ctx.mission_slug == _FULL_SLUG, (
-        f"raw handle {handle!r} leaked into mission_slug ({ctx.mission_slug!r})"
-    )
+    assert ctx.mission_slug == _FULL_SLUG, f"raw handle {handle!r} leaked into mission_slug ({ctx.mission_slug!r})"
     assert ctx.feature_dir == baseline.feature_dir
     assert ctx.target_branch == baseline.target_branch
     assert ctx.identity is not None and baseline.identity is not None
@@ -230,9 +215,7 @@ def test_action_context_identity_identical_across_handle_forms(
 
 
 @pytest.mark.parametrize("handle", [_BACKFILLED_SLUG, _BACKFILLED_MID8, "084"])
-def test_backfilled_mission_handles_resolve_real_directory(
-    repo: Path, handle: str
-) -> None:
+def test_backfilled_mission_handles_resolve_real_directory(repo: Path, handle: str) -> None:
     """A backfilled mission (dir name lacks the -mid8 suffix) must resolve via
     its mid8 / numeric handle — never hard-fail on a double-suffixed
     ``kitty-specs/<slug>-<mid8>`` recomposition."""
@@ -259,15 +242,10 @@ def test_backfilled_mission_handles_resolve_real_directory(
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_mission_status_load_identical_across_handle_forms(
-    repo: Path, handle: str
-) -> None:
+def test_mission_status_load_identical_across_handle_forms(repo: Path, handle: str) -> None:
     baseline = MissionStatus.load(repo_root=repo, mission_slug=_FULL_SLUG)
     ms = MissionStatus.load(repo_root=repo, mission_slug=handle)
-    assert ms.mission_id == _MISSION_ID, (
-        f"handle {handle!r} must find the real meta.json (mission_id), "
-        f"got {ms.mission_id!r}"
-    )
+    assert ms.mission_id == _MISSION_ID, f"handle {handle!r} must find the real meta.json (mission_id), got {ms.mission_id!r}"
     assert ms.mid8 == _MID8
     assert ms.read_dir == baseline.read_dir
 
@@ -304,27 +282,21 @@ def test_finding_repro_mid8_handle_values(repo: Path) -> None:
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_tasks_find_mission_slug_returns_canonical_name(
-    repo: Path, handle: str
-) -> None:
+def test_tasks_find_mission_slug_returns_canonical_name(repo: Path, handle: str) -> None:
     from specify_cli.cli.commands.agent.tasks import _find_mission_slug
 
     assert _find_mission_slug(explicit_mission=handle, repo_root=repo) == _FULL_SLUG
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_status_find_mission_slug_returns_canonical_name(
-    repo: Path, handle: str
-) -> None:
+def test_status_find_mission_slug_returns_canonical_name(repo: Path, handle: str) -> None:
     from specify_cli.cli.commands.agent.status import _find_mission_slug
 
     assert _find_mission_slug(explicit_mission=handle, repo_root=repo) == _FULL_SLUG
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_workflow_find_mission_slug_returns_canonical_name(
-    repo: Path, handle: str
-) -> None:
+def test_workflow_find_mission_slug_returns_canonical_name(repo: Path, handle: str) -> None:
     from specify_cli.cli.commands.agent.workflow import _find_mission_slug
 
     assert _find_mission_slug(explicit_mission=handle, repo_root=repo) == _FULL_SLUG
@@ -337,9 +309,7 @@ def test_workflow_find_mission_slug_returns_canonical_name(
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_decision_open_persists_canonical_slug_across_handle_forms(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_decision_open_persists_canonical_slug_across_handle_forms(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """``agent decision open --mission <handle>`` must persist the canonical
     mission_slug — never the raw operator handle — into decisions/index.json,
     the DM artifact, and the DecisionPointOpened event."""
@@ -367,39 +337,25 @@ def test_decision_open_persists_canonical_slug_across_handle_forms(
         catch_exceptions=False,
     )
     assert result.exit_code == 0, result.output
-    response = json.loads(
-        [line for line in result.output.splitlines() if line.strip()][-1]
-    )
-    assert (
-        response["recovery"]["idempotency_key"]["mission_slug"] == _FULL_SLUG
-    ), f"raw handle {handle!r} leaked into the open-response idempotency key"
+    response = json.loads([line for line in result.output.splitlines() if line.strip()][-1])
+    assert response["recovery"]["idempotency_key"]["mission_slug"] == _FULL_SLUG, f"raw handle {handle!r} leaked into the open-response idempotency key"
 
     index_path = repo / "kitty-specs" / _FULL_SLUG / "decisions" / "index.json"
     assert index_path.exists()
     index = json.loads(index_path.read_text(encoding="utf-8"))
-    assert [entry["mission_slug"] for entry in index["entries"]] == [_FULL_SLUG], (
-        f"raw handle {handle!r} leaked into decisions/index.json mission_slug"
-    )
+    assert [entry["mission_slug"] for entry in index["entries"]] == [_FULL_SLUG], f"raw handle {handle!r} leaked into decisions/index.json mission_slug"
 
     artifact_text = Path(response["artifact_path"]).read_text(encoding="utf-8")
-    assert f"- **Mission:** `{_FULL_SLUG}`" in artifact_text, (
-        f"raw handle {handle!r} leaked into the DM artifact Mission line"
-    )
+    assert f"- **Mission:** `{_FULL_SLUG}`" in artifact_text, f"raw handle {handle!r} leaked into the DM artifact Mission line"
 
     events_path = repo / "kitty-specs" / _FULL_SLUG / "status.events.jsonl"
     opened_events = [
         event
-        for event in (
-            json.loads(line)
-            for line in events_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        )
+        for event in (json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip())
         if event.get("event_type") == DECISION_POINT_OPENED
     ]
     assert len(opened_events) == 1
-    assert opened_events[0]["payload"]["mission_slug"] == _FULL_SLUG, (
-        f"raw handle {handle!r} leaked into the DecisionPointOpened event"
-    )
+    assert opened_events[0]["payload"]["mission_slug"] == _FULL_SLUG, f"raw handle {handle!r} leaked into the DecisionPointOpened event"
 
 
 # ---------------------------------------------------------------------------
@@ -429,15 +385,11 @@ def _write_lanes_json(repo: Path) -> None:
         "computed_from": "dependency_graph+ownership",
         "planning_artifact_wps": [],
     }
-    (repo / "kitty-specs" / _FULL_SLUG / "lanes.json").write_text(
-        json.dumps(lanes) + "\n", encoding="utf-8"
-    )
+    (repo / "kitty-specs" / _FULL_SLUG / "lanes.json").write_text(json.dumps(lanes) + "\n", encoding="utf-8")
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_merge_resolve_mission_slug_returns_canonical_slug(
-    repo: Path, handle: str
-) -> None:
+def test_merge_resolve_mission_slug_returns_canonical_slug(repo: Path, handle: str) -> None:
     from specify_cli.cli.commands.merge import _resolve_mission_slug
 
     assert _resolve_mission_slug(repo, handle) == _FULL_SLUG, (
@@ -482,9 +434,7 @@ def test_merge_resolve_mission_slug_fail_closed_window_does_not_raise(
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_merge_dry_run_mission_slug_identical_across_handle_forms(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_merge_dry_run_mission_slug_identical_across_handle_forms(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> None:
     import typer
     from typer.testing import CliRunner
 
@@ -496,9 +446,7 @@ def test_merge_dry_run_mission_slug_identical_across_handle_forms(
     # the assertion under test is the mission_slug the preview composes.
     monkeypatch.setattr(merge_mod, "find_repo_root", lambda: repo)
     monkeypatch.setattr(merge_mod, "_enforce_git_preflight", lambda *a, **kw: None)
-    monkeypatch.setattr(
-        merge_mod, "_resolve_target_branch", lambda *a, **kw: (_TARGET_BRANCH, "flag")
-    )
+    monkeypatch.setattr(merge_mod, "_resolve_target_branch", lambda *a, **kw: (_TARGET_BRANCH, "flag"))
     monkeypatch.setattr(merge_mod, "_validate_target_branch", lambda *a, **kw: None)
 
     app = typer.Typer()
@@ -506,13 +454,8 @@ def test_merge_dry_run_mission_slug_identical_across_handle_forms(
     result = CliRunner().invoke(app, ["--mission", handle, "--dry-run", "--json"])
 
     assert result.exit_code == 0, result.output
-    payload = json.loads(
-        [line for line in result.output.splitlines() if line.strip()][-1]
-    )
-    assert payload["mission_slug"] == _FULL_SLUG, (
-        f"merge --mission {handle!r} --dry-run must report the canonical "
-        f"mission_slug, got {payload['mission_slug']!r}"
-    )
+    payload = json.loads([line for line in result.output.splitlines() if line.strip()][-1])
+    assert payload["mission_slug"] == _FULL_SLUG, f"merge --mission {handle!r} --dry-run must report the canonical mission_slug, got {payload['mission_slug']!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -526,29 +469,21 @@ def test_merge_dry_run_mission_slug_identical_across_handle_forms(
 
 def _feature_runs_index(repo: Path) -> dict[str, dict[str, object]]:
     path = repo / ".kittify" / "runtime" / "feature-runs.json"
-    index: dict[str, dict[str, object]] = json.loads(
-        path.read_text(encoding="utf-8")
-    )
+    index: dict[str, dict[str, object]] = json.loads(path.read_text(encoding="utf-8"))
     return index
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_next_resolve_mission_slug_returns_canonical_slug(
-    repo: Path, handle: str
-) -> None:
+def test_next_resolve_mission_slug_returns_canonical_slug(repo: Path, handle: str) -> None:
     from specify_cli.cli.commands.next_cmd import _resolve_mission_slug
 
     assert _resolve_mission_slug(handle, repo) == _FULL_SLUG, (
-        f"next --mission {handle!r} must canonicalize at the boundary so "
-        "decide_next / get_or_start_run never key runtime state by the raw "
-        "operator handle"
+        f"next --mission {handle!r} must canonicalize at the boundary so decide_next / get_or_start_run never key runtime state by the raw operator handle"
     )
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_next_run_identity_identical_across_handle_forms(
-    repo: Path, handle: str
-) -> None:
+def test_next_run_identity_identical_across_handle_forms(repo: Path, handle: str) -> None:
     """``spec-kitty next --mission <handle>`` must reuse the SAME runtime run
     as the full-slug invocation: one feature-runs.json key, one run_id, one
     run dir, canonical persisted mission_slug — never a split-brain duplicate
@@ -563,21 +498,15 @@ def test_next_run_identity_identical_across_handle_forms(
     run_ref = runtime_bridge.get_or_start_run(slug, repo, "software-dev")
 
     assert run_ref.run_id == baseline.run_id, (
-        f"next --mission {handle!r} started a NEW run ({run_ref.run_id}) "
-        f"instead of reusing the full-slug run ({baseline.run_id})"
+        f"next --mission {handle!r} started a NEW run ({run_ref.run_id}) instead of reusing the full-slug run ({baseline.run_id})"
     )
     assert run_ref.run_dir == baseline.run_dir
 
     index = _feature_runs_index(repo)
     # WP05 / FR-016 (C-003): the index is keyed by mission_id; the slug is
     # display-only and a raw handle must leak into neither.
-    assert set(index) == {_MISSION_ID}, (
-        f"handle {handle!r} leaked a raw-handle key into feature-runs.json: "
-        f"{sorted(index)}"
-    )
-    assert index[_MISSION_ID]["mission_slug"] == _FULL_SLUG, (
-        f"raw handle {handle!r} leaked into the persisted mission_slug"
-    )
+    assert set(index) == {_MISSION_ID}, f"handle {handle!r} leaked a raw-handle key into feature-runs.json: {sorted(index)}"
+    assert index[_MISSION_ID]["mission_slug"] == _FULL_SLUG, f"raw handle {handle!r} leaked into the persisted mission_slug"
     assert index[_MISSION_ID]["mission_id"] == _MISSION_ID
 
 
@@ -598,9 +527,7 @@ def test_next_resolve_mission_slug_propagates_ambiguity(repo: Path) -> None:
     from specify_cli.cli.commands.next_cmd import _resolve_mission_slug
     from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 
-    _seed_mission(
-        repo, slug="083-rival-mission", mission_id="01KTZYXW0000000000000000GH"
-    )
+    _seed_mission(repo, slug="083-rival-mission", mission_id="01KTZYXW0000000000000000GH")
 
     with pytest.raises(MissionSelectorAmbiguous):
         _resolve_mission_slug("083", repo)
@@ -613,9 +540,7 @@ def test_next_resolve_mission_slug_propagates_ambiguity(repo: Path) -> None:
 
 
 @pytest.mark.parametrize("handle", [_COORD_SLUG, _COORD_MID8, _COORD_MISSION_ID])
-def test_coord_empty_window_resolves_primary_with_warning_for_all_handles(
-    repo: Path, handle: str, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_coord_empty_window_resolves_primary_with_warning_for_all_handles(repo: Path, handle: str, caplog: pytest.LogCaptureFixture) -> None:
     """Inverted by mission 01KVN754 WP04 (out-of-map linearized edit; WP05 owns
     this file, but the coord-empty cell breaks at THIS boundary).
 
@@ -650,17 +575,13 @@ def test_coord_empty_window_resolves_primary_with_warning_for_all_handles(
     coord_meta_path.write_text(json.dumps(coord_meta), encoding="utf-8")
 
     expected_primary = (repo / "kitty-specs" / _COORD_SLUG).resolve()
-    with caplog.at_level(
-        logging.WARNING, logger="specify_cli.coordination.surface_resolver"
-    ):
+    with caplog.at_level(logging.WARNING, logger="specify_cli.coordination.surface_resolver"):
         ms = MissionStatus.load(repo_root=repo, mission_slug=handle)
 
     assert ms.read_dir.resolve() == expected_primary
-    assert any(
-        r.name == "specify_cli.coordination.surface_resolver"
-        and r.levelno == logging.WARNING
-        for r in caplog.records
-    ), "coord-empty Option B must emit a logging.WARNING (no silent fallback)"
+    assert any(r.name == "specify_cli.coordination.surface_resolver" and r.levelno == logging.WARNING for r in caplog.records), (
+        "coord-empty Option B must emit a logging.WARNING (no silent fallback)"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -698,9 +619,7 @@ def test_coord_deleted_hard_fails_for_all_handles(repo: Path, handle: str) -> No
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_plan_interview_persists_canonical_slug_across_handle_forms(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_plan_interview_persists_canonical_slug_across_handle_forms(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """The explicit ``--mission`` path of ``spec-kitty plan`` must key the
     interview seam by the canonical directory name. Pre-fix it handed the RAW
     selector value (``resolved.canonical_value``) to ``run_plan_interview``,
@@ -720,15 +639,11 @@ def test_plan_interview_persists_canonical_slug_across_handle_forms(
     # non-reexported module alias), so patch the canonical module attribute —
     # the SAME object lifecycle calls through — keeping mypy's
     # no-implicit-reexport check clean.
-    monkeypatch.setattr(
-        "specify_cli.cli.commands.agent.mission.setup_plan", lambda **_kw: None
-    )
+    monkeypatch.setattr("specify_cli.cli.commands.agent.mission.setup_plan", lambda **_kw: None)
     # Keep the widen affordance offline (its setup is non-fatal by design).
     monkeypatch.setattr(
         "specify_cli.widen.check_prereqs",
-        lambda *_a, **_kw: PrereqState(
-            teamspace_ok=False, slack_ok=False, saas_reachable=False
-        ),
+        lambda *_a, **_kw: PrereqState(teamspace_ok=False, slack_ok=False, saas_reachable=False),
     )
 
     app = typer.Typer()
@@ -743,17 +658,11 @@ def test_plan_interview_persists_canonical_slug_across_handle_forms(
     assert result.exit_code == 0, result.output
 
     index_path = repo / "kitty-specs" / _FULL_SLUG / "decisions" / "index.json"
-    assert index_path.exists(), (
-        f"plan --mission {handle!r} must open the interview Decision Moments "
-        "under the canonical mission directory"
-    )
+    assert index_path.exists(), f"plan --mission {handle!r} must open the interview Decision Moments under the canonical mission directory"
     index = json.loads(index_path.read_text(encoding="utf-8"))
     assert index["entries"], "expected one Decision Moment per interview question"
     slugs = {entry["mission_slug"] for entry in index["entries"]}
-    assert slugs == {_FULL_SLUG}, (
-        f"raw handle {handle!r} leaked into decisions/index.json mission_slug: "
-        f"{sorted(slugs)}"
-    )
+    assert slugs == {_FULL_SLUG}, f"raw handle {handle!r} leaked into decisions/index.json mission_slug: {sorted(slugs)}"
 
 
 # ---------------------------------------------------------------------------
@@ -787,9 +696,7 @@ def _seed_custom_mission(repo: Path) -> None:
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_mission_run_identity_identical_across_handle_forms(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_run_identity_identical_across_handle_forms(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> None:
     from typer.testing import CliRunner
 
     from specify_cli.cli.commands import mission_type
@@ -809,9 +716,7 @@ def test_mission_run_identity_identical_across_handle_forms(
             catch_exceptions=False,
         )
         assert baseline.exit_code == 0, baseline.output
-        baseline_payload = json.loads(
-            baseline.output[baseline.output.index("{") :]
-        )
+        baseline_payload = json.loads(baseline.output[baseline.output.index("{") :])
 
         # The v1 registry shadow is a process singleton; clear between
         # sequential runs of the same mission_key (the documented contract).
@@ -827,24 +732,13 @@ def test_mission_run_identity_identical_across_handle_forms(
     finally:
         registry.clear()
 
-    assert payload["mission_slug"] == _FULL_SLUG, (
-        f"mission run --mission {handle!r} must report the canonical "
-        f"mission_slug, got {payload['mission_slug']!r}"
-    )
-    assert payload["run_dir"] == baseline_payload["run_dir"], (
-        f"mission run --mission {handle!r} started a NEW run instead of "
-        "attaching to the full-slug run"
-    )
+    assert payload["mission_slug"] == _FULL_SLUG, f"mission run --mission {handle!r} must report the canonical mission_slug, got {payload['mission_slug']!r}"
+    assert payload["run_dir"] == baseline_payload["run_dir"], f"mission run --mission {handle!r} started a NEW run instead of attaching to the full-slug run"
 
     index = _feature_runs_index(repo)
     # WP05 / FR-016 (C-003): keyed by mission_id; slug is display-only.
-    assert set(index) == {_MISSION_ID}, (
-        f"handle {handle!r} leaked a raw-handle key into feature-runs.json: "
-        f"{sorted(index)}"
-    )
-    assert index[_MISSION_ID]["mission_slug"] == _FULL_SLUG, (
-        f"raw handle {handle!r} leaked into the persisted mission_slug"
-    )
+    assert set(index) == {_MISSION_ID}, f"handle {handle!r} leaked a raw-handle key into feature-runs.json: {sorted(index)}"
+    assert index[_MISSION_ID]["mission_slug"] == _FULL_SLUG, f"raw handle {handle!r} leaked into the persisted mission_slug"
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
@@ -852,8 +746,7 @@ def test_mission_run_resolver_returns_canonical_slug(repo: Path, handle: str) ->
     from specify_cli.cli.commands.mission_type import _resolve_mission_slug
 
     assert _resolve_mission_slug(repo, handle) == _FULL_SLUG, (
-        f"mission run --mission {handle!r} must canonicalize at the boundary "
-        "so get_or_start_run never keys runtime state by the raw handle"
+        f"mission run --mission {handle!r} must canonicalize at the boundary so get_or_start_run never keys runtime state by the raw handle"
     )
 
 
@@ -871,9 +764,7 @@ def test_mission_run_resolver_propagates_ambiguity(repo: Path) -> None:
     from specify_cli.cli.commands.mission_type import _resolve_mission_slug
     from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 
-    _seed_mission(
-        repo, slug="083-rival-mission", mission_id="01KTZYXW0000000000000000GH"
-    )
+    _seed_mission(repo, slug="083-rival-mission", mission_id="01KTZYXW0000000000000000GH")
 
     with pytest.raises(MissionSelectorAmbiguous):
         _resolve_mission_slug(repo, "083")
@@ -925,9 +816,7 @@ def _seed_wp01(repo: Path) -> None:
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_resolve_context_persists_canonical_slug_and_ref_across_handle_forms(
-    repo: Path, handle: str
-) -> None:
+def test_resolve_context_persists_canonical_slug_and_ref_across_handle_forms(repo: Path, handle: str) -> None:
     """``resolve_context`` canonicalizes the DIRECTORY but pre-fix composed the
     persisted MissionContext (``mission_slug`` and the lane-branch
     ``authoritative_ref``) from the RAW handle — a wrong-but-plausible
@@ -937,33 +826,18 @@ def test_resolve_context_persists_canonical_slug_and_ref_across_handle_forms(
     _write_lanes_json(repo)
     _seed_wp01(repo)
 
-    baseline = resolve_context(
-        wp_code="WP01", mission_slug=_FULL_SLUG, agent="claude", repo_root=repo
-    )
-    ctx = resolve_context(
-        wp_code="WP01", mission_slug=handle, agent="claude", repo_root=repo
-    )
+    baseline = resolve_context(wp_code="WP01", mission_slug=_FULL_SLUG, agent="claude", repo_root=repo)
+    ctx = resolve_context(wp_code="WP01", mission_slug=handle, agent="claude", repo_root=repo)
 
-    assert ctx.mission_slug == _FULL_SLUG, (
-        f"raw handle {handle!r} leaked into MissionContext.mission_slug "
-        f"({ctx.mission_slug!r})"
-    )
+    assert ctx.mission_slug == _FULL_SLUG, f"raw handle {handle!r} leaked into MissionContext.mission_slug ({ctx.mission_slug!r})"
     assert ctx.authoritative_ref == baseline.authoritative_ref, (
-        f"handle {handle!r} composed authoritative_ref "
-        f"{ctx.authoritative_ref!r} != full-slug ref "
-        f"{baseline.authoritative_ref!r}"
+        f"handle {handle!r} composed authoritative_ref {ctx.authoritative_ref!r} != full-slug ref {baseline.authoritative_ref!r}"
     )
     assert ctx.mission_id == _MISSION_ID
     assert ctx.target_branch == baseline.target_branch
 
-    persisted = json.loads(
-        (repo / ".kittify" / "runtime" / "contexts" / f"{ctx.token}.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert persisted["mission_slug"] == _FULL_SLUG, (
-        f"raw handle {handle!r} leaked into the persisted context token payload"
-    )
+    persisted = json.loads((repo / ".kittify" / "runtime" / "contexts" / f"{ctx.token}.json").read_text(encoding="utf-8"))
+    assert persisted["mission_slug"] == _FULL_SLUG, f"raw handle {handle!r} leaked into the persisted context token payload"
     assert persisted["authoritative_ref"] == baseline.authoritative_ref
 
 
@@ -1023,9 +897,7 @@ def _seed_discardable_lane(repo: Path) -> tuple[str, Path]:
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_mission_close_discard_removes_lane_branch_and_worktree_across_handles(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_close_discard_removes_lane_branch_and_worktree_across_handles(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """``mission close --discard --mission <handle>`` must delete the SAME lane
     branch and lane worktree for every handle form. Pre-fix, close resolved
     the DIRECTORY canonically but handed the RAW handle to
@@ -1049,22 +921,12 @@ def test_mission_close_discard_removes_lane_branch_and_worktree_across_handles(
     )
     assert result.exit_code == 0, result.output
 
-    assert not _branch_exists(repo, lane_branch), (
-        f"close --discard --mission {handle!r} left lane branch "
-        f"{lane_branch!r} behind while reporting success"
-    )
-    assert not _branch_exists(repo, f"kitty/mission-{_FULL_SLUG}"), (
-        f"close --discard --mission {handle!r} left the mission branch behind"
-    )
-    assert not lane_worktree.exists(), (
-        f"close --discard --mission {handle!r} left lane worktree "
-        f"{lane_worktree.name!r} behind while reporting success"
-    )
+    assert not _branch_exists(repo, lane_branch), f"close --discard --mission {handle!r} left lane branch {lane_branch!r} behind while reporting success"
+    assert not _branch_exists(repo, f"kitty/mission-{_FULL_SLUG}"), f"close --discard --mission {handle!r} left the mission branch behind"
+    assert not lane_worktree.exists(), f"close --discard --mission {handle!r} left lane worktree {lane_worktree.name!r} behind while reporting success"
 
 
-def test_mission_close_unresolvable_handle_keeps_structured_error(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_close_unresolvable_handle_keeps_structured_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Unresolvable handles keep the established structured error contract
     (ActionContextError from resolve_action_context) — re-keying happens only
     after a successful dir resolution and must not soften or reroute it."""
@@ -1082,9 +944,7 @@ def test_mission_close_unresolvable_handle_keeps_structured_error(
         )
 
 
-def test_mission_close_ambiguous_handle_propagates_structured_error(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_close_ambiguous_handle_propagates_structured_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """C-CTX-4: an ambiguous numeric-prefix handle raises a structured ambiguity
     error carrying MISSION_AMBIGUOUS_SELECTOR — never a silent pick of one
     candidate to discard (deleting branches/worktrees of the WRONG mission).
@@ -1103,9 +963,7 @@ def test_mission_close_ambiguous_handle_propagates_structured_error(
     from specify_cli.cli.commands import mission_type
     from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 
-    _seed_mission(
-        repo, slug="083-rival-mission", mission_id="01KTZYXW0000000000000000GH"
-    )
+    _seed_mission(repo, slug="083-rival-mission", mission_id="01KTZYXW0000000000000000GH")
     monkeypatch.chdir(repo)
     with pytest.raises((MissionSelectorAmbiguous, ActionContextError)) as excinfo:
         CliRunner().invoke(
@@ -1113,13 +971,8 @@ def test_mission_close_ambiguous_handle_propagates_structured_error(
             ["close", "--mission", "083", "--discard", "--force"],
             catch_exceptions=False,
         )
-    code = getattr(excinfo.value, "code", None) or getattr(
-        excinfo.value, "error_code", None
-    )
-    assert code == "MISSION_AMBIGUOUS_SELECTOR", (
-        f"ambiguous handle must surface MISSION_AMBIGUOUS_SELECTOR, got {code!r} "
-        f"from {type(excinfo.value).__name__}"
-    )
+    code = getattr(excinfo.value, "code", None) or getattr(excinfo.value, "error_code", None)
+    assert code == "MISSION_AMBIGUOUS_SELECTOR", f"ambiguous handle must surface MISSION_AMBIGUOUS_SELECTOR, got {code!r} from {type(excinfo.value).__name__}"
 
 
 # ---------------------------------------------------------------------------
@@ -1132,9 +985,7 @@ def test_mission_close_ambiguous_handle_propagates_structured_error(
 # ---------------------------------------------------------------------------
 
 
-def _invoke_research(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> Result:
+def _invoke_research(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> Result:
     import typer
     from typer.testing import CliRunner
 
@@ -1147,9 +998,7 @@ def _invoke_research(
 
 
 @pytest.mark.parametrize("handle", [_FULL_SLUG, _MID8, "083"])
-def test_research_lands_on_the_canonical_directory_across_handle_forms(
-    repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_research_lands_on_the_canonical_directory_across_handle_forms(repo: Path, handle: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """``research --mission <handle>`` canonicalizes the DIRECTORY via
     resolve_feature_dir_for_slug and then re-keys mission_slug to it — every
     handle form must converge on one directory, never scaffold a second one
@@ -1158,19 +1007,14 @@ def test_research_lands_on_the_canonical_directory_across_handle_forms(
     assert result.exit_code == 0, result.output
 
     canonical = repo / "kitty-specs" / _FULL_SLUG
-    assert (canonical / "research.md").is_file(), (
-        f"research --mission {handle!r} did not land on the canonical directory {canonical}"
-    )
+    assert (canonical / "research.md").is_file(), f"research --mission {handle!r} did not land on the canonical directory {canonical}"
     if handle != _FULL_SLUG:
         assert not (repo / "kitty-specs" / handle).exists(), (
-            f"research --mission {handle!r} scaffolded a directory keyed by the raw handle — "
-            "the handle was not re-keyed onto feature_dir.name"
+            f"research --mission {handle!r} scaffolded a directory keyed by the raw handle — the handle was not re-keyed onto feature_dir.name"
         )
 
 
-def test_research_unresolvable_slug_refuses_and_writes_nothing(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_research_unresolvable_slug_refuses_and_writes_nothing(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Unresolvable slugs are refused, not scaffolded.
 
     The historical behaviour (pre-#4631/#4736) silently scaffolded a phantom

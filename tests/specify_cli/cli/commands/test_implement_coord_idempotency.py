@@ -36,9 +36,7 @@ _PLANNING_BRANCH = "mission/coord-idempotency-demo"
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
 
 def _seed_coord_mission_real(tmp_path: Path) -> tuple[Path, Path, str, str, CommitTarget]:
@@ -106,9 +104,7 @@ def _claim(repo: Path, feature_dir: Path, mission_slug: str, wp_id: str, target:
 
 
 class TestCoordHealthyPathIdempotency:
-    def test_repeated_claim_of_a_coord_identical_primary_artifact_does_not_hard_fail(
-        self, tmp_path: Path
-    ) -> None:
+    def test_repeated_claim_of_a_coord_identical_primary_artifact_does_not_hard_fail(self, tmp_path: Path) -> None:
         """The read surface follows the verbatim write target: a PRIMARY artifact
         already committed to the coord ref is dropped on the next claim instead of
         producing an empty commit that ``Exit(1)``s. Pre-fix this raised on claim 2.

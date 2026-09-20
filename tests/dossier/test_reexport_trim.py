@@ -63,10 +63,7 @@ def dossier_module():
 @pytest.mark.parametrize("name", REMOVED_TYPE_REEXPORTS)
 def test_type_reexport_no_longer_reachable_as_attribute(dossier_module, name):
     """The seven type re-exports are gone from specify_cli.dossier's namespace."""
-    assert not hasattr(dossier_module, name), (
-        f"specify_cli.dossier still exposes {name!r}; expected it removed "
-        "per #3677 (WP04 dossier re-export trim)."
-    )
+    assert not hasattr(dossier_module, name), f"specify_cli.dossier still exposes {name!r}; expected it removed per #3677 (WP04 dossier re-export trim)."
 
 
 @pytest.mark.parametrize("name", REMOVED_TYPE_REEXPORTS)
@@ -90,10 +87,7 @@ def test_type_reexport_absent_from_dunder_all(dossier_module, name):
 @pytest.mark.parametrize("name", RETAINED_EMIT_REEXPORTS)
 def test_emit_reexport_still_reachable_as_attribute(dossier_module, name):
     """The four emit_* re-exports are untouched by the trim (C-002)."""
-    assert hasattr(dossier_module, name), (
-        f"specify_cli.dossier no longer exposes {name!r}; the emit_* "
-        "re-exports must survive the #3677 trim untouched (C-002)."
-    )
+    assert hasattr(dossier_module, name), f"specify_cli.dossier no longer exposes {name!r}; the emit_* re-exports must survive the #3677 trim untouched (C-002)."
 
 
 @pytest.mark.parametrize("name", RETAINED_EMIT_REEXPORTS)

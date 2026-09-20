@@ -86,9 +86,7 @@ class ForbiddenFieldError(ValueError):
     def __init__(self, key: str, path: tuple[str | int, ...]):
         self.key = key
         self.path = path
-        super().__init__(
-            f"forbidden key {key!r} at path {'.'.join(str(p) for p in path) or '<root>'}"
-        )
+        super().__init__(f"forbidden key {key!r} at path {'.'.join(str(p) for p in path) or '<root>'}")
 
 
 def _walk(node: Any, forbidden: frozenset[str], path: tuple[str | int, ...]) -> None:
@@ -104,9 +102,7 @@ def _walk(node: Any, forbidden: frozenset[str], path: tuple[str | int, ...]) -> 
             _walk(item, forbidden, path + (index,))
 
 
-def assert_clean(
-    document: Mapping[str, Any], *, forbidden: frozenset[str] = FORBIDDEN_CONTROL_KEYS
-) -> None:
+def assert_clean(document: Mapping[str, Any], *, forbidden: frozenset[str] = FORBIDDEN_CONTROL_KEYS) -> None:
     """Recursive key-only walk. Raises :class:`ForbiddenFieldError` on the
     first hit; never repairs, never returns a cleaned copy.
 

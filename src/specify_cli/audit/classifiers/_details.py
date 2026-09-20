@@ -4,21 +4,15 @@ from __future__ import annotations
 
 import re
 
-_POSIX_ABSOLUTE_PATH_RE = re.compile(
-    r"(?<![\w:/])/(?:[^/:\r\n'\"<>]+/)[^\r\n'\"<>]*"
-)
+_POSIX_ABSOLUTE_PATH_RE = re.compile(r"(?<![\w:/])/(?:[^/:\r\n'\"<>]+/)[^\r\n'\"<>]*")
 _POSIX_SINGLE_COMPONENT_PATH_RE = re.compile(
     r"(?<![\w:/])/(?:"
     r"tmp|var|private|Users|home|etc|opt|usr|bin|sbin|dev|Volumes|"
     r"System|Library|Applications|[^/\s:\r\n'\"<>]*\.[^/\s:\r\n'\"<>]+"
     r")(?![\w/.-])"
 )
-_WINDOWS_ABSOLUTE_PATH_RE = re.compile(
-    r"(?i)\b[A-Z]:\\[^\r\n'\"<>|]*"
-)
-_WINDOWS_UNC_PATH_RE = re.compile(
-    r"\\\\[^\\\r\n'\"<>|]+\\[^\r\n'\"<>|]*"
-)
+_WINDOWS_ABSOLUTE_PATH_RE = re.compile(r"(?i)\b[A-Z]:\\[^\r\n'\"<>|]*")
+_WINDOWS_UNC_PATH_RE = re.compile(r"\\\\[^\\\r\n'\"<>|]+\\[^\r\n'\"<>|]*")
 
 
 def format_exception_detail(exc: Exception) -> str:

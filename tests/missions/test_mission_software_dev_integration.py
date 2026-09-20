@@ -60,9 +60,7 @@ class TestMissionYamlPresence:
 # Retired mission-DSL v1 blocks
 # ---------------------------------------------------------------------------
 
-RETIRED_DSL_KEYS = frozenset(
-    {"mission", "initial", "states", "transitions", "guards", "inputs", "outputs"}
-)
+RETIRED_DSL_KEYS = frozenset({"mission", "initial", "states", "transitions", "guards", "inputs", "outputs"})
 
 
 class TestRetiredDslBlocks:
@@ -76,10 +74,7 @@ class TestRetiredDslBlocks:
 
     def test_retired_keys_absent(self, software_dev_config: dict) -> None:
         present = RETIRED_DSL_KEYS & set(software_dev_config)
-        assert not present, (
-            f"shipped software-dev mission.yaml must not carry retired "
-            f"mission-DSL v1 keys: {sorted(present)}"
-        )
+        assert not present, f"shipped software-dev mission.yaml must not carry retired mission-DSL v1 keys: {sorted(present)}"
 
     def test_mission_identity_is_top_level(self, software_dev_config: dict) -> None:
         assert software_dev_config["name"] == "Software Dev Kitty"
@@ -101,9 +96,7 @@ class TestV0BackwardCompatibility:
     def test_v0_workflow_preserved(self, software_dev_config: dict) -> None:
         assert "workflow" in software_dev_config
         phases = software_dev_config["workflow"]["phases"]
-        assert frozenset(p["name"] for p in phases) == frozenset(
-            {"research", "design", "implement", "test", "review"}
-        )
+        assert frozenset(p["name"] for p in phases) == frozenset({"research", "design", "implement", "test", "review"})
 
     def test_v0_artifacts_preserved(self, software_dev_config: dict) -> None:
         assert "artifacts" in software_dev_config

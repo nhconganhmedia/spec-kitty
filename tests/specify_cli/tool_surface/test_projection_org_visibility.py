@@ -84,9 +84,7 @@ def _seed_project_profile(repo_root: Path) -> None:
     )
 
 
-def _write_config(
-    repo_root: Path, pack_root: Path | None, *, activated: list[str] | None
-) -> None:
+def _write_config(repo_root: Path, pack_root: Path | None, *, activated: list[str] | None) -> None:
     """Write ``.kittify/config.yaml`` declaring the org pack and activation state.
 
     ``pack_root`` of ``None`` omits the ``doctrine.org.packs`` declaration (the
@@ -95,9 +93,7 @@ def _write_config(
     """
     data: dict[str, object] = {}
     if pack_root is not None:
-        data["doctrine"] = {
-            "org": {"packs": [{"name": _PACK_NAME, "local_path": str(pack_root)}]}
-        }
+        data["doctrine"] = {"org": {"packs": [{"name": _PACK_NAME, "local_path": str(pack_root)}]}}
     if activated is not None:
         data["activated_agent_profiles"] = activated
     kittify = repo_root / ".kittify"
@@ -123,9 +119,7 @@ def _urn(profile_id: str) -> str:
 
 
 class TestOrgProjectionTwoRegime:
-    def test_admitted_org_profile_projected_with_org_source_layer(
-        self, tmp_path: Path
-    ) -> None:
+    def test_admitted_org_profile_projected_with_org_source_layer(self, tmp_path: Path) -> None:
         """Activation absent → org analyst projected; manifest entry tagged ``org``."""
         pack_root = _write_org_pack(tmp_path)
         _seed_project_profile(tmp_path)
@@ -144,9 +138,7 @@ class TestOrgProjectionTwoRegime:
         assert _urn(_PROJECT_ID) in projected
         assert projected[_urn(_PROJECT_ID)].source_layer == "project"
 
-    def test_explicit_include_keeps_org_profile_projected(
-        self, tmp_path: Path
-    ) -> None:
+    def test_explicit_include_keeps_org_profile_projected(self, tmp_path: Path) -> None:
         """Explicit list including the org id → projected with ``org`` provenance."""
         pack_root = _write_org_pack(tmp_path)
         _seed_project_profile(tmp_path)
@@ -158,9 +150,7 @@ class TestOrgProjectionTwoRegime:
         assert org is not None
         assert org.source_layer == "org"
 
-    def test_deactivated_org_profile_absent_from_projection(
-        self, tmp_path: Path
-    ) -> None:
+    def test_deactivated_org_profile_absent_from_projection(self, tmp_path: Path) -> None:
         """Explicit list excluding the org id → it is ABSENT (NFR-002 negative)."""
         pack_root = _write_org_pack(tmp_path)
         _seed_project_profile(tmp_path)
@@ -183,10 +173,7 @@ class TestOrgProjectionTwoRegime:
 
 def _signature(projected: dict[str, NativeAgentProfile]) -> list[tuple[str, str, str | None]]:
     """A stable, order-sensitive projection signature for equality assertions."""
-    return [
-        (p.profile_urn, p.source_layer, p.source_path)
-        for p in sorted(projected.values(), key=lambda n: n.profile_urn)
-    ]
+    return [(p.profile_urn, p.source_layer, p.source_path) for p in sorted(projected.values(), key=lambda n: n.profile_urn)]
 
 
 class TestNoOrgPacksRegression:

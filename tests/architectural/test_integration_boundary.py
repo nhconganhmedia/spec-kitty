@@ -113,8 +113,7 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset()
 # ---------------------------------------------------------------------------
 
 _CORRECTIVE_ACTION = (
-    "Route through the adapter/observer registry in status/adapters.py or "
-    "invocation/adapters.py instead of importing INTEGRATION modules directly."
+    "Route through the adapter/observer registry in status/adapters.py or invocation/adapters.py instead of importing INTEGRATION modules directly."
 )
 
 # ---------------------------------------------------------------------------
@@ -148,10 +147,7 @@ def _is_allowlisted(rel: str, mod: str) -> bool:
     ``specify_cli.saas.rollout`` cannot silently exempt a sibling like a future
     ``specify_cli.saas.rollout_v2`` — mirrors the prefix match in :func:`_scan_trees`.
     """
-    return any(
-        rel == entry[0] and (mod == entry[1] or mod.startswith(entry[1] + "."))
-        for entry in ALLOWLIST
-    )
+    return any(rel == entry[0] and (mod == entry[1] or mod.startswith(entry[1] + ".")) for entry in ALLOWLIST)
 
 
 def _scan_trees(items: Iterable[tuple[str, ast.AST]]) -> list[str]:
@@ -168,12 +164,7 @@ def _scan_trees(items: Iterable[tuple[str, ast.AST]]) -> list[str]:
             for prefix in INTEGRATION_PREFIXES:
                 if mod == prefix or mod.startswith(prefix + "."):
                     if not _is_allowlisted(rel, mod):
-                        violations.append(
-                            "CORE→INTEGRATION boundary violation:\n"
-                            f"  file:   {rel}\n"
-                            f"  import: {mod}\n"
-                            f"  action: {_CORRECTIVE_ACTION}"
-                        )
+                        violations.append(f"CORE→INTEGRATION boundary violation:\n  file:   {rel}\n  import: {mod}\n  action: {_CORRECTIVE_ACTION}")
                     break  # matched a prefix — no need to check others
     return violations
 
@@ -211,10 +202,7 @@ def test_no_core_imports_integration(
 
     violations = _scan_trees(items)
 
-    assert not violations, (
-        f"CORE→INTEGRATION boundary violations found "
-        f"({len(violations)} total):\n\n" + "\n\n".join(violations)
-    )
+    assert not violations, f"CORE→INTEGRATION boundary violations found ({len(violations)} total):\n\n" + "\n\n".join(violations)
 
 
 # ---------------------------------------------------------------------------
@@ -243,9 +231,6 @@ def test_allowlist_cannot_be_bypassed(tmp_path: Path) -> None:
 
     violations = _scan_trees([(fake_rel, tree)])
 
-    assert violations, (
-        "Enforcement scan did NOT flag a non-allowlisted INTEGRATION import in a "
-        "CORE-set file — the gate would pass vacuously."
-    )
+    assert violations, "Enforcement scan did NOT flag a non-allowlisted INTEGRATION import in a CORE-set file — the gate would pass vacuously."
     assert "specify_cli.sync.events" in violations[0]
     assert fake_rel in violations[0]

@@ -2,8 +2,8 @@
 
 from charter.offering.toolguides.validation import validate_toolguide
 import pytest
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 class TestValidateToolguide:
@@ -30,4 +30,3 @@ class TestValidateToolguide:
         sample_toolguide_data["guide_path"] = "/absolute/guide.md"
         errors = validate_toolguide(sample_toolguide_data)
         assert any("guide_path" in e for e in errors)
-

@@ -86,9 +86,7 @@ def _catalog_default_or_activated(
     return set(activated)
 
 
-def _graph_and_catalog_default_ids(
-    graph: DRGGraph, kind: NodeKind, catalog_default: frozenset[str]
-) -> frozenset[str]:
+def _graph_and_catalog_default_ids(graph: DRGGraph, kind: NodeKind, catalog_default: frozenset[str]) -> frozenset[str]:
     """The "all built-ins" default for one artifact *kind* (WP02 ruling 2).
 
     Union of *catalog_default* (``load_doctrine_catalog()``'s real built-in
@@ -102,11 +100,7 @@ def _graph_and_catalog_default_ids(
     narrowing below the real catalog (see ``_catalog_default_or_activated``'s
     docstring for why narrowing would break WP02's own T007 step 5 fixture).
     """
-    graph_ids = {
-        node.urn.split(":", 1)[1]
-        for node in graph.nodes
-        if node.kind is kind and ":" in node.urn
-    }
+    graph_ids = {node.urn.split(":", 1)[1] for node in graph.nodes if node.kind is kind and ":" in node.urn}
     return frozenset(graph_ids | catalog_default)
 
 
@@ -250,9 +244,7 @@ def _load_action_doctrine_bundle(
         repo_root,
         org_roots=org_roots if org_roots else ([org_root] if org_root else None),
     )
-    resolved_type = resolve_mission_type_key(
-        mission_type=mission_type, feature_dir=feature_dir
-    )
+    resolved_type = resolve_mission_type_key(mission_type=mission_type, feature_dir=feature_dir)
 
     # The DRG load honours the built-in + org + project three-layer overlay
     # (WP07 T034; charter-internal callers pass org_root=None for two layers).
@@ -301,9 +293,7 @@ def _load_action_doctrine_bundle(
             # mission branch below never loads a graph and never consumes
             # these three names, so nothing needs them precomputed earlier.
             catalog = load_doctrine_catalog()
-            activated_directives_arg = (
-                pack_context.activated_directives if pack_context is not None else None
-            )
+            activated_directives_arg = pack_context.activated_directives if pack_context is not None else None
             project_directives = {
                 _normalize_directive_id(d)
                 for d in _catalog_default_or_activated(
@@ -311,16 +301,12 @@ def _load_action_doctrine_bundle(
                     _graph_and_catalog_default_ids(merged, NodeKind.DIRECTIVE, catalog.directives),
                 )
             }
-            activated_tactics_arg = (
-                pack_context.activated_tactics if pack_context is not None else None
-            )
+            activated_tactics_arg = pack_context.activated_tactics if pack_context is not None else None
             selected_tactics = _catalog_default_or_activated(
                 activated_tactics_arg,
                 _graph_and_catalog_default_ids(merged, NodeKind.TACTIC, catalog.tactics),
             )
-            activated_paradigms_arg = (
-                pack_context.activated_paradigms if pack_context is not None else None
-            )
+            activated_paradigms_arg = pack_context.activated_paradigms if pack_context is not None else None
             selected_paradigms = _catalog_default_or_activated(
                 activated_paradigms_arg,
                 _graph_and_catalog_default_ids(merged, NodeKind.PARADIGM, catalog.paradigms),
@@ -349,17 +335,19 @@ def _load_action_doctrine_bundle(
             selected_tactics |= set(org_required["tactics"])
             selected_paradigms |= set(org_required["paradigms"])
 
-
             # Explicitly activated project directives govern the project even
             # without an action edge. The filtered graph is the activation
             # authority; repository provenance distinguishes local roots from
             # built-ins, which retain their action-scoped delivery.
-            local_directives = {
-                node.urn.split(":", 1)[1]
-                for node in merged.nodes
-                if node.kind.value == "directive"
-                and service.directives.get_provenance(node.urn.split(":", 1)[1]) == "project"
-            } if pack_context is not None and pack_context.activated_directives is not None else set()
+            local_directives = (
+                {
+                    node.urn.split(":", 1)[1]
+                    for node in merged.nodes
+                    if node.kind.value == "directive" and service.directives.get_provenance(node.urn.split(":", 1)[1]) == "project"
+                }
+                if pack_context is not None and pack_context.activated_directives is not None
+                else set()
+            )
             action_urn = f"action:{resolved_type}/{action}"
             resolved = resolve_context(merged, action_urn, depth=effective_depth)
             ids_by_slot = _classify_artifact_urns(
@@ -400,8 +388,7 @@ def _load_action_doctrine_bundle(
             unarbitrated_tensions = resolved.unarbitrated_tensions
         except (DRGLoadError, DRGProjectValidationError) as exc:
             _LOGGER.warning(
-                "DRG action resolution skipped for %s/%s: %s. "
-                "Charter-level selections still render.",
+                "DRG action resolution skipped for %s/%s: %s. Charter-level selections still render.",
                 resolved_type,
                 action,
                 exc,

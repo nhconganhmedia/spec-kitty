@@ -161,9 +161,7 @@ def test_tracker_only_mode_yields_empty_to_write() -> None:
 
 
 def test_malformed_offender_detected() -> None:
-    plan = plan_mapping(
-        _req(new_mappings={"WP01": ["FR-1A"]}, mode="wp_refs", replace=True)
-    )
+    plan = plan_mapping(_req(new_mappings={"WP01": ["FR-1A"]}, mode="wp_refs", replace=True))
     assert plan.offenders.malformed == ("FR-1A",)
     # Faithful to the live command: the spec-membership check is computed over the
     # SAME refs, so a malformed token is ALSO not in spec → it appears in the
@@ -173,18 +171,14 @@ def test_malformed_offender_detected() -> None:
 
 
 def test_unknown_spec_id_offender_detected() -> None:
-    plan = plan_mapping(
-        _req(new_mappings={"WP01": ["FR-999"]}, mode="wp_refs", replace=True)
-    )
+    plan = plan_mapping(_req(new_mappings={"WP01": ["FR-999"]}, mode="wp_refs", replace=True))
     # Well-formed but not declared in spec.md → unknown_spec_id (not malformed).
     assert plan.offenders.malformed == ()
     assert plan.offenders.unknown_spec_id == ("FR-999",)
 
 
 def test_both_offender_buckets_populated() -> None:
-    plan = plan_mapping(
-        _req(new_mappings={"WP01": ["FR-1A", "FR-999"]}, mode="wp_refs", replace=True)
-    )
+    plan = plan_mapping(_req(new_mappings={"WP01": ["FR-1A", "FR-999"]}, mode="wp_refs", replace=True))
     # Mirrors the live command: format-check yields FR-1A; the spec-membership
     # check (computed over the same refs) rejects both. The shell gates malformed
     # FIRST, so only the malformed arm is surfaced when both are present.
@@ -193,9 +187,7 @@ def test_both_offender_buckets_populated() -> None:
 
 
 def test_offenders_preserve_input_order_and_case_folding() -> None:
-    plan = plan_mapping(
-        _req(new_mappings={"WP01": ["fr-002", "bogus", "fr-001"]}, mode="wp_refs", replace=True)
-    )
+    plan = plan_mapping(_req(new_mappings={"WP01": ["fr-002", "bogus", "fr-001"]}, mode="wp_refs", replace=True))
     # validate_ref_format uppercases; "BOGUS" is the sole malformed token.
     assert plan.offenders.malformed == ("BOGUS",)
 
@@ -206,9 +198,7 @@ def test_offenders_preserve_input_order_and_case_folding() -> None:
 
 
 def test_unmapped_fr_lists_uncovered_functional_ids() -> None:
-    plan = plan_mapping(
-        _req(new_mappings={"WP01": ["FR-001"]}, mode="wp_refs", replace=True)
-    )
+    plan = plan_mapping(_req(new_mappings={"WP01": ["FR-001"]}, mode="wp_refs", replace=True))
     # FR-002 is functional but unmapped after the write.
     assert plan.unmapped_fr == ["FR-002"]
 
@@ -240,9 +230,7 @@ def test_unmapped_fr_counts_untouched_wps() -> None:
 
 def test_nonfunctional_refs_do_not_affect_unmapped_fr() -> None:
     # Mapping only NFR-001 / C-001 leaves both functional FRs unmapped.
-    plan = plan_mapping(
-        _req(new_mappings={"WP01": ["NFR-001", "C-001"]}, mode="wp_refs", replace=True)
-    )
+    plan = plan_mapping(_req(new_mappings={"WP01": ["NFR-001", "C-001"]}, mode="wp_refs", replace=True))
     assert plan.unmapped_fr == ["FR-001", "FR-002"]
 
 
@@ -270,28 +258,18 @@ def _mapping_mission(root: Path, slug: str) -> Path:
     (feature_dir / "tasks").mkdir(parents=True)
     (root / ".kittify").mkdir(exist_ok=True)
     (feature_dir / "tasks" / "WP01-fixture.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Fixture WP01\n"
-        "execution_mode: code_change\n"
-        "agent: testbot\n"
-        "---\n\n# WP01\n\n## Activity Log\n",
+        "---\nwork_package_id: WP01\ntitle: Fixture WP01\nexecution_mode: code_change\nagent: testbot\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
-    (feature_dir / "tasks.md").write_text(
-        "# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8")
     (feature_dir / "spec.md").write_text(
-        "# Spec\n\n## Functional Requirements\n\n"
-        "- FR-001: do a thing.\n- FR-002: do another.\n",
+        "# Spec\n\n## Functional Requirements\n\n- FR-001: do a thing.\n- FR-002: do another.\n",
         encoding="utf-8",
     )
     return feature_dir
 
 
-def test_sentinel_offenders_drive_the_command_to_exit_1(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sentinel_offenders_drive_the_command_to_exit_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A sentinel ``offenders.malformed`` flips a would-succeed mapping to exit 1.
 
     The real ``plan_mapping`` on ``--wp WP01 --refs FR-001`` returns NO offenders
@@ -312,16 +290,13 @@ def test_sentinel_offenders_drive_the_command_to_exit_1(
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name):
         result = CliRunner().invoke(
             app,
-            ["map-requirements", "--wp", "WP01", "--refs", "FR-001",
-             "--mission", fd.name, "--no-auto-commit", "--json"],
+            ["map-requirements", "--wp", "WP01", "--refs", "FR-001", "--mission", fd.name, "--no-auto-commit", "--json"],
         )
     assert result.exit_code == 1, result.output
     assert "SENTINEL-BAD-9c1f" in result.output
 
 
-def test_sentinel_to_write_drives_the_written_refs_and_coverage(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sentinel_to_write_drives_the_written_refs_and_coverage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A sentinel ``to_write`` / ``unmapped_fr`` drives the write + the envelope.
 
     The operator asks to map WP01 → FR-001, but the sentinel plan writes FR-002 and
@@ -346,8 +321,7 @@ def test_sentinel_to_write_drives_the_written_refs_and_coverage(
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name):
         result = CliRunner().invoke(
             app,
-            ["map-requirements", "--wp", "WP01", "--refs", "FR-001",
-             "--mission", fd.name, "--no-auto-commit", "--json"],
+            ["map-requirements", "--wp", "WP01", "--refs", "FR-001", "--mission", fd.name, "--no-auto-commit", "--json"],
         )
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
@@ -377,16 +351,13 @@ def test_map_requirements_surfaces_undeclared_requirement_citations_without_fail
     """
     fd = _mapping_mission(tmp_path, f"undeclared-fr-warn-{_MID8}")
     (fd / "spec.md").write_text(
-        "# Spec\n\n"
-        "## Functional Requirements\n\nFR-001 must hold. FR-002 too.\n\n"
-        "## Declared Functional Requirements\n\n- FR-100: The declared one.\n",
+        "# Spec\n\n## Functional Requirements\n\nFR-001 must hold. FR-002 too.\n\n## Declared Functional Requirements\n\n- FR-100: The declared one.\n",
         encoding="utf-8",
     )
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name):
         result = CliRunner().invoke(
             app,
-            ["map-requirements", "--wp", "WP01", "--refs", "FR-100",
-             "--mission", fd.name, "--no-auto-commit", "--json"],
+            ["map-requirements", "--wp", "WP01", "--refs", "FR-100", "--mission", fd.name, "--no-auto-commit", "--json"],
         )
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
@@ -454,8 +425,7 @@ def test_map_requirements_cli_surfaces_bare_prose_requirement_ids(
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name):
         result = CliRunner().invoke(
             app,
-            ["map-requirements", "--wp", "WP01", "--refs", "NFR-001",
-             "--mission", fd.name, "--no-auto-commit", "--json"],
+            ["map-requirements", "--wp", "WP01", "--refs", "NFR-001", "--mission", fd.name, "--no-auto-commit", "--json"],
         )
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)

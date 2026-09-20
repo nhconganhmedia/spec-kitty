@@ -151,11 +151,7 @@ def _surface_id(instance: SurfaceInstance) -> str:
     """Derive a stable surface id from the instance owner and kind/path."""
     if instance.surface_id is not None:
         return instance.surface_id
-    suffix = (
-        f"{instance.path.parent.name}.SKILL.md"
-        if instance.path.name == "SKILL.md" and instance.path.parent.name
-        else instance.path.name
-    )
+    suffix = f"{instance.path.parent.name}.SKILL.md" if instance.path.name == "SKILL.md" and instance.path.parent.name else instance.path.name
     return f"{instance.owner}.{instance.definition.kind}.{suffix}"
 
 
@@ -165,9 +161,7 @@ class SurfaceStatusService:
     def __init__(self, providers: Sequence[ReportingSurfaceProvider]) -> None:
         self._providers = list(providers)
 
-    def _provider_for(
-        self, instance: SurfaceInstance
-    ) -> ReportingSurfaceProvider | None:
+    def _provider_for(self, instance: SurfaceInstance) -> ReportingSurfaceProvider | None:
         for provider in self._providers:
             if provider.can_handle(instance.definition):
                 return provider
@@ -185,11 +179,7 @@ class SurfaceStatusService:
         for plan in plans:
             for instance in plan.instances:
                 acc.add(self._probe_one(instance))
-        tools = (
-            tuple(configured_tools)
-            if configured_tools is not None
-            else tuple(plan.tool_key for plan in plans)
-        )
+        tools = tuple(configured_tools) if configured_tools is not None else tuple(plan.tool_key for plan in plans)
         summary = SurfaceSummary(
             surfaces=len(acc.statuses),
             present=acc.present,

@@ -178,12 +178,7 @@ def main() -> None:
     print("-" * 50)
     for n_words, r in results.items():
         flag = "" if r["p95"] <= P95_THRESHOLD_MS else " *** ABOVE THRESHOLD ***"
-        print(
-            f"{n_words:>6}  {r['mean']:>7.2f}ms"
-            f"  {r['p50']:>7.2f}ms"
-            f"  {r['p95']:>7.2f}ms"
-            f"  {r['p99']:>7.2f}ms{flag}"
-        )
+        print(f"{n_words:>6}  {r['mean']:>7.2f}ms  {r['p50']:>7.2f}ms  {r['p95']:>7.2f}ms  {r['p99']:>7.2f}ms{flag}")
     print("=" * 60)
 
     # Exit non-zero if any p95 exceeds threshold

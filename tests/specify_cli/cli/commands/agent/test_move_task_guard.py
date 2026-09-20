@@ -7,6 +7,7 @@ T024: _coord_topology_active returns False on any import/OS error (defensive).
 T025: guard condition: coord+protected causes _skip_target_commit=True.
 T026: guard condition: coord active but target NOT protected → commit proceeds.
 """
+
 from __future__ import annotations
 
 import sys
@@ -22,11 +23,13 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 # T021 / T022 / T023 / T024: _coord_topology_active
 # ---------------------------------------------------------------------------
 
+
 class TestCoordTopologyActive:
     """Verify _coord_topology_active correctly detects coord worktree presence."""
 
     def _import_helper(self) -> object:
         from specify_cli.cli.commands.agent.tasks import _coord_topology_active
+
         return _coord_topology_active
 
     def test_returns_true_when_coord_worktree_exists(self, tmp_path: Path) -> None:
@@ -83,6 +86,7 @@ class TestCoordTopologyActive:
 # ---------------------------------------------------------------------------
 # T025 / T026: guard condition logic
 # ---------------------------------------------------------------------------
+
 
 class TestMoveTaskGuardCondition:
     """Verify the _skip_target_commit guard logic in move_task (T025, T026)."""
@@ -168,37 +172,23 @@ class TestMoveTaskGuardCondition:
 
         assert skip is True
 
-    def test_coord_status_events_path_reports_coord_worktree_path(
-        self, tmp_path: Path
-    ) -> None:
+    def test_coord_status_events_path_reports_coord_worktree_path(self, tmp_path: Path) -> None:
         """JSON payloads expose the coord status path in skip mode."""
         from specify_cli.cli.commands.agent.tasks import _coord_status_events_path
 
         slug = "my-feature-01KT3YBD"
-        coord_path = (
-            tmp_path
-            / ".worktrees"
-            / "my-feature-01KT3YBD-coord"
-            / "kitty-specs"
-            / slug
-        )
+        coord_path = tmp_path / ".worktrees" / "my-feature-01KT3YBD-coord" / "kitty-specs" / slug
         coord_path.mkdir(parents=True)
 
-        assert _coord_status_events_path(tmp_path, slug) == (
-            coord_path / "status.events.jsonl"
-        )
+        assert _coord_status_events_path(tmp_path, slug) == (coord_path / "status.events.jsonl")
 
-    def test_coord_status_events_path_absent_for_legacy(
-        self, tmp_path: Path
-    ) -> None:
+    def test_coord_status_events_path_absent_for_legacy(self, tmp_path: Path) -> None:
         """Legacy missions keep primary status path reporting."""
         from specify_cli.cli.commands.agent.tasks import _coord_status_events_path
 
         assert _coord_status_events_path(tmp_path, "legacy-feature") is None
 
-    def test_skip_target_branch_commit_true_for_coord_protected_target(
-        self, tmp_path: Path
-    ) -> None:
+    def test_skip_target_branch_commit_true_for_coord_protected_target(self, tmp_path: Path) -> None:
         """Shared move-task guard bypasses early protected-branch refusal."""
         from specify_cli.cli.commands.agent.tasks import _skip_target_branch_commit
 
@@ -214,9 +204,7 @@ class TestMoveTaskGuardCondition:
         ):
             assert _skip_target_branch_commit(tmp_path, slug, "main") is True
 
-    def test_skip_target_branch_commit_false_for_legacy_protected_target(
-        self, tmp_path: Path
-    ) -> None:
+    def test_skip_target_branch_commit_false_for_legacy_protected_target(self, tmp_path: Path) -> None:
         """Legacy missions still refuse auto-commit on protected branches."""
         from specify_cli.cli.commands.agent.tasks import _skip_target_branch_commit
 

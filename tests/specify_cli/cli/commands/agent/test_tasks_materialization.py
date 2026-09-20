@@ -227,9 +227,7 @@ class TestPersistInlineSubtaskStatus:
 
     def test_uses_provided_content_without_reading_file(self, tmp_path: Path) -> None:
         # File does not exist, but explicit content is provided -> still writes.
-        persisted = _persist_inline_subtask_status(
-            "T001", "done", tmp_path, tasks_content="Subtasks: T001\n"
-        )
+        persisted = _persist_inline_subtask_status("T001", "done", tmp_path, tasks_content="Subtasks: T001\n")
         assert persisted is True
         assert (tmp_path / TASKS_MD_FILENAME).exists()
 
@@ -406,13 +404,16 @@ class TestPersistReviewFeedback:
         fake_cycle.artifact_path = tmp_path / "cycle.md"
         fake_cycle.pointer = "review-cycle://WP01/abc"
 
-        with patch(
-            "specify_cli.cli.commands.agent.tasks_materialization._resolve_wp_slug",
-            return_value="WP01-titled",
-        ), patch(
-            "specify_cli.review.cycle.create_rejected_review_cycle",
-            return_value=fake_cycle,
-        ) as create_mock:
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.tasks_materialization._resolve_wp_slug",
+                return_value="WP01-titled",
+            ),
+            patch(
+                "specify_cli.review.cycle.create_rejected_review_cycle",
+                return_value=fake_cycle,
+            ) as create_mock,
+        ):
             artifact_path, pointer = _persist_review_feedback(
                 main_repo_root=tmp_path,
                 mission_slug="010-test",
@@ -429,13 +430,17 @@ class TestPersistReviewFeedback:
         assert kwargs["reviewer_agent"] == "codex"
 
     def test_propagates_review_cycle_errors(self, tmp_path: Path) -> None:
-        with patch(
-            "specify_cli.cli.commands.agent.tasks_materialization._resolve_wp_slug",
-            return_value="WP01",
-        ), patch(
-            "specify_cli.review.cycle.create_rejected_review_cycle",
-            side_effect=RuntimeError("cycle boom"),
-        ), pytest.raises(RuntimeError, match="cycle boom"):
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.tasks_materialization._resolve_wp_slug",
+                return_value="WP01",
+            ),
+            patch(
+                "specify_cli.review.cycle.create_rejected_review_cycle",
+                side_effect=RuntimeError("cycle boom"),
+            ),
+            pytest.raises(RuntimeError, match="cycle boom"),
+        ):
             _persist_review_feedback(
                 main_repo_root=tmp_path,
                 mission_slug="010-test",

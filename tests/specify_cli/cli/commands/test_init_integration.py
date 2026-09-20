@@ -364,9 +364,7 @@ def test_init_fails_for_tracked_worktrees_content_without_mutating_index(
     config = yaml.safe_load(project.joinpath(".kittify", "config.yaml").read_text(encoding="utf-8"))
     assert config["mission_type_activations"]
     assert project.joinpath(".kittify", "metadata.yaml").exists()
-    assert init_module._EVENT_LOG_GITATTRIBUTES_ENTRY in project.joinpath(".gitattributes").read_text(
-        encoding="utf-8"
-    )
+    assert init_module._EVENT_LOG_GITATTRIBUTES_ENTRY in project.joinpath(".gitattributes").read_text(encoding="utf-8")
     assert (
         subprocess.run(
             ["git", "check-ignore", "--quiet", ".worktrees/demo/file.txt"],
@@ -474,8 +472,7 @@ def test_metadata_initialized_at_is_aware_utc(
     initialized_at = data["spec_kitty"]["initialized_at"]
     assert isinstance(initialized_at, str), "expected an unquoted ISO string in the raw YAML"
     assert initialized_at.endswith("+00:00"), (
-        f"initialized_at={initialized_at!r} is missing the aware-UTC offset suffix "
-        "-- the naive datetime.now() regression has returned"
+        f"initialized_at={initialized_at!r} is missing the aware-UTC offset suffix -- the naive datetime.now() regression has returned"
     )
 
 
@@ -562,9 +559,7 @@ def test_no_dashboard_started(
 
     assert result.exit_code == 0, result.output
     # Dashboard was removed in WP02; init should complete without invoking it.
-    assert not hasattr(init_module, "ensure_dashboard_running"), (
-        "ensure_dashboard_running should have been removed from init.py by WP02"
-    )
+    assert not hasattr(init_module, "ensure_dashboard_running"), "ensure_dashboard_running should have been removed from init.py by WP02"
 
 
 # ---------------------------------------------------------------------------
@@ -598,9 +593,7 @@ def test_reinit_is_idempotent(
     # Config should be equivalent between runs
     parsed1 = yaml.safe_load(config_after_first)
     parsed2 = yaml.safe_load(config_after_second)
-    assert parsed1.get("agents", parsed1.get("tools")) == parsed2.get(
-        "agents", parsed2.get("tools")
-    ), "Config changed between re-init runs"
+    assert parsed1.get("agents", parsed1.get("tools")) == parsed2.get("agents", parsed2.get("tools")), "Config changed between re-init runs"
 
 
 def test_selection_key_landmine_disposition_is_documented_accurately() -> None:
@@ -616,9 +609,7 @@ def test_selection_key_landmine_disposition_is_documented_accurately() -> None:
     the test cannot silently keep documenting an already-retired landmine.
     """
     marks = getattr(test_config_has_no_selection_block, "pytestmark", [])
-    assert not any(m.name == "xfail" for m in marks), (
-        "WP01 landed; this test should carry no active xfail marker"
-    )
+    assert not any(m.name == "xfail" for m in marks), "WP01 landed; this test should carry no active xfail marker"
     source = inspect.getsource(test_config_has_no_selection_block)
     assert "xfail" not in source.lower(), (
         "test source still references a pending xfail landmine, but WP01 "

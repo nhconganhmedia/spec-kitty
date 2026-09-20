@@ -59,18 +59,12 @@ def plugin_build(
     if target == _TARGET_CLAUDE_CODE:
         from specify_cli.tool_surface.bundles.claude import ClaudeBundleProjector
 
-        bundle_dir = ClaudeBundleProjector(output_dir).build(
-            skip_validate=skip_validate
-        )
+        bundle_dir = ClaudeBundleProjector(output_dir).build(skip_validate=skip_validate)
         typer.echo(f"Bundle written to {bundle_dir}")
     elif target == _TARGET_CODEX:
         from specify_cli.tool_surface.bundles.codex import CodexBundleProjector
 
-        bundle_dir = CodexBundleProjector(output_dir).build(
-            skip_validate=skip_validate
-        )
+        bundle_dir = CodexBundleProjector(output_dir).build(skip_validate=skip_validate)
         typer.echo(f"Bundle written to {bundle_dir}")
     else:
-        raise typer.BadParameter(
-            f"Unknown target: {target!r}. Supported: {_TARGET_CLAUDE_CODE}, {_TARGET_CODEX}."
-        )
+        raise typer.BadParameter(f"Unknown target: {target!r}. Supported: {_TARGET_CLAUDE_CODE}, {_TARGET_CODEX}.")

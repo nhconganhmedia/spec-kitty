@@ -64,9 +64,7 @@ def test_A_hosted_enabled_cached_after_first_call(
     monkeypatch.setattr(
         coord_module,
         "_invoke_nag",
-        lambda ctx: pytest.fail(
-            "legacy _invoke_nag should not fire on hosted-enabled path"
-        ),
+        lambda ctx: pytest.fail("legacy _invoke_nag should not fire on hosted-enabled path"),
     )
 
     ctx = _make_ctx()

@@ -80,9 +80,7 @@ class TestPositiveE2E:
     edge between them survive the real loader -> merge -> query pipeline."""
 
     def test_pack_loads_through_real_loader(self) -> None:
-        fragment = _load_fragment(
-            "valid_pack", pack_name="regnology-template-asset-fixture"
-        )
+        fragment = _load_fragment("valid_pack", pack_name="regnology-template-asset-fixture")
 
         node_kinds = {node.id: node.kind for node in fragment.nodes}
         assert node_kinds == {
@@ -93,13 +91,9 @@ class TestPositiveE2E:
         }
 
     def test_merged_drg_contains_template_and_asset_nodes_and_edge(self) -> None:
-        fragment = _load_fragment(
-            "valid_pack", pack_name="regnology-template-asset-fixture"
-        )
+        fragment = _load_fragment("valid_pack", pack_name="regnology-template-asset-fixture")
 
-        merged = merge_three_layers(
-            built_in=_built_in_graph(), org_fragments=[fragment], project=None
-        )
+        merged = merge_three_layers(built_in=_built_in_graph(), org_fragments=[fragment], project=None)
 
         # AT-1: the ASSET sidecar is registered as a bare `asset:<id>` node.
         asset_node = merged.get_node("asset:company-logo")
@@ -119,26 +113,18 @@ class TestPositiveE2E:
         assert merged.edges_to("template:meeting-minutes-orphan") == []
 
         # TT-1: the styleguide -> template `requires` edge merged in.
-        style_edges = merged.edges_from(
-            "styleguide:regnology-house-style", relation=Relation.REQUIRES
-        )
+        style_edges = merged.edges_from("styleguide:regnology-house-style", relation=Relation.REQUIRES)
         assert any(e.target == "template:meeting-minutes" for e in style_edges)
 
         # The template -> asset `requires` edge merged in (chains to AT-7 below).
-        template_edges = merged.edges_from(
-            "template:meeting-minutes", relation=Relation.REQUIRES
-        )
+        template_edges = merged.edges_from("template:meeting-minutes", relation=Relation.REQUIRES)
         assert any(e.target == "asset:company-logo" for e in template_edges)
 
     def test_transitive_query_reaches_template_and_asset(self) -> None:
         """AT-7: an asset node reached via `resolve_transitive_refs` appears
         in the `.assets` bucket — it is not silently dropped."""
-        fragment = _load_fragment(
-            "valid_pack", pack_name="regnology-template-asset-fixture"
-        )
-        merged = merge_three_layers(
-            built_in=_built_in_graph(), org_fragments=[fragment], project=None
-        )
+        fragment = _load_fragment("valid_pack", pack_name="regnology-template-asset-fixture")
+        merged = merge_three_layers(built_in=_built_in_graph(), org_fragments=[fragment], project=None)
 
         result = resolve_transitive_refs(
             merged,
@@ -167,17 +153,11 @@ class TestNegativeCases:
 
     def test_duplicate_asset_id_across_two_packs_hard_fails(self) -> None:
         """(a) Two independent org packs each ship `asset:company-logo`."""
-        pack_a = _load_fragment(
-            "duplicate_asset_pack_a", pack_name="regnology-pack-a", layer_index=1
-        )
-        pack_b = _load_fragment(
-            "duplicate_asset_pack_b", pack_name="regnology-pack-b", layer_index=2
-        )
+        pack_a = _load_fragment("duplicate_asset_pack_a", pack_name="regnology-pack-a", layer_index=1)
+        pack_b = _load_fragment("duplicate_asset_pack_b", pack_name="regnology-pack-b", layer_index=2)
 
         with pytest.raises(DuplicateURNError) as exc_info:
-            merge_three_layers(
-                built_in=_built_in_graph(), org_fragments=[pack_a, pack_b], project=None
-            )
+            merge_three_layers(built_in=_built_in_graph(), org_fragments=[pack_a, pack_b], project=None)
 
         err = exc_info.value
         assert err.code == "duplicate_asset_id"
@@ -186,17 +166,11 @@ class TestNegativeCases:
 
     def test_duplicate_template_id_across_two_producers_hard_fails(self) -> None:
         """(b) Two independent org packs each ship `template:quarterly-report`."""
-        pack_a = _load_fragment(
-            "duplicate_template_pack_a", pack_name="regnology-pack-a", layer_index=1
-        )
-        pack_b = _load_fragment(
-            "duplicate_template_pack_b", pack_name="regnology-pack-b", layer_index=2
-        )
+        pack_a = _load_fragment("duplicate_template_pack_a", pack_name="regnology-pack-a", layer_index=1)
+        pack_b = _load_fragment("duplicate_template_pack_b", pack_name="regnology-pack-b", layer_index=2)
 
         with pytest.raises(DuplicateURNError) as exc_info:
-            merge_three_layers(
-                built_in=_built_in_graph(), org_fragments=[pack_a, pack_b], project=None
-            )
+            merge_three_layers(built_in=_built_in_graph(), org_fragments=[pack_a, pack_b], project=None)
 
         err = exc_info.value
         assert err.code == "duplicate_template_id"
@@ -208,9 +182,7 @@ class TestNegativeCases:
         result = validate_pack(_FIXTURES_ROOT / "path_escape_pack")
 
         assert result.ok is False
-        escape_errors = [
-            issue for issue in result.errors if issue.category == "asset_path_escape"
-        ]
+        escape_errors = [issue for issue in result.errors if issue.category == "asset_path_escape"]
         assert escape_errors, result.errors
         assert escape_errors[0].artifact_id == "evil-asset"
         # Distinct from the mime category — never conflated.
@@ -223,11 +195,7 @@ class TestNegativeCases:
         result = validate_pack(_FIXTURES_ROOT / "bad_mime_pack")
 
         assert result.ok is False
-        mime_errors = {
-            issue.artifact_id: issue
-            for issue in result.errors
-            if issue.category == "asset_mime_invalid"
-        }
+        mime_errors = {issue.artifact_id: issue for issue in result.errors if issue.category == "asset_mime_invalid"}
         assert "malformed-mime-asset" in mime_errors
         assert "mismatched-mime-asset" in mime_errors
         assert not any(issue.category == "asset_path_escape" for issue in result.errors)
@@ -287,9 +255,7 @@ class TestNoRegressionForExistingKinds:
         )
 
         # Must NOT raise — this is the pre-existing, unchanged behavior.
-        merged = merge_three_layers(
-            built_in=_built_in_graph(), org_fragments=[pack_a, pack_b], project=None
-        )
+        merged = merge_three_layers(built_in=_built_in_graph(), org_fragments=[pack_a, pack_b], project=None)
 
         directive_node = merged.get_node("directive:referenced-policy")
         assert directive_node is not None
@@ -319,17 +285,13 @@ class TestNoRegressionForExistingKinds:
         automatically. See ``tests/doctrine/_builtin_inventory.py``."""
         built_in = _built_in_graph()
         kinds_present = {node.kind for node in built_in.nodes}
-        asset_urns = {
-            node.urn for node in built_in.nodes if node.kind == NodeKind.ASSET
-        }
+        asset_urns = {node.urn for node in built_in.nodes if node.kind == NodeKind.ASSET}
 
         assert asset_urns == builtin_asset_urns()
         assert NodeKind.TEMPLATE in kinds_present
         assert NodeKind.DIRECTIVE in kinds_present
 
-        inbound = built_in.edges_to(
-            "asset:common-docs-structural-lint", relation=Relation.REQUIRES
-        )
+        inbound = built_in.edges_to("asset:common-docs-structural-lint", relation=Relation.REQUIRES)
         assert {edge.source for edge in inbound} == {
             "directive:DIRECTIVE_042",
             "styleguide:common-docs",

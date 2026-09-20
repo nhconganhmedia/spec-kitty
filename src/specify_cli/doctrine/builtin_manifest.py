@@ -63,10 +63,7 @@ def _read_artifact_id(path: Path, *, id_key: str) -> str:
     data = yaml.load(path.read_text(encoding="utf-8"))
     artifact_id = "" if not isinstance(data, dict) else str(data.get(id_key, "")).strip()
     if not artifact_id:
-        raise ValueError(
-            f"artifact file {path} is missing its {id_key!r} id field; "
-            "cannot enumerate it as a pack constituent (fail-closed, no silent drop)"
-        )
+        raise ValueError(f"artifact file {path} is missing its {id_key!r} id field; cannot enumerate it as a pack constituent (fail-closed, no silent drop)")
     return artifact_id
 
 

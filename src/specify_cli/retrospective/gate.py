@@ -240,9 +240,7 @@ def _read_retrospective_events(events_path: Path) -> list[dict[str, object]]:
     try:
         raw_text = events_path.read_text(encoding="utf-8")
     except OSError as exc:
-        raise EventLogUnreadable(
-            f"Cannot read event log at {events_path}: {exc}"
-        ) from exc
+        raise EventLogUnreadable(f"Cannot read event log at {events_path}: {exc}") from exc
 
     retro_events: list[dict[str, object]] = []
     for lineno, line in enumerate(raw_text.splitlines(), start=1):
@@ -252,9 +250,7 @@ def _read_retrospective_events(events_path: Path) -> list[dict[str, object]]:
         try:
             obj = json.loads(stripped)
         except json.JSONDecodeError as exc:
-            raise EventLogUnreadable(
-                f"Malformed JSON on line {lineno} of {events_path}: {exc}"
-            ) from exc
+            raise EventLogUnreadable(f"Malformed JSON on line {lineno} of {events_path}: {exc}") from exc
         if not isinstance(obj, dict):
             continue
         event_name = obj.get("event_name", "")
@@ -320,12 +316,7 @@ def _is_silent_auto_run(
     """
     completed_at = str(completed_event.get("at", ""))
 
-    preceding_requested = [
-        e
-        for e in events
-        if e.get("event_name") == "retrospective.requested"
-        and str(e.get("at", "")) <= completed_at
-    ]
+    preceding_requested = [e for e in events if e.get("event_name") == "retrospective.requested" and str(e.get("at", "")) <= completed_at]
 
     if not preceding_requested:
         # No preceding requested event — fail closed.
@@ -370,11 +361,7 @@ def _decide_autonomous(
             mode=mode,
             reason=GateReason(
                 code="missing_completion_autonomous",
-                detail=(
-                    "No retrospective terminal event found. "
-                    "Autonomous mode requires retrospective.completed "
-                    "before the mission can be marked done."
-                ),
+                detail=("No retrospective terminal event found. Autonomous mode requires retrospective.completed before the mission can be marked done."),
             ),
         )
 
@@ -387,10 +374,7 @@ def _decide_autonomous(
             mode=mode,
             reason=GateReason(
                 code="completed_present",
-                detail=(
-                    "retrospective.completed event is present; "
-                    "autonomous completion is allowed."
-                ),
+                detail=("retrospective.completed event is present; autonomous completion is allowed."),
             ),
         )
 
@@ -403,10 +387,7 @@ def _decide_autonomous(
                 mode=mode,
                 reason=GateReason(
                     code="skipped_permitted",
-                    detail=(
-                        f"Charter clause '{clause_id}' authorizes "
-                        "operator-skip in autonomous mode."
-                    ),
+                    detail=(f"Charter clause '{clause_id}' authorizes operator-skip in autonomous mode."),
                     charter_clause_ref=clause_id,
                 ),
             )
@@ -431,10 +412,7 @@ def _decide_autonomous(
             mode=mode,
             reason=GateReason(
                 code="facilitator_failure",
-                detail=(
-                    "retrospective.failed event present; "
-                    "facilitator reported a failure."
-                ),
+                detail=("retrospective.failed event present; facilitator reported a failure."),
                 blocking_event_ids=[event_id],
             ),
         )
@@ -445,10 +423,7 @@ def _decide_autonomous(
         mode=mode,
         reason=GateReason(
             code="missing_completion_autonomous",
-            detail=(
-                f"Unexpected terminal event {event_name!r} in autonomous mode; "
-                "retrospective.completed is required."
-            ),
+            detail=(f"Unexpected terminal event {event_name!r} in autonomous mode; retrospective.completed is required."),
             blocking_event_ids=[event_id],
         ),
     )
@@ -508,10 +483,7 @@ def _decide_hic(
             mode=mode,
             reason=GateReason(
                 code="completed_present_hic",
-                detail=(
-                    "retrospective.completed present and operator-driven; "
-                    "human_in_command completion is allowed."
-                ),
+                detail=("retrospective.completed present and operator-driven; human_in_command completion is allowed."),
             ),
         )
 
@@ -521,10 +493,7 @@ def _decide_hic(
             mode=mode,
             reason=GateReason(
                 code="skipped_permitted",
-                detail=(
-                    "retrospective.skipped present; "
-                    "human_in_command mode permits explicit skip."
-                ),
+                detail=("retrospective.skipped present; human_in_command mode permits explicit skip."),
             ),
         )
 
@@ -534,10 +503,7 @@ def _decide_hic(
             mode=mode,
             reason=GateReason(
                 code="facilitator_failure",
-                detail=(
-                    "retrospective.failed event present; "
-                    "facilitator reported a failure."
-                ),
+                detail=("retrospective.failed event present; facilitator reported a failure."),
                 blocking_event_ids=[event_id],
             ),
         )
@@ -548,9 +514,7 @@ def _decide_hic(
         mode=mode,
         reason=GateReason(
             code="silent_auto_run_attempted",
-            detail=(
-                f"Unexpected terminal event {event_name!r} in human_in_command mode."
-            ),
+            detail=(f"Unexpected terminal event {event_name!r} in human_in_command mode."),
             blocking_event_ids=[event_id],
         ),
     )
@@ -627,9 +591,7 @@ def is_completion_allowed(
     else:
         mode = _detect_mode(repo_root=repo_root)
 
-    logger.debug(
-        "gate.is_completion_allowed: mission=%s mode=%s", mission_id, mode.value
-    )
+    logger.debug("gate.is_completion_allowed: mission=%s mode=%s", mission_id, mode.value)
 
     # 2. Read event log (filtered to retrospective events only) through the
     # canonical status surface (FR-009 / #1735): under coordination topology

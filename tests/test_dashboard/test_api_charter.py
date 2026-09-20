@@ -12,6 +12,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 class _DummyAPIHandler:
     """Minimal handler shim to execute APIHandler methods in isolation."""
 

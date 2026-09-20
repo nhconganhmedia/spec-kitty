@@ -16,6 +16,7 @@ from specify_cli.plan_validation import (
 
 pytestmark = [pytest.mark.integration]
 
+
 def test_detect_unfilled_plan_with_template():
     """Test detection of unfilled plan with template markers."""
     with TemporaryDirectory() as tmpdir:
@@ -223,6 +224,4 @@ frontend/
         # Should pass - only 2 markers
         is_unfilled, markers = detect_unfilled_plan(plan_path)
         assert is_unfilled is False
-        assert frozenset(markers) == frozenset(
-            {"or NEEDS CLARIFICATION", "[Gates determined based on charter file]"}
-        )
+        assert frozenset(markers) == frozenset({"or NEEDS CLARIFICATION", "[Gates determined based on charter file]"})

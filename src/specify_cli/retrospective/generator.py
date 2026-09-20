@@ -126,7 +126,7 @@ def _spec_declares_domain_entities(spec_text: str) -> bool:
     heading = _KEY_ENTITIES_HEADING_RE.search(spec_text)
     if heading is None:
         return False
-    section = spec_text[heading.end():]
+    section = spec_text[heading.end() :]
     next_heading = _ANY_HEADING_RE.search(section)
     if next_heading is not None:
         section = section[: next_heading.start()]
@@ -341,33 +341,33 @@ def _has_review_feedback(event: dict[str, Any]) -> bool:
     if isinstance(evidence, dict):
         review = evidence.get("review")
         if isinstance(review, dict):
-            return bool(review.get("reference")) and is_changes_requested(
-                review.get("verdict")
-            )
+            return bool(review.get("reference")) and is_changes_requested(review.get("verdict"))
     return isinstance(evidence, str) and bool(evidence.strip())
 
 
-_BACKWARD_LANE_MOVES: frozenset[tuple[str, str]] = frozenset({
-    ("for_review", "planned"),
-    ("for_review", "in_progress"),
-    ("for_review", "claimed"),
-    ("in_review", "planned"),
-    ("in_review", "in_progress"),
-    ("in_review", "claimed"),
-    ("in_progress", "planned"),
-    ("in_progress", "claimed"),
-    # Rejection after approval: ``approved -> planned`` / ``approved -> in_progress``
-    # are documented rework edges of the lane matrix (docs/architecture/
-    # status-model.md), and ``move-task --to <lane> --force`` can rewind from any
-    # lane — including terminal ``done`` — so all rewinds out of ``approved`` and
-    # ``done`` toward implementation lanes count as backward moves (#3687).
-    ("approved", "planned"),
-    ("approved", "in_progress"),
-    ("approved", "claimed"),
-    ("done", "planned"),
-    ("done", "in_progress"),
-    ("done", "claimed"),
-})
+_BACKWARD_LANE_MOVES: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("for_review", "planned"),
+        ("for_review", "in_progress"),
+        ("for_review", "claimed"),
+        ("in_review", "planned"),
+        ("in_review", "in_progress"),
+        ("in_review", "claimed"),
+        ("in_progress", "planned"),
+        ("in_progress", "claimed"),
+        # Rejection after approval: ``approved -> planned`` / ``approved -> in_progress``
+        # are documented rework edges of the lane matrix (docs/architecture/
+        # status-model.md), and ``move-task --to <lane> --force`` can rewind from any
+        # lane — including terminal ``done`` — so all rewinds out of ``approved`` and
+        # ``done`` toward implementation lanes count as backward moves (#3687).
+        ("approved", "planned"),
+        ("approved", "in_progress"),
+        ("approved", "claimed"),
+        ("done", "planned"),
+        ("done", "in_progress"),
+        ("done", "claimed"),
+    }
+)
 
 
 def _is_backward_lane_event(event: dict[str, Any]) -> bool:
@@ -442,11 +442,13 @@ def _detect_done_wps(events: list[dict[str, Any]]) -> set[str]:
 # Bootstrap actors emit force=True legitimately (e.g., finalize-tasks creating
 # the initial planned→planned synthetic event).  They are not "force overrides"
 # in the retrospective sense and must be excluded.
-_BOOTSTRAP_ACTORS: frozenset[str] = frozenset({
-    "finalize-tasks",
-    "bootstrap",
-    "migrate",
-})
+_BOOTSTRAP_ACTORS: frozenset[str] = frozenset(
+    {
+        "finalize-tasks",
+        "bootstrap",
+        "migrate",
+    }
+)
 
 # Arbiter override markers in the `note` / `reason` fields.  Case-insensitive
 # substring match keeps the heuristic simple while staying generous toward
@@ -582,6 +584,7 @@ def _detect_implementation_cycles(events: list[dict[str, Any]]) -> dict[str, int
     transitions are excluded.
     """
     from specify_cli.status import Lane as _Lane  # cycle-breaker; see module note
+
     counts: dict[str, int] = {}
     for event in events:
         wp_id = event.get("wp_id", "")
@@ -635,11 +638,7 @@ def _event_id_range_for(
     predicate: Any,
 ) -> str:
     """Return ``first..last`` (or single id) for events matching ``predicate`` on a WP."""
-    ids = [
-        str(ev.get("event_id", ""))
-        for ev in events
-        if _event_wp_id(ev) == wp_id and predicate(ev)
-    ]
+    ids = [str(ev.get("event_id", "")) for ev in events if _event_wp_id(ev) == wp_id and predicate(ev)]
     if len(ids) > 1:
         return f"{ids[0]}..{ids[-1]}"
     return ids[0] if ids else ""
@@ -681,11 +680,7 @@ def _build_event_mining_findings(
     for wp_id, count in sorted(_detect_reviewer_self_approvals(events).items()):
         range_str = _event_id_range_for(events, wp_id, _is_reviewer_self_approval_event)
         ev_id = ev_reg.add_event_range(events_rel, range_str or "reviewer_self_approval", f"reviewer_self_approval_{wp_id}")
-        matching_payloads = [
-            ev.get("payload", {})
-            for ev in events
-            if _event_wp_id(ev) == wp_id and _is_reviewer_self_approval_event(ev)
-        ]
+        matching_payloads = [ev.get("payload", {}) for ev in events if _event_wp_id(ev) == wp_id and _is_reviewer_self_approval_event(ev)]
         first_payload = matching_payloads[0] if matching_payloads and isinstance(matching_payloads[0], dict) else {}
         intended = str(first_payload.get("intended_reviewer") or "unknown")
         actor = str(first_payload.get("implementing_actor") or "unknown")
@@ -710,21 +705,13 @@ def _build_event_mining_findings(
         ev_id = ev_reg.add_event_range(events_rel, range_str or "arbiter", f"arbiter_{wp_id}")
         # The "recurring use" reading only holds for count > 1 — a first and
         # only override must not read as a pattern (#4065, cf. #3793 §2).
-        recurring_note = (
-            " Recurring use suggests the normal review path is blocked and "
-            "the underlying policy/guard may need adjustment."
-            if count > 1
-            else ""
-        )
+        recurring_note = " Recurring use suggests the normal review path is blocked and the underlying policy/guard may need adjustment." if count > 1 else ""
         gaps.append(
             GenFinding(
                 id=_next_finding_id("g", finding_id_counters),
                 category="process",
                 summary=f"Arbiter override needed for {wp_id} ({count}x)",
-                details=(
-                    f"WP {wp_id} required {count} arbiter override(s). Arbiter overrides "
-                    f"are an escape hatch.{recurring_note}"
-                ),
+                details=(f"WP {wp_id} required {count} arbiter override(s). Arbiter overrides are an escape hatch.{recurring_note}"),
                 evidence_refs=[ev_id],
             )
         )
@@ -760,12 +747,7 @@ def _build_lane_friction_findings(
     findings: list[GenFinding] = []
     for wp_id in sorted(lane_friction_counts):
         count = lane_friction_counts[wp_id]
-        friction_event_ids = [
-            str(ev.get("event_id", ""))
-            for ev in events
-            if ev.get("wp_id") == wp_id
-            and _is_lane_friction_event(ev)
-        ]
+        friction_event_ids = [str(ev.get("event_id", "")) for ev in events if ev.get("wp_id") == wp_id and _is_lane_friction_event(ev)]
         if len(friction_event_ids) > 1:
             range_str = f"{friction_event_ids[0]}..{friction_event_ids[-1]}"
         elif friction_event_ids:
@@ -778,10 +760,7 @@ def _build_lane_friction_findings(
                 id=_next_finding_id("n", finding_id_counters),
                 category="process",
                 summary=f"{wp_id} had {count} lane bounce(s) before approval",
-                details=(
-                    f"WP {wp_id} moved backward across workflow lanes {count} time(s) "
-                    "outside the documented reviewer-feedback flow."
-                ),
+                details=(f"WP {wp_id} moved backward across workflow lanes {count} time(s) outside the documented reviewer-feedback flow."),
                 evidence_refs=[ev_id],
             )
         )
@@ -848,7 +827,7 @@ def _parse_trace_entries(text: str) -> list[tuple[str, str]]:
         if not summary:
             continue
         body_end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
-        body = text[match.start():body_end].strip()
+        body = text[match.start() : body_end].strip()
         entries.append((summary, body))
     return entries
 
@@ -975,11 +954,7 @@ def _build_ingestor_findings(
 
     # workflow-failures-log.md ingestor (T036)
     if workflow_failures_text is not None:
-        failure_lines = [
-            line.strip()
-            for line in workflow_failures_text.splitlines()
-            if line.strip().startswith(("- [ ] FAIL:", "### FAIL:"))
-        ]
+        failure_lines = [line.strip() for line in workflow_failures_text.splitlines() if line.strip().startswith(("- [ ] FAIL:", "### FAIL:"))]
         if failure_lines:
             for failure_line in failure_lines:
                 not_helpful.append(
@@ -987,10 +962,7 @@ def _build_ingestor_findings(
                         id=_next_finding_id("n", finding_id_counters),
                         category="process",
                         summary=failure_line[:200],
-                        details=(
-                            "Workflow failure recorded in workflow-failures-log.md. "
-                            f"Entry: {failure_line}"
-                        ),
+                        details=(f"Workflow failure recorded in workflow-failures-log.md. Entry: {failure_line}"),
                         evidence_refs=[ev_reg.add_file(workflow_failures_rel)],
                     )
                 )
@@ -1117,11 +1089,7 @@ def _build_ingestor_findings(
                         id=_next_finding_id("h", finding_id_counters),
                         category="review_loop",
                         summary="mission-review-report.md present with no findings",
-                        details=(
-                            "A mission-review-report.md artifact is present and "
-                            "its frontmatter records zero findings — the review "
-                            "pass raised nothing."
-                        ),
+                        details=("A mission-review-report.md artifact is present and its frontmatter records zero findings — the review pass raised nothing."),
                         evidence_refs=[ev_reg.add_file(review_report_rel)],
                     )
                 )
@@ -1200,20 +1168,12 @@ def _build_findings(
     # ingestor artifacts (workflow-failures-log, analysis-report, mission-review-report)
     # are present, because those records document concrete failures that the
     # clean WPs avoided.
-    has_ingestor_content = bool(
-        workflow_failures_text or analysis_report_text or review_report_text
-    )
+    has_ingestor_content = bool(workflow_failures_text or analysis_report_text or review_report_text)
     # A WP that needed >1 implementation cycle already carries a not_helpful
     # finding; it must never also appear in helped, whatever the lane-history
     # taxonomy says (#3687 — the two detectors use different definitions of
     # "this WP had rework", and helped must lose every disagreement).
-    clean_wps = [
-        wp
-        for wp in sorted(done_wps)
-        if rejection_counts.get(wp, 0) == 0
-        and lane_friction_counts.get(wp, 0) == 0
-        and impl_cycle_counts.get(wp, 0) == 0
-    ]
+    clean_wps = [wp for wp in sorted(done_wps) if rejection_counts.get(wp, 0) == 0 and lane_friction_counts.get(wp, 0) == 0 and impl_cycle_counts.get(wp, 0) == 0]
     if rejection_counts or lane_friction_counts or has_ingestor_content:
         for wp_id in clean_wps:
             wp_file_name = f"{wp_id}.md"
@@ -1245,10 +1205,7 @@ def _build_findings(
                 id=_next_finding_id("n", finding_id_counters),
                 category="review_loop",
                 summary=f"{wp_id} required {count} rejection cycle(s) before approval",
-                details=(
-                    f"WP {wp_id} was sent back from review/approval to an earlier "
-                    f"lane {count} time(s)."
-                ),
+                details=(f"WP {wp_id} was sent back from review/approval to an earlier lane {count} time(s)."),
                 evidence_refs=[ev_id],
             )
         )
@@ -1301,10 +1258,7 @@ def _build_findings(
                     id=_next_finding_id("g", finding_id_counters),
                     category="spec_quality",
                     summary=f"{fr_id} defined in spec.md has no WP coverage",
-                    details=(
-                        f"Requirement {fr_id} appears in spec.md but is not referenced by "
-                        "any work package task file. It may be unimplemented."
-                    ),
+                    details=(f"Requirement {fr_id} appears in spec.md but is not referenced by any work package task file. It may be unimplemented."),
                     evidence_refs=[ev_reg.add_file(spec_rel)],
                 )
             )
@@ -1317,10 +1271,7 @@ def _build_findings(
                     id=_next_finding_id("g", finding_id_counters),
                     category="doc",
                     summary="research.md absent",
-                    details=(
-                        "spec.md is present but research.md is missing. "
-                        "Research artifacts help future maintainers understand design decisions."
-                    ),
+                    details=("spec.md is present but research.md is missing. Research artifacts help future maintainers understand design decisions."),
                     evidence_refs=[ev_reg.add_file(spec_rel)],
                 )
             )
@@ -1333,10 +1284,7 @@ def _build_findings(
                     id=_next_finding_id("g", finding_id_counters),
                     category="doc",
                     summary="data-model.md absent",
-                    details=(
-                        "spec.md declares domain entities but data-model.md is missing. "
-                        "A data model document clarifies domain entity relationships."
-                    ),
+                    details=("spec.md declares domain entities but data-model.md is missing. A data model document clarifies domain entity relationships."),
                     evidence_refs=[ev_reg.add_file(spec_rel)],
                 )
             )
@@ -1422,8 +1370,7 @@ def generate_retrospective(
     feature_dir = _resolve_mission_dir(mission_handle, repo_root)
     if feature_dir is None:
         raise FileNotFoundError(
-            f"Mission {mission_handle!r} not found under {repo_root / KITTY_SPECS_DIR}. "
-            "Check the mission handle (slug, mission_id, or directory name)."
+            f"Mission {mission_handle!r} not found under {repo_root / KITTY_SPECS_DIR}. Check the mission handle (slug, mission_id, or directory name)."
         )
 
     # ------------------------------------------------------------------

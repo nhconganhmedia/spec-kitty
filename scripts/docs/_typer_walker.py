@@ -140,9 +140,7 @@ def _callback_source(callback: Any) -> tuple[str | None, str | None]:
         source_file = inspect.getsourcefile(callback)
     except (TypeError, OSError):
         source_file = None
-    qualname = getattr(callback, "__qualname__", None) or getattr(
-        callback, "__name__", None
-    )
+    qualname = getattr(callback, "__qualname__", None) or getattr(callback, "__name__", None)
     return (source_file, qualname)
 
 
@@ -160,11 +158,7 @@ def walk(app: typer.Typer) -> list[CommandPathEntry]:
 
     def _recurse(typer_app: typer.Typer, prefix: tuple[str, ...]) -> None:
         for cmd in typer_app.registered_commands:
-            name = cmd.name or (
-                cmd.callback.__name__.replace("_", "-")
-                if cmd.callback is not None
-                else None
-            )
+            name = cmd.name or (cmd.callback.__name__.replace("_", "-") if cmd.callback is not None else None)
             if not name:
                 continue
             path = prefix + (name,)
@@ -208,30 +202,14 @@ def walk(app: typer.Typer) -> list[CommandPathEntry]:
                 # be deduped too. Skip to keep the walk O(N).
                 continue
             seen.add(key)
-            info_hidden = (
-                grp.typer_instance.info.hidden if grp.typer_instance is not None else None
-            )
-            info_deprecated = (
-                grp.typer_instance.info.deprecated
-                if grp.typer_instance is not None
-                else None
-            )
-            info_help = (
-                grp.typer_instance.info.help
-                if grp.typer_instance is not None
-                else None
-            )
+            info_hidden = grp.typer_instance.info.hidden if grp.typer_instance is not None else None
+            info_deprecated = grp.typer_instance.info.deprecated if grp.typer_instance is not None else None
+            info_help = grp.typer_instance.info.help if grp.typer_instance is not None else None
             hidden = _resolve_flag(grp.hidden, info_hidden)
-            callback = grp.callback or (
-                grp.typer_instance.info.callback
-                if grp.typer_instance is not None
-                else None
-            )
+            callback = grp.callback or (grp.typer_instance.info.callback if grp.typer_instance is not None else None)
             help_text = _resolve_text(grp.help, grp.short_help, info_help)
             callback_help = inspect.getdoc(callback) if callback else ""
-            help_body = _resolve_text(
-                grp.help, info_help, callback_help, grp.short_help
-            )
+            help_body = _resolve_text(grp.help, info_help, callback_help, grp.short_help)
             summary = _summarize_help(help_text)
             deprecated_flag = _resolve_flag(grp.deprecated, info_deprecated)
             deprecated_by_help = summary.lower().startswith("deprecated")

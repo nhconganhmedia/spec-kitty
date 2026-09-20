@@ -63,9 +63,7 @@ def test_intake_stdin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
     import yaml  # noqa: PLC0415
 
-    source = yaml.safe_load(
-        (tmp_path / ".kittify" / BRIEF_SOURCE_FILENAME).read_text(encoding="utf-8")
-    )
+    source = yaml.safe_load((tmp_path / ".kittify" / BRIEF_SOURCE_FILENAME).read_text(encoding="utf-8"))
     assert source["source_file"] == "stdin"
 
 
@@ -132,11 +130,7 @@ def test_intake_show_prints_full_brief_hash(tmp_path: Path, monkeypatch: pytest.
     runner.invoke(app, ["intake", str(plan_file)], catch_exceptions=False)
 
     source_text = (tmp_path / ".kittify" / BRIEF_SOURCE_FILENAME).read_text(encoding="utf-8")
-    full_hash = next(
-        line.split(": ", 1)[1].strip()
-        for line in source_text.splitlines()
-        if line.startswith("brief_hash: ")
-    )
+    full_hash = next(line.split(": ", 1)[1].strip() for line in source_text.splitlines() if line.startswith("brief_hash: "))
     result = runner.invoke(app, ["intake", "--show"], catch_exceptions=False)
 
     assert result.exit_code == 0
@@ -185,9 +179,7 @@ def test_intake_from_subdir_writes_to_repo_root(tmp_path: Path, monkeypatch: pyt
     assert not (subdir / ".kittify" / MISSION_BRIEF_FILENAME).exists()
 
 
-def test_intake_ignores_stray_ancestor_kittify_marker(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_intake_ignores_stray_ancestor_kittify_marker(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A `.kittify/` in an ancestor directory must not divert repo-root
     resolution away from the project root's own marker.
 

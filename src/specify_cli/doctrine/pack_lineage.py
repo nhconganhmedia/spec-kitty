@@ -90,9 +90,7 @@ class PackLineageCycleError(ValueError):
 
     def __init__(self, cycle_path: list[str]) -> None:
         self.cycle_path = list(cycle_path)
-        super().__init__(
-            "Cycle detected in parent_pack chain: " + " → ".join(cycle_path)
-        )
+        super().__init__("Cycle detected in parent_pack chain: " + " → ".join(cycle_path))
 
 
 class UnresolvedDoctrinePackError(ValueError):
@@ -180,9 +178,7 @@ def resolve_pack_lineage_order(
     name_edges: dict[str, str | None] = {}
     for pack_id, parent_id in parent_edges.items():
         key = _resolvable_key(pack_id, pack_names)
-        parent_key = (
-            _resolvable_key(parent_id, pack_names) if parent_id is not None else None
-        )
+        parent_key = _resolvable_key(parent_id, pack_names) if parent_id is not None else None
         name_edges[key] = parent_key
 
     start_key = _resolvable_key(start_pack_id, pack_names)

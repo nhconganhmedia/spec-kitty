@@ -50,9 +50,7 @@ def _install_fakes(monkeypatch: pytest.MonkeyPatch, mission_dir: Path, safe_comm
     )
 
 
-def test_owned_commit_guard_swallows_empty_changeset(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_owned_commit_guard_swallows_empty_changeset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A staged tree that already matches HEAD returns cleanly (no-op)."""
     from specify_cli.cli.commands.next_cmd import _commit_owned_next_mutations
 
@@ -60,10 +58,7 @@ def test_owned_commit_guard_swallows_empty_changeset(
     mission_dir = _stage_owned_mission(tmp_path, mission_slug)
 
     def _raise_empty_changeset(**_kwargs):
-        raise RuntimeError(
-            "safe_commit: nothing to commit for destination_ref='refs/heads/x' "
-            "(empty changeset)"
-        )
+        raise RuntimeError("safe_commit: nothing to commit for destination_ref='refs/heads/x' (empty changeset)")
 
     _install_fakes(monkeypatch, mission_dir, _raise_empty_changeset)
 
@@ -71,9 +66,7 @@ def test_owned_commit_guard_swallows_empty_changeset(
     _commit_owned_next_mutations(tmp_path, mission_slug)
 
 
-def test_owned_commit_guard_propagates_other_runtime_errors(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_owned_commit_guard_propagates_other_runtime_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A genuine safe_commit failure (e.g. HEAD mismatch) still propagates."""
     from specify_cli.cli.commands.next_cmd import _commit_owned_next_mutations
 

@@ -17,6 +17,7 @@ from specify_cli.status.wp_metadata import WPMetadata
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestExecutionMode:
     def test_exactly_two_values(self) -> None:
         values = [m.value for m in WorkProductKind]

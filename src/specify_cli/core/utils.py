@@ -112,9 +112,7 @@ def ensure_within_directory(path: Path, root: Path) -> Path:
     return resolved_path
 
 
-def ensure_within_any(
-    path: Path, *, roots: Sequence[Path], files: Sequence[Path] = ()
-) -> Path:
+def ensure_within_any(path: Path, *, roots: Sequence[Path], files: Sequence[Path] = ()) -> Path:
     """Return ``path.resolve(strict=False)`` if it is under any of ``roots`` OR equals
     an allowed exact file in ``files``; else raise ``ValueError``.
 
@@ -147,9 +145,7 @@ def ensure_within_any(
     if any(_is_relative_to(resolved, root) for root in resolved_roots):
         return resolved
 
-    raise ValueError(
-        f"Refusing to access path outside trusted roots: {resolved}"
-    )
+    raise ValueError(f"Refusing to access path outside trusted roots: {resolved}")
 
 
 def _is_relative_to(path: Path, root: Path) -> bool:

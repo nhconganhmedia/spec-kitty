@@ -74,9 +74,7 @@ DEFAULT_SITE_DIR: Final[str] = "docs/_site"
 
 CANONICAL_RE: Final = re.compile(r'<link\s+rel="canonical"\s+href="(.*?)"\s*/?>', re.IGNORECASE | re.DOTALL)
 OG_TITLE_RE: Final = re.compile(r'<meta\s+property="og:title"\s+content="(.*?)"\s*/?>', re.IGNORECASE | re.DOTALL)
-OG_DESCRIPTION_RE: Final = re.compile(
-    r'<meta\s+property="og:description"\s+content="(.*?)"\s*/?>', re.IGNORECASE | re.DOTALL
-)
+OG_DESCRIPTION_RE: Final = re.compile(r'<meta\s+property="og:description"\s+content="(.*?)"\s*/?>', re.IGNORECASE | re.DOTALL)
 ROBOTS_RE: Final = re.compile(r'<meta\s+name="robots"\s+content="([^"]*)"', re.IGNORECASE)
 SITEMAP_LOC_RE: Final = re.compile(r"<loc>(.*?)</loc>", re.IGNORECASE | re.DOTALL)
 
@@ -191,15 +189,10 @@ STALE_URL_FINDINGS: Final[tuple[StaleUrlFinding, ...]] = (
 
 _ABSENT: Final[str] = "ABSENT"
 _NOTE_CONFIRMED: Final[str] = (
-    "Confirmed in this build: the reported address is a redirect stub and the current "
-    "address is an indexable page carrying its own description and canonical."
+    "Confirmed in this build: the reported address is a redirect stub and the current address is an indexable page carrying its own description and canonical."
 )
-_NOTE_NOT_OBSERVED: Final[str] = (
-    "Not observed in this build: one or both addresses are absent from the site tree."
-)
-_NOTE_UNEXPECTED: Final[str] = (
-    "Both addresses are present but do not match the expected stub/live-page shape."
-)
+_NOTE_NOT_OBSERVED: Final[str] = "Not observed in this build: one or both addresses are absent from the site tree."
+_NOTE_UNEXPECTED: Final[str] = "Both addresses are present but do not match the expected stub/live-page shape."
 
 
 @dataclass(frozen=True, slots=True)
@@ -368,14 +361,10 @@ def _check_stubs(stubs: list[RenderedPage], sitemap_urls: set[str], base_url: st
     violations: list[Violation] = []
     for stub in stubs:
         if stub.robots is None or "noindex" not in stub.robots.lower():
-            violations.append(
-                Violation(stub.relative_path, _RULE_STUB, f"redirect stub robots is {stub.robots!r}, expected noindex")
-            )
+            violations.append(Violation(stub.relative_path, _RULE_STUB, f"redirect stub robots is {stub.robots!r}, expected noindex"))
         address = canonical_url(base_url, stub.relative_path)
         if address in sitemap_urls:
-            violations.append(
-                Violation(stub.relative_path, _RULE_STUB, f"redirect stub address present in sitemap.xml: {address}")
-            )
+            violations.append(Violation(stub.relative_path, _RULE_STUB, f"redirect stub address present in sitemap.xml: {address}"))
     return violations
 
 
@@ -387,10 +376,7 @@ def _check_sitemap(indexable: list[RenderedPage], sitemap_urls: set[str], base_u
         for address, relative_path in expected.items()
         if address not in sitemap_urls
     ]
-    violations += [
-        Violation(_SITEMAP_NAME, _RULE_SITEMAP, f"sitemap entry has no indexable page: {address}")
-        for address in sitemap_urls - set(expected)
-    ]
+    violations += [Violation(_SITEMAP_NAME, _RULE_SITEMAP, f"sitemap entry has no indexable page: {address}") for address in sitemap_urls - set(expected)]
     return violations
 
 
@@ -407,12 +393,7 @@ def _read_sitemap_urls(site_dir: Path) -> set[str]:
 
 def _page_rules(page: RenderedPage, base_url: str) -> list[Violation]:
     """Per-page rules. Applied only to ``INDEXABLE`` pages (C-B5)."""
-    return (
-        _check_title(page)
-        + _check_description(page)
-        + _check_canonical(page, base_url)
-        + _check_open_graph(page)
-    )
+    return _check_title(page) + _check_description(page) + _check_canonical(page, base_url) + _check_open_graph(page)
 
 
 def _finding_note(reported: RenderedPage | None, current: RenderedPage | None) -> str:
@@ -485,10 +466,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the verifier CLI parser."""
     parser = argparse.ArgumentParser(
         prog="seo_verify",
-        description=(
-            "Verify SEO metadata in the built docs site. Report-only (exit 0) "
-            "unless --strict is passed."
-        ),
+        description=("Verify SEO metadata in the built docs site. Report-only (exit 0) unless --strict is passed."),
     )
     parser.add_argument(
         "--site-dir",

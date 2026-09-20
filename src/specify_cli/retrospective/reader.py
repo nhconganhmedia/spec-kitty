@@ -35,80 +35,90 @@ class SchemaError(Exception):
     """The file contains valid YAML but fails schema validation."""
 
 
-_GEN_TOP_LEVEL_KEYS = frozenset({
-    "schema_version",
-    "mission_id",
-    "mission_slug",
-    "mission_number",
-    "friendly_name",
-    "mission_type",
-    "target_branch",
-    "created_at",
-    "created_by",
-    "provenance",
-    "policy_source",
-    "findings_status",
-    "helped",
-    "not_helpful",
-    "gaps",
-    "proposals",
-    "evidence_refs",
-    "generator_version",
-    "provenance_history",
-})
-_GEN_REQUIRED_KEYS = frozenset({
-    "schema_version",
-    "mission_id",
-    "mission_slug",
-    "mission_number",
-    "friendly_name",
-    "mission_type",
-    "target_branch",
-    "created_at",
-    "created_by",
-    "provenance",
-    "policy_source",
-    "findings_status",
-    "helped",
-    "not_helpful",
-    "gaps",
-    "proposals",
-    "evidence_refs",
-    "generator_version",
-})
+_GEN_TOP_LEVEL_KEYS = frozenset(
+    {
+        "schema_version",
+        "mission_id",
+        "mission_slug",
+        "mission_number",
+        "friendly_name",
+        "mission_type",
+        "target_branch",
+        "created_at",
+        "created_by",
+        "provenance",
+        "policy_source",
+        "findings_status",
+        "helped",
+        "not_helpful",
+        "gaps",
+        "proposals",
+        "evidence_refs",
+        "generator_version",
+        "provenance_history",
+    }
+)
+_GEN_REQUIRED_KEYS = frozenset(
+    {
+        "schema_version",
+        "mission_id",
+        "mission_slug",
+        "mission_number",
+        "friendly_name",
+        "mission_type",
+        "target_branch",
+        "created_at",
+        "created_by",
+        "provenance",
+        "policy_source",
+        "findings_status",
+        "helped",
+        "not_helpful",
+        "gaps",
+        "proposals",
+        "evidence_refs",
+        "generator_version",
+    }
+)
 _ACTOR_KEYS = frozenset({"kind", "id", "display"})
 _PROVENANCE_KEYS = frozenset({"kind", "invoked_at", "policy_resolved_from", "command"})
 _EVIDENCE_KEYS = frozenset({"id", "kind", "path", "range", "url"})
 _FINDING_KEYS = frozenset({"id", "category", "summary", "evidence_refs", "details"})
-_PROPOSAL_KEYS = frozenset({
-    "id",
-    "category",
-    "risk_class",
-    "summary",
-    "evidence_refs",
-    "suggested_action",
-    "auto_applicable",
-    "details",
-})
+_PROPOSAL_KEYS = frozenset(
+    {
+        "id",
+        "category",
+        "risk_class",
+        "summary",
+        "evidence_refs",
+        "suggested_action",
+        "auto_applicable",
+        "details",
+    }
+)
 _ACTOR_KINDS = frozenset({"human", "agent", "runtime"})
-_PROVENANCE_KINDS = frozenset({
-    "runtime_post_completion",
-    "runtime_strict_gate",
-    "runtime_abandoned",
-    "explicit_create",
-    "backfill",
-    "synthesize_fabricate",
-})
-FINDING_CATEGORIES = frozenset({
-    "process",
-    "tooling",
-    "spec_quality",
-    "review_loop",
-    "design",
-    "implementation",
-    "doc",
-    "other",
-})
+_PROVENANCE_KINDS = frozenset(
+    {
+        "runtime_post_completion",
+        "runtime_strict_gate",
+        "runtime_abandoned",
+        "explicit_create",
+        "backfill",
+        "synthesize_fabricate",
+    }
+)
+FINDING_CATEGORIES = frozenset(
+    {
+        "process",
+        "tooling",
+        "spec_quality",
+        "review_loop",
+        "design",
+        "implementation",
+        "doc",
+        "other",
+    }
+)
 PROPOSAL_CATEGORIES = frozenset({"glossary", "drg", "doctrine", "tooling", "process", "other"})
 _EVIDENCE_KINDS = frozenset({"file", "event_range", "external"})
 _FINDINGS_STATUSES = frozenset({"has_findings", "ran_no_findings"})
@@ -336,9 +346,7 @@ def read_gen_record(path: Path) -> GenRetrospectiveRecord:
         record = _gen_record_from_mapping(data)
         validate_record(record)
     except (KeyError, TypeError, ValueError, RecordValidationError) as exc:
-        raise SchemaError(
-            f"Generator schema validation failed for {path}:\n{exc}"
-        ) from exc
+        raise SchemaError(f"Generator schema validation failed for {path}:\n{exc}") from exc
     return record
 
 
@@ -366,18 +374,13 @@ def read_record(path: Path, *, verify_evidence: bool = False) -> RetrospectiveRe
     try:
         record = RetrospectiveRecord.model_validate(_coerce_legacy_schema_versions(data))
     except ValidationError as exc:
-        raise SchemaError(
-            f"Schema validation failed for {path}:\n{exc}"
-        ) from exc
+        raise SchemaError(f"Schema validation failed for {path}:\n{exc}") from exc
 
     # status='pending' is explicitly refused at the read boundary too.
     # (The model validator already raises for pending, but guard explicitly
     # in case the validator is bypassed via model_construct in future.)
     if record.status == "pending":
-        raise SchemaError(
-            f"Refused to return a record with status='pending' from {path}. "
-            "Pending records must not be persisted."
-        )
+        raise SchemaError(f"Refused to return a record with status='pending' from {path}. Pending records must not be persisted.")
 
     # Evidence verification (stub; WP03 wires the actual event log lookup).
     if verify_evidence:

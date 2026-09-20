@@ -131,20 +131,21 @@ class TestSynthesizeHappyPath:
         """
         _write_interview_answers(tmp_path)
 
-        with patch(
-            "specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path
-        ), patch(
-            "specify_cli.cli.commands.charter._run_synthesis_dry_run_with_artifacts",
-            return_value=(
-                ["directive:test-directive"],
-                [
-                    {
-                        "path": ".kittify/doctrine/directive/001-test-directive.directive.yaml",
-                        "kind": "directive",
-                        "slug": "test-directive",
-                        "artifact_id": "PROJECT_001",
-                    }
-                ],
+        with (
+            patch("specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path),
+            patch(
+                "specify_cli.cli.commands.charter._run_synthesis_dry_run_with_artifacts",
+                return_value=(
+                    ["directive:test-directive"],
+                    [
+                        {
+                            "path": ".kittify/doctrine/directive/001-test-directive.directive.yaml",
+                            "kind": "directive",
+                            "slug": "test-directive",
+                            "artifact_id": "PROJECT_001",
+                        }
+                    ],
+                ),
             ),
         ):
             result = runner.invoke(app, ["synthesize", "--dry-run"])
@@ -179,30 +180,30 @@ class TestSynthesizeHappyPath:
         mock_result.effective_adapter_id = "fixture"
         mock_result.effective_adapter_version = "1.0.0"
 
-        with patch(
-            "specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path
-        ), patch(
-            "specify_cli.cli.commands.charter._collect_evidence_result",
-            return_value=SimpleNamespace(warnings=[], bundle=SimpleNamespace()),
-        ), patch(
-            "specify_cli.cli.commands.charter._build_synthesis_request",
-            return_value=(SimpleNamespace(), SimpleNamespace()),
-        ), patch(
-            "charter.activation.synthesizer.synthesize", return_value=mock_result
-        ), patch(
-            "specify_cli.cli.commands.charter._load_written_artifacts_from_manifest",
-            return_value=[
-                {
-                    "path": ".kittify/doctrine/directive/001-test.directive.yaml",
-                    "kind": "directive",
-                    "slug": "test",
-                    "artifact_id": "PROJECT_001",
-                }
-            ],
+        with (
+            patch("specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path),
+            patch(
+                "specify_cli.cli.commands.charter._collect_evidence_result",
+                return_value=SimpleNamespace(warnings=[], bundle=SimpleNamespace()),
+            ),
+            patch(
+                "specify_cli.cli.commands.charter._build_synthesis_request",
+                return_value=(SimpleNamespace(), SimpleNamespace()),
+            ),
+            patch("charter.activation.synthesizer.synthesize", return_value=mock_result),
+            patch(
+                "specify_cli.cli.commands.charter._load_written_artifacts_from_manifest",
+                return_value=[
+                    {
+                        "path": ".kittify/doctrine/directive/001-test.directive.yaml",
+                        "kind": "directive",
+                        "slug": "test",
+                        "artifact_id": "PROJECT_001",
+                    }
+                ],
+            ),
         ):
-            result = runner.invoke(
-                app, ["synthesize", "--adapter", "fixture", "--json"]
-            )
+            result = runner.invoke(app, ["synthesize", "--adapter", "fixture", "--json"])
 
         assert result.exit_code == 0, f"Expected exit 0: {result.output}"
         data = json.loads(result.output)
@@ -238,26 +239,28 @@ class TestSynthesizeHappyPath:
         mock_result.effective_adapter_id = "fixture"
         mock_result.effective_adapter_version = "1.0.0"
 
-        with patch(
-            "specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path
-        ), patch(
-            "specify_cli.cli.commands.charter._collect_evidence_result",
-            return_value=SimpleNamespace(warnings=[], bundle=SimpleNamespace()),
-        ), patch(
-            "specify_cli.cli.commands.charter._build_synthesis_request",
-            return_value=(SimpleNamespace(), SimpleNamespace()),
-        ), patch(
-            "charter.activation.synthesizer.synthesize", return_value=mock_result
-        ), patch(
-            "specify_cli.cli.commands.charter._load_written_artifacts_from_manifest",
-            return_value=[
-                {
-                    "path": ".kittify/charter/synthesis-manifest.yaml",
-                    "kind": "manifest",
-                    "slug": "synthesis",
-                    "artifact_id": None,
-                }
-            ],
+        with (
+            patch("specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path),
+            patch(
+                "specify_cli.cli.commands.charter._collect_evidence_result",
+                return_value=SimpleNamespace(warnings=[], bundle=SimpleNamespace()),
+            ),
+            patch(
+                "specify_cli.cli.commands.charter._build_synthesis_request",
+                return_value=(SimpleNamespace(), SimpleNamespace()),
+            ),
+            patch("charter.activation.synthesizer.synthesize", return_value=mock_result),
+            patch(
+                "specify_cli.cli.commands.charter._load_written_artifacts_from_manifest",
+                return_value=[
+                    {
+                        "path": ".kittify/charter/synthesis-manifest.yaml",
+                        "kind": "manifest",
+                        "slug": "synthesis",
+                        "artifact_id": None,
+                    }
+                ],
+            ),
         ):
             result = runner.invoke(app, ["synthesize", "--adapter", "fixture"])
 
@@ -275,20 +278,21 @@ class TestSynthesizeHappyPath:
         """
         _write_interview_answers(tmp_path)
 
-        with patch(
-            "specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path
-        ), patch(
-            "specify_cli.cli.commands.charter._run_synthesis_dry_run_with_artifacts",
-            return_value=(
-                ["directive:test-directive"],
-                [
-                    {
-                        "path": ".kittify/doctrine/directive/001-test-directive.directive.yaml",
-                        "kind": "directive",
-                        "slug": "test-directive",
-                        "artifact_id": "PROJECT_001",
-                    }
-                ],
+        with (
+            patch("specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path),
+            patch(
+                "specify_cli.cli.commands.charter._run_synthesis_dry_run_with_artifacts",
+                return_value=(
+                    ["directive:test-directive"],
+                    [
+                        {
+                            "path": ".kittify/doctrine/directive/001-test-directive.directive.yaml",
+                            "kind": "directive",
+                            "slug": "test-directive",
+                            "artifact_id": "PROJECT_001",
+                        }
+                    ],
+                ),
             ),
         ):
             result = runner.invoke(
@@ -303,9 +307,7 @@ class TestSynthesizeHappyPath:
         assert data["validated"] is True
         # FR-002 contracted fields:
         assert "adapter" in data and isinstance(data["adapter"], dict)
-        assert "written_artifacts" in data and isinstance(
-            data["written_artifacts"], list
-        )
+        assert "written_artifacts" in data and isinstance(data["written_artifacts"], list)
         assert "warnings" in data and isinstance(data["warnings"], list)
         # Typed entry shape per data-model §E-3:
         assert len(data["written_artifacts"]) == 1
@@ -331,9 +333,7 @@ class TestSynthesizeEnvelopeContract:
     cases with no artifacts.
     """
 
-    def test_synthesize_fixture_envelope_has_contracted_fields(
-        self, tmp_path: Path
-    ) -> None:
+    def test_synthesize_fixture_envelope_has_contracted_fields(self, tmp_path: Path) -> None:
         """Real-run --json envelope carries result / adapter / written_artifacts / warnings.
 
         Uses the dry-run code path with the fixture adapter so the test
@@ -343,11 +343,12 @@ class TestSynthesizeEnvelopeContract:
         """
         _write_interview_answers(tmp_path)
 
-        with patch(
-            "specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path
-        ), patch(
-            "specify_cli.cli.commands.charter._run_synthesis_dry_run_with_artifacts",
-            return_value=([], []),
+        with (
+            patch("specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path),
+            patch(
+                "specify_cli.cli.commands.charter._run_synthesis_dry_run_with_artifacts",
+                return_value=([], []),
+            ),
         ):
             result = runner.invoke(
                 app,
@@ -361,9 +362,7 @@ class TestSynthesizeEnvelopeContract:
 
         # FR-002: the four contracted fields MUST be present.
         for key in ("result", "adapter", "written_artifacts", "warnings"):
-            assert key in envelope, (
-                f"FR-002: contracted field {key!r} missing from envelope: {envelope!r}"
-            )
+            assert key in envelope, f"FR-002: contracted field {key!r} missing from envelope: {envelope!r}"
 
         # Type / shape contract per data-model §E-1:
         assert envelope["result"] in {"success", "failure", "dry_run"}
@@ -378,12 +377,8 @@ class TestSynthesizeEnvelopeContract:
         # FR-005: PROJECT_000 must not appear anywhere on the wire.
         assert "PROJECT_000" not in json.dumps(envelope)
 
-    @pytest.mark.parametrize(
-        "field", ["result", "adapter", "written_artifacts", "warnings"]
-    )
-    def test_synthesize_fixture_envelope_rejects_missing_contracted_field(
-        self, field: str
-    ) -> None:
+    @pytest.mark.parametrize("field", ["result", "adapter", "written_artifacts", "warnings"])
+    def test_synthesize_fixture_envelope_rejects_missing_contracted_field(self, field: str) -> None:
         """Defensive scaffolding test: removing any contracted field MUST be detectable.
 
         This guards against a future regression where a test
@@ -399,12 +394,8 @@ class TestSynthesizeEnvelopeContract:
         }
         del complete[field]
         # The four-field membership check must reject this envelope.
-        missing = [k for k in ("result", "adapter", "written_artifacts", "warnings")
-                   if k not in complete]
-        assert missing == [field], (
-            f"scaffolding sanity: deleting {field!r} should leave it (and only it) "
-            f"missing; got missing={missing}"
-        )
+        missing = [k for k in ("result", "adapter", "written_artifacts", "warnings") if k not in complete]
+        assert missing == [field], f"scaffolding sanity: deleting {field!r} should leave it (and only it) missing; got missing={missing}"
 
 
 # ---------------------------------------------------------------------------
@@ -428,9 +419,7 @@ class TestSynthesizeErrorPaths:
         with patch("specify_cli.cli.commands.charter.find_repo_root", return_value=tmp_path):
             result = runner.invoke(app, ["synthesize", "--adapter", "production"])
 
-        assert result.exit_code == 1, (
-            f"Expected exit 1, got {result.exit_code}: {result.output}"
-        )
+        assert result.exit_code == 1, f"Expected exit 1, got {result.exit_code}: {result.output}"
 
     def test_pack_config_error_surfaces_diagnostic_body(self, tmp_path: Path) -> None:
         """CHARTER_PACK_CONFIG_INVALID body reaches the operator, not just the code (#2850).

@@ -299,10 +299,7 @@ class LocalTrackerService:
         # -- the operator saw a raw traceback. Raise LocalTrackerServiceError (a
         # RuntimeError subclass) instead, so the CLI renders a clean message and
         # exit 1, matching the command's documented contract for local providers.
-        raise LocalTrackerServiceError(
-            "Snapshot publish is not supported for local providers (beads/fp). "
-            "Use 'spec-kitty tracker sync push' instead."
-        )
+        raise LocalTrackerServiceError("Snapshot publish is not supported for local providers (beads/fp). Use 'spec-kitty tracker sync push' instead.")
 
     # ------------------------------------------------------------------
     # mapping operations
@@ -319,9 +316,7 @@ class LocalTrackerService:
         try:
             from spec_kitty_tracker.models import ExternalRef
         except Exception as exc:  # pragma: no cover - dependency boundary
-            raise LocalTrackerServiceError(
-                "spec-kitty-tracker is not installed. Install it to use tracker commands."
-            ) from exc
+            raise LocalTrackerServiceError("spec-kitty-tracker is not installed. Install it to use tracker commands.") from exc
 
         config, credentials, store = self._load_runtime()
         ref = ExternalRef(
@@ -372,9 +367,7 @@ class LocalTrackerService:
         try:
             from spec_kitty_tracker import FieldOwner, OwnershipMode, OwnershipPolicy, SyncEngine
         except Exception as exc:  # pragma: no cover - dependency boundary
-            raise LocalTrackerServiceError(
-                "spec-kitty-tracker is not installed. Install it to use tracker commands."
-            ) from exc
+            raise LocalTrackerServiceError("spec-kitty-tracker is not installed. Install it to use tracker commands.") from exc
 
         provider_name = normalize_provider(str(config.provider))
         # WIRE-M2-01: Beads mutations route through the local program gateway
@@ -405,11 +398,7 @@ class LocalTrackerService:
         elif mode_name == OwnershipMode.SPEC_KITTY_AUTHORITATIVE.value:
             policy = OwnershipPolicy.local_authoritative()
         else:
-            field_owners = {
-                field: FieldOwner(owner)
-                for field, owner in config.ownership_field_owners.items()
-                if owner in {item.value for item in FieldOwner}
-            }
+            field_owners = {field: FieldOwner(owner) for field, owner in config.ownership_field_owners.items() if owner in {item.value for item in FieldOwner}}
             policy = OwnershipPolicy.split(field_owners=field_owners, default_owner=FieldOwner.SHARED)
 
         engine = SyncEngine(connector=connector, store=store, policy=policy)

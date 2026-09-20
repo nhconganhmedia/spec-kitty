@@ -57,9 +57,7 @@ def _write_built_in_tactic(built_in_dir: Path) -> None:
           - {_BUILT_IN_LANGUAGES[0]}
         """
     )
-    (built_in_dir / f"{_BUILT_IN_TACTIC_ID}.tactic.yaml").write_text(
-        yaml_body, encoding="utf-8"
-    )
+    (built_in_dir / f"{_BUILT_IN_TACTIC_ID}.tactic.yaml").write_text(yaml_body, encoding="utf-8")
 
 
 def _write_partial_pack_tactic(
@@ -84,9 +82,7 @@ def _write_partial_pack_tactic(
         f"purpose: {overrides_fields['purpose']}",
         f"enhances: {_BUILT_IN_TACTIC_ID}",
     ]
-    (pack_dir / f"{_BUILT_IN_TACTIC_ID}.tactic.yaml").write_text(
-        "\n".join(body_lines) + "\n", encoding="utf-8"
-    )
+    (pack_dir / f"{_BUILT_IN_TACTIC_ID}.tactic.yaml").write_text("\n".join(body_lines) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -141,9 +137,7 @@ class TestMergeDirectInvariants:
         with pytest.raises(ValidationError, match="Retired relationship field"):
             repo._merge(built_in, pack_data)
 
-    def test_built_in_survives_when_pack_provides_invalid_empty_steps(
-        self, tmp_path: Path
-    ) -> None:
+    def test_built_in_survives_when_pack_provides_invalid_empty_steps(self, tmp_path: Path) -> None:
         """Pack provides ``steps: []`` — Tactic schema has ``min_length=1``.
 
         End-state assertion: a pack override that would erase ``steps`` to
@@ -186,9 +180,7 @@ class TestMergeDirectInvariants:
 
 
 class TestPartialOverrideThroughRepositoryLoader:
-    def test_omitted_fields_survive_through_org_layer_load(
-        self, tmp_path: Path
-    ) -> None:
+    def test_omitted_fields_survive_through_org_layer_load(self, tmp_path: Path) -> None:
         """Built-in tactic + org pack with partial override -> field-merge."""
         built_in_dir = tmp_path / "built-in"
         org_dir = tmp_path / "org"
@@ -199,9 +191,7 @@ class TestPartialOverrideThroughRepositoryLoader:
         repo = TacticRepository(built_in_dir=built_in_dir, org_dirs=[org_dir])
         merged = repo.get(_BUILT_IN_TACTIC_ID)
 
-        assert merged is not None, (
-            f"loaded tactics: {[t.id for t in repo.list_all()]}"
-        )
+        assert merged is not None, f"loaded tactics: {[t.id for t in repo.list_all()]}"
 
         # Stale inline relationship packs are skipped; built-in survives.
         assert merged.name == _BUILT_IN_NAME

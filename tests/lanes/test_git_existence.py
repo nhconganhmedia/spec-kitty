@@ -25,17 +25,23 @@ def _make_git_repo(path: Path) -> None:
     subprocess.run(["git", "init", "-b", "main", str(path)], capture_output=True, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
     (path / "README.md").write_text("init\n")
     subprocess.run(["git", "add", "."], cwd=str(path), capture_output=True, check=True)
     subprocess.run(
         ["git", "commit", "-m", "init"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
 
 
@@ -53,7 +59,9 @@ def test_branch_exists_true_for_created_branch(tmp_path: Path) -> None:
     _make_git_repo(tmp_path)
     subprocess.run(
         ["git", "branch", "feature/x"],
-        cwd=str(tmp_path), capture_output=True, check=True,
+        cwd=str(tmp_path),
+        capture_output=True,
+        check=True,
     )
     assert branch_exists(tmp_path, "feature/x") is True
 
@@ -63,7 +71,9 @@ def test_branch_exists_false_for_tag_only(tmp_path: Path) -> None:
     _make_git_repo(tmp_path)
     subprocess.run(
         ["git", "tag", "v1"],
-        cwd=str(tmp_path), capture_output=True, check=True,
+        cwd=str(tmp_path),
+        capture_output=True,
+        check=True,
     )
     assert branch_exists(tmp_path, "v1") is False
 
@@ -97,7 +107,9 @@ def test_ref_exists_true_for_tag(tmp_path: Path) -> None:
     _make_git_repo(tmp_path)
     subprocess.run(
         ["git", "tag", "v1"],
-        cwd=str(tmp_path), capture_output=True, check=True,
+        cwd=str(tmp_path),
+        capture_output=True,
+        check=True,
     )
     assert ref_exists(tmp_path, "v1") is True
 
@@ -112,26 +124,20 @@ def test_ref_exists_with_explicit_env(tmp_path: Path) -> None:
 def _commit(path: Path, name: str) -> None:
     (path / name).write_text("x\n")
     subprocess.run(["git", "add", "."], cwd=str(path), capture_output=True, check=True)
-    subprocess.run(
-        ["git", "commit", "-m", name], cwd=str(path), capture_output=True, check=True
-    )
+    subprocess.run(["git", "commit", "-m", name], cwd=str(path), capture_output=True, check=True)
 
 
 def test_lane_has_commit_beyond_base_false_when_at_base(tmp_path: Path) -> None:
     """No commit beyond base (HEAD == base) -> False (the gate rejects)."""
     _make_git_repo(tmp_path)
-    subprocess.run(
-        ["git", "branch", "base"], cwd=str(tmp_path), capture_output=True, check=True
-    )
+    subprocess.run(["git", "branch", "base"], cwd=str(tmp_path), capture_output=True, check=True)
     assert lane_has_commit_beyond_base(tmp_path, "base") is False
 
 
 def test_lane_has_commit_beyond_base_true_with_a_commit(tmp_path: Path) -> None:
     """A commit on HEAD beyond base -> True (the gate passes)."""
     _make_git_repo(tmp_path)
-    subprocess.run(
-        ["git", "branch", "base"], cwd=str(tmp_path), capture_output=True, check=True
-    )
+    subprocess.run(["git", "branch", "base"], cwd=str(tmp_path), capture_output=True, check=True)
     _commit(tmp_path, "impl.py")
     assert lane_has_commit_beyond_base(tmp_path, "base") is True
 
@@ -142,9 +148,7 @@ def test_lane_has_commit_beyond_base_false_for_unresolvable_base(tmp_path: Path)
     assert lane_has_commit_beyond_base(tmp_path, "no-such-branch") is False
 
 
-def test_lane_has_commit_beyond_base_false_on_unparseable_count(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lane_has_commit_beyond_base_false_on_unparseable_count(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Fail-closed: rev-list exits 0 but emits a non-integer count -> False.
 
     Real ``git rev-list --count`` always prints an integer, so the defensive
@@ -156,9 +160,7 @@ def test_lane_has_commit_beyond_base_false_on_unparseable_count(
     import specify_cli.lanes._git as git_mod
 
     def _fake_run(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess[str]:
-        return subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="not-a-number\n", stderr=""
-        )
+        return subprocess.CompletedProcess(args=[], returncode=0, stdout="not-a-number\n", stderr="")
 
     monkeypatch.setattr(git_mod.subprocess, "run", _fake_run)
     assert lane_has_commit_beyond_base(tmp_path, "base") is False

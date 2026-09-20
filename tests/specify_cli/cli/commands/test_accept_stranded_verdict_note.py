@@ -31,9 +31,7 @@ def _write_stranded_mission(tmp_path: Path, *, wp_id: str = "WP01") -> Path:
     feature_dir = tmp_path / "kitty-specs" / slug
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps(
-            {"mission_slug": slug, "mission_id": "01JRDACCEPTPROV0000000000"}
-        ),
+        json.dumps({"mission_slug": slug, "mission_id": "01JRDACCEPTPROV0000000000"}),
         encoding="utf-8",
     )
     sub_dir = feature_dir / "tasks" / f"{wp_id}-demo"
@@ -123,9 +121,7 @@ def _run_accept_json(
     return payload
 
 
-def test_accept_json_advisories_carries_stranded_note(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_accept_json_advisories_carries_stranded_note(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """Stranded mission: ``accept --json`` carries the SC-008 advisory in
     the top-level ``advisories`` array (#3255) -- it was previously only
     ever printed to the human console, never emitted in JSON."""
@@ -138,9 +134,7 @@ def test_accept_json_advisories_carries_stranded_note(
     assert any("WP01" in note and "spec-kitty upgrade" in note for note in payload["advisories"])
 
 
-def test_accept_json_advisories_empty_when_converged(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_accept_json_advisories_empty_when_converged(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """Converged mission (post-backfill): ``advisories`` is present but
     empty -- the key must always exist so JSON consumers never need a
     conditional presence check."""

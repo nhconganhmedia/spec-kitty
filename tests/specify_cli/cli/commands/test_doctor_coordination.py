@@ -98,9 +98,7 @@ def test_git_version_check_errors_on_old_git() -> None:
 
 def test_git_version_check_errors_when_undetectable() -> None:
     # Inject None directly to simulate detection failure deterministically.
-    findings = _check_git_version.__wrapped__(detected=None) if hasattr(
-        _check_git_version, "__wrapped__"
-    ) else _check_git_version(detected=None)
+    findings = _check_git_version.__wrapped__(detected=None) if hasattr(_check_git_version, "__wrapped__") else _check_git_version(detected=None)
     # Real detection may succeed on this machine — only assert the
     # explicit-None contract.
     assert isinstance(findings, list)
@@ -166,8 +164,7 @@ def test_lane_drift_ok_when_pattern_present(
     fresh_mission_repo: Path,
 ) -> None:
     lane_path = fresh_mission_repo / ".worktrees" / f"{MISSION_SLUG}-lane-a"
-    _git(fresh_mission_repo, "worktree", "add", "-b",
-         f"kitty/mission-{MISSION_SLUG}-lane-a", str(lane_path), COORD_BRANCH)
+    _git(fresh_mission_repo, "worktree", "add", "-b", f"kitty/mission-{MISSION_SLUG}-lane-a", str(lane_path), COORD_BRANCH)
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)
 
     findings = _check_lane_sparse_checkout_drift(fresh_mission_repo, _meta())
@@ -179,8 +176,7 @@ def test_lane_drift_warns_when_sparse_file_missing(
     fresh_mission_repo: Path,
 ) -> None:
     lane_path = fresh_mission_repo / ".worktrees" / f"{MISSION_SLUG}-lane-a"
-    _git(fresh_mission_repo, "worktree", "add", "-b",
-         f"kitty/mission-{MISSION_SLUG}-lane-a", str(lane_path), COORD_BRANCH)
+    _git(fresh_mission_repo, "worktree", "add", "-b", f"kitty/mission-{MISSION_SLUG}-lane-a", str(lane_path), COORD_BRANCH)
     # Intentionally do NOT register sparse-checkout.
 
     findings = _check_lane_sparse_checkout_drift(fresh_mission_repo, _meta())
@@ -192,14 +188,13 @@ def test_lane_drift_warns_when_pattern_edited(
     fresh_mission_repo: Path,
 ) -> None:
     lane_path = fresh_mission_repo / ".worktrees" / f"{MISSION_SLUG}-lane-a"
-    _git(fresh_mission_repo, "worktree", "add", "-b",
-         f"kitty/mission-{MISSION_SLUG}-lane-a", str(lane_path), COORD_BRANCH)
+    _git(fresh_mission_repo, "worktree", "add", "-b", f"kitty/mission-{MISSION_SLUG}-lane-a", str(lane_path), COORD_BRANCH)
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)
 
     # Manually rewrite the sparse-checkout file to remove the exclusions.
     raw = subprocess.check_output(
-        ["git", "-C", str(lane_path), "rev-parse",
-         "--git-path", "info/sparse-checkout"], text=True,
+        ["git", "-C", str(lane_path), "rev-parse", "--git-path", "info/sparse-checkout"],
+        text=True,
     ).strip()
     sparse_file = Path(raw)
     if not sparse_file.is_absolute():
@@ -244,15 +239,11 @@ def test_coord_health_recovery_efficacy_missing_worktree(fresh_mission_repo: Pat
     # Execute the recovery command and verify state is resolved.
     subprocess.run(list(recovery_args), check=True, capture_output=True)
     worktree = CoordinationWorkspace.worktree_path(fresh_mission_repo, MISSION_SLUG, MID8)
-    assert worktree.exists(), (
-        "recovery_args must recreate the coordination worktree; it is still missing"
-    )
+    assert worktree.exists(), "recovery_args must recreate the coordination worktree; it is still missing"
 
     # Doctor must now report OK for this mission.
     after = _check_coordination_worktree_health(fresh_mission_repo, _meta())
-    assert all(f2.severity == "ok" for f2 in after), (
-        f"doctor still reports issues after recovery: {after}"
-    )
+    assert all(f2.severity == "ok" for f2 in after), f"doctor still reports issues after recovery: {after}"
 
 
 def test_coord_health_never_created_branch_routes_to_flatten(
@@ -273,14 +264,11 @@ def test_coord_health_never_created_branch_routes_to_flatten(
     assert len(findings) == 1
     f = findings[0]
     assert f.error_code == "COORDINATION_WORKTREE_NEVER_CREATED", (
-        f"a declared-but-absent coord branch must produce "
-        f"COORDINATION_WORKTREE_NEVER_CREATED, got {f.error_code!r}"
+        f"a declared-but-absent coord branch must produce COORDINATION_WORKTREE_NEVER_CREATED, got {f.error_code!r}"
     )
     # Flatten must be the first action recommended (consistent with WP02 / #2250).
     hint = (f.next_step or "").lower()
-    assert "meta.json" in hint or "flatten" in hint, (
-        "never-created hint must mention meta.json (flatten by removing coordination_branch)"
-    )
+    assert "meta.json" in hint or "flatten" in hint, "never-created hint must mention meta.json (flatten by removing coordination_branch)"
     # No recovery_args: the fix is editing meta.json, not a git command.
     assert "recovery_args" not in f.extra
 
@@ -311,10 +299,7 @@ def test_coord_health_warns_stale_coord_worktree(fresh_mission_repo: Path) -> No
 
     findings = _check_coordination_worktree_health(fresh_mission_repo, _meta())
     stale = [fi for fi in findings if fi.error_code == "COORDINATION_WORKTREE_STALE"]
-    assert stale, (
-        "expected COORDINATION_WORKTREE_STALE warning when the coord worktree "
-        "HEAD is 1 commit behind the coord branch tip"
-    )
+    assert stale, "expected COORDINATION_WORKTREE_STALE warning when the coord worktree HEAD is 1 commit behind the coord branch tip"
     assert stale[0].severity == "warning"
     assert stale[0].next_step is not None
 
@@ -373,29 +358,22 @@ def test_stale_coord_worktree_refresh_efficacy(
 
     # Efficacy: coord worktree HEAD must equal the coord branch tip.
     worktree_head = subprocess.check_output(
-        ["git", "-C", str(wt), "rev-parse", "HEAD"], text=True,
+        ["git", "-C", str(wt), "rev-parse", "HEAD"],
+        text=True,
     ).strip()
     branch_tip = subprocess.check_output(
-        ["git", "-C", str(fresh_mission_repo), "rev-parse",
-         f"refs/heads/{COORD_BRANCH}"], text=True,
+        ["git", "-C", str(fresh_mission_repo), "rev-parse", f"refs/heads/{COORD_BRANCH}"],
+        text=True,
     ).strip()
-    assert worktree_head == branch_tip, (
-        "after refresh, coord worktree HEAD must equal the coord branch tip"
-    )
+    assert worktree_head == branch_tip, "after refresh, coord worktree HEAD must equal the coord branch tip"
 
     # State resolution: re-running _check_coordination_worktree_health uses
     # _coord_worktree_stale_finding (a separate function in _coordination_doctor.py,
     # not the monkeypatched _coord_worktree_needs_refresh) and must not emit
     # COORDINATION_WORKTREE_STALE for a worktree that is already at the tip.
     findings_after = _check_coordination_worktree_health(fresh_mission_repo, _meta())
-    stale_after = [
-        f for f in findings_after
-        if f.error_code == "COORDINATION_WORKTREE_STALE"
-    ]
-    assert not stale_after, (
-        f"COORDINATION_WORKTREE_STALE must not be present after refresh; "
-        f"still emitted: {stale_after}"
-    )
+    stale_after = [f for f in findings_after if f.error_code == "COORDINATION_WORKTREE_STALE"]
+    assert not stale_after, f"COORDINATION_WORKTREE_STALE must not be present after refresh; still emitted: {stale_after}"
 
 
 # ---------------------------------------------------------------------------
@@ -458,9 +436,7 @@ def test_collect_injects_meta_path_on_real_repo(fresh_mission_repo: Path) -> Non
     findings = cd._collect_coordination_findings(fresh_mission_repo)
     never_created = [f for f in findings if f.error_code == "COORDINATION_WORKTREE_NEVER_CREATED"]
     assert never_created, "expected NEVER_CREATED finding for absent coord branch"
-    assert "meta_path" in never_created[0].extra, (
-        "_collect must inject meta_path so --fix knows which file to patch"
-    )
+    assert "meta_path" in never_created[0].extra, "_collect must inject meta_path so --fix knows which file to patch"
 
 
 def test_fix_removes_key_and_backfill_derives_topology(fresh_mission_repo: Path) -> None:
@@ -492,9 +468,7 @@ def test_fix_removes_key_and_backfill_derives_topology(fresh_mission_repo: Path)
     results = backfill_topology_repo(fresh_mission_repo, mission_slug=MISSION_SLUG)
     assert results, "backfill must visit the mission"
     assert results[0].action == "wrote", f"expected 'wrote', got {results[0].action!r}"
-    assert results[0].topology in ("single_branch", "lanes"), (
-        "flattened mission must resolve to a non-coord topology"
-    )
+    assert results[0].topology in ("single_branch", "lanes"), "flattened mission must resolve to a non-coord topology"
 
 
 # ---------------------------------------------------------------------------
@@ -545,19 +519,17 @@ def test_fix_clears_stale_coord_topology_so_backfill_flattens(
     written = json.loads((spec_dir / "meta.json").read_text())
     assert "coordination_branch" not in written, "key must be gone after fix"
     assert written.get("topology") != "coord", (
-        "stale topology:'coord' must be cleared by the fix so backfill re-derives "
-        "a non-coord topology — leaving it stored is a false-green flatten (#2614)"
+        "stale topology:'coord' must be cleared by the fix so backfill re-derives a non-coord topology — leaving it stored is a false-green flatten (#2614)"
     )
     assert written.get("topology") == "single_branch"
     assert written.get("flattened") is True
 
-    assert not routes_through_coordination(read_topology(spec_dir)), (
-        "a mission flattened via --fix must no longer route through coordination"
-    )
+    assert not routes_through_coordination(read_topology(spec_dir)), "a mission flattened via --fix must no longer route through coordination"
 
 
 def test_run_coordination_health_fix_end_to_end(
-    fresh_mission_repo: Path, monkeypatch: pytest.MonkeyPatch,
+    fresh_mission_repo: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """FINDING 3 (#2614, coverage gap): drive ``run_coordination_health(fix=True)``
     end-to-end through the real entry point (no internal-function shortcuts),
@@ -586,10 +558,7 @@ def test_run_coordination_health_fix_end_to_end(
         cd.run_coordination_health(json_output=False, fix=True)
     assert exc_a.value.exit_code == 0, "a fully-fixed mission with no other errors must exit 0"
     written = json.loads((spec_dir / "meta.json").read_text())
-    assert "coordination_branch" not in written, (
-        "run_coordination_health(fix=True) must actually invoke the fix, "
-        "not merely report the finding"
-    )
+    assert "coordination_branch" not in written, "run_coordination_health(fix=True) must actually invoke the fix, not merely report the finding"
 
     # ---- Case B: add an unfixable error finding, re-run --------------------
     stale_meta_b = {
@@ -612,19 +581,16 @@ def test_run_coordination_health_fix_end_to_end(
 
     with pytest.raises(typer.Exit) as exc_b:
         cd.run_coordination_health(json_output=False, fix=True)
-    assert exc_b.value.exit_code == 1, (
-        "an unfixable error finding (TRACKED_WORKTREES_CONTENT) must survive "
-        "the fix pass and force a non-zero exit code"
-    )
+    assert exc_b.value.exit_code == 1, "an unfixable error finding (TRACKED_WORKTREES_CONTENT) must survive the fix pass and force a non-zero exit code"
     written_b = json.loads((spec_dir_b / "meta.json").read_text())
     assert "coordination_branch" not in written_b, (
-        "the second mission's fixable NEVER_CREATED finding must still be fixed "
-        "even though an unrelated error finding keeps the overall exit non-zero"
+        "the second mission's fixable NEVER_CREATED finding must still be fixed even though an unrelated error finding keeps the overall exit non-zero"
     )
 
 
 def test_mission_scoped_fix_does_not_backfill_another_mission(
-    fresh_mission_repo: Path, monkeypatch: pytest.MonkeyPatch,
+    fresh_mission_repo: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A mission-scoped coordination fix must not mutate another mission."""
     from specify_cli.cli.commands import _coordination_doctor as cd
@@ -665,10 +631,7 @@ def test_mission_scoped_fix_does_not_backfill_another_mission(
     # entirely (not just unscoping it) leaves every test green while a
     # flattened mission ends up with no stored ``topology`` at all.
     fixed_meta = json.loads((selected_dir / "meta.json").read_text())
-    assert "topology" in fixed_meta, (
-        "the mission-scoped fix must re-derive the scoped mission's own "
-        "topology after the flatten pops it"
-    )
+    assert "topology" in fixed_meta, "the mission-scoped fix must re-derive the scoped mission's own topology after the flatten pops it"
     assert other_meta_path.read_bytes() == before
 
 
@@ -691,19 +654,20 @@ def test_never_created_check_treats_remote_only_branch_as_present(
     (spec_dir / "meta.json").write_text(json.dumps(meta))
 
     head_sha = subprocess.check_output(
-        ["git", "-C", str(fresh_mission_repo), "rev-parse", "HEAD"], text=True,
+        ["git", "-C", str(fresh_mission_repo), "rev-parse", "HEAD"],
+        text=True,
     ).strip()
     _git(
-        fresh_mission_repo, "update-ref",
-        f"refs/remotes/origin/{remote_only_branch}", head_sha,
+        fresh_mission_repo,
+        "update-ref",
+        f"refs/remotes/origin/{remote_only_branch}",
+        head_sha,
     )
 
     from specify_cli.cli.commands import _coordination_doctor as cd
 
     findings = cd._collect_coordination_findings(fresh_mission_repo)
-    never_created = [
-        f for f in findings if f.error_code == "COORDINATION_WORKTREE_NEVER_CREATED"
-    ]
+    never_created = [f for f in findings if f.error_code == "COORDINATION_WORKTREE_NEVER_CREATED"]
     assert not never_created, (
         "a coordination_branch present only as a remote-tracking ref must NOT be "
         "treated as never-created — firing NEVER_CREATED here lets --fix delete "

@@ -67,11 +67,7 @@ def _format_inline_glossary_body(pack: object) -> list[str]:
     pack_id = str(getattr(pack, "id", "") or "")
     body_lines: list[str] = [f"    - {pack_id}"]
     terms = getattr(pack, "terms", None) or []
-    surfaces = [
-        surface
-        for term in terms
-        if (surface := str(getattr(term, "surface", "") or "").strip())
-    ]
+    surfaces = [surface for term in terms if (surface := str(getattr(term, "surface", "") or "").strip())]
     if surfaces:
         body_lines.append(f"      Terms: {', '.join(surfaces)}")
     body_lines.extend(
@@ -119,11 +115,7 @@ def _jsonable_artifact_value(value: object) -> object:
         return enum_value
 
     if isinstance(value, dict):
-        return {
-            str(key): _jsonable_artifact_value(item)
-            for key, item in value.items()
-            if item is not None
-        }
+        return {str(key): _jsonable_artifact_value(item) for key, item in value.items() if item is not None}
 
     if isinstance(value, set):
         normalized = [_jsonable_artifact_value(item) for item in value]
@@ -137,11 +129,7 @@ def _jsonable_artifact_value(value: object) -> object:
 
     attrs = getattr(value, "__dict__", None)
     if isinstance(attrs, dict):
-        return {
-            key: _jsonable_artifact_value(item)
-            for key, item in attrs.items()
-            if not key.startswith("_") and item is not None
-        }
+        return {key: _jsonable_artifact_value(item) for key, item in attrs.items() if not key.startswith("_") and item is not None}
 
     return str(value)
 
@@ -276,9 +264,7 @@ def _format_inline_agent_profile_body(profile_obj: object) -> list[str]:
         body_lines.append(f"    Purpose: {purpose.strip()}")
     roles = getattr(profile_obj, "roles", None)
     if isinstance(roles, list) and roles:
-        role_names = [
-            role.value if hasattr(role, "value") else str(role) for role in roles
-        ]
+        role_names = [role.value if hasattr(role, "value") else str(role) for role in roles]
         body_lines.append(f"    Roles: {', '.join(role_names)}")
     return body_lines
 

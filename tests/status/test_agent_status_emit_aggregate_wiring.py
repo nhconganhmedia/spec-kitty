@@ -34,6 +34,8 @@ def _disable_emit_side_effects(monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status.emit as status_emit
 
     monkeypatch.setattr(status_emit, "_saas_fan_out", lambda *args, **kwargs: None)
+
+
 from tests.status.conftest import seed_wp_to_planned as _seed_planned_shared
 
 
@@ -236,12 +238,15 @@ _VOLATILE_EVENT_FIELDS = {"event_id", "at"}
 
 
 def _emit_via_command(repo: Path, slug: str) -> tuple[int, dict]:
-    with patch(
-        "specify_cli.cli.commands.agent.status.locate_project_root",
-        return_value=repo,
-    ), patch(
-        "specify_cli.cli.commands.agent.status._find_mission_slug",
-        return_value=slug,
+    with (
+        patch(
+            "specify_cli.cli.commands.agent.status.locate_project_root",
+            return_value=repo,
+        ),
+        patch(
+            "specify_cli.cli.commands.agent.status._find_mission_slug",
+            return_value=slug,
+        ),
     ):
         result = runner.invoke(app, _emit_args(slug))
     payload = json.loads(result.stdout) if result.stdout.strip() else {}
@@ -324,9 +329,7 @@ def test_emit_json_output_contract_is_preserved(tmp_path: Path) -> None:
     assert payload["from_lane"] == "planned"
     assert payload["to_lane"] == "claimed"
     assert payload["actor"] == "codex"
-    assert payload["status_events_path"] == str(
-        repo / "kitty-specs" / slug / "status.events.jsonl"
-    )
+    assert payload["status_events_path"] == str(repo / "kitty-specs" / slug / "status.events.jsonl")
 
 
 def test_transition_helper_maps_uninitialized_lane_to_genesis(tmp_path: Path) -> None:
@@ -365,9 +368,7 @@ def test_transition_helper_maps_uninitialized_lane_to_genesis(tmp_path: Path) ->
     assert current_actor == "codex"
 
 
-def test_validate_transition_runs_exactly_once_through_the_aggregate(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_validate_transition_runs_exactly_once_through_the_aggregate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """US2-4 / FR-006: one emit through ``MissionStatus.transition`` validates once, tree-wide.
 
     Before mission ``fsm-write-path-integrity-01M1TZV6`` (WP06) the aggregate
@@ -396,19 +397,13 @@ def test_validate_transition_runs_exactly_once_through_the_aggregate(
     monkeypatch.setattr(transition_pipeline, "validate_transition", _counting)
 
     ms = MissionStatus.load(repo_root=repo, mission_slug=slug)
-    event = ms.transition(
-        TransitionRequest(wp_id="WP01", to_lane="claimed", actor="codex", feature_dir=ms.read_dir, mission_slug=slug)
-    )
+    event = ms.transition(TransitionRequest(wp_id="WP01", to_lane="claimed", actor="codex", feature_dir=ms.read_dir, mission_slug=slug))
 
     assert str(event.to_lane) == "claimed"
     assert len(calls) == 1, calls
     assert calls[0][:2] == ("planned", "claimed")
     tree = ast.parse(textwrap.dedent(inspect.getsource(MissionStatus.transition)))
-    called = {
-        node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", None)
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Call)
-    }
+    called = {node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", None) for node in ast.walk(tree) if isinstance(node, ast.Call)}
     assert "validate_transition" not in called, "the aggregate must not validate itself (P-2)"
 
 
@@ -436,11 +431,7 @@ def test_aggregate_threads_current_actor_into_the_pipeline_guard(tmp_path: Path,
     ms = MissionStatus.load(repo_root=repo, mission_slug=slug)
 
     ms.transition(TransitionRequest(wp_id="WP01", to_lane="claimed", actor="codex", feature_dir=ms.read_dir, mission_slug=slug))
-    ms.transition(
-        TransitionRequest(
-            wp_id="WP01", to_lane="in_progress", actor="codex", feature_dir=ms.read_dir, mission_slug=slug, current_actor="explicit"
-        )
-    )
+    ms.transition(TransitionRequest(wp_id="WP01", to_lane="in_progress", actor="codex", feature_dir=ms.read_dir, mission_slug=slug, current_actor="explicit"))
 
     assert seen == ["seed", "explicit"], seen
 
@@ -536,9 +527,7 @@ def test_emit_resolves_bare_modern_mission_slug_before_aggregate_load(
             full_slug,
         )
     ]
-    assert payload["status_events_path"] == str(
-        repo / "kitty-specs" / full_slug / "status.events.jsonl"
-    )
+    assert payload["status_events_path"] == str(repo / "kitty-specs" / full_slug / "status.events.jsonl")
 
 
 @patch("specify_cli.cli.commands.agent.status.locate_project_root")
@@ -615,13 +604,7 @@ def test_emit_json_reports_coord_write_target_after_worktree_materialization(
 
     from specify_cli.coordination.workspace import CoordinationWorkspace
 
-    coord_worktree_dir = (
-        CoordinationWorkspace.worktree_path(repo, slug, mid8)
-        / "kitty-specs"
-        / f"{slug}-{mid8}"
-    )
-    assert payload["status_events_path"] == str(
-        coord_worktree_dir / "status.events.jsonl"
-    )
+    coord_worktree_dir = CoordinationWorkspace.worktree_path(repo, slug, mid8) / "kitty-specs" / f"{slug}-{mid8}"
+    assert payload["status_events_path"] == str(coord_worktree_dir / "status.events.jsonl")
     assert (primary_dir / "status.events.jsonl").read_text(encoding="utf-8").count("\n") == 1
     assert (coord_worktree_dir / "status.events.jsonl").read_text(encoding="utf-8").count("\n") == 3

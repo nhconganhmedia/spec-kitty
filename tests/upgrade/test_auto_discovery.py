@@ -37,9 +37,7 @@ class TestAutoDiscovery:
 
         # Verify all discovered
         discovered = MigrationRegistry.get_all()
-        assert len(discovered) == expected_count, (
-            f"Expected {expected_count} migrations (matching m_*.py pattern), but discovered {len(discovered)}"
-        )
+        assert len(discovered) == expected_count, f"Expected {expected_count} migrations (matching m_*.py pattern), but discovered {len(discovered)}"
 
     def test_auto_discover_is_idempotent(self):
         """Running auto-discovery multiple times doesn't cause issues."""
@@ -114,8 +112,7 @@ class TestAutoDiscovery:
             # Contract gate: compat-planner.json caps description at maxLength: 256
             # (#2419 / WP01 — guards future migrations from drifting over the limit)
             assert len(migration.description) <= 256, (
-                f"{migration.migration_id!r}: description is {len(migration.description)} chars "
-                f"(contract maxLength is 256): {migration.description!r}"
+                f"{migration.migration_id!r}: description is {len(migration.description)} chars (contract maxLength is 256): {migration.description!r}"
             )
 
     def test_discovered_migrations_are_sorted_by_version(self):
@@ -141,18 +138,11 @@ class TestAutoDiscovery:
         MigrationRegistry.clear()
         auto_discover_migrations()
 
-        ahead = [
-            migration
-            for migration in MigrationRegistry.get_all()
-            if Version(migration.target_version) > package_version
-        ]
+        ahead = [migration for migration in MigrationRegistry.get_all() if Version(migration.target_version) > package_version]
 
         assert ahead == [], (
             f"Migration target(s) exceed package version {package_version}: "
-            + ", ".join(
-                f"{migration.migration_id} -> {migration.target_version}"
-                for migration in ahead
-            )
+            + ", ".join(f"{migration.migration_id} -> {migration.target_version}" for migration in ahead)
             + ". A user upgrading to the current package will not run them."
         )
 
@@ -191,9 +181,7 @@ class TestAutoDiscovery:
         import specify_cli.upgrade.migrations.base as base_after
 
         assert base_after is original_base, "auto-discover reloaded the base module"
-        assert base_after.PartialWrite is original_partial_write, (
-            "base.PartialWrite identity changed — a base reload broke isinstance()"
-        )
+        assert base_after.PartialWrite is original_partial_write, "base.PartialWrite identity changed — a base reload broke isinstance()"
         # A freshly-constructed record is an instance of the caller's imported class.
         assert isinstance(base_after.PartialWrite(mission="m", path="/p"), PartialWrite)
 
@@ -204,9 +192,7 @@ class TestAutoDiscovery:
             content = migration_file.read_text()
 
             # Check for @MigrationRegistry.register
-            assert "@MigrationRegistry.register" in content, (
-                f"Migration {migration_file.name} missing @MigrationRegistry.register decorator"
-            )
+            assert "@MigrationRegistry.register" in content, f"Migration {migration_file.name} missing @MigrationRegistry.register decorator"
 
 
 class TestAutoDiscoveryIntegration:

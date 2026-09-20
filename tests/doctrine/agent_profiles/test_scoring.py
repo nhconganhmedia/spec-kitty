@@ -386,6 +386,4 @@ class TestScoreProfile:
         generalist = _make_profile("gen", routing_priority=50)
         ctx = TaskContext(complexity="high")
         # is_specialist now comes from DRG lineage resolution, passed explicitly.
-        assert _score_profile(ctx, specialist, is_specialist=True) > _score_profile(
-            ctx, generalist, is_specialist=False
-        )
+        assert _score_profile(ctx, specialist, is_specialist=True) > _score_profile(ctx, generalist, is_specialist=False)

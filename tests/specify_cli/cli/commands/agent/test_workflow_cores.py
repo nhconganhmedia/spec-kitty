@@ -43,18 +43,14 @@ class TestPickBestBaseBranch:
         assert count == 5
 
     def test_fewest_commits_wins(self) -> None:
-        best, count = cores.pick_best_base_branch(
-            [("main", 10), ("2.x", 3), ("develop", 7)]
-        )
+        best, count = cores.pick_best_base_branch([("main", 10), ("2.x", 3), ("develop", 7)])
         assert best == "2.x"
         assert count == 3
 
     def test_strict_less_than_keeps_first_scored_candidate_on_tie(self) -> None:
         """Matches the original ``count < best_count`` comparison: a TIE keeps
         the earliest-scored candidate, it does not overwrite on ``<=``."""
-        best, count = cores.pick_best_base_branch(
-            [("main", 4), ("develop", 4), ("2.x", 4)]
-        )
+        best, count = cores.pick_best_base_branch([("main", 4), ("develop", 4), ("2.x", 4)])
         assert best == "main"
         assert count == 4
 
@@ -92,12 +88,7 @@ class TestParseDependencyWpIds:
         ]
 
     def test_ignores_unrelated_frontmatter(self) -> None:
-        frontmatter = (
-            'work_package_id: "WP03"\n'
-            'title: "Some WP"\n'
-            'dependencies: ["WP01"]\n'
-            'agent: "claude"\n'
-        )
+        frontmatter = 'work_package_id: "WP03"\ntitle: "Some WP"\ndependencies: ["WP01"]\nagent: "claude"\n'
         assert cores.parse_dependency_wp_ids(frontmatter) == ["WP01"]
 
 

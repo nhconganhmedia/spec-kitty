@@ -190,9 +190,7 @@ def test_non_mapping_top_level_raises_protection_config_error(
         ProtectionPolicy.resolve(repo)
 
     message = str(exc_info.value)
-    assert "has no attribute" not in message, (
-        f"leaked a raw AttributeError instead of a controlled diagnostic: {message}"
-    )
+    assert "has no attribute" not in message, f"leaked a raw AttributeError instead of a controlled diagnostic: {message}"
     assert "config.yaml" in message
 
 
@@ -201,9 +199,7 @@ def test_non_mapping_top_level_raises_protection_config_error(
 # ---------------------------------------------------------------------------
 
 
-def test_hatch_active_is_protected_returns_false(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_hatch_active_is_protected_returns_false(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Hatch active ⇒ is_protected("main") is False even for a default branch."""
     repo = _build_git_repo(tmp_path / "hatch")
     monkeypatch.setenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", "1")
@@ -221,9 +217,7 @@ def test_hatch_active_is_protected_returns_false(
 # ---------------------------------------------------------------------------
 
 
-def test_hatch_symmetry_safe_commit_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_hatch_symmetry_safe_commit_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#1828: hatch active ⇒ safe_commit path treats protected ref as unprotected.
 
     Regression pin for issue #1828 — the hatch was honored inconsistently
@@ -246,9 +240,7 @@ def test_hatch_symmetry_safe_commit_path(
     assert policy.is_protected("master") is False
 
 
-def test_hatch_symmetry_assert_not_protected_branch_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_hatch_symmetry_assert_not_protected_branch_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#1828: hatch active ⇒ assert_not_protected_branch treats ref as unprotected.
 
     Regression pin for issue #1828 — the pre-check function must respect the
@@ -276,15 +268,10 @@ def test_hatch_symmetry_assert_not_protected_branch_path(
     try:
         assert_not_protected_branch(repo)
     except ProtectedBranchCommitError:
-        pytest.fail(
-            "#1828 regression: assert_not_protected_branch raised on a protected "
-            "branch even though SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS is set"
-        )
+        pytest.fail("#1828 regression: assert_not_protected_branch raised on a protected branch even though SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS is set")
 
 
-def test_hatch_inactive_assert_not_protected_branch_does_raise(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_hatch_inactive_assert_not_protected_branch_does_raise(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Without the hatch, assert_not_protected_branch raises on a protected branch.
 
     Baseline: the guard fires normally when the hatch is off.

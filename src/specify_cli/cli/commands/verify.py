@@ -47,10 +47,9 @@ def _existing_feature_dir(project_root: Path, feature: str | None) -> Path | Non
     """
     if not feature:
         return None
-    feature_dir = placement_seam(project_root, feature.strip()).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    feature_dir = placement_seam(project_root, feature.strip()).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     return feature_dir if feature_dir.is_dir() else None
+
 
 TOOL_LABELS = [
     ("git", "Git version control"),

@@ -51,10 +51,7 @@ class TestOwnershipOverlapStaysDependencyAware:
         # WPb depends on WPa -> strictly sequential -> sharing owned_files is legitimate.
         errors = validate_no_overlap(manifests, dependencies={"WPb": ["WPa"]})
 
-        assert errors == [], (
-            "#2088 regression: dependency-ordered (same-lane sequential) WPs must "
-            f"not be flagged as overlapping. Got: {errors}"
-        )
+        assert errors == [], f"#2088 regression: dependency-ordered (same-lane sequential) WPs must not be flagged as overlapping. Got: {errors}"
 
     def test_concurrent_wps_with_no_dependency_path_still_collide(self) -> None:
         """The exemption must stay narrow: unrelated (parallel-lane) overlap still errors.

@@ -58,25 +58,16 @@ def test_project_unsupported_tool_returns_empty() -> None:
 def test_project_excludes_sentinel_profiles() -> None:
     repo = _builtin_repo()
     projector = ProfileProjector(repo)
-    projected_ids = {
-        p.profile_urn.split(":", 1)[1]
-        for p in projector.project("claude", Path("/project"))
-    }
-    sentinel_ids = {
-        prof.profile_id for prof in repo.list_all() if prof.sentinel
-    }
+    projected_ids = {p.profile_urn.split(":", 1)[1] for p in projector.project("claude", Path("/project"))}
+    sentinel_ids = {prof.profile_id for prof in repo.list_all() if prof.sentinel}
     assert sentinel_ids  # there is at least one sentinel built-in
     assert projected_ids.isdisjoint(sentinel_ids)
 
 
 def test_project_source_layer_filter() -> None:
     projector = ProfileProjector(_builtin_repo())
-    builtin_only = projector.project(
-        "claude", Path("/project"), source_layers=["builtin"]
-    )
-    org_only = projector.project(
-        "claude", Path("/project"), source_layers=["org"]
-    )
+    builtin_only = projector.project("claude", Path("/project"), source_layers=["builtin"])
+    org_only = projector.project("claude", Path("/project"), source_layers=["org"])
     assert builtin_only  # all built-ins survive the builtin filter
     assert org_only == []  # no org overlay in a default setup
 
@@ -122,9 +113,7 @@ def test_project_uses_injected_repo_provenance() -> None:
     repo._profiles[profile.profile_id] = profile  # noqa: SLF001 - test seam
     repo._provenance[profile.profile_id] = "project"  # noqa: SLF001 - test seam
     projector = ProfileProjector(repo)
-    projected = {
-        p.profile_urn: p for p in projector.project("claude", Path("/project"))
-    }
+    projected = {p.profile_urn: p for p in projector.project("claude", Path("/project"))}
     assert projected["agent_profile:custom-carol"].source_layer == "project"
 
 
@@ -154,9 +143,7 @@ def test_project_populates_manifest_source_provenance_for_project_profile(
     )
     repo = AgentProfileRepository(project_dir=project_dir)
 
-    projected = {
-        p.profile_urn: p for p in ProfileProjector(repo).project("claude", tmp_path)
-    }
+    projected = {p.profile_urn: p for p in ProfileProjector(repo).project("claude", tmp_path)}
 
     native = projected["agent_profile:custom-carol"]
     assert native.source_layer == "project"
@@ -223,9 +210,7 @@ def test_diagnose_emits_profile_sentinel_skipped(tmp_path: Path) -> None:
     skipped = [f for f in findings if f.code == PROFILE_SENTINEL_SKIPPED]
     assert skipped, "expected sentinel profiles to be recorded as findings"
     assert all(f.severity == SEVERITY_INFO for f in skipped)
-    skipped_ids = {
-        f.surface_id.split(":", 1)[-1] for f in skipped if f.surface_id
-    }
+    skipped_ids = {f.surface_id.split(":", 1)[-1] for f in skipped if f.surface_id}
     assert set(sentinels).issubset(skipped_ids)
 
 
@@ -239,14 +224,10 @@ def test_diagnose_emits_profile_overlay_conflict(tmp_path: Path) -> None:
     """
     project_dir = tmp_path / ".kittify" / "agent_profiles"
     project_dir.mkdir(parents=True)
-    (project_dir / "arch-override.agent.yaml").write_text(
-        "profile-id: architect-alphonso\nroles: []\n", encoding="utf-8"
-    )
+    (project_dir / "arch-override.agent.yaml").write_text("profile-id: architect-alphonso\nroles: []\n", encoding="utf-8")
     repo = AgentProfileRepository(project_dir=project_dir)
     assert "architect-alphonso" in {p.profile_id for p in repo.list_all()}
-    assert "architect-alphonso" in {
-        s.profile_id for s in repo.skipped_profiles()
-    }
+    assert "architect-alphonso" in {s.profile_id for s in repo.skipped_profiles()}
 
     findings = ProfileProjector(repo).diagnose("claude", tmp_path)
 

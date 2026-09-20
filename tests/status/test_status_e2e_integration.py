@@ -15,7 +15,6 @@ from specify_cli.status.models import Lane, TransitionRequest
 from specify_cli.status.reducer import SNAPSHOT_FILENAME, materialize, materialize_to_json
 from specify_cli.status.store import EVENTS_FILENAME, read_events, read_events_raw
 from specify_cli.status.validate import (
-
     validate_event_schema,
     validate_materialization_drift,
     validate_transition_legality,
@@ -27,6 +26,7 @@ pytestmark = pytest.mark.git_repo
 
 # ── Helpers ──────────────────────────────────────────────────────
 
+
 def _setup_feature(tmp_path: Path, mission_slug: str = "099-test") -> Path:
     """Create a minimal feature directory."""
     repo_root = tmp_path / "repo"
@@ -37,21 +37,12 @@ def _setup_feature(tmp_path: Path, mission_slug: str = "099-test") -> Path:
     for wp_id in ("WP01", "WP02"):
         wp_file = tasks_dir / f"{wp_id}-task.md"
         wp_file.write_text(
-            f"---\n"
-            f"work_package_id: {wp_id}\n"
-            f"title: Test {wp_id}\n"
-            f"lane: planned\n"
-            f"dependencies: []\n"
-            f"subtasks: []\n"
-            f"---\n"
-            f"\n# {wp_id}\n",
+            f"---\nwork_package_id: {wp_id}\ntitle: Test {wp_id}\nlane: planned\ndependencies: []\nsubtasks: []\n---\n\n# {wp_id}\n",
             encoding="utf-8",
         )
 
     meta = {"status_phase": 1}
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
     return feature_dir
 
@@ -63,7 +54,9 @@ def _seed_planned(feature_dir: Path, slug: str, wp_id: str, repo_root: Path) -> 
     """Seed a WP out of the non-display 'genesis' state into 'planned'."""
     _seed_planned_shared(feature_dir, wp_id, slug=slug)
 
+
 # ── Tests ────────────────────────────────────────────────────────
+
 
 class TestE2EFullPipeline:
     """T077: Full emit -> materialize -> validate pipeline."""
@@ -79,30 +72,50 @@ class TestE2EFullPipeline:
         _seed_planned(feature_dir, slug, "WP02", repo_root)
 
         # Emit transitions for WP01 through the lifecycle
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="claimed", actor="agent-1",
-            repo_root=repo_root,
-        ))
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="in_progress", actor="agent-1",
-            repo_root=repo_root,
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="claimed",
+                actor="agent-1",
+                repo_root=repo_root,
+            )
+        )
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="in_progress",
+                actor="agent-1",
+                repo_root=repo_root,
+            )
+        )
         # This fixture authors an explicit empty roster, so there are no
         # subtasks to block the transition.
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="for_review", actor="agent-1",
-            repo_root=repo_root,
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="for_review",
+                actor="agent-1",
+                repo_root=repo_root,
+            )
+        )
 
         # Emit a transition for WP02
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP02", to_lane="claimed", actor="agent-2",
-            repo_root=repo_root,
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP02",
+                to_lane="claimed",
+                actor="agent-2",
+                repo_root=repo_root,
+            )
+        )
 
         # Verify event count (2 genesis->planned seeds + 4 lifecycle events)
         events = read_events(feature_dir)
@@ -129,6 +142,7 @@ class TestE2EFullPipeline:
         transition_findings = validate_transition_legality(raw_events)
         assert len(transition_findings) == 0
 
+
 class TestE2EEmitInvalidTransition:
     """T077: Invalid transitions raise TransitionError."""
 
@@ -141,11 +155,16 @@ class TestE2EEmitInvalidTransition:
 
         # planned -> for_review is not a legal transition
         with pytest.raises(TransitionError) as exc_info:
-            emit_status_transition(TransitionRequest(
-                feature_dir=feature_dir, mission_slug=slug,
-                wp_id="WP01", to_lane="for_review", actor="agent-1",
-                repo_root=repo_root,
-            ))
+            emit_status_transition(
+                TransitionRequest(
+                    feature_dir=feature_dir,
+                    mission_slug=slug,
+                    wp_id="WP01",
+                    to_lane="for_review",
+                    actor="agent-1",
+                    repo_root=repo_root,
+                )
+            )
 
         assert "Illegal transition" in str(exc_info.value)
 
@@ -164,24 +183,35 @@ class TestE2EEmitInvalidTransition:
 
         # Seed out of genesis, then the valid transition
         _seed_planned(feature_dir, slug, "WP01", repo_root)
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="claimed", actor="agent-1",
-            repo_root=repo_root,
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="claimed",
+                actor="agent-1",
+                repo_root=repo_root,
+            )
+        )
 
         # Invalid transition (claimed -> done is not allowed)
         with pytest.raises(TransitionError):
-            emit_status_transition(TransitionRequest(
-                feature_dir=feature_dir, mission_slug=slug,
-                wp_id="WP01", to_lane="done", actor="agent-1",
-                repo_root=repo_root,
-            ))
+            emit_status_transition(
+                TransitionRequest(
+                    feature_dir=feature_dir,
+                    mission_slug=slug,
+                    wp_id="WP01",
+                    to_lane="done",
+                    actor="agent-1",
+                    repo_root=repo_root,
+                )
+            )
 
         # Only the seed + the valid claimed event should exist
         events = read_events(feature_dir)
         assert len(events) == 2
         assert events[-1].to_lane == Lane.CLAIMED
+
 
 class TestE2EEmitForceTransition:
     """T077: Force transitions bypass guards."""
@@ -193,13 +223,18 @@ class TestE2EEmitForceTransition:
         repo_root = feature_dir.parent.parent
 
         # planned -> done is illegal normally
-        event = emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="done", actor="admin",
-            force=True,
-            reason="Emergency closure for abandoned work",
-            repo_root=repo_root,
-        ))
+        event = emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="done",
+                actor="admin",
+                force=True,
+                reason="Emergency closure for abandoned work",
+                repo_root=repo_root,
+            )
+        )
 
         assert event.force is True
         assert event.to_lane == Lane.DONE
@@ -216,15 +251,21 @@ class TestE2EEmitForceTransition:
         repo_root = feature_dir.parent.parent
 
         with pytest.raises(TransitionError) as exc_info:
-            emit_status_transition(TransitionRequest(
-                feature_dir=feature_dir, mission_slug=slug,
-                wp_id="WP01", to_lane="done", actor="admin",
-                force=True,
-                # No reason provided
-                repo_root=repo_root,
-            ))
+            emit_status_transition(
+                TransitionRequest(
+                    feature_dir=feature_dir,
+                    mission_slug=slug,
+                    wp_id="WP01",
+                    to_lane="done",
+                    actor="admin",
+                    force=True,
+                    # No reason provided
+                    repo_root=repo_root,
+                )
+            )
 
         assert "require" in str(exc_info.value).lower()
+
 
 class TestE2EJsonOutputFormat:
     """T077: JSON output is deterministic and well-formed."""
@@ -236,11 +277,16 @@ class TestE2EJsonOutputFormat:
         repo_root = feature_dir.parent.parent
 
         _seed_planned(feature_dir, slug, "WP01", repo_root)
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="claimed", actor="agent-1",
-            repo_root=repo_root,
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="claimed",
+                actor="agent-1",
+                repo_root=repo_root,
+            )
+        )
 
         # Read raw JSON from disk
         raw_json = (feature_dir / SNAPSHOT_FILENAME).read_text(encoding="utf-8")
@@ -270,6 +316,7 @@ class TestE2EJsonOutputFormat:
             event_keys = list(event_dict.keys())
             assert event_keys == sorted(event_keys)
 
+
 class TestE2EMaterializeIdempotent:
     """T077: materialize() is idempotent."""
 
@@ -281,16 +328,26 @@ class TestE2EMaterializeIdempotent:
 
         _seed_planned(feature_dir, slug, "WP01", repo_root)
         _seed_planned(feature_dir, slug, "WP02", repo_root)
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP01", to_lane="claimed", actor="agent-1",
-            repo_root=repo_root,
-        ))
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir, mission_slug=slug,
-            wp_id="WP02", to_lane="claimed", actor="agent-2",
-            repo_root=repo_root,
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP01",
+                to_lane="claimed",
+                actor="agent-1",
+                repo_root=repo_root,
+            )
+        )
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug=slug,
+                wp_id="WP02",
+                to_lane="claimed",
+                actor="agent-2",
+                repo_root=repo_root,
+            )
+        )
 
         # First materialize
         snapshot1 = materialize(feature_dir)

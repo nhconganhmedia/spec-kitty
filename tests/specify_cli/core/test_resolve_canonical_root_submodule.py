@@ -106,9 +106,7 @@ def _build_submodule_fixture(tmp_path: Path) -> Path:
     _init_repo(parent)
     _init_repo(child_source)
     # Give the child a substantive commit so it can be added as a submodule.
-    _write_kittify_mission(
-        child_source, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG
-    )
+    _write_kittify_mission(child_source, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG)
     _run_git(child_source, "add", "-A")
     _run_git(child_source, "commit", "-q", "-m", "kittify + mission")
 
@@ -130,9 +128,7 @@ def _build_submodule_fixture(tmp_path: Path) -> Path:
     # Ensure the submodule carries its own .kittify + mission on disk (it tracks
     # the committed child content, but re-assert to be explicit and robust).
     if not (submodule / ".kittify" / "config.yaml").exists():
-        _write_kittify_mission(
-            submodule, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG
-        )
+        _write_kittify_mission(submodule, mission_id=SUBMODULE_MISSION_ID, slug=SUBMODULE_MISSION_SLUG)
     return submodule
 
 
@@ -179,23 +175,15 @@ class TestResolveCanonicalRootSubmodule:
         submodule = _build_submodule_fixture(tmp_path)
         git_marker = submodule / ".git"
         assert git_marker.is_file(), "submodule .git must be a FILE, not a directory"
-        assert _read_worktree_gitdir(git_marker) is None, (
-            "submodule .git pointer must NOT be a worktrees-topology pointer "
-            "(it points at .git/modules/<name>)"
-        )
+        assert _read_worktree_gitdir(git_marker) is None, "submodule .git pointer must NOT be a worktrees-topology pointer (it points at .git/modules/<name>)"
 
     def test_resolve_canonical_root_returns_submodule_root(self, tmp_path: Path) -> None:
         """The failing assertion before the fix: pre-fix resolves the PARENT."""
         submodule = _build_submodule_fixture(tmp_path)
         resolved = resolve_canonical_root(submodule)
-        assert resolved == submodule.resolve(), (
-            f"resolve_canonical_root must stop at the submodule root; "
-            f"got {resolved!r} (parent={submodule.parent.resolve()!r})"
-        )
+        assert resolved == submodule.resolve(), f"resolve_canonical_root must stop at the submodule root; got {resolved!r} (parent={submodule.parent.resolve()!r})"
 
-    def test_assert_initialized_does_not_raise_in_submodule(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_assert_initialized_does_not_raise_in_submodule(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Operator-facing symptom (#6): ``assert_initialized`` from inside an
         initialized submodule must NOT raise ``SPEC_KITTY_REPO_NOT_INITIALIZED``.
         """
@@ -205,9 +193,7 @@ class TestResolveCanonicalRootSubmodule:
         try:
             resolved = assert_initialized()
         except SpecKittyNotInitialized as exc:  # pragma: no cover - failure path
-            pytest.fail(
-                f"assert_initialized raised inside an initialized submodule: {exc}"
-            )
+            pytest.fail(f"assert_initialized raised inside an initialized submodule: {exc}")
         assert resolved == submodule.resolve()
 
 

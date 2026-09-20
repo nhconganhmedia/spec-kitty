@@ -163,9 +163,7 @@ def _drive_forward_chain(
 class TestBackwardTransitionFanOut:
     """Backward (force-required) rollback fan-out reaches the registered handler."""
 
-    def test_forced_in_review_to_planned_fires_fanout_once(
-        self, feature_dir: Path
-    ) -> None:
+    def test_forced_in_review_to_planned_fires_fanout_once(self, feature_dir: Path) -> None:
         """A forced backward ``in_review → planned`` must produce one fan-out call.
 
         Pin: the call carries ``force=True`` and the correct lane delta.
@@ -179,13 +177,10 @@ class TestBackwardTransitionFanOut:
         adapters.register_saas_fanout_handler(fake_saas)
 
         try:
-            _drive_forward_chain(
-                feature_dir, wp_id="WP01", actor="canary-actor"
-            )
+            _drive_forward_chain(feature_dir, wp_id="WP01", actor="canary-actor")
             # Sanity: forward chain produced 4 fan-out calls.
             assert len(captured) == 4, (
-                f"Forward chain should fan out 4 events; got {len(captured)}: "
-                f"{[(c['from_lane'], c['to_lane'], c['metadata'].force) for c in captured]}"
+                f"Forward chain should fan out 4 events; got {len(captured)}: {[(c['from_lane'], c['to_lane'], c['metadata'].force) for c in captured]}"
             )
 
             # Trigger the backward rollback under test.
@@ -210,34 +205,20 @@ class TestBackwardTransitionFanOut:
             assert event is not None
 
             # Fan-out fired one more time.
-            assert len(captured) == 5, (
-                "Backward rollback must produce exactly one additional fan-out "
-                f"invocation; got {len(captured)} total calls"
-            )
+            assert len(captured) == 5, f"Backward rollback must produce exactly one additional fan-out invocation; got {len(captured)} total calls"
 
             backward_call = captured[-1]
             assert backward_call["wp_id"] == "WP01"
             assert backward_call["from_lane"] == "in_review", (
-                f"Backward call from_lane is {backward_call['from_lane']!r}; "
-                "expected 'in_review' (the WP's lane at the moment of rollback)."
+                f"Backward call from_lane is {backward_call['from_lane']!r}; expected 'in_review' (the WP's lane at the moment of rollback)."
             )
-            assert backward_call["to_lane"] == "planned", (
-                f"Backward call to_lane is {backward_call['to_lane']!r}; "
-                "expected 'planned' (the rollback target)."
-            )
-            assert backward_call["metadata"].force is True, (
-                "Backward review-rejection emit must carry force=True per the "
-                "events-package contract."
-            )
-            assert backward_call["metadata"].reason, (
-                "Backward review-rejection emit must carry a non-empty reason."
-            )
+            assert backward_call["to_lane"] == "planned", f"Backward call to_lane is {backward_call['to_lane']!r}; expected 'planned' (the rollback target)."
+            assert backward_call["metadata"].force is True, "Backward review-rejection emit must carry force=True per the events-package contract."
+            assert backward_call["metadata"].reason, "Backward review-rejection emit must carry a non-empty reason."
         finally:
             adapters.reset_handlers()
 
-    def test_full_sequence_last_fanout_is_backward_rollback(
-        self, feature_dir: Path
-    ) -> None:
+    def test_full_sequence_last_fanout_is_backward_rollback(self, feature_dir: Path) -> None:
         """End-to-end shape: forward × 4 then backward × 1; last fan-out is the rollback.
 
         Mirrors the canary peek expectation: the most recent ``WPStatusChanged``
@@ -253,9 +234,7 @@ class TestBackwardTransitionFanOut:
         adapters.register_saas_fanout_handler(fake_saas)
 
         try:
-            _drive_forward_chain(
-                feature_dir, wp_id="WP02", actor="canary-actor"
-            )
+            _drive_forward_chain(feature_dir, wp_id="WP02", actor="canary-actor")
 
             from specify_cli.status.models import ReviewResult
 
@@ -278,9 +257,7 @@ class TestBackwardTransitionFanOut:
 
             assert len(captured) == 5
             # Build the (from, to, force) signature for each fan-out call.
-            transitions = [
-                (c["from_lane"], c["to_lane"], c["metadata"].force) for c in captured
-            ]
+            transitions = [(c["from_lane"], c["to_lane"], c["metadata"].force) for c in captured]
             assert transitions == [
                 ("planned", "claimed", False),
                 ("claimed", "in_progress", False),
@@ -297,9 +274,7 @@ class TestBackwardTransitionFanOut:
         finally:
             adapters.reset_handlers()
 
-    def test_backward_fanout_carries_mission_slug_and_wp_id(
-        self, feature_dir: Path
-    ) -> None:
+    def test_backward_fanout_carries_mission_slug_and_wp_id(self, feature_dir: Path) -> None:
         """The fan-out kwargs include the identity fields the SaaS materializer requires."""
         adapters.reset_handlers()
         captured: list[dict[str, Any]] = []
@@ -310,9 +285,7 @@ class TestBackwardTransitionFanOut:
         adapters.register_saas_fanout_handler(fake_saas)
 
         try:
-            _drive_forward_chain(
-                feature_dir, wp_id="WP03", actor="canary-actor"
-            )
+            _drive_forward_chain(feature_dir, wp_id="WP03", actor="canary-actor")
 
             from specify_cli.status.models import ReviewResult
 

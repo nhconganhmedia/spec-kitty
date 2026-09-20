@@ -68,9 +68,7 @@ def _build_mission(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Pat
     # "main" as protected by default, so this real-git fixture needs the
     # override to let the review-cycle artifact's commit genuinely succeed --
     # mirrors ``tests/review/test_cycle.py``'s ``_unprotect_main`` idiom.
-    (repo / ".kittify" / "config.yaml").write_text(
-        "auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (repo / ".kittify" / "config.yaml").write_text("auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8")
 
     feature_dir = repo / "kitty-specs" / _MISSION_SLUG
     tasks_dir = feature_dir / "tasks"
@@ -89,14 +87,7 @@ def _build_mission(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Pat
     # No lane/agent/shell_pid/tracker frontmatter fields -> the flag-ON mirror is
     # a no-op and the file must stay byte-stable across every driven action.
     (tasks_dir / "WP01-core.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Core\n"
-        "agent: claude\n"
-        "subtasks: []\n"
-        "tracker_refs: []\n"
-        "dependencies: []\n"
-        "---\n\n# WP01\n\n## Activity Log\n",
+        "---\nwork_package_id: WP01\ntitle: Core\nagent: claude\nsubtasks: []\ntracker_refs: []\ndependencies: []\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
 
@@ -148,9 +139,7 @@ def _run(args: list[str]) -> Result:
     return CliRunner().invoke(tasks_app, args)
 
 
-def test_ac5_hash_stable_across_driven_lifecycle_with_proof_of_drive(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_ac5_hash_stable_across_driven_lifecycle_with_proof_of_drive(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo, feature_dir = _build_mission(tmp_path, monkeypatch)
     wp_file = feature_dir / "tasks" / "WP01-core.md"
     tasks_md = feature_dir / "tasks.md"
@@ -170,21 +159,14 @@ def test_ac5_hash_stable_across_driven_lifecycle_with_proof_of_drive(
         events_before = stream_len()
         result = _run(args)
         assert result.exit_code == 0, f"[{label}] failed:\n{result.output}"
-        assert hash_content(wp_file.read_text(encoding="utf-8")) == baseline_wp, (
-            f"[{label}] rewrote tasks/WP01.md bytes (AC-5 violated)"
-        )
-        assert hash_content(_wp_section(tasks_md, "WP01")) == baseline_section, (
-            f"[{label}] rewrote the WP01 tasks.md section bytes (AC-5 violated)"
-        )
-        assert stream_len() > events_before, (
-            f"[{label}] persisted NO event — the action never fired (proof-of-drive)"
-        )
+        assert hash_content(wp_file.read_text(encoding="utf-8")) == baseline_wp, f"[{label}] rewrote tasks/WP01.md bytes (AC-5 violated)"
+        assert hash_content(_wp_section(tasks_md, "WP01")) == baseline_section, f"[{label}] rewrote the WP01 tasks.md section bytes (AC-5 violated)"
+        assert stream_len() > events_before, f"[{label}] persisted NO event — the action never fired (proof-of-drive)"
 
     m = ["--mission", _MISSION_SLUG, "--no-auto-commit", "--json"]
 
     # 1. claim (planned -> claimed): claim triple rides the transition sidecar.
-    drive("claim", ["move-task", "WP01", "--to", "claimed", "--shell-pid", "424242",
-                    "--agent", "claude", "--note", "claiming for work", *m])
+    drive("claim", ["move-task", "WP01", "--to", "claimed", "--shell-pid", "424242", "--agent", "claude", "--note", "claiming for work", *m])
     # 2. mark-subtask-done: CHECKBOX completion is event-sourced (no tasks.md write).
     drive("mark-subtask-done", ["mark-status", "T001", "--status", "done", *m])
     # 3. add note (claimed -> in_progress): the note is an off-axis annotation.
@@ -195,13 +177,11 @@ def test_ac5_hash_stable_across_driven_lifecycle_with_proof_of_drive(
     #    the claim OWNER (implementer); a reviewer move must not re-stamp it.
     drive("in_review", ["move-task", "WP01", "--to", "in_review", *m])
     # 6. review-reject (in_review -> planned): evidence-gated, force-free (FR-015).
-    drive("review-reject", ["move-task", "WP01", "--to", "planned",
-                            "--review-feedback-file", str(feedback), *m])
+    drive("review-reject", ["move-task", "WP01", "--to", "planned", "--review-feedback-file", str(feedback), *m])
 
     # Re-drive to in_review so the approve edge is reachable. The reject reset the
     # subtask roster (event-sourced), so re-mark it done to satisfy the gate.
-    drive("re-claim", ["move-task", "WP01", "--to", "claimed", "--shell-pid", "424242",
-                       "--agent", "claude", *m])
+    drive("re-claim", ["move-task", "WP01", "--to", "claimed", "--shell-pid", "424242", "--agent", "claude", *m])
     drive("re-mark-subtask", ["mark-status", "T001", "--status", "done", *m])
     # 7. history append: a driven ``## Activity Log`` / History note. The canonical
     #    event-sourced history append is the note annotation move-task emits
@@ -210,12 +190,10 @@ def test_ac5_hash_stable_across_driven_lifecycle_with_proof_of_drive(
     #    it unconditionally rewrites the WP body — so it is deliberately NOT used
     #    here; that gap is attributable to the activity-log eviction lane
     #    (WP05/WP08), not WP10, and is reported as a residual out-of-scope finding.)
-    drive("history-note", ["move-task", "WP01", "--to", "in_progress",
-                           "--note", "closeout audit note", *m])
+    drive("history-note", ["move-task", "WP01", "--to", "in_progress", "--note", "closeout audit note", *m])
     drive("re-for_review", ["move-task", "WP01", "--to", "for_review", *m])
     drive("re-in_review", ["move-task", "WP01", "--to", "in_review", *m])
 
     # 8. review-approve (in_review -> approved): evidence-gated, force-free.
     approval_ref = _write_review_cycle(feature_dir, 2, "approved")
-    drive("review-approve", ["move-task", "WP01", "--to", "approved",
-                             "--reviewer", "reviewer-renata", "--approval-ref", approval_ref, *m])
+    drive("review-approve", ["move-task", "WP01", "--to", "approved", "--reviewer", "reviewer-renata", "--approval-ref", approval_ref, *m])

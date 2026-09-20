@@ -130,7 +130,6 @@ def test_resolve_artifact_urn_is_reject_not_drop_on_unresolvable_stem(
 # --------------------------------------------------------------------------- #
 
 
-
 def _directive_stems_for_parametrize() -> list[str]:
     """Read config.activated_directives eagerly for parametrize IDs.
 
@@ -147,9 +146,7 @@ def _directive_stems_for_parametrize() -> list[str]:
 
 
 @pytest.mark.parametrize("stem", _directive_stems_for_parametrize())
-def test_every_activated_directive_stem_round_trips_to_canonical_urn(
-    stem: str, doctrine_root: Path
-) -> None:
+def test_every_activated_directive_stem_round_trips_to_canonical_urn(stem: str, doctrine_root: Path) -> None:
     """Every real ``config.activated_directives`` stem resolves and round-trips.
 
     Exercises the exact mapping the live derivation (WP02) must reproduce:
@@ -167,9 +164,7 @@ def test_every_activated_directive_stem_round_trips_to_canonical_urn(
     spelling.
     """
     urn = resolve_artifact_urn(ArtifactKind.DIRECTIVE, stem, doctrine_root=doctrine_root)
-    assert re.fullmatch(
-        r"directive:[A-Z][A-Z0-9_]+", urn
-    ), f"expected a canonical directive URN, got {urn!r}"
+    assert re.fullmatch(r"directive:[A-Z][A-Z0-9_]+", urn), f"expected a canonical directive URN, got {urn!r}"
     assert resolve_config_id(urn, doctrine_root=doctrine_root) == stem
 
 
@@ -183,9 +178,7 @@ def test_every_activated_directive_stem_round_trips_to_canonical_urn(
         (ArtifactKind.STYLEGUIDE, "activated_styleguides"),
     ],
 )
-def test_spot_check_one_activated_entry_per_other_kind_round_trips(
-    kind: ArtifactKind, config_key: str, repo_root: Path, doctrine_root: Path
-) -> None:
+def test_spot_check_one_activated_entry_per_other_kind_round_trips(kind: ArtifactKind, config_key: str, repo_root: Path, doctrine_root: Path) -> None:
     """Spot-check: one real activated stem per remaining kind round-trips.
 
     T003 asks for a full sweep of directives (the kind implicated in the
@@ -210,9 +203,7 @@ def test_spot_check_one_activated_entry_per_other_kind_round_trips(
 
 
 @pytest.mark.parametrize("malformed_stem", _MALFORMED_DIRECTIVE_STEMS)
-def test_malformed_stem_is_rejected_not_silently_dropped(
-    malformed_stem: str, doctrine_root: Path, activated_directive_stems: list[str]
-) -> None:
+def test_malformed_stem_is_rejected_not_silently_dropped(malformed_stem: str, doctrine_root: Path, activated_directive_stems: list[str]) -> None:
     """A stem with no matching artefact raises — proving reject-not-drop bites.
 
     Non-vacuity per T004: this test would fail (no exception raised) if the

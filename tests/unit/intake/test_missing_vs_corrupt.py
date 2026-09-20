@@ -1,4 +1,5 @@
 """Missing-vs-unreadable distinction in :func:`read_brief` (WP02 T011)."""
+
 from __future__ import annotations
 
 from pathlib import Path

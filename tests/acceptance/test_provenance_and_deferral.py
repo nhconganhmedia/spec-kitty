@@ -341,9 +341,7 @@ def test_judged_result_is_stamped_recorded_with_surface_and_ref(tmp_path: Path) 
         scope="src",
         result="pending",
     )
-    context = _context(
-        tmp_path, surface_kind=TopologySurface.PRIMARY, ref=PRIMARY_REF
-    )
+    context = _context(tmp_path, surface_kind=TopologySurface.PRIMARY, ref=PRIMARY_REF)
     (result,) = enforce_negative_invariants(tmp_path, [pending], context=context)
     assert result.result == "confirmed_absent"
     assert result.provenance_origin == PROVENANCE_RECORDED
@@ -506,9 +504,7 @@ def test_c8_existing_home_matrix_prevents_second_copy(tmp_path: Path) -> None:
         home_dir=home_dir,
     )
     assert returned == home_dir / "acceptance-matrix.json"
-    assert not (feature_dir / "acceptance-matrix.json").exists(), (
-        "a second primary-scaffold copy was authored — C8/AH-3 violated"
-    )
+    assert not (feature_dir / "acceptance-matrix.json").exists(), "a second primary-scaffold copy was authored — C8/AH-3 violated"
 
 
 def test_c8_absent_home_scaffolds_single_primary_copy(tmp_path: Path) -> None:

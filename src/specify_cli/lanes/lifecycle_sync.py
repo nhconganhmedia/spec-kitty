@@ -36,10 +36,7 @@ class LaneAutoRebaseSyncError(RuntimeError):
 
     @property
     def message(self) -> str:
-        return (
-            f"{self.error_code}: auto-rebase refused for {self.lane_id}: "
-            f"{self.halt_reason}"
-        )
+        return f"{self.error_code}: auto-rebase refused for {self.lane_id}: {self.halt_reason}"
 
     def to_dict(self) -> dict[str, str | None]:
         return {
@@ -117,10 +114,7 @@ def _resolve_lane_branch(
     for candidate in candidates:
         if _git_ref_exists(repo_root, candidate):
             return candidate
-    return (
-        _git_stdout(worktree_path, "rev-parse", "--abbrev-ref", "HEAD")
-        or candidates[0]
-    )
+    return _git_stdout(worktree_path, "rev-parse", "--abbrev-ref", "HEAD") or candidates[0]
 
 
 def sync_lane_after_coordination_commit(
@@ -145,9 +139,7 @@ def sync_lane_after_coordination_commit(
     # post-coordination lane auto-rebase. Self-resolve the read by its real kind
     # so it lands on PRIMARY regardless of topology; the callers' STATUS legs (the
     # append-only event log) stay coord-aware untouched (C-001).
-    lanes_read_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.LANE_STATE
-    )
+    lanes_read_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.LANE_STATE)
     try:
         lanes_manifest = read_lanes_json(lanes_read_dir)
     except CorruptLanesError as exc:
@@ -167,9 +159,7 @@ def sync_lane_after_coordination_commit(
     if lane is None or is_planning_lane(lane):
         return None
 
-    _lane_worktree = _worktree_path(
-        repo_root, mission_slug, mission_id=None, lane_id=lane.lane_id
-    )
+    _lane_worktree = _worktree_path(repo_root, mission_slug, mission_id=None, lane_id=lane.lane_id)
     lane_branch = _resolve_lane_branch(
         repo_root,
         _lane_worktree,
@@ -196,10 +186,7 @@ def sync_lane_after_coordination_commit(
                 lane_worktree_path=worktree_path,
                 coordination_branch=coordination_branch,
                 coordination_head=coordination_head,
-                halt_reason=(
-                    "could not create lane worktree for auto-rebase: "
-                    f"{(add_result.stderr or add_result.stdout).strip()}"
-                ),
+                halt_reason=(f"could not create lane worktree for auto-rebase: {(add_result.stderr or add_result.stdout).strip()}"),
             )
 
     report = attempt_auto_rebase(

@@ -46,11 +46,7 @@ def test_org_pack_with_missing_local_path_raises_named_error(
         load_org_drg(tmp_repo_with_dangling_pack)
 
     msg = str(exc_info.value)
-    assert "acme-compliance" in msg, (
-        "operator-actionable error must name the configured pack"
-    )
-    assert "dangling-pack" in msg, (
-        "operator-actionable error must echo the configured path"
-    )
+    assert "acme-compliance" in msg, "operator-actionable error must name the configured pack"
+    assert "dangling-pack" in msg, "operator-actionable error must echo the configured path"
     # FR-004 binding: no silent fallback. The exception type matters.
     assert isinstance(exc_info.value, OrgPackMissingError)

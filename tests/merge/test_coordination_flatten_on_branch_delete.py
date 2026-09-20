@@ -49,9 +49,7 @@ _MISSION_BRANCH = f"kitty/mission-{_SLUG}"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _branch_exists(repo: Path, branch: str) -> bool:
@@ -151,17 +149,13 @@ def test_issue_3086_merge_delete_branch_flattens_coordination_metadata(
 
     # Fixture sanity: the coordination branch must exist before cleanup, else a
     # false-red (the fix is gated on the branch actually being deleted).
-    assert _branch_exists(repo, _MISSION_BRANCH), (
-        "fixture invalid: coordination branch must exist before cleanup"
-    )
+    assert _branch_exists(repo, _MISSION_BRANCH), "fixture invalid: coordination branch must exist before cleanup"
 
     ex._phase_cleanup_worktrees_and_branches(run)
 
     # Corroboration: the delete path actually fired (branch gone from git). This
     # guards against a name mismatch silently no-op'ing the cleanup.
-    assert not _branch_exists(repo, _MISSION_BRANCH), (
-        "cleanup did not delete the coordination branch — fixture/wiring error"
-    )
+    assert not _branch_exists(repo, _MISSION_BRANCH), "cleanup did not delete the coordination branch — fixture/wiring error"
 
     # ANCHOR: after deleting the coordination branch from git, merge MUST clear
     # ``coordination_branch`` from meta.json so the Mission is flattened and later
@@ -178,12 +172,8 @@ def test_issue_3086_merge_delete_branch_flattens_coordination_metadata(
 
     # Canonical flatten parity with ``mission close --discard`` /
     # ``doctor coordination --fix`` (the fix must do all three mutations).
-    assert meta.get("flattened") is True, (
-        "issue #3086: a flattened Mission must record flattened=True"
-    )
-    assert "topology" not in meta, (
-        "issue #3086: flatten must pop the stale 'topology' key"
-    )
+    assert meta.get("flattened") is True, "issue #3086: a flattened Mission must record flattened=True"
+    assert "topology" not in meta, "issue #3086: flatten must pop the stale 'topology' key"
 
     # PR #3218 landing fold: the flatten must be COMMITTED, not merely written to
     # the working tree — otherwise a merged coord Mission leaves the target branch
@@ -197,10 +187,7 @@ def test_issue_3086_merge_delete_branch_flattens_coordination_metadata(
         capture_output=True,
         text=True,
     ).stdout.strip()
-    assert porcelain == "", (
-        "issue #3086: the coordination-metadata flatten was written but not "
-        f"committed — merged target left dirty: {porcelain!r}"
-    )
+    assert porcelain == "", f"issue #3086: the coordination-metadata flatten was written but not committed — merged target left dirty: {porcelain!r}"
 
 
 def test_partial_retention_retains_coord_triple_together(
@@ -251,9 +238,7 @@ def test_partial_retention_retains_coord_triple_together(
         baseline_mission_id=_MISSION_ID,
     )
 
-    assert _branch_exists(repo, _MISSION_BRANCH), (
-        "fixture invalid: coordination branch must exist before cleanup"
-    )
+    assert _branch_exists(repo, _MISSION_BRANCH), "fixture invalid: coordination branch must exist before cleanup"
     head_before = _git(repo, "rev-parse", "HEAD").stdout.strip()
 
     ex._phase_cleanup_worktrees_and_branches(run)
@@ -273,10 +258,7 @@ def test_partial_retention_retains_coord_triple_together(
         "despite teardown_coordination=False — the marker was torn down while "
         "the branch (or worktree) was meant to be retained together."
     )
-    assert meta.get("flattened") is False, (
-        "INV-2 regression: 'flattened' provenance was set even though the "
-        "flatten never ran (teardown_coordination=False)"
-    )
+    assert meta.get("flattened") is False, "INV-2 regression: 'flattened' provenance was set even though the flatten never ran (teardown_coordination=False)"
 
     # No bookkeeping commit landed (the flatten never wrote/committed anything).
     head_after = _git(repo, "rev-parse", "HEAD").stdout.strip()
@@ -351,9 +333,5 @@ def test_issue_3086_flatten_is_noop_for_non_coord_mission(tmp_path: Path) -> Non
     # Untouched: no coordination_branch to clear, so the guard adds no
     # ``flattened`` provenance and leaves the authored ``topology`` in place.
     assert "coordination_branch" not in meta
-    assert "flattened" not in meta, (
-        "issue #3086: a non-coord mission must not be marked flattened"
-    )
-    assert meta.get("topology") == "single_branch", (
-        "issue #3086: the no-op path must not pop a non-coord mission's topology"
-    )
+    assert "flattened" not in meta, "issue #3086: a non-coord mission must not be marked flattened"
+    assert meta.get("topology") == "single_branch", "issue #3086: the no-op path must not pop a non-coord mission's topology"

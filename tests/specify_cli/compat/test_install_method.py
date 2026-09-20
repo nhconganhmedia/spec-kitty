@@ -133,15 +133,12 @@ class TestUvToolBranch:
             )
         assert result == InstallMethod.UV_TOOL
 
-    def test_uv_tool_detected_via_receipt_when_uv_tool_dir_env_missing(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_detected_via_receipt_when_uv_tool_dir_env_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         tool_env = tmp_path / "custom-tools" / "spec-kitty-cli"
         bin_dir = tool_env / "bin"
         bin_dir.mkdir(parents=True)
         (tool_env / "uv-receipt.toml").write_text(
-            "[tool]\n"
-            'requirements = [{ name = "spec-kitty-cli", directory = "/nonexistent/spec-kitty" }]\n',
+            '[tool]\nrequirements = [{ name = "spec-kitty-cli", directory = "/nonexistent/spec-kitty" }]\n',
             encoding="utf-8",
         )
         monkeypatch.delenv("UV_TOOL_DIR", raising=False)
@@ -153,15 +150,12 @@ class TestUvToolBranch:
             )
         assert result == InstallMethod.UV_TOOL
 
-    def test_uv_tool_receipt_must_bind_spec_kitty_package(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_receipt_must_bind_spec_kitty_package(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         tool_env = tmp_path / "custom-tools" / "spec-kitty-cli"
         bin_dir = tool_env / "bin"
         bin_dir.mkdir(parents=True)
         (tool_env / "uv-receipt.toml").write_text(
-            "[tool]\n"
-            'requirements = [{ name = "other-tool" }]\n',
+            '[tool]\nrequirements = [{ name = "other-tool" }]\n',
             encoding="utf-8",
         )
         monkeypatch.delenv("UV_TOOL_DIR", raising=False)
@@ -455,9 +449,7 @@ def test_candidate_package_names_include_fork_name_and_aliases(
         package_aliases=("acme-kitty", "spec-kitty-cli"),
         upgrade_provider=None,
     )
-    monkeypatch.setattr(
-        "specify_cli.distribution.resolve_distribution_profile", lambda: fork
-    )
+    monkeypatch.setattr("specify_cli.distribution.resolve_distribution_profile", lambda: fork)
     assert im._candidate_package_names() == ("acme-kitty-cli", "acme-kitty", "spec-kitty-cli")
 
 

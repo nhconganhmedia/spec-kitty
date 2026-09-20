@@ -17,6 +17,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _seed_wp_lane(feature_dir: Path, wp_id: str, lane: str) -> None:
     """Seed a WP into a specific lane in the event log."""
     _lane_alias = {"doing": "in_progress"}
@@ -37,13 +38,7 @@ def _seed_wp_lane(feature_dir: Path, wp_id: str, lane: str) -> None:
 
 def _write_wp(path: Path, wp_id: str, lane: str, dependencies: str = "[]") -> None:
     path.write_text(
-        "---\n"
-        f'work_package_id: "{wp_id}"\n'
-        f'lane: "{lane}"\n'
-        f"dependencies: {dependencies}\n"
-        f'title: "{wp_id} title"\n'
-        "---\n"
-        f"# {wp_id}\n",
+        f'---\nwork_package_id: "{wp_id}"\nlane: "{lane}"\ndependencies: {dependencies}\ntitle: "{wp_id} title"\n---\n# {wp_id}\n',
         encoding="utf-8",
     )
 
@@ -222,9 +217,7 @@ def test_context_resolve_rejects_invalid_action(tmp_path: Path, monkeypatch) -> 
     assert payload["error_code"] == "INVALID_ACTION"
 
 
-def test_context_resolve_json_envelope_on_unresolvable_mission(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_context_resolve_json_envelope_on_unresolvable_mission(tmp_path: Path, monkeypatch) -> None:
     """An unresolvable ``--mission`` handle must still emit the ``--json``
     envelope on stdout with empty stderr (FR-003/FR-004, #160): the failure
     flows through ``resolve_context``'s own ``ActionContextError`` handler,
@@ -248,9 +241,7 @@ def test_context_resolve_json_envelope_on_unresolvable_mission(
     assert payload["error_code"] == "MISSION_NOT_FOUND"
 
 
-def test_context_resolve_json_envelope_on_ambiguous_mission(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_context_resolve_json_envelope_on_ambiguous_mission(tmp_path: Path, monkeypatch) -> None:
     """An ambiguous ``--mission`` handle (matching more than one mission by
     human slug) must also emit the ``--json`` envelope on stdout with empty
     stderr, not ``resolve_mission_handle``'s stderr + ``sys.exit(2)``."""

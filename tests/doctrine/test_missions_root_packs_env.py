@@ -49,9 +49,7 @@ def _make_packs_root(tmp_path: Path) -> Path:
 class TestBothResolversRelocateUnderPacksRoot:
     """C-R2: default_missions_root() and get_package_asset_root() agree."""
 
-    def test_both_resolvers_relocate_under_packs_root(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_both_resolvers_relocate_under_packs_root(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Both resolvers land on the identical ``<PACKS_ROOT>/built-in/missions`` tree."""
         packs_root = _make_packs_root(tmp_path)
         expected = packs_root / "built-in" / "missions"
@@ -66,9 +64,7 @@ class TestBothResolversRelocateUnderPacksRoot:
         assert result_door == expected
         assert result_repository == result_door
 
-    def test_repository_default_missions_root_alone_relocates(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_repository_default_missions_root_alone_relocates(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Isolated pin: default_missions_root() alone must not ignore PACKS_ROOT.
 
         Narrower than the paired assertion above -- fails on its own if a
@@ -87,9 +83,7 @@ class TestBothResolversRelocateUnderPacksRoot:
 class TestPacksRootWinsOverTemplateRoot:
     """C-R3: with both env vars set, SPEC_KITTY_PACKS_ROOT governs location."""
 
-    def test_both_env_vars_set_packs_root_wins_for_both_resolvers(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_both_env_vars_set_packs_root_wins_for_both_resolvers(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """PACKS_ROOT wins for pack-root location even with TEMPLATE_ROOT set."""
         packs_root = _make_packs_root(tmp_path)
         expected = packs_root / "built-in" / "missions"

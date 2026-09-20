@@ -80,9 +80,7 @@ def test_serialize_mapping_strips_trailing_whitespace_from_wrapped_scalars() -> 
     probe_buf = BytesIO()
     probe.dump(data, probe_buf)
     raw = probe_buf.getvalue().decode("utf-8")
-    assert any(line.endswith((" ", "\t")) for line in raw.splitlines()), (
-        "expected the raw dump to contain a trailing-whitespace line; test is vacuous otherwise"
-    )
+    assert any(line.endswith((" ", "\t")) for line in raw.splitlines()), "expected the raw dump to contain a trailing-whitespace line; test is vacuous otherwise"
 
     serialized = serialize_mapping(data, width=80)
     text = serialized.decode("utf-8")
@@ -137,9 +135,7 @@ def test_canonical_yaml_width_is_4096() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_write_mapping_atomic_uses_temp_then_rename(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_mapping_atomic_uses_temp_then_rename(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The write must go through a .tmp sibling file and an os.replace rename
     — never a direct write to the target path.
     """
@@ -188,9 +184,7 @@ def test_write_mapping_atomic_mkdir_creates_parent(tmp_path: Path) -> None:
     assert YAML(typ="safe").load(target.read_text(encoding="utf-8")) == {"x": 1}
 
 
-def test_write_mapping_atomic_cleans_up_tempfile_on_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_mapping_atomic_cleans_up_tempfile_on_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     target = tmp_path / "record.yaml"
 
     def failing_write(fd: int, data: bytes) -> int:
@@ -206,9 +200,7 @@ def test_write_mapping_atomic_cleans_up_tempfile_on_failure(
     assert leftover == [], f"Unexpected tempfiles left behind: {leftover}"
 
 
-def test_write_mapping_atomic_crash_leaves_no_target(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_mapping_atomic_crash_leaves_no_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     target = tmp_path / "record.yaml"
 
     def crashing_replace(src: str, dst: str) -> None:
@@ -222,9 +214,7 @@ def test_write_mapping_atomic_crash_leaves_no_target(
     assert not target.exists()
 
 
-def test_write_mapping_atomic_dir_fsync_failure_is_non_fatal(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_mapping_atomic_dir_fsync_failure_is_non_fatal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Best-effort dir fsync failure does not propagate; the write still
     succeeds.
     """

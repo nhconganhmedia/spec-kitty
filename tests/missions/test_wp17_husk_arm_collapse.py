@@ -61,9 +61,7 @@ _READ_PATH_RESOLVER = _REPO_ROOT / "src/specify_cli/missions/_read_path_resolver
 # Production-shaped fixture helpers (canonical serializer, real git worktrees).
 # --------------------------------------------------------------------------- #
 def _git(repo_root: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True)
 
 
 def _init_repo(repo_root: Path) -> None:
@@ -233,10 +231,7 @@ def test_keep_c003_five_hop_feature_dir_path(tmp_path: Path) -> None:
         flat_primary,
         {"mission_id": MISSION_ID, "topology": MissionTopology.SINGLE_BRANCH.value},
     )
-    assert (
-        candidate_feature_dir_for_mission(tmp_path, flat_slug).resolve()
-        == flat_primary.resolve()
-    )
+    assert candidate_feature_dir_for_mission(tmp_path, flat_slug).resolve() == flat_primary.resolve()
 
 
 def test_keep_c005_probe_coord_state_empty_and_deleted(tmp_path: Path) -> None:
@@ -262,12 +257,7 @@ def test_keep_c005_probe_coord_state_empty_and_deleted(tmp_path: Path) -> None:
     # DELETED: a different mission whose coord root is absent AND whose declared
     # branch is gone from git → the single git rev-parse arm yields DELETED.
     other = f"deleted-{MID8}"
-    assert (
-        probe_coord_state(
-            tmp_path, other, MID8, coordination_branch="kitty/mission-gone-deadbeef"
-        )
-        is CoordState.DELETED
-    )
+    assert probe_coord_state(tmp_path, other, MID8, coordination_branch="kitty/mission-gone-deadbeef") is CoordState.DELETED
     # UNMATERIALIZED negative control: no branch signal supplied → cannot be DELETED.
     assert probe_coord_state(tmp_path, other, MID8) is CoordState.UNMATERIALIZED
 
@@ -372,8 +362,5 @@ def test_no_hand_rolled_meta_json_reader_in_owned_file() -> None:
         and node.func.value.id == "json"
         for node in ast.walk(tree)
     )
-    assert not json_loads, (
-        "the owned read-path resolver must read meta via the canonical load_meta "
-        "seam, not a hand-rolled json.loads (NFR-004)"
-    )
+    assert not json_loads, "the owned read-path resolver must read meta via the canonical load_meta seam, not a hand-rolled json.loads (NFR-004)"
     assert "load_meta" in called

@@ -142,9 +142,7 @@ class DossierHandlerAdapter:
         """
         raise NotImplementedError
 
-    def handle_dossier_artifact_detail(
-        self, mission_slug: str, artifact_key: str
-    ) -> ArtifactDetailResponse | dict[str, Any]:
+    def handle_dossier_artifact_detail(self, mission_slug: str, artifact_key: str) -> ArtifactDetailResponse | dict[str, Any]:
         """GET /api/dossier/artifacts/{artifact_key}
 
         Returns:
@@ -317,9 +315,7 @@ class DossierAPIHandler(DossierHandlerAdapter):
         except Exception as exc:
             return error_response(f"Error listing artifacts: {str(exc)}", 500)
 
-    def handle_dossier_artifact_detail(
-        self, mission_slug: str, artifact_key: str
-    ) -> ArtifactDetailResponse | dict[str, Any]:
+    def handle_dossier_artifact_detail(self, mission_slug: str, artifact_key: str) -> ArtifactDetailResponse | dict[str, Any]:
         """Return artifact detail with full-text content (or truncation notice).
 
         Args:

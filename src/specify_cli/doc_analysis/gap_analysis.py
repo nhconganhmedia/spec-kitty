@@ -822,9 +822,7 @@ def analyze_documentation_gaps(docs_dir: Path, project_root: Path | None = None)
     gap_tuples = coverage_matrix.get_gaps()
 
     # Prioritize gaps
-    classified_by_type = {
-        path: divio_type for path, (divio_type, _confidence) in classified.items()
-    }
+    classified_by_type = {path: divio_type for path, (divio_type, _confidence) in classified.items()}
     prioritized_gaps = prioritize_gaps(gap_tuples, project_areas, classified_by_type)
 
     # Detect version mismatches (Python only for now)

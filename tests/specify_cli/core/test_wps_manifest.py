@@ -90,31 +90,18 @@ class TestPlanConcernRefs:
 
         feature_dir = Path(str(tmp_path))
         wps_yaml = feature_dir / "wps.yaml"
-        wps_yaml.write_text(
-            "work_packages:\n"
-            "  - id: WP01\n"
-            "    title: Test WP\n"
-            "    plan_concern_refs:\n"
-            "      - IC-01\n"
-            "      - IC-02\n"
-        )
+        wps_yaml.write_text("work_packages:\n  - id: WP01\n    title: Test WP\n    plan_concern_refs:\n      - IC-01\n      - IC-02\n")
         manifest = load_wps_manifest(feature_dir)
         assert manifest is not None
         assert manifest.work_packages[0].plan_concern_refs == ["IC-01", "IC-02"]
 
-    def test_load_wps_manifest_concern_refs_absent_gives_empty_list(
-        self, tmp_path: object
-    ) -> None:
+    def test_load_wps_manifest_concern_refs_absent_gives_empty_list(self, tmp_path: object) -> None:
         """Older wps.yaml without plan_concern_refs key loads with empty list."""
         from pathlib import Path
 
         feature_dir = Path(str(tmp_path))
         wps_yaml = feature_dir / "wps.yaml"
-        wps_yaml.write_text(
-            "work_packages:\n"
-            "  - id: WP01\n"
-            "    title: Old WP\n"
-        )
+        wps_yaml.write_text("work_packages:\n  - id: WP01\n    title: Old WP\n")
         manifest = load_wps_manifest(feature_dir)
         assert manifest is not None
         assert manifest.work_packages[0].plan_concern_refs == []
@@ -151,12 +138,7 @@ class TestCrossCuttingField:
         from pathlib import Path
 
         feature_dir = Path(str(tmp_path))
-        (feature_dir / "wps.yaml").write_text(
-            "work_packages:\n"
-            "  - id: WP01\n"
-            "    title: Setup harness\n"
-            "    cross_cutting: true\n"
-        )
+        (feature_dir / "wps.yaml").write_text("work_packages:\n  - id: WP01\n    title: Setup harness\n    cross_cutting: true\n")
         manifest = load_wps_manifest(feature_dir)
         assert manifest is not None
         assert manifest.work_packages[0].cross_cutting is True
@@ -181,11 +163,7 @@ class TestGenerateTasksMdConcernRefs:
         assert "Plan Concerns" in output
 
     def test_does_not_render_when_empty(self) -> None:
-        manifest = WpsManifest(
-            work_packages=[
-                WorkPackageEntry(id="WP01", title="Test")
-            ]
-        )
+        manifest = WpsManifest(work_packages=[WorkPackageEntry(id="WP01", title="Test")])
         output = generate_tasks_md_from_manifest(manifest, "test-mission")
         assert "Plan Concerns" not in output
         assert "IC-" not in output
@@ -223,12 +201,8 @@ class TestGenerateTasksMdConcernRefs:
         """Multiple WPs may share the same IC-## ref — each renders independently."""
         manifest = WpsManifest(
             work_packages=[
-                WorkPackageEntry(
-                    id="WP01", title="A", plan_concern_refs=["IC-01", "IC-02"]
-                ),
-                WorkPackageEntry(
-                    id="WP02", title="B", plan_concern_refs=["IC-01", "IC-03"]
-                ),
+                WorkPackageEntry(id="WP01", title="A", plan_concern_refs=["IC-01", "IC-02"]),
+                WorkPackageEntry(id="WP02", title="B", plan_concern_refs=["IC-01", "IC-03"]),
             ]
         )
         output = generate_tasks_md_from_manifest(manifest, "shared-refs-mission")
@@ -249,12 +223,8 @@ class TestCheckConcernRefsCoverage:
     def test_no_warnings_when_all_wps_have_refs(self) -> None:
         manifest = WpsManifest(
             work_packages=[
-                WorkPackageEntry(
-                    id="WP01", title="Has refs", plan_concern_refs=["IC-01"]
-                ),
-                WorkPackageEntry(
-                    id="WP02", title="Also has refs", plan_concern_refs=["IC-02"]
-                ),
+                WorkPackageEntry(id="WP01", title="Has refs", plan_concern_refs=["IC-01"]),
+                WorkPackageEntry(id="WP02", title="Also has refs", plan_concern_refs=["IC-02"]),
             ]
         )
         assert check_concern_refs_coverage(manifest) == []
@@ -310,9 +280,7 @@ class TestCheckConcernRefsCoverage:
         """WPs that satisfy either criterion do not appear in warnings."""
         manifest = WpsManifest(
             work_packages=[
-                WorkPackageEntry(
-                    id="WP01", title="Has refs", plan_concern_refs=["IC-01"]
-                ),
+                WorkPackageEntry(id="WP01", title="Has refs", plan_concern_refs=["IC-01"]),
                 WorkPackageEntry(id="WP02", title="Cross cutting", cross_cutting=True),
                 WorkPackageEntry(id="WP03", title="Missing"),
             ]
@@ -326,38 +294,27 @@ class TestCheckConcernRefsCoverage:
         manifest = WpsManifest(work_packages=[])
         assert check_concern_refs_coverage(manifest) == []
 
-    def test_legacy_loaded_manifest_without_new_fields_has_no_warnings(
-        self, tmp_path: object
-    ) -> None:
+    def test_legacy_loaded_manifest_without_new_fields_has_no_warnings(self, tmp_path: object) -> None:
         """FR-010: older wps.yaml files without concern keys stay quiet."""
         from pathlib import Path
 
         feature_dir = Path(str(tmp_path))
         (feature_dir / "wps.yaml").write_text(
-            "work_packages:\n"
-            "  - id: WP01\n"
-            "    title: Legacy WP\n",
+            "work_packages:\n  - id: WP01\n    title: Legacy WP\n",
             encoding="utf-8",
         )
         manifest = load_wps_manifest(feature_dir)
         assert manifest is not None
         assert check_concern_refs_coverage(manifest) == []
 
-    def test_loaded_manifest_without_new_fields_warns_when_plan_has_ics(
-        self, tmp_path: Path
-    ) -> None:
+    def test_loaded_manifest_without_new_fields_warns_when_plan_has_ics(self, tmp_path: Path) -> None:
         """New IC-bearing plans require wps.yaml concern coverage."""
         (tmp_path / "plan.md").write_text(
-            "# Implementation Plan\n\n"
-            "## Implementation Concern Map\n\n"
-            "### IC-01 - Runtime boundary\n\n"
-            "- **Purpose**: Keep runtime and CLI behavior aligned.\n",
+            "# Implementation Plan\n\n## Implementation Concern Map\n\n### IC-01 - Runtime boundary\n\n- **Purpose**: Keep runtime and CLI behavior aligned.\n",
             encoding="utf-8",
         )
         (tmp_path / "wps.yaml").write_text(
-            "work_packages:\n"
-            "  - id: WP01\n"
-            "    title: New WP missing concern refs\n",
+            "work_packages:\n  - id: WP01\n    title: New WP missing concern refs\n",
             encoding="utf-8",
         )
 
@@ -368,18 +325,13 @@ class TestCheckConcernRefsCoverage:
         assert len(warnings) == 1
         assert "WP01" in warnings[0]
 
-    def test_loaded_manifest_with_explicit_empty_refs_warns(
-        self, tmp_path: object
-    ) -> None:
+    def test_loaded_manifest_with_explicit_empty_refs_warns(self, tmp_path: object) -> None:
         """An opted-in manifest with empty refs and no cross_cutting still warns."""
         from pathlib import Path
 
         feature_dir = Path(str(tmp_path))
         (feature_dir / "wps.yaml").write_text(
-            "work_packages:\n"
-            "  - id: WP01\n"
-            "    title: New WP\n"
-            "    plan_concern_refs: []\n",
+            "work_packages:\n  - id: WP01\n    title: New WP\n    plan_concern_refs: []\n",
             encoding="utf-8",
         )
         manifest = load_wps_manifest(feature_dir)
@@ -391,9 +343,7 @@ class TestCheckConcernRefsCoverage:
     def test_wps_schema_accepts_plan_concern_fields(self) -> None:
         """The documented JSON schema accepts the Pydantic manifest fields."""
         jsonschema = pytest.importorskip("jsonschema")
-        schema = json.loads(
-            Path("src/specify_cli/schemas/wps.schema.json").read_text(encoding="utf-8")
-        )
+        schema = json.loads(Path("src/specify_cli/schemas/wps.schema.json").read_text(encoding="utf-8"))
         instance = {
             "work_packages": [
                 {

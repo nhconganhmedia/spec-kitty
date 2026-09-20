@@ -46,11 +46,7 @@ def test_extract_wp_ids_empty() -> None:
 
 
 def test_parse_wp_sections_splits_by_heading() -> None:
-    content = (
-        "# Tasks\n"
-        "## WP01: First\nalpha body\n"
-        "## WP02 Second\nbeta body\n"
-    )
+    content = "# Tasks\n## WP01: First\nalpha body\n## WP02 Second\nbeta body\n"
     sections = seam._parse_wp_sections_from_tasks_md(content)
     assert set(sections) == {"WP01", "WP02"}
     assert "alpha body" in sections["WP01"]
@@ -233,9 +229,7 @@ def test_invalid_mission_specs_owned_files_rejects_code_change_kitty_specs() -> 
             owned_files=["kitty-specs/foo/spec.md"],
         ),
     }
-    assert seam._invalid_mission_specs_owned_files(by_wp) == [
-        {"wp_id": "WP01", "path": "kitty-specs/foo/spec.md"}
-    ]
+    assert seam._invalid_mission_specs_owned_files(by_wp) == [{"wp_id": "WP01", "path": "kitty-specs/foo/spec.md"}]
 
 
 def test_is_confined_planning_wp_true_for_planning_planning_paths() -> None:

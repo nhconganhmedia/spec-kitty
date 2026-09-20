@@ -86,11 +86,7 @@ def _frontmatter(text: str) -> dict[str, str]:
 
 
 def test_320_spk_skill_pack_is_complete() -> None:
-    actual = {
-        path.name
-        for path in SKILLS_ROOT.iterdir()
-        if path.is_dir() and path.name.startswith("spk-")
-    }
+    actual = {path.name for path in SKILLS_ROOT.iterdir() if path.is_dir() and path.name.startswith("spk-")}
 
     assert actual == SPK_SKILLS
 
@@ -149,36 +145,23 @@ def test_skill_command_literals_resolve_against_live_cli() -> None:
             if unresolved is not None:
                 under = " ".join(["spec-kitty", *command_path])
                 errors.append(
-                    f"{skill_md.relative_to(REPO_ROOT)}: `{literal}` references "
-                    f"unknown command '{unresolved}'"
-                    + (f" under `{under}`" if command_path else "")
+                    f"{skill_md.relative_to(REPO_ROOT)}: `{literal}` references unknown command '{unresolved}'" + (f" under `{under}`" if command_path else "")
                 )
             elif not command_path:
-                errors.append(
-                    f"{skill_md.relative_to(REPO_ROOT)}: `{literal}` resolves no command"
-                )
+                errors.append(f"{skill_md.relative_to(REPO_ROOT)}: `{literal}` resolves no command")
 
     assert not errors, "\n".join(errors)
 
 
 def test_spk_skill_map_mentions_every_public_skill() -> None:
-    skill_map = (
-        SKILLS_ROOT
-        / "spk-meta-skill-map"
-        / "references"
-        / "spk-skill-map.md"
-    ).read_text(encoding="utf-8")
+    skill_map = (SKILLS_ROOT / "spk-meta-skill-map" / "references" / "spk-skill-map.md").read_text(encoding="utf-8")
 
     for skill_name in sorted(SPK_SKILLS):
         assert f"`{skill_name}`" in skill_map
 
 
 def test_legacy_alias_skills_remain_installed() -> None:
-    actual = {
-        path.name
-        for path in SKILLS_ROOT.iterdir()
-        if path.is_dir() and (path / "SKILL.md").is_file()
-    }
+    actual = {path.name for path in SKILLS_ROOT.iterdir() if path.is_dir() and (path / "SKILL.md").is_file()}
 
     assert actual >= LEGACY_ALIAS_SKILLS
 
@@ -188,18 +171,11 @@ def test_profile_load_skill_owns_and_installs_detailed_mechanics() -> None:
     skill = registry.get_skill("spk-doctrine-profile-load")
 
     assert skill is not None
-    reference = (
-        SKILLS_ROOT
-        / "spk-doctrine-profile-load"
-        / "references"
-        / "profile-load-mechanics.md"
-    )
+    reference = SKILLS_ROOT / "spk-doctrine-profile-load" / "references" / "profile-load-mechanics.md"
     assert skill.references == [reference]
 
     skill_text = skill.skill_md.read_text(encoding="utf-8")
-    alias_text = (
-        SKILLS_ROOT / "ad-hoc-profile-load" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    alias_text = (SKILLS_ROOT / "ad-hoc-profile-load" / "SKILL.md").read_text(encoding="utf-8")
     reference_text = reference.read_text(encoding="utf-8")
 
     assert "`ad-hoc-profile-load` is a compatibility alias that points here" in skill_text

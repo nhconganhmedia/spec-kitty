@@ -129,9 +129,7 @@ class InvocationWriter:
         candidate = self._dir / f"{validated_id}.jsonl"
         ensure_within_any(candidate, roots=[self._dir])
         if candidate.is_symlink():
-            raise ValueError(
-                f"Invocation record must not be a symbolic link: {candidate}"
-            )
+            raise ValueError(f"Invocation record must not be a symbolic link: {candidate}")
         return candidate
 
     @contextlib.contextmanager
@@ -147,35 +145,20 @@ class InvocationWriter:
         try:
             fd = os.open(path, os.O_RDWR | os.O_APPEND | no_follow)
         except FileNotFoundError as exc:
-            raise InvocationError(
-                f"Invocation record not found: {invocation_id}"
-            ) from exc
+            raise InvocationError(f"Invocation record not found: {invocation_id}") from exc
         except OSError as exc:
-            raise InvocationWriteError(
-                f"Failed to open invocation record safely: {exc}"
-            ) from exc
+            raise InvocationWriteError(f"Failed to open invocation record safely: {exc}") from exc
         with os.fdopen(fd, "a+", encoding="utf-8") as handle:
             handle.seek(0)
             try:
-                rows = [
-                    json.loads(line)
-                    for line in handle.read().splitlines()
-                    if line.strip()
-                ]
+                rows = [json.loads(line) for line in handle.read().splitlines() if line.strip()]
             except (json.JSONDecodeError, OSError) as exc:
-                raise InvocationError(
-                    f"Invocation record is unreadable: {invocation_id}"
-                ) from exc
+                raise InvocationError(f"Invocation record is unreadable: {invocation_id}") from exc
             if not rows or rows[0].get("event") != "started":
-                raise InvocationError(
-                    f"Invocation record has no started event: {invocation_id}"
-                )
+                raise InvocationError(f"Invocation record has no started event: {invocation_id}")
             embedded_id = rows[0].get("invocation_id")
             if embedded_id != invocation_id:
-                raise InvocationError(
-                    "Invocation record identity mismatch: "
-                    f"requested={invocation_id!r}, embedded={embedded_id!r}"
-                )
+                raise InvocationError(f"Invocation record identity mismatch: requested={invocation_id!r}, embedded={embedded_id!r}")
             yield handle
 
     @staticmethod
@@ -237,9 +220,7 @@ class InvocationWriter:
             with path.open("x", encoding="utf-8") as f:
                 f.write(record.to_jsonl_line() + "\n")
         except FileExistsError:
-            raise InvocationWriteError(
-                f"ULID collision on {path} — retry with a new invocation_id"
-            )
+            raise InvocationWriteError(f"ULID collision on {path} — retry with a new invocation_id")
         except OSError as e:
             raise InvocationWriteError(f"Failed to write invocation record: {e}") from e
         self._append_to_index(record)
@@ -256,11 +237,7 @@ class InvocationWriter:
         try:
             with self._validated_append_handle(path, record.invocation_id) as handle:
                 handle.seek(0)
-                existing = [
-                    json.loads(line)
-                    for line in handle.read().splitlines()
-                    if line.strip()
-                ]
+                existing = [json.loads(line) for line in handle.read().splitlines() if line.strip()]
                 if any(entry.get("event") == "completed" for entry in existing):
                     raise AlreadyClosedError(record.invocation_id)
                 handle.write(record.to_jsonl_line() + "\n")
@@ -310,13 +287,9 @@ class InvocationWriter:
         except (InvocationError, InvocationWriteError):
             raise
         except OSError as e:
-            raise InvocationWriteError(
-                f"Failed to append correlation event: {e}"
-            ) from e
+            raise InvocationWriteError(f"Failed to append correlation event: {e}") from e
 
-    def write_glossary_observation(
-        self, invocation_id: str, bundle: GlossaryObservationBundle
-    ) -> None:
+    def write_glossary_observation(self, invocation_id: str, bundle: GlossaryObservationBundle) -> None:
         """Append glossary_checked event to invocation file. Best-effort only.
 
         This event is ONLY written when ``all_conflicts`` is non-empty OR

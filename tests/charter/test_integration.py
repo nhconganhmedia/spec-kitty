@@ -91,9 +91,7 @@ directives:
         assert {d.id for d in config.directives} == {"DIR-001", "DIR-002"}
         assert config.directives[0].id == "DIR-001"
 
-    def test_load_governance_config_missing_charter_yaml_returns_empty(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_load_governance_config_missing_charter_yaml_returns_empty(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         with caplog.at_level(logging.INFO, logger="charter.activation.sync"):
             config = load_governance_config(tmp_path)
 
@@ -103,9 +101,7 @@ directives:
         assert any("charter.yaml governance section not found" in record.message for record in caplog.records)
         assert all(record.levelno < logging.WARNING for record in caplog.records)
 
-    def test_load_directives_config_missing_charter_yaml_returns_empty(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_load_directives_config_missing_charter_yaml_returns_empty(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         with caplog.at_level(logging.INFO, logger="charter.activation.sync"):
             config = load_directives_config(tmp_path)
 
@@ -129,9 +125,7 @@ directives:
         matters; a charter.md-only tree (no charter.yaml at all) still
         yields empty configs, never an exception (INV-3: no prose fallback)."""
         (tmp_path / ".kittify" / "charter").mkdir(parents=True)
-        (tmp_path / ".kittify" / "charter" / "charter.md").write_text(
-            "## Testing\n\nWe require 80% coverage.\n", encoding="utf-8"
-        )
+        (tmp_path / ".kittify" / "charter" / "charter.md").write_text("## Testing\n\nWe require 80% coverage.\n", encoding="utf-8")
 
         gov = load_governance_config(tmp_path)
         directives = load_directives_config(tmp_path)
@@ -199,9 +193,7 @@ class TestEnsureCharterBundleFresh:
         assert result.canonical_root == tmp_path
         assert result.synced is False
 
-    def test_logs_sync_failure(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_logs_sync_failure(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         from unittest.mock import patch
 
         charter_dir = tmp_path / ".kittify" / "charter"
@@ -210,8 +202,11 @@ class TestEnsureCharterBundleFresh:
 
         with patch("charter.activation.sync.sync") as mock_sync:
             mock_sync.return_value = SyncResult(
-                synced=False, stale_before=False, files_written=[],
-                extraction_mode="", error="Engine unavailable",
+                synced=False,
+                stale_before=False,
+                files_written=[],
+                extraction_mode="",
+                error="Engine unavailable",
                 canonical_root=tmp_path,
             )
             caplog.clear()

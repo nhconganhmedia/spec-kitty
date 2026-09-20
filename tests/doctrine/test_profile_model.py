@@ -29,6 +29,8 @@ from charter.offering.agent_profiles.profile import (
 
 
 pytestmark = [pytest.mark.doctrine, pytest.mark.fast]
+
+
 class TestAgentProfileZero:
     """Zero: Minimal valid profile construction."""
 

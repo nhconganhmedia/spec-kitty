@@ -129,9 +129,7 @@ def _make_mission_repo(tmp_path: Path, mission_slug: str = "test-tracker-mission
 
 
 class TestMapRequirementsTrackerRef:
-    def test_persists_tracker_ref_into_frontmatter(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_persists_tracker_ref_into_frontmatter(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         mission_slug = "test-tracker-mission"
         repo = _make_mission_repo(tmp_path, mission_slug)
 
@@ -174,6 +172,5 @@ class TestMapRequirementsTrackerRef:
         snapshot = reduce(stream.transitions, stream.annotations)
         wp01 = snapshot.work_packages.get("WP01", {})
         assert "#1298" in wp01.get("tracker_refs", []), (
-            "--tracker-ref did not persist to the event-sourced snapshot. "
-            f"CLI exit={result.exit_code} stdout={result.stdout!r} wp01={wp01!r}"
+            f"--tracker-ref did not persist to the event-sourced snapshot. CLI exit={result.exit_code} stdout={result.stdout!r} wp01={wp01!r}"
         )

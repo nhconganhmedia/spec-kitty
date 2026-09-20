@@ -1,4 +1,5 @@
 """NFR-003: resolver overhead budget (<5 ms warm p95, <=1 git invocation/cold call)."""
+
 from __future__ import annotations
 
 import subprocess
@@ -27,9 +28,7 @@ def test_warm_resolver_makes_zero_git_invocations(tmp_repo: Path) -> None:
     with patch("kernel.git_topology.subprocess.run") as spy:
         for _ in range(100):
             resolve_canonical_repo_root(tmp_repo)
-    assert spy.call_count == 0, (
-        f"Warm resolver invoked subprocess.run {spy.call_count} times; expected 0."
-    )
+    assert spy.call_count == 0, f"Warm resolver invoked subprocess.run {spy.call_count} times; expected 0."
 
 
 def test_cold_resolver_makes_exactly_one_git_invocation(tmp_repo: Path) -> None:
@@ -38,6 +37,4 @@ def test_cold_resolver_makes_exactly_one_git_invocation(tmp_repo: Path) -> None:
     spy = MagicMock(side_effect=lambda *a, **kw: real_run(*a, **kw))
     with patch("kernel.git_topology.subprocess.run", spy):
         resolve_canonical_repo_root(tmp_repo)
-    assert spy.call_count == 1, (
-        f"Cold resolver invoked subprocess.run {spy.call_count} times; expected 1."
-    )
+    assert spy.call_count == 1, f"Cold resolver invoked subprocess.run {spy.call_count} times; expected 1."

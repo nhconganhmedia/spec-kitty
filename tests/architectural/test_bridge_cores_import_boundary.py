@@ -112,11 +112,7 @@ def collect_non_stdlib_imports(tree: ast.AST, *, package: str = _TARGET_PACKAGE)
 
 def collect_disallowed_imports(tree: ast.AST, *, package: str = _TARGET_PACKAGE) -> list[tuple[str, int]]:
     """Non-stdlib imports that are ALSO not the one sanctioned ``runtime.next.decision`` edge."""
-    return [
-        (module, lineno)
-        for module, lineno in collect_non_stdlib_imports(tree, package=package)
-        if not _is_allowed_non_stdlib(module)
-    ]
+    return [(module, lineno) for module, lineno in collect_non_stdlib_imports(tree, package=package) if not _is_allowed_non_stdlib(module)]
 
 
 def test_target_file_exists_at_its_documented_path() -> None:
@@ -143,8 +139,7 @@ def test_bridge_cores_imports_only_stdlib_and_decision() -> None:
     assert violations == [], (
         "runtime_bridge_cores.py declares itself a stdlib-only zero-dependency "
         "leaf (module docstring, C-007) that may import nothing but stdlib and "
-        "runtime.next.decision. Disallowed imports found:\n"
-        + "\n".join(f"  line {lineno}: {module}" for module, lineno in violations)
+        "runtime.next.decision. Disallowed imports found:\n" + "\n".join(f"  line {lineno}: {module}" for module, lineno in violations)
     )
 
 

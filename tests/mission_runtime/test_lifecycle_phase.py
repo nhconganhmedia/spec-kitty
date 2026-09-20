@@ -84,9 +84,7 @@ def _write_meta(
         "friendly_name": "Lifecycle phase reader fixture",
     }
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _done_event(mission_slug: str, wp_id: str) -> dict[str, object]:
@@ -106,9 +104,7 @@ def _done_event(mission_slug: str, wp_id: str) -> dict[str, object]:
     }
 
 
-def _build_mission(
-    repo: Path, *, mid8: str, slug_base: str
-) -> tuple[str, Path, str]:
+def _build_mission(repo: Path, *, mid8: str, slug_base: str) -> tuple[str, Path, str]:
     """Scaffold a mission with its own Target Ref (branch), pre-consolidation.
 
     Returns ``(mission_slug, feature_dir, target_branch)``.
@@ -179,9 +175,7 @@ def repo(tmp_path: Path) -> Path:
 
 def test_pre_consolidation_when_baseline_absent(repo: Path) -> None:
     """No ``baseline_merge_commit`` -> PRE_CONSOLIDATION (the safe default)."""
-    mission_slug, _feature_dir, _target = _build_mission(
-        repo, mid8="01KYS1AA", slug_base="widget-catalog"
-    )
+    mission_slug, _feature_dir, _target = _build_mission(repo, mid8="01KYS1AA", slug_base="widget-catalog")
 
     phase = resolve_lifecycle_phase(mission_slug, repo)
 
@@ -193,9 +187,7 @@ def test_consolidated_when_baseline_present_and_target_ref_exists(repo: Path) ->
     init_sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
     mid8 = "01KYS1BB"
     mission_id = f"{mid8}0000000000000000"
-    mission_slug, feature_dir, _target = _build_mission(
-        repo, mid8=mid8, slug_base="widget-catalog"
-    )
+    mission_slug, feature_dir, _target = _build_mission(repo, mid8=mid8, slug_base="widget-catalog")
     _consolidate_e1(
         repo,
         feature_dir,
@@ -217,9 +209,7 @@ def test_published_when_target_ref_deleted_and_mission_number_assigned(
     init_sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
     mid8 = "01KYS1CC"
     mission_id = f"{mid8}0000000000000000"
-    mission_slug, feature_dir, target_branch = _build_mission(
-        repo, mid8=mid8, slug_base="widget-catalog"
-    )
+    mission_slug, feature_dir, target_branch = _build_mission(repo, mid8=mid8, slug_base="widget-catalog")
     _consolidate_e1(
         repo,
         feature_dir,
@@ -241,9 +231,7 @@ def test_published_when_target_ref_deleted_and_all_wps_done(repo: Path) -> None:
     init_sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
     mid8 = "01KYS1DD"
     mission_id = f"{mid8}0000000000000000"
-    mission_slug, feature_dir, target_branch = _build_mission(
-        repo, mid8=mid8, slug_base="widget-catalog"
-    )
+    mission_slug, feature_dir, target_branch = _build_mission(repo, mid8=mid8, slug_base="widget-catalog")
     (feature_dir / "status.events.jsonl").write_text(
         json.dumps(_done_event(mission_slug, "WP01"), sort_keys=True) + "\n",
         encoding="utf-8",
@@ -315,9 +303,7 @@ def test_c003_target_ref_absent_without_terminal_completion_is_pre_consolidation
 
 def test_content_present_at_primary_tip_true_when_content_committed(repo: Path) -> None:
     mid8 = "01KYS1FF"
-    mission_slug, _feature_dir, _target = _build_mission(
-        repo, mid8=mid8, slug_base="widget-catalog"
-    )
+    mission_slug, _feature_dir, _target = _build_mission(repo, mid8=mid8, slug_base="widget-catalog")
     _git(repo, "checkout", "-q", "main")
     _git(repo, "merge", "-q", "--no-ff", f"kitty/mission-{mission_slug}")
 
@@ -327,9 +313,7 @@ def test_content_present_at_primary_tip_true_when_content_committed(repo: Path) 
 def test_content_present_at_primary_tip_false_when_content_absent(repo: Path) -> None:
     """A mission that was never merged to the Primary Branch: absent, not an error."""
     mid8 = "01KYS1GG"
-    mission_slug, _feature_dir, _target = _build_mission(
-        repo, mid8=mid8, slug_base="widget-catalog"
-    )
+    mission_slug, _feature_dir, _target = _build_mission(repo, mid8=mid8, slug_base="widget-catalog")
     _git(repo, "checkout", "-q", "main")  # main never received the mission's commit
 
     assert content_present_at_primary_tip(mission_slug, repo) is False

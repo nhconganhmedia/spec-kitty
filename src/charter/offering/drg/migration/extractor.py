@@ -140,6 +140,7 @@ def _missions_root(doctrine_root: Path) -> Path:
         return MissionTemplateRepository.default_missions_root()
     return doctrine_root / "missions"
 
+
 # ---------------------------------------------------------------------------
 # T027: Path-string reference resolver for styleguide / toolguide ``references``
 # ---------------------------------------------------------------------------
@@ -224,6 +225,7 @@ def _resolve_path_ref(path_str: str) -> tuple[str, str] | None:
         if m:
             return kind, m.group(1)
     return None
+
 
 #: Reference-``type`` string / URN prefix -> :class:`NodeKind`.
 #:
@@ -755,9 +757,7 @@ def _emit_agent_profile_edges(
 # ---------------------------------------------------------------------------
 
 
-def _emit_glossary_pack_nodes(
-    packs_root: Path, nodes_by_urn: dict[str, DRGNode]
-) -> None:
+def _emit_glossary_pack_nodes(packs_root: Path, nodes_by_urn: dict[str, DRGNode]) -> None:
     """Register a ``glossary_pack:<id>`` source node for each built-in pack.
 
     Mirrors the shape of the per-kind blocks in :func:`extract_artifact_edges`
@@ -828,18 +828,11 @@ def _emit_operating_procedure_edges(
         for entry in entries:
             tgt_urn = artifact_to_urn("procedure", entry)
             if tgt_urn in procedure_urns:
-                add_edge(
-                    DRGEdge(source=src_urn, target=tgt_urn, relation=Relation.REQUIRES)
-                )
-    unresolved = resolve_operating_procedure_entries(
-        entries_by_profile, procedure_urns, urns_by_kind
-    )
+                add_edge(DRGEdge(source=src_urn, target=tgt_urn, relation=Relation.REQUIRES))
+    unresolved = resolve_operating_procedure_entries(entries_by_profile, procedure_urns, urns_by_kind)
     if unresolved:
         detail = ", ".join(f"{u.profile_id}:{u.entry} ({u.reason})" for u in unresolved)
-        raise ValueError(
-            "built-in operating-procedures entries do not resolve to a procedure "
-            f"node (triage required): {detail}"
-        )
+        raise ValueError(f"built-in operating-procedures entries do not resolve to a procedure node (triage required): {detail}")
 
 
 # ---------------------------------------------------------------------------
@@ -862,9 +855,7 @@ def extract_artifact_edges(  # noqa: C901
     def _add_edge(edge: DRGEdge) -> None:
         triple = (edge.source, edge.target, edge.relation.value)
         if triple in edges_by_triple:
-            edges_by_triple[triple] = _merge_edge_metadata(
-                edges_by_triple[triple], edge
-            )
+            edges_by_triple[triple] = _merge_edge_metadata(edges_by_triple[triple], edge)
         else:
             edges_by_triple[triple] = edge
 
@@ -1178,9 +1169,7 @@ def extract_action_edges(
         # Derive mission name from path: .../missions/<mission>/actions/<action>/index.yaml
         mission_name = index_path.parent.parent.parent.name
         action_urn = f"action:{mission_name}/{action_name}"
-        _ensure_node(
-            nodes_by_urn, action_urn, NodeKind.ACTION, action_name
-        )
+        _ensure_node(nodes_by_urn, action_urn, NodeKind.ACTION, action_name)
 
         for field_name, kind in _ACTION_SCOPE_FIELDS:
             for raw_id in data.get(field_name, []) or []:
@@ -1307,11 +1296,7 @@ def _discover_mission_type_nodes(
     seen_ids: dict[str, Path] = {}
     for mission_type_id, data, path in _iter_mission_type_data(doctrine_root):
         if mission_type_id in seen_ids:
-            msg = (
-                f"Duplicate mission_type id {mission_type_id!r} declared by "
-                f"both {seen_ids[mission_type_id].name} and {path.name} in "
-                f"{path.parent}"
-            )
+            msg = f"Duplicate mission_type id {mission_type_id!r} declared by both {seen_ids[mission_type_id].name} and {path.name} in {path.parent}"
             raise ValueError(msg)
         seen_ids[mission_type_id] = path
         label: str = data.get("display_name", "")
@@ -1358,20 +1343,13 @@ def _discover_mission_step_contract_nodes(
             continue
         urn = artifact_to_urn("mission_step_contract", f"{mission}/{action}")
         if urn in seen_urns:
-            msg = (
-                f"Duplicate mission_step_contract {urn!r} declared by both "
-                f"{seen_urns[urn].name} and {path.name} in {path.parent}"
-            )
+            msg = f"Duplicate mission_step_contract {urn!r} declared by both {seen_urns[urn].name} and {path.name} in {path.parent}"
             raise ValueError(msg)
         seen_urns[urn] = path
-        _ensure_node(
-            nodes_by_urn, urn, NodeKind.MISSION_STEP_CONTRACT, action
-        )
+        _ensure_node(nodes_by_urn, urn, NodeKind.MISSION_STEP_CONTRACT, action)
 
 
-def _resolve_action_sequence(
-    step_repo: MissionStepRepository, mission_type_id: str, data: dict[str, Any]
-) -> list[str]:
+def _resolve_action_sequence(step_repo: MissionStepRepository, mission_type_id: str, data: dict[str, Any]) -> list[str]:
     """Resolve *mission_type_id*'s action sequence via the WP02 projection seam.
 
     Builtin-only (``pack_context=None``): org/project overrides never leak into
@@ -1389,9 +1367,7 @@ def _resolve_action_sequence(
     back to the still-authored raw YAML ``action_sequence`` so the shipped
     graph stays byte-identical (NFR-002) until the full cutover (WP07).
     """
-    steps = step_repo.resolve_all_for_mission_type(
-        mission_type_id, pack_context=None
-    ).values()
+    steps = step_repo.resolve_all_for_mission_type(mission_type_id, pack_context=None).values()
     projected = project_action_sequence(steps)
     return projected or list(data.get("action_sequence", []) or [])
 
@@ -1510,14 +1486,10 @@ def extract_governance_profile_scope_edges(doctrine_root: Path) -> list[DRGEdge]
 #: used only to phrase :func:`assert_governance_scope_edges_resolve`'s error
 #: message in terms of the authoring surface (the ``selected_*`` field name),
 #: not the internal edge/kind vocabulary.
-_GOVERNANCE_SCOPE_KIND_TO_FIELD: dict[str, str] = {
-    kind: field_name for field_name, kind in _GOVERNANCE_PROFILE_SCOPE_FIELDS
-}
+_GOVERNANCE_SCOPE_KIND_TO_FIELD: dict[str, str] = {kind: field_name for field_name, kind in _GOVERNANCE_PROFILE_SCOPE_FIELDS}
 
 
-def assert_governance_scope_edges_resolve(
-    edges: list[DRGEdge], nodes_by_urn: dict[str, DRGNode]
-) -> None:
+def assert_governance_scope_edges_resolve(edges: list[DRGEdge], nodes_by_urn: dict[str, DRGNode]) -> None:
     """Fail loud on any governance-profile ``scope`` edge whose target is not
     an already-minted node (#3629).
 
@@ -1549,10 +1521,7 @@ def assert_governance_scope_edges_resolve(
         unresolved.append(f"{mission_type_id}:{field_name}={target_id}")
     if unresolved:
         detail = ", ".join(unresolved)
-        raise ValueError(
-            "governance-profile.yaml selected_* entries do not resolve to an "
-            f"existing node (triage required): {detail}"
-        )
+        raise ValueError(f"governance-profile.yaml selected_* entries do not resolve to an existing node (triage required): {detail}")
 
 
 def extract_template_instantiation_edges(
@@ -1596,17 +1565,13 @@ def extract_template_instantiation_edges(
     seen_node_urns: set[str] = set()
     step_repo = MissionStepRepository(_missions_root(doctrine_root) / "mission-steps")
     for mission_type_id, _data, _path in _iter_mission_type_data(doctrine_root):
-        steps = step_repo.resolve_all_for_mission_type(
-            mission_type_id, pack_context=None
-        ).values()
+        steps = step_repo.resolve_all_for_mission_type(mission_type_id, pack_context=None).values()
         for step, template_ref in iter_template_refs(steps):
             template_id = template_id_for(mission_type_id, template_ref.template_file)
             node_urn = template_urn(template_id)
             if node_urn not in seen_node_urns:
                 seen_node_urns.add(node_urn)
-                nodes.append(
-                    DRGNode(urn=node_urn, kind=NodeKind.TEMPLATE, label=template_id)
-                )
+                nodes.append(DRGNode(urn=node_urn, kind=NodeKind.TEMPLATE, label=template_id))
             action_urn = artifact_to_urn("action", f"{mission_type_id}/{step.id}")
             edges.append(
                 DRGEdge(
@@ -1664,9 +1629,7 @@ def generate_graph(
     # Step 4c: Graph-back the mission_type->step->template chain (FR-009):
     # mint mission-qualified template nodes + action->template instantiates
     # edges from the WP01 iter_template_refs projection.
-    template_nodes, template_instantiation_edges = extract_template_instantiation_edges(
-        doctrine_root
-    )
+    template_nodes, template_instantiation_edges = extract_template_instantiation_edges(doctrine_root)
     for node in template_nodes:
         _ensure_node(nodes_by_urn, node.urn, node.kind, node.label)
 
@@ -1676,22 +1639,14 @@ def generate_graph(
     # Step 5b (#3604, T007): type-wide governance-profile.yaml selections as
     # direct mission_type --scope--> gov edges (distinct from the action-grain
     # scope edges action_edges already carries).
-    governance_profile_scope_edges = extract_governance_profile_scope_edges(
-        doctrine_root
-    )
+    governance_profile_scope_edges = extract_governance_profile_scope_edges(doctrine_root)
     # #3629: fail loud on any fictional ``selected_*`` entry (an id naming no
     # node minted by any pass above) instead of letting it reach the
     # calibration-target loop below, which would otherwise phantom-mint a
     # node for it — see ``assert_governance_scope_edges_resolve``'s docstring.
     assert_governance_scope_edges_resolve(governance_profile_scope_edges, nodes_by_urn)
     governance_scope_targets = {edge.target for edge in governance_profile_scope_edges}
-    all_edges = (
-        artifact_edges
-        + action_edges
-        + mission_type_edges
-        + governance_profile_scope_edges
-        + template_instantiation_edges
-    )
+    all_edges = artifact_edges + action_edges + mission_type_edges + governance_profile_scope_edges + template_instantiation_edges
 
     # Step 6: Calibrate surfaces
     all_nodes_list = list(nodes_by_urn.values())
@@ -1711,10 +1666,7 @@ def generate_graph(
                     # fallback fabricate a governance-selection node (#3629)
                     # -- narrowed so this loop can never re-swallow the
                     # defect the upfront check exists to catch.
-                    raise ValueError(
-                        f"governance scope-edge target {urn!r} unresolved "
-                        "after upfront validation (fail-closed defense-in-depth)"
-                    )
+                    raise ValueError(f"governance scope-edge target {urn!r} unresolved after upfront validation (fail-closed defense-in-depth)")
                 # Infer kind from URN prefix
                 prefix = urn.split(":", 1)[0]
                 kind = _KIND_MAP.get(prefix)
@@ -1882,9 +1834,7 @@ _FIELDS_WITHHELD_FROM_GRAPH_OUTPUT = FIELDS_WITHHELD_FROM_GRAPH_OUTPUT
 #: byte-identical. ``test_the_omit_when_empty_set_is_a_shrink_only_allowlist``
 #: pins the content so padding it (the way to re-open the hole) costs a
 #: deliberate, diff-visible edit.
-_FIELDS_OMITTED_WHEN_EMPTY: frozenset[str] = frozenset(
-    {"label", "tags", "when", "reason"}
-)
+_FIELDS_OMITTED_WHEN_EMPTY: frozenset[str] = frozenset({"label", "tags", "when", "reason"})
 
 
 def _is_empty(value: Any) -> bool:

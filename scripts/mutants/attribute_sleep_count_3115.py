@@ -192,8 +192,7 @@ _COVERED_MECHANISMS: tuple[str, ...] = (
 # alone is not a finding). Ways a test can substitute a sleep that this
 # instrument still cannot see.
 _UNCOVERED_MECHANISMS: tuple[str, ...] = (
-    'MonkeyPatch.setattr(<obj>, "time", <fake module>) -- substitutes the whole time '
-    "module rather than its sleep attribute (e.g. tests/sync/test_daemon.py:229)",
+    'MonkeyPatch.setattr(<obj>, "time", <fake module>) -- substitutes the whole time module rather than its sleep attribute (e.g. tests/sync/test_daemon.py:229)',
     'MonkeyPatch.setattr("module.path.sleep", <callable>) -- the 2-arg string-target form',
     "plain assignment (`mod.time.sleep = f`) and fixtures that swap the clock wholesale",
     "any substitution performed before pytest_configure runs",
@@ -408,8 +407,7 @@ def pytest_configure(config: pytest.Config) -> None:  # noqa: ARG001 -- pytest h
         from _pytest.monkeypatch import MonkeyPatch
     except ImportError as exc:  # pragma: no cover - defensive, loud by design
         raise pytest.UsageError(
-            "attribute_sleep_count_3115: cannot import _pytest.monkeypatch.MonkeyPatch "
-            f"to bind the second substitution mechanism it instruments ({exc})."
+            f"attribute_sleep_count_3115: cannot import _pytest.monkeypatch.MonkeyPatch to bind the second substitution mechanism it instruments ({exc})."
         ) from exc
 
     original_mp = getattr(MonkeyPatch, "setattr", None)
@@ -453,7 +451,7 @@ def pytest_configure(config: pytest.Config) -> None:  # noqa: ARG001 -- pytest h
         )
     print(
         "\n[attribute_sleep_count_3115] BOUND at unittest.mock._patch.__enter__ "
-        "(matches any `@patch(\"<...>.time.sleep\")`, reported per exact target "
+        '(matches any `@patch("<...>.time.sleep")`, reported per exact target '
         "string -- see module docstring for why there is exactly one underlying "
         "object regardless of how many strings name it)."
     )
@@ -464,8 +462,7 @@ def _format_report() -> list[str]:
     total_activations = sum(_activations_by_site.values())
     lines = [
         "attribute_sleep_count_3115 instrument report (C-003 self-proof):",
-        f"  bound at pytest_configure: mock._patch.__enter__={_state['bound']}, "
-        f"MonkeyPatch.setattr={_state.get('bound_monkeypatch')}",
+        f"  bound at pytest_configure: mock._patch.__enter__={_state['bound']}, MonkeyPatch.setattr={_state.get('bound_monkeypatch')}",
         "  mechanisms OBSERVED by this instrument:",
         *(f"    + {m}" for m in _COVERED_MECHANISMS),
         "  mechanisms NOT observed (declared, so a zero count cannot read as 'unreached'):",
@@ -476,9 +473,7 @@ def _format_report() -> list[str]:
         f"  total recorded calls: {total_calls}",
     ]
     threads_seen = sorted({thread for (_site, thread) in _calls_by_site_thread})
-    per_thread_totals = {
-        thread: sum(c for (_s, t), c in _calls_by_site_thread.items() if t == thread) for thread in threads_seen
-    }
+    per_thread_totals = {thread: sum(c for (_s, t), c in _calls_by_site_thread.items() if t == thread) for thread in threads_seen}
     lines.append(f"  per-thread totals across all sites: {per_thread_totals!r}")
     if _uninstrumented_sites:
         lines.append(
@@ -580,7 +575,9 @@ def pytest_sessionfinish(session: pytest.Session) -> None:  # noqa: ARG001
 
 
 def pytest_terminal_summary(
-    terminalreporter: Any, exitstatus: int, config: pytest.Config  # noqa: ARG001
+    terminalreporter: Any,
+    exitstatus: int,
+    config: pytest.Config,  # noqa: ARG001
 ) -> None:
     """Print the per-site/per-thread report; write loudly if it proves nothing.
 

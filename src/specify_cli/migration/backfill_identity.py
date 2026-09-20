@@ -128,6 +128,7 @@ def backfill_mission(feature_dir: Path, *, dry_run: bool = False) -> BackfillRes
 
     # --- read (post-#2091 canonical reader; existence already verified above) --
     from specify_cli.core.paths import load_meta_fail_closed, MissionMetaReadError
+
     try:
         meta_result = load_meta_fail_closed(feature_dir)
         meta: dict[str, Any] = meta_result or {}
@@ -161,9 +162,7 @@ def backfill_mission(feature_dir: Path, *, dry_run: bool = False) -> BackfillRes
             coerced = _coerce_mission_number(raw_number)
         except (TypeError, ValueError) as exc:
             # Sentinel strings like "pending" — raise loudly, do not guess.
-            raise ValueError(
-                f"Cannot coerce mission_number {raw_number!r} in {slug}: {exc}"
-            ) from exc
+            raise ValueError(f"Cannot coerce mission_number {raw_number!r} in {slug}: {exc}") from exc
         if coerced is not None:
             meta["mission_number"] = coerced
             number_coerced = True
@@ -238,9 +237,7 @@ def backfill_repo(
             logger.warning("No mission directory found for slug %r", mission_slug)
             return results
     else:
-        candidates = sorted(
-            entry for entry in kitty_specs.iterdir() if entry.is_dir()
-        )
+        candidates = sorted(entry for entry in kitty_specs.iterdir() if entry.is_dir())
 
     for feature_dir in candidates:
         result = backfill_mission(feature_dir, dry_run=dry_run)
@@ -319,6 +316,7 @@ def backfill_mission_ids(repo_root: Path) -> dict[str, str]:
 
         meta_path = feature_dir / "meta.json"
         from specify_cli.core.paths import load_meta_fail_closed
+
         meta = load_meta_fail_closed(feature_dir)
         if meta is None:
             logger.debug("Skipping %s (no meta.json)", feature_dir.name)

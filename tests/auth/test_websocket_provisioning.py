@@ -37,6 +37,7 @@ from specify_cli.auth.websocket import (
 
 pytestmark = [pytest.mark.integration]
 
+
 def _make_session(access_remaining_seconds: int = 3600) -> StoredSession:
     """Build a StoredSession whose access token expires in N seconds.
 
@@ -125,9 +126,7 @@ class TestWebSocketTokenProvisioner:
             assert headers == {"Authorization": "Bearer at_xyz"}
             return _MockResponse(200, ws_response)
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             result = await provision_ws_token("tm_acme")
 
@@ -140,9 +139,7 @@ class TestWebSocketTokenProvisioner:
 
     async def test_pre_connect_refresh_when_near_expiry(self, mock_tm):
         # Session expires in 60s, buffer is 300s → must refresh.
-        mock_tm.get_current_session.return_value = _make_session(
-            access_remaining_seconds=60
-        )
+        mock_tm.get_current_session.return_value = _make_session(access_remaining_seconds=60)
         ws_response = {
             "ws_token": "ws_xyz",
             "ws_url": "wss://saas.test/ws",
@@ -153,9 +150,7 @@ class TestWebSocketTokenProvisioner:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(200, ws_response)
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             await provision_ws_token("tm_acme")
 
@@ -164,9 +159,7 @@ class TestWebSocketTokenProvisioner:
     async def test_no_refresh_when_access_token_is_fresh(self, mock_tm):
         """Inverse of the refresh path: a fresh token must NOT refresh."""
         # 3600s remaining, buffer 300s → well outside the window.
-        mock_tm.get_current_session.return_value = _make_session(
-            access_remaining_seconds=3600
-        )
+        mock_tm.get_current_session.return_value = _make_session(access_remaining_seconds=3600)
         ws_response = {
             "ws_token": "ws_xyz",
             "ws_url": "wss://saas.test/ws",
@@ -177,9 +170,7 @@ class TestWebSocketTokenProvisioner:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(200, ws_response)
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             await provision_ws_token("tm_acme")
 
@@ -189,9 +180,7 @@ class TestWebSocketTokenProvisioner:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(403, {"error": "not_a_team_member"})
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             with pytest.raises(WebSocketProvisioningError, match="not a member"):
                 await provision_ws_token("tm_acme")
@@ -200,9 +189,7 @@ class TestWebSocketTokenProvisioner:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(404, {})
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             with pytest.raises(WebSocketProvisioningError, match="not found"):
                 await provision_ws_token("tm_acme")
@@ -211,9 +198,7 @@ class TestWebSocketTokenProvisioner:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(500, {})
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             with pytest.raises(WebSocketProvisioningError, match="server error"):
                 await provision_ws_token("tm_acme")
@@ -224,9 +209,7 @@ class TestWebSocketTokenProvisioner:
             # the provisioner now catches NetworkError from the client directly.
             raise NetworkError("connection refused")
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             with pytest.raises(NetworkError):
                 await provision_ws_token("tm_acme")
@@ -239,13 +222,9 @@ class TestProvisionerErrorTranslation:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(401, {})
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
-            with pytest.raises(
-                WebSocketProvisioningError, match="Authentication required"
-            ):
+            with pytest.raises(WebSocketProvisioningError, match="Authentication required"):
                 await provision_ws_token("tm_acme")
 
     async def test_403_generic_forbidden(self, mock_tm):
@@ -255,9 +234,7 @@ class TestProvisionerErrorTranslation:
                 {"error": "other", "error_description": "quota exceeded"},
             )
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             with pytest.raises(WebSocketProvisioningError, match="quota exceeded"):
                 await provision_ws_token("tm_acme")
@@ -266,15 +243,14 @@ class TestProvisionerErrorTranslation:
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(418, {})
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
             with pytest.raises(WebSocketProvisioningError, match="418"):
                 await provision_ws_token("tm_acme")
 
     async def test_200_missing_required_field(self, mock_tm):
         """If the SaaS drops a required field, fail loudly rather than proceed."""
+
         async def mock_post(url, json=None, headers=None):
             return _MockResponse(
                 200,
@@ -285,13 +261,9 @@ class TestProvisionerErrorTranslation:
                 },
             )
 
-        with patch(
-            "specify_cli.auth.websocket.token_provisioning.PublicHttpClient"
-        ) as mock_client:
+        with patch("specify_cli.auth.websocket.token_provisioning.PublicHttpClient") as mock_client:
             _install_mock_post(mock_client, mock_post)
-            with pytest.raises(
-                WebSocketProvisioningError, match="missing required fields"
-            ):
+            with pytest.raises(WebSocketProvisioningError, match="missing required fields"):
                 await provision_ws_token("tm_acme")
 
 

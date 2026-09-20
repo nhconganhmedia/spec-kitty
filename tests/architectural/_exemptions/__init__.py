@@ -54,9 +54,7 @@ def _iter_exemption_lines() -> list[str]:
 
 def load_import_exemptions() -> frozenset[str]:
     """Every repo-relative path exempted from the import-ban (FR-012(a))."""
-    return frozenset(
-        line[len(_IMPORT_PREFIX) :] for line in _iter_exemption_lines() if line.startswith(_IMPORT_PREFIX)
-    )
+    return frozenset(line[len(_IMPORT_PREFIX) :] for line in _iter_exemption_lines() if line.startswith(_IMPORT_PREFIX))
 
 
 def load_call_exemptions() -> frozenset[tuple[str, int]]:

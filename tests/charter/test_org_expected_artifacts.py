@@ -179,9 +179,7 @@ class TestResolveOrgExpectedArtifactsDeclaredOrderPrecedence:
         assert result is not None
         assert result["manifest_version"] == "second-declared"
 
-    def test_later_root_without_matching_file_does_not_clear_earlier_match(
-        self, tmp_path: Path
-    ) -> None:
+    def test_later_root_without_matching_file_does_not_clear_earlier_match(self, tmp_path: Path) -> None:
         """A later ``org_roots`` entry with no matching file must not clear
         an earlier root's match -- only a later MATCH overrides, per C-4's
         "last-EXISTING-match wins" wording.
@@ -216,9 +214,7 @@ class TestResolveOrgExpectedArtifactsMalformedFile:
     red-first regression pins (#3412) that drove this widening.
     """
 
-    def test_malformed_yaml_file_raises_malformed_manifest_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_yaml_file_raises_malformed_manifest_error(self, tmp_path: Path) -> None:
         org_root = tmp_path / "org-pack"
         target_dir = org_root / "missions" / "software-dev"
         target_dir.mkdir(parents=True)
@@ -230,9 +226,7 @@ class TestResolveOrgExpectedArtifactsMalformedFile:
 
         assert excinfo.value.path == bad_file
 
-    def test_non_mapping_yaml_content_raises_malformed_manifest_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_mapping_yaml_content_raises_malformed_manifest_error(self, tmp_path: Path) -> None:
         org_root = tmp_path / "org-pack"
         target_dir = org_root / "missions" / "software-dev"
         target_dir.mkdir(parents=True)
@@ -264,9 +258,7 @@ class TestResolveOrgExpectedArtifactsMalformedFile:
         assert result is not None
         assert result["manifest_version"] == "well-formed"
 
-    def test_later_malformed_root_raises_even_with_earlier_good_match(
-        self, tmp_path: Path
-    ) -> None:
+    def test_later_malformed_root_raises_even_with_earlier_good_match(self, tmp_path: Path) -> None:
         """C-006 / spec Edge Cases: a broken file that would be the
         *effective* override (the last root reached with a matching file)
         fails loud -- it is NOT silently replaced by an earlier root's good
@@ -298,9 +290,7 @@ class TestResolveOrgExpectedArtifactsMalformedFile:
 
 
 class TestResolveOrgExpectedArtifactsCustomMissionType:
-    def test_custom_mission_type_with_no_builtin_baseline_still_resolves(
-        self, tmp_path: Path
-    ) -> None:
+    def test_custom_mission_type_with_no_builtin_baseline_still_resolves(self, tmp_path: Path) -> None:
         """A wholly org-defined custom mission type (no built-in
         ``expected-artifacts.yaml`` anywhere) is valid input -- this helper
         is authoritative with no built-in fallback of its own.

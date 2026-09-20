@@ -109,11 +109,7 @@ def read_mission_id(mission_dir: Path) -> str | None:
 def runtime_wps(mission_dir: Path) -> dict[str, Mapping[str, Any]]:
     """Return the reduced WP states that carry at least one runtime slot."""
     snapshot = materialize_snapshot(mission_dir)
-    return {
-        wp_id: state
-        for wp_id, state in snapshot.work_packages.items()
-        if any(state.get(slot) not in (None, [], {}, "") for slot in RUNTIME_SLOTS)
-    }
+    return {wp_id: state for wp_id, state in snapshot.work_packages.items() if any(state.get(slot) not in (None, [], {}, "") for slot in RUNTIME_SLOTS)}
 
 
 def mission_carries_event_log_runtime(mission_dir: Path) -> bool:
@@ -156,9 +152,7 @@ def mission_carries_event_log_runtime(mission_dir: Path) -> bool:
     return any(bool(event.policy_metadata) for event in stream.transitions)
 
 
-def eligible_runtime_missions(
-    corpus: Path, *, exclude: Iterable[str] = ()
-) -> list[Path]:
+def eligible_runtime_missions(corpus: Path, *, exclude: Iterable[str] = ()) -> list[Path]:
     """Every mission under *corpus* whose event log carries runtime evidence.
 
     *exclude* names mission directory basenames to skip entirely (e.g. a
@@ -282,9 +276,7 @@ def assert_birth_invariant_holds(corpus: Path, *, exclude: Iterable[str] = ()) -
     missions = eligible_runtime_missions(corpus, exclude=exclude)
     assert missions, "no eligible runtime-carrying missions found"
 
-    unflipped = [
-        mission.name for mission in missions if (status_phase(mission) or 0) < 1
-    ]
+    unflipped = [mission.name for mission in missions if (status_phase(mission) or 0) < 1]
     assert unflipped == [], f"eligible missions not cut over: {unflipped}"
 
     from specify_cli.migration.backfill_runtime_state import verify_backfill  # noqa: PLC0415
@@ -296,12 +288,7 @@ def assert_birth_invariant_holds(corpus: Path, *, exclude: Iterable[str] = ()) -
         for wp_id in wps:
             state = wp_snapshot_state(mission_dir, wp_id)
             assert state, f"{mission_dir.name}:{wp_id}: wp_snapshot_state empty after backfill"
-            assert any(
-                state.get(slot) not in (None, [], {}, "") for slot in RUNTIME_SLOTS
-            ), f"{mission_dir.name}:{wp_id}: no runtime slot populated in snapshot"
+            assert any(state.get(slot) not in (None, [], {}, "") for slot in RUNTIME_SLOTS), f"{mission_dir.name}:{wp_id}: no runtime slot populated in snapshot"
 
         result = verify_backfill(mission_dir)
-        assert result.ok, (
-            f"{mission_dir.name}: verify_backfill NOT ok after backfill: "
-            + "; ".join(result.mismatches)
-        )
+        assert result.ok, f"{mission_dir.name}: verify_backfill NOT ok after backfill: " + "; ".join(result.mismatches)

@@ -85,17 +85,9 @@ def test_build_seed_events_namespaces_claim_on_primary_mission_id(tmp_path: Path
     expected_event_id = b._seed_id(MISSION_ID, "WP01", "claim")
     wrong_event_id = b._seed_id(coord_dir.name, "WP01", "claim")
 
-    assert claim.event_id != wrong_event_id, (
-        "seed claim event_id must NOT namespace on the COORD dir name "
-        f"({coord_dir.name!r}) -- that is exactly the bug"
-    )
-    assert claim.event_id == expected_event_id, (
-        "seed claim event_id must namespace on the PRIMARY mission_id "
-        f"({MISSION_ID!r}), read from read_dir"
-    )
-    assert claim.mission_id == MISSION_ID, (
-        "seed claim event must carry the resolved PRIMARY mission_id, not None"
-    )
+    assert claim.event_id != wrong_event_id, f"seed claim event_id must NOT namespace on the COORD dir name ({coord_dir.name!r}) -- that is exactly the bug"
+    assert claim.event_id == expected_event_id, f"seed claim event_id must namespace on the PRIMARY mission_id ({MISSION_ID!r}), read from read_dir"
+    assert claim.mission_id == MISSION_ID, "seed claim event must carry the resolved PRIMARY mission_id, not None"
 
 
 def test_mission_id_reads_read_dir_not_feature_dir(tmp_path: Path) -> None:
@@ -135,16 +127,11 @@ def test_backfill_runtime_state_seeds_from_primary_mission_id(tmp_path: Path) ->
     rows = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
 
     claim_row = next((r for r in rows if r.get("event_id") == expected_event_id), None)
-    assert claim_row is not None, (
-        "expected a claim seed namespaced on the PRIMARY mission_id "
-        f"({MISSION_ID!r}) but none was found on disk: {rows!r}"
-    )
+    assert claim_row is not None, f"expected a claim seed namespaced on the PRIMARY mission_id ({MISSION_ID!r}) but none was found on disk: {rows!r}"
     assert claim_row["mission_id"] == MISSION_ID
 
 
-def test_backfill_runtime_state_avoids_orphaned_event_warning(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_backfill_runtime_state_avoids_orphaned_event_warning(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Reading the seeded COORD event log back must not warn "orphaned event".
 
     That warning (``specify_cli/status/store.py::_SlugResolver.resolve``) fires

@@ -98,7 +98,7 @@ def _entry(
 def _write_page(repo: Path, rel: str, body: str = "# Heading\n") -> Path:
     page = repo / rel
     page.parent.mkdir(parents=True, exist_ok=True)
-    page.write_text(f"---\ntitle: \"A page\"\n---\n\n{body}", encoding="utf-8")
+    page.write_text(f'---\ntitle: "A page"\n---\n\n{body}', encoding="utf-8")
     return page
 
 
@@ -115,9 +115,7 @@ def test_backfill_derives_status_and_carries_inventory_fields(tmp_path: Path) ->
         notes="Lane allocation guide.",
     )
 
-    backfill = build_backfill(
-        entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver
-    )
+    backfill = build_backfill(entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver)
 
     assert backfill.doc_status is DocStatus.ACTIVE
     assert backfill.version_tag is VersionTag.CURRENT
@@ -140,9 +138,7 @@ def test_carried_fields_land_in_rendered_frontmatter(tmp_path: Path) -> None:
         owning_workstream="architecture",
         current_target=False,
     )
-    backfill = build_backfill(
-        entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver
-    )
+    backfill = build_backfill(entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver)
 
     rendered = render_page(page.read_text(encoding="utf-8"), backfill)
 
@@ -160,9 +156,7 @@ def test_backfill_is_idempotent(tmp_path: Path) -> None:
     repo = tmp_path
     page = _write_page(repo, "docs/guides/lanes.md")
     entry = _entry("docs/guides/lanes.md", tag=VersionTag.CURRENT, current_target=True)
-    backfill = build_backfill(
-        entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver
-    )
+    backfill = build_backfill(entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver)
 
     once = render_page(page.read_text(encoding="utf-8"), backfill)
     twice = render_page(once, backfill)
@@ -175,9 +169,7 @@ def test_apply_backfill_is_a_noop_second_time(tmp_path: Path) -> None:
     repo = tmp_path
     page = _write_page(repo, "docs/guides/lanes.md")
     entry = _entry("docs/guides/lanes.md", tag=VersionTag.CURRENT, current_target=True)
-    backfill = build_backfill(
-        entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver
-    )
+    backfill = build_backfill(entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver)
 
     assert apply_backfill(page, backfill) is True
     assert apply_backfill(page, backfill) is False
@@ -190,10 +182,7 @@ def test_related_derivation_emits_only_resolvable_edges(tmp_path: Path) -> None:
     """In-body links to existing docs pages become resolved related edges."""
     repo = tmp_path
     _write_page(repo, "docs/guides/target.md")
-    body = (
-        "See the [target](target.md) and the [missing one](nope.md).\n"
-        "External [link](https://example.com/x.md) is ignored.\n"
-    )
+    body = "See the [target](target.md) and the [missing one](nope.md).\nExternal [link](https://example.com/x.md) is ignored.\n"
     source = _write_page(repo, "docs/guides/source.md", body=body)
 
     derivation = derive_related(source, repo_root=repo, docs_root=repo / "docs")
@@ -206,9 +195,7 @@ def test_related_derivation_ignores_self_and_anchors(tmp_path: Path) -> None:
     """A self-link and an anchor suffix do not create a spurious edge."""
     repo = tmp_path
     _write_page(repo, "docs/guides/target.md")
-    body = (
-        "Back to [self](source.md#section) and over to [t](target.md#top).\n"
-    )
+    body = "Back to [self](source.md#section) and over to [t](target.md#top).\n"
     source = _write_page(repo, "docs/guides/source.md", body=body)
 
     derivation = derive_related(source, repo_root=repo, docs_root=repo / "docs")
@@ -221,13 +208,9 @@ def test_resolved_related_edges_land_in_frontmatter(tmp_path: Path) -> None:
     """Derived resolvable edges are written to the page's ``related:`` list."""
     repo = tmp_path
     _write_page(repo, "docs/guides/target.md")
-    source = _write_page(
-        repo, "docs/guides/source.md", body="[t](target.md)\n"
-    )
+    source = _write_page(repo, "docs/guides/source.md", body="[t](target.md)\n")
     entry = _entry("docs/guides/source.md", tag=VersionTag.CURRENT, current_target=True)
-    backfill = build_backfill(
-        entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver
-    )
+    backfill = build_backfill(entry, repo_root=repo, docs_root=repo / "docs", updated_resolver=_resolver)
 
     rendered = render_page(source.read_text(encoding="utf-8"), backfill)
 
@@ -268,9 +251,7 @@ def test_plan_backfill_walks_the_inventory(tmp_path: Path) -> None:
         ],
     )
     # Sanity: the inventory loads under the real loader.
-    assert frozenset(e.path for e in load_inventory(inventory)) == frozenset(
-        {"docs/current.md", "docs/archive.md"}
-    )
+    assert frozenset(e.path for e in load_inventory(inventory)) == frozenset({"docs/current.md", "docs/archive.md"})
 
     plan = plan_backfill(
         inventory_path=inventory,

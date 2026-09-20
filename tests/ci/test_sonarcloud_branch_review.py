@@ -117,9 +117,7 @@ def runner(tmp_path: Path) -> Runner:
             cwd=str(REPO_ROOT),
             check=False,
         )
-        calls = tuple(
-            line for line in log.read_text(encoding="utf-8").splitlines() if line.strip()
-        )
+        calls = tuple(line for line in log.read_text(encoding="utf-8").splitlines() if line.strip())
         return ScriptRun(completed.returncode, completed.stdout, completed.stderr, calls)
 
     return _run
@@ -194,10 +192,7 @@ def test_uncovered_output_shape_routes_to_file_component(runner: Runner) -> None
     assert "uncovered_lines: 12" in result.stdout
     assert "lines_to_cover: 76" in result.stdout
     assert any("uncovered_lines" in call for call in result.curl_calls)
-    assert any(
-        "component=spec-kitty_spec-kitty:src/specify_cli/status/emit.py" in call
-        for call in result.curl_calls
-    )
+    assert any("component=spec-kitty_spec-kitty:src/specify_cli/status/emit.py" in call for call in result.curl_calls)
 
 
 def test_issues_output_shape(runner: Runner) -> None:
@@ -217,10 +212,7 @@ def test_issues_rule_filter_is_forwarded(runner: Runner) -> None:
 def test_issues_file_filter_scopes_the_component(runner: Runner) -> None:
     result = runner("issues", "--file", "src/specify_cli/status/store.py")
     assert result.returncode == 0
-    assert any(
-        "componentKeys=spec-kitty_spec-kitty:src/specify_cli/status/store.py" in call
-        for call in result.curl_calls
-    )
+    assert any("componentKeys=spec-kitty_spec-kitty:src/specify_cli/status/store.py" in call for call in result.curl_calls)
 
 
 def test_version_backs_sc001b(runner: Runner) -> None:

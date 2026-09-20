@@ -69,9 +69,7 @@ def test_second_cutover_run_seeds_nothing_and_is_byte_identical(tmp_path: Path) 
 
     assert second.seeded_count == 0, "a re-run over a migrated mission must seed 0 events"
     assert second.verify is not None and second.verify.ok
-    assert _snapshot(feature_dir) == snapshot_after_first, (
-        "meta.json + status.events.jsonl must be byte-identical after the re-run"
-    )
+    assert _snapshot(feature_dir) == snapshot_after_first, "meta.json + status.events.jsonl must be byte-identical after the re-run"
 
 
 def test_second_corpus_walk_is_byte_identical_across_multiple_missions(tmp_path: Path) -> None:
@@ -80,10 +78,7 @@ def test_second_corpus_walk_is_byte_identical_across_multiple_missions(tmp_path:
     Two distinct real ULIDs prove the deterministic seed-id namespacing does not
     collide across missions: each mission's re-run independently seeds nothing.
     """
-    feature_dirs = [
-        build_mission(tmp_path, mission_id=_real_mission_id(), slug=slug)
-        for slug in ("frontload-demo-b", "frontload-demo-c")
-    ]
+    feature_dirs = [build_mission(tmp_path, mission_id=_real_mission_id(), slug=slug) for slug in ("frontload-demo-b", "frontload-demo-c")]
 
     first_results = cutover_repo(tmp_path)
     assert {r.slug for r in first_results} == {"frontload-demo-b", "frontload-demo-c"}
@@ -92,14 +87,10 @@ def test_second_corpus_walk_is_byte_identical_across_multiple_missions(tmp_path:
 
     second_results = cutover_repo(tmp_path)
 
-    assert all(r.seeded_count == 0 for r in second_results), (
-        "corpus re-run must seed 0 events for every already-migrated mission"
-    )
+    assert all(r.seeded_count == 0 for r in second_results), "corpus re-run must seed 0 events for every already-migrated mission"
     assert all(r.verify is not None and r.verify.ok for r in second_results)
     for feature_dir in feature_dirs:
-        assert _snapshot(feature_dir) == snapshots_after_first[feature_dir.name], (
-            f"{feature_dir.name}: byte-identity broken by the corpus re-run"
-        )
+        assert _snapshot(feature_dir) == snapshots_after_first[feature_dir.name], f"{feature_dir.name}: byte-identity broken by the corpus re-run"
 
 
 def test_second_run_does_not_reorder_the_event_log(tmp_path: Path) -> None:
@@ -130,6 +121,5 @@ def test_byte_identity_assertion_detects_injected_drift(tmp_path: Path) -> None:
     corrupt_seed_value(feature_dir, field_name="assignee", slot_name="assignee", value="INJECTED-DRIFT")
 
     assert _snapshot(feature_dir) != snapshot_before_drift, (
-        "the drift-injection fixture did not perturb the event log; "
-        "the idempotency guard above would not catch a real regression"
+        "the drift-injection fixture did not perturb the event log; the idempotency guard above would not catch a real regression"
     )

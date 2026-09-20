@@ -34,6 +34,7 @@ still-FS-bound legs (``get_main_repo_root``, ``_resolve_coordination_branch``,
 ``_resolve_status_surface_dir``, topology) explicitly deferred to later #2173
 phases per the WP03 design ruling (D-09).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -73,9 +74,7 @@ def _fake_resolver(tmp_path: Path) -> FakeMissionResolver:
     [_MISSION_ID, _MID8, _COMPOSED_SLUG],
     ids=["full-mission-id", "bare-mid8", "full-slug"],
 )
-def test_identity_leg_resolves_via_injected_resolver_with_no_specs_tree(
-    tmp_path: Path, handle: str
-) -> None:
+def test_identity_leg_resolves_via_injected_resolver_with_no_specs_tree(tmp_path: Path, handle: str) -> None:
     """The canonicalizer chain resolves every handle form via the Fake alone.
 
     ``tmp_path`` deliberately has NO ``kitty-specs/`` directory created — proving
@@ -110,9 +109,7 @@ def test_identity_leg_unknown_handle_degrades_without_raising(
     tolerated "nothing matched" by returning its best-known candidate.
     """
     resolver = _fake_resolver(tmp_path)
-    resolved_dir = resolve_handle_to_read_path(
-        tmp_path, "no-such-mission", resolver=resolver
-    )
+    resolved_dir = resolve_handle_to_read_path(tmp_path, "no-such-mission", resolver=resolver)
     assert resolved_dir == tmp_path / "kitty-specs" / "no-such-mission"
 
 
@@ -139,9 +136,7 @@ def test_resolve_mission_id_bootstrap_sentinel_not_routed_through_resolve(
     """
     assert not (tmp_path / "kitty-specs").exists()
     empty_resolver = FakeMissionResolver([])  # no missions known to the walk
-    mission_id = _resolve_mission_id(
-        tmp_path, "bootstrap-mission-no-meta-yet", resolver=empty_resolver
-    )
+    mission_id = _resolve_mission_id(tmp_path, "bootstrap-mission-no-meta-yet", resolver=empty_resolver)
     assert mission_id == "legacy-bootstrap-mission-no-meta-yet"
 
 

@@ -246,10 +246,13 @@ class TestResolveActionSequence:
 
     def test_nonexistent_raises_unknown_mission_type_error(self, tmp_path: Path) -> None:
         """_action_sequence('nonexistent', ...) raises UnknownMissionTypeError."""
-        with patch(
-            "charter.activation.mission_type_profiles.existing_mission_types",
-            return_value=["documentation", "plan", "research", "software-dev"],
-        ), pytest.raises(UnknownMissionTypeError) as exc_info:
+        with (
+            patch(
+                "charter.activation.mission_type_profiles.existing_mission_types",
+                return_value=["documentation", "plan", "research", "software-dev"],
+            ),
+            pytest.raises(UnknownMissionTypeError) as exc_info,
+        ):
             _action_sequence("nonexistent-type", tmp_path)
 
         assert "nonexistent-type" in str(exc_info.value)
@@ -258,10 +261,13 @@ class TestResolveActionSequence:
         """The UnknownMissionTypeError raised carries sorted activated IDs in registered_ids."""
         registered = ["documentation", "plan", "research", "software-dev"]
 
-        with patch(
-            "charter.activation.mission_type_profiles.existing_mission_types",
-            return_value=registered,
-        ), pytest.raises(UnknownMissionTypeError) as exc_info:
+        with (
+            patch(
+                "charter.activation.mission_type_profiles.existing_mission_types",
+                return_value=registered,
+            ),
+            pytest.raises(UnknownMissionTypeError) as exc_info,
+        ):
             _action_sequence("unknown-type", tmp_path)
 
         err = exc_info.value
@@ -302,9 +308,7 @@ class TestResolveActionSequence:
 
         call_count = 0
 
-        def counting_roster_factory(
-            mission_types_dirs: object, pack_context: object
-        ) -> MagicMock:
+        def counting_roster_factory(mission_types_dirs: object, pack_context: object) -> MagicMock:
             nonlocal call_count
             call_count += 1
             return _make_repo(software_dev)
@@ -418,23 +422,21 @@ class TestMissionTypeProfileNoLiteralConstraint:
                 profile = MissionTypeProfile(mission_type=mt)
                 assert profile.mission_type == mt
             except ValidationError as exc:
-                pytest.fail(
-                    f"MissionTypeProfile raised ValidationError for mission_type={mt!r}. "
-                    f"T029 requires str annotation, not Literal[...]. Error: {exc}"
-                )
+                pytest.fail(f"MissionTypeProfile raised ValidationError for mission_type={mt!r}. T029 requires str annotation, not Literal[...]. Error: {exc}")
 
-    def test_resolve_action_sequence_raises_for_unactivated_custom_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_resolve_action_sequence_raises_for_unactivated_custom_type(self, tmp_path: Path) -> None:
         """Even though MissionTypeProfile accepts 'custom-type', resolve_action_sequence
         raises UnknownMissionTypeError if that type is not activated.
         """
         registered = ["documentation", "plan", "research", "software-dev"]
 
-        with patch(
-            "charter.activation.mission_type_profiles.existing_mission_types",
-            return_value=registered,
-        ), pytest.raises(UnknownMissionTypeError) as exc_info:
+        with (
+            patch(
+                "charter.activation.mission_type_profiles.existing_mission_types",
+                return_value=registered,
+            ),
+            pytest.raises(UnknownMissionTypeError) as exc_info,
+        ):
             _action_sequence("custom-type", tmp_path)
 
         err = exc_info.value

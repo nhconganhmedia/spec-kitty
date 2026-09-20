@@ -32,9 +32,7 @@ pytestmark = pytest.mark.fast
 class TestEnvOverride:
     """The env_override parameter wins outright when it is an existing directory."""
 
-    def test_existing_env_override_wins_without_touching_the_filesystem_walk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_existing_env_override_wins_without_touching_the_filesystem_walk(self, tmp_path: Path) -> None:
         """An existing env_override directory is returned verbatim.
 
         The anchor_file and sibling_relative_path point at locations that do
@@ -52,9 +50,7 @@ class TestEnvOverride:
 
         assert result == override_dir
 
-    def test_none_env_override_falls_through_to_the_ancestor_walk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_none_env_override_falls_through_to_the_ancestor_walk(self, tmp_path: Path) -> None:
         """env_override=None proceeds to the ancestor walk."""
         anchor = tmp_path / "src" / "pkg" / "module.py"
         anchor.parent.mkdir(parents=True)
@@ -69,9 +65,7 @@ class TestEnvOverride:
 
         assert result == sibling
 
-    def test_nonexistent_env_override_falls_through_to_the_ancestor_walk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_nonexistent_env_override_falls_through_to_the_ancestor_walk(self, tmp_path: Path) -> None:
         """A non-existent env_override directory does not win; the walk still runs."""
         anchor = tmp_path / "src" / "pkg" / "module.py"
         anchor.parent.mkdir(parents=True)
@@ -160,16 +154,12 @@ def build_post_relocation_wheel_shaped_site_packages(tmp_path: Path) -> tuple[Pa
 class TestWheelShapedAnchor:
     """A synthetic installed-wheel layout: site-packages/{pkg,pkg2}, no src/ anywhere."""
 
-    def test_no_src_directory_exists_anywhere_in_the_synthetic_tree(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_src_directory_exists_anywhere_in_the_synthetic_tree(self, tmp_path: Path) -> None:
         """Sanity-check the fixture itself: it must contain no 'src' directory."""
         site, _anchor = build_wheel_shaped_site_packages(tmp_path)
         assert not any(p.name == "src" for p in site.rglob("*"))
 
-    def test_bare_wildcard_pattern_resolves_the_installed_sibling(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bare_wildcard_pattern_resolves_the_installed_sibling(self, tmp_path: Path) -> None:
         """'*/missions' (no leading src/) resolves in a wheel-shaped layout."""
         site, anchor = build_wheel_shaped_site_packages(tmp_path)
 
@@ -181,9 +171,7 @@ class TestWheelShapedAnchor:
 
         assert result == site / "doctrine" / "missions"
 
-    def test_src_prefixed_pattern_cannot_resolve_in_a_wheel_layout(
-        self, tmp_path: Path
-    ) -> None:
+    def test_src_prefixed_pattern_cannot_resolve_in_a_wheel_layout(self, tmp_path: Path) -> None:
         """Regression pin for the fix-1 bug: 'src/*/missions' fails closed here.
 
         This is the exact pattern shape that shipped in WP04 cycle 1
@@ -200,9 +188,7 @@ class TestWheelShapedAnchor:
                 sibling_relative_path=PurePosixPath("src") / "*" / "missions",
             )
 
-    def test_wheel_sibling_is_found_via_the_ancestor_walk_not_a_distinct_step(
-        self, tmp_path: Path
-    ) -> None:
+    def test_wheel_sibling_is_found_via_the_ancestor_walk_not_a_distinct_step(self, tmp_path: Path) -> None:
         """The site-packages level is reached as an ordinary ancestor.
 
         Pins the item-4 finding: there is no separate "installed wheel" probe
@@ -230,9 +216,7 @@ class TestWheelShapedAnchor:
 class TestEditableCheckoutShapedAnchor:
     """A synthetic editable checkout: <repo>/src/{pkg,sibling_pkg}/..."""
 
-    def test_ancestor_walk_finds_a_sibling_package_directory(
-        self, tmp_path: Path
-    ) -> None:
+    def test_ancestor_walk_finds_a_sibling_package_directory(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         anchor = repo / "src" / "kernel" / "paths.py"
         anchor.parent.mkdir(parents=True)
@@ -247,9 +231,7 @@ class TestEditableCheckoutShapedAnchor:
 
         assert result == sibling
 
-    def test_resolve_happens_before_the_parents_walk_for_symlinked_checkouts(
-        self, tmp_path: Path
-    ) -> None:
+    def test_resolve_happens_before_the_parents_walk_for_symlinked_checkouts(self, tmp_path: Path) -> None:
         """A dir-symlinked package still resolves the real repo-root sibling.
 
         Pins the contract's ``.resolve()``-before-``.parents`` ordering:
@@ -288,9 +270,7 @@ class TestEditableCheckoutShapedAnchor:
 class TestDeterministicMultiMatch:
     """When a pattern matches more than one sibling, the sorted-first one wins."""
 
-    def test_multiple_matching_siblings_pick_the_alphabetically_first(
-        self, tmp_path: Path
-    ) -> None:
+    def test_multiple_matching_siblings_pick_the_alphabetically_first(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         anchor = repo / "src" / "kernel" / "paths.py"
         anchor.parent.mkdir(parents=True)
@@ -349,9 +329,7 @@ class TestFailClosed:
     that out.
     """
 
-    def test_raises_sibling_path_not_found_when_nothing_matches(
-        self, tmp_path: Path
-    ) -> None:
+    def test_raises_sibling_path_not_found_when_nothing_matches(self, tmp_path: Path) -> None:
         anchor = tmp_path / "isolated" / "kernel" / "paths.py"
         anchor.parent.mkdir(parents=True)
         nonce = f"does-not-exist-anywhere-{uuid.uuid4().hex}"
@@ -363,9 +341,7 @@ class TestFailClosed:
                 sibling_relative_path=PurePosixPath("*") / nonce,
             )
 
-    def test_exception_carries_sibling_relative_path_and_anchor_file(
-        self, tmp_path: Path
-    ) -> None:
+    def test_exception_carries_sibling_relative_path_and_anchor_file(self, tmp_path: Path) -> None:
         """The raised exception names both what was sought and where."""
         anchor = tmp_path / "isolated" / "kernel" / "paths.py"
         anchor.parent.mkdir(parents=True)
@@ -401,9 +377,7 @@ class TestFailClosed:
                 sibling_relative_path=PurePosixPath("*") / nonce,
             )
 
-    def test_broken_install_without_a_recognizable_boundary_fails_closed(
-        self, tmp_path: Path
-    ) -> None:
+    def test_broken_install_without_a_recognizable_boundary_fails_closed(self, tmp_path: Path) -> None:
         """Bounded walk: an unrelated match several ancestors up is NOT climbed to.
 
         Simulates a broken install whose anchor sits under a chain of
@@ -418,9 +392,7 @@ class TestFailClosed:
         primitive's own contract (kernel-resolution-primitive.md, step 4)
         forbids returning. The bounded walk must fail closed instead.
         """
-        anchor = (
-            tmp_path / "alpha" / "beta" / "gamma" / "delta" / "epsilon" / "kernel" / "module.py"
-        )
+        anchor = tmp_path / "alpha" / "beta" / "gamma" / "delta" / "epsilon" / "kernel" / "module.py"
         anchor.parent.mkdir(parents=True)
         # Matches "*/missions" when checked from tmp_path/alpha/beta -- five
         # ancestor hops above the anchor's own containing directory, well
@@ -459,9 +431,7 @@ class TestMissionsRootNotFoundFailClosedPath:
     noted it was never reached by any test.
     """
 
-    def test_missing_missions_leaf_raises_missions_root_not_found(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_missing_missions_leaf_raises_missions_root_not_found(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from charter.offering.missions import repository as repository_module
         from charter.offering.missions.repository import (
             MissionsRootNotFound,
@@ -470,16 +440,12 @@ class TestMissionsRootNotFoundFailClosedPath:
 
         nonexistent_missions = tmp_path / "built-in" / "missions"
         assert not nonexistent_missions.exists()
-        monkeypatch.setattr(
-            repository_module, "built_in_missions_root", lambda: nonexistent_missions
-        )
+        monkeypatch.setattr(repository_module, "built_in_missions_root", lambda: nonexistent_missions)
 
         with pytest.raises(MissionsRootNotFound):
             MissionTemplateRepository.default_missions_root()
 
-    def test_default_classmethod_propagates_missions_root_not_found(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_default_classmethod_propagates_missions_root_not_found(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """MissionTemplateRepository.default() also fails closed, via the same path."""
         from charter.offering.missions import repository as repository_module
         from charter.offering.missions.repository import (
@@ -489,9 +455,7 @@ class TestMissionsRootNotFoundFailClosedPath:
 
         nonexistent_missions = tmp_path / "built-in" / "missions"
         assert not nonexistent_missions.exists()
-        monkeypatch.setattr(
-            repository_module, "built_in_missions_root", lambda: nonexistent_missions
-        )
+        monkeypatch.setattr(repository_module, "built_in_missions_root", lambda: nonexistent_missions)
 
         with pytest.raises(MissionsRootNotFound):
             MissionTemplateRepository.default()
@@ -531,9 +495,7 @@ class TestDefaultMissionsRootWheelLayout:
     relocated anchor rather than dropped.
     """
 
-    def test_resolves_in_a_wheel_layout_via_the_kernel_s_own_pattern(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_resolves_in_a_wheel_layout_via_the_kernel_s_own_pattern(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """The caller-level wheel test for mission #3091's own thesis (WP05).
 
         Mission ``doctrine-consumer-surface-missions-extraction-01KZ6G6H``
@@ -553,9 +515,7 @@ class TestDefaultMissionsRootWheelLayout:
         """
         from charter.offering.missions.repository import MissionTemplateRepository
 
-        site, kernel_anchor, repository_anchor = build_post_relocation_wheel_shaped_site_packages(
-            tmp_path
-        )
+        site, kernel_anchor, repository_anchor = build_post_relocation_wheel_shaped_site_packages(tmp_path)
 
         monkeypatch.setattr(kernel_paths, "__file__", str(kernel_anchor))
 

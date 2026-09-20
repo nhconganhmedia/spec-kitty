@@ -29,6 +29,7 @@ from specify_cli.status.store import append_event
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _minimal_meta() -> dict[str, Any]:
     """Return a minimal valid meta dict with all required fields."""
     return {
@@ -170,9 +171,7 @@ def _setup_feature(
                 # ``spec-kitty implement`` claim path). Without it here, the
                 # #2816 event-sourced ``agent`` slot never populates even
                 # though the (now-retired) frontmatter still declares one.
-                policy_metadata = (
-                    {"agent": "test-agent"} if from_l == "planned" and to_l == "claimed" else None
-                )
+                policy_metadata = {"agent": "test-agent"} if from_l == "planned" and to_l == "claimed" else None
                 event = _make_event(
                     mission_slug,
                     wp_id,
@@ -294,13 +293,7 @@ class TestCanonicalStateAuthority:
         )
         (feature_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
-        coord_feature_dir = (
-            tmp_path
-            / ".worktrees"
-            / f"{mission_slug}-{mid8}-coord"
-            / "kitty-specs"
-            / mission_slug
-        )
+        coord_feature_dir = tmp_path / ".worktrees" / f"{mission_slug}-{mid8}-coord" / "kitty-specs" / mission_slug
         coord_feature_dir.mkdir(parents=True)
         append_event(
             coord_feature_dir,
@@ -313,9 +306,12 @@ class TestCanonicalStateAuthority:
             ),
         )
 
-        with patch("specify_cli.acceptance.run_git") as mock_git, patch(
-            "specify_cli.acceptance.git_status_lines",
-            return_value=[],
+        with (
+            patch("specify_cli.acceptance.run_git") as mock_git,
+            patch(
+                "specify_cli.acceptance.git_status_lines",
+                return_value=[],
+            ),
         ):
             mock_git.return_value.stdout = f"kitty/mission-{mission_slug}\n"
             summary = collect_feature_summary(
@@ -921,30 +917,21 @@ class TestStrictShellPidGate:
         for wp in ["WP01", "WP02"]:
             _write_wp_file(tasks_dir, wp, lane="done", shell_pid="")
 
-        with patch("specify_cli.acceptance.run_git") as mock_git, patch(
-            "specify_cli.acceptance.git_status_lines", return_value=[]
-        ):
+        with patch("specify_cli.acceptance.run_git") as mock_git, patch("specify_cli.acceptance.git_status_lines", return_value=[]):
             mock_git.return_value.stdout = "main\n"
             summary = collect_feature_summary(tmp_path, "099-test-feature", strict_metadata=True)
 
         assert not any("shell_pid" in m for m in summary.metadata_issues), summary.metadata_issues
         assert summary.all_done
-        assert summary.ok, (
-            f"orchestrated all-done mission should pass strict accept; "
-            f"metadata={summary.metadata_issues} git_dirty={summary.git_dirty}"
-        )
+        assert summary.ok, f"orchestrated all-done mission should pass strict accept; metadata={summary.metadata_issues} git_dirty={summary.git_dirty}"
 
     def test_strict_accept_still_flags_active_wp_without_shell_pid(self, tmp_path: Path) -> None:
         # Scoped: an ACTIVE (for_review) WP with no shell_pid is still flagged —
         # the fix is a lane-gate, not a removal.
-        feature_dir = _setup_feature(
-            tmp_path, all_done=False, wp_ids=["WP01"], wp_lanes={"WP01": "for_review"}
-        )
+        feature_dir = _setup_feature(tmp_path, all_done=False, wp_ids=["WP01"], wp_lanes={"WP01": "for_review"})
         _write_wp_file(feature_dir / "tasks", "WP01", lane="for_review", shell_pid="")
 
-        with patch("specify_cli.acceptance.run_git") as mock_git, patch(
-            "specify_cli.acceptance.git_status_lines", return_value=[]
-        ):
+        with patch("specify_cli.acceptance.run_git") as mock_git, patch("specify_cli.acceptance.git_status_lines", return_value=[]):
             mock_git.return_value.stdout = "main\n"
             summary = collect_feature_summary(tmp_path, "099-test-feature", strict_metadata=True)
 
@@ -1018,27 +1005,18 @@ def test_approved_plus_operator_cancellation_is_eligible(tmp_path: Path) -> None
     The surviving ``approved`` WP delivers the mission; the operator cancellation
     is an acceptable ending reported under ``canceled_wps`` and is NOT a blocker.
     """
-    feature_dir = _setup_feature(
-        tmp_path, wp_ids=["WP01"], wp_lanes={"WP01": "approved"}
-    )
+    feature_dir = _setup_feature(tmp_path, wp_ids=["WP01"], wp_lanes={"WP01": "approved"})
     _write_wp_file(feature_dir / "tasks", "WP02", lane="canceled")
     _append_cancellation_event(feature_dir, "WP02", operator=True)
 
-    with patch("specify_cli.acceptance.run_git") as mock_git, patch(
-        "specify_cli.acceptance.git_status_lines", return_value=[]
-    ):
+    with patch("specify_cli.acceptance.run_git") as mock_git, patch("specify_cli.acceptance.git_status_lines", return_value=[]):
         mock_git.return_value.stdout = "main\n"
-        summary = collect_feature_summary(
-            tmp_path, "099-test-feature", strict_metadata=False
-        )
+        summary = collect_feature_summary(tmp_path, "099-test-feature", strict_metadata=False)
 
     assert summary.all_done is True
     assert [entry["wp_id"] for entry in summary.canceled_wps] == ["WP02"]
     assert summary.canceled_wps[0]["reason"] == "Descoped after re-homing the work."
-    assert not any(
-        "WP02" in blocker
-        for blocker in summary.outstanding().get("lane_blockers", [])
-    )
+    assert not any("WP02" in blocker for blocker in summary.outstanding().get("lane_blockers", []))
 
 
 def test_synthetic_cancellation_is_a_blocker_at_command_level(tmp_path: Path) -> None:
@@ -1047,27 +1025,17 @@ def test_synthetic_cancellation_is_a_blocker_at_command_level(tmp_path: Path) ->
     The provenance-free cancellation is refused with the operator-provenance
     diagnostic and is never reported as an accept-eligible cancellation.
     """
-    feature_dir = _setup_feature(
-        tmp_path, wp_ids=["WP01"], wp_lanes={"WP01": "approved"}
-    )
+    feature_dir = _setup_feature(tmp_path, wp_ids=["WP01"], wp_lanes={"WP01": "approved"})
     _write_wp_file(feature_dir / "tasks", "WP02", lane="canceled")
     _append_cancellation_event(feature_dir, "WP02", operator=False)
 
-    with patch("specify_cli.acceptance.run_git") as mock_git, patch(
-        "specify_cli.acceptance.git_status_lines", return_value=[]
-    ):
+    with patch("specify_cli.acceptance.run_git") as mock_git, patch("specify_cli.acceptance.git_status_lines", return_value=[]):
         mock_git.return_value.stdout = "main\n"
-        summary = collect_feature_summary(
-            tmp_path, "099-test-feature", strict_metadata=False
-        )
+        summary = collect_feature_summary(tmp_path, "099-test-feature", strict_metadata=False)
 
     assert summary.all_done is False
     assert summary.canceled_wps == []
-    assert any(
-        "WP02" in blocker
-        and "operator-authored cancellation provenance required" in blocker
-        for blocker in summary.outstanding().get("lane_blockers", [])
-    )
+    assert any("WP02" in blocker and "operator-authored cancellation provenance required" in blocker for blocker in summary.outstanding().get("lane_blockers", []))
 
 
 def test_canceled_free_mission_reduces_to_unchanged_golden(tmp_path: Path) -> None:
@@ -1083,9 +1051,7 @@ def test_canceled_free_mission_reduces_to_unchanged_golden(tmp_path: Path) -> No
     """
     from specify_cli.status.reducer import materialize as raw_materialize
 
-    feature_dir = _setup_feature(
-        tmp_path, wp_ids=["WP01", "WP02"], wp_lanes={"WP01": "done", "WP02": "done"}
-    )
+    feature_dir = _setup_feature(tmp_path, wp_ids=["WP01", "WP02"], wp_lanes={"WP01": "done", "WP02": "done"})
 
     snapshot = raw_materialize(feature_dir)
 
@@ -1102,13 +1068,9 @@ def test_canceled_free_mission_reduces_to_unchanged_golden(tmp_path: Path) -> No
 
     # And the acceptance view is unchanged: a canceled-free all-done mission is
     # complete with an empty ``canceled_wps`` report.
-    with patch("specify_cli.acceptance.run_git") as mock_git, patch(
-        "specify_cli.acceptance.git_status_lines", return_value=[]
-    ):
+    with patch("specify_cli.acceptance.run_git") as mock_git, patch("specify_cli.acceptance.git_status_lines", return_value=[]):
         mock_git.return_value.stdout = "main\n"
-        summary = collect_feature_summary(
-            tmp_path, "099-test-feature", strict_metadata=False
-        )
+        summary = collect_feature_summary(tmp_path, "099-test-feature", strict_metadata=False)
 
     assert summary.all_done is True
     assert summary.canceled_wps == []

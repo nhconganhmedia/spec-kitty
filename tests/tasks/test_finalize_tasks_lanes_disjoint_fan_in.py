@@ -23,10 +23,7 @@ def test_disjoint_upstreams_remain_parallel_until_fan_in() -> None:
     graph = {wp_id: [] for wp_id in upstreams}
     graph["WP07"] = list(upstreams)
     manifests = {
-        **{
-            wp_id: _manifest(f"src/workstream_{index}/**")
-            for index, wp_id in enumerate(upstreams, start=1)
-        },
+        **{wp_id: _manifest(f"src/workstream_{index}/**") for index, wp_id in enumerate(upstreams, start=1)},
         "WP07": _manifest("src/fan_in/**"),
     }
 

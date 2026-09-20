@@ -356,10 +356,7 @@ class TestFR021SeedWriteDeferred:
             )
 
         seed_files = list(seed_dir.glob("*.yaml"))
-        assert seed_files == [], (
-            "FR-021 seed write is deferred (Proposed, not Approved). "
-            "emit_clarification_resolved must not write seed files synchronously."
-        )
+        assert seed_files == [], "FR-021 seed write is deferred (Proposed, not Approved). emit_clarification_resolved must not write seed files synchronously."
 
     def test_queue_write_still_happens(self, tmp_path: Path) -> None:
         """The SaaS queue write must occur even though the seed file is not written."""

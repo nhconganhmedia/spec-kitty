@@ -49,9 +49,7 @@ class SessionPresenceClaudeCodeMigration(BaseMigration):
         if dry_run:
             return MigrationResult(
                 success=True,
-                changes_made=[
-                    "Would write orientation to .claude/CLAUDE.md and register SessionStart + Stop hooks"
-                ],
+                changes_made=["Would write orientation to .claude/CLAUDE.md and register SessionStart + Stop hooks"],
             )
         from specify_cli.core.agent_config import load_agent_config
         from specify_cli.session_presence.manager import SessionPresenceManager

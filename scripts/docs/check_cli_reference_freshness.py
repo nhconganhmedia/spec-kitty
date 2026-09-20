@@ -74,19 +74,11 @@ _HEADING_RE: Final[re.Pattern[str]] = re.compile(
     r"^#{1,6}\s+`?spec-kitty\s+([a-z0-9][^\n`]*)`?\s*$",
     re.MULTILINE,
 )
-_INLINE_CODE_RE: Final[re.Pattern[str]] = re.compile(
-    r"`spec-kitty\s+([a-z0-9][^`\n]*?)`"
-)
+_INLINE_CODE_RE: Final[re.Pattern[str]] = re.compile(r"`spec-kitty\s+([a-z0-9][^`\n]*?)`")
 
-_DEPRECATED_BANNER_RE: Final[re.Pattern[str]] = re.compile(
-    r"(?im)^>\s*\*\*deprecated\*\*"
-)
-_INTERNAL_BANNER_RE: Final[re.Pattern[str]] = re.compile(
-    r"(?im)^>\s*\*\*internal\*\*"
-)
-_FENCED_BLOCK_RE: Final[re.Pattern[str]] = re.compile(
-    r"```[^\n]*\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL
-)
+_DEPRECATED_BANNER_RE: Final[re.Pattern[str]] = re.compile(r"(?im)^>\s*\*\*deprecated\*\*")
+_INTERNAL_BANNER_RE: Final[re.Pattern[str]] = re.compile(r"(?im)^>\s*\*\*internal\*\*")
+_FENCED_BLOCK_RE: Final[re.Pattern[str]] = re.compile(r"```[^\n]*\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
 _HELP_PANEL_PREFIXES: Final[tuple[str, ...]] = (
     "╭",
     "Arguments:",
@@ -153,11 +145,7 @@ def _extract_help_body(section: str) -> str:
 
     lines = match.group(1).splitlines()
     usage_index = next(
-        (
-            index
-            for index, line in enumerate(lines)
-            if line.lstrip().startswith("Usage:")
-        ),
+        (index for index, line in enumerate(lines) if line.lstrip().startswith("Usage:")),
         None,
     )
     if usage_index is None:
@@ -204,12 +192,8 @@ def extract_referenced_paths(
         end = matches[idx + 1][0].start() if idx + 1 < len(matches) else len(text)
         section = text[start:end]
         attrs = referenced.setdefault(path, {})
-        attrs["classified_deprecated"] = bool(
-            attrs.get("classified_deprecated")
-        ) or bool(_DEPRECATED_BANNER_RE.search(section))
-        attrs["classified_internal"] = bool(
-            attrs.get("classified_internal")
-        ) or bool(_INTERNAL_BANNER_RE.search(section))
+        attrs["classified_deprecated"] = bool(attrs.get("classified_deprecated")) or bool(_DEPRECATED_BANNER_RE.search(section))
+        attrs["classified_internal"] = bool(attrs.get("classified_internal")) or bool(_INTERNAL_BANNER_RE.search(section))
         # First non-blank, non-banner line after the heading is the summary.
         summary = ""
         for line in section.splitlines():
@@ -282,10 +266,7 @@ def _rule_ref_missing(
                     rule_id="REF-MISSING",
                     severity="error",
                     path=path,
-                    detail=(
-                        f"Visible command `spec-kitty {' '.join(path)}` is "
-                        "referenced in the wrong reference file."
-                    ),
+                    detail=(f"Visible command `spec-kitty {' '.join(path)}` is referenced in the wrong reference file."),
                 )
             )
     return out
@@ -305,10 +286,7 @@ def _rule_ref_extra(
                     rule_id="REF-EXTRA",
                     severity="error",
                     path=path,
-                    detail=(
-                        f"Reference names `spec-kitty {' '.join(path)}` but the "
-                        "live Typer tree has no such command."
-                    ),
+                    detail=(f"Reference names `spec-kitty {' '.join(path)}` but the live Typer tree has no such command."),
                 )
             )
     return out
@@ -330,10 +308,7 @@ def _rule_ref_deprecated_unclassified(
                     rule_id="REF-DEPRECATED-UNCLASSIFIED",
                     severity="error",
                     path=path,
-                    detail=(
-                        f"`spec-kitty {' '.join(path)}` is deprecated but the "
-                        "reference does not carry a Deprecated banner."
-                    ),
+                    detail=(f"`spec-kitty {' '.join(path)}` is deprecated but the reference does not carry a Deprecated banner."),
                 )
             )
     return out
@@ -355,10 +330,7 @@ def _rule_ref_internal_leak(
                     rule_id="REF-INTERNAL-LEAK",
                     severity="error",
                     path=path,
-                    detail=(
-                        f"`spec-kitty {' '.join(path)}` help summary marks it "
-                        "internal but the reference lacks an Internal banner."
-                    ),
+                    detail=(f"`spec-kitty {' '.join(path)}` help summary marks it internal but the reference lacks an Internal banner."),
                 )
             )
     return out
@@ -380,10 +352,7 @@ def _rule_ref_hidden_leak(
                     rule_id="REF-HIDDEN-LEAK",
                     severity="error",
                     path=path,
-                    detail=(
-                        f"Hidden command `spec-kitty {' '.join(path)}` appears "
-                        "in the user-facing reference without an Internal banner."
-                    ),
+                    detail=(f"Hidden command `spec-kitty {' '.join(path)}` appears in the user-facing reference without an Internal banner."),
                 )
             )
     return out
@@ -412,25 +381,15 @@ def _rule_help_drift(
         if summary_drift or body_drift:
             differences: list[str] = []
             if summary_drift:
-                differences.append(
-                    f"recorded summary ({recorded!r}) differs from live summary "
-                    f"({live_summary!r})"
-                )
+                differences.append(f"recorded summary ({recorded!r}) differs from live summary ({live_summary!r})")
             if body_drift:
-                differences.append(
-                    f"recorded help body ({recorded_body!r}) differs from live "
-                    f"help body ({live_body!r})"
-                )
+                differences.append(f"recorded help body ({recorded_body!r}) differs from live help body ({live_body!r})")
             out.append(
                 Finding(
                     rule_id="HELP-DRIFT",
                     severity=drift_severity,
                     path=path,
-                    detail=(
-                        f"`spec-kitty {' '.join(path)}` "
-                        + "; ".join(differences)
-                        + "."
-                    ),
+                    detail=(f"`spec-kitty {' '.join(path)}` " + "; ".join(differences) + "."),
                 )
             )
     return out
@@ -451,10 +410,7 @@ def evaluate_reference(
                 rule_id="REF-SAAS-SYNC-OFF",
                 severity="error",
                 path=(),
-                detail=(
-                    "SPEC_KITTY_ENABLE_SAAS_SYNC was not set before import; "
-                    "tracker/issue-search paths could not be evaluated."
-                ),
+                detail=("SPEC_KITTY_ENABLE_SAAS_SYNC was not set before import; tracker/issue-search paths could not be evaluated."),
             )
         ]
 
@@ -462,12 +418,8 @@ def evaluate_reference(
     agent_paths = extract_referenced_paths(agent_reference_text)
     referenced_all: _RefMap = {**main_paths, **agent_paths}
 
-    live_visible: dict[tuple[str, ...], CommandPathEntry] = {
-        e.path: e for e in entries if not e.hidden
-    }
-    live_hidden: dict[tuple[str, ...], CommandPathEntry] = {
-        e.path: e for e in entries if e.hidden
-    }
+    live_visible: dict[tuple[str, ...], CommandPathEntry] = {e.path: e for e in entries if not e.hidden}
+    live_hidden: dict[tuple[str, ...], CommandPathEntry] = {e.path: e for e in entries if e.hidden}
 
     findings: list[Finding] = []
     findings.extend(
@@ -556,10 +508,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--saas-sync-was-set",
         action="store_true",
-        help=(
-            "Internal: assert that SPEC_KITTY_ENABLE_SAAS_SYNC was set at "
-            "import time. Used by tests."
-        ),
+        help=("Internal: assert that SPEC_KITTY_ENABLE_SAAS_SYNC was set at import time. Used by tests."),
     )
     return parser
 
@@ -582,19 +531,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if not args.reference.exists():
-        sys.stderr.write(
-            f"REF-INPUT-MISSING  reference file not found: {args.reference}\n"
-        )
+        sys.stderr.write(f"REF-INPUT-MISSING  reference file not found: {args.reference}\n")
         return 2
     if not args.agent_reference.exists():
-        sys.stderr.write(
-            f"REF-INPUT-MISSING  agent reference file not found: {args.agent_reference}\n"
-        )
+        sys.stderr.write(f"REF-INPUT-MISSING  agent reference file not found: {args.agent_reference}\n")
         return 2
 
-    saas_sync_enabled = _SAAS_SYNC_PRESET or _os.environ.get(
-        "SPEC_KITTY_ENABLE_SAAS_SYNC"
-    ) == "1"
+    saas_sync_enabled = _SAAS_SYNC_PRESET or _os.environ.get("SPEC_KITTY_ENABLE_SAAS_SYNC") == "1"
     if args.saas_sync_was_set and not saas_sync_enabled:
         # Defensive: the assert flag is set but env was clean — refuse to claim clean.
         saas_sync_enabled = False

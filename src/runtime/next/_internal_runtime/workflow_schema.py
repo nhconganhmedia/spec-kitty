@@ -16,6 +16,7 @@ package may import and carries no doctrine-family coupling, so a
 ``kernel.clock`` import does not violate the re-extractability rationale
 this rule protects.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -42,14 +43,9 @@ class ActionStep(BaseModel):
     @model_validator(mode="after")
     def _validate_step_shape(self) -> ActionStep:
         if self.terminal and self.next:
-            raise ValueError(
-                f"action {self.action_name!r}: terminal=True forbids non-empty `next`"
-            )
+            raise ValueError(f"action {self.action_name!r}: terminal=True forbids non-empty `next`")
         if len(self.next) > 1:
-            raise ValueError(
-                f"action {self.action_name!r}: workflows are linear in v1; "
-                "`next` may name at most one action"
-            )
+            raise ValueError(f"action {self.action_name!r}: workflows are linear in v1; `next` may name at most one action")
         return self
 
 
@@ -85,9 +81,7 @@ class WorkflowSequence(BaseModel):
         for a in self.actions:
             for n in a.next:
                 if n not in names_set:
-                    raise ValueError(
-                        f"action {a.action_name!r} references unknown next: {n!r}"
-                    )
+                    raise ValueError(f"action {a.action_name!r} references unknown next: {n!r}")
         # Reachability + DAG check over the whole graph. Hidden cycles in an
         # unreachable island are malformed workflows, not harmless dead data.
         _check_acyclic(self.actions, self.initial)

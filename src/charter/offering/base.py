@@ -73,9 +73,7 @@ def _emit_collision_warning(
     replaced = len(higher_keys & lower_keys)
     inherited = len(lower_keys - higher_keys)
     warnings.warn(
-        f"Doctrine override: {kind} {item_id} from {higher_layer} shadowed "
-        f"{lower_layer} ({replaced} field(s) replaced; "
-        f"{inherited} field(s) inherited).",
+        f"Doctrine override: {kind} {item_id} from {higher_layer} shadowed {lower_layer} ({replaced} field(s) replaced; {inherited} field(s) inherited).",
         DoctrineLayerCollisionWarning,
         stacklevel=3,
     )
@@ -165,11 +163,7 @@ class BaseDoctrineRepository(ABC, Generic[T]):
         authority is the single source both loader and resolver share.
         """
         recursive = overlay_scan_is_recursive(self._overlay_scan_kind())
-        scan = (
-            project_dir.rglob(self._glob)
-            if recursive
-            else project_dir.glob(self._glob)
-        )
+        scan = project_dir.rglob(self._glob) if recursive else project_dir.glob(self._glob)
         return sorted(scan)
 
     def _overlay_scan_kind(self) -> ArtifactKind | None:
@@ -286,9 +280,7 @@ class BaseDoctrineRepository(ABC, Generic[T]):
             if not overlay_dir.exists():
                 continue
             for yaml_file in self._project_scan(overlay_dir):
-                self._apply_overlay_file(
-                    yaml_file, layer_name, yaml_parser=yaml_parser, built_in=built_in
-                )
+                self._apply_overlay_file(yaml_file, layer_name, yaml_parser=yaml_parser, built_in=built_in)
 
     def _apply_overlay_file(
         self,
@@ -392,9 +384,7 @@ class BaseDoctrineRepository(ABC, Generic[T]):
         # Tag all built-in items as 'builtin'
         self._provenance = dict.fromkeys(self._items, "builtin")
         # Org layer overrides built-in
-        self._apply_overlay_layer(
-            self._org_dirs, "org", yaml_parser=yaml_parser, built_in=built_in
-        )
+        self._apply_overlay_layer(self._org_dirs, "org", yaml_parser=yaml_parser, built_in=built_in)
         # Project layer overrides built-in + org
         self._apply_overlay_layer(
             [self._project_dir] if self._project_dir else [],

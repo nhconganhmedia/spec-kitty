@@ -14,7 +14,6 @@ from rich.table import Table
 from specify_cli.task_utils import find_repo_root
 
 
-
 def config(
     show_origin: bool = typer.Option(
         False,

@@ -36,10 +36,7 @@ def _make_graph(
         generated_at="2026-06-01T00:00:00Z",
         generated_by="test",
         nodes=[DRGNode(urn=urn, kind=kind) for urn, kind in nodes],
-        edges=[
-            DRGEdge(source=src, target=tgt, relation=rel)
-            for src, tgt, rel in edges
-        ],
+        edges=[DRGEdge(source=src, target=tgt, relation=rel) for src, tgt, rel in edges],
     )
 
 
@@ -79,9 +76,7 @@ def test_edges_to_returns_incoming_edges() -> None:
         edges=[("agent_profile:child", "agent_profile:parent", Relation.SPECIALIZES_FROM)],
     )
     incoming = graph.edges_to("agent_profile:parent")
-    assert {(e.source, e.target, e.relation) for e in incoming} == {
-        ("agent_profile:child", "agent_profile:parent", Relation.SPECIALIZES_FROM)
-    }
+    assert {(e.source, e.target, e.relation) for e in incoming} == {("agent_profile:child", "agent_profile:parent", Relation.SPECIALIZES_FROM)}
     assert incoming[0].source == "agent_profile:child"
     assert incoming[0].target == "agent_profile:parent"
     assert incoming[0].relation is Relation.SPECIALIZES_FROM
@@ -94,9 +89,7 @@ def test_edges_to_inverts_edges_from() -> None:
     )
     # edges_from(child) and edges_to(parent) describe the same edge from
     # opposite directions; edges_from(parent) and edges_to(child) are empty.
-    assert graph.edges_from("agent_profile:child") == graph.edges_to(
-        "agent_profile:parent"
-    )
+    assert graph.edges_from("agent_profile:child") == graph.edges_to("agent_profile:parent")
     assert graph.edges_from("agent_profile:parent") == []
     assert graph.edges_to("agent_profile:child") == []
 

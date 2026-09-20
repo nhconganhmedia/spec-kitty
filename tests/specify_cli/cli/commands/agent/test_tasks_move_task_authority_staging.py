@@ -66,9 +66,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "user.name", "Test")
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
-    (r / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (r / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return r
 
 
@@ -168,8 +166,6 @@ def test_persist_wp_file_is_event_only_leaves_frontmatter_byte_stable(repo: Path
     # Event-only: the WP file bytes are unchanged -- NO shell_pid / baseline was
     # written into the frontmatter (the god-write is gone, not merely gated).
     assert wp_file.read_bytes() == bytes_before
-    persisted_front, _body, _padding = split_frontmatter(
-        wp_file.read_text(encoding="utf-8-sig")
-    )
+    persisted_front, _body, _padding = split_frontmatter(wp_file.read_text(encoding="utf-8-sig"))
     assert "shell_pid" not in persisted_front
     assert SHELL_PID_BASELINE_FIELD not in persisted_front

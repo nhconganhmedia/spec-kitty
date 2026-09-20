@@ -50,9 +50,7 @@ PROTECTED_REFUSAL = "Refusing to commit planning artifacts to the protected bran
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _set_origin_head_main(repo: Path) -> None:
@@ -125,12 +123,9 @@ def test_finalize_tasks_index_placement_resolves_target_branch(coord_repo: Path)
     RED on the unfixed resolver (placement.ref == 'main'); GREEN after re-pointing
     ``get_feature_target_branch`` onto the primary surface (placement.ref == feat/...).
     """
-    placement = resolve_placement_only(
-        coord_repo, MISSION_DIRNAME, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    placement = resolve_placement_only(coord_repo, MISSION_DIRNAME, kind=MissionArtifactKind.TASKS_INDEX)
     assert placement.ref == TARGET, (
-        "the finalize-tasks TASKS_INDEX commit must resolve the mission's "
-        f"target_branch, not the protected repo primary (got {placement.ref!r})"
+        f"the finalize-tasks TASKS_INDEX commit must resolve the mission's target_branch, not the protected repo primary (got {placement.ref!r})"
     )
 
 
@@ -158,14 +153,7 @@ def test_finalize_tasks_commit_lands_on_target_not_refused(coord_repo: Path) -> 
     )
 
     # The commit must NOT be refused with the protected-main diagnostic.
-    assert not (
-        result.diagnostic and PROTECTED_REFUSAL in result.diagnostic
-    ), f"finalize-tasks commit was refused on protected main: {result.diagnostic!r}"
+    assert not (result.diagnostic and PROTECTED_REFUSAL in result.diagnostic), f"finalize-tasks commit was refused on protected main: {result.diagnostic!r}"
     # The placement landed on the mission's target_branch (not protected main).
-    assert result.placement_ref == TARGET, (
-        f"finalize-tasks commit landed on {result.placement_ref!r}, expected {TARGET!r}"
-    )
-    assert result.status == "committed", (
-        f"expected a real commit on {TARGET}, got status={result.status!r} "
-        f"diagnostic={result.diagnostic!r}"
-    )
+    assert result.placement_ref == TARGET, f"finalize-tasks commit landed on {result.placement_ref!r}, expected {TARGET!r}"
+    assert result.status == "committed", f"expected a real commit on {TARGET}, got status={result.status!r} diagnostic={result.diagnostic!r}"

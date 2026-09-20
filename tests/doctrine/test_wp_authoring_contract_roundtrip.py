@@ -51,17 +51,9 @@ pytestmark = [pytest.mark.fast, pytest.mark.doctrine, pytest.mark.corpus]
 SOFTWARE_DEV_ROOT = BUILT_IN_MISSIONS_ROOT / "software-dev"
 
 GUIDELINES_ACTIONS = SOFTWARE_DEV_ROOT / "actions" / "tasks" / "guidelines.md"
-GUIDELINES_STEPS = (
-    BUILT_IN_MISSIONS_ROOT
-    / "mission-steps"
-    / "software-dev"
-    / "tasks"
-    / "guidelines.md"
-)
+GUIDELINES_STEPS = BUILT_IN_MISSIONS_ROOT / "mission-steps" / "software-dev" / "tasks" / "guidelines.md"
 TASK_PROMPT_TEMPLATE = SOFTWARE_DEV_ROOT / "templates" / "task-prompt-template.md"
-DOCUMENTATION_TASK_PROMPT_TEMPLATE = (
-    BUILT_IN_MISSIONS_ROOT / "documentation" / "templates" / "task-prompt-template.md"
-)
+DOCUMENTATION_TASK_PROMPT_TEMPLATE = BUILT_IN_MISSIONS_ROOT / "documentation" / "templates" / "task-prompt-template.md"
 
 GUIDELINES_COPIES = (GUIDELINES_ACTIONS, GUIDELINES_STEPS)
 
@@ -132,13 +124,9 @@ def test_guidelines_copy_instructs_repo_root_relative_owned_files(guidelines_pat
     text = guidelines_path.read_text(encoding="utf-8").lower()
 
     assert FORBIDDEN_PROSE_TOKEN not in text, (
-        f"{guidelines_path} still instructs '{FORBIDDEN_PROSE_TOKEN}' owned_files — "
-        "this contradicts the repo-root-relative ownership validator (C-004)."
+        f"{guidelines_path} still instructs '{FORBIDDEN_PROSE_TOKEN}' owned_files — this contradicts the repo-root-relative ownership validator (C-004)."
     )
-    assert REQUIRED_PROSE_TOKEN in text, (
-        f"{guidelines_path} must instruct '{REQUIRED_PROSE_TOKEN}' owned_files paths "
-        "to match the ownership validator."
-    )
+    assert REQUIRED_PROSE_TOKEN in text, f"{guidelines_path} must instruct '{REQUIRED_PROSE_TOKEN}' owned_files paths to match the ownership validator."
 
 
 def test_both_guidelines_copies_share_owned_files_guidance() -> None:
@@ -157,9 +145,7 @@ def test_both_guidelines_copies_share_owned_files_guidance() -> None:
     actions_line = _owned_files_line(GUIDELINES_ACTIONS)
     steps_line = _owned_files_line(GUIDELINES_STEPS)
     assert actions_line == steps_line, (
-        "owned_files guidance diverges between the two guidelines.md copies:\n"
-        f"  actions:      {actions_line!r}\n"
-        f"  mission-steps:{steps_line!r}"
+        f"owned_files guidance diverges between the two guidelines.md copies:\n  actions:      {actions_line!r}\n  mission-steps:{steps_line!r}"
     )
 
 
@@ -223,17 +209,11 @@ def test_template_authored_wp_passes_ownership_and_finalize_first_time() -> None
     assert "WP01" in manifests, "authored WP did not resolve to an ownership manifest"
 
     ownership_result = validate_ownership(manifests, {"WP01": []})
-    assert ownership_result.passed, (
-        f"repo-relative authored WP unexpectedly failed ownership validation: "
-        f"{ownership_result.errors}"
-    )
+    assert ownership_result.passed, f"repo-relative authored WP unexpectedly failed ownership validation: {ownership_result.errors}"
 
     create_intent = {"WP01": list(AUTHORED_CREATE_INTENT)}
     glob_result = validate_glob_matches(manifests, REPO_ROOT, create_intent=create_intent)
-    assert glob_result.passed, (
-        f"repo-relative authored WP failed the finalize literal-path glob check: "
-        f"{glob_result.errors}"
-    )
+    assert glob_result.passed, f"repo-relative authored WP failed the finalize literal-path glob check: {glob_result.errors}"
 
 
 # --- T003 step 4: RED case — an absolute-path entry fails consistently -----------
@@ -257,13 +237,8 @@ def test_absolute_owned_files_entry_fails_validation_consistently() -> None:
         source = InMemoryFrontmatterSource({"WP01": wp_meta})
         manifests = resolve_wp_manifests(source)
         result = validate_ownership(manifests, {"WP01": []})
-        assert not result.passed, (
-            "absolute owned_files paths were accepted by ownership validation — "
-            "the repo-relative contract (C-004) is not enforced."
-        )
-        assert any(absolute_entries[0] in err for err in result.errors), (
-            f"validation failed but the absolute path was not surfaced: {result.errors}"
-        )
+        assert not result.passed, "absolute owned_files paths were accepted by ownership validation — the repo-relative contract (C-004) is not enforced."
+        assert any(absolute_entries[0] in err for err in result.errors), f"validation failed but the absolute path was not surfaced: {result.errors}"
 
 
 # --- #3795: mission-parity ratchet — documentation must match software-dev ------
@@ -299,14 +274,10 @@ def test_task_prompt_template_carries_required_profile_load_section(mission: str
     """
     frontmatter, body = read_frontmatter(TASK_PROMPT_TEMPLATES[mission])
     assert PROFILE_LOAD_SECTION_HEADING in body, (
-        f"{mission} task-prompt-template.md omits the REQUIRED "
-        f"'{PROFILE_LOAD_SECTION_HEADING}' section that /spec-kitty.tasks pins."
+        f"{mission} task-prompt-template.md omits the REQUIRED '{PROFILE_LOAD_SECTION_HEADING}' section that /spec-kitty.tasks pins."
     )
     missing_fields = [field for field in PROFILE_LOAD_FIELDS if field not in frontmatter]
-    assert not missing_fields, (
-        f"{mission} task-prompt-template.md omits profile-load frontmatter "
-        f"fields {missing_fields} that the REQUIRED section references."
-    )
+    assert not missing_fields, f"{mission} task-prompt-template.md omits profile-load frontmatter fields {missing_fields} that the REQUIRED section references."
 
 
 def test_documentation_template_authored_wp_passes_ownership_and_finalize() -> None:
@@ -335,15 +306,7 @@ def test_documentation_template_authored_wp_passes_ownership_and_finalize() -> N
     assert "WP01" in manifests, "authored documentation WP did not resolve to a manifest"
 
     ownership_result = validate_ownership(manifests, {"WP01": []})
-    assert ownership_result.passed, (
-        f"documentation authored WP unexpectedly failed ownership validation: "
-        f"{ownership_result.errors}"
-    )
+    assert ownership_result.passed, f"documentation authored WP unexpectedly failed ownership validation: {ownership_result.errors}"
 
-    glob_result = validate_glob_matches(
-        manifests, REPO_ROOT, create_intent={"WP01": list(DOC_AUTHORED_CREATE_INTENT)}
-    )
-    assert glob_result.passed, (
-        f"documentation authored WP failed the finalize literal-path glob check: "
-        f"{glob_result.errors}"
-    )
+    glob_result = validate_glob_matches(manifests, REPO_ROOT, create_intent={"WP01": list(DOC_AUTHORED_CREATE_INTENT)})
+    assert glob_result.passed, f"documentation authored WP failed the finalize literal-path glob check: {glob_result.errors}"

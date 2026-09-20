@@ -67,7 +67,9 @@ def _validate_safe_segment(name: str, value: str) -> str:
 
 
 def _load_mission_meta(
-    repo_root: Path, mission_slug: str, mid8: str,
+    repo_root: Path,
+    mission_slug: str,
+    mid8: str,
 ) -> dict[str, Any] | None:
     """Read this mission's ``meta.json`` from its kitty-specs dir, tolerantly.
 
@@ -110,7 +112,9 @@ def _is_legacy_mission(repo_root: Path, mission_slug: str, mid8: str) -> bool:
 
 
 def _coordination_branch_from_meta(
-    repo_root: Path, mission_slug: str, mid8: str,
+    repo_root: Path,
+    mission_slug: str,
+    mid8: str,
 ) -> str | None:
     """Return explicit ``coordination_branch`` from meta.json, if trustworthy."""
     data = _load_mission_meta(repo_root, mission_slug, mid8)
@@ -196,15 +200,11 @@ def _resolve_legacy_lane_destination(
         ).strip()
     except subprocess.CalledProcessError as exc:
         raise BookkeepingLegacyResolutionFailed(
-            f"Legacy mission detected at {worktree_root} but HEAD is detached "
-            f"or symbolic-ref failed: {exc.stderr or exc}"
+            f"Legacy mission detected at {worktree_root} but HEAD is detached or symbolic-ref failed: {exc.stderr or exc}"
         ) from exc
     branch = head.removeprefix("refs/heads/")
     if not branch:
-        raise BookkeepingLegacyResolutionFailed(
-            f"Legacy mission detected at {worktree_root} but HEAD resolves to "
-            f"an empty branch name"
-        )
+        raise BookkeepingLegacyResolutionFailed(f"Legacy mission detected at {worktree_root} but HEAD resolves to an empty branch name")
     # Defensive: discourage running legacy bookkeeping against repo_root
     # if that happens to be the main checkout sitting on `main`.  We do
     # not refuse here — the pre-flight policy gate in `acquire()` will
@@ -220,7 +220,9 @@ def _legacy_warning_marker_path(repo_root: Path, mission_id: str) -> Path:
 
 
 def _emit_legacy_warning_once(
-    repo_root: Path, mission_id: str, mission_slug: str,
+    repo_root: Path,
+    mission_id: str,
+    mission_slug: str,
 ) -> None:
     """Emit a one-line stderr deprecation warning, at most once per mission.
 
@@ -238,8 +240,7 @@ def _emit_legacy_warning_once(
         # Marker write failure is non-fatal: we still emit the warning
         # (worst case: warning repeats next invocation).
         logger.debug(
-            "BookkeepingTransaction: failed to write legacy-warning "
-            "marker %s: %s",
+            "BookkeepingTransaction: failed to write legacy-warning marker %s: %s",
             marker,
             exc,
         )

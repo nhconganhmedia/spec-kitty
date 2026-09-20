@@ -43,6 +43,8 @@ def _disable_emit_side_effects(monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status.emit as status_emit
 
     monkeypatch.setattr(status_emit, "_saas_fan_out", lambda *args, **kwargs: None)
+
+
 def _git(repo: Path, *args: str) -> str:
     result = subprocess.run(
         ["git", "-C", str(repo), *args],
@@ -369,11 +371,7 @@ def test_mark_status_writes_completion_to_coord_status_partition(tmp_path: Path)
     assert result.exit_code == 0, result.stdout
     status_dir = resolve_status_surface(repo, slug).parent
     stream = read_event_stream(status_dir)
-    subtask_annotations = [
-        annotation
-        for annotation in stream.annotations
-        if annotation.delta.subtasks is not None
-    ]
+    subtask_annotations = [annotation for annotation in stream.annotations if annotation.delta.subtasks is not None]
     assert subtask_annotations[-1].delta.subtasks == {"T001": "done"}
     assert not (primary_dir / "status.events.jsonl").exists()
 
@@ -399,9 +397,7 @@ def _build_flat_mission(
     primary_dir = repo / "kitty-specs" / slug
     primary_dir.mkdir(parents=True)
     (primary_dir / "meta.json").write_text(
-        json.dumps(
-            {"mission_id": mission_id, "mission_slug": slug, "topology": "single_branch"}
-        ),
+        json.dumps({"mission_id": mission_id, "mission_slug": slug, "topology": "single_branch"}),
         encoding="utf-8",
     )
     _write_roster(primary_dir, "WP01", roster)
@@ -425,9 +421,7 @@ def test_flat_mission_allows_when_snapshot_all_done(tmp_path: Path) -> None:
     from specify_cli.status.models import Lane
 
     slug = "flat-allowed"
-    repo = _build_flat_mission(
-        tmp_path, slug, roster=["T001"], snapshot_subtasks={"T001": Lane.DONE}
-    )
+    repo = _build_flat_mission(tmp_path, slug, roster=["T001"], snapshot_subtasks={"T001": Lane.DONE})
 
     result = _emit_for_review(repo, slug, implementation_evidence_present=True)
 

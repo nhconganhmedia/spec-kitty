@@ -187,9 +187,7 @@ def test_ci_quality_runs_no_suite_and_the_derivation_can_still_see_one_live(tmp_
     live_text = (gc.WORKFLOWS_DIR / _CI_QUALITY_NAME).read_text(encoding="utf-8")
     suite_jobs = frozenset(gate.job for gate in gc.parse_workflow(gc.WORKFLOWS_DIR / _CI_QUALITY_NAME))
 
-    assert suite_jobs == frozenset(), (
-        f"{_CI_QUALITY_NAME} must execute no test suite (FR-001/NFR-001) — found: {sorted(suite_jobs)}"
-    )
+    assert suite_jobs == frozenset(), f"{_CI_QUALITY_NAME} must execute no test suite (FR-001/NFR-001) — found: {sorted(suite_jobs)}"
     assert not blocking_violations(suite_jobs, _ci_quality_needs(), NON_BLOCKING_ALLOWLIST)
 
     probe = write_workflow(tmp_path, live_text + _REINJECTED_SUITE_JOB, name=_CI_QUALITY_NAME)
@@ -202,9 +200,7 @@ def test_ci_quality_runs_no_suite_and_the_derivation_can_still_see_one_live(tmp_
 
 def test_reduced_quality_gate_needs_exact_blocking_set_live() -> None:
     """Every non-gate producer job blocks the reduced quality gate."""
-    assert _ci_quality_needs() == frozenset(
-        {"lint", "build-wheel", "clean-install-verification", "uv-lock-check"}
-    )
+    assert _ci_quality_needs() == frozenset({"lint", "build-wheel", "clean-install-verification", "uv-lock-check"})
 
 
 def test_allowlist_entries_carry_rationale() -> None:
@@ -256,9 +252,7 @@ def test_faultinjection_new_pytest_job_without_gate_edge_reds(tmp_path: Path) ->
     model = gc.load_workflow_model(wf)
     needs = frozenset(model.job_needs[_QUALITY_GATE_JOB])
     violations = blocking_violations(pytest_jobs, needs, {})
-    assert violations == frozenset({"sneaky-new-suite"}), (
-        f"expected exactly the un-gated fake pytest job to be caught, got {sorted(violations)}"
-    )
+    assert violations == frozenset({"sneaky-new-suite"}), f"expected exactly the un-gated fake pytest job to be caught, got {sorted(violations)}"
 
 
 def test_faultinjection_gated_or_allowlisted_job_does_not_red(tmp_path: Path) -> None:

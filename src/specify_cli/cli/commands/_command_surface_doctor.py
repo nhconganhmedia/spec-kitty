@@ -100,10 +100,7 @@ def _slash_gap_for_path(
     if not path.exists():
         return SlashCommandGap(agent_key, command, path, "missing")
     try:
-        head = "\n".join(
-            path.read_text(encoding="utf-8", errors="replace")
-            .splitlines()[:_VERSION_MARKER_HEAD_LINES]
-        )
+        head = "\n".join(path.read_text(encoding="utf-8", errors="replace").splitlines()[:_VERSION_MARKER_HEAD_LINES])
     except OSError:
         return SlashCommandGap(agent_key, command, path, "missing")
     if f"{_VERSION_MARKER_PREFIX} {current_version}" not in head:
@@ -133,9 +130,7 @@ def _load_slash_command_state(
         cmd_dir = get_global_command_dir(agent_key)
         for command in sorted(PROMPT_DRIVEN_COMMANDS | CLI_DRIVEN_COMMANDS):
             filename = _compute_output_filename(command, agent_key)
-            gap = _slash_gap_for_path(
-                agent_key, command, cmd_dir / filename, current_version
-            )
+            gap = _slash_gap_for_path(agent_key, command, cmd_dir / filename, current_version)
             if gap is not None:
                 gaps.append(gap)
     return configured, gaps
@@ -153,10 +148,7 @@ def _print_slash_command_report(
     if configured_slash:
         console.print()
         if not slash_gaps:
-            console.print(
-                f"[green]✓ Slash Commands[/green]: all configured agents healthy"
-                f" ({len(configured_slash)} agent(s))"
-            )
+            console.print(f"[green]✓ Slash Commands[/green]: all configured agents healthy ({len(configured_slash)} agent(s))")
         else:
             console.print("[bold]Slash Commands[/bold] — gap(s) found\n")
             for agent_key in configured_slash:
@@ -170,9 +162,7 @@ def _print_slash_command_report(
                 else:
                     console.print(f"  [green]✓[/green] {agent_key}: all commands present")
             if not fix:
-                console.print(
-                    "\nRun [cyan]spec-kitty doctor skills --fix[/cyan] to reinstall."
-                )
+                console.print("\nRun [cyan]spec-kitty doctor skills --fix[/cyan] to reinstall.")
     return slash_healthy
 
 
@@ -268,9 +258,7 @@ def _print_slash_command_payload(
     ]
     _print_slash_command_report(configured_slash, slash_gaps, fix)
     if fix and slash_payload["repaired"]:
-        console.print(
-            f"\n[green]Repaired:[/green] {len(cast(list[object], slash_payload['repaired']))} slash command file(s)"
-        )
+        console.print(f"\n[green]Repaired:[/green] {len(cast(list[object], slash_payload['repaired']))} slash command file(s)")
 
 
 def _load_command_skill_state(
@@ -287,9 +275,7 @@ def _load_command_skill_state(
     manifest = manifest_store.load(project_path)
     report = command_installer.verify(project_path)
     manifest_agents = sorted({agent for entry in manifest.entries for agent in entry.agents})
-    uninstalled_agents = [
-        agent for agent in configured_agents if agent not in set(manifest_agents)
-    ]
+    uninstalled_agents = [agent for agent in configured_agents if agent not in set(manifest_agents)]
     vibe_config_missing = "vibe" in configured_agents and not skill_path_configured(project_path)
     return (
         manifest,
@@ -369,9 +355,7 @@ def _repair_command_skill_state(
         except Exception as exc:  # pragma: no cover - exercised by CLI smoke paths
             errors.append(f"vibe-config: {exc}")
 
-    repaired, install_vibe_repaired, install_errors = _install_command_skill_agents(
-        project_path, sorted(agents)
-    )
+    repaired, install_vibe_repaired, install_errors = _install_command_skill_agents(project_path, sorted(agents))
     repaired_vibe_config = repaired_vibe_config or install_vibe_repaired
     errors.extend(install_errors)
     return repaired, pruned, errors, repaired_vibe_config
@@ -392,16 +376,7 @@ def _command_skill_payload(
     """Build the JSON/human report payload for ``doctor skills``."""
     from specify_cli.skills import command_installer
 
-    has_issues = bool(
-        report.drift
-        or report.gaps
-        or report.orphans
-        or report.stale
-        or report.unsafe
-        or uninstalled_agents
-        or vibe_config_missing
-        or repair_errors
-    )
+    has_issues = bool(report.drift or report.gaps or report.orphans or report.stale or report.unsafe or uninstalled_agents or vibe_config_missing or repair_errors)
     return {
         "configured_agents": configured_agents,
         "manifest_agents": manifest_agents,
@@ -456,10 +431,7 @@ def _print_command_skill_repairs(payload: dict[str, object]) -> None:
     if repaired:
         console.print(f"\n[green]Repaired:[/green] {', '.join(repaired)}")
     if payload["pruned"]:
-        console.print(
-            f"\n[green]Pruned stale entries:[/green] "
-            f"{len(cast(list[object], payload['pruned']))}"
-        )
+        console.print(f"\n[green]Pruned stale entries:[/green] {len(cast(list[object], payload['pruned']))}")
     if payload["repaired_vibe_config"]:
         console.print("\n[green]Repaired:[/green] Vibe skill path config")
     if repair_errors:
@@ -471,10 +443,7 @@ def _print_command_skill_repairs(payload: dict[str, object]) -> None:
 def _print_command_skill_report(payload: dict[str, object], fix: bool) -> None:
     """Render human output for ``doctor skills``."""
     if payload["ok"]:
-        console.print(
-            "[green]Command Skills[/green]: all manifest entries healthy "
-            f"({payload['entries']} file(s))"
-        )
+        console.print(f"[green]Command Skills[/green]: all manifest entries healthy ({payload['entries']} file(s))")
         return
 
     _print_command_skill_summary_table(payload)
@@ -484,9 +453,7 @@ def _print_command_skill_report(payload: dict[str, object], fix: bool) -> None:
         cast(list[str], payload["drift"]),
     )
     _print_command_skill_paths("Missing managed files", cast(list[str], payload["gaps"]))
-    _print_command_skill_paths(
-        "Unmanaged spec-kitty skill files", cast(list[str], payload["orphans"])
-    )
+    _print_command_skill_paths("Unmanaged spec-kitty skill files", cast(list[str], payload["orphans"]))
     _print_command_skill_paths("Stale managed files", cast(list[str], payload["stale"]))
     _print_command_skill_paths("Unsafe managed paths", cast(list[str], payload["unsafe"]))
 
@@ -501,10 +468,7 @@ def _print_command_skill_report(payload: dict[str, object], fix: bool) -> None:
     gaps = cast(list[str], payload["gaps"])
     stale = cast(list[str], payload["stale"])
     if not fix and (gaps or uninstalled_agents or stale or payload["vibe_config_missing"]):
-        console.print(
-            "\nRun [cyan]spec-kitty doctor skills --fix[/cyan] "
-            "to reinstall missing command skills."
-        )
+        console.print("\nRun [cyan]spec-kitty doctor skills --fix[/cyan] to reinstall missing command skills.")
 
 
 # --- command-files -----------------------------------------------------------
@@ -521,11 +485,7 @@ def _print_command_files_table(issues: list[dict[str, str]]) -> None:
     table.add_column("Issue")
     for issue in issues:
         severity = issue["severity"]
-        severity_display = (
-            f"[red]{severity}[/red]"
-            if severity == "error"
-            else f"[yellow]{severity}[/yellow]"
-        )
+        severity_display = f"[red]{severity}[/red]" if severity == "error" else f"[yellow]{severity}[/yellow]"
         table.add_row(
             issue["agent"],
             issue["command"],
@@ -595,9 +555,7 @@ def _load_skills_state_or_exit(project_path: Path, json_output: bool) -> _SkillS
         raise typer.Exit(2) from exc
 
 
-def run_skills_audit(
-    fix: bool, json_output: bool, project_path: Path | None
-) -> None:
+def run_skills_audit(fix: bool, json_output: bool, project_path: Path | None) -> None:
     """Entry point for ``doctor skills`` (0 ok / 1 gaps / 2 not-in-project|config).
 
     *project_path* is resolved by the ``doctor.py`` command shell (which owns the
@@ -620,18 +578,14 @@ def run_skills_audit(
 
     slash_payload_raw = payload["slash_commands"]
     slash_payload_for_print: dict[str, object] = (
-        {"ok": False, "errors": ["invalid slash-command payload"]}
-        if not isinstance(slash_payload_raw, dict)
-        else slash_payload_raw
+        {"ok": False, "errors": ["invalid slash-command payload"]} if not isinstance(slash_payload_raw, dict) else slash_payload_raw
     )
     _print_slash_command_payload(slash_payload_for_print, fix)
 
     raise typer.Exit(0 if payload["ok"] else 1)
 
 
-def _assemble_skills_payload(
-    project_path: Path, fix: bool, state: _SkillState
-) -> dict[str, object]:
+def _assemble_skills_payload(project_path: Path, fix: bool, state: _SkillState) -> dict[str, object]:
     """Build the fused command-skill + slash-command payload from loaded *state*."""
     (
         manifest,
@@ -723,19 +677,14 @@ def _print_tool_surface_human(outcome: object) -> None:
     assert isinstance(outcome, ToolSurfaceOutcome)
     report = outcome.report
     if report.ok and not report.findings:
-        console.print(
-            "[green]Tool Surfaces[/green]: all surfaces healthy "
-            f"({report.summary.surfaces} checked)"
-        )
+        console.print(f"[green]Tool Surfaces[/green]: all surfaces healthy ({report.summary.surfaces} checked)")
         return
     console.print("\n[bold]Tool Surfaces[/bold] - issue(s) found\n")
     for finding in report.findings:
         colour = "red" if finding.severity == "error" else "yellow"
         console.print(f"  [{colour}]![/{colour}] [{finding.code}] {finding.message}")
     if outcome.repair is not None and outcome.repair.repaired:
-        console.print(
-            f"\n[green]Repaired:[/green] {len(outcome.repair.repaired)} surface(s)"
-        )
+        console.print(f"\n[green]Repaired:[/green] {len(outcome.repair.repaired)} surface(s)")
 
 
 _FIX_REFUSED_CODE = "foreign_checkout_write_refused"
@@ -778,9 +727,7 @@ def _guard_tool_surfaces_fix(json_output: bool) -> None:
     if refusal is None:
         return
     if json_output:
-        console.print_json(
-            json.dumps(_json_error(_FIX_REFUSED_CODE, refusal.message()), indent=2)
-        )
+        console.print_json(json.dumps(_json_error(_FIX_REFUSED_CODE, refusal.message()), indent=2))
     else:
         console.print(f"[red]Error:[/red] {refusal.message()}")
     raise ToolSurfaceFixRefused(refusal)

@@ -591,10 +591,7 @@ def resolve(  # noqa: C901
         raise typer.Exit(1)
 
     # Check if already resolved
-    resolved = any(
-        e.get("event_type") == EVT_GLOSSARY_CLARIFICATION_RESOLVED and e.get("conflict_id") == conflict_id
-        for e in all_events
-    )
+    resolved = any(e.get("event_type") == EVT_GLOSSARY_CLARIFICATION_RESOLVED and e.get("conflict_id") == conflict_id for e in all_events)
 
     if resolved:
         console.print(f"[yellow]Warning: Conflict '{conflict_id}' already resolved[/yellow]")
@@ -621,9 +618,7 @@ def resolve(  # noqa: C901
     if not candidates:
         # Build candidates from requested event options
         options = requested_event.get("options", [])
-        candidates = [
-            {"surface": term_text, "scope": "unknown", "definition": opt, "confidence": 0.5} for opt in options
-        ]
+        candidates = [{"surface": term_text, "scope": "unknown", "definition": opt, "confidence": 0.5} for opt in options]
 
     if candidates:
         console.print("\n[bold]Candidate senses:[/bold]")
@@ -777,10 +772,17 @@ def _validate_single_file(file_path: Path, json_output: bool) -> None:
     except Exception as exc:
         if json_output:
             result = {
-                "files": [{"path": str(file_path), "valid": False, "term_count": 0,
-                           "errors": [{"term_index": None, "term_surface": None,
-                                       "field": None, "message": f"YAML parse error: {exc}"}]}],
-                "total_files": 1, "valid_files": 0, "invalid_files": 1,
+                "files": [
+                    {
+                        "path": str(file_path),
+                        "valid": False,
+                        "term_count": 0,
+                        "errors": [{"term_index": None, "term_surface": None, "field": None, "message": f"YAML parse error: {exc}"}],
+                    }
+                ],
+                "total_files": 1,
+                "valid_files": 0,
+                "invalid_files": 1,
             }
             console.emit_json({**result, **json_error("glossary_validation_failed", f"YAML parse error: {exc}")})
         else:
@@ -792,9 +794,10 @@ def _validate_single_file(file_path: Path, json_output: bool) -> None:
         term_count = len(validated.terms)
         if json_output:
             result = {
-                "files": [{"path": str(file_path), "valid": True,
-                           "term_count": term_count, "errors": []}],
-                "total_files": 1, "valid_files": 1, "invalid_files": 0,
+                "files": [{"path": str(file_path), "valid": True, "term_count": term_count, "errors": []}],
+                "total_files": 1,
+                "valid_files": 1,
+                "invalid_files": 0,
             }
             print(json_lib.dumps(result, indent=2))
         else:
@@ -811,9 +814,10 @@ def _validate_single_file(file_path: Path, json_output: bool) -> None:
                 for e in exc.errors
             ]
             result = {
-                "files": [{"path": str(file_path), "valid": False,
-                           "term_count": 0, "errors": errors}],
-                "total_files": 1, "valid_files": 0, "invalid_files": 1,
+                "files": [{"path": str(file_path), "valid": False, "term_count": 0, "errors": errors}],
+                "total_files": 1,
+                "valid_files": 0,
+                "invalid_files": 1,
             }
             console.emit_json({**result, **json_error("glossary_validation_failed", str(exc))})
         else:
@@ -846,8 +850,7 @@ def _validate_directory(dir_path: Path, json_output: bool) -> None:
     yaml_files = sorted(dir_path.glob("*.yaml"))
     if not yaml_files:
         if json_output:
-            print(json_lib.dumps({"files": [], "total_files": 0,
-                                  "valid_files": 0, "invalid_files": 0}, indent=2))
+            print(json_lib.dumps({"files": [], "total_files": 0, "valid_files": 0, "invalid_files": 0}, indent=2))
         else:
             console.print(f"[yellow]No .yaml files found in {dir_path}[/yellow]")
         return
@@ -862,18 +865,20 @@ def _validate_directory(dir_path: Path, json_output: bool) -> None:
         scope = validate_scope_filename(yaml_file)
         if scope is None and not json_output:
             console.print(
-                f"[yellow]⚠ {yaml_file.name}: not a recognized scope filename "
-                f"(expected one of: {', '.join(f'{s.value}.yaml' for s in GlossaryScope)})[/yellow]"
+                f"[yellow]⚠ {yaml_file.name}: not a recognized scope filename (expected one of: {', '.join(f'{s.value}.yaml' for s in GlossaryScope)})[/yellow]"
             )
 
         try:
             data = yaml.load(yaml_file)
         except Exception as exc:
-            file_results.append({
-                "path": str(yaml_file), "valid": False, "term_count": 0,
-                "errors": [{"term_index": None, "term_surface": None,
-                            "field": None, "message": f"YAML parse error: {exc}"}],
-            })
+            file_results.append(
+                {
+                    "path": str(yaml_file),
+                    "valid": False,
+                    "term_count": 0,
+                    "errors": [{"term_index": None, "term_surface": None, "field": None, "message": f"YAML parse error: {exc}"}],
+                }
+            )
             invalid_count += 1
             if not json_output:
                 console.print(f"[red]✗ {yaml_file.name}: YAML parse error: {exc}[/red]")
@@ -881,22 +886,26 @@ def _validate_directory(dir_path: Path, json_output: bool) -> None:
 
         try:
             validated = validate_seed_file_data(data, yaml_file)
-            file_results.append({
-                "path": str(yaml_file), "valid": True,
-                "term_count": len(validated.terms), "errors": [],
-            })
+            file_results.append(
+                {
+                    "path": str(yaml_file),
+                    "valid": True,
+                    "term_count": len(validated.terms),
+                    "errors": [],
+                }
+            )
             if not json_output:
                 console.print(f"[green]✓[/green] {yaml_file.name} — Valid ({len(validated.terms)} terms)")
         except SeedFileValidationError as exc:
-            errors = [
-                {"term_index": e.term_index, "term_surface": e.term_surface,
-                 "field": e.field, "message": e.message}
-                for e in exc.errors
-            ]
-            file_results.append({
-                "path": str(yaml_file), "valid": False,
-                "term_count": 0, "errors": errors,
-            })
+            errors = [{"term_index": e.term_index, "term_surface": e.term_surface, "field": e.field, "message": e.message} for e in exc.errors]
+            file_results.append(
+                {
+                    "path": str(yaml_file),
+                    "valid": False,
+                    "term_count": 0,
+                    "errors": errors,
+                }
+            )
             invalid_count += 1
             if not json_output:
                 console.print(f"\n[red]✗ {yaml_file.name}:[/red]")
@@ -922,9 +931,7 @@ def _validate_directory(dir_path: Path, json_output: bool) -> None:
         _emit_validation_summary(result, invalid_count)
     else:
         console.print(
-            f"\nSummary: {invalid_count} of {len(file_results)} file(s) failed validation."
-            if invalid_count
-            else f"\nAll {len(file_results)} file(s) valid."
+            f"\nSummary: {invalid_count} of {len(file_results)} file(s) failed validation." if invalid_count else f"\nAll {len(file_results)} file(s) valid."
         )
 
     if invalid_count:

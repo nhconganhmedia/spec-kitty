@@ -34,22 +34,25 @@ def _status_event(
     mission_slug: str,
     to_lane: str,
 ) -> str:
-    return json.dumps(
-        {
-            "actor": "tester",
-            "at": "2026-06-15T04:00:00Z",
-            "event_id": event_id,
-            "execution_mode": "worktree",
-            "force": False,
-            "from_lane": "genesis",
-            "mission_slug": mission_slug,
-            "reason": None,
-            "review_ref": None,
-            "to_lane": to_lane,
-            "wp_id": "WP01",
-        },
-        sort_keys=True,
-    ) + "\n"
+    return (
+        json.dumps(
+            {
+                "actor": "tester",
+                "at": "2026-06-15T04:00:00Z",
+                "event_id": event_id,
+                "execution_mode": "worktree",
+                "force": False,
+                "from_lane": "genesis",
+                "mission_slug": mission_slug,
+                "reason": None,
+                "review_ref": None,
+                "to_lane": to_lane,
+                "wp_id": "WP01",
+            },
+            sort_keys=True,
+        )
+        + "\n"
+    )
 
 
 def _init_repo(tmp_path: Path, mission_slug: str) -> tuple[Path, Path, str, str]:
@@ -162,12 +165,7 @@ def test_lifecycle_sync_recreates_missing_lane_worktree(tmp_path: Path) -> None:
     assert report is not None
     assert report.succeeded is True
     assert (worktree / ".git").exists()
-    assert (
-        worktree
-        / "kitty-specs"
-        / "sync-missing-worktree"
-        / "status.events.jsonl"
-    ).exists()
+    assert (worktree / "kitty-specs" / "sync-missing-worktree" / "status.events.jsonl").exists()
 
 
 def test_lifecycle_sync_conflict_refuses_and_preserves_lane_state(tmp_path: Path) -> None:

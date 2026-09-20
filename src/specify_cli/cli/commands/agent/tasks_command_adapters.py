@@ -67,9 +67,7 @@ def _seam_commit_for_mission(*args: object, **kwargs: object) -> CommitRouterRes
     return result
 
 
-def _seam_emit_status_transition_transactional(
-    *args: object, **kwargs: object
-) -> StatusEvent:
+def _seam_emit_status_transition_transactional(*args: object, **kwargs: object) -> StatusEvent:
     """Route ``emit_status_transition_transactional`` through ``tasks`` at CALL time.
 
     Same late-binding contract as :func:`_seam_commit_for_mission`: keeps the
@@ -115,7 +113,5 @@ def seam_coord_router(
         target_branch=target_branch,
         thread_target_branch=thread_target_branch,
         commit_fn=_seam_commit_for_mission,
-        emit_fn=(
-            _seam_emit_status_transition_transactional if route_emit else None
-        ),
+        emit_fn=(_seam_emit_status_transition_transactional if route_emit else None),
     )

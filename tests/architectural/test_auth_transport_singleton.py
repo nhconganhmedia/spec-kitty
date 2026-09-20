@@ -71,11 +71,7 @@ _FORBIDDEN_HTTPX_CTORS: frozenset[str] = frozenset({"Client", "AsyncClient"})
 
 def _collect_python_sources(root: Path) -> list[Path]:
     """Return every ``.py`` file under *root* (excluding ``__pycache__``)."""
-    return [
-        path
-        for path in root.rglob("*.py")
-        if "__pycache__" not in path.parts
-    ]
+    return [path for path in root.rglob("*.py") if "__pycache__" not in path.parts]
 
 
 def _is_httpx_constructor_call(node: ast.AST) -> TypeGuard[ast.Call]:
@@ -140,14 +136,10 @@ class TestAuthTransportSingleton:
                 if source_file in _TRANSPORT_ALLOWLIST:
                     continue
                 for lineno, snippet in _find_violations(source_file):
-                    offenders.append(
-                        (source_file.relative_to(_REPO_ROOT), lineno, snippet)
-                    )
+                    offenders.append((source_file.relative_to(_REPO_ROOT), lineno, snippet))
 
         if offenders:
-            formatted = "\n".join(
-                f"  {path}:{lineno}: {snippet}" for path, lineno, snippet in offenders
-            )
+            formatted = "\n".join(f"  {path}:{lineno}: {snippet}" for path, lineno, snippet in offenders)
             pytest.fail(
                 "FR-030 violation: direct httpx.Client / httpx.AsyncClient "
                 "instantiation outside the auth transport boundary "
@@ -166,9 +158,7 @@ class TestAuthTransportSingleton:
         """
         bad_source = tmp_path / "bad.py"
         bad_source.write_text(
-            "import httpx\n"
-            "def go():\n"
-            "    return httpx.Client(timeout=1.0)\n",
+            "import httpx\ndef go():\n    return httpx.Client(timeout=1.0)\n",
             encoding="utf-8",
         )
         violations = _find_violations(bad_source)

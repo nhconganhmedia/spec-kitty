@@ -61,7 +61,7 @@ def test_adr_2x_readme_no_false_symlink_claim() -> None:
     assert match is None, (
         f"docs/adr/2.x/README.md still contains a present-tense dropped-symlink claim "
         f"(SC-006 regression).  Offending text near char {match.start()}: "
-        f"{text[max(0, match.start() - 40):match.end() + 40]!r}"
+        f"{text[max(0, match.start() - 40) : match.end() + 40]!r}"
     )
 
 
@@ -76,12 +76,8 @@ def test_owned_readmes_no_present_tense_architecture_symlink_claims() -> None:
     for readme in _OWNED_READMES:
         text = readme.read_text(encoding="utf-8")
         for match in _BACCOMPAT_SYMLINK_CLAIM_RE.finditer(text):
-            offences.append(
-                f"{readme.relative_to(REPO_ROOT)}: {text[max(0, match.start() - 20):match.end() + 40]!r}"
-            )
+            offences.append(f"{readme.relative_to(REPO_ROOT)}: {text[max(0, match.start() - 20) : match.end() + 40]!r}")
 
-    assert len(offences) == 0, (
-        f"Found {len(offences)} present-tense architecture/ symlink claim(s) in owned "
-        f"ADR READMEs (SC-006 regression):\n"
-        + "\n".join(f"  - {o}" for o in offences)
+    assert len(offences) == 0, f"Found {len(offences)} present-tense architecture/ symlink claim(s) in owned ADR READMEs (SC-006 regression):\n" + "\n".join(
+        f"  - {o}" for o in offences
     )

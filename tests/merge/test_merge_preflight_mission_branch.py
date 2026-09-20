@@ -72,12 +72,8 @@ def _prepare_dry_run(
     # WP06 (#2057): the dry-run preview now runs in the ``forecast`` seam, so the
     # collaborators it consumes must be patched there (the shim no longer binds
     # ``require_lanes_json`` — it moved with the executor/forecast seams).
-    monkeypatch.setattr(
-        "specify_cli.merge.forecast.get_main_repo_root", lambda repo_root: repo_root
-    )
-    monkeypatch.setattr(
-        "specify_cli.merge.forecast.require_lanes_json", lambda _feature_dir: _manifest()
-    )
+    monkeypatch.setattr("specify_cli.merge.forecast.get_main_repo_root", lambda repo_root: repo_root)
+    monkeypatch.setattr("specify_cli.merge.forecast.require_lanes_json", lambda _feature_dir: _manifest())
     monkeypatch.setattr(
         merge_mod,
         "_enforce_target_branch_sync_preflight",
@@ -130,24 +126,23 @@ class TestCheckMissionBranch:
             "specify_cli.merge.preflight._has_branch_ref",
             return_value=True,
         ):
-            exists, blocker = _check_mission_branch(
-                "my-mission", tmp_path, mission_id=self._RESOLVABLE_ID
-            )
+            exists, blocker = _check_mission_branch("my-mission", tmp_path, mission_id=self._RESOLVABLE_ID)
 
         assert exists is True
         assert blocker is None
 
     def test_branch_missing_returns_false_with_payload(self, tmp_path: Path) -> None:
-        with patch(
-            "specify_cli.merge.preflight._has_branch_ref",
-            return_value=False,
-        ), patch(
-            "specify_cli.merge.preflight.run_command",
-            return_value=(0, "abc1234def5678\n", ""),
+        with (
+            patch(
+                "specify_cli.merge.preflight._has_branch_ref",
+                return_value=False,
+            ),
+            patch(
+                "specify_cli.merge.preflight.run_command",
+                return_value=(0, "abc1234def5678\n", ""),
+            ),
         ):
-            exists, blocker = _check_mission_branch(
-                "my-mission", tmp_path, mission_id=self._RESOLVABLE_ID
-            )
+            exists, blocker = _check_mission_branch("my-mission", tmp_path, mission_id=self._RESOLVABLE_ID)
 
         assert exists is False
         assert blocker is not None
@@ -156,26 +151,30 @@ class TestCheckMissionBranch:
         assert blocker["expected_branch"] == self._RESOLVED_BRANCH
         assert blocker["remediation"] == f"git branch {self._RESOLVED_BRANCH} abc1234def56"
 
-    def test_branch_missing_fail_closed_for_unresolvable_modern_slug(
-        self, tmp_path: Path
-    ) -> None:
+    def test_branch_missing_fail_closed_for_unresolvable_modern_slug(self, tmp_path: Path) -> None:
         """No mission_id + modern slug (no NNN-, no mid8) -> #1978 fail-closed."""
         from specify_cli.lanes.branch_naming import BranchIdentityUnresolved
 
-        with patch(
-            "specify_cli.merge.preflight._has_branch_ref",
-            return_value=False,
-        ), pytest.raises(BranchIdentityUnresolved):
+        with (
+            patch(
+                "specify_cli.merge.preflight._has_branch_ref",
+                return_value=False,
+            ),
+            pytest.raises(BranchIdentityUnresolved),
+        ):
             _check_mission_branch("my-mission", tmp_path)
 
     def test_branch_missing_uses_manifest_branch_when_supplied(self, tmp_path: Path) -> None:
         manifest_branch = "kitty/mission-my-mission-01KQ-01KQTEST"
-        with patch(
-            "specify_cli.merge.preflight._has_branch_ref",
-            return_value=False,
-        ), patch(
-            "specify_cli.merge.preflight.run_command",
-            return_value=(0, "abc1234def5678\n", ""),
+        with (
+            patch(
+                "specify_cli.merge.preflight._has_branch_ref",
+                return_value=False,
+            ),
+            patch(
+                "specify_cli.merge.preflight.run_command",
+                return_value=(0, "abc1234def5678\n", ""),
+            ),
         ):
             exists, blocker = _check_mission_branch(
                 "my-mission-01KQ",
@@ -248,7 +247,7 @@ class TestMergeDryRunMissingBranch:
                 dry_run=False,
                 json_output=False,
                 mission=mission_slug,
-                        resume=True,
+                resume=True,
                 abort=False,
                 context_token=None,
                 keep_workspace=False,
@@ -317,7 +316,7 @@ class TestMergeDryRunMissingBranch:
                 dry_run=False,
                 json_output=False,
                 mission=mission_slug,
-                        resume=True,
+                resume=True,
                 abort=False,
                 context_token=None,
                 keep_workspace=False,
@@ -369,7 +368,7 @@ class TestMergeDryRunMissingBranch:
             dry_run=False,
             json_output=False,
             mission=None,
-                resume=True,
+            resume=True,
             abort=False,
             context_token=None,
             keep_workspace=False,
@@ -434,7 +433,7 @@ class TestMergeDryRunMissingBranch:
             dry_run=False,
             json_output=False,
             mission=mission_slug,
-                resume=False,
+            resume=False,
             abort=True,
             context_token=None,
             keep_workspace=False,
@@ -486,7 +485,7 @@ class TestMergeDryRunMissingBranch:
             dry_run=False,
             json_output=False,
             mission=None,
-                resume=False,
+            resume=False,
             abort=True,
             context_token=None,
             keep_workspace=False,
@@ -549,7 +548,7 @@ class TestMergeDryRunMissingBranch:
             dry_run=False,
             json_output=False,
             mission=mission_slug,
-                resume=False,
+            resume=False,
             abort=True,
             context_token=None,
             keep_workspace=False,
@@ -813,9 +812,7 @@ class TestMergeDryRunHappyPath:
     ) -> None:
         """Existing happy-path preflight behavior is unaffected."""
         _prepare_dry_run(monkeypatch, tmp_path, branch_ok=True)
-        monkeypatch.setattr(
-            "specify_cli.merge.forecast.needs_number_assignment", lambda _feature_dir: False
-        )
+        monkeypatch.setattr("specify_cli.merge.forecast.needs_number_assignment", lambda _feature_dir: False)
 
         _invoke_merge_dry_run(json_output=True)
 

@@ -178,9 +178,7 @@ class TestListAvailableAcrossLayers:
         # Built-in still present.
         assert "001-architectural-integrity-standard" in result
 
-    def test_project_layer_ignores_legacy_plural_directory(
-        self, manager: CharterPackManager, ctx: ProjectContext, tmp_path: Path
-    ) -> None:
+    def test_project_layer_ignores_legacy_plural_directory(self, manager: CharterPackManager, ctx: ProjectContext, tmp_path: Path) -> None:
         """Project layer scans the singular runtime layout, not plural pack dirs."""
         project_root = tmp_path / "project-doctrine"
         _write_directive(
@@ -194,9 +192,7 @@ class TestListAvailableAcrossLayers:
             "DIRECTIVE_951",
         )
 
-        result = manager.list_available(
-            ctx, kind="directive", layer_roots={"project": project_root}
-        )
+        result = manager.list_available(ctx, kind="directive", layer_roots={"project": project_root})
 
         assert "950-project-rule" in result
         assert "951-legacy-project-rule" not in result
@@ -205,9 +201,7 @@ class TestListAvailableAcrossLayers:
         org_root = tmp_path / "org-doctrine"
         _write_directive(org_root / "doctrine" / "directives" / "org", "900-org-rule", "DIRECTIVE_900")
 
-        detailed = manager.list_available_detailed(
-            ctx, kind="directive", layer_roots={"org": org_root}
-        )
+        detailed = manager.list_available_detailed(ctx, kind="directive", layer_roots={"org": org_root})
         by_id = {e.artifact_id: e.layer for e in detailed}
         assert by_id["900-org-rule"] == "org"
         assert by_id["001-architectural-integrity-standard"] == "built-in"
@@ -227,13 +221,9 @@ class TestListAvailableIdAware:
         good_dir = org_root / "doctrine" / "directives" / "org"
         good_dir.mkdir(parents=True)
         # Valid artifact (has id:)
-        (good_dir / "900-good.directive.yaml").write_text(
-            "id: DIRECTIVE_900\ntype: directive\n", encoding="utf-8"
-        )
+        (good_dir / "900-good.directive.yaml").write_text("id: DIRECTIVE_900\ntype: directive\n", encoding="utf-8")
         # Malformed artifact (no id:)
-        (good_dir / "901-no-id.directive.yaml").write_text(
-            "type: directive\ntitle: missing id\n", encoding="utf-8"
-        )
+        (good_dir / "901-no-id.directive.yaml").write_text("type: directive\ntitle: missing id\n", encoding="utf-8")
 
         result = manager.list_available(ctx, kind="directive", layer_roots={"org": org_root})
         assert "900-good" in result
@@ -246,9 +236,7 @@ class TestListAvailableIdAware:
 
 
 class TestActivationDelegation:
-    def test_activate_materializes_the_effective_set_and_persists(
-        self, manager: CharterPackManager, ctx: ProjectContext, project_root: Path
-    ) -> None:
+    def test_activate_materializes_the_effective_set_and_persists(self, manager: CharterPackManager, ctx: ProjectContext, project_root: Path) -> None:
         """#4253: materialization preserves what was effective, not default.yaml.
 
         The persisted set must therefore be wider than the default pack — that
@@ -259,9 +247,7 @@ class TestActivationDelegation:
         data = yaml.safe_load((project_root / ".kittify" / "config.yaml").read_text())
         assert "025-boy-scout-rule" in data["activated_directives"]
         available = manager.list_available(ctx, "directive")
-        assert not set(available) - set(data["activated_directives"]), (
-            "activation dropped a previously effective directive"
-        )
+        assert not set(available) - set(data["activated_directives"]), "activation dropped a previously effective directive"
 
     def test_activate_accepts_org_layer_artifact(
         self,
@@ -288,9 +274,7 @@ class TestActivationDelegation:
         data = yaml.safe_load((project_root / ".kittify" / "config.yaml").read_text())
         assert "900-org-rule" in data["activated_directives"]
 
-    def test_activate_unknown_id_raises_typed_error_no_write(
-        self, manager: CharterPackManager, ctx: ProjectContext, project_root: Path
-    ) -> None:
+    def test_activate_unknown_id_raises_typed_error_no_write(self, manager: CharterPackManager, ctx: ProjectContext, project_root: Path) -> None:
         config = project_root / ".kittify" / "config.yaml"
         before = config.read_text(encoding="utf-8")
         with pytest.raises(UnknownActivationIdError):
@@ -298,22 +282,16 @@ class TestActivationDelegation:
         # NFR-003: nothing written on a failed plan.
         assert config.read_text(encoding="utf-8") == before
 
-    def test_deactivate_removes_via_engine(
-        self, manager: CharterPackManager, project_root: Path
-    ) -> None:
+    def test_deactivate_removes_via_engine(self, manager: CharterPackManager, project_root: Path) -> None:
         config = project_root / ".kittify" / "config.yaml"
-        config.write_text(
-            "activated_directives:\n  - keep-me\n  - drop-me\n", encoding="utf-8"
-        )
+        config.write_text("activated_directives:\n  - keep-me\n  - drop-me\n", encoding="utf-8")
         ctx = ProjectContext(repo_root=project_root)
         result = manager.deactivate(ctx, kind="directive", artifact_id="drop-me")
         assert "drop-me" in result.deactivated
         data = yaml.safe_load(config.read_text())
         assert data["activated_directives"] == ["keep-me"]
 
-    def test_deactivate_none_state_raises_typed_error_not_sysexit(
-        self, manager: CharterPackManager, ctx: ProjectContext
-    ) -> None:
+    def test_deactivate_none_state_raises_typed_error_not_sysexit(self, manager: CharterPackManager, ctx: ProjectContext) -> None:
         """T042: no sys.exit — the engine raises NoActivationRestrictionsError."""
         with pytest.raises(NoActivationRestrictionsError):
             manager.deactivate(ctx, kind="directive", artifact_id="anything")
@@ -362,29 +340,19 @@ class TestResolveLayerCandidate:
     """
 
     def test_project_layer_layered_uses_project_kind_dir(self, tmp_path: Path) -> None:
-        candidate = _resolve_layer_candidate(
-            "project", tmp_path, ArtifactKind.DIRECTIVE, "doctrine/directives", layered=True
-        )
+        candidate = _resolve_layer_candidate("project", tmp_path, ArtifactKind.DIRECTIVE, "doctrine/directives", layered=True)
         assert candidate == tmp_path / "doctrine" / "directive"
 
     def test_org_layer_layered_delegates_to_org_layer_resolver(self, tmp_path: Path) -> None:
         # No flat ``tmp_path/directives`` dir exists, so the org resolver's
         # nested-layout fallback applies (see ``_resolve_org_layer_dir``).
-        candidate = _resolve_layer_candidate(
-            "org", tmp_path, ArtifactKind.DIRECTIVE, "doctrine/directives", layered=True
-        )
+        candidate = _resolve_layer_candidate("org", tmp_path, ArtifactKind.DIRECTIVE, "doctrine/directives", layered=True)
         assert candidate == tmp_path / "doctrine/directives" / "org"
 
-    def test_built_in_layer_layered_delegates_to_built_in_dir(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_built_in_layer_layered_delegates_to_built_in_dir(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         sentinel = tmp_path / "sentinel-built-in"
-        monkeypatch.setattr(
-            "charter.activation.pack_manager.built_in_dir", lambda kind: sentinel if kind is ArtifactKind.DIRECTIVE else None
-        )
-        candidate = _resolve_layer_candidate(
-            "built-in", tmp_path, ArtifactKind.DIRECTIVE, "doctrine/directives", layered=True
-        )
+        monkeypatch.setattr("charter.activation.pack_manager.built_in_dir", lambda kind: sentinel if kind is ArtifactKind.DIRECTIVE else None)
+        candidate = _resolve_layer_candidate("built-in", tmp_path, ArtifactKind.DIRECTIVE, "doctrine/directives", layered=True)
         assert candidate == sentinel
 
     def test_layered_without_kind_falls_back_to_generic_join(self, tmp_path: Path) -> None:
@@ -393,15 +361,11 @@ class TestResolveLayerCandidate:
         the flat ``mission-type`` layout), but the pre-extraction code carried
         this fallback and the refactor must not silently drop it.
         """
-        candidate = _resolve_layer_candidate(
-            "org", tmp_path, None, "some/base/dir", layered=True
-        )
+        candidate = _resolve_layer_candidate("org", tmp_path, None, "some/base/dir", layered=True)
         assert candidate == tmp_path / "some/base/dir" / "org"
 
     def test_flat_built_in_layer_uses_missions_root(self, tmp_path: Path) -> None:
-        candidate = _resolve_layer_candidate(
-            "built-in", tmp_path, None, "missions/mission_types", layered=False
-        )
+        candidate = _resolve_layer_candidate("built-in", tmp_path, None, "missions/mission_types", layered=False)
         from charter.offering.missions.repository import MissionTemplateRepository
 
         assert candidate == MissionTemplateRepository.default_missions_root() / "mission_types"
@@ -413,14 +377,10 @@ class TestResolveLayerCandidate:
         flat (``layered=False``) kind in the org layer now resolves to a real
         directory instead of ``None``. See
         ``docs/adr/3.x/2026-08-13-1-mission-type-roster-layering-seam.md``."""
-        candidate = _resolve_layer_candidate(
-            "org", tmp_path, None, "missions/mission_types", layered=False
-        )
+        candidate = _resolve_layer_candidate("org", tmp_path, None, "missions/mission_types", layered=False)
         assert candidate == tmp_path / "mission_types"
 
-    def test_flat_kind_project_layer_resolves_to_kittify_missions_mission_types(
-        self, tmp_path: Path
-    ) -> None:
+    def test_flat_kind_project_layer_resolves_to_kittify_missions_mission_types(self, tmp_path: Path) -> None:
         """FR-005: a project's flat mission-type roster lives at
         ``.kittify/missions/mission_types/`` — a flat sibling of, not nested
         inside, ``.kittify/missions/<mission_name>/`` (CL-005). ``root`` here
@@ -429,7 +389,5 @@ class TestResolveLayerCandidate:
         This supersedes the pre-FR-003/FR-005 ``else: continue`` behaviour
         this test used to pin — a flat (``layered=False``) kind in the
         project layer now resolves to a real directory instead of ``None``."""
-        candidate = _resolve_layer_candidate(
-            "project", tmp_path, None, "missions/mission_types", layered=False
-        )
+        candidate = _resolve_layer_candidate("project", tmp_path, None, "missions/mission_types", layered=False)
         assert candidate == tmp_path / "missions" / "mission_types"

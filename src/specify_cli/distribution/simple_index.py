@@ -181,10 +181,7 @@ def _versions_from_html(html: str, package_prefix: str | None) -> list[str]:
     except Exception:
         # Fall back to a tolerant regex scan if the HTML parser chokes. The
         # regex cannot see ``data-yanked``, so treat these as not-yanked.
-        collector.entries = [
-            (href, False)
-            for href in re.findall(r"""href=["']([^"']+)["']""", html, flags=re.I)
-        ]
+        collector.entries = [(href, False) for href in re.findall(r"""href=["']([^"']+)["']""", html, flags=re.I)]
 
     versions: list[str] = []
     for href, is_yanked in collector.entries:
@@ -246,9 +243,7 @@ def _version_from_wheel(filename: str, package_prefix: str | None) -> str | None
         if name not in prefixes and str(name) not in prefixes:
             # packaging normalizes to PEP 503 form; also compare normalized.
             normalized_name = _PEP503_NORMALIZE_RE.sub("-", str(name)).lower()
-            normalized_prefixes = {
-                _PEP503_NORMALIZE_RE.sub("-", p).lower() for p in prefixes
-            }
+            normalized_prefixes = {_PEP503_NORMALIZE_RE.sub("-", p).lower() for p in prefixes}
             if normalized_name not in normalized_prefixes:
                 return None
     return ver_str

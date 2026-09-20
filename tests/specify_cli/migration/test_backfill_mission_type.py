@@ -47,9 +47,7 @@ def _write_meta(repo_root: Path, slug: str, meta: dict[str, object]) -> Path:
 
 
 def _read_meta(feature_dir: Path) -> dict[str, object]:
-    result: dict[str, object] = json.loads(
-        (feature_dir / "meta.json").read_text(encoding="utf-8")
-    )
+    result: dict[str, object] = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
     return result
 
 
@@ -96,10 +94,7 @@ def test_already_typed_mission_untouched_byte_identical(tmp_path: Path) -> None:
     # Deliberately unsorted keys ("zeta" < nothing alphabetically before
     # "mission_type" in this insertion order) and compact-ish formatting —
     # NOT what json.dumps(..., sort_keys=True, indent=2) would produce.
-    raw_content = (
-        '{\n  "zeta_field": "z",\n  "mission_type": "software-dev",\n'
-        '  "mission": "software-dev",\n  "alpha_field": "a"\n}\n'
-    )
+    raw_content = '{\n  "zeta_field": "z",\n  "mission_type": "software-dev",\n  "mission": "software-dev",\n  "alpha_field": "a"\n}\n'
     meta_path.write_text(raw_content, encoding="utf-8")
     before = meta_path.read_bytes()
 
@@ -211,9 +206,7 @@ def test_present_but_blank_mission_type_left_untouched(tmp_path: Path) -> None:
     # shape (spec Out of scope): the KEY is present, so the mission is NOT a
     # legacy-key-only candidate and must be left byte-identical even when a
     # resolving legacy value sits alongside it.
-    feature_dir = _write_meta(
-        tmp_path, "008-theta", {"mission_type": "", "mission": "software-dev"}
-    )
+    feature_dir = _write_meta(tmp_path, "008-theta", {"mission_type": "", "mission": "software-dev"})
     before = (feature_dir / "meta.json").read_bytes()
 
     results = backfill_mission_type_repo(tmp_path)

@@ -213,7 +213,6 @@ _ABSENT_ERRNOS = frozenset({errno.ENOENT, errno.ENOTDIR, errno.EBADF, errno.ELOO
 _SPECS_DIRNAME = KITTY_SPECS_DIR
 
 
-
 @dataclass(frozen=True)
 class DecisionOwnership:
     """The outcome of an ownership search — an explicit verdict, never a bare bool.
@@ -445,9 +444,7 @@ def _mission_dirs(repo_root: Path, mission_slug: str | None) -> _MissionScan:
         # silent skip is right for it — nothing was hidden from us there.
         try:
             resolved = candidate.resolve()
-            if not S_ISDIR(resolved.stat().st_mode) or not resolved.is_relative_to(
-                specs_root
-            ):
+            if not S_ISDIR(resolved.stat().st_mode) or not resolved.is_relative_to(specs_root):
                 continue
         except OSError as exc:
             # ABSENT beats UNREADABLE, and the split is on errno — see
@@ -574,9 +571,7 @@ def resolve_decision_ownership(
             # that is not the answer must not veto a positive hit elsewhere.
             unreadable.append(mission_dir.name)
             continue
-        if read.index is not None and any(
-            entry.decision_id == decision_id for entry in read.index.entries
-        ):
+        if read.index is not None and any(entry.decision_id == decision_id for entry in read.index.entries):
             owning = mission_dir.name
             break
 
@@ -604,14 +599,8 @@ def _specs_root_refusal(outcome: DecisionOwnership) -> str | None:
         return None
 
     specs_path = outcome.repo_root / _SPECS_DIRNAME
-    preamble = (
-        f"the checkout at {outcome.repo_root} could not be searched for "
-        f"decision {outcome.decision_id}: "
-    )
-    consequence = (
-        "so ownership cannot be established and transmitting would ask the wrong "
-        "project's consent; refusing to transmit. "
-    )
+    preamble = f"the checkout at {outcome.repo_root} could not be searched for decision {outcome.decision_id}: "
+    consequence = "so ownership cannot be established and transmitting would ask the wrong project's consent; refusing to transmit. "
 
     if outcome.specs_root_fault == "not-a-directory":
         # LOW-7. Says what is wrong with the path's SHAPE and never mentions
@@ -679,11 +668,7 @@ def ownership_refusal(outcome: DecisionOwnership) -> str | None:
         return specs_root_refusal
 
     if outcome.missions_searched:
-        searched = (
-            f"{len(outcome.missions_searched)} mission(s) searched under "
-            f"{outcome.repo_root / _SPECS_DIRNAME}: "
-            f"{', '.join(outcome.missions_searched)}"
-        )
+        searched = f"{len(outcome.missions_searched)} mission(s) searched under {outcome.repo_root / _SPECS_DIRNAME}: {', '.join(outcome.missions_searched)}"
     elif outcome.unreadable_ledgers:
         # LOW-8, the other half. Reached only when every mission the glob found
         # was dropped as unstattable, and in that case "no missions were found"
@@ -691,15 +676,9 @@ def ownership_refusal(outcome: DecisionOwnership) -> str | None:
         # sentence is the misdiagnosis this residual quotes, so setting the flag
         # without removing it would be naming the cause and then contradicting it
         # in the same breath.
-        searched = (
-            f"no mission under {outcome.repo_root / _SPECS_DIRNAME} could be "
-            "searched at all"
-        )
+        searched = f"no mission under {outcome.repo_root / _SPECS_DIRNAME} could be searched at all"
     else:
-        searched = (
-            f"no missions were found under {outcome.repo_root / _SPECS_DIRNAME} "
-            "to search"
-        )
+        searched = f"no missions were found under {outcome.repo_root / _SPECS_DIRNAME} to search"
 
     unreadable = ""
     if outcome.unreadable_ledgers:

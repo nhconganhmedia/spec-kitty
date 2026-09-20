@@ -129,18 +129,14 @@ def test_get_dependents_surfaces_direct_dependents() -> None:
 
 def test_check_dependent_warnings_skips_non_for_review() -> None:
     """No graph build, no resolution when the target lane is not for_review."""
-    with patch(
-        "specify_cli.cli.commands.agent.tasks_dependency_graph.build_dependency_graph"
-    ) as build_mock:
+    with patch("specify_cli.cli.commands.agent.tasks_dependency_graph.build_dependency_graph") as build_mock:
         _check_dependent_warnings(Path("/repo"), MISSION_SLUG, "WP01", Lane.IN_PROGRESS, json_mode=False)
     build_mock.assert_not_called()
 
 
 def test_check_dependent_warnings_skips_json_mode() -> None:
     """JSON mode suppresses the warning path entirely."""
-    with patch(
-        "specify_cli.cli.commands.agent.tasks_dependency_graph.build_dependency_graph"
-    ) as build_mock:
+    with patch("specify_cli.cli.commands.agent.tasks_dependency_graph.build_dependency_graph") as build_mock:
         _check_dependent_warnings(Path("/repo"), MISSION_SLUG, "WP01", Lane.FOR_REVIEW, json_mode=True)
     build_mock.assert_not_called()
 
@@ -353,11 +349,7 @@ def test_behind_commits_other_mission_ledger_is_non_blocking(tmp_path: Path) -> 
         _subproc(returncode=0, stdout="abc123\n"),  # merge-base
         _subproc(
             returncode=0,
-            stdout=(
-                f"kitty-specs/{MISSION_SLUG}/tasks.md\n"
-                "kitty-specs/some-other-mission/status.events.jsonl\n"
-                "kitty-specs/third-mission/plan.md\n"
-            ),
+            stdout=(f"kitty-specs/{MISSION_SLUG}/tasks.md\nkitty-specs/some-other-mission/status.events.jsonl\nkitty-specs/third-mission/plan.md\n"),
         ),
     ]
     with patch("subprocess.run", side_effect=responses):

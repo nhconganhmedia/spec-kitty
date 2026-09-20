@@ -183,15 +183,9 @@ class CascadeScope:
 
     def __post_init__(self) -> None:
         if self.is_all and self.kinds:
-            raise ValueError(
-                "CascadeScope is either the all-kind shorthand (is_all=True) or an "
-                "explicit kind set, not both."
-            )
+            raise ValueError("CascadeScope is either the all-kind shorthand (is_all=True) or an explicit kind set, not both.")
         if not self.is_all and not self.kinds:
-            raise ValueError(
-                "CascadeScope with is_all=False requires at least one kind. "
-                "Use scope=None at the call site to express 'no cascade'."
-            )
+            raise ValueError("CascadeScope with is_all=False requires at least one kind. Use scope=None at the call site to express 'no cascade'.")
 
     def selects(self, kind: ArtifactKind) -> bool:
         """Return ``True`` when *kind* is in scope (always ``True`` for ``ALL``)."""
@@ -281,9 +275,7 @@ def _reference_adjacency(edges: list[DRGEdge]) -> dict[str, list[str]]:
     return adj
 
 
-def _referenced_artifacts(
-    graph: DRGGraph, source_urn: str
-) -> tuple[list[ReferencedArtifact], list[ReferencedArtifact]]:
+def _referenced_artifacts(graph: DRGGraph, source_urn: str) -> tuple[list[ReferencedArtifact], list[ReferencedArtifact]]:
     """Return activatable and kind-filtered nodes referenced from *source_urn*.
 
     Pure forward closure over :data:`_REFERENCE_RELATIONS`, filtered twice:
@@ -619,25 +611,16 @@ def deactivation_plan(
     # candidate alive). For each remaining source, the set of artifacts it still
     # reaches; mapped back so we can name a referencing source for shared skips.
     remaining_sources = active_urns - {target_urn}
-    reachable_by_source: dict[str, set[str]] = {
-        source: _forward_reference_closure(adj, {source})
-        for source in remaining_sources
-    }
+    reachable_by_source: dict[str, set[str]] = {source: _forward_reference_closure(adj, {source}) for source in remaining_sources}
 
     deactivate: list[str] = []
     skipped_shared: list[SharedSkip] = []
     for candidate in candidates:
         # Find a still-active source (deterministic: lowest URN) that still
         # references the candidate. If one exists the candidate is shared.
-        referencing = sorted(
-            source
-            for source, reached in reachable_by_source.items()
-            if candidate in reached
-        )
+        referencing = sorted(source for source, reached in reachable_by_source.items() if candidate in reached)
         if referencing:
-            skipped_shared.append(
-                SharedSkip(urn=candidate, referencing_active_urn=referencing[0])
-            )
+            skipped_shared.append(SharedSkip(urn=candidate, referencing_active_urn=referencing[0]))
         else:
             deactivate.append(candidate)
 

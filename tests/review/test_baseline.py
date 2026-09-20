@@ -1,4 +1,5 @@
 """Tests for specify_cli.review.baseline — WP04: Baseline Test Capture."""
+
 from __future__ import annotations
 
 import json
@@ -86,6 +87,7 @@ def _make_failure(test: str, error: str = "AssertionError", file: str = "tests/f
 # T017 - Dataclass round-trip
 # ---------------------------------------------------------------------------
 
+
 class TestBaselineTestResultRoundTrip:
     """test_baseline_test_result_round_trip — save and load JSON, compare fields."""
 
@@ -140,6 +142,7 @@ class TestBaselineTestResultRoundTrip:
 # ---------------------------------------------------------------------------
 # T018 - capture_baseline()
 # ---------------------------------------------------------------------------
+
 
 class TestCaptureBaseline:
     """Tests for the capture_baseline() function."""
@@ -389,7 +392,7 @@ class TestCaptureBaseline:
                 mission_slug="066-test",
                 feature_dir=feature_dir,
                 wp_slug="WP04-test",
-                test_command='custom-runner --junitxml={output_file} && echo done',
+                test_command="custom-runner --junitxml={output_file} && echo done",
             )
 
         assert result is not None
@@ -444,7 +447,9 @@ class TestRunCommandForBaselineProcessGroupSafety:
             return self.returncode
 
     def test_launches_with_process_group_isolation(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
     ) -> None:
         """``Popen`` is invoked with ``start_new_session=True`` (POSIX) -- the
         SAME flag ``pre_review_gate._launch_scoped_process`` uses for the
@@ -469,7 +474,9 @@ class TestRunCommandForBaselineProcessGroupSafety:
         assert raw.returncode == 0
 
     def test_kills_the_whole_process_group_on_timeout(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
     ) -> None:
         """On timeout, ``os.killpg`` fires (the process GROUP, not just the
         direct ``sh`` child) -- proving a compound ``sh -c "export ...;
@@ -499,9 +506,7 @@ class TestRunCommandForBaselineProcessGroupSafety:
             return monotonic_calls["n"] * 10_000_000.0
 
         monkeypatch.setattr(pre_review_gate.subprocess, "Popen", lambda *a, **k: process)
-        monkeypatch.setattr(
-            pre_review_gate.os, "killpg", lambda pid, sig: killpg_calls.append((pid, sig))
-        )
+        monkeypatch.setattr(pre_review_gate.os, "killpg", lambda pid, sig: killpg_calls.append((pid, sig)))
         monkeypatch.setattr(time, "monotonic", _fake_monotonic)
 
         raw = _run_command_for_baseline(
@@ -521,6 +526,7 @@ class TestRunCommandForBaselineProcessGroupSafety:
 # ---------------------------------------------------------------------------
 # T017 + T018 - JUnit XML parsing
 # ---------------------------------------------------------------------------
+
 
 class TestJunitXmlParsing:
     """test_junit_xml_parsing — parse a sample JUnit XML file."""
@@ -583,6 +589,7 @@ class TestJunitXmlParsing:
 # T019 - diff_baseline()
 # ---------------------------------------------------------------------------
 
+
 class TestDiffBaseline:
     """Tests for diff_baseline()."""
 
@@ -644,6 +651,7 @@ class TestDiffBaseline:
 # T021 - Review prompt includes baseline section
 # ---------------------------------------------------------------------------
 
+
 class TestReviewPromptIncludesBaselineSection:
     """test_review_prompt_includes_baseline_section."""
 
@@ -671,10 +679,7 @@ class TestReviewPromptIncludesBaselineSection:
         # Simulate prompt rendering logic
         lines = []
         if loaded.failed > 0:
-            lines.append(
-                f"**{loaded.failed} test failure(s) existed BEFORE this WP** "
-                f"(base: {loaded.base_branch} @ {loaded.base_commit[:7]}):"
-            )
+            lines.append(f"**{loaded.failed} test failure(s) existed BEFORE this WP** (base: {loaded.base_branch} @ {loaded.base_commit[:7]}):")
             for f in loaded.failures:
                 lines.append(f"| {f.test} | {f.error[:80]} | {f.file} |")
             lines.append("**These failures are NOT regressions introduced by this WP.**")
@@ -709,6 +714,7 @@ class TestReviewPromptIncludesBaselineSection:
 # ---------------------------------------------------------------------------
 # T022 - Config custom test command
 # ---------------------------------------------------------------------------
+
 
 class TestConfigCustomTestCommand:
     """test_config_custom_test_command — config overrides default pytest command."""
@@ -758,6 +764,7 @@ class TestConfigCustomTestCommand:
 # ---------------------------------------------------------------------------
 # Additional coverage for error paths
 # ---------------------------------------------------------------------------
+
 
 class TestCoverageEdgeCases:
     """Additional tests to cover edge/error paths in baseline.py."""
@@ -928,8 +935,7 @@ class TestCoverageEdgeCases:
                 # string — mirrors the safe sibling fakes at ~253/294/338.
                 output_file = kwargs["env"]["SPEC_KITTY_CMD_OUTPUT_FILE"]
                 Path(output_file).write_text(
-                    '<?xml version="1.0"?><testsuites><testsuite tests="1">'
-                    '<testcase classname="a" name="b"/></testsuite></testsuites>',
+                    '<?xml version="1.0"?><testsuites><testsuite tests="1"><testcase classname="a" name="b"/></testsuite></testsuites>',
                     encoding="utf-8",
                 )
             return result
@@ -987,9 +993,7 @@ def _git_commit_all_3612(path: Path, message: str) -> None:
     subprocess.run(["git", "commit", "-q", "-m", message], cwd=path, check=True)
 
 
-def _build_repo_with_command_3612(
-    tmp_path: Path, *, name: str, test_command: str, extra_files: dict[str, str]
-) -> Path:
+def _build_repo_with_command_3612(tmp_path: Path, *, name: str, test_command: str, extra_files: dict[str, str]) -> Path:
     repo = tmp_path / name
     _init_git_repo_3612(repo)
     for relative_path, content in extra_files.items():
@@ -1075,9 +1079,7 @@ class TestCaptureBaselineViaScopeSourceDeclaredCommand:
         assert baseline is not None
         assert baseline.failed != -1
         assert not any("Errno 2" in f.error for f in baseline.failures), (
-            "an unexpanded $VAR reaching exec() as a literal token produces a "
-            "launch failure ([Errno 2] No such file or directory), never a "
-            "real test failure"
+            "an unexpanded $VAR reaching exec() as a literal token produces a launch failure ([Errno 2] No such file or directory), never a real test failure"
         )
         assert any(f.test == "tests.test_thing.test_boom" for f in baseline.failures)
 
@@ -1101,6 +1103,5 @@ class TestCaptureBaselineViaScopeSourceDeclaredCommand:
 
         assert baseline is not None
         assert baseline.failed == -1, (
-            f"got a fabricated total={baseline.total}/passed={baseline.passed}/"
-            f"failed={baseline.failed} 'clean' baseline instead of the sentinel"
+            f"got a fabricated total={baseline.total}/passed={baseline.passed}/failed={baseline.failed} 'clean' baseline instead of the sentinel"
         )

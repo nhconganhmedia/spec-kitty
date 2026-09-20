@@ -2,8 +2,8 @@
 
 from charter.offering.tactics.validation import validate_tactic
 import pytest
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 class TestValidateTactic:

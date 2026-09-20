@@ -80,9 +80,7 @@ def _init_project(tmp_path: Path) -> Path:
     # a non-empty activated mission-type set; this fixture's missions are all
     # created with the default software-dev type.
     (kittify / "config.yaml").write_text(
-        "project_slug: topology-fixture\n"
-        "protection:\n  protected_branches: []\n"
-        "mission_type_activations:\n  - software-dev\n",
+        "project_slug: topology-fixture\nprotection:\n  protected_branches: []\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
     (repo / "kitty-specs").mkdir()
@@ -130,9 +128,7 @@ def _invoke_specify(args: list[str]) -> Result:
 # ---------------------------------------------------------------------------
 
 
-def test_specify_topology_single_branch_writes_no_coordination_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_specify_topology_single_branch_writes_no_coordination_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``--topology single_branch`` persists ``topology=single_branch`` and writes
     NO ``coordination_branch`` key into ``meta.json``.
 
@@ -142,33 +138,22 @@ def test_specify_topology_single_branch_writes_no_coordination_branch(
     with _in_project(repo, monkeypatch):
         result = _invoke_specify(["single-branch-demo", "--topology", "single_branch", "--json"])
 
-    assert result.exit_code == 0, (
-        f"specify --topology single_branch failed (exit {result.exit_code}):\n"
-        f"{result.output}\n{getattr(result, 'exception', None)!r}"
-    )
+    assert result.exit_code == 0, f"specify --topology single_branch failed (exit {result.exit_code}):\n{result.output}\n{getattr(result, 'exception', None)!r}"
     feature_dir = _only_feature_dir(repo)
     meta = _read_meta(feature_dir)
     assert meta["topology"] == "single_branch"
-    assert "coordination_branch" not in meta, (
-        "single_branch must NOT write a coordination_branch key (#2218)"
-    )
+    assert "coordination_branch" not in meta, "single_branch must NOT write a coordination_branch key (#2218)"
 
 
-def test_specify_topology_rejects_non_enum_value(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_specify_topology_rejects_non_enum_value(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A non-enum value (``flat``) is rejected by enum validation (exit 2), and no
     mission directory is created."""
     repo = _init_project(tmp_path)
     with _in_project(repo, monkeypatch):
         result = _invoke_specify(["flat-rejected-demo", "--topology", "flat", "--json"])
 
-    assert result.exit_code == 2, (
-        f"non-enum --topology flat must be rejected with exit 2, got {result.exit_code}:\n{result.output}"
-    )
-    assert not [p for p in (repo / "kitty-specs").iterdir() if p.is_dir()], (
-        "a rejected --topology value must not create a mission directory"
-    )
+    assert result.exit_code == 2, f"non-enum --topology flat must be rejected with exit 2, got {result.exit_code}:\n{result.output}"
+    assert not [p for p in (repo / "kitty-specs").iterdir() if p.is_dir()], "a rejected --topology value must not create a mission directory"
 
 
 # ---------------------------------------------------------------------------
@@ -192,9 +177,7 @@ def test_topology_mints_coordination_branch_truth_table() -> None:
     assert topology_mints_coordination_branch(MissionTopology.LANES) is False
 
 
-def test_specify_topology_lanes_persists_choice_without_coord_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_specify_topology_lanes_persists_choice_without_coord_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``--topology lanes`` is STORED verbatim (``topology=lanes``) with NO
     coordination branch.
 
@@ -208,9 +191,7 @@ def test_specify_topology_lanes_persists_choice_without_coord_branch(
 
     assert result.exit_code == 0, f"exit {result.exit_code}:\n{result.output}"
     meta = _read_meta(_only_feature_dir(repo))
-    assert meta["topology"] == "lanes", (
-        "the explicit 'lanes' choice must be persisted, not re-derived to 'single_branch'"
-    )
+    assert meta["topology"] == "lanes", "the explicit 'lanes' choice must be persisted, not re-derived to 'single_branch'"
     assert "coordination_branch" not in meta
 
 
@@ -219,9 +200,7 @@ def test_specify_topology_lanes_persists_choice_without_coord_branch(
 # ---------------------------------------------------------------------------
 
 
-def test_specify_omitted_topology_defaults_to_coord_and_mints_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_specify_omitted_topology_defaults_to_coord_and_mints_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Omitting ``--topology`` reproduces today's behaviour exactly: the mission
     is ``topology=coord`` and a coordination branch is minted and recorded
     (NFR-001 backward-compat)."""
@@ -234,9 +213,7 @@ def test_specify_omitted_topology_defaults_to_coord_and_mints_branch(
     meta = _read_meta(feature_dir)
     assert meta["topology"] == "coord"
     coord_branch = meta.get("coordination_branch")
-    assert isinstance(coord_branch, str) and coord_branch.startswith("kitty/mission-"), (
-        f"omitted --topology must mint a coordination branch (got {coord_branch!r})"
-    )
+    assert isinstance(coord_branch, str) and coord_branch.startswith("kitty/mission-"), f"omitted --topology must mint a coordination branch (got {coord_branch!r})"
     # The minted branch must actually exist as a real git ref.
     refs = _git(feature_dir.parents[1], "branch", "--list", coord_branch).stdout
     assert coord_branch in refs, f"minted coordination branch {coord_branch!r} is not a real ref"
@@ -253,9 +230,7 @@ def _add_origin_on_main(repo: Path, tmp_path: Path) -> None:
     _git(repo, "remote", "set-head", "origin", "main")
 
 
-def test_specify_omitted_topology_on_non_primary_branch_derives_single_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_specify_omitted_topology_on_non_primary_branch_derives_single_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#2581: omitting ``--topology`` on a NON-primary feature branch now derives
     ``single_branch`` (no coordination branch minted) through the shared
     context-derivation — closing the gotcha at the ``/spec-kitty.specify`` entry
@@ -273,8 +248,7 @@ def test_specify_omitted_topology_on_non_primary_branch_derives_single_branch(
     meta = _read_meta(feature_dir)
     assert meta["topology"] == "single_branch", meta
     assert "coordination_branch" not in meta, (
-        f"a non-primary-branch specify without --pr-bound must NOT mint a "
-        f"coordination branch (got {meta.get('coordination_branch')!r})"
+        f"a non-primary-branch specify without --pr-bound must NOT mint a coordination branch (got {meta.get('coordination_branch')!r})"
     )
 
 
@@ -312,8 +286,7 @@ def _no_coord_branch(feature_dir: Path, checkpoint: str) -> None:
     """Assert ``coordination_branch`` is absent at *checkpoint* (T009 fact d)."""
     meta = _read_meta(feature_dir)
     assert "coordination_branch" not in meta, (
-        f"a coordination_branch key was written to meta.json at '{checkpoint}' — "
-        f"a single_branch mission must NEVER mint or record one (#2218)."
+        f"a coordination_branch key was written to meta.json at '{checkpoint}' — a single_branch mission must NEVER mint or record one (#2218)."
     )
 
 
@@ -457,11 +430,7 @@ def _claim_allocation_patched(repo: Path, feature_dir: Path) -> Iterator[MagicMo
             is_reuse=False,
         )
 
-    create_mock = MagicMock(
-        side_effect=lambda *a, **k: _workspace(
-            k.get("wp_id", a[0] if a else "WP"), "lane-a"
-        )
-    )
+    create_mock = MagicMock(side_effect=lambda *a, **k: _workspace(k.get("wp_id", a[0] if a else "WP"), "lane-a"))
     with ExitStack() as stack:
         stack.enter_context(
             patch(
@@ -469,9 +438,7 @@ def _claim_allocation_patched(repo: Path, feature_dir: Path) -> Iterator[MagicMo
                 return_value=CharterPreflightResult(passed=True, checks=[]),
             )
         )
-        stack.enter_context(
-            patch("specify_cli.cli.commands.implement.create_lane_workspace", create_mock)
-        )
+        stack.enter_context(patch("specify_cli.cli.commands.implement.create_lane_workspace", create_mock))
         stack.enter_context(
             patch(
                 "specify_cli.cli.commands.implement.start_implementation_status",
@@ -511,9 +478,7 @@ def _real_merge_external_mocks(repo: Path) -> Iterator[None]:
         gate_eval = MagicMock()
         gate_eval.overall_pass = True
         gate_eval.gates = []
-        stack.enter_context(
-            patch("specify_cli.policy.merge_gates.evaluate_merge_gates", return_value=gate_eval)
-        )
+        stack.enter_context(patch("specify_cli.policy.merge_gates.evaluate_merge_gates", return_value=gate_eval))
         policy = MagicMock()
         policy.merge_gates = []
         stack.enter_context(patch("specify_cli.policy.config.load_policy_config", return_value=policy))
@@ -525,9 +490,7 @@ def _real_merge_external_mocks(repo: Path) -> Iterator[None]:
         yield
 
 
-def test_single_branch_mission_survives_implement_and_merge_end_to_end(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_single_branch_mission_survives_implement_and_merge_end_to_end(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T009 (FR-005): a create-time ``single_branch`` mission completes the
     implement + merge loop and the four observable facts hold."""
     import typer
@@ -579,24 +542,15 @@ def test_single_branch_mission_survives_implement_and_merge_end_to_end(
     with _claim_allocation_patched(repo, feature_dir) as create_mock:
         implement("WP01", mission=slug, auto_commit=False, recover=False)
         # The real claim must have written the vcs-lock self-write to meta.json.
-        assert _read_meta(feature_dir).get("vcs") == "git", (
-            "the real claim path must have written the vcs-lock self-write to meta.json"
-        )
-        dirty_paths = sorted(
-            line[3:] for line in _git(repo, "status", "--porcelain").stdout.splitlines() if line.strip()
-        )
-        assert dirty_paths == [meta_rel], (
-            f"precondition: the only residue facing the second claim must be the "
-            f"lock-dirty meta.json, got {dirty_paths!r}"
-        )
+        assert _read_meta(feature_dir).get("vcs") == "git", "the real claim path must have written the vcs-lock self-write to meta.json"
+        dirty_paths = sorted(line[3:] for line in _git(repo, "status", "--porcelain").stdout.splitlines() if line.strip())
+        assert dirty_paths == [meta_rel], f"precondition: the only residue facing the second claim must be the lock-dirty meta.json, got {dirty_paths!r}"
         # ...and that residue is a lock-FIELD-ONLY diff — the exact case WP02
         # governs (asserted via the production decision helper).
         from kernel.vcs_lock import is_vcs_lock_only_change
 
         committed_meta = json.loads(_git(repo, "show", f"HEAD:{meta_rel}").stdout)
-        assert is_vcs_lock_only_change(committed_meta, _read_meta(feature_dir)), (
-            "the sole residue must be a vcs-lock-only meta.json diff (WP02 scope)"
-        )
+        assert is_vcs_lock_only_change(committed_meta, _read_meta(feature_dir)), "the sole residue must be a vcs-lock-only meta.json diff (WP02 scope)"
         # The SECOND claim's REAL dirty-tree guard must drop the lock-only meta and
         # pass. Without WP02's fix it Exit(1)s here (count stays 1).
         try:
@@ -655,21 +609,15 @@ def test_single_branch_mission_survives_implement_and_merge_end_to_end(
         ("src/b/bar.py", "WP02-single-branch"),
     ):
         blob = _git(repo, "show", f"main:{relpath}").stdout
-        assert needle in blob, (
-            f"FR-005 regression (a): {relpath} content did not reach main after merge"
-        )
+        assert needle in blob, f"FR-005 regression (a): {relpath} content did not reach main after merge"
 
     # (b) the status event log reaches done via the lane reader/reducer.
     snapshot = reduce(read_events(feature_dir))
     for wp_id in ("WP01", "WP02"):
-        assert snapshot.work_packages[wp_id]["lane"] == Lane.DONE.value, (
-            f"FR-005 regression (b): {wp_id} did not reach done in the persisted event log"
-        )
+        assert snapshot.work_packages[wp_id]["lane"] == Lane.DONE.value, f"FR-005 regression (b): {wp_id} did not reach done in the persisted event log"
 
     # (c) read_topology stays single_branch AFTER the full loop.
-    assert read_topology(feature_dir) is MissionTopology.SINGLE_BRANCH, (
-        "FR-005 regression (c): topology did not survive the implement+merge loop"
-    )
+    assert read_topology(feature_dir) is MissionTopology.SINGLE_BRANCH, "FR-005 regression (c): topology did not survive the implement+merge loop"
 
     # (d) no coordination_branch key was EVER written.
     _no_coord_branch(feature_dir, "after merge")

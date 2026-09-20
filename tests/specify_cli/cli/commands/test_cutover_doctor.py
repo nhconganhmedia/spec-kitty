@@ -92,9 +92,7 @@ def test_collect_cutover_audit_empty_corpus(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_doctor_cutover_human_table_reports_both_missions(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_cutover_human_table_reports_both_missions(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_root = _build_corpus(tmp_path)
     monkeypatch.setattr(doctor_module, "locate_project_root", lambda *a, **k: repo_root)
 
@@ -106,9 +104,7 @@ def test_doctor_cutover_human_table_reports_both_missions(
     assert "1/2" in result.output
 
 
-def test_doctor_cutover_json_reports_both_missions(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_cutover_json_reports_both_missions(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_root = _build_corpus(tmp_path)
     monkeypatch.setattr(doctor_module, "locate_project_root", lambda *a, **k: repo_root)
 
@@ -125,9 +121,7 @@ def test_doctor_cutover_json_reports_both_missions(
     assert payload["total"] == 2
 
 
-def test_doctor_cutover_exits_zero_even_when_a_mission_is_not_cut_over(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctor_cutover_exits_zero_even_when_a_mission_is_not_cut_over(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Informational audit (T021): non-zero exit is explicitly out of scope."""
     repo_root = _build_corpus(tmp_path)
     monkeypatch.setattr(doctor_module, "locate_project_root", lambda *a, **k: repo_root)

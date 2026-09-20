@@ -66,10 +66,7 @@ def test_doctrine_org_init_scaffolds_minimal_pack(tmp_path: Path) -> None:
     assert "# expect: valid" in frag_text, "fragment.yaml missing expect: valid frontmatter"
 
     # strip frontmatter comment lines before parsing
-    payload_lines = [
-        line for line in frag_text.splitlines()
-        if not line.strip().startswith("#")
-    ]
+    payload_lines = [line for line in frag_text.splitlines() if not line.strip().startswith("#")]
     payload_text = "\n".join(payload_lines)
     frag_data = YAML(typ="safe").load(payload_text)
     assert frag_data is not None
@@ -310,9 +307,7 @@ def test_doctrine_org_init_from_local_folder(tmp_path: Path) -> None:
     assert not (dest / "kitty-specs").exists()
 
 
-def test_doctrine_org_init_from_bitbucket_ssh_at_ref(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_doctrine_org_init_from_bitbucket_ssh_at_ref(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Git TEMPLATE: ssh://git@…@feat/… clones via GitSource with parsed ref."""
     from specify_cli.doctrine.sources.protocol import FetchResult
 
@@ -332,19 +327,14 @@ def test_doctrine_org_init_from_bitbucket_ssh_at_ref(
 
         def fetch(self, target_dir: Path) -> FetchResult:
             _write_mini_template(target_dir)
-            return FetchResult(
-                ok=True, artifacts_written=2, pack_version="deadbeef", errors=[]
-            )
+            return FetchResult(ok=True, artifacts_written=2, pack_version="deadbeef", errors=[])
 
     monkeypatch.setattr(
         "specify_cli.doctrine.template_render.resolve.GitSource",
         FakeGitSource,
     )
 
-    template = (
-        "ssh://git@git.example.com:7999/org/doctrine-template.git"
-        "@feat/make-embeddable-template"
-    )
+    template = "ssh://git@git.example.com:7999/org/doctrine-template.git@feat/make-embeddable-template"
     dest = tmp_path / "from-git"
 
     result = runner.invoke(
@@ -361,15 +351,11 @@ def test_doctrine_org_init_from_bitbucket_ssh_at_ref(
     )
 
     assert result.exit_code == 0, result.output
-    assert calls["url"] == (
-        "ssh://git@git.example.com:7999/org/doctrine-template.git"
-    )
+    assert calls["url"] == ("ssh://git@git.example.com:7999/org/doctrine-template.git")
     assert calls["ref"] == "feat/make-embeddable-template"
     assert calls["inject_token"] is False
     assert (dest / "pack" / "org-charter.yaml").is_file()
-    assert "acme-corp" in (dest / "pack" / "org-charter.yaml").read_text(
-        encoding="utf-8"
-    )
+    assert "acme-corp" in (dest / "pack" / "org-charter.yaml").read_text(encoding="utf-8")
     assert not (dest / ".git").exists()
     assert not (dest / ".templateignore").exists()
 

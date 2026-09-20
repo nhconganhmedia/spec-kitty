@@ -57,9 +57,7 @@ _BASE_INSTANT = datetime(2026, 1, 1, tzinfo=UTC)
 # ===========================================================================
 
 
-def _event(
-    *, wp_id: str, from_lane: Lane, to_lane: Lane, event_id: str, seq: int, review_ref: str | None = None, force: bool = False
-) -> StatusEvent:
+def _event(*, wp_id: str, from_lane: Lane, to_lane: Lane, event_id: str, seq: int, review_ref: str | None = None, force: bool = False) -> StatusEvent:
     return StatusEvent(
         event_id=event_id,
         mission_slug="trio-mission",
@@ -103,9 +101,7 @@ class TestCollectSnapshotWpsAcrossTheDecisionLoop:
         # REJECT (rewind): in_review -> planned, carrying the review_ref pointer
         pointer = "review-cycle://trio-mission/WP01/review-cycle-1.md"
         assert (
-            _lane_after(
-                _event(wp_id="WP01", from_lane=Lane.IN_REVIEW, to_lane=Lane.PLANNED, event_id="01STEP0000000000000000005", seq=5, review_ref=pointer)
-            )
+            _lane_after(_event(wp_id="WP01", from_lane=Lane.IN_REVIEW, to_lane=Lane.PLANNED, event_id="01STEP0000000000000000005", seq=5, review_ref=pointer))
             == "planned"
         )
         # RESUME: implementer re-claims after rejection
@@ -184,9 +180,7 @@ class TestLenientStatusReadDegradeContract:
     asymmetry between the trio's two status-dir readers is pinned here so a
     refactor cannot silently unify (or further diverge) them by accident."""
 
-    def test_acceptance_degrades_to_feature_dir_when_resolved_status_dir_absent(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_acceptance_degrades_to_feature_dir_when_resolved_status_dir_absent(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         feature_dir = tmp_path / "kitty-specs" / "trio-mission"
         feature_dir.mkdir(parents=True)
         unmaterialized_coord = tmp_path / "coord-worktree" / "kitty-specs" / "trio-mission"
@@ -221,9 +215,7 @@ class TestLenientStatusReadDegradeContract:
 
         assert result == materialized_coord
 
-    def test_workflow_canonical_status_dir_has_no_fallback_and_returns_nonexistent_path(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_workflow_canonical_status_dir_has_no_fallback_and_returns_nonexistent_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Contrast case: ``workflow._canonical_status_feature_dir`` passes the
         seam's result straight through, unlike acceptance's degrade wrapper."""
         feature_dir = tmp_path / "kitty-specs" / "trio-mission"

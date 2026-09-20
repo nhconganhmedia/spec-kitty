@@ -116,9 +116,7 @@ def compose_template_with_workflow(
     composed: list[PromptStep] = []
     previous_id: str | None = None
 
-    if workflow.initial == "specify" and "discovery" in by_id and "discovery" not in {
-        action.action_name for action in workflow.actions
-    }:
+    if workflow.initial == "specify" and "discovery" in by_id and "discovery" not in {action.action_name for action in workflow.actions}:
         discovery = by_id["discovery"]
         composed.append(
             PromptStep(
@@ -247,9 +245,7 @@ def resolve_next_workflow_action(
     if action is None:
         available_workflows = list_available_workflows(project_root=_infer_project_root(mission_dir))
         raise ValueError(
-            f"action {current_action!r} not in workflow {workflow.workflow_id!r}. "
-            f"Available actions: {sorted(by_name)}. "
-            f"Available workflows: {available_workflows}"
+            f"action {current_action!r} not in workflow {workflow.workflow_id!r}. Available actions: {sorted(by_name)}. Available workflows: {available_workflows}"
         )
     next_action: str | None = action.next[0] if action.next else None
     return PlanResult(
@@ -386,7 +382,7 @@ def plan_next(
         # Derive input_key from decision_id prefix for input-keyed decisions.
         input_key: str | None = None
         if req.decision_id.startswith("input:"):
-            input_key = req.decision_id[len("input:"):]
+            input_key = req.decision_id[len("input:") :]
         return NextDecision(
             kind=DecisionKind.decision_required.value,
             run_id=snapshot.run_id,
@@ -457,11 +453,7 @@ def plan_next(
 
     # --- PromptStep handling ---
     # Check for missing required inputs -> emit input-keyed decision.
-    missing_inputs = [
-        required
-        for required in step.requires_inputs
-        if required not in snapshot.inputs and required not in snapshot.decisions
-    ]
+    missing_inputs = [required for required in step.requires_inputs if required not in snapshot.inputs and required not in snapshot.decisions]
     if missing_inputs:
         missing = missing_inputs[0]
         decision_id = f"input:{missing}"

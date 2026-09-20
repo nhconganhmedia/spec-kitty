@@ -11,6 +11,7 @@ from __future__ import annotations
 from specify_cli.core.constants import (
     KITTY_SPECS_DIR,
 )
+
 # ``primary_feature_dir_for_mission`` re-export DELETED (read-side-seam-
 # primary-primitive-closure-01KYKMMT WP08, T037): its direct call site
 # relocated to ``tasks_move_task`` in WP05 (tasks-py-degod-wave2-01KWH9EQ),
@@ -47,6 +48,7 @@ from typing import Annotated
 from specify_cli.coordination.status_transition import (
     emit_status_transition_transactional as emit_status_transition_transactional,
 )
+
 # ``read_events_transactional`` (D7 ×9) likewise: relocated move_task callers
 # route back through ``_tasks.<attr>`` (WP05).
 from specify_cli.coordination.status_transition import (
@@ -55,6 +57,7 @@ from specify_cli.coordination.status_transition import (
 from specify_cli.status import Lane
 
 from specify_cli.core.dependency_graph import build_dependency_graph, get_dependents
+
 # ``get_main_repo_root`` / ``get_feature_target_branch`` / ``get_mission_type``
 # keep explicit ``as`` re-exports: their direct call sites relocated to
 # ``tasks_shared`` in WP02 (tasks-py-degod-wave2-01KWH9EQ), but each module
@@ -66,6 +69,7 @@ from specify_cli.core.dependency_graph import build_dependency_graph, get_depend
 from specify_cli.core.paths import locate_project_root as locate_project_root
 from specify_cli.core.paths import get_main_repo_root as get_main_repo_root
 from specify_cli.core.paths import get_feature_target_branch as get_feature_target_branch
+
 # ``get_status_read_root`` keeps an explicit ``as`` re-export: its direct call
 # site relocated to ``tasks_status_cmd`` in WP07 (tasks-py-degod-wave2), but
 # the module binding is a live D7 patch seam
@@ -89,6 +93,7 @@ from mission_runtime import (
     # convention as the other ``mission_runtime`` names above.
     placement_seam as placement_seam,
 )
+
 # ``commit_for_mission`` keeps an explicit ``as`` re-export: its direct
 # adapter call sites relocated to ``tasks_command_adapters`` in WP03
 # (tasks-py-degod-wave2-01KWH9EQ), but the module binding is a live D7 patch
@@ -97,12 +102,15 @@ from mission_runtime import (
 # ``_tasks.<attr>``.
 from specify_cli.coordination.commit_router import commit_for_mission as commit_for_mission
 from specify_cli.git.protection_policy import ProtectionPolicy
+
 # ``feature_status_lock`` (D7 ×23) — the relocated ``_mt_execute`` (WP05) and
 # ``_ms_apply_updates`` (WP08) route it via ``_tasks.<attr>``.
 from specify_cli.status import feature_status_lock as feature_status_lock
+
 # ``get_auto_commit_default`` (D7 ×7) — the relocated ``_mt_resolve_targets``
 # (WP05) and ``_ms_resolve_context`` (WP08) route it via ``_tasks.<attr>``.
 from specify_cli.core.agent_config import get_auto_commit_default as get_auto_commit_default
+
 # ``bootstrap_canonical_state`` keeps an explicit ``as`` re-export: its direct
 # call site relocated to ``tasks_finalize`` in WP08 (tasks-py-degod-wave2), but
 # the module binding is a live patch seam
@@ -361,10 +369,7 @@ SPEC_MD_FILENAME = "spec.md"
 app = typer.Typer(name="tasks", help="Task workflow commands for AI agents", no_args_is_help=True)
 
 
-
-globals()["_list_wp_branch_" + KITTY_SPECS_DIR.replace("-", "_") + "_changes"] = (
-    _list_wp_branch_mission_specs_changes
-)
+globals()["_list_wp_branch_" + KITTY_SPECS_DIR.replace("-", "_") + "_changes"] = _list_wp_branch_mission_specs_changes
 
 
 # ===========================================================================
@@ -713,10 +718,7 @@ def move_task(
         list[str] | None,
         typer.Option(
             "--tracker-ref",
-            help=(
-                "External tracker reference (e.g., '#1298' or 'JIRA-123'). "
-                "Repeatable; appended to the WP frontmatter tracker_refs."
-            ),
+            help=("External tracker reference (e.g., '#1298' or 'JIRA-123'). Repeatable; appended to the WP frontmatter tracker_refs."),
         ),
     ] = None,
     skip_review_artifact_check: Annotated[
@@ -745,10 +747,7 @@ def move_task(
         Path | None,
         typer.Option(
             "--owned-checkout",
-            help=(
-                "Use an owned single_branch checkout for the local review lifecycle "
-                "(force/skip, done, and arbiter modes unsupported)."
-            ),
+            help=("Use an owned single_branch checkout for the local review lifecycle (force/skip, done, and arbiter modes unsupported)."),
         ),
     ] = None,
 ) -> None:
@@ -862,12 +861,10 @@ def mark_status(
     task_ids: Annotated[list[str], typer.Argument(help="Task ID(s) - space-separated (e.g., T001 T002 T003)")],
     status: Annotated[str, typer.Option("--status", help="Status: done/pending")],
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     owned_checkout: Annotated[
         Path | None,
         typer.Option("--owned-checkout", help="Explicit single-branch checkout root."),
     ] = None,
-
     auto_commit: Annotated[
         bool | None, typer.Option("--auto-commit/--no-auto-commit", help="Automatically commit tasks.md changes to target branch (default: from project config)")
     ] = None,
@@ -909,7 +906,6 @@ def mark_status(
 def list_tasks(
     lane: Annotated[str | None, typer.Option("--lane", help="Filter by lane")] = None,
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
 ) -> None:
     """List tasks with optional lane filtering.
@@ -933,12 +929,7 @@ def list_tasks(
         # Find all task files — tasks/ is PRIMARY-partition (FR-001 / C-001 per-leg
         # split — WP03 T010): WP task files live on the primary checkout regardless
         # of topology; a coord-topology mission's STATUS-only husk has no tasks/.
-        tasks_dir = (
-            placement_seam(main_repo_root, mission_slug).read_dir(
-                MissionArtifactKind.WORK_PACKAGE_TASK
-            )
-            / "tasks"
-        )
+        tasks_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK) / "tasks"
         if not tasks_dir.exists():
             _output_error(json_output, f"Tasks directory not found: {tasks_dir}")
             raise typer.Exit(1)
@@ -947,9 +938,7 @@ def list_tasks(
         # read-surface-ssot-closeout WP08 / FR-001 / NFR-001: routed through the
         # kind-aware placement seam instead of the kind-blind
         # resolve_feature_dir_for_mission (same coord-aware STATUS_STATE resolution).
-        _lt_feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-            MissionArtifactKind.STATUS_STATE
-        )
+        _lt_feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
         try:
             from specify_cli.status import read_events as _lt_read_events
             from specify_cli.status import reduce as _lt_reduce
@@ -1008,7 +997,6 @@ def add_history(
     task_id: Annotated[str, typer.Argument(help="Task ID (e.g., WP01)")],
     note: Annotated[str, typer.Option("--note", help="History note")],
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     agent: Annotated[str | None, typer.Option("--agent", help="Agent name")] = None,
     shell_pid: Annotated[str | None, typer.Option("--shell-pid", help="Shell PID")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
@@ -1037,9 +1025,7 @@ def add_history(
         # Resolve through the kind-aware authority (resolution-authority gate:
         # add_history is a WRITE-classified function, so a kind-blind
         # resolve_feature_dir_for_mission here would be a coord-authority violation).
-        _ah_feature_dir = placement_seam(_ah_main_repo_root, mission_slug).read_dir(
-            MissionArtifactKind.TASKS_INDEX
-        )
+        _ah_feature_dir = placement_seam(_ah_main_repo_root, mission_slug).read_dir(MissionArtifactKind.TASKS_INDEX)
         try:
             check_pre30_layout(_ah_feature_dir)
         except Pre30LayoutError as e:
@@ -1117,7 +1103,6 @@ from specify_cli.cli.commands.agent.tasks_finalize import (
 @app.command(name="finalize-tasks")
 def finalize_tasks(
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
     validate_only: Annotated[bool, typer.Option("--validate-only", help="Validate without writing changes")] = False,
 ) -> None:
@@ -1167,14 +1152,10 @@ def map_requirements(
         list[str] | None,
         typer.Option(
             "--tracker-ref",
-            help=(
-                "External tracker reference (e.g., '#1298' or 'JIRA-123'). "
-                "Repeatable; requires --wp. Persists to the WP frontmatter as tracker_refs."
-            ),
+            help=("External tracker reference (e.g., '#1298' or 'JIRA-123'). Repeatable; requires --wp. Persists to the WP frontmatter as tracker_refs."),
         ),
     ] = None,
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
     auto_commit: Annotated[
         bool | None,
@@ -1205,7 +1186,6 @@ def map_requirements(
 def validate_workflow(
     task_id: Annotated[str, typer.Argument(help="Task ID (e.g., WP01)")],
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
 ) -> None:
     """Validate task metadata structure and workflow consistency.
@@ -1229,9 +1209,7 @@ def validate_workflow(
         # Resolve through the kind-aware authority (resolution-authority gate:
         # validate_workflow is WRITE-classified, so a kind-blind resolver here
         # would be a coord-authority violation).
-        _vw_guard_feature_dir = placement_seam(_vw_main_repo_root, mission_slug).read_dir(
-            MissionArtifactKind.TASKS_INDEX
-        )
+        _vw_guard_feature_dir = placement_seam(_vw_main_repo_root, mission_slug).read_dir(MissionArtifactKind.TASKS_INDEX)
         try:
             check_pre30_layout(_vw_guard_feature_dir)
         except Pre30LayoutError as e:
@@ -1257,9 +1235,7 @@ def validate_workflow(
         # resolve_feature_dir_for_mission (same coord-aware STATUS_STATE resolution;
         # ``repo_root`` — not ``_vw_main_repo_root`` — is preserved unchanged, matching
         # the pre-existing call's argument).
-        _vw_feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.STATUS_STATE
-        )
+        _vw_feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
         try:
             from specify_cli.status import read_events as _vw_read_events
             from specify_cli.status import reduce as _vw_reduce
@@ -1311,7 +1287,6 @@ def validate_workflow(
 @app.command(name="status")
 def status(
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug (optional when exactly one active mission exists)")] = None,
-
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     stale_threshold: Annotated[int, typer.Option("--stale-threshold", help="Minutes of inactivity before a WP is considered stale")] = 10,
 ) -> None:
@@ -1339,7 +1314,6 @@ def status(
 def list_dependents(
     wp_id: Annotated[str, typer.Argument(help="Work package ID (e.g., WP01)")],
     mission: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
-
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
 ) -> None:
     """Find all WPs that depend on a given WP (downstream dependents).
@@ -1369,9 +1343,7 @@ def list_dependents(
         # BOTH the boundary guard and the graph builder. The WP02 T013 proof establishes
         # the guard outcome is byte-identical across legs on a modern mission
         # (SC-002/NFR-001); the redundant second reassignment is removed.
-        feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-            MissionArtifactKind.WORK_PACKAGE_TASK
-        )
+        feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
         # Boundary guard — hard-reject pre-3.0 layout before reading any WP (#1057)
         try:
             check_pre30_layout(feature_dir)
@@ -1423,9 +1395,7 @@ def list_dependents(
 # the lane. Hoisted to a constant (Sonar S1192) so the human and any future
 # surface share one wording.
 _TERMINABILITY_GUIDANCE = (
-    "Re-home post-integration content to a tracked post-merge obligations "
-    "document; a work package's acceptance criteria must be verifiable in its "
-    "own diff."
+    "Re-home post-integration content to a tracked post-merge obligations document; a work package's acceptance criteria must be verifiable in its own diff."
 )
 
 
@@ -1469,19 +1439,11 @@ def _render_terminability(
         )
         return
     if not warnings:
-        console.print(
-            f"[green]✓[/green] No un-terminable-work warnings for {mission_slug}."
-        )
+        console.print(f"[green]✓[/green] No un-terminable-work warnings for {mission_slug}.")
         return
-    console.print(
-        f"[yellow]⚠️  {len(warnings)} un-terminable-work warning(s) for "
-        f"{mission_slug} (advisory — authoring is not blocked):[/yellow]\n"
-    )
+    console.print(f"[yellow]⚠️  {len(warnings)} un-terminable-work warning(s) for {mission_slug} (advisory — authoring is not blocked):[/yellow]\n")
     for warning in warnings:
-        console.print(
-            f"  [bold]{warning.wp_id}[/bold] matched "
-            f"[cyan]{warning.matched_phrase!r}[/cyan]: {warning.criterion_excerpt}"
-        )
+        console.print(f"  [bold]{warning.wp_id}[/bold] matched [cyan]{warning.matched_phrase!r}[/cyan]: {warning.criterion_excerpt}")
     console.print(f"\n[dim]{_TERMINABILITY_GUIDANCE}[/dim]")
 
 
@@ -1507,19 +1469,10 @@ def check_terminability(
             _output_error(json_output, "Could not locate project root")
             raise typer.Exit(1)
 
-        mission_slug = _find_mission_slug(
-            explicit_mission=mission, json_output=json_output, repo_root=repo_root
-        )
-        main_repo_root, _ = _ensure_target_branch_checked_out(
-            repo_root, mission_slug, json_output
-        )
+        mission_slug = _find_mission_slug(explicit_mission=mission, json_output=json_output, repo_root=repo_root)
+        main_repo_root, _ = _ensure_target_branch_checked_out(repo_root, mission_slug, json_output)
         # tasks/ is PRIMARY-partition (WORK_PACKAGE_TASK), same seam as list-tasks.
-        tasks_dir = (
-            placement_seam(main_repo_root, mission_slug).read_dir(
-                MissionArtifactKind.WORK_PACKAGE_TASK
-            )
-            / "tasks"
-        )
+        tasks_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK) / "tasks"
         if not tasks_dir.exists():
             _output_error(json_output, f"Tasks directory not found: {tasks_dir}")
             raise typer.Exit(1)

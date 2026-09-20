@@ -22,9 +22,7 @@ pytestmark = [pytest.mark.unit]
 
 
 def _wp(tasks_dir: Path, wp_id: str, deps: list[str]) -> None:
-    dep_block = "dependencies: []\n" if not deps else (
-        "dependencies:\n" + "".join(f"- {d}\n" for d in deps)
-    )
+    dep_block = "dependencies: []\n" if not deps else ("dependencies:\n" + "".join(f"- {d}\n" for d in deps))
     tasks_dir.joinpath(f"{wp_id}-x.md").write_text(
         f"---\nwork_package_id: {wp_id}\ntitle: {wp_id}\n{dep_block}---\n\n# {wp_id}\n",
         encoding="utf-8",
@@ -45,9 +43,7 @@ def test_doctor_flags_uninitialized_mission(tmp_path: Path) -> None:
     feature_dir = _feature_with_wps(tmp_path, {"WP01": [], "WP02": ["WP01"]})
     result = run_doctor(feature_dir, "demo-mission", tmp_path)
     cats = [f.category for f in result.findings]
-    assert Category.UNINITIALIZED_STATUS in cats, (
-        f"doctor should flag the uninitialized mission; findings={result.findings}"
-    )
+    assert Category.UNINITIALIZED_STATUS in cats, f"doctor should flag the uninitialized mission; findings={result.findings}"
     assert not result.is_healthy
 
 

@@ -66,9 +66,7 @@ _COORD_BRANCH_REF = f"kitty/mission-{_MISSION_SLUG}"
         (MissionTopology.LANES, False),
     ],
 )
-def test_routes_through_coordination_topology_truth_table(
-    topology: MissionTopology, expected: bool
-) -> None:
+def test_routes_through_coordination_topology_truth_table(topology: MissionTopology, expected: bool) -> None:
     """FR-005: the ONE predicate is True iff the topology routes through coord.
 
     Absolute per-topology assertion (CT5): all four enum members are pinned, so
@@ -126,9 +124,7 @@ def _base_meta(*, coordination_branch: str | None) -> dict[str, object]:
 # (c) KEEP map — relay #1: status_transition._read_contract_routes_through_coordination
 #     EXCEPTION arm (read_topology raises -> classify_topology relay, line 599).
 # --------------------------------------------------------------------------- #
-def _make_identity(
-    feature_dir: Path, coordination_branch: str | None
-) -> _TransactionIdentity:
+def _make_identity(feature_dir: Path, coordination_branch: str | None) -> _TransactionIdentity:
     from specify_cli.coordination.status_transition import _TransactionIdentity
 
     return _TransactionIdentity(
@@ -146,13 +142,11 @@ def _make_identity(
 @pytest.mark.parametrize(
     ("coordination_branch", "expected"),
     [
-        (_COORD_BRANCH_REF, True),   # coord-shaped relay -> routes through coord
-        (None, False),               # negative control: flat -> primary read
+        (_COORD_BRANCH_REF, True),  # coord-shaped relay -> routes through coord
+        (None, False),  # negative control: flat -> primary read
     ],
 )
-def test_read_contract_relay_exception_arm(
-    tmp_path: Path, coordination_branch: str | None, expected: bool
-) -> None:
+def test_read_contract_relay_exception_arm(tmp_path: Path, coordination_branch: str | None, expected: bool) -> None:
     """KEEP relay #1 (status_transition:599): exception arm relays via classify_topology.
 
     With NO meta.json at the identity's ``feature_dir`` the ``read_topology`` call
@@ -187,13 +181,11 @@ def test_read_contract_relay_exception_arm(
 @pytest.mark.parametrize(
     ("coord_branch", "expected"),
     [
-        (_COORD_BRANCH_REF, MissionTopology.COORD),   # relay derives COORD
-        (None, MissionTopology.SINGLE_BRANCH),        # negative control
+        (_COORD_BRANCH_REF, MissionTopology.COORD),  # relay derives COORD
+        (None, MissionTopology.SINGLE_BRANCH),  # negative control
     ],
 )
-def test_effective_surface_topology_relay_arm(
-    coord_branch: str | None, expected: MissionTopology
-) -> None:
+def test_effective_surface_topology_relay_arm(coord_branch: str | None, expected: MissionTopology) -> None:
     """KEEP relay #2 (surface_resolver:562): no-stored-topology arm relays.
 
     With ``threaded=None`` and a ``meta`` carrying NO ``topology`` field, the
@@ -288,11 +280,11 @@ def test_resolve_topology_relay_exception_arm(
 @pytest.mark.parametrize(
     ("stored_topology", "expected"),
     [
-        (MissionTopology.COORD.value, True),             # real coord -> husk authoritative
+        (MissionTopology.COORD.value, True),  # real coord -> husk authoritative
         (MissionTopology.LANES_WITH_COORD.value, True),  # real coord -> husk authoritative
-        (MissionTopology.SINGLE_BRANCH.value, False),    # flattened -> husk stale
-        (MissionTopology.LANES.value, False),            # flattened -> husk stale
-        (None, True),                                    # legacy (no stored) -> preserve
+        (MissionTopology.SINGLE_BRANCH.value, False),  # flattened -> husk stale
+        (MissionTopology.LANES.value, False),  # flattened -> husk stale
+        (None, True),  # legacy (no stored) -> preserve
     ],
 )
 def test_husk_short_circuit_unchanged(
@@ -325,9 +317,7 @@ def test_husk_short_circuit_unchanged(
     assert result is expected
 
 
-def test_husk_short_circuit_unreadable_meta_degrades_true(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_husk_short_circuit_unreadable_meta_degrades_true(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """KEEP C-001 negative control: unreadable primary meta degrades to True.
 
     A malformed/unreadable primary meta cannot safely override the husk

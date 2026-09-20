@@ -44,21 +44,12 @@ def test_domain_preflight_has_no_push_preflight_module_import() -> None:
     def under_type_checking(node: ast.AST) -> bool:
         while node in parents:
             parent = parents[node]
-            if (
-                isinstance(parent, ast.If)
-                and isinstance(parent.test, ast.Name)
-                and parent.test.id == "TYPE_CHECKING"
-            ):
+            if isinstance(parent, ast.If) and isinstance(parent.test, ast.Name) and parent.test.id == "TYPE_CHECKING":
                 return True
             node = parent
         return False
 
-    runtime = [
-        n for n in ast.walk(tree)
-        if isinstance(n, ast.ImportFrom)
-        and n.module == "specify_cli.merge.push_preflight"
-        and not under_type_checking(n)
-    ]
+    runtime = [n for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module == "specify_cli.merge.push_preflight" and not under_type_checking(n)]
     assert runtime == []
 
 
@@ -67,11 +58,15 @@ def test_domain_preflight_has_no_push_preflight_module_import() -> None:
 
 def test_collect_force_count_warnings_threshold(tmp_path: Path) -> None:
     (tmp_path / "status.json").write_text(
-        json.dumps({"work_packages": {
-            "WP01": {"force_count": 2},
-            "WP02": {"force_count": 1},
-            "WP03": {"force_count": "bad"},
-        }}),
+        json.dumps(
+            {
+                "work_packages": {
+                    "WP01": {"force_count": 2},
+                    "WP02": {"force_count": 1},
+                    "WP03": {"force_count": "bad"},
+                }
+            }
+        ),
         encoding="utf-8",
     )
     warnings: HollowReviewWarnings = {}
@@ -85,9 +80,7 @@ def test_collect_force_count_warnings_no_status_file(tmp_path: Path) -> None:
     assert warnings == {}
 
 
-def _write_transition(
-    tmp_path: Path, *, wp_id: str, to_lane: str, actor: str, event_id: str, at: str
-) -> None:
+def _write_transition(tmp_path: Path, *, wp_id: str, to_lane: str, actor: str, event_id: str, at: str) -> None:
     with (tmp_path / "status.events.jsonl").open("a", encoding="utf-8") as fh:
         fh.write(
             json.dumps(
@@ -111,13 +104,21 @@ def _write_transition(
 
 def test_latest_actor_for_transition_picks_the_latest_by_timestamp(tmp_path: Path) -> None:
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-a",
-        event_id="01A", at="2026-07-21T00:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-a",
+        event_id="01A",
+        at="2026-07-21T00:00:00Z",
     )
     # Rework cycle: a second, later claim by a different implementer.
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-b",
-        event_id="01B", at="2026-07-21T01:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-b",
+        event_id="01B",
+        at="2026-07-21T01:00:00Z",
     )
     assert preflight._latest_actor_for_transition(tmp_path, "WP01", "in_progress") == "implementer-b"
 
@@ -128,8 +129,12 @@ def test_latest_actor_for_transition_no_events_file(tmp_path: Path) -> None:
 
 def test_latest_actor_for_transition_no_matching_wp_or_lane(tmp_path: Path) -> None:
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-a",
-        event_id="01A", at="2026-07-21T00:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-a",
+        event_id="01A",
+        at="2026-07-21T00:00:00Z",
     )
     assert preflight._latest_actor_for_transition(tmp_path, "WP02", "in_progress") is None
     assert preflight._latest_actor_for_transition(tmp_path, "WP01", "approved") is None
@@ -137,24 +142,40 @@ def test_latest_actor_for_transition_no_matching_wp_or_lane(tmp_path: Path) -> N
 
 def test_independent_reviewer_confirmed_when_actors_differ(tmp_path: Path) -> None:
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-ivan",
-        event_id="01A", at="2026-07-21T00:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-ivan",
+        event_id="01A",
+        at="2026-07-21T00:00:00Z",
     )
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="approved", actor="reviewer-renata",
-        event_id="01B", at="2026-07-21T01:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="approved",
+        actor="reviewer-renata",
+        event_id="01B",
+        at="2026-07-21T01:00:00Z",
     )
     assert preflight._independent_reviewer_confirmed(tmp_path, "WP01") is True
 
 
 def test_independent_reviewer_not_confirmed_when_actors_match(tmp_path: Path) -> None:
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-ivan",
-        event_id="01A", at="2026-07-21T00:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-ivan",
+        event_id="01A",
+        at="2026-07-21T00:00:00Z",
     )
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="approved", actor="implementer-ivan",
-        event_id="01B", at="2026-07-21T01:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="approved",
+        actor="implementer-ivan",
+        event_id="01B",
+        at="2026-07-21T01:00:00Z",
     )
     assert preflight._independent_reviewer_confirmed(tmp_path, "WP01") is False
 
@@ -163,8 +184,12 @@ def test_independent_reviewer_not_confirmed_when_actor_unknown(tmp_path: Path) -
     # No in_progress transition at all -- absence of evidence must not
     # suppress the warning.
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="approved", actor="reviewer-renata",
-        event_id="01B", at="2026-07-21T01:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="approved",
+        actor="reviewer-renata",
+        event_id="01B",
+        at="2026-07-21T01:00:00Z",
     )
     assert preflight._independent_reviewer_confirmed(tmp_path, "WP01") is False
 
@@ -172,16 +197,22 @@ def test_independent_reviewer_not_confirmed_when_actor_unknown(tmp_path: Path) -
 def test_collect_force_count_warnings_suppressed_when_reviewer_differs(tmp_path: Path) -> None:
     """The field-reported false positive: force_count>=2 alone used to warn
     regardless of whether the review was genuinely independent."""
-    (tmp_path / "status.json").write_text(
-        json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8"
+    (tmp_path / "status.json").write_text(json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8")
+    _write_transition(
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-ivan",
+        event_id="01A",
+        at="2026-07-21T00:00:00Z",
     )
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-ivan",
-        event_id="01A", at="2026-07-21T00:00:00Z",
-    )
-    _write_transition(
-        tmp_path, wp_id="WP01", to_lane="approved", actor="reviewer-renata",
-        event_id="01B", at="2026-07-21T01:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="approved",
+        actor="reviewer-renata",
+        event_id="01B",
+        at="2026-07-21T01:00:00Z",
     )
     warnings: HollowReviewWarnings = {}
     preflight._collect_force_count_warnings(tmp_path, {"WP01"}, warnings)
@@ -189,16 +220,22 @@ def test_collect_force_count_warnings_suppressed_when_reviewer_differs(tmp_path:
 
 
 def test_collect_force_count_warnings_kept_when_same_actor(tmp_path: Path) -> None:
-    (tmp_path / "status.json").write_text(
-        json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8"
+    (tmp_path / "status.json").write_text(json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8")
+    _write_transition(
+        tmp_path,
+        wp_id="WP01",
+        to_lane="in_progress",
+        actor="implementer-ivan",
+        event_id="01A",
+        at="2026-07-21T00:00:00Z",
     )
     _write_transition(
-        tmp_path, wp_id="WP01", to_lane="in_progress", actor="implementer-ivan",
-        event_id="01A", at="2026-07-21T00:00:00Z",
-    )
-    _write_transition(
-        tmp_path, wp_id="WP01", to_lane="approved", actor="implementer-ivan",
-        event_id="01B", at="2026-07-21T01:00:00Z",
+        tmp_path,
+        wp_id="WP01",
+        to_lane="approved",
+        actor="implementer-ivan",
+        event_id="01B",
+        at="2026-07-21T01:00:00Z",
     )
     warnings: HollowReviewWarnings = {}
     preflight._collect_force_count_warnings(tmp_path, {"WP01"}, warnings)
@@ -207,9 +244,7 @@ def test_collect_force_count_warnings_kept_when_same_actor(tmp_path: Path) -> No
 
 def test_collect_force_count_warnings_kept_when_no_event_log(tmp_path: Path) -> None:
     """Fail-safe default: with no event log to check, keep warning as before."""
-    (tmp_path / "status.json").write_text(
-        json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8"
-    )
+    (tmp_path / "status.json").write_text(json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8")
     warnings: HollowReviewWarnings = {}
     preflight._collect_force_count_warnings(tmp_path, {"WP01"}, warnings)
     assert warnings == {"WP01": ["force_count=3"]}
@@ -243,9 +278,7 @@ def test_collect_self_approval_warnings_from_events(tmp_path: Path) -> None:
 
 
 def test_collect_hollow_review_warnings_merges_both_sources(tmp_path: Path) -> None:
-    (tmp_path / "status.json").write_text(
-        json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8"
-    )
+    (tmp_path / "status.json").write_text(json.dumps({"work_packages": {"WP01": {"force_count": 3}}}), encoding="utf-8")
     emit_reviewer_self_approval(
         tmp_path,
         mission_slug="034-test",
@@ -269,9 +302,7 @@ def test_enforce_review_artifact_consistency_passes(tmp_path: Path) -> None:
 
     with patch.object(preflight, "run_review_artifact_consistency_preflight", return_value=_Result()):
         # No exception means the gate passed.
-        preflight._enforce_review_artifact_consistency(
-            repo_root=tmp_path, feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"]
-        )
+        preflight._enforce_review_artifact_consistency(repo_root=tmp_path, feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"])
 
 
 def test_enforce_review_artifact_consistency_blocks(tmp_path: Path) -> None:
@@ -292,9 +323,7 @@ def test_enforce_review_artifact_consistency_blocks(tmp_path: Path) -> None:
         patch.object(preflight, "format_review_artifact_finding", return_value="bad"),
         pytest.raises(typer.Exit) as exc,
     ):
-        preflight._enforce_review_artifact_consistency(
-            repo_root=tmp_path, feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"]
-        )
+        preflight._enforce_review_artifact_consistency(repo_root=tmp_path, feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"])
     assert exc.value.exit_code == 1
 
 
@@ -349,9 +378,7 @@ def test_effective_push_requested_prefers_persisted_state(tmp_path: Path) -> Non
 # --- target_branch_sync_remediation (behind / diverged / ahead) -------------
 
 
-def _sync_status(
-    state: str, ahead: int, behind: int, tracking: str | None = "origin/main"
-) -> SimpleNamespace:
+def _sync_status(state: str, ahead: int, behind: int, tracking: str | None = "origin/main") -> SimpleNamespace:
     return SimpleNamespace(
         target_branch="main",
         state=state,
@@ -375,7 +402,8 @@ def test_remediation_behind_recommends_update_not_push() -> None:
 
 def test_remediation_diverged_recommends_focused_pr() -> None:
     lines = preflight.target_branch_sync_remediation(
-        _sync_status("diverged", 2, 2), mission_slug="m",
+        _sync_status("diverged", 2, 2),
+        mission_slug="m",
         mission_branch="kitty/mission-m-deadbeef",
     )
     joined = "\n".join(lines)
@@ -385,7 +413,8 @@ def test_remediation_diverged_recommends_focused_pr() -> None:
 
 def test_remediation_without_slug_emits_generic_hint() -> None:
     lines = preflight.target_branch_sync_remediation(
-        _sync_status("ahead", 1, 0, tracking=None), mission_slug=None,
+        _sync_status("ahead", 1, 0, tracking=None),
+        mission_slug=None,
     )
     joined = "\n".join(lines)
     assert "preserve them on a new PR branch" in joined
@@ -506,16 +535,12 @@ def test_print_remediation_lines_list_and_scalar(capsys: pytest.CaptureFixture[s
 
 def test_canonical_status_history_noop_without_wps(tmp_path: Path) -> None:
     # Empty wp_ids -> early return regardless of log presence.
-    preflight._enforce_canonical_status_history(
-        feature_dir=tmp_path, mission_slug="m", wp_ids=[]
-    )
+    preflight._enforce_canonical_status_history(feature_dir=tmp_path, mission_slug="m", wp_ids=[])
 
 
 def test_canonical_status_history_noop_without_log(tmp_path: Path) -> None:
     # Log file absent -> early return.
-    preflight._enforce_canonical_status_history(
-        feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"]
-    )
+    preflight._enforce_canonical_status_history(feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"])
 
 
 def test_canonical_status_history_bootstrap_only_exits(tmp_path: Path) -> None:
@@ -524,18 +549,14 @@ def test_canonical_status_history_bootstrap_only_exits(tmp_path: Path) -> None:
         patch("specify_cli.status.has_non_bootstrap_status_history", return_value=False),
         pytest.raises(typer.Exit) as exc,
     ):
-        preflight._enforce_canonical_status_history(
-            feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"]
-        )
+        preflight._enforce_canonical_status_history(feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"])
     assert exc.value.exit_code == 1
 
 
 def test_canonical_status_history_passes_with_real_history(tmp_path: Path) -> None:
     (tmp_path / "status.events.jsonl").write_text("{}\n", encoding="utf-8")
     with patch("specify_cli.status.has_non_bootstrap_status_history", return_value=True):
-        preflight._enforce_canonical_status_history(
-            feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"]
-        )
+        preflight._enforce_canonical_status_history(feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"])
 
 
 # --- review-artifact gate: schema_error + verdict diagnostic keys -----------
@@ -561,9 +582,7 @@ def test_enforce_review_artifact_blocks_with_optional_keys(tmp_path: Path) -> No
         patch.object(preflight, "format_review_artifact_finding", return_value="bad"),
         pytest.raises(typer.Exit) as exc,
     ):
-        preflight._enforce_review_artifact_consistency(
-            repo_root=tmp_path, feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"]
-        )
+        preflight._enforce_review_artifact_consistency(repo_root=tmp_path, feature_dir=tmp_path, mission_slug="m", wp_ids=["WP01"])
     assert exc.value.exit_code == 1
 
 
@@ -572,17 +591,13 @@ def test_enforce_review_artifact_blocks_with_optional_keys(tmp_path: Path) -> No
 
 def test_warn_or_confirm_noop_without_warnings(tmp_path: Path) -> None:
     with patch.object(preflight, "_collect_hollow_review_warnings", return_value={}):
-        preflight._warn_or_confirm_hollow_reviews(
-            feature_dir=tmp_path, wp_ids=["WP01"], assume_yes=False
-        )
+        preflight._warn_or_confirm_hollow_reviews(feature_dir=tmp_path, wp_ids=["WP01"], assume_yes=False)
 
 
 def test_warn_or_confirm_proceeds_with_assume_yes(tmp_path: Path) -> None:
     with patch.object(preflight, "_collect_hollow_review_warnings", return_value={"WP01": ["force_count=2"]}):
         # assume_yes short-circuits the interactive confirm without raising.
-        preflight._warn_or_confirm_hollow_reviews(
-            feature_dir=tmp_path, wp_ids=["WP01"], assume_yes=True
-        )
+        preflight._warn_or_confirm_hollow_reviews(feature_dir=tmp_path, wp_ids=["WP01"], assume_yes=True)
 
 
 def test_warn_or_confirm_aborts_when_user_declines(tmp_path: Path) -> None:
@@ -594,9 +609,7 @@ def test_warn_or_confirm_aborts_when_user_declines(tmp_path: Path) -> None:
         patch.object(preflight.typer, "confirm", return_value=False),
         pytest.raises(typer.Exit) as exc,
     ):
-        preflight._warn_or_confirm_hollow_reviews(
-            feature_dir=tmp_path, wp_ids=["WP01"], assume_yes=False
-        )
+        preflight._warn_or_confirm_hollow_reviews(feature_dir=tmp_path, wp_ids=["WP01"], assume_yes=False)
     assert exc.value.exit_code == 1
 
 
@@ -637,9 +650,7 @@ def test_collect_self_approval_no_events_file(tmp_path: Path) -> None:
 
 
 def test_collect_force_count_warnings_non_dict_work_packages(tmp_path: Path) -> None:
-    (tmp_path / "status.json").write_text(
-        json.dumps({"work_packages": ["not", "a", "dict"]}), encoding="utf-8"
-    )
+    (tmp_path / "status.json").write_text(json.dumps({"work_packages": ["not", "a", "dict"]}), encoding="utf-8")
     warnings: HollowReviewWarnings = {}
     preflight._collect_force_count_warnings(tmp_path, {"WP01"}, warnings)
     assert warnings == {}

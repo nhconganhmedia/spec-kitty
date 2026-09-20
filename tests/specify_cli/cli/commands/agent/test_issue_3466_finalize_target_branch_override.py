@@ -54,9 +54,7 @@ FEATURE_BRANCH = "kitty/mission-issue-3466-lane-01"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _scaffold_mission_pinned_to_main(repo: Path) -> Path:
@@ -123,9 +121,7 @@ def _scaffold_mission_pinned_to_main(repo: Path) -> Path:
     return feature_dir
 
 
-def _run_finalize_with_override(
-    repo: Path, target_branch_override: str, *, mission_slug: str = MISSION_SLUG
-) -> Result:
+def _run_finalize_with_override(repo: Path, target_branch_override: str, *, mission_slug: str = MISSION_SLUG) -> Result:
     # ``finalize-tasks`` enforces write-ownership from the invoking checkout,
     # not the mocked ``locate_project_root``. #3786 moved that read to the
     # command's single identity seam — ``resolve_checkout_identity`` at the
@@ -199,18 +195,11 @@ def test_target_branch_override_reaches_wp_status_bookkeeping(
 
     result = _run_finalize_with_override(repo, FEATURE_BRANCH)
 
-    assert result.exit_code == 0, (
-        "finalize-tasks --target-branch must not refuse a real, non-protected "
-        f"override (exit {result.exit_code}):\n{result.output}"
-    )
+    assert result.exit_code == 0, f"finalize-tasks --target-branch must not refuse a real, non-protected override (exit {result.exit_code}):\n{result.output}"
     assert "PROTECTED_BRANCH_REFUSED" not in result.output, (
-        f"WP-status bookkeeping still resolved the protected 'main' branch "
-        f"instead of the --target-branch override:\n{result.output}"
+        f"WP-status bookkeeping still resolved the protected 'main' branch instead of the --target-branch override:\n{result.output}"
     )
-    assert "destination ref 'main'" not in result.output, (
-        f"refusal still named 'main' despite the --target-branch override:\n"
-        f"{result.output}"
-    )
+    assert "destination ref 'main'" not in result.output, f"refusal still named 'main' despite the --target-branch override:\n{result.output}"
 
     # The WP-status bootstrap seed event landed on the feature branch, not main:
     # status.events.jsonl carries WP01's seeded "planned" transition there.
@@ -226,8 +215,7 @@ def test_target_branch_override_reaches_wp_status_bookkeeping(
         check=True,
     ).stdout
     assert '"wp_id":"WP01"' in events_on_feature_branch or '"wp_id": "WP01"' in events_on_feature_branch, (
-        f"expected WP01's bootstrap-seeded status event committed on "
-        f"{FEATURE_BRANCH!r}:\n{events_on_feature_branch}"
+        f"expected WP01's bootstrap-seeded status event committed on {FEATURE_BRANCH!r}:\n{events_on_feature_branch}"
     )
 
     # The corrected value is now canonical: meta.json on the resolved branch
@@ -277,19 +265,13 @@ def test_branch_contract_write_ownership_uses_target_mission_checkout(
     _git(repo, "worktree", "add", "-q", "-b", "op/write-ownership-foreign", str(foreign))
 
     owner_mission = owner / "kitty-specs" / "issue-3466-write-ownership"
-    _enforce_branch_contract_write_ownership(
-        owner_mission, invocation_identity=_identity(owner), json_output=False
-    )
+    _enforce_branch_contract_write_ownership(owner_mission, invocation_identity=_identity(owner), json_output=False)
 
     with pytest.raises(Exit):
-        _enforce_branch_contract_write_ownership(
-            owner_mission, invocation_identity=_identity(foreign), json_output=False
-        )
+        _enforce_branch_contract_write_ownership(owner_mission, invocation_identity=_identity(foreign), json_output=False)
 
     with pytest.raises(Exit):
-        _enforce_branch_contract_write_ownership(
-            mission_dir, invocation_identity=_identity(owner), json_output=False
-        )
+        _enforce_branch_contract_write_ownership(mission_dir, invocation_identity=_identity(owner), json_output=False)
 
 
 # ---------------------------------------------------------------------------
@@ -356,9 +338,7 @@ def test_failed_downstream_gate_reverts_uncommitted_target_branch_persist(
 
     result = _run_finalize_with_override(repo, R001_FEATURE_BRANCH, mission_slug=R001_MISSION_SLUG)
 
-    assert result.exit_code == 1, (
-        f"expected the missing-tasks_dir gate to fail the run (exit {result.exit_code}):\n{result.output}"
-    )
+    assert result.exit_code == 1, f"expected the missing-tasks_dir gate to fail the run (exit {result.exit_code}):\n{result.output}"
     assert "Tasks directory not found" in result.output, result.output
 
     # The working tree must show NO uncommitted mutation of meta.json --
@@ -370,9 +350,7 @@ def test_failed_downstream_gate_reverts_uncommitted_target_branch_persist(
         text=True,
         check=True,
     ).stdout
-    assert status_out.strip() == "", (
-        f"meta.json was left dirty/uncommitted after a failed finalize-tasks run:\n{status_out}"
-    )
+    assert status_out.strip() == "", f"meta.json was left dirty/uncommitted after a failed finalize-tasks run:\n{status_out}"
 
     # The on-disk content must be byte-identical to what was committed --
     # the override must not have silently taken effect without a commit.
@@ -492,8 +470,7 @@ def test_dangling_uncommitted_meta_write_is_folded_into_finalize_commit(
     result = _run_finalize_with_override(repo, RR001_FEATURE_BRANCH, mission_slug=RR001_MISSION_SLUG)
 
     assert result.exit_code == 0, (
-        f"finalize-tasks with a --target-branch matching a dangling prior "
-        f"write must still succeed (exit {result.exit_code}):\n{result.output}"
+        f"finalize-tasks with a --target-branch matching a dangling prior write must still succeed (exit {result.exit_code}):\n{result.output}"
     )
 
     # The dangling edit must now be durable git history, not a working-tree
@@ -506,8 +483,7 @@ def test_dangling_uncommitted_meta_write_is_folded_into_finalize_commit(
         check=True,
     ).stdout
     assert dirty_status_after.strip() == "", (
-        f"meta.json is still dirty/uncommitted after finalize-tasks reported "
-        f"success -- the dangling override was silently skipped:\n{dirty_status_after}"
+        f"meta.json is still dirty/uncommitted after finalize-tasks reported success -- the dangling override was silently skipped:\n{dirty_status_after}"
     )
 
     committed_meta = subprocess.run(
@@ -526,9 +502,7 @@ def test_dangling_uncommitted_meta_write_is_folded_into_finalize_commit(
 # ---------------------------------------------------------------------------
 
 
-def test_persist_target_branch_override_surfaces_write_failure_in_json_mode(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_persist_target_branch_override_surfaces_write_failure_in_json_mode(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """SK3466-R-002: a failed persist must be attributable, even under --json.
 
     Before the fix, ``_persist_target_branch_override``'s except clause only
@@ -578,9 +552,7 @@ def test_persist_target_branch_override_surfaces_write_failure_in_json_mode(
     assert on_disk["target_branch"] == "main"
 
 
-def test_persist_target_branch_override_surfaces_corrupt_meta_json_as_structured_warning(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_persist_target_branch_override_surfaces_corrupt_meta_json_as_structured_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """SK3466-RR-002: a CORRUPT (not just field-incomplete) meta.json must also be attributable.
 
     Before the fix, ``_persist_target_branch_override``'s except tuple was
@@ -614,10 +586,7 @@ def test_persist_target_branch_override_surfaces_corrupt_meta_json_as_structured
     )
 
     assert outcome.persisted is False
-    assert outcome.persist_error, (
-        "a corrupt meta.json must surface as an attributable persist failure, "
-        "not an uncaught exception"
-    )
+    assert outcome.persist_error, "a corrupt meta.json must surface as an attributable persist failure, not an uncaught exception"
 
     captured = capsys.readouterr()
     assert captured.out.strip(), "a --json caller got zero diagnostic for the corrupt-meta.json persist failure"
@@ -874,10 +843,7 @@ def test_foreign_meta_json_edit_is_not_swept_into_finalize_commit(
 
     result = _run_finalize_no_override(repo, mission_slug=REV001_MISSION_SLUG)
 
-    assert result.exit_code == 0, (
-        f"finalize-tasks must still succeed alongside an unrelated, foreign "
-        f"meta.json edit (exit {result.exit_code}):\n{result.output}"
-    )
+    assert result.exit_code == 0, f"finalize-tasks must still succeed alongside an unrelated, foreign meta.json edit (exit {result.exit_code}):\n{result.output}"
 
     # The foreign edit must NOT have been folded into finalize-tasks' commit:
     # meta.json must still show as dirty (the vcs write is still pending).
@@ -949,9 +915,7 @@ def test_revert_unpersisted_target_branch_override_reports_its_own_write_failure
         meta_commit_progress=_MetaBranchOverrideProgress(committed=False),
     )
 
-    assert revert_error is not None, (
-        "a failed revert write must be reported to the caller, not silently swallowed"
-    )
+    assert revert_error is not None, "a failed revert write must be reported to the caller, not silently swallowed"
     assert isinstance(revert_error, str) and revert_error.strip()
 
 
@@ -1060,22 +1024,16 @@ def test_downstream_failure_after_mixed_delta_exclusion_still_reverts_target_bra
         "specify_cli.cli.commands.agent.mission_finalize._emit_success_report",
         side_effect=RuntimeError("SK3466-REV2-001 test: simulated downstream failure"),
     ):
-        result = _run_finalize_with_override(
-            repo, REV2_001_FEATURE_BRANCH, mission_slug=REV2_001_MISSION_SLUG
-        )
+        result = _run_finalize_with_override(repo, REV2_001_FEATURE_BRANCH, mission_slug=REV2_001_MISSION_SLUG)
 
-    assert result.exit_code == 1, (
-        f"expected the simulated downstream failure to fail the run "
-        f"(exit {result.exit_code}):\n{result.output}"
-    )
+    assert result.exit_code == 1, f"expected the simulated downstream failure to fail the run (exit {result.exit_code}):\n{result.output}"
 
     # The --target-branch override must be REVERTED -- not left dangling as
     # an uncommitted mutation just because meta.json's mixed delta was
     # excluded from this run's commit.
     reverted_meta = json.loads(meta_path.read_text(encoding="utf-8"))
     assert reverted_meta["target_branch"] == "main", (
-        "the --target-branch override was left dangling on disk after a "
-        f"downstream failure, instead of being reverted: {reverted_meta}"
+        f"the --target-branch override was left dangling on disk after a downstream failure, instead of being reverted: {reverted_meta}"
     )
 
     # The pre-existing FOREIGN edit is untouched either way -- finalize-tasks
@@ -1130,19 +1088,14 @@ def test_json_payload_signals_persisted_but_not_committed_on_mixed_delta_exclusi
 
     result = _run_finalize_with_override(repo, REV2_001_FEATURE_BRANCH, mission_slug=REV2_001_MISSION_SLUG)
 
-    assert result.exit_code == 0, (
-        f"a mixed meta.json delta must not fail the run outright (exit {result.exit_code}):\n{result.output}"
-    )
+    assert result.exit_code == 0, f"a mixed meta.json delta must not fail the run outright (exit {result.exit_code}):\n{result.output}"
 
     last_line = result.output.strip().splitlines()[-1]
     payload = json.loads(last_line)
     override_report = payload["target_branch_override"]
-    assert override_report.get("persisted") is True, (
-        f"the override write itself DID happen this run -- 'persisted' must stay True: {override_report}"
-    )
+    assert override_report.get("persisted") is True, f"the override write itself DID happen this run -- 'persisted' must stay True: {override_report}"
     assert override_report.get("committed") is False, (
-        "meta.json's mixed delta was excluded from this commit -- a --json caller must be able to "
-        f"tell 'persisted' apart from 'committed': {override_report}"
+        f"meta.json's mixed delta was excluded from this commit -- a --json caller must be able to tell 'persisted' apart from 'committed': {override_report}"
     )
 
     # The write is still dangling on disk (by design -- REV-001's own

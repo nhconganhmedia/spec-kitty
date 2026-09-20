@@ -124,9 +124,7 @@ def test_c001_auto_commit_input_no_longer_consults_protected_branch(
     ):
         tasks_mark_status._ms_resolve_context(st)
     locate_mock.assert_called_once()
-    sparse_mock.assert_called_once_with(
-        tmp_path, command="spec-kitty agent tasks mark-status"
-    )
+    sparse_mock.assert_called_once_with(tmp_path, command="spec-kitty agent tasks mark-status")
     slug_mock.assert_called_once()
     branch_mock.assert_called_once_with(tmp_path, "034-feature", True)
     protected_mock.assert_not_called()
@@ -170,9 +168,7 @@ def test_patched_output_error_intercepts_validate_inputs_bad_status() -> None:
         pytest.raises(_SentinelHit),
     ):
         tasks_mark_status._ms_validate_inputs(st)
-    error_mock.assert_called_once_with(
-        True, "Invalid status 'approved'. Must be 'done' or 'pending'."
-    )
+    error_mock.assert_called_once_with(True, "Invalid status 'approved'. Must be 'done' or 'pending'.")
 
 
 def test_patched_output_error_intercepts_validate_inputs_empty_ids() -> None:
@@ -240,9 +236,7 @@ def test_patched_output_error_intercepts_report_none_resolved_wp_id_leg() -> Non
     ):
         tasks_mark_status._ms_report_none_resolved(st)
     assert exc_info.value.exit_code == 1
-    error_mock.assert_called_once_with(
-        False, "WP01 was not found in any supported task format."
-    )
+    error_mock.assert_called_once_with(False, "WP01 was not found in any supported task format.")
 
 
 def test_patched_output_error_intercepts_report_none_resolved_default_leg() -> None:
@@ -284,9 +278,7 @@ def test_patched_protection_policy_intercepts_ms_commit(tmp_path: Path) -> None:
     assert call.kwargs["policy"] is policy_cls.resolve.return_value
     assert call.kwargs["kind"] is MissionArtifactKind.TASKS_INDEX
     assert call.args[2] == "chore: Mark T001 as done on spec 034"
-    console_mock.print.assert_called_once_with(
-        "[cyan]→ Committed subtask changes to main branch[/cyan]"
-    )
+    console_mock.print.assert_called_once_with("[cyan]→ Committed subtask changes to main branch[/cyan]")
 
 
 def test_patched_console_intercepts_ms_commit_exception_leg(tmp_path: Path) -> None:
@@ -335,9 +327,7 @@ def test_patched_resolve_inline_subtasks_intercepts_apply_updates(tmp_path: Path
     per the T007 partition record) bites through ``_ms_apply_updates``'
     resolver chain via the ``_tasks.<attr>`` route."""
     tasks_md = tmp_path / "tasks.md"
-    tasks_md.write_text(
-        "## WP01: Build\n\nSubtasks: T001, T002\n", encoding="utf-8"
-    )
+    tasks_md.write_text("## WP01: Build\n\nSubtasks: T001, T002\n", encoding="utf-8")
     st = _make_state(task_ids=["T001"])
     st.main_repo_root = tmp_path
     st.mission_slug = "034-feature"
@@ -346,9 +336,7 @@ def test_patched_resolve_inline_subtasks_intercepts_apply_updates(tmp_path: Path
     lock_mock = MagicMock(return_value=nullcontext())
     with (
         patch(f"{_TASKS}.feature_status_lock", lock_mock),
-        patch(
-            f"{_TASKS}._resolve_inline_subtasks", side_effect=_SentinelHit
-        ) as inline_mock,
+        patch(f"{_TASKS}._resolve_inline_subtasks", side_effect=_SentinelHit) as inline_mock,
         pytest.raises(_SentinelHit),
     ):
         tasks_mark_status._ms_apply_updates(st, ports=MagicMock())
@@ -376,9 +364,7 @@ def test_patched_output_result_intercepts_ms_output() -> None:
         tasks_mark_status._ms_output(st)
     payload_mock.assert_called_once_with(st.results)
     assert "Not found: T404" in console_mock.print.call_args.args[0]
-    result_mock.assert_called_once_with(
-        False, {"result": "ok"}, "[green]✓[/green] Marked T001 as done"
-    )
+    result_mock.assert_called_once_with(False, {"result": "ok"}, "[green]✓[/green] Marked T001 as done")
 
 
 def test_patched_output_error_intercepts_do_mark_status_exception_arm() -> None:

@@ -163,9 +163,7 @@ def test_workflow_coord_meta_mid8_truncation_and_none(tmp_path: Path) -> None:
 def _seed_mission(repo_root: Path, slug: str, mission_id: str) -> Path:
     feature_dir = repo_root / "kitty-specs" / slug
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps({"mission_id": mission_id, "mission_slug": slug}), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps({"mission_id": mission_id, "mission_slug": slug}), encoding="utf-8")
     return feature_dir
 
 
@@ -206,9 +204,7 @@ def test_execution_context_carries_single_derived_mid8() -> None:
     """A real MissionExecutionContext holds ``identity.mid8`` derived once; consumers read it."""
     from mission_runtime.context import IdentityFragment, MissionExecutionContext
 
-    identity = IdentityFragment.derive(
-        mission_id=_FULL_MISSION_ID, mission_slug="rider-mission-01KV7SFD"
-    )
+    identity = IdentityFragment.derive(mission_id=_FULL_MISSION_ID, mission_slug="rider-mission-01KV7SFD")
     ctx = MissionExecutionContext(
         action="implement",
         mission_slug="rider-mission-01KV7SFD",

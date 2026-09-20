@@ -137,6 +137,7 @@ def classify_mission(feature_dir: Path) -> IdentityState:
         # the never-raise contract of classify_mission).
         # ``or {}`` narrows the ``dict | None`` return type for the type checker.
         from specify_cli.core.paths import load_meta_fail_closed, MissionMetaReadError
+
         raw = load_meta_fail_closed(feature_dir) or {}
     except (OSError, MissionMetaReadError) as exc:
         return IdentityState(

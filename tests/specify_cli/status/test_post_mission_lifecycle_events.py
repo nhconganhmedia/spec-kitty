@@ -392,9 +392,7 @@ def test_new_types_stay_local_only_via_cli_contract() -> None:
     assert FOLLOW_UP_RECORDED in _POST_MISSION_EVENT_TYPES
     # And it is exactly these two types (a third type silently joining the set
     # would change the local classification surface and must be deliberate).
-    assert sorted(_POST_MISSION_EVENT_TYPES) == sorted(
-        {MISSION_REOPENED, FOLLOW_UP_RECORDED}
-    )
+    assert sorted(_POST_MISSION_EVENT_TYPES) == sorted({MISSION_REOPENED, FOLLOW_UP_RECORDED})
 
 
 def test_events_round_trip_as_reducer_skipped(tmp_path: Path) -> None:
@@ -616,9 +614,7 @@ def test_latest_event_time_falls_back_to_envelope_timestamp() -> None:
     assert parsed == datetime(2026, 5, 7, 10, 0, tzinfo=UTC)
 
 
-def test_derive_from_lane_returns_genesis_when_wp_state_lacks_lane(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_derive_from_lane_returns_genesis_when_wp_state_lacks_lane(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # emit._derive_from_lane: a reduced WP state present but carrying no
     # ``lane`` key falls back to GENESIS rather than raising.
     from specify_cli.status import emit as emit_mod

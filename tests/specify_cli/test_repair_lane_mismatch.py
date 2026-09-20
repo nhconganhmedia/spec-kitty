@@ -92,9 +92,7 @@ class TestRepairLaneMismatchFrontmatterCorruption:
         # Exactly one opening fence and the matching closing fence -- i.e. no
         # duplicated frontmatter block was spliced into the document.
         assert raw.startswith("---\n"), "document must open with a clean frontmatter fence"
-        assert raw.count("\n---\n") == 1, (
-            f"expected exactly one closing '---' fence, found corruption in:\n{raw[:800]}"
-        )
+        assert raw.count("\n---\n") == 1, f"expected exactly one closing '---' fence, found corruption in:\n{raw[:800]}"
 
         frontmatter, body, _ = parse_frontmatter(raw)
         assert frontmatter.get("lane") == "for_review", "lane must be corrected to match the directory"

@@ -72,11 +72,7 @@ class TestZeroWriteRefusal:
             ) as commit_mock,
         ):
             seam_ctor.return_value = MagicMock(
-                write_target=MagicMock(
-                    side_effect=ActionContextError(
-                        "FEATURE_CONTEXT_UNRESOLVED", "mission slug does not resolve"
-                    )
-                )
+                write_target=MagicMock(side_effect=ActionContextError("FEATURE_CONTEXT_UNRESOLVED", "mission slug does not resolve"))
             )
 
             result = write_artifact(
@@ -104,9 +100,7 @@ class TestZeroWriteRefusal:
         # Nothing was written -- the phantom artifact still does not exist.
         assert not artifact.exists()
 
-    def test_deleted_coordination_branch_refuses_never_falls_back_to_main(
-        self, tmp_path: Path
-    ) -> None:
+    def test_deleted_coordination_branch_refuses_never_falls_back_to_main(self, tmp_path: Path) -> None:
         """A deleted ``target_branch`` / coordination branch
         (``StatusReadPathNotFound`` and its ``CoordinationBranchDeleted``
         subclass) refuses -- this is the literal FR-011 scenario: the
@@ -122,11 +116,7 @@ class TestZeroWriteRefusal:
                 side_effect=AssertionError("commit_for_mission must not be called on refusal"),
             ) as commit_mock,
         ):
-            seam_ctor.return_value = MagicMock(
-                write_target=MagicMock(
-                    side_effect=_status_read_path_not_found(_MISSION_SLUG, tmp_path)
-                )
-            )
+            seam_ctor.return_value = MagicMock(write_target=MagicMock(side_effect=_status_read_path_not_found(_MISSION_SLUG, tmp_path)))
 
             result = write_artifact(
                 repo_root=tmp_path,
@@ -162,9 +152,7 @@ class TestIdempotentReRun:
         artifact = tmp_path / "acceptance-matrix.json"
         artifact.write_text("{}\n", encoding="utf-8")
 
-        committed = CommitRouterResult(
-            status="committed", placement_ref="main", commit_hash="abc1234"
-        )
+        committed = CommitRouterResult(status="committed", placement_ref="main", commit_hash="abc1234")
         unchanged = CommitRouterResult(status="unchanged", placement_ref="main")
 
         with (
@@ -174,9 +162,7 @@ class TestIdempotentReRun:
                 side_effect=[committed, unchanged],
             ) as commit_mock,
         ):
-            seam_ctor.return_value = MagicMock(
-                write_target=MagicMock(return_value=CommitTarget(ref="main"))
-            )
+            seam_ctor.return_value = MagicMock(write_target=MagicMock(return_value=CommitTarget(ref="main")))
 
             first = write_artifact(
                 repo_root=tmp_path,
@@ -206,9 +192,7 @@ class TestIdempotentReRun:
         assert first.entry_id == second.entry_id == "FR-001"
         assert first.destination_surface == second.destination_surface == "main"
 
-    def test_unchanged_artifact_maps_status_verbatim_from_commit_router(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unchanged_artifact_maps_status_verbatim_from_commit_router(self, tmp_path: Path) -> None:
         """``commit_for_mission`` itself detects idempotence via the
         'nothing to commit' git signal (see test_commit_router.py); this
         helper must not re-derive or second-guess that -- it projects the
@@ -226,9 +210,7 @@ class TestIdempotentReRun:
                 return_value=CommitRouterResult(status="unchanged", placement_ref="main"),
             ),
         ):
-            seam_ctor.return_value = MagicMock(
-                write_target=MagicMock(return_value=CommitTarget(ref="main"))
-            )
+            seam_ctor.return_value = MagicMock(write_target=MagicMock(return_value=CommitTarget(ref="main")))
             result = write_artifact(
                 repo_root=tmp_path,
                 mission_slug=_MISSION_SLUG,
@@ -248,9 +230,7 @@ class TestIdempotentReRun:
 
 
 class TestRecursionGuardNeverReadsForAWrite:
-    def test_write_boundary_resolves_via_write_target_never_read_dir(
-        self, tmp_path: Path
-    ) -> None:
+    def test_write_boundary_resolves_via_write_target_never_read_dir(self, tmp_path: Path) -> None:
         """The write boundary calls ``write_target`` (the write authority) and
         must never call ``read_dir`` (the read authority, which for
         ``RETROSPECTIVE`` routes to a wholly different resolver,
@@ -260,9 +240,7 @@ class TestRecursionGuardNeverReadsForAWrite:
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_text("# Trace\n", encoding="utf-8")
 
-        read_dir_mock = MagicMock(
-            side_effect=AssertionError("read_dir must never be called from the write boundary")
-        )
+        read_dir_mock = MagicMock(side_effect=AssertionError("read_dir must never be called from the write boundary"))
 
         with (
             patch("specify_cli.coordination.write_seam.placement_seam") as seam_ctor,

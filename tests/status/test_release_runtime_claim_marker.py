@@ -36,9 +36,7 @@ pytestmark = [pytest.mark.fast]
 
 
 def _annotation(event_id: str, at: str, delta: WPInnerStateDelta) -> InnerStateChanged:
-    return InnerStateChanged(
-        event_id=event_id, wp_id="WP01", at=at, actor="claude", delta=delta
-    )
+    return InnerStateChanged(event_id=event_id, wp_id="WP01", at=at, actor="claude", delta=delta)
 
 
 def _ulid(suffix: str) -> str:
@@ -110,9 +108,7 @@ def test_same_delta_concrete_override_wins_over_release() -> None:
     replace-slot loop, so the loop's present value wins."""
     state: dict[str, object] = {"lane": str(Lane.IN_PROGRESS), "agent": "claude-code"}
 
-    _apply_annotation_delta(
-        state, WPInnerStateDelta(release_runtime_claim=True, agent="fresh-claimer")
-    )
+    _apply_annotation_delta(state, WPInnerStateDelta(release_runtime_claim=True, agent="fresh-claimer"))
 
     assert state["agent"] == "fresh-claimer"
 
@@ -179,12 +175,8 @@ def test_reduced_snapshot_from_persisted_release_event_clears_claim() -> None:
     """A reduced snapshot built from a persisted (wire round-tripped) release
     annotation clears the claim — proves the marker survives the full
     encode -> decode -> reduce path, not just the in-memory dataclass."""
-    claimed_delta = WPInnerStateDelta.from_dict(
-        WPInnerStateDelta(agent="claude-code", shell_pid=41417).to_dict()
-    )
-    released_delta = WPInnerStateDelta.from_dict(
-        WPInnerStateDelta(release_runtime_claim=True).to_dict()
-    )
+    claimed_delta = WPInnerStateDelta.from_dict(WPInnerStateDelta(agent="claude-code", shell_pid=41417).to_dict())
+    released_delta = WPInnerStateDelta.from_dict(WPInnerStateDelta(release_runtime_claim=True).to_dict())
     claimed = _annotation(_ulid("B1"), "2026-08-15T00:01:01+00:00", claimed_delta)
     released = _annotation(_ulid("B2"), "2026-08-15T00:01:02+00:00", released_delta)
 

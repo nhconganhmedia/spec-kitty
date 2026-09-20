@@ -250,10 +250,7 @@ def run_charter_encoding_migration(
 
         if dry_run:
             if not json_output:
-                _console.print(
-                    f"[yellow]would normalize[/yellow] {path} "
-                    f"({detected}, confidence {confidence:.2f})"
-                )
+                _console.print(f"[yellow]would normalize[/yellow] {path} ({detected}, confidence {confidence:.2f})")
             record = _FileRecord(
                 path=path,
                 action="dry-run-would-normalize",
@@ -285,10 +282,7 @@ def run_charter_encoding_migration(
         )
         summary.normalized.append(record)
         if not json_output:
-            _console.print(
-                f"  [green]normalized[/green] {path} "
-                f"({detected} → utf-8, confidence {confidence:.2f})"
-            )
+            _console.print(f"  [green]normalized[/green] {path} ({detected} → utf-8, confidence {confidence:.2f})")
 
     # Emit summary: JSON to stdout (machine-readable), or human text to console.
     if json_output:
@@ -337,14 +331,9 @@ def _emit_human_summary(summary: _ScanSummary) -> None:
     _console.print(f"\n{prefix}[bold]charter-encoding migration summary[/bold]")
     _console.print(f"  Files inspected  : {summary.files_inspected}")
     _console.print(f"  Already UTF-8    : {len(summary.already_utf8)}")
-    _console.print(
-        f"  Normalized       : {len(summary.normalized)}"
-        + (" (would normalize)" if summary.dry_run else "")
-    )
+    _console.print(f"  Normalized       : {len(summary.normalized)}" + (" (would normalize)" if summary.dry_run else ""))
     if summary.ambiguous:
-        _console.print(
-            f"  [red]Ambiguous        : {len(summary.ambiguous)} (manual repair required)[/red]"
-        )
+        _console.print(f"  [red]Ambiguous        : {len(summary.ambiguous)} (manual repair required)[/red]")
         for rec in summary.ambiguous:
             _console.print(f"    [red]{rec.path}[/red]")
     else:

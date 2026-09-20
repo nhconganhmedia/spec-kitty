@@ -57,14 +57,10 @@ def collect_governance_reference_status(
         exists = candidate.exists()
         if not exists:
             warning = (
-                f"Missing governance reference {path}. Create it under the repository root "
-                "or remove it from governance_references in .kittify/charter/charter.md."
+                f"Missing governance reference {path}. Create it under the repository root or remove it from governance_references in .kittify/charter/charter.md."
             )
         elif not candidate.is_file():
-            warning = (
-                f"Governance reference {path} is not a file. Point governance_references "
-                "at a markdown or text document under the repository root."
-            )
+            warning = f"Governance reference {path} is not a file. Point governance_references at a markdown or text document under the repository root."
         statuses.append(
             GovernanceReferenceStatus(
                 path=path,
@@ -98,19 +94,12 @@ def render_governance_references(
 def _path_warning(root: Path, path: str) -> str | None:
     candidate = Path(path)
     if candidate.is_absolute():
-        return (
-            f"Unsafe governance reference {path}: paths must be repository-relative, "
-            "not absolute."
-        )
+        return f"Unsafe governance reference {path}: paths must be repository-relative, not absolute."
     if any(part == ".." for part in candidate.parts):
-        return (
-            f"Unsafe governance reference {path}: parent-directory traversal is not allowed."
-        )
+        return f"Unsafe governance reference {path}: parent-directory traversal is not allowed."
     resolved = (root / candidate).resolve(strict=False)
     if not _is_relative_to(resolved, root):
-        return (
-            f"Unsafe governance reference {path}: resolved path escapes the repository root."
-        )
+        return f"Unsafe governance reference {path}: resolved path escapes the repository root."
     return None
 
 

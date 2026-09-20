@@ -402,12 +402,8 @@ def test_case_1_styleguide_via_charter_directive_wrapper_works_today(
         mark_loaded=False,
     )
 
-    has_wrapper_id = "DIRECTIVE_CAVEMAN_WRAPPER" in result.text or (
-        "DIR-" in result.text and "Caveman Comment Wrapper" in result.text
-    )
-    has_wrapper_body = "caveman-comments" in result.text or (
-        "Caveman" in result.text and "comment" in result.text.lower()
-    )
+    has_wrapper_id = "DIRECTIVE_CAVEMAN_WRAPPER" in result.text or ("DIR-" in result.text and "Caveman Comment Wrapper" in result.text)
+    has_wrapper_body = "caveman-comments" in result.text or ("Caveman" in result.text and "comment" in result.text.lower())
     assert has_wrapper_id or has_wrapper_body, (
         "The directive-wrapper workaround MUST surface the wrapper directive's id "
         "or body in the implement prompt. If THIS test fails too, then even the "
@@ -450,15 +446,9 @@ def test_case_1_selected_styleguides_field_round_trips(
     ensure_charter_bundle_fresh(repo_root)
 
     charter_yaml = repo_root / ".kittify" / "charter" / "charter.yaml"
-    assert charter_yaml.exists(), (
-        "The authoritative `.kittify/charter/charter.yaml` MUST persist the "
-        "declared doctrine selection (#2773 consolidated bundle)."
-    )
+    assert charter_yaml.exists(), "The authoritative `.kittify/charter/charter.yaml` MUST persist the declared doctrine selection (#2773 consolidated bundle)."
     charter_text = charter_yaml.read_text(encoding="utf-8")
-    assert (
-        "selected_styleguides" in charter_text
-        and "caveman-comments" in charter_text
-    ), (
+    assert "selected_styleguides" in charter_text and "caveman-comments" in charter_text, (
         "`charter.yaml` MUST carry the charter's "
         "`selected_styleguides: [caveman-comments]` declaration under "
         "`governance.doctrine`. Observed charter.yaml content:\n"
@@ -528,12 +518,7 @@ def test_case_1_styleguide_render_includes_trigger_stanza(
     references_artifact = "caveman-comments" in text or "caveman" in text
     has_fetch_command = bool(_FETCH_CMD_RE.search(result.text))
 
-    assert (
-        canonical_conditional
-        and write_comment_phrase
-        and references_artifact
-        and has_fetch_command
-    ), (
+    assert canonical_conditional and write_comment_phrase and references_artifact and has_fetch_command, (
         "The implement prompt MUST carry an activation stanza shaped like\n"
         '  "When you are about to write a code comment, run '
         "`spec-kitty charter context --include styleguide:caveman-comments` "

@@ -67,9 +67,7 @@ def test_normalize_help_strips_windows_safe_box_corners() -> None:
 
 
 @pytest.mark.parametrize("columns", ["40", "100", "200"])
-def test_force_wide_help_console_is_width_invariant(
-    columns: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_force_wide_help_console_is_width_invariant(columns: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Normalized help is identical regardless of the ambient ``COLUMNS``.
 
     Without the pin, a 40-column render wraps the long option description at a
@@ -78,9 +76,7 @@ def test_force_wide_help_console_is_width_invariant(
     """
     force_wide_help_console(monkeypatch)
     runner = CliRunner()
-    result = runner.invoke(
-        _sample_app(), ["--help"], env={"COLUMNS": columns, "TERM": "xterm"}
-    )
+    result = runner.invoke(_sample_app(), ["--help"], env={"COLUMNS": columns, "TERM": "xterm"})
     assert result.exit_code == 0
     lines = normalize_help(result.stdout)
     assert f"--flag {_LONG_HELP}" in lines

@@ -1,4 +1,5 @@
 """Architectural dependency test fixtures."""
+
 from __future__ import annotations
 
 import ast

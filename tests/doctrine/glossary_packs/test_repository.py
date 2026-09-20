@@ -32,9 +32,7 @@ class TestGlossaryPackRepository:
         repo = GlossaryPackRepository(built_in_dir=tmp_glossary_pack_dir)
         assert repo.get("nonexistent-pack") is None
 
-    def test_enforcement_fields_round_trip_unchanged(
-        self, tmp_glossary_pack_dir: Path, full_term_data: dict
-    ) -> None:
+    def test_enforcement_fields_round_trip_unchanged(self, tmp_glossary_pack_dir: Path, full_term_data: dict) -> None:
         """aliases/banned_synonyms survive a full load→get cycle unchanged.
 
         Forward-compat for Mission B (C-004): the fields are carried but no
@@ -138,9 +136,7 @@ class TestDoctrineServiceGlossaryPacksAccessor:
     that loads it — not a dead/unreachable property.
     """
 
-    def test_service_loads_glossary_pack_from_built_in_default_dir(
-        self, tmp_path: Path, sample_pack_data: dict, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_service_loads_glossary_pack_from_built_in_default_dir(self, tmp_path: Path, sample_pack_data: dict, monkeypatch: pytest.MonkeyPatch) -> None:
         packs_root = tmp_path / "packs"
         pack_dir = packs_root / "built-in" / "glossary_packs"
         pack_dir.mkdir(parents=True)
@@ -159,9 +155,7 @@ class TestDoctrineServiceGlossaryPacksAccessor:
         assert pack is not None
         assert len(pack.terms) == 2
 
-    def test_service_caches_glossary_packs_repository(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_service_caches_glossary_packs_repository(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         packs_root = tmp_path / "packs"
         (packs_root / "built-in").mkdir(parents=True)
         monkeypatch.setenv("SPEC_KITTY_PACKS_ROOT", str(packs_root))

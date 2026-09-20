@@ -88,9 +88,7 @@ def _materialize_lane_worktree(repo_root: Path, mission_dirname: str, wp_id: str
     lane = manifest.lane_for_wp(wp_id)
     assert lane is not None, f"{wp_id} must be lane-owned in the fixture manifest"
 
-    coord_branch = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))[
-        "coordination_branch"
-    ]
+    coord_branch = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))["coordination_branch"]
     lane_branch = lane_branch_name(
         mission_dirname,
         lane.lane_id,
@@ -138,9 +136,7 @@ def _classify(exit_code: int, output: str) -> Causation:
 
 
 @pytest.mark.git_repo
-def test_2861_block_is_closed_manual_coord_review_succeeds(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_2861_block_is_closed_manual_coord_review_succeeds(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """PROOF (WP04/T015): the #2861 empty-second-commit block is closed.
 
     The same sanctioned coord fixture that WP01 recorded as ``exit_code == 1``
@@ -182,10 +178,7 @@ def test_2861_block_is_closed_manual_coord_review_succeeds(
 
     # The causation classifier agrees: no block is observed.
     verdict = _classify(result.exit_code, output)
-    assert verdict is Causation.NOT_BLOCKED, (
-        f"#2861 regressed: expected {Causation.NOT_BLOCKED} but classified "
-        f"{verdict}.\n--- output ---\n{output}"
-    )
+    assert verdict is Causation.NOT_BLOCKED, f"#2861 regressed: expected {Causation.NOT_BLOCKED} but classified {verdict}.\n--- output ---\n{output}"
 
     # The empty-second-commit refusal is GONE: neither the BookkeepingTransaction
     # refusal nor the "git commit failed" sub-mode may appear on the success path.
@@ -237,9 +230,7 @@ def _last_in_review_actor(events_text: str, wp_id: str) -> dict[str, object]:
 
 
 @pytest.mark.git_repo
-def test_2861_review_seam_persists_parsed_bare_tool_not_whole_agent_string(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_2861_review_seam_persists_parsed_bare_tool_not_whole_agent_string(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-005 seam-wiring: the LIVE compact-``--agent`` review claim persists the
     PARSED bare tool + self-asserted profile into the committed coord event.
 
@@ -289,12 +280,8 @@ def test_2861_review_seam_persists_parsed_bare_tool_not_whole_agent_string(
 
     actor = _last_in_review_actor(coord_events, "WP01")
     # The PARSED bare tool — NOT the whole compact --agent string (the #2861 leak).
-    assert actor["tool"] == "claude", (
-        f"the review seam must persist the PARSED bare tool, not the whole "
-        f"--agent string; got actor.tool={actor['tool']!r}"
-    )
+    assert actor["tool"] == "claude", f"the review seam must persist the PARSED bare tool, not the whole --agent string; got actor.tool={actor['tool']!r}"
     # The self-asserted profile parsed from the --agent boundary string.
     assert actor["profile"] == "reviewer-renata", (
-        f"the review seam must persist the self-asserted profile from the "
-        f"--agent value; got actor.profile={actor['profile']!r}"
+        f"the review seam must persist the self-asserted profile from the --agent value; got actor.profile={actor['profile']!r}"
     )

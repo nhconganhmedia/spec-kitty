@@ -54,16 +54,12 @@ _PLANNING_BRANCH = "feat/planning-work"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _git_bytes(repo: Path, *args: str) -> bytes:
     """Raw stdout bytes of a git command — for byte-identical AC-C1 captures."""
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True
-    ).stdout
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True).stdout
 
 
 def _parse_json_from_output(output: str) -> dict[str, object]:
@@ -103,9 +99,7 @@ def _write_spec(feature_dir: Path) -> None:
 
 
 def _write_tasks_md(feature_dir: Path, wp_ids: list[str]) -> None:
-    sections = "\n".join(
-        f"## Work Package {wp}\n\n**Dependencies**: None\n" for wp in wp_ids
-    )
+    sections = "\n".join(f"## Work Package {wp}\n\n**Dependencies**: None\n" for wp in wp_ids)
     (feature_dir / "tasks.md").write_text(f"# Tasks\n\n{sections}\n", encoding="utf-8")
 
 
@@ -199,26 +193,17 @@ class TestValidateOnlyIsReadOnly:
 
         result = _run_finalize(repo, mission_slug, "--validate-only")
 
-        assert result.exit_code == 0, (
-            f"--validate-only failed (exit {result.exit_code}):\n{result.output}"
-        )
+        assert result.exit_code == 0, f"--validate-only failed (exit {result.exit_code}):\n{result.output}"
 
         head_after = _git_bytes(repo, "symbolic-ref", "HEAD")
         porcelain_after = _git_bytes(repo, "status", "--porcelain")
         staged_after = _git_bytes(repo, "diff", "--cached", "--name-only")
 
-        assert head_after == head_before, (
-            "--validate-only CHECKED OUT a branch (read-only contract "
-            f"violated): HEAD {head_before!r} -> {head_after!r}"
-        )
+        assert head_after == head_before, f"--validate-only CHECKED OUT a branch (read-only contract violated): HEAD {head_before!r} -> {head_after!r}"
         assert porcelain_after == porcelain_before, (
-            "--validate-only changed the working tree / index "
-            "(read-only contract violated):\n"
-            f"before: {porcelain_before!r}\nafter:  {porcelain_after!r}"
+            f"--validate-only changed the working tree / index (read-only contract violated):\nbefore: {porcelain_before!r}\nafter:  {porcelain_after!r}"
         )
-        assert staged_after == b"", (
-            f"--validate-only staged files: {staged_after!r}"
-        )
+        assert staged_after == b"", f"--validate-only staged files: {staged_after!r}"
 
     def test_validation_findings_match_commit_phase_run(
         self,
@@ -241,11 +226,5 @@ class TestValidateOnlyIsReadOnly:
 
         # The validation findings shared by both payload shapes must agree.
         assert validate_payload["wp_count"] == commit_payload["wp_count"]
-        assert (
-            validate_payload["updated_wp_count"]
-            == commit_payload["updated_wp_count"]
-        )
-        assert (
-            validate_payload["ownership_warnings"]
-            == commit_payload["ownership_warnings"]
-        )
+        assert validate_payload["updated_wp_count"] == commit_payload["updated_wp_count"]
+        assert validate_payload["ownership_warnings"] == commit_payload["ownership_warnings"]

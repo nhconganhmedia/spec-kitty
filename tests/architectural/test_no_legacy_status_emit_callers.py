@@ -56,8 +56,4 @@ def test_production_code_has_no_legacy_status_emit_callers() -> None:
             continue
         offenders.extend(_legacy_status_emit_uses(path))
 
-    assert not offenders, (
-        "Production status transitions must use "
-        "coordination.status_transition + BookkeepingTransaction.append_event:\n"
-        + "\n".join(offenders)
-    )
+    assert not offenders, "Production status transitions must use coordination.status_transition + BookkeepingTransaction.append_event:\n" + "\n".join(offenders)

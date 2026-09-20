@@ -56,15 +56,7 @@ MISSION_ID = "01KLANE00000000000000000000"
 MISSION_DIRNAME = f"{MISSION_SLUG}-{MID8}"
 COORD_BRANCH = f"kitty/mission-{MISSION_DIRNAME}"
 
-_WP_FILE = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: Test WP01\n"
-    "dependencies: []\n"
-    "subtasks: []\n"
-    "---\n\n"
-    "# WP01\n"
-)
+_WP_FILE = "---\nwork_package_id: WP01\ntitle: Test WP01\ndependencies: []\nsubtasks: []\n---\n\n# WP01\n"
 
 
 def _valid_policy_json() -> str:
@@ -82,9 +74,7 @@ def _valid_policy_json() -> str:
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _manifest() -> LanesManifest:
@@ -132,9 +122,7 @@ def _seed_planned_on_coord(repo: Path) -> None:
     worktree = repo / ".worktrees" / "seed-coord"
     _git(repo, "worktree", "add", "-q", str(worktree), COORD_BRANCH)
     append_event_log(
-        EventLogWriteContract.coordination_transaction_append(
-            worktree / "kitty-specs" / MISSION_DIRNAME
-        ),
+        EventLogWriteContract.coordination_transaction_append(worktree / "kitty-specs" / MISSION_DIRNAME),
         seed,
     )
     _git(worktree, "add", "-A")
@@ -313,18 +301,12 @@ def test_lane_allocation_failure_fails_closed(coord_repo: Path) -> None:
 def test_for_review_gate_is_noop_without_lanes(tmp_path: Path) -> None:
     """The gate does not apply (no raise) when force is set or no lanes manifest."""
     # --force bypass returns without touching git/lanes at all.
-    _enforce_for_review_commit_gate(
-        "transition", tmp_path, "any-mission", tmp_path, "WP01", force=True
-    )
+    _enforce_for_review_commit_gate("transition", tmp_path, "any-mission", tmp_path, "WP01", force=True)
     # No lanes.json under the mission dir: the gate is not applicable, no raise.
-    _enforce_for_review_commit_gate(
-        "transition", tmp_path, "any-mission", tmp_path, "WP01", force=False
-    )
+    _enforce_for_review_commit_gate("transition", tmp_path, "any-mission", tmp_path, "WP01", force=False)
 
 
-def test_lane_base_ref_falls_back_to_mission_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lane_base_ref_falls_back_to_mission_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """When placement cannot be resolved, lane_base_ref uses manifest.mission_branch."""
     from types import SimpleNamespace
 
@@ -334,15 +316,11 @@ def test_lane_base_ref_falls_back_to_mission_branch(
         raise mission_runtime.ActionContextError("UNRESOLVED", "no such mission")
 
     monkeypatch.setattr(mission_runtime, "resolve_placement_only", _raise)
-    base = _lane_base_ref(
-        tmp_path, "unresolvable", SimpleNamespace(mission_branch="kitty/mission-x")
-    )
+    base = _lane_base_ref(tmp_path, "unresolvable", SimpleNamespace(mission_branch="kitty/mission-x"))
     assert base == "kitty/mission-x"
 
 
-def test_lane_base_ref_uses_primary_when_no_mission_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lane_base_ref_uses_primary_when_no_mission_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Unresolvable placement AND no mission_branch -> repo default, never empty.
 
     An empty base ref would degrade the commit gate's `git rev-list <base>..HEAD`.

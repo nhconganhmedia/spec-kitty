@@ -78,10 +78,7 @@ def test_moved_content_is_absent_under_src_doctrine() -> None:
 
     assert moved_paths, "content manifest must be non-empty"
     still_present = sorted(p for p in moved_paths if (REPO_ROOT / p).exists())
-    assert still_present == [], (
-        f"{len(still_present)} moved path(s) still present under src/charter/offering/: "
-        f"{still_present[:10]}"
-    )
+    assert still_present == [], f"{len(still_present)} moved path(s) still present under src/charter/offering/: {still_present[:10]}"
 
 
 # ---------------------------------------------------------------------------
@@ -93,9 +90,7 @@ def test_every_built_in_resolution_is_within_packs_built_in() -> None:
     pack_root = resolve_pack_root("built-in")
     for kind in RELOCATED_KINDS:
         resolved = _resolved_built_in_dir(kind)
-        assert resolved.is_relative_to(pack_root), (
-            f"{kind} built_in_dir {resolved} is not inside {pack_root}"
-        )
+        assert resolved.is_relative_to(pack_root), f"{kind} built_in_dir {resolved} is not inside {pack_root}"
 
 
 # ---------------------------------------------------------------------------
@@ -111,11 +106,7 @@ def test_no_per_kind_importlib_content_anchor_remains() -> None:
     is a resolution path that never reaches the moved content.
     """
     doctrine_src = REPO_ROOT / "src" / "charter" / "offering"
-    forbidden = tuple(
-        anchor
-        for kind in RELOCATED_KINDS
-        for anchor in (f'files("doctrine.{kind}")', f"files('doctrine.{kind}')")
-    )
+    forbidden = tuple(anchor for kind in RELOCATED_KINDS for anchor in (f'files("doctrine.{kind}")', f"files('doctrine.{kind}')"))
     offenders: list[str] = []
     for py_file in doctrine_src.rglob("*.py"):
         text = py_file.read_text(encoding="utf-8")

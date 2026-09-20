@@ -98,8 +98,7 @@ def load_verdict(root: Path) -> dict[str, Any]:
     """Read the verdict artefact under ``root``. **Raises ``AssertionError`` when absent.**"""
     path = root / gate.VERDICT_RELPATH
     assert path.is_file(), (
-        f"the verdict artefact is absent at {gate.VERDICT_RELPATH} — WP-0b's measurement has not "
-        "been published, and every downstream package is gated on it"
+        f"the verdict artefact is absent at {gate.VERDICT_RELPATH} — WP-0b's measurement has not been published, and every downstream package is gated on it"
     )
     document = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(document, dict), f"{gate.VERDICT_RELPATH} must be a mapping"
@@ -208,13 +207,9 @@ def test_e_operands_are_internally_consistent_as_sets() -> None:
     assert end_sites, "sites_at_end is empty — the difference is not recomputable"
     assert caught <= arrivals, f"R_f ⊄ R: {sorted(caught - arrivals)}"
     assert arrivals <= end_sites, f"R ⊄ sites_at_end: {sorted(arrivals - end_sites)}"
-    assert arrivals & start_sites == set(), (
-        f"R intersects sites_at_start — an arrival cannot be present at the start SHA: "
-        f"{sorted(arrivals & start_sites)}"
-    )
+    assert arrivals & start_sites == set(), f"R intersects sites_at_start — an arrival cannot be present at the start SHA: {sorted(arrivals & start_sites)}"
     assert len(arrivals) >= gate.FLOOR, (
-        f"|R| = {len(arrivals)} is below the visibility floor of {gate.FLOOR}; VOID is a "
-        "precondition and lowering the floor to fit a window is refused"
+        f"|R| = {len(arrivals)} is below the visibility floor of {gate.FLOOR}; VOID is a precondition and lowering the floor to fit a window is refused"
     )
     assert document["end_sha"] == END_SHA, "the end SHA never moves"
 
@@ -229,13 +224,8 @@ def test_e_start_sha_is_the_window_the_schedule_selected() -> None:
     document = load_verdict(REPO_ROOT)
     attempts = document["attempted_windows"]
     assert attempts, "attempted_windows is empty — every attempt is published, including discards"
-    assert document["start_sha"] == attempts[-1]["start_sha"], (
-        "start_sha must be the window the walk stopped at, not a window chosen afterwards"
-    )
-    assert attempts[0]["start_sha"] == VOID_START_SHA, (
-        "the first attempted window must be §0.9's stated one, whose VOID result the schedule "
-        "starts from"
-    )
+    assert document["start_sha"] == attempts[-1]["start_sha"], "start_sha must be the window the walk stopped at, not a window chosen afterwards"
+    assert attempts[0]["start_sha"] == VOID_START_SHA, "the first attempted window must be §0.9's stated one, whose VOID result the schedule starts from"
     assert attempts[0]["band"] == "VOID", "the stated window measured |R| = 3 against a floor of 10"
     discarded = {attempt["band"] for attempt in attempts[:-1]}
     assert discarded <= {"VOID", "INADMISSIBLE", "UNMEASURABLE"}, (
@@ -258,13 +248,10 @@ def test_e_start_sha_crosscheck_is_published_and_explained() -> None:
     )
     crosscheck = document["start_sha_crosscheck"]
     assert {"instrument", "start_sha", "symmetric_difference", "explanation"} <= set(crosscheck)
-    assert crosscheck["start_sha"] == document["start_sha"], (
-        "the cross-check must anchor the SELECTED start SHA, not some other one"
-    )
+    assert crosscheck["start_sha"] == document["start_sha"], "the cross-check must anchor the SELECTED start SHA, not some other one"
     if crosscheck["symmetric_difference"]:
         assert crosscheck["explanation"].strip(), (
-            f"non-empty symmetric difference {crosscheck['symmetric_difference']} carries no "
-            "explanation — a difference is explained, never tuned away"
+            f"non-empty symmetric difference {crosscheck['symmetric_difference']} carries no explanation — a difference is explained, never tuned away"
         )
 
 
@@ -281,11 +268,7 @@ def test_e_effect_class_fallback_is_asserted_inert_at_both_ends() -> None:
     trusted — which is exactly the notice a silent fallback would not give.
     """
     document = load_verdict(REPO_ROOT)
-    membership = {
-        bool(row["is_member"])
-        for key in ("sites_at_start", "sites_at_end")
-        for row in document[key]
-    }
+    membership = {bool(row["is_member"]) for key in ("sites_at_start", "sites_at_end") for row in document[key]}
     assert membership == {True}, (
         "an effect-class site is not a member at a published end — the rename-signature fallback "
         "to the outermost def is live, and §0.9's population-0 near-miss claim no longer holds"
@@ -303,10 +286,7 @@ def test_h_record_names_the_section_0_3_disposition_and_the_leak() -> None:
     text = (REPO_ROOT / gate.VERDICT_RELPATH).read_text(encoding="utf-8")
     assert {"28 -> 30"} <= set(_phrases(text)), "the artefact does not name §0.3's figure at all"
     disposition = {"RE-DERIVED", "SUPERSEDED"} & set(_phrases(text))
-    assert disposition, (
-        "the record must use the literal word RE-DERIVED or SUPERSEDED for §0.3's 28 -> 30 "
-        "figure — 'addressed' is explicitly refused"
-    )
+    assert disposition, "the record must use the literal word RE-DERIVED or SUPERSEDED for §0.3's 28 -> 30 figure — 'addressed' is explicitly refused"
     assert {"LEAKED", "r = 100%"} <= set(_phrases(text)), (
         "the record must state that the measurement leaked; the gate confirms a known answer "
         "rather than discovering one, and only the stopping rule's independence is protected"
@@ -366,28 +346,18 @@ def _inline_class(caught: int, arrivals: int, *, over_labels: bool) -> str:
         moved = any(_inline_band(f, n) != base for f, n in _inline_perturbations(caught, arrivals))
         return "inadmissible" if moved else base
     base_consequence = _inline_consequence(base)
-    moved = any(
-        _inline_consequence(_inline_band(f, n)) != base_consequence
-        for f, n in _inline_perturbations(caught, arrivals)
-    )
+    moved = any(_inline_consequence(_inline_band(f, n)) != base_consequence for f, n in _inline_perturbations(caught, arrivals))
     return "inadmissible" if moved else base_consequence
 
 
 def _enumerate(*, over_labels: bool) -> dict[tuple[int, int], str]:
-    return {
-        (arrivals, caught): _inline_class(caught, arrivals, over_labels=over_labels)
-        for arrivals in range(_FLOOR, 41)
-        for caught in range(0, arrivals + 1)
-    }
+    return {(arrivals, caught): _inline_class(caught, arrivals, over_labels=over_labels) for arrivals in range(_FLOOR, 41) for caught in range(0, arrivals + 1)}
 
 
 def test_f_oracle_full_mapping_over_consequences() -> None:
     """The module's classifier equals an inline transcription of §0.9, state for state."""
     expected = _enumerate(over_labels=False)
-    measured = {
-        (arrivals, caught): gate.consequence_class(caught, arrivals)
-        for arrivals, caught in expected
-    }
+    measured = {(arrivals, caught): gate.consequence_class(caught, arrivals) for arrivals, caught in expected}
     assert measured == expected
 
 
@@ -427,9 +397,7 @@ def test_f_void_is_a_precondition_and_not_a_band() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _key_still_present(
-    path: Path, published: tuple[str, ...], *, tests_root: Path = TESTS_ROOT
-) -> bool:
+def _key_still_present(path: Path, published: tuple[str, ...], *, tests_root: Path = TESTS_ROOT) -> bool:
     """True when ``published``'s ``(qualname, token_line)`` pair occurs anywhere in ``path``.
 
     Searched rather than indexed by line number, and that distinction is the whole point.
@@ -447,11 +415,7 @@ def _key_still_present(
     source = path.read_text(encoding="utf-8")
     if published[0] != path.relative_to(tests_root).as_posix():
         return False
-    return any(
-        enclosing_qualname(source, lineno) == published[1]
-        for lineno, token_line in code_tokens_by_line(source).items()
-        if token_line == published[2]
-    )
+    return any(enclosing_qualname(source, lineno) == published[1] for lineno, token_line in code_tokens_by_line(source).items() if token_line == published[2])
 
 
 def _recompute_report(
@@ -536,11 +500,7 @@ def test_g_control_a_forged_key_is_caught(tmp_path: Path) -> None:
         ).lstrip(),
         encoding="utf-8",
     )
-    lineno = next(
-        n
-        for n, line in enumerate(module.read_text(encoding="utf-8").splitlines(), start=1)
-        if "setenv" in line
-    )
+    lineno = next(n for n, line in enumerate(module.read_text(encoding="utf-8").splitlines(), start=1) if "setenv" in line)
     recomputed = (module.name, *composite_key_from_file(module, lineno))
     assert recomputed != (module.name, "anchor", "a forged token line")
     assert recomputed[0] == module.name

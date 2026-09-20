@@ -32,13 +32,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 runner = CliRunner()
 
-_HOWTO = (
-    Path(__file__).resolve().parents[2]
-    / "docs"
-    / "development"
-    / "how-to"
-    / "create-a-doctrine-artifact.md"
-)
+_HOWTO = Path(__file__).resolve().parents[2] / "docs" / "development" / "how-to" / "create-a-doctrine-artifact.md"
 
 #: A fenced ``yaml`` block whose body declares all three required manifest
 #: fields — this is how we recognise the manifest example among any other yaml
@@ -69,19 +63,13 @@ def _extract_manifest_example(text: str) -> dict[str, str]:
             continue
         if isinstance(loaded, dict) and {"id", "mime", "path"} <= loaded.keys():
             return {str(k): str(v) for k, v in loaded.items()}
-    pytest.fail(
-        "no asset manifest example (id + mime + path) found in the asset how-to; "
-        "the section that review-gates.md promises is absent or drifted"
-    )
+    pytest.fail("no asset manifest example (id + mime + path) found in the asset how-to; the section that review-gates.md promises is absent or drifted")
 
 
 def test_howto_has_asset_section() -> None:
     """The how-to that ``review-gates.md`` cites actually covers the asset kind."""
     text = _read_howto().lower()
-    assert "asset" in text, (
-        "create-a-doctrine-artifact.md contains 'asset' zero times, yet "
-        "review-gates.md cites it as the asset how-to (#3037)"
-    )
+    assert "asset" in text, "create-a-doctrine-artifact.md contains 'asset' zero times, yet review-gates.md cites it as the asset how-to (#3037)"
 
 
 def test_documented_asset_flow_resolves_in_a_fresh_project(
@@ -105,8 +93,7 @@ def test_documented_asset_flow_resolves_in_a_fresh_project(
     # authored.
     resolve_ids = {m.group("asset_id") for m in _RESOLVE_CMD.finditer(text)}
     assert asset_id in resolve_ids, (
-        f"manifest id {asset_id!r} is never resolved by a documented "
-        f"'spec-kitty doctrine asset path' command; found {sorted(resolve_ids)}"
+        f"manifest id {asset_id!r} is never resolved by a documented 'spec-kitty doctrine asset path' command; found {sorted(resolve_ids)}"
     )
 
     # Fresh project: the project-tier asset directory the resolver reads is
@@ -138,8 +125,5 @@ def test_documented_asset_flow_resolves_in_a_fresh_project(
     # (bash `$(...)` never captures stderr), not `.output` (Click 8.2+'s
     # stdout+stderr merge).
     resolved = Path(result.stdout.strip())
-    assert resolved == blob_path.resolve() or resolved == blob_path, (
-        f"documented command resolved {resolved}, expected the project blob "
-        f"{blob_path}"
-    )
+    assert resolved == blob_path.resolve() or resolved == blob_path, f"documented command resolved {resolved}, expected the project blob {blob_path}"
     assert resolved.is_file(), f"resolved asset path does not exist: {resolved}"

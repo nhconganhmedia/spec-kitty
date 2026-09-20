@@ -19,9 +19,7 @@ from specify_cli.lanes.branch_naming import BranchIdentityUnresolved
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 
-def test_primary_runtime_feature_dir_delegates_to_read_path_resolver(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_primary_runtime_feature_dir_delegates_to_read_path_resolver(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The moved body composes via the kind-aware placement seam's PRIMARY leg
     (#2091 fix) -- pinned against a stub seam so this test does not depend on
     the real read-path resolver's internals.
@@ -54,9 +52,7 @@ def test_primary_runtime_feature_dir_delegates_to_read_path_resolver(
     assert result == tmp_path / "kitty-specs" / "my-slug"
 
 
-def test_resolve_coordination_branch_returns_declared_branch_from_meta(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_coordination_branch_returns_declared_branch_from_meta(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A declared ``coordination_branch`` in meta.json is authoritative."""
     feature_dir = tmp_path / "kitty-specs" / "my-mission-01KWDABC"
     feature_dir.mkdir(parents=True)
@@ -71,9 +67,7 @@ def test_resolve_coordination_branch_returns_declared_branch_from_meta(
     assert branch == "kitty/mission-my-mission-01KWDABC-lane-a"
 
 
-def test_resolve_coordination_branch_composes_when_undeclared(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_coordination_branch_composes_when_undeclared(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """No declared ``coordination_branch`` -> composed via the fail-closed
     seam using the declared ``mission_id`` (#1978)."""
     feature_dir = tmp_path / "kitty-specs" / "my-mission-01KWDABC"
@@ -90,9 +84,7 @@ def test_resolve_coordination_branch_composes_when_undeclared(
     assert "my-mission" in branch
 
 
-def test_resolve_coordination_branch_malformed_modern_mission_fails_closed(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_coordination_branch_malformed_modern_mission_fails_closed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The malformed-coord correctness path (this WP's namesake): a modern
     slug (no ``NNN-`` prefix, no mid8 tail) with no recoverable ``mission_id``
     must raise :class:`BranchIdentityUnresolved` -- NEVER silently compose a
@@ -110,9 +102,7 @@ def test_resolve_coordination_branch_malformed_modern_mission_fails_closed(
         identity._resolve_coordination_branch("my-mission", tmp_path)
 
 
-def test_resolve_mission_ulid_returns_ulid_when_present(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_mission_ulid_returns_ulid_when_present(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     feature_dir = tmp_path / "kitty-specs" / "my-mission-01KWDABC"
     feature_dir.mkdir(parents=True)
     ulid = "01KWDABC1234567890ABCDEFGH"
@@ -122,9 +112,7 @@ def test_resolve_mission_ulid_returns_ulid_when_present(
     assert identity._resolve_mission_ulid("my-mission-01KWDABC", tmp_path) == ulid
 
 
-def test_resolve_mission_ulid_returns_none_when_absent_fail_closed(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_mission_ulid_returns_none_when_absent_fail_closed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Fail-closed (FR-004): absent ``mission_id`` returns ``None``, never
     the slug substituted as a fake identity."""
     feature_dir = tmp_path / "kitty-specs" / "my-mission-01KWDABC"

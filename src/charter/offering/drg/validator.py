@@ -19,9 +19,7 @@ from charter.offering.drg.models import DRGEdge, DRGGraph, NodeKind, Relation
 #: profile-to-profile relations; an edge of either kind that touches a
 #: non-profile node (or a missing node) is a structural defect regardless of
 #: which endpoint declared it (#1755 — the former asymmetric blind spot).
-_PROFILE_EDGE_RELATIONS: frozenset[Relation] = frozenset(
-    {Relation.SPECIALIZES_FROM, Relation.DELEGATES_TO}
-)
+_PROFILE_EDGE_RELATIONS: frozenset[Relation] = frozenset({Relation.SPECIALIZES_FROM, Relation.DELEGATES_TO})
 
 
 class DRGValidationError(Exception):
@@ -112,9 +110,7 @@ def _validate_lineage_acyclicity(graph: DRGGraph) -> list[str]:
             if color[neighbor] == GRAY:
                 cycle_start = path.index(neighbor)
                 cycle = path[cycle_start:] + [neighbor]
-                errors.append(
-                    f"Cycle in specializes_from lineage: {' -> '.join(cycle)}"
-                )
+                errors.append(f"Cycle in specializes_from lineage: {' -> '.join(cycle)}")
             elif color[neighbor] == WHITE:
                 _dfs(neighbor, path)
         path.pop()
@@ -189,10 +185,7 @@ def _validate_anti_pattern_nodes_are_rejected(graph: DRGGraph) -> list[str]:
         if node.kind is not NodeKind.ANTI_PATTERN:
             continue
         if not graph.edges_to(node.urn, relation=Relation.REJECTS):
-            errors.append(
-                f"Orphaned anti_pattern node: {node.urn!r} is marked "
-                "anti_pattern but has no inbound rejects edge"
-            )
+            errors.append(f"Orphaned anti_pattern node: {node.urn!r} is marked anti_pattern but has no inbound rejects edge")
     return errors
 
 
@@ -230,15 +223,9 @@ def validate_dangling_references(graph: DRGGraph) -> list[str]:
     urns = graph.node_urns()
     for edge in dangling_endpoints(graph):
         if edge.source not in urns:
-            errors.append(
-                f"Dangling source: edge ({edge.source} --{edge.relation}--> "
-                f"{edge.target}) references non-existent node {edge.source!r}"
-            )
+            errors.append(f"Dangling source: edge ({edge.source} --{edge.relation}--> {edge.target}) references non-existent node {edge.source!r}")
         if edge.target not in urns:
-            errors.append(
-                f"Dangling target: edge ({edge.source} --{edge.relation}--> "
-                f"{edge.target}) references non-existent node {edge.target!r}"
-            )
+            errors.append(f"Dangling target: edge ({edge.source} --{edge.relation}--> {edge.target}) references non-existent node {edge.target!r}")
     return errors
 
 
@@ -285,10 +272,7 @@ def duplicate_edge_triples(graph: DRGGraph) -> list[DRGEdge]:
 
 def _validate_duplicate_edges(graph: DRGGraph) -> list[str]:
     """Return errors for repeated ``(source, target, relation)`` triples."""
-    return [
-        f"Duplicate edge: ({edge.source} --{edge.relation}--> {edge.target})"
-        for edge in duplicate_edge_triples(graph)
-    ]
+    return [f"Duplicate edge: ({edge.source} --{edge.relation}--> {edge.target})" for edge in duplicate_edge_triples(graph)]
 
 
 def _validate_requires_cycles(graph: DRGGraph) -> list[str]:
@@ -311,9 +295,7 @@ def _validate_requires_cycles(graph: DRGGraph) -> list[str]:
                 # Found a back edge -- extract the cycle
                 cycle_start = path.index(neighbor)
                 cycle = path[cycle_start:] + [neighbor]
-                errors.append(
-                    f"Cycle in requires: {' -> '.join(cycle)}"
-                )
+                errors.append(f"Cycle in requires: {' -> '.join(cycle)}")
             elif color[neighbor] == WHITE:
                 _dfs(neighbor, path)
         path.pop()

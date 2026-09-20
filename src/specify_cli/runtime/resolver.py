@@ -62,9 +62,7 @@ from specify_cli.runtime.home import get_kittify_home, get_package_asset_root
 logger = logging.getLogger(__name__)
 
 _WINDOWS_RESERVED_TEMPLATE_BASENAMES = frozenset(
-    {"CON", "PRN", "AUX", "NUL", "CLOCK$"}
-    | {f"COM{index}" for index in range(1, 10)}
-    | {f"LPT{index}" for index in range(1, 10)}
+    {"CON", "PRN", "AUX", "NUL", "CLOCK$"} | {f"COM{index}" for index in range(1, 10)} | {f"LPT{index}" for index in range(1, 10)}
 )
 
 
@@ -89,10 +87,7 @@ class TemplateConfigurationError(ValueError):
         self.mission_type = "<typeless>" if mission_type is None else mission_type
         self.artifact_kind = artifact_kind
         self.mapped_filename = mapped_filename
-        super().__init__(
-            f"Template configuration for mission type {self.mission_type!r} "
-            f"and artifact kind {artifact_kind!r} {reason}."
-        )
+        super().__init__(f"Template configuration for mission type {self.mission_type!r} and artifact kind {artifact_kind!r} {reason}.")
 
 
 class ArtifactNameConfigurationError(ValueError):
@@ -109,10 +104,7 @@ class ArtifactNameConfigurationError(ValueError):
         self.mission_type = mission_type
         self.artifact_key = artifact_key
         self.mapped_filename = mapped_filename
-        super().__init__(
-            f"Artifact filename configuration for mission type {mission_type!r} "
-            f"and artifact key {artifact_key!r} {reason}."
-        )
+        super().__init__(f"Artifact filename configuration for mission type {mission_type!r} and artifact key {artifact_key!r} {reason}.")
 
 
 class TemplateURNError(ValueError):
@@ -140,17 +132,11 @@ class TemplateURNError(ValueError):
 def _assert_portable_template_filename(filename: str) -> None:
     """Reject single-segment filenames that alias Windows device paths."""
     if filename.endswith((".", " ")):
-        raise ValueError(
-            f"Template filename {filename!r} is not portable to Windows: "
-            "filenames must not end with a dot or space"
-        )
+        raise ValueError(f"Template filename {filename!r} is not portable to Windows: filenames must not end with a dot or space")
 
     basename = filename.split(".", maxsplit=1)[0].upper()
     if basename in _WINDOWS_RESERVED_TEMPLATE_BASENAMES:
-        raise ValueError(
-            f"Template filename {filename!r} is not portable to Windows: "
-            f"{basename!r} is a reserved device basename"
-        )
+        raise ValueError(f"Template filename {filename!r} is not portable to Windows: {basename!r} is a reserved device basename")
 
 
 def _is_global_runtime_configured() -> bool:
@@ -191,10 +177,7 @@ def _warn_legacy_asset(path: Path) -> None:
         _emit_migrate_nudge()
         return
 
-    msg = (
-        f"Legacy asset resolved: {path} — run 'spec-kitty migrate' to clean up. "
-        f"Legacy resolution will be removed in the next major version."
-    )
+    msg = f"Legacy asset resolved: {path} — run 'spec-kitty migrate' to clean up. Legacy resolution will be removed in the next major version."
     logger.warning(msg)
     warnings.warn(msg, DeprecationWarning, stacklevel=3)
 
@@ -219,10 +202,10 @@ def _emit_migrate_nudge() -> None:
     _migrate_nudge_shown = True
     from specify_cli.paths import render_runtime_path  # noqa: PLC0415
     from specify_cli.runtime.home import get_kittify_home  # noqa: PLC0415
+
     runtime_display = render_runtime_path(get_kittify_home())
     print(
-        "Note: Run `spec-kitty migrate` to clean up legacy project files and use the "
-        f"global runtime ({runtime_display}).",
+        f"Note: Run `spec-kitty migrate` to clean up legacy project files and use the global runtime ({runtime_display}).",
         file=sys.stderr,
     )
 
@@ -397,10 +380,7 @@ def _resolve_asset(
     except FileNotFoundError:
         pass
 
-    raise FileNotFoundError(
-        f"Asset '{name}' not found in any resolution tier "
-        f"(subdir={subdir!r}, mission={mission!r}, project={project_dir})"
-    )
+    raise FileNotFoundError(f"Asset '{name}' not found in any resolution tier (subdir={subdir!r}, mission={mission!r}, project={project_dir})")
 
 
 # ---------------------------------------------------------------------------
@@ -531,9 +511,7 @@ def resolve_configured_template(
         ) from exc
 
 
-def _load_expected_artifact_manifest(
-    mission_type: str, repo_root: Path | None = None
-) -> ExpectedArtifactManifest | None:
+def _load_expected_artifact_manifest(mission_type: str, repo_root: Path | None = None) -> ExpectedArtifactManifest | None:
     """Load and validate *mission_type*'s expected-artifacts manifest (read-only).
 
     **Retired mirror (WP02, #3770, FR-004):** this function used to duplicate
@@ -623,9 +601,7 @@ def resolve_configured_artifact_name(
     return mapped_filename
 
 
-def required_artifacts_for(
-    step: str, mission_type: str = "software-dev", repo_root: Path | None = None
-) -> list[str]:
+def required_artifacts_for(step: str, mission_type: str = "software-dev", repo_root: Path | None = None) -> list[str]:
     """Return the blocking artifact filenames required at *step* (FR-009).
 
     Combines ``required_always`` with ``required_by_step[step]`` (mirroring

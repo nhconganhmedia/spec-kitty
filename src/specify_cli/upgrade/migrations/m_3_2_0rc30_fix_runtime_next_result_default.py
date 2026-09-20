@@ -26,17 +26,11 @@ class FixRuntimeNextResultDefaultMigration(BaseMigration):
     """Refresh runtime-next SKILL.md copies with correct query-mode docs."""
 
     migration_id = "3.2.0rc30_fix_runtime_next_result_default"
-    description = (
-        "Correct runtime-next skill docs: omitted --result is query mode, "
-        "not success (#1456)."
-    )
+    description = "Correct runtime-next skill docs: omitted --result is query mode, not success (#1456)."
     target_version = "3.2.0rc30"
 
     def detect(self, project_path: Path) -> bool:
-        return any(
-            file_contains_any(info.path, _OLD_MARKERS)
-            for info in find_skill_files(project_path, _SKILL_NAME, ["SKILL.md"])
-        )
+        return any(file_contains_any(info.path, _OLD_MARKERS) for info in find_skill_files(project_path, _SKILL_NAME, ["SKILL.md"]))
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:  # noqa: ARG002
         return True, ""
@@ -47,18 +41,10 @@ class FixRuntimeNextResultDefaultMigration(BaseMigration):
 
         try:
             doctrine_root = files("charter.offering")
-            canonical_path = doctrine_root.joinpath(
-                "skills", _SKILL_NAME, "SKILL.md"
-            )
+            canonical_path = doctrine_root.joinpath("skills", _SKILL_NAME, "SKILL.md")
             new_content = canonical_path.read_text(encoding="utf-8")
         except Exception:
-            fallback = (
-                Path(__file__).resolve().parents[3]
-                / "doctrine"
-                / "skills"
-                / _SKILL_NAME
-                / "SKILL.md"
-            )
+            fallback = Path(__file__).resolve().parents[3] / "doctrine" / "skills" / _SKILL_NAME / "SKILL.md"
             if fallback.is_file():
                 new_content = fallback.read_text(encoding="utf-8")
             else:
@@ -75,9 +61,7 @@ class FixRuntimeNextResultDefaultMigration(BaseMigration):
                 changes.append(f"Would replace {rel}")
             else:
                 try:
-                    wrote, warning = write_skill_text(
-                        info.path, new_content, project_path
-                    )
+                    wrote, warning = write_skill_text(info.path, new_content, project_path)
                     if wrote:
                         changes.append(f"Replaced {rel}")
                     elif warning is not None:

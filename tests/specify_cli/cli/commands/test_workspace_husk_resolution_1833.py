@@ -80,9 +80,7 @@ def husk_repo(tmp_path: Path) -> tuple[Path, Path]:
     write_single_lane_manifest(feature_dir, wp_ids=(WP_ID,))
 
     task_file = tasks_dir / f"{WP_ID}-test-task.md"
-    task_file.write_text(
-        '---\nwork_package_id: "WP01"\ntitle: "Test Task"\nagent: "test-agent"\n---\n\n# Work Package: WP01\n'
-    )
+    task_file.write_text('---\nwork_package_id: "WP01"\ntitle: "Test Task"\nagent: "test-agent"\n---\n\n# Work Package: WP01\n')
 
     _git(repo, "add", ".")
     _git(repo, "commit", "-m", "Initial commit")
@@ -112,9 +110,7 @@ def _resolved_workspace(path: Path, branch: str | None = None) -> ResolvedWorksp
 class TestMoveTaskHuskResolution:
     """AC-D1: husk resolution in move-task validation is a structured failure."""
 
-    def test_husk_fails_with_structured_error_and_no_git_against_primary(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_husk_fails_with_structured_error_and_no_git_against_primary(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         repo, husk = husk_repo
         recorded: list[tuple[list[str], str | None]] = []
         real_run = subprocess.run
@@ -208,9 +204,7 @@ class TestResolvedWorkspaceExists:
 class TestReviewClaimWorkspacePreparation:
     """AC-D2: lock acquired only after the workspace exists; creation failure is failure."""
 
-    def test_husk_claim_is_hard_error_and_leaves_no_lock(
-        self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_husk_claim_is_hard_error_and_leaves_no_lock(self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]) -> None:
         repo, husk = husk_repo
         workspace = _resolved_workspace(husk)
 
@@ -225,9 +219,7 @@ class TestReviewClaimWorkspacePreparation:
         # No ReviewLock left behind in the husk.
         assert not (husk / LOCK_DIR / LOCK_FILE).exists()
 
-    def test_worktree_add_failure_is_hard_error_with_stderr_and_no_lock(
-        self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_worktree_add_failure_is_hard_error_with_stderr_and_no_lock(self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]) -> None:
         repo, _husk = husk_repo
         missing = repo / ".worktrees" / f"{MISSION_SLUG}-lane-z"
         # Invalid branch name forces `git worktree add` to fail.
@@ -268,9 +260,7 @@ class TestReviewClaimWorkspacePreparation:
         assert (path / ".git").exists()
         assert result.worktree_path == path
 
-    def test_missing_branch_name_is_hard_error(
-        self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_missing_branch_name_is_hard_error(self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]) -> None:
         repo, _husk = husk_repo
         path = repo / ".worktrees" / f"{MISSION_SLUG}-lane-g"
         workspace = ResolvedWorkspace(
@@ -315,9 +305,7 @@ class TestReviewClaimWorkspacePreparation:
         assert excinfo.value.exit_code == 1
         assert "is not a git worktree" in capsys.readouterr().out
 
-    def test_env_var_isolation_skips_lock(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_env_var_isolation_skips_lock(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         repo, _husk = husk_repo
         path = repo / ".worktrees" / f"{MISSION_SLUG}-lane-i"
         workspace = _resolved_workspace(path, branch=lane_branch_name(MISSION_SLUG, "lane-i"))
@@ -337,9 +325,7 @@ class TestReviewClaimWorkspacePreparation:
         assert applied == [WP_ID]
         assert not (result.worktree_path / LOCK_DIR / LOCK_FILE).exists()
 
-    def test_active_lock_conflict_is_hard_error(
-        self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_active_lock_conflict_is_hard_error(self, husk_repo: tuple[Path, Path], capsys: pytest.CaptureFixture[str]) -> None:
         repo, _husk = husk_repo
         path = repo / ".worktrees" / f"{MISSION_SLUG}-lane-j"
         workspace = _resolved_workspace(path, branch=lane_branch_name(MISSION_SLUG, "lane-j"))
@@ -356,9 +342,7 @@ class TestReviewClaimWorkspacePreparation:
 class TestImplementHuskGuard:
     """AC-D2: implement also refuses husks instead of recreating over them."""
 
-    def test_implement_husk_is_hard_error(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_implement_husk_is_hard_error(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         from unittest.mock import MagicMock, patch
 
         from specify_cli.status.models import Lane, StatusEvent
@@ -428,9 +412,7 @@ class TestDoctorHuskCheck:
         assert report.healthy is True
         assert report.husks == []
 
-    def test_fix_removes_unregistered_husk_and_preserves_registered_worktree(
-        self, husk_repo: tuple[Path, Path]
-    ) -> None:
+    def test_fix_removes_unregistered_husk_and_preserves_registered_worktree(self, husk_repo: tuple[Path, Path]) -> None:
         from specify_cli.status.doctor_husks import fix_workspace_husks
 
         repo, husk = husk_repo
@@ -462,9 +444,7 @@ class TestDoctorHuskCheck:
         assert rel in fix_result.skipped_registered
         assert rel not in fix_result.removed
 
-    def test_fix_refuses_when_registered_worktree_scan_fails(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fix_refuses_when_registered_worktree_scan_fails(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         import specify_cli.cli.commands.doctor as doctor_module
         import specify_cli.status.doctor_husks as doctor_husks
 
@@ -495,9 +475,7 @@ class TestDoctorHuskCheck:
         assert husk.exists()
         assert (husk / "stray.txt").exists()
 
-    def test_fix_rechecks_git_entry_before_removal(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fix_rechecks_git_entry_before_removal(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         import specify_cli.status.doctor_husks as doctor_husks
 
         repo, husk = husk_repo
@@ -526,9 +504,7 @@ class TestDoctorHuskCheck:
         assert rel not in fix_result.removed
         assert husk.exists()
 
-    def test_doctor_workspaces_cli_json_and_fix(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_doctor_workspaces_cli_json_and_fix(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         import specify_cli.cli.commands.doctor as doctor_module
 
         repo, husk = husk_repo
@@ -558,9 +534,7 @@ class TestDoctorHuskCheck:
         assert result.exit_code == 0
         assert "No workspace husks" in result.stdout
 
-    def test_doctor_workspaces_cli_fix_json_preserves_registered(
-        self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_doctor_workspaces_cli_fix_json_preserves_registered(self, husk_repo: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
         import specify_cli.cli.commands.doctor as doctor_module
 
         repo, husk = husk_repo

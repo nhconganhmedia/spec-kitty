@@ -23,6 +23,7 @@ from specify_cli.charter_runtime.lint.checks.contradiction import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_node(urn: str, kind: str, label: str | None = None, **kwargs) -> SimpleNamespace:
     return SimpleNamespace(urn=urn, kind=kind, label=label, **kwargs)
 
@@ -139,9 +140,7 @@ class TestAdrTopicAndDecisionHashHelper:
         assert _adr_topic_and_decision_hash(node) is None
 
     def test_topic_from_metadata_dict_used_when_no_direct_attribute(self):
-        node = _make_node(
-            "adr:ADR-001", "adr", decision="use structlog", metadata={"topic": "logging"}
-        )
+        node = _make_node("adr:ADR-001", "adr", decision="use structlog", metadata={"topic": "logging"})
         result = _adr_topic_and_decision_hash(node)
         assert result is not None
         topic, _decision_hash = result

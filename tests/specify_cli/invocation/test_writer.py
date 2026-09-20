@@ -155,9 +155,7 @@ class TestWriteCompletedAppendsLine:
         writer.write_started(_make_started())
         writer.write_completed(_make_completed())
         file_path = writer.invocation_path(_INVOCATION_ID)
-        lines = [
-            line for line in file_path.read_text(encoding="utf-8").splitlines() if line.strip()
-        ]
+        lines = [line for line in file_path.read_text(encoding="utf-8").splitlines() if line.strip()]
         assert len(lines) == 2
         completed_data = json.loads(lines[1])
         assert completed_data["event"] == "completed"
@@ -242,9 +240,7 @@ class TestAlreadyClosed:
             ({"sha": "abc123"}, "commit_link"),
         ],
     )
-    def test_complete_after_correlation_link_raises_already_closed_error(
-        self, tmp_path: Path, link_kwargs: dict[str, str], link_event: str
-    ) -> None:
+    def test_complete_after_correlation_link_raises_already_closed_error(self, tmp_path: Path, link_kwargs: dict[str, str], link_event: str) -> None:
         writer = InvocationWriter(tmp_path)
         writer.write_started(_make_started())
         writer.write_completed(_make_completed())
@@ -254,16 +250,10 @@ class TestAlreadyClosed:
             writer.write_completed(_make_completed(outcome="failed"))
 
         file_path = writer.invocation_path(_INVOCATION_ID)
-        events = [
-            json.loads(line)["event"]
-            for line in file_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
+        events = [json.loads(line)["event"] for line in file_path.read_text(encoding="utf-8").splitlines() if line.strip()]
         assert events == ["started", "completed", link_event]
 
-    def test_complete_nonexistent_invocation_raises_invocation_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_complete_nonexistent_invocation_raises_invocation_error(self, tmp_path: Path) -> None:
         writer = InvocationWriter(tmp_path)
         with pytest.raises(InvocationError):
             writer.write_completed(_make_completed(invocation_id=_INVOCATION_ID_2))
@@ -294,18 +284,14 @@ class TestWrittenLineShapes:
         writer.write_started(_make_started())
         writer.write_completed(_make_completed())
 
-        data = json.loads(
-            writer.invocation_path(_INVOCATION_ID).read_text(encoding="utf-8").splitlines()[1]
-        )
+        data = json.loads(writer.invocation_path(_INVOCATION_ID).read_text(encoding="utf-8").splitlines()[1])
         assert set(data) == {"event", "invocation_id", "completed_at", "outcome", "closed_by"}
 
     def test_started_line_omits_none_fields(self, tmp_path: Path) -> None:
         writer = InvocationWriter(tmp_path)
         writer.write_started(_make_started(router_confidence=None))
 
-        data = json.loads(
-            writer.invocation_path(_INVOCATION_ID).read_text(encoding="utf-8").splitlines()[0]
-        )
+        data = json.loads(writer.invocation_path(_INVOCATION_ID).read_text(encoding="utf-8").splitlines()[0])
         assert "router_confidence" not in data
         assert "mission_id" not in data
         assert "wp_id" not in data
@@ -313,11 +299,7 @@ class TestWrittenLineShapes:
     def test_index_entry_shape_unchanged(self, tmp_path: Path) -> None:
         writer = InvocationWriter(tmp_path)
         writer.write_started(_make_started())
-        entry = json.loads(
-            (tmp_path / "kitty-ops" / "ops-index.jsonl")
-            .read_text(encoding="utf-8")
-            .splitlines()[0]
-        )
+        entry = json.loads((tmp_path / "kitty-ops" / "ops-index.jsonl").read_text(encoding="utf-8").splitlines()[0])
         assert entry == {
             "invocation_id": _INVOCATION_ID,
             "profile_id": "implementer-fixture",
@@ -328,9 +310,7 @@ class TestWrittenLineShapes:
         """artifact_link / commit_link shapes are untouched by the schema split."""
         writer = InvocationWriter(tmp_path)
         writer.write_started(_make_started())
-        writer.append_correlation_link(
-            _INVOCATION_ID, kind="artifact", ref="spec.md", at="2026-06-10T21:00:00+00:00"
-        )
+        writer.append_correlation_link(_INVOCATION_ID, kind="artifact", ref="spec.md", at="2026-06-10T21:00:00+00:00")
         writer.append_correlation_link(_INVOCATION_ID, sha="abc123", at="2026-06-10T21:00:01+00:00")
 
         lines = writer.invocation_path(_INVOCATION_ID).read_text(encoding="utf-8").splitlines()

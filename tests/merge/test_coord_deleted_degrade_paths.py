@@ -162,14 +162,10 @@ def test_dependents_warning_degrades_instead_of_aborting_review(tmp_path: Path) 
     warning = review_compute_dependents_warning(tmp_path, _SLUG_WITH_MID8, "WP01")
 
     assert warning, "the helper must still emit its advisory warning after degrading"
-    assert any("WP02" in line for line in warning), (
-        f"degraded lanes default dependents to planned, so WP02 must be flagged; got {warning}"
-    )
+    assert any("WP02" in line for line in warning), f"degraded lanes default dependents to planned, so WP02 must be flagged; got {warning}"
 
 
-def test_lane_based_merge_exits_cleanly_instead_of_tracebacking(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_lane_based_merge_exits_cleanly_instead_of_tracebacking(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """FINDING 3: ``spec-kitty merge`` must not traceback mid-run.
 
     Red-first: with no typed handler the ``read_dir(STATUS_STATE)`` call at the top of
@@ -196,9 +192,5 @@ def test_lane_based_merge_exits_cleanly_instead_of_tracebacking(
     # before matching — the assertion is about content, not line breaks.
     output = " ".join(capsys.readouterr().out.split())
     assert _COORD_BRANCH in output, f"the error must name the missing branch; got: {output!r}"
-    assert "doctor coordination --fix" in output, (
-        f"the error must carry the remediation guidance; got: {output!r}"
-    )
-    assert "Merge aborted before any state change" in output, (
-        f"the operator must be told the merge is a clean no-op; got: {output!r}"
-    )
+    assert "doctor coordination --fix" in output, f"the error must carry the remediation guidance; got: {output!r}"
+    assert "Merge aborted before any state change" in output, f"the operator must be told the merge is a clean no-op; got: {output!r}"

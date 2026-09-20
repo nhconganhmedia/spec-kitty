@@ -47,9 +47,7 @@ import subprocess  # noqa: E402
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _init_coord_mission(repo: Path) -> Path:
@@ -97,12 +95,20 @@ def _seed_coord_lane_history(repo: Path) -> None:
     """
     events = [
         build_status_event(
-            mission_slug=MISSION_SLUG, mission_id=MISSION_ID, wp_id="WP01",
-            from_lane="planned", to_lane="claimed", actor="implementer-ivan",
+            mission_slug=MISSION_SLUG,
+            mission_id=MISSION_ID,
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="implementer-ivan",
         ),
         build_status_event(
-            mission_slug=MISSION_SLUG, mission_id=MISSION_ID, wp_id="WP01",
-            from_lane="claimed", to_lane="in_progress", actor="implementer-ivan",
+            mission_slug=MISSION_SLUG,
+            mission_id=MISSION_ID,
+            wp_id="WP01",
+            from_lane="claimed",
+            to_lane="in_progress",
+            actor="implementer-ivan",
         ),
     ]
     with BookkeepingTransaction.acquire(
@@ -170,14 +176,6 @@ def test_review_commit_does_not_clobber_coordination_lane_history(tmp_path: Path
     # 4) The coordination branch's lane history MUST survive (no clobber): the
     #    reducer still sees WP01 in_progress, and the envelope event is carried.
     after = reduce(read_events(coord_feature_dir))
-    assert after.work_packages["WP01"]["lane"] == "in_progress", (
-        "coordination lane history was clobbered by the main-checkout copy (#1602)"
-    )
-    raw_ids = [
-        json.loads(line)["event_id"]
-        for line in (coord_feature_dir / "status.events.jsonl")
-        .read_text(encoding="utf-8")
-        .splitlines()
-        if line.strip()
-    ]
+    assert after.work_packages["WP01"]["lane"] == "in_progress", "coordination lane history was clobbered by the main-checkout copy (#1602)"
+    raw_ids = [json.loads(line)["event_id"] for line in (coord_feature_dir / "status.events.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
     assert "01ENV160200000000000000001" in raw_ids  # new envelope event carried

@@ -89,9 +89,7 @@ def _bypass_preflight_and_context(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture()
-def coord_branch_deleted_repo(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> Path:
+def coord_branch_deleted_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Build the topology-true #15 fixture and point the CLI at it.
 
     A real git repo with exactly one mission whose ``meta.json`` declares a
@@ -155,15 +153,11 @@ def test_resolver_witnesses_coordination_branch_deleted(
     from mission_runtime import ActionContextError, resolve_action_context
 
     with pytest.raises(ActionContextError) as excinfo:
-        resolve_action_context(
-            coord_branch_deleted_repo, action="tasks", feature=SLUG
-        )
+        resolve_action_context(coord_branch_deleted_repo, action="tasks", feature=SLUG)
     assert excinfo.value.code == WITNESSED_CODE
     # The remediation is a read-path repair, never "run mission list".
     assert "mission list" not in str(excinfo.value)
-    assert "worktree repair" in str(excinfo.value) or "coordination_branch" in str(
-        excinfo.value
-    )
+    assert "worktree repair" in str(excinfo.value) or "coordination_branch" in str(excinfo.value)
 
 
 # ---------------------------------------------------------------------------
@@ -184,43 +178,26 @@ def _run_next_query_json(handle: str) -> tuple[int, dict]:
 class TestNextQueryTypedPassthrough:
     """``next --mission <slug> --json`` on the #15 topology (query path)."""
 
-    def test_emits_witnessed_code_not_mission_not_found(
-        self, coord_branch_deleted_repo: Path
-    ) -> None:
+    def test_emits_witnessed_code_not_mission_not_found(self, coord_branch_deleted_repo: Path) -> None:
         exit_code, payload = _run_next_query_json(SLUG)
         assert exit_code == 1
-        assert payload.get("error_code") == WITNESSED_CODE, (
-            "next must surface the resolver's most-specific typed code "
-            f"({WITNESSED_CODE}); got: {payload}"
-        )
+        assert payload.get("error_code") == WITNESSED_CODE, f"next must surface the resolver's most-specific typed code ({WITNESSED_CODE}); got: {payload}"
         # The whole point: NEVER the broken baseline for a read-path miss.
         assert payload.get("error_code") != BROKEN_BASELINE_CODE
 
-    def test_payload_carries_non_empty_checked_paths_with_coord_candidate(
-        self, coord_branch_deleted_repo: Path
-    ) -> None:
+    def test_payload_carries_non_empty_checked_paths_with_coord_candidate(self, coord_branch_deleted_repo: Path) -> None:
         _, payload = _run_next_query_json(SLUG)
         checked = payload.get("checked_paths")
-        assert isinstance(checked, list) and checked, (
-            f"expected non-empty checked_paths; got: {payload}"
-        )
+        assert isinstance(checked, list) and checked, f"expected non-empty checked_paths; got: {payload}"
         joined = "\n".join(checked)
         assert SLUG in joined
         # The coord candidate path must be among the checked paths.
-        assert any(".worktrees" in p and "-coord" in p for p in checked), (
-            f"expected the coord candidate path in checked_paths; got: {checked}"
-        )
+        assert any(".worktrees" in p and "-coord" in p for p in checked), f"expected the coord candidate path in checked_paths; got: {checked}"
 
-    def test_remediation_is_read_path_not_mission_list(
-        self, coord_branch_deleted_repo: Path
-    ) -> None:
+    def test_remediation_is_read_path_not_mission_list(self, coord_branch_deleted_repo: Path) -> None:
         _, payload = _run_next_query_json(SLUG)
-        remediation = (payload.get("next_step") or "") + (
-            payload.get("remediation") or ""
-        )
-        assert "mission list" not in remediation, (
-            f"remediation must be a read-path repair, not mission-list; got: {payload}"
-        )
+        remediation = (payload.get("next_step") or "") + (payload.get("remediation") or "")
+        assert "mission list" not in remediation, f"remediation must be a read-path repair, not mission-list; got: {payload}"
         assert "worktree repair" in remediation or "coordination_branch" in remediation
 
 
@@ -232,9 +209,7 @@ class TestNextQueryTypedPassthrough:
 class TestContextMissionResolveTypedPassthrough:
     """``context mission-resolve`` is the same disease on a different door (M1)."""
 
-    def test_emits_resolver_code_not_check_the_slug(
-        self, coord_branch_deleted_repo: Path
-    ) -> None:
+    def test_emits_resolver_code_not_check_the_slug(self, coord_branch_deleted_repo: Path) -> None:
         result = runner.invoke(
             cli_app,
             ["context", "mission-resolve", "--wp", "WP01", "--mission", SLUG],
@@ -242,12 +217,8 @@ class TestContextMissionResolveTypedPassthrough:
         )
         assert result.exit_code == 1
         # The flatten the M1 fix removes: "Check that the mission slug is correct."
-        assert "Check that the mission slug is correct" not in result.output, (
-            f"M1 flatten must be gone; got: {result.output}"
-        )
+        assert "Check that the mission slug is correct" not in result.output, f"M1 flatten must be gone; got: {result.output}"
         # The typed code (or its read-path remediation) must survive.
-        assert (
-            WITNESSED_CODE in result.output
-            or "worktree repair" in result.output
-            or "coordination_branch" in result.output
-        ), f"expected the resolver's typed signal to survive; got: {result.output}"
+        assert WITNESSED_CODE in result.output or "worktree repair" in result.output or "coordination_branch" in result.output, (
+            f"expected the resolver's typed signal to survive; got: {result.output}"
+        )

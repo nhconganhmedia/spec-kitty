@@ -85,9 +85,7 @@ def _init_repo(repo: Path) -> None:
     _git(repo, "config", "user.email", "t@example.com")
     _git(repo, "config", "user.name", "Test")
     _git(repo, "config", "commit.gpgsign", "false")
-    (repo / ".gitattributes").write_text(
-        _EVENT_LOG_GITATTRIBUTES_ENTRY + "\n", encoding="utf-8"
-    )
+    (repo / ".gitattributes").write_text(_EVENT_LOG_GITATTRIBUTES_ENTRY + "\n", encoding="utf-8")
     (repo / "seed.txt").write_text("seed\n", encoding="utf-8")
     _git(repo, "add", ".gitattributes", "seed.txt")
     _git(repo, "commit", "-q", "-m", "seed (spec-kitty init shape)")
@@ -110,7 +108,8 @@ def _assert_driver_unregistered(repo: Path) -> None:
     """
     result = subprocess.run(
         ["git", "-C", str(repo), "config", "--get", "merge.spec-kitty-event-log.driver"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode != 0, (
         "test setup invariant violated: the merge driver git-config must be "
@@ -158,7 +157,9 @@ def _make_manifest(coordination_branch: str, *, planning_commit_sha: str) -> Lan
 
 class TestPlanningCommitMergeSelfHeals:
     def test_fresh_project_implement_no_longer_conflicts_on_divergent_event_log(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         repo = tmp_path / "repo"
         _init_repo(repo)
@@ -212,15 +213,9 @@ class TestPlanningCommitMergeSelfHeals:
         # git plumbing (not the worktree filesystem) since a coord-topology
         # lane worktree sparse-excludes status.events.jsonl from disk by
         # design (FR-024/FR-025/FR-029) -- the object store is unaffected.
-        merged_text = _git(
-            repo, "show", f"{lane_branch}:kitty-specs/{MISSION_SLUG}/status.events.jsonl"
-        )
-        assert "evt-coord-claimed" in merged_text, (
-            f"coordination-branch event lost from the merged log: {merged_text!r}"
-        )
-        assert "evt-mission-created" in merged_text, (
-            f"planning-commit event lost from the merged log: {merged_text!r}"
-        )
+        merged_text = _git(repo, "show", f"{lane_branch}:kitty-specs/{MISSION_SLUG}/status.events.jsonl")
+        assert "evt-coord-claimed" in merged_text, f"coordination-branch event lost from the merged log: {merged_text!r}"
+        assert "evt-mission-created" in merged_text, f"planning-commit event lost from the merged log: {merged_text!r}"
 
 
 class TestDependencyLaneTipsMergeSelfHeals:
@@ -234,7 +229,9 @@ class TestDependencyLaneTipsMergeSelfHeals:
     """
 
     def test_dependency_tip_merge_no_longer_conflicts_on_divergent_event_log(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         repo = tmp_path / "repo"
         _init_repo(repo)
@@ -268,12 +265,20 @@ class TestDependencyLaneTipsMergeSelfHeals:
         _git(dependent_wt, "commit", "-q", "-m", "status: dependent lane event")
 
         dep_lane = ExecutionLane(
-            lane_id="lane-dep", wp_ids=("WP02",), write_scope=("src/**",),
-            predicted_surfaces=("core",), depends_on_lanes=(), parallel_group=0,
+            lane_id="lane-dep",
+            wp_ids=("WP02",),
+            write_scope=("src/**",),
+            predicted_surfaces=("core",),
+            depends_on_lanes=(),
+            parallel_group=0,
         )
         dependent_lane = ExecutionLane(
-            lane_id="lane-c", wp_ids=(WP_ID,), write_scope=("src/**",),
-            predicted_surfaces=("core",), depends_on_lanes=("lane-dep",), parallel_group=1,
+            lane_id="lane-c",
+            wp_ids=(WP_ID,),
+            write_scope=("src/**",),
+            predicted_surfaces=("core",),
+            depends_on_lanes=("lane-dep",),
+            parallel_group=1,
         )
         manifest = LanesManifest(
             version=1,
@@ -294,8 +299,6 @@ class TestDependencyLaneTipsMergeSelfHeals:
         post_check = _git(repo, "config", "--get", "merge.spec-kitty-event-log.driver")
         assert post_check == _EXPECTED_DRIVER_COMMAND
 
-        merged_text = (dependent_wt / "kitty-specs" / MISSION_SLUG / "status.events.jsonl").read_text(
-            encoding="utf-8"
-        )
+        merged_text = (dependent_wt / "kitty-specs" / MISSION_SLUG / "status.events.jsonl").read_text(encoding="utf-8")
         assert "evt-dep-lane" in merged_text, f"dep-lane event lost: {merged_text!r}"
         assert "evt-dependent-lane" in merged_text, f"dependent-lane event lost: {merged_text!r}"

@@ -29,6 +29,7 @@ from specify_cli.cli.commands._branch_strategy_gate import (
 
 pytestmark = [pytest.mark.integration]
 
+
 class _RecordingPrompt:
     """Mock prompt that records every prompt call and returns a scripted answer."""
 

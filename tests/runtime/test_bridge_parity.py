@@ -140,9 +140,7 @@ def _provision_mission_type_activations(repo_root: Path, mission_type: str) -> N
     """
     kittify_dir = repo_root / ".kittify"
     kittify_dir.mkdir(exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        f"mission_type_activations:\n  - {mission_type}\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text(f"mission_type_activations:\n  - {mission_type}\n", encoding="utf-8")
 
 
 def _write_block_retrospective_config(repo_root: Path) -> None:
@@ -159,8 +157,7 @@ def _write_block_retrospective_config(repo_root: Path) -> None:
     """
     (repo_root / ".kittify").mkdir(exist_ok=True)
     (repo_root / ".kittify" / "config.yaml").write_text(
-        "retrospective:\n  enabled: true\n  timing: before_completion\n  failure_policy: block\n"
-        "mission_type_activations:\n  - software-dev\n",
+        "retrospective:\n  enabled: true\n  timing: before_completion\n  failure_policy: block\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
 
@@ -227,9 +224,7 @@ def scaffold_research(
     if publication_approved:
         events.append({"name": "publication_approved", "type": "gate_passed"})
     if events:
-        (feature_dir / "mission-events.jsonl").write_text(
-            "\n".join(json.dumps(e, sort_keys=True) for e in events) + "\n", encoding="utf-8"
-        )
+        (feature_dir / "mission-events.jsonl").write_text("\n".join(json.dumps(e, sort_keys=True) for e in events) + "\n", encoding="utf-8")
     _commit_all(repo_root, "seed research fixture")
     return repo_root
 
@@ -286,10 +281,7 @@ def advance_to_step(repo_root: Path, mission_slug: str, mission_type: str, targe
         if snapshot.issued_step_id == target_step_id:
             return
         runtime_next_step(run_ref, agent_id="fixture-setup", result="success", emitter=NullEmitter())
-    raise AssertionError(
-        f"advance_to_step: never reached {target_step_id!r} within {max_steps} steps "
-        f"(mission={mission_slug!r} type={mission_type!r})"
-    )
+    raise AssertionError(f"advance_to_step: never reached {target_step_id!r} within {max_steps} steps (mission={mission_slug!r} type={mission_type!r})")
 
 
 # ---------------------------------------------------------------------------
@@ -320,9 +312,11 @@ def drive_decide_next(repo_root: Path, *, agent: str, mission_slug: str, result:
     bridge_module, engine_module = _bridge_and_engine_modules()
     mp = pytest.MonkeyPatch()
     try:
-        with capture_decision_sites(mp, bridge_module) as sites, \
-                capture_guard_calls(mp, bridge_module) as guard_calls, \
-                capture_side_effects(mp, bridge_module, engine_module) as side_effects:
+        with (
+            capture_decision_sites(mp, bridge_module) as sites,
+            capture_guard_calls(mp, bridge_module) as guard_calls,
+            capture_side_effects(mp, bridge_module, engine_module) as side_effects,
+        ):
             timed = timed_call(bridge_module.decide_next_via_runtime, agent, mission_slug, result, repo_root)
     finally:
         mp.undo()
@@ -342,9 +336,11 @@ def drive_query(repo_root: Path, *, agent: str | None, mission_slug: str, fixtur
     bridge_module, engine_module = _bridge_and_engine_modules()
     mp = pytest.MonkeyPatch()
     try:
-        with capture_decision_sites(mp, bridge_module) as sites, \
-                capture_guard_calls(mp, bridge_module) as guard_calls, \
-                capture_side_effects(mp, bridge_module, engine_module) as side_effects:
+        with (
+            capture_decision_sites(mp, bridge_module) as sites,
+            capture_guard_calls(mp, bridge_module) as guard_calls,
+            capture_side_effects(mp, bridge_module, engine_module) as side_effects,
+        ):
             timed = timed_call(bridge_module.query_current_state, agent, mission_slug, repo_root)
     finally:
         mp.undo()
@@ -372,9 +368,11 @@ def drive_answer(
     bridge_module, engine_module = _bridge_and_engine_modules()
     mp = pytest.MonkeyPatch()
     try:
-        with capture_decision_sites(mp, bridge_module) as sites, \
-                capture_guard_calls(mp, bridge_module) as guard_calls, \
-                capture_side_effects(mp, bridge_module, engine_module) as side_effects:
+        with (
+            capture_decision_sites(mp, bridge_module) as sites,
+            capture_guard_calls(mp, bridge_module) as guard_calls,
+            capture_side_effects(mp, bridge_module, engine_module) as side_effects,
+        ):
             timed = timed_call(
                 bridge_module.answer_decision_via_runtime,
                 mission_slug,
@@ -402,6 +400,7 @@ def copytree_snapshot(snapshot_dir: Path, dest_parent: Path, run_label: str) -> 
     dest = dest_parent / run_label
     shutil.copytree(snapshot_dir, dest)
     return dest
+
 
 # ---------------------------------------------------------------------------
 # Named highest-risk fixtures — driven TWICE (independent fresh copytrees),
@@ -439,9 +438,7 @@ def _build_run_start_failure(base: Path) -> tuple[Path, dict[str, Any]]:
     mission_slug = "099-bogus-mission-type"
     feature_dir = snapshot / "kitty-specs" / mission_slug
     feature_dir.mkdir(parents=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps({"mission_type": "totally-unregistered-mission-type-xyz"}), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps({"mission_type": "totally-unregistered-mission-type-xyz"}), encoding="utf-8")
     _commit_all(snapshot, "seed bogus mission type")
     return snapshot, {"agent": "pedro", "mission_slug": mission_slug, "result": "success"}
 
@@ -819,8 +816,12 @@ def _build_dn_missing_canonical_status(base: Path) -> tuple[Path, dict[str, Any]
     mission_slug = "042-parity-oracle"
     snapshot = base / "snapshot"
     scaffold_software_dev(
-        snapshot, mission_slug, with_spec=True, with_plan=True,
-        with_tasks_md=True, wps={"WP01": "planned"},
+        snapshot,
+        mission_slug,
+        with_spec=True,
+        with_plan=True,
+        with_tasks_md=True,
+        wps={"WP01": "planned"},
     )
     advance_to_step(snapshot, mission_slug, "software-dev", "implement")
     for events in snapshot.rglob("status.events.jsonl"):
@@ -862,8 +863,12 @@ def _build_dn_wp_done_no_action_mapped(base: Path) -> tuple[Path, dict[str, Any]
     mission_slug = "042-parity-oracle"
     snapshot = base / "snapshot"
     scaffold_software_dev(
-        snapshot, mission_slug, with_spec=True, with_plan=True,
-        with_tasks_md=True, wps={"WP01": "done"},
+        snapshot,
+        mission_slug,
+        with_spec=True,
+        with_plan=True,
+        with_tasks_md=True,
+        wps={"WP01": "done"},
     )
     _write_block_retrospective_config(snapshot)
     from runtime.next._internal_runtime.engine import _read_snapshot
@@ -891,8 +896,14 @@ def _build_dn_wp_done_no_action_mapped(base: Path) -> tuple[Path, dict[str, Any]
 def _scaffold_research_full(base: Path, mission_slug: str) -> Path:
     snapshot = base / "snapshot"
     scaffold_research(
-        snapshot, mission_slug, with_spec=True, with_plan=True, with_sources=3,
-        with_findings=True, with_report=True, publication_approved=True,
+        snapshot,
+        mission_slug,
+        with_spec=True,
+        with_plan=True,
+        with_sources=3,
+        with_findings=True,
+        with_report=True,
+        publication_approved=True,
     )
     return snapshot
 
@@ -900,8 +911,14 @@ def _scaffold_research_full(base: Path, mission_slug: str) -> Path:
 def _scaffold_documentation_full(base: Path, mission_slug: str) -> Path:
     snapshot = base / "snapshot"
     scaffold_documentation(
-        snapshot, mission_slug, with_spec=True, with_gap_analysis=True, with_plan=True,
-        with_generated_docs=True, with_audit_report=True, with_release=True,
+        snapshot,
+        mission_slug,
+        with_spec=True,
+        with_gap_analysis=True,
+        with_plan=True,
+        with_generated_docs=True,
+        with_audit_report=True,
+        with_release=True,
     )
     return snapshot
 
@@ -1076,12 +1093,8 @@ def test_every_fixture_pair_is_parity_stable(
         canon_a = canonical(run_a.decision, run_a.repo_root)
         canon_b = canonical(run_b.decision, run_b.repo_root)
         if canon_a != canon_b:
-            diff_keys = sorted(
-                k for k in (set(canon_a) | set(canon_b)) if canon_a.get(k) != canon_b.get(k)
-            )
-            details = "\n".join(
-                f"    {k}: a={canon_a.get(k)!r} b={canon_b.get(k)!r}" for k in diff_keys
-            )
+            diff_keys = sorted(k for k in (set(canon_a) | set(canon_b)) if canon_a.get(k) != canon_b.get(k))
+            details = "\n".join(f"    {k}: a={canon_a.get(k)!r} b={canon_b.get(k)!r}" for k in diff_keys)
             failures.append(f"{fixture_id}: canonical Decision diverged on {diff_keys}\n{details}")
     assert not failures, "parity breaks:\n" + "\n\n".join(failures)
 
@@ -1094,8 +1107,7 @@ def test_named_highest_risk_fixtures_guard_failures_stable(
     for fixture_id in NAMED_HIGHEST_RISK_ENTRY_DRIVEN:
         run_a, run_b = results[fixture_id]
         assert run_a.decision.guard_failures == run_b.decision.guard_failures, (
-            f"{fixture_id}: guard_failures content/order diverged across independent runs: "
-            f"{run_a.decision.guard_failures!r} vs {run_b.decision.guard_failures!r}"
+            f"{fixture_id}: guard_failures content/order diverged across independent runs: {run_a.decision.guard_failures!r} vs {run_b.decision.guard_failures!r}"
         )
         assert run_a.decision.guard_failures, f"{fixture_id}: expected a non-empty guard_failures list"
 
@@ -1121,10 +1133,7 @@ def test_captured_side_effects_are_binding_equal(
         canon_b = canonical_side_effects(run_b.side_effects, run_b.repo_root)
         for sink in canon_a:
             if canon_a[sink] != canon_b[sink]:
-                failures.append(
-                    f"{fixture_id}: side-effect sink {sink!r} diverged across runs:\n"
-                    f"    a={canon_a[sink]}\n    b={canon_b[sink]}"
-                )
+                failures.append(f"{fixture_id}: side-effect sink {sink!r} diverged across runs:\n    a={canon_a[sink]}\n    b={canon_b[sink]}")
     assert not failures, "side-effect binding-equality breaks:\n" + "\n\n".join(failures)
 
 
@@ -1137,8 +1146,12 @@ def test_side_effect_sinks_are_actually_reached(
     exercised, not dead capture (WP01 review follow-up)."""
     results, _ledger = ledger_results
     reached: dict[str, bool] = {
-        "sync_emitter": False, "coord_commit": False, "append_event": False,
-        "write_snapshot": False, "read_snapshot": False, "retrospective": False,
+        "sync_emitter": False,
+        "coord_commit": False,
+        "append_event": False,
+        "write_snapshot": False,
+        "read_snapshot": False,
+        "retrospective": False,
     }
     for run_a, _run_b in results.values():
         se = run_a.side_effects
@@ -1247,9 +1260,7 @@ def test_reason_normalizer_meta_test(tmp_path: Path) -> None:
     # COLLAPSES: two different roots, same logical decision -> equal canonical form.
     canon_a = canonical(run_a.decision, repo_a)
     canon_b = canonical(run_b.decision, repo_b)
-    assert canon_a == canon_b, (
-        f"reason-normalizer under-collapsed pure path noise:\n{canon_a}\nvs\n{canon_b}"
-    )
+    assert canon_a == canon_b, f"reason-normalizer under-collapsed pure path noise:\n{canon_a}\nvs\n{canon_b}"
 
     # does NOT collapse: a semantic reason delta must survive canonicalization.
     import copy
@@ -1258,8 +1269,7 @@ def test_reason_normalizer_meta_test(tmp_path: Path) -> None:
     mutated.reason = "Failed to start/load runtime run: a genuinely different failure text"
     canon_mutated = canonical(mutated, repo_b)
     assert canon_mutated != canon_a, (
-        "reason-normalizer OVER-collapsed a semantic delta -- self-blinding bug: "
-        f"{canon_mutated} incorrectly compared equal to {canon_a}"
+        f"reason-normalizer OVER-collapsed a semantic delta -- self-blinding bug: {canon_mutated} incorrectly compared equal to {canon_a}"
     )
 
     # does NOT collapse: a STABLE-field flip (kind) must also survive.
@@ -1296,4 +1306,3 @@ def test_documentation_fail_closed_default_direct_call(tmp_path: Path) -> None:
     feature_dir.mkdir(parents=True)
     failures = _check_composed_action_guard("totally-unknown-action", feature_dir, mission="documentation")
     assert failures == ["No guard registered for documentation action: totally-unknown-action"]
-

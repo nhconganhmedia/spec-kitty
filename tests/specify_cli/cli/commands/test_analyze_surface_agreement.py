@@ -61,9 +61,7 @@ _EXCLUDED_PATH_FRAGMENTS: tuple[str, ...] = (
 # skill form "spec-kitty.analyze", nor "$spec-kitty.analyze" / "/skill:...").
 _BARE_ANALYZE_COMMAND_RE = re.compile(r"spec-kitty\s+analyze\b")
 
-_CANONICAL_PROMPT = Path(
-    "packs/built-in/missions/mission-steps/software-dev/analyze/prompt.md"
-)
+_CANONICAL_PROMPT = Path("packs/built-in/missions/mission-steps/software-dev/analyze/prompt.md")
 _CANONICAL_COMMAND = "agent mission record-analysis"
 
 # The generated ``analyze`` SKILL.md agents receive is rendered fresh via the
@@ -113,9 +111,7 @@ def _grep_bare_analyze_command() -> list[str]:
     if result.returncode == 1:
         return []
     if result.returncode != 0:
-        raise RuntimeError(
-            f"git grep failed: exit={result.returncode} stderr={result.stderr!r}"
-        )
+        raise RuntimeError(f"git grep failed: exit={result.returncode} stderr={result.stderr!r}")
     return [line for line in result.stdout.splitlines() if not _line_is_excluded(line)]
 
 
@@ -148,13 +144,10 @@ def test_canonical_analyze_prompt_source_names_record_analysis() -> None:
     root = _repo_root()
     text = (root / _CANONICAL_PROMPT).read_text(encoding="utf-8")
     assert _CANONICAL_COMMAND in text, (
-        f"{_CANONICAL_PROMPT} must direct users to `spec-kitty {_CANONICAL_COMMAND}` "
-        "(the supported, staleness-gated persistence flow)."
+        f"{_CANONICAL_PROMPT} must direct users to `spec-kitty {_CANONICAL_COMMAND}` (the supported, staleness-gated persistence flow)."
     )
     assert not _BARE_ANALYZE_COMMAND_RE.search(text), (
-        f"{_CANONICAL_PROMPT} must not advertise a bare `spec-kitty analyze` "
-        "CLI invocation — only the dotted skill form or "
-        f"`spec-kitty {_CANONICAL_COMMAND}`."
+        f"{_CANONICAL_PROMPT} must not advertise a bare `spec-kitty analyze` CLI invocation — only the dotted skill form or `spec-kitty {_CANONICAL_COMMAND}`."
     )
 
 
@@ -176,14 +169,8 @@ def test_rendered_skill_snapshot_names_record_analysis(agent_key: str) -> None:
     template = root / _CANONICAL_PROMPT
     assert template.exists(), f"canonical analyze prompt missing: {template}"
     text = render(template, agent_key, FIXTURE_SKILL_RENDER_VERSION).to_skill_md()
-    assert _CANONICAL_COMMAND in text, (
-        f"rendered {agent_key} analyze SKILL.md must direct users to "
-        f"`spec-kitty {_CANONICAL_COMMAND}`."
-    )
-    assert not _BARE_ANALYZE_COMMAND_RE.search(text), (
-        f"rendered {agent_key} analyze SKILL.md must not advertise a bare "
-        "`spec-kitty analyze` CLI invocation."
-    )
+    assert _CANONICAL_COMMAND in text, f"rendered {agent_key} analyze SKILL.md must direct users to `spec-kitty {_CANONICAL_COMMAND}`."
+    assert not _BARE_ANALYZE_COMMAND_RE.search(text), f"rendered {agent_key} analyze SKILL.md must not advertise a bare `spec-kitty analyze` CLI invocation."
 
 
 def test_top_level_analyze_command_does_not_exist_on_real_cli() -> None:

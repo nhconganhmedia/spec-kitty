@@ -79,7 +79,8 @@ _PATH_PATTERN = ".kittify/skills-manifest.json:{installed_path}"
 _REPAIR_HINT = "spec-kitty doctor tool-surfaces --kind doctrine-skill --fix"
 _PAIRED_GLOBAL: ContextVar[OwnerAssessment | None] = ContextVar("paired_skill_global", default=None)
 _PROVISIONING_PAIR: ContextVar[skill_installer.SkillInstallationAssessment | None] = ContextVar(
-    "provisioning_skill_pair", default=None,
+    "provisioning_skill_pair",
+    default=None,
 )
 _COMPOSITION: ContextVar[SkillCommandComposition | None] = ContextVar("skill_command_composition", default=None)
 
@@ -209,8 +210,7 @@ class _VerifyResultProto(Protocol):
 class _VerifierProto(Protocol):
     """Subset of the ``skills.verifier`` module this provider delegates to."""
 
-    def verify_installed_skills(self, project_path: Path) -> _VerifyResultProto:
-        ...
+    def verify_installed_skills(self, project_path: Path) -> _VerifyResultProto: ...
 
 
 class _RepairProto(Protocol):
@@ -225,8 +225,7 @@ class _RepairProto(Protocol):
         project_path: Path,
         verify_result: _VerifyResultProto,
         registry: SkillRegistry,
-    ) -> tuple[int, int]:
-        ...
+    ) -> tuple[int, int]: ...
 
 
 def managed_skill_definition() -> SurfaceDefinition:
@@ -260,17 +259,9 @@ class ManagedSkillsProvider:
         # safety) are never bypassed or reimplemented. ``repair_skills`` lives in
         # the verifier module, so the default repair collaborator binds there --
         # the ``installer`` module does not expose it.
-        self._verifier: _VerifierProto = (
-            verifier if verifier is not None else skill_verifier
-        )
-        self._installer: _RepairProto = (
-            installer if installer is not None else cast(_RepairProto, skill_verifier)
-        )
-        self._registry_factory: Callable[[], SkillRegistry] = (
-            registry_factory
-            if registry_factory is not None
-            else SkillRegistry.from_package
-        )
+        self._verifier: _VerifierProto = verifier if verifier is not None else skill_verifier
+        self._installer: _RepairProto = installer if installer is not None else cast(_RepairProto, skill_verifier)
+        self._registry_factory: Callable[[], SkillRegistry] = registry_factory if registry_factory is not None else SkillRegistry.from_package
         self._legacy_collaborators = verifier is not None or installer is not None
 
     def can_handle(self, definition: SurfaceDefinition) -> bool:
@@ -352,9 +343,7 @@ class ManagedSkillsProvider:
             delegated = {e.id for e in installation.project_skills.effects if e.destination in {p.path for p in receipts}}
             return command_results + tuple(replace(r, skipped=tuple(i for i in r.skipped if i not in delegated)) for r in results)
 
-    def assess(
-        self, inputs: AssessmentInputs, statuses: Sequence[SurfaceStatus], *, selections: tuple[SurfaceSelection, ...]
-    ) -> OwnerAssessment:
+    def assess(self, inputs: AssessmentInputs, statuses: Sequence[SurfaceStatus], *, selections: tuple[SurfaceSelection, ...]) -> OwnerAssessment:
         """Consume the project part of an explicitly coordinated installation."""
         _ = statuses  # Selection policy, including zero expansion, is authoritative.
         agents = tuple(sorted({selection.tool_key for selection in selections if self.can_handle(selection.definition)}))
@@ -365,19 +354,32 @@ class ManagedSkillsProvider:
                 if installation.global_assets.complete:
                     return project
                 return replace(project, complete=False, diagnostics=project.diagnostics + installation.global_assets.diagnostics)
-            return OwnerAssessment(PROVIDER_KEY, inputs.root, complete=False, diagnostics=(
-                Diagnostic("skill_context_mismatch", PROVIDER_KEY, "error", "Coordinated skill context differs from selected project inputs"),
-            ))
+            return OwnerAssessment(
+                PROVIDER_KEY,
+                inputs.root,
+                complete=False,
+                diagnostics=(Diagnostic("skill_context_mismatch", PROVIDER_KEY, "error", "Coordinated skill context differs from selected project inputs"),),
+            )
         assessment = skill_installer.assess_project_skills(inputs, self._registry_factory(), agents)
-        return replace(assessment, complete=False, diagnostics=assessment.diagnostics + (
-            Diagnostic("managed_skills_global_context_required", PROVIDER_KEY, "error",
-                       "Prepare and dispatch the separate coordinated global owner using assess_skill_installation"),
-        ))
+        return replace(
+            assessment,
+            complete=False,
+            diagnostics=assessment.diagnostics
+            + (
+                Diagnostic(
+                    "managed_skills_global_context_required",
+                    PROVIDER_KEY,
+                    "error",
+                    "Prepare and dispatch the separate coordinated global owner using assess_skill_installation",
+                ),
+            ),
+        )
 
     def recheck(self, assessment: OwnerAssessment) -> AbstractContextManager[tuple[Diagnostic, ...]]:
         pair = _PROVISIONING_PAIR.get()
         return skill_installer.recheck_project_skills(
-            assessment, provisioning_applied=pair is not None and assessment == pair.project_skills,
+            assessment,
+            provisioning_applied=pair is not None and assessment == pair.project_skills,
         )
 
     def apply(self, assessment: OwnerAssessment, explicit_consent: ApplyConsent) -> OwnerApplyResult:
@@ -385,7 +387,9 @@ class ManagedSkillsProvider:
 
     @contextmanager
     def preflight_installation(
-        self, installation: skill_installer.SkillInstallationAssessment, consent: ApplyConsent,
+        self,
+        installation: skill_installer.SkillInstallationAssessment,
+        consent: ApplyConsent,
     ) -> Iterator[tuple[Diagnostic, ...]]:
         """Check BOTH original owners before provisioning; hold locks through apply.
 
@@ -407,7 +411,9 @@ class ManagedSkillsProvider:
                 _PROVISIONING_PAIR.reset(token)
 
     def apply_installation(
-        self, installation: skill_installer.SkillInstallationAssessment, consent: ApplyConsent,
+        self,
+        installation: skill_installer.SkillInstallationAssessment,
+        consent: ApplyConsent,
     ) -> tuple[OwnerApplyResult, ...]:
         """Hold paired preflight/locks around the existing per-owner dispatcher.
 
@@ -422,25 +428,39 @@ class ManagedSkillsProvider:
         if isinstance(prepared, skill_installer.PreparedProjectSkills) and prepared.provisioning is not None:
             pair = replace(installation, project_skills=replace(project, effects=coalesce_effects(project.effects)))
             if _PROVISIONING_PAIR.get() != pair:
-                errors = (Diagnostic("paired_skill_preflight_required", PROVIDER_KEY, "error",
-                                     "Canonical provisioning requires original paired preflight before any writes"),)
-                return tuple(OwnerApplyResult(
-                    owner.owner_key, skipped=tuple(effect.id for effect in owner.effects),
-                    outcome="precondition_changed", diagnostics=errors,
-                ) for owner in (global_assets, project))
+                errors = (
+                    Diagnostic(
+                        "paired_skill_preflight_required", PROVIDER_KEY, "error", "Canonical provisioning requires original paired preflight before any writes"
+                    ),
+                )
+                return tuple(
+                    OwnerApplyResult(
+                        owner.owner_key,
+                        skipped=tuple(effect.id for effect in owner.effects),
+                        outcome="precondition_changed",
+                        diagnostics=errors,
+                    )
+                    for owner in (global_assets, project)
+                )
         with recheck_assets(global_assets) as global_errors, self.recheck(project) as project_errors:
             errors = global_errors + project_errors
             if not global_assets.complete or not project.complete or consent != global_assets.consent or consent != project.consent:
                 errors += (Diagnostic("skill_context_mismatch", PROVIDER_KEY, "error", "Complete paired assessments and exact consent required"),)
             if errors:
-                return tuple(OwnerApplyResult(
-                    owner.owner_key, skipped=tuple(effect.id for effect in owner.effects),
-                    outcome="precondition_changed", diagnostics=errors,
-                ) for owner in (global_assets, project))
+                return tuple(
+                    OwnerApplyResult(
+                        owner.owner_key,
+                        skipped=tuple(effect.id for effect in owner.effects),
+                        outcome="precondition_changed",
+                        diagnostics=errors,
+                    )
+                    for owner in (global_assets, project)
+                )
             token = _PAIRED_GLOBAL.set(replace(global_assets, effects=coalesce_effects(global_assets.effects)))
             try:
                 results: tuple[OwnerApplyResult, ...] = SurfaceRepairService([GlobalSkillAssetsProvider(), self]).apply_assessments(
-                    (global_assets, project), consent,
+                    (global_assets, project),
+                    consent,
                 )
                 return results
             finally:
@@ -461,20 +481,11 @@ class ManagedSkillsProvider:
         surfaces.
         """
         manifest = load_manifest(project_root)
-        manifest_entries = (
-            [entry for entry in manifest.entries if entry.agent_key == tool_key]
-            if manifest is not None
-            else []
-        )
-        entries_by_path = {
-            entry.installed_path: entry
-            for entry in self._expected_entries(tool_key)
-        }
+        manifest_entries = [entry for entry in manifest.entries if entry.agent_key == tool_key] if manifest is not None else []
+        entries_by_path = {entry.installed_path: entry for entry in self._expected_entries(tool_key)}
         for entry in manifest_entries:
             expected = entries_by_path.get(entry.installed_path)
-            entries_by_path[entry.installed_path] = (
-                replace(entry, content_hash=expected.content_hash) if expected is not None else entry
-            )
+            entries_by_path[entry.installed_path] = replace(entry, content_hash=expected.content_hash) if expected is not None else entry
         instances: list[SurfaceInstance] = []
         for entry in entries_by_path.values():
             abs_path = project_root / entry.installed_path
@@ -522,8 +533,7 @@ class ManagedSkillsProvider:
                 make_finding(
                     GENERATED_SURFACE_MISSING,
                     SEVERITY_ERROR,
-                    f"Managed doctrine skill for {instance.owner} is missing: "
-                    f"{instance.path}",
+                    f"Managed doctrine skill for {instance.owner} is missing: {instance.path}",
                     tool_key=instance.owner,
                     surface_id=_surface_id(instance),
                     path=instance.path,
@@ -541,8 +551,7 @@ class ManagedSkillsProvider:
                 make_finding(
                     MANAGED_FILE_DRIFT,
                     SEVERITY_WARNING,
-                    f"Managed doctrine skill drifted from manifest hash: "
-                    f"{instance.path}",
+                    f"Managed doctrine skill drifted from manifest hash: {instance.path}",
                     tool_key=instance.owner,
                     surface_id=_surface_id(instance),
                     path=instance.path,
@@ -571,22 +580,23 @@ class ManagedSkillsProvider:
         dry_run: bool = False,
     ) -> RepairResult:
         """Prepare once, then report only actually permitted/completed repairs."""
-        actionable = [
-            s for s in statuses if s.state in (STATE_MISSING, STATE_DRIFTED)
-        ]
+        actionable = [s for s in statuses if s.state in (STATE_MISSING, STATE_DRIFTED)]
         if not actionable:
             return RepairResult(dry_run=dry_run)
         ids = tuple(_surface_id(s.instance) for s in actionable)
         tool_keys = tuple(sorted({s.instance.owner for s in actionable}))
         if not self._legacy_collaborators or dry_run:
             return self._repair_prepared(project_root, actionable, tool_keys, dry_run=dry_run)
-        unmanifested = any(
-            not _manifest_owns(project_root, s.instance) for s in actionable
-        )
+        unmanifested = any(not _manifest_owns(project_root, s.instance) for s in actionable)
         return self._delegate_repair(project_root, ids, unmanifested)
 
     def _repair_prepared(
-        self, project_root: Path, statuses: Sequence[SurfaceStatus], tool_keys: tuple[str, ...], *, dry_run: bool,
+        self,
+        project_root: Path,
+        statuses: Sequence[SurfaceStatus],
+        tool_keys: tuple[str, ...],
+        *,
+        dry_run: bool,
     ) -> RepairResult:
         ids = tuple(_surface_id(status.instance) for status in statuses)
         consent = ApplyConsent(automatic=True)
@@ -641,9 +651,7 @@ class ManagedSkillsProvider:
         if verify_result.ok:
             return RepairResult(dry_run=False)
         try:
-            repaired, failed = self._installer.repair_skills(
-                project_root, verify_result, registry
-            )
+            repaired, failed = self._installer.repair_skills(project_root, verify_result, registry)
         except OSError as exc:  # surfaced as a failure, never swallowed
             return RepairResult(
                 failed=(f"managed_skills: {exc}",) + ids,
@@ -652,9 +660,7 @@ class ManagedSkillsProvider:
         return self._repair_outcome(ids, repaired, failed)
 
     @staticmethod
-    def _repair_outcome(
-        ids: tuple[str, ...], repaired: int, failed: int
-    ) -> RepairResult:
+    def _repair_outcome(ids: tuple[str, ...], repaired: int, failed: int) -> RepairResult:
         if failed > 0:
             return RepairResult(
                 failed=(f"managed_skills: {failed} file(s) failed to repair; legacy result has no path identities",) + ids,
@@ -685,9 +691,7 @@ class ManagedSkillsProvider:
         for skill in registry.discover_skills():
             for source_file in skill.all_files:
                 rel_within_skill = source_file.relative_to(skill.skill_dir)
-                installed_path = (
-                    Path(root) / skill.name / rel_within_skill
-                ).as_posix()
+                installed_path = (Path(root) / skill.name / rel_within_skill).as_posix()
                 source = skill_verifier._find_source_file(skill.skill_dir, rel_within_skill.as_posix())
                 if source is None:
                     raise ValueError(f"Unsafe or missing canonical skill source: {source_file}")
@@ -720,9 +724,7 @@ class GlobalSkillAssetsProvider(ManagedSkillsProvider):
         _ = definition
         return False
 
-    def assess(
-        self, inputs: AssessmentInputs, statuses: Sequence[SurfaceStatus], *, selections: tuple[SurfaceSelection, ...]
-    ) -> OwnerAssessment:
+    def assess(self, inputs: AssessmentInputs, statuses: Sequence[SurfaceStatus], *, selections: tuple[SurfaceSelection, ...]) -> OwnerAssessment:
         _ = inputs, statuses, selections
         raise ValueError("Dispatch the existing coordinated global assessment; do not prepare another global batch")
 
@@ -732,8 +734,11 @@ class GlobalSkillAssetsProvider(ManagedSkillsProvider):
 
         # WP02 coalesces into an equal immutable value, not the same object.
         if _PAIRED_GLOBAL.get() != assessment:
-            yield (Diagnostic("paired_skill_preflight_required", self.provider_key, "error",
-                              "Use ManagedSkillsProvider.apply_installation for paired preflight and dispatch"),)
+            yield (
+                Diagnostic(
+                    "paired_skill_preflight_required", self.provider_key, "error", "Use ManagedSkillsProvider.apply_installation for paired preflight and dispatch"
+                ),
+            )
             return
         with recheck_assets(assessment) as diagnostics:
             yield diagnostics
@@ -742,17 +747,16 @@ class GlobalSkillAssetsProvider(ManagedSkillsProvider):
         from specify_cli.runtime.asset_preparation import apply_assets
 
         if _PAIRED_GLOBAL.get() != assessment:
-            return OwnerApplyResult(self.provider_key, skipped=tuple(effect.id for effect in assessment.effects),
-                                    outcome="precondition_changed", diagnostics=(
-                                        Diagnostic("paired_skill_preflight_required", self.provider_key, "error",
-                                                   "Global skill apply requires the paired guarded context"),
-                                    ))
+            return OwnerApplyResult(
+                self.provider_key,
+                skipped=tuple(effect.id for effect in assessment.effects),
+                outcome="precondition_changed",
+                diagnostics=(Diagnostic("paired_skill_preflight_required", self.provider_key, "error", "Global skill apply requires the paired guarded context"),),
+            )
         return apply_assets(assessment, explicit_consent)
 
 
-def doctrine_skill_entries(
-    project_root: Path, tool_key: str
-) -> list[ManagedFileEntry]:
+def doctrine_skill_entries(project_root: Path, tool_key: str) -> list[ManagedFileEntry]:
     """Return the manifest entries owned by ``tool_key`` (helper for tests)."""
     manifest = load_manifest(project_root)
     if manifest is None:
@@ -776,10 +780,7 @@ def _manifest_owns(project_root: Path, instance: SurfaceInstance) -> bool:
             rel = instance.path.resolve().relative_to(project_root.resolve()).as_posix()
         except ValueError:
             return False
-    return any(
-        entry.agent_key == instance.owner and entry.installed_path == rel
-        for entry in manifest.entries
-    )
+    return any(entry.agent_key == instance.owner and entry.installed_path == rel for entry in manifest.entries)
 
 
 # ---------------------------------------------------------------------------

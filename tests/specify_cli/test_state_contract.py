@@ -25,6 +25,7 @@ from specify_cli.state.contract import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def test_surface_names_unique():
     """Every surface must have a unique name."""
     names = [s.name for s in STATE_SURFACES]
@@ -39,9 +40,7 @@ def test_minimum_surface_count():
 def test_path_patterns_unique():
     """Every surface must have a unique path_pattern."""
     patterns = [s.path_pattern for s in STATE_SURFACES]
-    assert len(patterns) == len(set(patterns)), (
-        f"Duplicate patterns: {[p for p in patterns if patterns.count(p) > 1]}"
-    )
+    assert len(patterns) == len(set(patterns)), f"Duplicate patterns: {[p for p in patterns if patterns.count(p) > 1]}"
 
 
 # ---------------------------------------------------------------------------
@@ -240,12 +239,8 @@ def test_missions_pycache_not_collapsed():
     resolved at runtime. Only the __pycache__/ subdirectory is disposable.
     """
     entries = get_runtime_gitignore_entries()
-    assert ".kittify/missions/__pycache__/" in entries, (
-        "missions/__pycache__/ must appear as a specific entry"
-    )
-    assert ".kittify/missions/" not in entries, (
-        "missions/ is too broad -- only missions/__pycache__/ should be ignored"
-    )
+    assert ".kittify/missions/__pycache__/" in entries, "missions/__pycache__/ must appear as a specific entry"
+    assert ".kittify/missions/" not in entries, "missions/ is too broad -- only missions/__pycache__/ should be ignored"
 
 
 def test_runtime_gitignore_entries_no_placeholders():
@@ -262,11 +257,7 @@ def test_runtime_gitignore_entries_no_placeholders():
     entries = get_runtime_gitignore_entries()
     for entry in entries:
         assert "<" not in entry, f"Placeholder in gitignore entry: {entry}"
-        assert (
-            "*" not in entry
-            or entry.endswith("__pycache__/")
-            or entry.startswith("kitty-specs/*/")
-        ), f"Unexpected wildcard in gitignore entry: {entry}"
+        assert "*" not in entry or entry.endswith("__pycache__/") or entry.startswith("kitty-specs/*/"), f"Unexpected wildcard in gitignore entry: {entry}"
 
 
 def test_runtime_gitignore_entries_sorted():
@@ -292,9 +283,7 @@ def test_runtime_gitignore_entries_only_project_ignored():
                 for s in STATE_SURFACES
                 if s.root == StateRoot.FEATURE
                 and s.git_class == GitClass.IGNORED
-                and s.path_pattern.removeprefix("kitty-specs/<feature>/").startswith(
-                    rel_entry.rstrip("/")
-                )
+                and s.path_pattern.removeprefix("kitty-specs/<feature>/").startswith(rel_entry.rstrip("/"))
             ]
             assert len(matching) >= 1, f"Gitignore entry {entry!r} has no backing FEATURE surface"
             continue
@@ -303,20 +292,10 @@ def test_runtime_gitignore_entries_only_project_ignored():
         if entry.endswith("/"):
             # Directory pattern: at least one surface path_pattern must start with this prefix
             matching = [
-                s
-                for s in STATE_SURFACES
-                if s.root == StateRoot.PROJECT
-                and s.git_class == GitClass.IGNORED
-                and s.path_pattern.startswith(entry.rstrip("/"))
+                s for s in STATE_SURFACES if s.root == StateRoot.PROJECT and s.git_class == GitClass.IGNORED and s.path_pattern.startswith(entry.rstrip("/"))
             ]
         else:
-            matching = [
-                s
-                for s in STATE_SURFACES
-                if s.root == StateRoot.PROJECT
-                and s.git_class == GitClass.IGNORED
-                and s.path_pattern == entry
-            ]
+            matching = [s for s in STATE_SURFACES if s.root == StateRoot.PROJECT and s.git_class == GitClass.IGNORED and s.path_pattern == entry]
         assert len(matching) >= 1, f"Gitignore entry {entry!r} has no backing surface"
 
 
@@ -335,9 +314,7 @@ def test_deprecated_authority_class():
     """Deprecated surfaces use AuthorityClass.DEPRECATED."""
     deprecated = [s for s in STATE_SURFACES if s.deprecated]
     for s in deprecated:
-        assert s.authority == AuthorityClass.DEPRECATED, (
-            f"{s.name} is deprecated but authority is {s.authority}"
-        )
+        assert s.authority == AuthorityClass.DEPRECATED, f"{s.name} is deprecated but authority is {s.authority}"
 
 
 # ---------------------------------------------------------------------------
@@ -368,43 +345,29 @@ def test_charter_yaml_is_authoritative_tracked():
     committed projection -- all inside one git-tracked file.
     """
     surface = next(s for s in STATE_SURFACES if s.name == "charter_yaml")
-    assert surface.authority == AuthorityClass.AUTHORITATIVE, (
-        f"Expected AUTHORITATIVE, got {surface.authority}"
-    )
-    assert surface.git_class == GitClass.TRACKED, (
-        f"Expected TRACKED, got {surface.git_class}"
-    )
+    assert surface.authority == AuthorityClass.AUTHORITATIVE, f"Expected AUTHORITATIVE, got {surface.authority}"
+    assert surface.git_class == GitClass.TRACKED, f"Expected TRACKED, got {surface.git_class}"
     assert surface.path_pattern == ".kittify/charter/charter.yaml"
 
 
 def test_charter_library_is_authoritative_tracked():
     """charter_library must be AUTHORITATIVE / TRACKED (shared team knowledge)."""
     surface = next(s for s in STATE_SURFACES if s.name == "charter_library")
-    assert surface.authority == AuthorityClass.AUTHORITATIVE, (
-        f"Expected AUTHORITATIVE, got {surface.authority}"
-    )
-    assert surface.git_class == GitClass.TRACKED, (
-        f"Expected TRACKED, got {surface.git_class}"
-    )
+    assert surface.authority == AuthorityClass.AUTHORITATIVE, f"Expected AUTHORITATIVE, got {surface.authority}"
+    assert surface.git_class == GitClass.TRACKED, f"Expected TRACKED, got {surface.git_class}"
 
 
 def test_charter_answers_is_authoritative_tracked():
     """charter_interview_answers must be AUTHORITATIVE / TRACKED (shared team knowledge)."""
     surface = next(s for s in STATE_SURFACES if s.name == "charter_interview_answers")
-    assert surface.authority == AuthorityClass.AUTHORITATIVE, (
-        f"Expected AUTHORITATIVE, got {surface.authority}"
-    )
-    assert surface.git_class == GitClass.TRACKED, (
-        f"Expected TRACKED, got {surface.git_class}"
-    )
+    assert surface.authority == AuthorityClass.AUTHORITATIVE, f"Expected AUTHORITATIVE, got {surface.authority}"
+    assert surface.git_class == GitClass.TRACKED, f"Expected TRACKED, got {surface.git_class}"
 
 
 def test_no_deferred_notes_remain():
     """No state surface notes field should contain the word 'deferred'."""
     deferred = [s for s in STATE_SURFACES if "deferred" in s.notes.lower()]
-    assert len(deferred) == 0, (
-        f"Found surfaces with deferred notes: {[s.name for s in deferred]}"
-    )
+    assert len(deferred) == 0, f"Found surfaces with deferred notes: {[s.name for s in deferred]}"
 
 
 # ---------------------------------------------------------------------------
@@ -487,10 +450,7 @@ def test_section_e_sync_surfaces_present():
 def test_credential_lock_surface_is_removed():
     """The credential store locks its own file, not a lockfile sidecar."""
     assert all(surface.name != "credential_lock" for surface in STATE_SURFACES)
-    assert all(
-        surface.path_pattern != "~/.spec-kitty/credentials.lock"
-        for surface in STATE_SURFACES
-    )
+    assert all(surface.path_pattern != "~/.spec-kitty/credentials.lock" for surface in STATE_SURFACES)
 
 
 def test_section_e_historical_sync_rows_are_fully_tombstoned():
@@ -522,15 +482,8 @@ def test_section_e_historical_sync_rows_are_fully_tombstoned():
         AuthorityClass.AUTHORITATIVE,
         AuthorityClass.LOCAL_RUNTIME,
     }
-    authority_names = {
-        authority: {surface.name for surface in get_surfaces_by_authority(authority)}
-        for authority in live_authorities
-    }
-    assert all(
-        name not in names
-        for names in authority_names.values()
-        for name in historical_names
-    )
+    authority_names = {authority: {surface.name for surface in get_surfaces_by_authority(authority)} for authority in live_authorities}
+    assert all(name not in names for names in authority_names.values() for name in historical_names)
     tracker_cache = surfaces_by_name["tracker_cache"]
     assert tracker_cache.authority is AuthorityClass.AUTHORITATIVE
     assert tracker_cache.deprecated is False

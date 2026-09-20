@@ -153,11 +153,7 @@ def test_collect_summary_mutate_matrix_false_does_not_dirty_working_tree(tmp_pat
 
     status_after = _porcelain_status(repo_root)
 
-    assert status_before == status_after, (
-        f"Working tree was dirtied by --no-commit mode accept run.\n"
-        f"Before: {status_before!r}\n"
-        f"After:  {status_after!r}"
-    )
+    assert status_before == status_after, f"Working tree was dirtied by --no-commit mode accept run.\nBefore: {status_before!r}\nAfter:  {status_after!r}"
 
 
 def test_commit_mode_may_write_accept_owned_files(tmp_path: Path) -> None:
@@ -401,10 +397,7 @@ def test_accept_no_commit_via_cli_converges_and_leaves_tree_clean(
     porcelain = _porcelain_status(repo_root)
     dirty_paths = [line[3:].strip() for line in porcelain.splitlines() if line.strip()]
     non_accept_owned = [
-        path
-        for path in dirty_paths
-        if not path.endswith(("acceptance-matrix.json", "status.json", ".kittify/config.yaml"))
-        and path != ".kittify/"
+        path for path in dirty_paths if not path.endswith(("acceptance-matrix.json", "status.json", ".kittify/config.yaml")) and path != ".kittify/"
     ]
     assert non_accept_owned == [], f"--no-commit left non-accept-owned dirt: {non_accept_owned}"
 

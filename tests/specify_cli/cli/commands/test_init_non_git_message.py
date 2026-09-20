@@ -83,12 +83,8 @@ def test_init_in_non_git_dir_emits_actionable_message(
     console_output = console.file.getvalue() if hasattr(console.file, "getvalue") else ""
     output = result.output + "\n" + console_output
 
-    assert NOT_A_GIT_REPO.search(output), (
-        f"Expected 'not a git repository' in output, got:\n{output}"
-    )
-    assert GIT_INIT_HINT.search(output), (
-        f"Expected 'git init' guidance in output, got:\n{output}"
-    )
+    assert NOT_A_GIT_REPO.search(output), f"Expected 'not a git repository' in output, got:\n{output}"
+    assert GIT_INIT_HINT.search(output), f"Expected 'git init' guidance in output, got:\n{output}"
     assert "1. Enter the project:" in output
     assert "2. Required:" in output
     assert "Git: not initialized" in output
@@ -133,7 +129,5 @@ def test_init_in_existing_git_repo_does_not_emit_non_git_message(
     console_output = console.file.getvalue() if hasattr(console.file, "getvalue") else ""
     output = result.output + "\n" + console_output
 
-    assert not NOT_A_GIT_REPO.search(output), (
-        f"Did not expect 'not a git repository' in output, got:\n{output}"
-    )
+    assert not NOT_A_GIT_REPO.search(output), f"Did not expect 'not a git repository' in output, got:\n{output}"
     assert "Git: ready" in output

@@ -27,7 +27,6 @@ from specify_cli.task_utils import find_repo_root
 # ---------------------------------------------------------------------------
 
 
-
 def _get_repo_root() -> Path:
     """Resolve the repository root using the project's canonical utility."""
     result: Path = find_repo_root()
@@ -40,10 +39,7 @@ def _get_repo_root() -> Path:
 # *epilog*, never in ``help=``: the shell-completion manifest schema is
 # ``{help, hidden, deprecated, commands}``, so an epilog carries the guidance
 # without regenerating ``_completion_manifest.json``.
-_OPENER_EPILOG = (
-    'Open:  spec-kitty dispatch "<request>"\n\n'
-    "Close: spec-kitty profile-invocation complete --invocation-id <id> --outcome <outcome>"
-)
+_OPENER_EPILOG = 'Open:  spec-kitty dispatch "<request>"\n\nClose: spec-kitty profile-invocation complete --invocation-id <id> --outcome <outcome>'
 
 profile_invocation_app = typer.Typer(
     name="profile-invocation",

@@ -68,9 +68,7 @@ def _fragment(
 
 
 def test_org_overrides_built_in_node() -> None:
-    built_in = _graph(
-        nodes=[DRGNode(urn="directive:shared-d", kind=NodeKind.DIRECTIVE, label="BuiltIn")]
-    )
+    built_in = _graph(nodes=[DRGNode(urn="directive:shared-d", kind=NodeKind.DIRECTIVE, label="BuiltIn")])
     org = _fragment(
         "acme",
         nodes=[{"id": "shared-d", "kind": "directives", "title": "OrgLabel"}],
@@ -85,17 +83,13 @@ def test_org_overrides_built_in_node() -> None:
 
 
 def test_project_overrides_org_and_built_in_node() -> None:
-    built_in = _graph(
-        nodes=[DRGNode(urn="directive:shared-d", kind=NodeKind.DIRECTIVE, label="BuiltIn")]
-    )
+    built_in = _graph(nodes=[DRGNode(urn="directive:shared-d", kind=NodeKind.DIRECTIVE, label="BuiltIn")])
     org = _fragment(
         "acme",
         nodes=[{"id": "shared-d", "kind": "directives", "title": "OrgLabel"}],
         edges=[],
     )
-    project = _graph(
-        nodes=[DRGNode(urn="directive:shared-d", kind=NodeKind.DIRECTIVE, label="ProjectLabel")]
-    )
+    project = _graph(nodes=[DRGNode(urn="directive:shared-d", kind=NodeKind.DIRECTIVE, label="ProjectLabel")])
 
     merged = merge_three_layers(built_in=built_in, org_fragments=[org], project=project)
 
@@ -168,7 +162,5 @@ def test_overlay_adding_an_edge_drops_no_built_in_edge() -> None:
     # ...alongside the additive org edge.
     assert ("tactic:t-alpha", "directive:d-alpha", Relation.SUGGESTS) in edge_triples
 
-    built_in_edge = next(
-        e for e in merged.edges if e.relation == Relation.APPLIES
-    )
+    built_in_edge = next(e for e in merged.edges if e.relation == Relation.APPLIES)
     assert built_in_edge.provenance == "built-in"

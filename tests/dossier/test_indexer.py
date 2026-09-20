@@ -29,6 +29,7 @@ from specify_cli.dossier.models import ArtifactRef, MissionDossier
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestIndexerScanning:
     """Test Indexer directory scanning."""
 
@@ -231,9 +232,7 @@ class TestMissingArtifactDetection:
 
         # Mock manifest registry
         indexer = Indexer(ManifestRegistry())
-        with patch.object(
-            indexer.manifest_registry, "load_manifest", return_value=manifest
-        ):
+        with patch.object(indexer.manifest_registry, "load_manifest", return_value=manifest):
             missing = indexer._detect_missing_artifacts(dossier)
 
         assert [m.artifact_key for m in missing] == ["input.spec.main"]
@@ -270,9 +269,7 @@ class TestMissingArtifactDetection:
         )
 
         indexer = Indexer(ManifestRegistry())
-        with patch.object(
-            indexer.manifest_registry, "load_manifest", return_value=manifest
-        ):
+        with patch.object(indexer.manifest_registry, "load_manifest", return_value=manifest):
             missing = indexer._detect_missing_artifacts(dossier)
 
         assert {m.artifact_key for m in missing} == {"input.spec.main", "workflow.plan"}
@@ -310,9 +307,7 @@ class TestMissingArtifactDetection:
         )
 
         indexer = Indexer(ManifestRegistry())
-        with patch.object(
-            indexer.manifest_registry, "load_manifest", return_value=manifest
-        ):
+        with patch.object(indexer.manifest_registry, "load_manifest", return_value=manifest):
             missing = indexer._detect_missing_artifacts(dossier)
 
         assert len(missing) == 0
@@ -339,9 +334,7 @@ class TestMissingArtifactDetection:
         )
 
         indexer = Indexer(ManifestRegistry())
-        with patch.object(
-            indexer.manifest_registry, "load_manifest", return_value=manifest
-        ):
+        with patch.object(indexer.manifest_registry, "load_manifest", return_value=manifest):
             missing = indexer._detect_missing_artifacts(dossier)
 
         assert len(missing) == 0
@@ -368,9 +361,7 @@ class TestMissingArtifactDetection:
         )
 
         indexer = Indexer(ManifestRegistry())
-        with patch.object(
-            indexer.manifest_registry, "load_manifest", return_value=manifest
-        ):
+        with patch.object(indexer.manifest_registry, "load_manifest", return_value=manifest):
             # Check for planning step
             missing = indexer._detect_missing_artifacts(dossier, step_id="planning")
 
@@ -492,9 +483,7 @@ class TestMissionDossierBuilder:
         )
 
         indexer = Indexer(ManifestRegistry())
-        with patch.object(
-            indexer.manifest_registry, "load_manifest", return_value=manifest
-        ):
+        with patch.object(indexer.manifest_registry, "load_manifest", return_value=manifest):
             # Create empty temp directory
             with tempfile.TemporaryDirectory() as tmp_dir:
                 tmp_path = Path(tmp_dir)
@@ -754,9 +743,7 @@ class TestIndexerOrgAwareManifest:
 
         (repo_root / "spec.md").write_text("# Spec\n", encoding="utf-8")
 
-        dossier = Indexer(ManifestRegistry(), repo_root=repo_root).index_feature(
-            repo_root, "software-dev"
-        )
+        dossier = Indexer(ManifestRegistry(), repo_root=repo_root).index_feature(repo_root, "software-dev")
 
         assert dossier.manifest is not None
         assert dossier.manifest.get("manifest_version") == "org-1"
@@ -779,6 +766,4 @@ class TestIndexerOrgAwareManifest:
         explicit_none = Indexer(ManifestRegistry(), repo_root=None).index_feature(tmp_path, "software-dev")
 
         assert with_repo_root_none.manifest == explicit_none.manifest
-        assert [a.artifact_key for a in with_repo_root_none.artifacts] == [
-            a.artifact_key for a in explicit_none.artifacts
-        ]
+        assert [a.artifact_key for a in with_repo_root_none.artifacts] == [a.artifact_key for a in explicit_none.artifacts]

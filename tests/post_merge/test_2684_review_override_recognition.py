@@ -77,9 +77,7 @@ def _make_feature_dir(root: Path) -> Path:
     return feature_dir
 
 
-def _append_approved_event(
-    feature_dir: Path, event_id: str, *, review_result: ReviewResult | None = None
-) -> None:
+def _append_approved_event(feature_dir: Path, event_id: str, *, review_result: ReviewResult | None = None) -> None:
     """Put ``_WP_ID`` in the terminal ``approved`` lane via a transition event.
 
     ``review_result`` (WP05, verdict-seam-write-unification-01KZ9Q35,
@@ -137,10 +135,9 @@ def test_event_sourced_complete_override_does_not_block_merge(tmp_path: Path) ->
     """
     feature_dir = _make_feature_dir(tmp_path)
     _append_approved_event(
-        feature_dir, "01KXWN13WP09REGRESSION0001",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        feature_dir,
+        "01KXWN13WP09REGRESSION0001",
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     artifact_path = _write_rejected_artifact(feature_dir)
 
@@ -156,12 +153,8 @@ def test_event_sourced_complete_override_does_not_block_merge(tmp_path: Path) ->
     )
 
     # (a) Artifact file is byte-unchanged — no frontmatter stamp, no coord mirror.
-    assert artifact_path.read_bytes() == before_bytes, (
-        "The write half must NOT stamp review_artifact_override_* frontmatter"
-    )
-    assert not ReviewCycleArtifact.from_file(artifact_path).has_complete_override, (
-        "Artifact frontmatter must carry no override — recognition is snapshot-only"
-    )
+    assert artifact_path.read_bytes() == before_bytes, "The write half must NOT stamp review_artifact_override_* frontmatter"
+    assert not ReviewCycleArtifact.from_file(artifact_path).has_complete_override, "Artifact frontmatter must carry no override — recognition is snapshot-only"
 
     # (b) The reduced ``review`` snapshot slot carries the override.
     snapshot = materialize(feature_dir)
@@ -171,9 +164,7 @@ def test_event_sourced_complete_override_does_not_block_merge(tmp_path: Path) ->
 
     # (c) Read half + merge gate: the override is honored — gate does NOT fire.
     findings = find_rejected_review_artifact_conflicts(feature_dir, [_WP_ID])
-    assert findings == [], (
-        f"Event-sourced complete override must clear the gate, got: {findings}"
-    )
+    assert findings == [], f"Event-sourced complete override must clear the gate, got: {findings}"
 
 
 # ---------------------------------------------------------------------------
@@ -185,10 +176,9 @@ def test_rejected_without_override_still_blocks_merge(tmp_path: Path) -> None:
     """A genuinely-unresolved rejection (no override) still blocks merge."""
     feature_dir = _make_feature_dir(tmp_path)
     _append_approved_event(
-        feature_dir, "01KXWN13WP09REGRESSION0002",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        feature_dir,
+        "01KXWN13WP09REGRESSION0002",
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     _write_rejected_artifact(feature_dir)  # no override emitted anywhere
 
@@ -217,10 +207,9 @@ def test_incomplete_event_sourced_override_still_blocks_merge(tmp_path: Path) ->
     """
     feature_dir = _make_feature_dir(tmp_path)
     _append_approved_event(
-        feature_dir, "01KXWN13WP09REGRESSION0003",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        feature_dir,
+        "01KXWN13WP09REGRESSION0003",
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     _write_rejected_artifact(feature_dir)
 
@@ -243,9 +232,7 @@ def test_incomplete_event_sourced_override_still_blocks_merge(tmp_path: Path) ->
 
     review_slot = materialize(feature_dir).work_packages[_WP_ID].get("review")
     assert review_slot is not None
-    assert not ReviewOverride.from_dict(review_slot).complete, (
-        "Override with a blank field must be incomplete"
-    )
+    assert not ReviewOverride.from_dict(review_slot).complete, "Override with a blank field must be incomplete"
 
     findings = find_rejected_review_artifact_conflicts(feature_dir, [_WP_ID])
     assert findings, "Incomplete override must NOT be honored — merge still blocked"

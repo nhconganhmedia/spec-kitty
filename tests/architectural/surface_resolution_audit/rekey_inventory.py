@@ -86,10 +86,7 @@ def _rationale(rel_path: str, qualname: str, call_name: str, disposition: str) -
             "topology-blind `primary_feature_dir_for_mission` constructor (the coord "
             "surface carries no `meta.json`; C-GUARD-3a split-brain rationale)."
         )
-    return (
-        f"`{qualname}` delegates to `{call_name}` — the coord-aware canonical "
-        "resolver / surface authority (routed; no inline path composition)."
-    )
+    return f"`{qualname}` delegates to `{call_name}` — the coord-aware canonical resolver / surface authority (routed; no inline path composition)."
 
 
 def _cell(value: str) -> str:
@@ -108,10 +105,7 @@ def _render_sink_table(audit: ModuleType) -> tuple[str, dict[str, int]]:
         disp = _disposition(row.rel_path, row.call_name)
         counts[disp] += 1
         rationale = _rationale(row.rel_path, qualname, row.call_name, disp)
-        lines.append(
-            f"| {row.rel_path}:{row.line} | {_cell(qualname)} | {_cell(token)} "
-            f"| {row.handle_source} | {row.call_name} | {disp} | {rationale} |"
-        )
+        lines.append(f"| {row.rel_path}:{row.line} | {_cell(qualname)} | {_cell(token)} | {row.handle_source} | {row.call_name} | {disp} | {rationale} |")
     return "\n".join(lines), counts
 
 
@@ -125,20 +119,13 @@ def _render_selection_table(audit: ModuleType) -> tuple[str, int]:
         _rel, qualname, token = audit._composite_from_file(sel.rel_path, sel.line)
         count += 1
         in_seam = "yes" if sel.in_seam_file else "no"
-        disp = (
-            "seam-internal (auto-blessed)"
-            if sel.in_seam_file
-            else "BLESSED-EXTERNAL (must be allowlisted)"
-        )
+        disp = "seam-internal (auto-blessed)" if sel.in_seam_file else "BLESSED-EXTERNAL (must be allowlisted)"
         note = (
             f"direct `{sel.call_name}` inside `{qualname}` — the seam definition."
             if sel.in_seam_file
             else f"external `{sel.call_name}` in `{qualname}` — allowlist or refactor."
         )
-        lines.append(
-            f"| {sel.rel_path}:{sel.line} | {_cell(qualname)} | {_cell(token)} "
-            f"| {in_seam} | {disp} | {note} |"
-        )
+        lines.append(f"| {sel.rel_path}:{sel.line} | {_cell(qualname)} | {_cell(token)} | {in_seam} | {disp} | {note} |")
     return "\n".join(lines), count
 
 
@@ -223,9 +210,9 @@ to enumerate every blessed call.
 
 | disposition | count | meaning |
 | --- | --- | --- |
-| routed-through-resolver | {counts['routed-through-resolver']} | goes through a canonical blessed resolver (cite it) |
-| topology-blind-by-design | {counts['topology-blind-by-design']} | deliberately primary-only; coord surface carries no meta.json (C-GUARD-3a) |
-| raw-bypass | {counts['raw-bypass']} | composes KITTY_SPECS_DIR/slug inline for a fail-closed diagnostic `raise` payload (no FS sink) |
+| routed-through-resolver | {counts["routed-through-resolver"]} | goes through a canonical blessed resolver (cite it) |
+| topology-blind-by-design | {counts["topology-blind-by-design"]} | deliberately primary-only; coord surface carries no meta.json (C-GUARD-3a) |
+| raw-bypass | {counts["raw-bypass"]} | composes KITTY_SPECS_DIR/slug inline for a fail-closed diagnostic `raise` payload (no FS sink) |
 | **total** | **{total}** | all AST-discovered ResolutionRow callsites |
 
 ## Read-SELECTION callsites (FR-006a)

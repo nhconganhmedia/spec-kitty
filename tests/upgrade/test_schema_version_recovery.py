@@ -114,9 +114,7 @@ def _run_failing_upgrade(monkeypatch: pytest.MonkeyPatch, project_path: Path) ->
 # ---------------------------------------------------------------------------
 
 
-def test_failed_migration_preserves_required_schema_version(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_failed_migration_preserves_required_schema_version(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A mid-loop abort on a REQUIRED-schema project keeps schema_version intact.
 
     Red on the pre-fix tree (the in-loop failed-migration ``save()`` rewrites
@@ -137,9 +135,7 @@ def test_failed_migration_preserves_required_schema_version(
 # ---------------------------------------------------------------------------
 
 
-def test_failed_migration_does_not_advance_legacy_schema(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_failed_migration_does_not_advance_legacy_schema(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A legacy project (no schema_version) is never advanced to the target."""
     project_path = tmp_path / "repo"
     _write_metadata(project_path / ".kittify", version="3.0.0", schema_version=None)
@@ -151,9 +147,7 @@ def test_failed_migration_does_not_advance_legacy_schema(
     assert get_project_schema_version(project_path) is None
 
 
-def test_failed_migration_does_not_advance_below_required_schema(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_failed_migration_does_not_advance_below_required_schema(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A ``< REQUIRED`` project keeps its own schema; it is not advanced.
 
     Also red on the pre-fix tree: the pre-run value 2 is erased to ``None``.
@@ -176,9 +170,7 @@ def test_failed_migration_does_not_advance_below_required_schema(
 # ---------------------------------------------------------------------------
 
 
-def test_runner_restores_pre_run_schema_even_if_save_erases_it(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_runner_restores_pre_run_schema_even_if_save_erases_it(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Runner restores the captured pre-run schema after an erasing save().
 
     We force ``ProjectMetadata.save`` to drop ``schema_version`` (simulating a
@@ -195,10 +187,7 @@ def test_runner_restores_pre_run_schema_even_if_save_erases_it(
                 "initialized_at": self.initialized_at.isoformat(),
             },
             "migrations": {
-                "applied": [
-                    {"id": m.id, "applied_at": m.applied_at.isoformat(), "result": m.result, "notes": m.notes}
-                    for m in self.applied_migrations
-                ]
+                "applied": [{"id": m.id, "applied_at": m.applied_at.isoformat(), "result": m.result, "notes": m.notes} for m in self.applied_migrations]
             },
         }
         (kittify_dir / "metadata.yaml").write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
@@ -218,9 +207,7 @@ def test_runner_restores_pre_run_schema_even_if_save_erases_it(
 # ---------------------------------------------------------------------------
 
 
-def test_successful_upgrade_stamps_target_schema(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_successful_upgrade_stamps_target_schema(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     project_path = tmp_path / "repo"
     below_required = REQUIRED_SCHEMA_VERSION - 1  # type: ignore[operator]
     _write_metadata(project_path / ".kittify", version="3.0.0", schema_version=below_required)
@@ -242,9 +229,7 @@ def test_successful_upgrade_stamps_target_schema(
 # ---------------------------------------------------------------------------
 
 
-def test_rerun_after_successful_upgrade_applies_zero_migrations(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_rerun_after_successful_upgrade_applies_zero_migrations(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     project_path = tmp_path / "repo"
     _write_metadata(project_path / ".kittify", version="3.0.0", schema_version=REQUIRED_SCHEMA_VERSION)
     migration = _SuccessMigration()

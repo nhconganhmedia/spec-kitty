@@ -57,11 +57,7 @@ def _write_fragment(pack_root: Path, *, edges: str = "edges: []\n") -> Path:
     drg_dir.mkdir(parents=True, exist_ok=True)
     fragment = drg_dir / "fragment.yaml"
     fragment.write_text(
-        "pack_name: testpack\n"
-        "source_kind: local_path\n"
-        'source_ref: "/nonexistent/pack"\n'
-        "layer_index: 1\n"
-        "nodes: []\n" + edges,
+        'pack_name: testpack\nsource_kind: local_path\nsource_ref: "/nonexistent/pack"\nlayer_index: 1\nnodes: []\n' + edges,
         encoding="utf-8",
     )
     return fragment
@@ -88,9 +84,7 @@ def test_eligible_set_is_artifactkind_minus_template_plus_mission_type() -> None
     """
     from charter.offering.artifact_kinds import _NON_AUGMENTATION_ELIGIBLE_KINDS
 
-    expected_singulars = {
-        k.value for k in ArtifactKind if k not in _NON_AUGMENTATION_ELIGIBLE_KINDS
-    } | {"mission_type"}
+    expected_singulars = {k.value for k in ArtifactKind if k not in _NON_AUGMENTATION_ELIGIBLE_KINDS} | {"mission_type"}
     assert set(AUGMENTATION_ELIGIBLE_KINDS) == expected_singulars
     assert ArtifactKind.TEMPLATE.value not in AUGMENTATION_ELIGIBLE_KINDS
     assert ArtifactKind.ASSET.value not in AUGMENTATION_ELIGIBLE_KINDS
@@ -172,18 +166,12 @@ def test_specializes_from_field_projects_lineage_edge(tmp_path: Path) -> None:
     pack_root = tmp_path / "pack"
     profiles_dir = pack_root / "agent_profiles"
     profiles_dir.mkdir(parents=True)
-    (profiles_dir / "child.agent.yaml").write_text(
-        "id: child\nspecializes_from: parent\n", encoding="utf-8"
-    )
+    (profiles_dir / "child.agent.yaml").write_text("id: child\nspecializes_from: parent\n", encoding="utf-8")
     _write_fragment(pack_root)
 
     fragment = load_org_pack("testpack", pack_root, layer_index=1)
     lineage = [
-        e
-        for e in fragment.edges
-        if e.relation == Relation.SPECIALIZES_FROM.value
-        and e.source == "agent_profile:child"
-        and e.target == "agent_profile:parent"
+        e for e in fragment.edges if e.relation == Relation.SPECIALIZES_FROM.value and e.source == "agent_profile:child" and e.target == "agent_profile:parent"
     ]
     assert lineage, f"lineage edge not auto-emitted. edges={fragment.edges}"
 
@@ -207,18 +195,11 @@ def test_directive_field_projection_emits_edge(tmp_path: Path) -> None:
     pack_root = tmp_path / "pack"
     directives_dir = pack_root / "directives"
     directives_dir.mkdir(parents=True)
-    (directives_dir / "d.directive.yaml").write_text(
-        "id: DIRECTIVE_900\nenhances: DIRECTIVE_001\n", encoding="utf-8"
-    )
+    (directives_dir / "d.directive.yaml").write_text("id: DIRECTIVE_900\nenhances: DIRECTIVE_001\n", encoding="utf-8")
     _write_fragment(pack_root)
 
     fragment = load_org_pack("testpack", pack_root, layer_index=1)
-    assert any(
-        e.source == "directive:DIRECTIVE_900"
-        and e.target == "directive:DIRECTIVE_001"
-        and e.relation == Relation.ENHANCES.value
-        for e in fragment.edges
-    )
+    assert any(e.source == "directive:DIRECTIVE_900" and e.target == "directive:DIRECTIVE_001" and e.relation == Relation.ENHANCES.value for e in fragment.edges)
 
 
 # ---------------------------------------------------------------------------
@@ -252,9 +233,7 @@ def test_fragment_edge_intent_unknown_target_hard_errors(tmp_path: Path) -> None
         encoding="utf-8",
     )
     intent = _fragment_intent(drg_dir)
-    errors, advisories = _intent_aware_collision_messages_from_edges(
-        intent, {"directives": {"DIRECTIVE_001"}}, {}
-    )
+    errors, advisories = _intent_aware_collision_messages_from_edges(intent, {"directives": {"DIRECTIVE_001"}}, {})
     assert any(e.category == "unknown_target" for e in errors)
     assert advisories == []
 
@@ -282,9 +261,7 @@ def test_fragment_edge_intent_conflict_when_both_declared(tmp_path: Path) -> Non
         encoding="utf-8",
     )
     intent = _fragment_intent(drg_dir)
-    errors, _ = _intent_aware_collision_messages_from_edges(
-        intent, {"toolguides": {"builtin-tg"}}, {}
-    )
+    errors, _ = _intent_aware_collision_messages_from_edges(intent, {"toolguides": {"builtin-tg"}}, {})
     assert any(e.category == "intent_conflict" for e in errors)
 
 
@@ -308,9 +285,7 @@ def test_fragment_edge_valid_intent_suppresses_advisory(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     intent = _fragment_intent(drg_dir)
-    errors, advisories = _intent_aware_collision_messages_from_edges(
-        intent, {"directives": {"DIRECTIVE_001"}}, {}
-    )
+    errors, advisories = _intent_aware_collision_messages_from_edges(intent, {"directives": {"DIRECTIVE_001"}}, {})
     assert errors == []
     assert advisories == []
 
@@ -356,9 +331,7 @@ def test_mission_type_fragment_augmentation_validates(tmp_path: Path) -> None:
             "source_ref": "/nonexistent/acme",
             "layer_index": 1,
             "provenance_marker": "org",
-            "nodes": [
-                {"id": "custom-mission", "kind": "mission_types", "title": "Custom"}
-            ],
+            "nodes": [{"id": "custom-mission", "kind": "mission_types", "title": "Custom"}],
             "edges": [
                 {
                     "source": "mission_type:custom-mission",
@@ -444,14 +417,10 @@ def test_lockstep_drift_guard_against_allowed_kinds() -> None:
     # Canonical forms only (drop the loader's backward-compat alias for the
     # comparison): the org-pack universe must equal the activation allowed set
     # plus exactly the mission-type extension.
-    canonical_universe = _ORG_DRG_CANONICAL_KINDS - {"mission_step_contracts"} - {
-        "mission_type"
-    }
+    canonical_universe = _ORG_DRG_CANONICAL_KINDS - {"mission_step_contracts"} - {"mission_type"}
     # _ALLOWED_KINDS uses ``mission_step_contracts``; the loader canonicalises it
     # to ``mission_steps``. Normalise that one rename for the lockstep equality.
-    normalised_allowed = (_ALLOWED_KINDS - {"mission_step_contracts"}) | {
-        "mission_steps"
-    }
+    normalised_allowed = (_ALLOWED_KINDS - {"mission_step_contracts"}) | {"mission_steps"}
     assert canonical_universe == normalised_allowed | _MISSION_TYPE_UNIVERSE_EXTENSION
     assert frozenset({"mission_types"}) == _MISSION_TYPE_UNIVERSE_EXTENSION
 

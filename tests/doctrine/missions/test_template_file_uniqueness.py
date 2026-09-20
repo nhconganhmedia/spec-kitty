@@ -39,11 +39,7 @@ def _all_template_files() -> list[tuple[str, str, str]]:
     ``template_set``."""
     triples: list[tuple[str, str, str]] = []
     for mission_type_id in sorted(MissionTypeRepository.default().ids()):
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type(mission_type_id, pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type(mission_type_id, pack_context=None).values())
         template_set = project_template_set(steps)
         if template_set is None:
             continue
@@ -62,10 +58,7 @@ class TestTemplateFileIsGloballyUnique:
         counts = Counter(template_files)
         colliding = {name: count for name, count in counts.items() if count > 1}
 
-        assert not colliding, (
-            "template_file collision(s) across mission types (NFR-006): "
-            f"{colliding} -- full projection: {triples}"
-        )
+        assert not colliding, f"template_file collision(s) across mission types (NFR-006): {colliding} -- full projection: {triples}"
 
     def test_all_template_files_are_distinct_via_set_cardinality(self) -> None:
         """Same invariant, expressed as the direct set-cardinality check the

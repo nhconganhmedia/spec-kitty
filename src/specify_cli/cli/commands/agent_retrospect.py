@@ -73,11 +73,11 @@ app = typer.Typer(
 )
 
 
-
 def resolve_mission_handle(handle: str, repo_root: Path, *, json_mode: bool = False) -> ResolvedMission:
     """Resolve a mission handle for this command without pre-rendering JSON errors."""
     del json_mode
     return resolve_mission(handle, repo_root)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -269,10 +269,7 @@ def _mission_artifacts_sufficient_for_empty_record(
         return False
     if not snapshot.work_packages:
         return False
-    return all(
-        str(state.get("lane")) in {"approved", "done"}
-        for state in snapshot.work_packages.values()
-    )
+    return all(str(state.get("lane")) in {"approved", "done"} for state in snapshot.work_packages.values())
 
 
 def _create_empty_retrospective_record(
@@ -381,10 +378,7 @@ def synthesize_cmd(
     # ------------------------------------------------------------------
     repo_root = locate_project_root()
     if repo_root is None:
-        _err_console.print(
-            "[red]Error:[/red] Could not locate project root. "
-            "Ensure you are inside a spec-kitty project (has .kittify/ or kitty-specs/)."
-        )
+        _err_console.print("[red]Error:[/red] Could not locate project root. Ensure you are inside a spec-kitty project (has .kittify/ or kitty-specs/).")
         raise typer.Exit(1)
 
     # ------------------------------------------------------------------
@@ -412,8 +406,7 @@ def synthesize_cmd(
             )
         else:
             _err_console.print(
-                f'[red]Error:[/red] No mission found for handle "{exc.handle}". '
-                f"Check that the handle is correct and that the mission exists in kitty-specs/."
+                f'[red]Error:[/red] No mission found for handle "{exc.handle}". Check that the handle is correct and that the mission exists in kitty-specs/.'
             )
         raise typer.Exit(1) from exc
     except AmbiguousHandleError as exc:
@@ -463,8 +456,7 @@ def synthesize_cmd(
                             "mission_id": mission_id,
                             "mission_slug": resolved.mission_slug,
                             "blocked_reason": (
-                                f"No retrospective record found for this mission. "
-                                f"Author one with: spec-kitty retrospect create --mission {resolved.mission_slug}"
+                                f"No retrospective record found for this mission. Author one with: spec-kitty retrospect create --mission {resolved.mission_slug}"
                             ),
                             "exit_code": 1,
                         }
@@ -614,9 +606,7 @@ def synthesize_cmd(
         approved_ids: set[str] = set(proposal_id)
     else:
         # Default: all accepted proposals
-        approved_ids = {
-            p.id for p in all_proposals if p.state.status == "accepted"
-        }
+        approved_ids = {p.id for p in all_proposals if p.state.status == "accepted"}
 
     dry_run = not apply
 
@@ -664,10 +654,7 @@ def synthesize_cmd(
     if apply:
         if result.conflicts:
             raise typer.Exit(4)
-        has_rejections = any(
-            r.reason in ("stale_evidence", "invalid_payload")
-            for r in result.rejected
-        )
+        has_rejections = any(r.reason in ("stale_evidence", "invalid_payload") for r in result.rejected)
         if has_rejections:
             raise typer.Exit(5)
 
@@ -702,6 +689,7 @@ def summary_cmd(
 ) -> None:
     """Cross-mission retrospective summary (back-compat alias). READ-ONLY."""
     from specify_cli.cli.commands.retrospect import summary_cmd as _canonical_summary
+
     _canonical_summary(
         project=project,
         json_only=json_only,

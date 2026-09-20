@@ -135,9 +135,7 @@ def test_cli_mission_scope_touches_only_target_siblings_byte_identical(tmp_path:
     # Target was backfilled to a concrete topology...
     assert _topology_of(target_meta) == "coord"
     # ...and the sibling is BYTE-IDENTICAL — only the target's meta.json moved.
-    assert sibling_meta.read_bytes() == sibling_before, (
-        "scoped --mission run must not mutate sibling missions (the #2219 blast-radius guard)"
-    )
+    assert sibling_meta.read_bytes() == sibling_before, "scoped --mission run must not mutate sibling missions (the #2219 blast-radius guard)"
 
 
 def test_cli_mission_scope_json_reports_single_result(tmp_path: Path) -> None:
@@ -145,9 +143,7 @@ def test_cli_mission_scope_json_reports_single_result(tmp_path: Path) -> None:
     _seed_multi_mission_repo(tmp_path)
 
     with patch(_LOCATE_ROOT, return_value=tmp_path):
-        result = CliRunner().invoke(
-            migrate_app, ["backfill-topology", "--mission", _TARGET_SLUG, "--json"]
-        )
+        result = CliRunner().invoke(migrate_app, ["backfill-topology", "--mission", _TARGET_SLUG, "--json"])
 
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output[result.output.find("{") :])
@@ -186,12 +182,9 @@ def test_unscoped_repo_global_walk_dirties_sibling(tmp_path: Path) -> None:
     results = backfill_topology_repo(tmp_path)  # no mission_slug → repo-global walk
 
     wrote_slugs = {r.slug for r in results if r.action == "wrote"}
-    assert _SIBLING_SLUG in wrote_slugs and _TARGET_SLUG in wrote_slugs, (
-        "unscoped walk must process BOTH missions"
-    )
+    assert _SIBLING_SLUG in wrote_slugs and _TARGET_SLUG in wrote_slugs, "unscoped walk must process BOTH missions"
     assert sibling_meta.read_bytes() != sibling_before, (
-        "the topology-lacking sibling IS a backfill candidate — only --mission scoping "
-        "spares it, so the scope guard is non-vacuous"
+        "the topology-lacking sibling IS a backfill candidate — only --mission scoping spares it, so the scope guard is non-vacuous"
     )
     assert _topology_of(target_meta) == "coord"
     assert _topology_of(sibling_meta) == "single_branch"

@@ -163,14 +163,17 @@ class TestProjectKindDirs:
     def test_runtime_managed_kinds_use_singular_overlay_dir(self) -> None:
         for kind in _SINGULAR_PROJECT_DIR_KINDS:
             assert PROJECT_KIND_DIRS[kind] == kind.value
-        assert frozenset(
-            {
-                ArtifactKind.DIRECTIVE,
-                ArtifactKind.TACTIC,
-                ArtifactKind.STYLEGUIDE,
-                ArtifactKind.PROCEDURE,
-            }
-        ) == _SINGULAR_PROJECT_DIR_KINDS
+        assert (
+            frozenset(
+                {
+                    ArtifactKind.DIRECTIVE,
+                    ArtifactKind.TACTIC,
+                    ArtifactKind.STYLEGUIDE,
+                    ArtifactKind.PROCEDURE,
+                }
+            )
+            == _SINGULAR_PROJECT_DIR_KINDS
+        )
 
     def test_every_other_kind_uses_its_plural_overlay_dir(self) -> None:
         for kind in ArtifactKind:
@@ -188,10 +191,7 @@ class TestNonAugmentationEligibleKinds:
     """T003/T004: the canonical exclusion set and its consumer, CHARTER_KIND_TOKENS."""
 
     def test_exclusion_set_is_exactly_template_asset_and_anti_pattern(self) -> None:
-        assert (
-            frozenset({ArtifactKind.TEMPLATE, ArtifactKind.ASSET, ArtifactKind.ANTI_PATTERN})
-            == _NON_AUGMENTATION_ELIGIBLE_KINDS
-        )
+        assert frozenset({ArtifactKind.TEMPLATE, ArtifactKind.ASSET, ArtifactKind.ANTI_PATTERN}) == _NON_AUGMENTATION_ELIGIBLE_KINDS
 
     def test_asset_not_in_charter_kind_tokens(self) -> None:
         assert ArtifactKind.ASSET.operator_token not in CHARTER_KIND_TOKENS
@@ -202,10 +202,6 @@ class TestNonAugmentationEligibleKinds:
         assert ArtifactKind.TEMPLATE not in CHARTER_KIND_TOKENS
 
     def test_charter_kind_tokens_derived_from_exclusion_set(self) -> None:
-        expected_artifact_tokens = {
-            member.operator_token
-            for member in ArtifactKind
-            if member not in _NON_AUGMENTATION_ELIGIBLE_KINDS
-        }
+        expected_artifact_tokens = {member.operator_token for member in ArtifactKind if member not in _NON_AUGMENTATION_ELIGIBLE_KINDS}
         actual_artifact_tokens = {t for t in CHARTER_KIND_TOKENS if t != "mission-type"}
         assert actual_artifact_tokens == expected_artifact_tokens

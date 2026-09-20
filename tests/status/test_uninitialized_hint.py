@@ -24,9 +24,7 @@ pytestmark = [pytest.mark.unit]
 
 
 def _write_wp(tasks_dir: Path, wp_id: str, deps: list[str]) -> None:
-    dep_block = "dependencies: []" if not deps else "dependencies:\n" + "".join(
-        f"- {d}\n" for d in deps
-    )
+    dep_block = "dependencies: []" if not deps else "dependencies:\n" + "".join(f"- {d}\n" for d in deps)
     tasks_dir.joinpath(f"{wp_id}-x.md").write_text(
         f"---\nwork_package_id: {wp_id}\ntitle: {wp_id}\n{dep_block}\n---\n\n# {wp_id}\n",
         encoding="utf-8",

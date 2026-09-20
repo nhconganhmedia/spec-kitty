@@ -56,9 +56,7 @@ def _make_project(
     # Optionally pre-install skill files
     if install_skills:
         for cmd in CANONICAL_COMMANDS:
-            skill_file = (
-                tmp_path / ".agents" / "skills" / f"spec-kitty.{cmd}" / "SKILL.md"
-            )
+            skill_file = tmp_path / ".agents" / "skills" / f"spec-kitty.{cmd}" / "SKILL.md"
             skill_file.parent.mkdir(parents=True, exist_ok=True)
             skill_file.write_text(f"# skill: {cmd}\n", encoding="utf-8")
 
@@ -98,9 +96,7 @@ def test_adds_letta_gitignore_when_configured(tmp_path: Path) -> None:
 
 def test_skips_gitignore_if_already_present(tmp_path: Path) -> None:
     """Migration does not duplicate an existing .pi/ entry."""
-    project = _make_project(
-        tmp_path, agents=["pi"], gitignore_lines=[".pi/"], install_skills=True
-    )
+    project = _make_project(tmp_path, agents=["pi"], gitignore_lines=[".pi/"], install_skills=True)
 
     migration = PiLettaBackfillMigration()
     result = migration.apply(project)
@@ -139,8 +135,7 @@ def test_skips_unconfigured_agent(tmp_path: Path) -> None:
     assert result.success
     # Nothing written (no pi/letta configured)
     assert not (project / ".gitignore").exists() or (
-        ".pi/" not in (project / ".gitignore").read_text(encoding="utf-8")
-        and ".letta/" not in (project / ".gitignore").read_text(encoding="utf-8")
+        ".pi/" not in (project / ".gitignore").read_text(encoding="utf-8") and ".letta/" not in (project / ".gitignore").read_text(encoding="utf-8")
     )
     assert result.changes_made == []
 
@@ -155,9 +150,7 @@ def test_dry_run_does_not_mutate(tmp_path: Path) -> None:
     assert result.success
     # .gitignore must NOT have been created/written
     gitignore_path = project / ".gitignore"
-    assert not gitignore_path.exists() or ".pi/" not in gitignore_path.read_text(
-        encoding="utf-8"
-    )
+    assert not gitignore_path.exists() or ".pi/" not in gitignore_path.read_text(encoding="utf-8")
     # But a "Would add" change is reported
     assert any("Would add" in change for change in result.changes_made)
 
@@ -186,13 +179,9 @@ def test_idempotent(tmp_path: Path) -> None:
 
 def test_skill_repair_triggered_when_skills_missing(tmp_path: Path) -> None:
     """Installer is called when skill files are absent for a configured pi agent."""
-    project = _make_project(
-        tmp_path, agents=["pi"], gitignore_lines=[".pi/"], install_skills=False
-    )
+    project = _make_project(tmp_path, agents=["pi"], gitignore_lines=[".pi/"], install_skills=False)
 
-    with patch(
-        "specify_cli.skills.command_installer.install"
-    ) as mock_install:
+    with patch("specify_cli.skills.command_installer.install") as mock_install:
         mock_install.return_value = MagicMock()
         migration = PiLettaBackfillMigration()
         result = migration.apply(project)
@@ -212,9 +201,7 @@ def test_no_skill_repair_when_skills_present(tmp_path: Path) -> None:
     )
     command_installer.install(project, "pi")
 
-    with patch(
-        "specify_cli.skills.command_installer.install"
-    ) as mock_install:
+    with patch("specify_cli.skills.command_installer.install") as mock_install:
         migration = PiLettaBackfillMigration()
         result = migration.apply(project)
 

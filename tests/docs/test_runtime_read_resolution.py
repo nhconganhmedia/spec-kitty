@@ -138,9 +138,7 @@ class TestShimRegistryReadersResolveNewHome:
         """Read 4: registry only at the NEW home → load_registry finds it."""
         _write_registry(tmp_path, NEW_SHIM_REGISTRY)
         entries = load_registry(tmp_path)
-        assert frozenset(e.legacy_path for e in entries) == frozenset(
-            {"specify_cli.old_module"}
-        )
+        assert frozenset(e.legacy_path for e in entries) == frozenset({"specify_cli.old_module"})
         assert isinstance(entries[0], ShimEntry)
 
     def test_check_shim_registry_reports_new_home(self, tmp_path: Path) -> None:
@@ -171,9 +169,7 @@ class TestShimRegistryReadersResolveNewHome:
 
 
 class TestRemediationStringNamesNewHome:
-    def test_overdue_remediation_names_docs_migrations(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_overdue_remediation_names_docs_migrations(self, capsys: pytest.CaptureFixture[str]) -> None:
         """The user-facing remediation must name the NEW shim-registry home."""
         from rich.console import Console
 
@@ -186,11 +182,7 @@ class TestRemediationStringNamesNewHome:
             grandfathered=False,
         )
         report = ShimRegistryReport(
-            entries=[
-                ShimStatusEntry(
-                    entry=entry, status=ShimStatus.OVERDUE, shim_exists=True
-                )
-            ],
+            entries=[ShimStatusEntry(entry=entry, status=ShimStatus.OVERDUE, shim_exists=True)],
             project_version="3.2.5",
             registry_path=Path("docs/migrations/shim-registry.yaml"),
         )
@@ -271,9 +263,7 @@ class TestGovernanceAuthorityPathsRepointed:
         assert "architecture/3.x/adr/" not in paths
         assert "architecture/adrs/" not in paths
 
-    def test_charter_declared_new_homes_resolve_through_renderer(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_declared_new_homes_resolve_through_renderer(self, tmp_path: Path) -> None:
         """The real reader (render_authority_paths) resolves charter values.
 
         Feed the charter's declared authority paths into the renderer against a
@@ -281,9 +271,7 @@ class TestGovernanceAuthorityPathsRepointed:
         """
         _mkdir(tmp_path, NEW_CONTEXT_DIR)
         _mkdir(tmp_path, NEW_ADR_DIR)
-        selection = DoctrineSelectionConfig(
-            authority_paths=_charter_authority_paths()
-        )
+        selection = DoctrineSelectionConfig(authority_paths=_charter_authority_paths())
         result = render_authority_paths(tmp_path, selection)
         assert f"{NEW_CONTEXT_DIR}/" in result
         assert f"{NEW_ADR_DIR}/" in result

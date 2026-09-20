@@ -121,9 +121,7 @@ def test_pre_review_gate_reads_baseline_from_primary_not_coord_husk(
 
     with (
         patch(f"{_MODULE}._resolve_wp_slug", return_value=_WP_SLUG),
-        patch(
-            f"{_WORKFLOW}._resolve_workflow_read_dir", return_value=primary_dir
-        ) as seam_mock,
+        patch(f"{_WORKFLOW}._resolve_workflow_read_dir", return_value=primary_dir) as seam_mock,
         patch.object(BaselineTestResult, "load", side_effect=_spy_load),
     ):
         # ``_mt_resolve_gate_baseline`` is the shared baseline loader the WP09

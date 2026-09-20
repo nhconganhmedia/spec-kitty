@@ -293,25 +293,14 @@ def _scan_artifact_directory(  # noqa: PLR0913 — small helper kept private to 
         # (it emits `intent_conflict`) instead of the generic
         # `schema_invalid` from the Pydantic cross-field validator.
         both_intent_fields_set = (
-            isinstance(data.get("overrides"), str)
-            and bool(data.get("overrides"))
-            and isinstance(data.get("enhances"), str)
-            and bool(data.get("enhances"))
+            isinstance(data.get("overrides"), str) and bool(data.get("overrides")) and isinstance(data.get("enhances"), str) and bool(data.get("enhances"))
         )
-        if (
-            isinstance(artifact_id, str)
-            and artifact_id
-            and plural in _AUGMENTATION_PLURAL_KINDS
-        ):
-            pack_artifacts_data.setdefault(plural, {}).setdefault(
-                artifact_id, (data, yaml_file)
-            )
+        if isinstance(artifact_id, str) and artifact_id and plural in _AUGMENTATION_PLURAL_KINDS:
+            pack_artifacts_data.setdefault(plural, {}).setdefault(artifact_id, (data, yaml_file))
             if both_intent_fields_set:
                 # The intent-aware pass owns the error. Track the ID so
                 # downstream checks still see it as a known artifact.
-                pack_artifact_ids_per_type.setdefault(plural, set()).add(
-                    artifact_id
-                )
+                pack_artifact_ids_per_type.setdefault(plural, set()).add(artifact_id)
                 seen_ids[artifact_id] = yaml_file
                 urn_kind = _plural_to_urn_kind(plural)
                 if urn_kind is not None:
@@ -326,10 +315,7 @@ def _scan_artifact_directory(  # noqa: PLR0913 — small helper kept private to 
                     artifact_type=plural,
                     artifact_id=str(artifact_id) if artifact_id else None,
                     file=str(yaml_file),
-                    message=(
-                        f"schema validation failed: "
-                        f"{exc.errors()[0].get('msg', exc)}"
-                    ),
+                    message=(f"schema validation failed: {exc.errors()[0].get('msg', exc)}"),
                     category="schema_invalid",
                 )
             )
@@ -344,19 +330,14 @@ def _scan_artifact_directory(  # noqa: PLR0913 — small helper kept private to 
                     artifact_type=plural,
                     artifact_id=artifact_id,
                     file=str(yaml_file),
-                    message=(
-                        f"duplicate id '{artifact_id}' "
-                        f"(also defined in {seen_ids[artifact_id].name})"
-                    ),
+                    message=(f"duplicate id '{artifact_id}' (also defined in {seen_ids[artifact_id].name})"),
                     category="duplicate_id",
                 )
             )
             continue
         seen_ids[artifact_id] = yaml_file
         pack_artifact_ids_per_type.setdefault(plural, set()).add(artifact_id)
-        pack_artifacts_data.setdefault(plural, {}).setdefault(
-            artifact_id, (data, yaml_file)
-        )
+        pack_artifacts_data.setdefault(plural, {}).setdefault(artifact_id, (data, yaml_file))
         urn_kind = _plural_to_urn_kind(plural)
         if urn_kind is not None:
             pack_artifact_urns.add(f"{urn_kind}:{artifact_id}")
@@ -427,12 +408,8 @@ def validate_pack(pack_dir: Path, *, check_drg_root: bool = True) -> ValidationR
     # FR-002: surface AgentProfileRepository's post-merge profile-skip
     # diagnostics inline, deduplicated against files the generic scan above
     # already flagged schema_invalid.
-    already_flagged_files = {
-        issue.file for issue in errors if issue.artifact_type == "agent_profiles"
-    }
-    errors.extend(
-        _check_profile_skipped_diagnostics(pack_dir, already_flagged_files)
-    )
+    already_flagged_files = {issue.file for issue in errors if issue.artifact_type == "agent_profiles"}
+    errors.extend(_check_profile_skipped_diagnostics(pack_dir, already_flagged_files))
 
     errors.extend(_validate_org_fragment(pack_dir))
 
@@ -455,9 +432,7 @@ def validate_pack(pack_dir: Path, *, check_drg_root: bool = True) -> ValidationR
     # in pack_artifacts_data) are checked here — malformed manifests were
     # already flagged as schema_invalid by that scan. Does NOT enforce
     # global id-uniqueness across packs (WP03's merge scan owns that).
-    asset_errors, asset_advisories = _validate_asset_manifests(
-        pack_dir, pack_artifacts_data.get("assets", {})
-    )
+    asset_errors, asset_advisories = _validate_asset_manifests(pack_dir, pack_artifacts_data.get("assets", {}))
     errors.extend(asset_errors)
     advisories.extend(asset_advisories)
 
@@ -499,9 +474,7 @@ def validate_pack(pack_dir: Path, *, check_drg_root: bool = True) -> ValidationR
 
     # T044: validate optional org-charter.yaml (best-effort — module may be
     # absent in early-mission states before WP09 ships).
-    advisories_or_errors = _validate_org_charter(
-        pack_dir, pack_artifact_ids_per_type.get("directives", set())
-    )
+    advisories_or_errors = _validate_org_charter(pack_dir, pack_artifact_ids_per_type.get("directives", set()))
     for issue in advisories_or_errors:
         if issue.severity == "error":
             errors.append(issue)
@@ -712,10 +685,7 @@ def _validate_drg(
                         artifact_type="drg",
                         artifact_id=node.urn,
                         file=str(fragment),
-                        message=(
-                            f"node {node.urn} attempts to change built-in kind "
-                            f"{built_in_kind!r} → {node.kind.value!r}"
-                        ),
+                        message=(f"node {node.urn} attempts to change built-in kind {built_in_kind!r} → {node.kind.value!r}"),
                         category="drg_kind_drift",
                     )
                 )
@@ -732,10 +702,7 @@ def _validate_drg(
                             artifact_type="drg",
                             artifact_id=urn,
                             file=str(fragment),
-                            message=(
-                                f"dangling DRG edge — {role} URN {urn!r} "
-                                f"not in built-in or pack artifact set"
-                            ),
+                            message=(f"dangling DRG edge — {role} URN {urn!r} not in built-in or pack artifact set"),
                             category="drg_dangling_edge",
                         )
                     )
@@ -747,11 +714,7 @@ def _validate_drg(
                         artifact_type="drg",
                         artifact_id=None,
                         file=str(fragment),
-                        message=(
-                            f"duplicate edge "
-                            f"({edge.source} -[{edge.relation.value}]-> {edge.target}) "
-                            f"already present in {seen_edges[key].name}"
-                        ),
+                        message=(f"duplicate edge ({edge.source} -[{edge.relation.value}]-> {edge.target}) already present in {seen_edges[key].name}"),
                         category="duplicate_drg_edge",
                     )
                 )
@@ -909,9 +872,7 @@ def _check_asset_path_containment(
             artifact_type="assets",
             artifact_id=artifact_id,
             file=str(source_file),
-            message=(
-                f"asset path {raw_path!r} escapes the pack's assets/ root: {exc}"
-            ),
+            message=(f"asset path {raw_path!r} escapes the pack's assets/ root: {exc}"),
             category="asset_path_escape",
         )
     return None
@@ -942,9 +903,7 @@ def _check_asset_mime(
             artifact_type="assets",
             artifact_id=artifact_id,
             file=str(source_file),
-            message=(
-                f"asset mime {raw_mime!r} is not a well-formed 'type/subtype' value"
-            ),
+            message=(f"asset mime {raw_mime!r} is not a well-formed 'type/subtype' value"),
             category="asset_mime_invalid",
         )
 
@@ -955,10 +914,7 @@ def _check_asset_mime(
             artifact_type="assets",
             artifact_id=artifact_id,
             file=str(source_file),
-            message=(
-                f"asset mime {raw_mime!r} is inconsistent with path "
-                f"{raw_path!r} (guessed {guessed_mime!r} from its extension)"
-            ),
+            message=(f"asset mime {raw_mime!r} is inconsistent with path {raw_path!r} (guessed {guessed_mime!r} from its extension)"),
             category="asset_mime_invalid",
         )
     return None
@@ -1027,10 +983,7 @@ def _check_profile_skipped_diagnostics(
                 artifact_type="agent_profiles",
                 artifact_id=None,
                 file=str(pack_dir / "agent_profiles"),
-                message=(
-                    "unable to resolve agent-profile diagnostics: "
-                    f"{exc}"
-                ),
+                message=(f"unable to resolve agent-profile diagnostics: {exc}"),
                 category="profile_skipped",
             )
         ]
@@ -1155,10 +1108,7 @@ def _intent_aware_collision_messages(
                         artifact_type=plural,
                         artifact_id=art_id,
                         file=str(source_file),
-                        message=(
-                            f"overrides and enhances are mutually exclusive on "
-                            f"{singular} {art_id}"
-                        ),
+                        message=(f"overrides and enhances are mutually exclusive on {singular} {art_id}"),
                         category="intent_conflict",
                     )
                 )
@@ -1172,11 +1122,7 @@ def _intent_aware_collision_messages(
                         artifact_type=plural,
                         artifact_id=art_id,
                         file=str(source_file),
-                        message=(
-                            f"{singular} {art_id} declares overrides: "
-                            f"{overrides_field}, but no built-in {singular} "
-                            f"with that id exists"
-                        ),
+                        message=(f"{singular} {art_id} declares overrides: {overrides_field}, but no built-in {singular} with that id exists"),
                         category="unknown_target",
                     )
                 )
@@ -1190,11 +1136,7 @@ def _intent_aware_collision_messages(
                         artifact_type=plural,
                         artifact_id=art_id,
                         file=str(source_file),
-                        message=(
-                            f"{singular} {art_id} declares enhances: "
-                            f"{enhances_field}, but no built-in {singular} "
-                            f"with that id exists"
-                        ),
+                        message=(f"{singular} {art_id} declares enhances: {enhances_field}, but no built-in {singular} with that id exists"),
                         category="unknown_target",
                     )
                 )
@@ -1346,9 +1288,7 @@ def _intent_aware_collision_messages_from_edges(
                 has_field_intent = False
                 if field_data is not None:
                     raw_data = field_data[0]
-                    has_field_intent = bool(
-                        raw_data.get("enhances") or raw_data.get("overrides")
-                    )
+                    has_field_intent = bool(raw_data.get("enhances") or raw_data.get("overrides"))
                 has_builtin_collision = art_id in built_ins
                 if has_field_intent or not has_builtin_collision:
                     continue  # field-based path handles it, or no collision exists
@@ -1365,10 +1305,7 @@ def _intent_aware_collision_messages_from_edges(
                         artifact_type=plural,
                         artifact_id=art_id,
                         file=str(fragment),
-                        message=(
-                            f"overrides and enhances are mutually exclusive on "
-                            f"{singular} {art_id} (declared via DRG fragment edges)"
-                        ),
+                        message=(f"overrides and enhances are mutually exclusive on {singular} {art_id} (declared via DRG fragment edges)"),
                         category="intent_conflict",
                     )
                 )
@@ -1385,11 +1322,7 @@ def _intent_aware_collision_messages_from_edges(
                             artifact_type=plural,
                             artifact_id=art_id,
                             file=str(fragment),
-                            message=(
-                                f"{singular} {art_id} declares {relation}: "
-                                f"{target} (via DRG fragment edge), but no "
-                                f"built-in {singular} with that id exists"
-                            ),
+                            message=(f"{singular} {art_id} declares {relation}: {target} (via DRG fragment edge), but no built-in {singular} with that id exists"),
                             category="unknown_target",
                         )
                     )
@@ -1443,10 +1376,7 @@ def _validate_org_charter(
                 artifact_type="org-charter",
                 artifact_id=None,
                 file=str(charter_path),
-                message=(
-                    "org-charter.yaml present but OrgCharterPolicy model "
-                    "is not installed; skipping schema validation"
-                ),
+                message=("org-charter.yaml present but OrgCharterPolicy model is not installed; skipping schema validation"),
             )
         )
         return issues
@@ -1490,10 +1420,7 @@ def _validate_org_charter(
                     artifact_type="org-charter",
                     artifact_id=getattr(gp, "field", None),
                     file=str(charter_path),
-                    message=(
-                        f"governance policy uses non-advisory enforcement "
-                        f"{enforcement!r}; only 'advisory' is recognised today"
-                    ),
+                    message=(f"governance policy uses non-advisory enforcement {enforcement!r}; only 'advisory' is recognised today"),
                 )
             )
 
@@ -1508,11 +1435,7 @@ def _validate_org_charter(
                     artifact_type="org-charter",
                     artifact_id=required_id,
                     file=str(charter_path),
-                    message=(
-                        f"required_directive {required_id!r} not found in "
-                        f"this pack's directives/ (may exist in another pack "
-                        f"or in built-in doctrine)"
-                    ),
+                    message=(f"required_directive {required_id!r} not found in this pack's directives/ (may exist in another pack or in built-in doctrine)"),
                 )
             )
 

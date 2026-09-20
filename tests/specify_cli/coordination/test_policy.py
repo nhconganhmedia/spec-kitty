@@ -48,7 +48,9 @@ def repo(tmp_path: Path) -> Path:
 
 
 def _change(
-    repo: Path, ref: str, operation: str = "test",
+    repo: Path,
+    ref: str,
+    operation: str = "test",
 ) -> GitChangeSet:
     return GitChangeSet(
         destination_ref=ref,
@@ -116,7 +118,9 @@ def test_refused_not_local_remote_tracking(repo: Path, tmp_path: Path) -> None:
     rem_dir = repo / ".git" / "refs" / "remotes" / "origin"
     rem_dir.mkdir(parents=True, exist_ok=True)
     head_sha = subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=repo, text=True,
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        text=True,
     ).strip()
     (rem_dir / "only-remote").write_text(head_sha + "\n")
 
@@ -129,6 +133,7 @@ def test_refused_not_local_remote_tracking(repo: Path, tmp_path: Path) -> None:
 
 def test_assert_allowed_is_side_effect_free(repo: Path) -> None:
     """Calling assert_allowed many times leaves repo state unchanged."""
+
     def state_hash() -> str:
         # Hash the index file + working-tree mtime tree summary.
         index_path = repo / ".git" / "index"

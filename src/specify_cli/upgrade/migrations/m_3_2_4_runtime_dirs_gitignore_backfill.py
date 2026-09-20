@@ -33,26 +33,16 @@ _RUNTIME_DIR_ENTRIES: tuple[str, ...] = (
 # A hand-added entry without the trailing slash ignores the same directory, so
 # treat either form as already-present — the backfill stays idempotent and never
 # appends a duplicate beside a user's slash-less variant.
-_EQUIVALENT_ENTRIES: dict[str, frozenset[str]] = {
-    entry: frozenset({entry, entry.rstrip("/")}) for entry in _RUNTIME_DIR_ENTRIES
-}
+_EQUIVALENT_ENTRIES: dict[str, frozenset[str]] = {entry: frozenset({entry, entry.rstrip("/")}) for entry in _RUNTIME_DIR_ENTRIES}
 
 
 def _read_gitignore_entries(project_path: Path) -> set[str]:
     content = read_ignore_file_text(project_path / ".gitignore")
-    return {
-        line.strip()
-        for line in content.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    }
+    return {line.strip() for line in content.splitlines() if line.strip() and not line.lstrip().startswith("#")}
 
 
 def _missing_entries(present: set[str]) -> list[str]:
-    return [
-        entry
-        for entry in _RUNTIME_DIR_ENTRIES
-        if _EQUIVALENT_ENTRIES[entry].isdisjoint(present)
-    ]
+    return [entry for entry in _RUNTIME_DIR_ENTRIES if _EQUIVALENT_ENTRIES[entry].isdisjoint(present)]
 
 
 @MigrationRegistry.register
@@ -79,9 +69,7 @@ class RuntimeDirsGitignoreBackfillMigration(BaseMigration):
             return MigrationResult(success=True, changes_made=changes)
 
         if not missing:
-            return MigrationResult(
-                success=True, changes_made=["gitignore entries already present"]
-            )
+            return MigrationResult(success=True, changes_made=["gitignore entries already present"])
 
         GitignoreManager(project_path).ensure_entries(missing)
         return MigrationResult(

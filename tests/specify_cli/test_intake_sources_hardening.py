@@ -1,4 +1,5 @@
 """Regression tests for WP04 T022/T023: path containment and symlink exclusion."""
+
 from __future__ import annotations
 
 import pytest
@@ -8,6 +9,7 @@ from specify_cli.intake_sources import scan_for_plans, HARNESS_PLAN_SOURCES
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
 
 def test_scan_excludes_out_of_bounds_path(tmp_path, monkeypatch):
     """Paths resolving outside cwd are silently excluded."""

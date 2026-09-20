@@ -93,8 +93,7 @@ _LAYER_ORDER: tuple[tuple[str, str], ...] = (
 _PASS_STATES: frozenset[str] = frozenset({"fresh", "skipped", "built_in_only"})
 
 _FRESH_PROJECT_MISSING_CHARTER_WARNING = (
-    "project charter is not initialized; run `spec-kitty charter generate` "
-    "when this project is ready for charter-governed workflows"
+    "project charter is not initialized; run `spec-kitty charter generate` when this project is ready for charter-governed workflows"
 )
 
 #: Distinct from ``_FRESH_PROJECT_MISSING_CHARTER_WARNING`` per FR-003 — a
@@ -213,8 +212,7 @@ def _deactivated_mission_default_profile_warnings(repo_root: Path) -> list[str]:
     except Exception:  # noqa: BLE001 — the never-raise contract above; the
         # freshness layers own fail-closed treatment of a malformed config.
         logger.debug(
-            "could not read activation state for the mission-default-profile "
-            "preflight warning at %s; skipping the advisory",
+            "could not read activation state for the mission-default-profile preflight warning at %s; skipping the advisory",
             repo_root,
         )
         return []
@@ -254,16 +252,8 @@ def _run_charter_preflight_freshness(
         legacy_bundle = _is_legacy_charter_bundle(repo_root)
         return _advisory_missing_charter_result(
             checks,
-            detail=(
-                "legacy charter.md-only bundle; charter.yaml not yet migrated"
-                if legacy_bundle
-                else "project charter is not initialized"
-            ),
-            warning=(
-                _LEGACY_CHARTER_BUNDLE_WARNING
-                if legacy_bundle
-                else _FRESH_PROJECT_MISSING_CHARTER_WARNING
-            ),
+            detail=("legacy charter.md-only bundle; charter.yaml not yet migrated" if legacy_bundle else "project charter is not initialized"),
+            warning=(_LEGACY_CHARTER_BUNDLE_WARNING if legacy_bundle else _FRESH_PROJECT_MISSING_CHARTER_WARNING),
         )
 
     passed = all(c.state in _PASS_STATES for c in checks)
@@ -342,11 +332,7 @@ def _is_optional_missing_charter_stack(checks: list[CharterPreflightCheck]) -> b
     remains blocking.
     """
     states = {c.name: c.state for c in checks}
-    return (
-        states.get("charter_source") == "missing"
-        and states.get("synced_bundle") == "missing"
-        and states.get("synthesized_drg") in {"missing", "built_in_only"}
-    )
+    return states.get("charter_source") == "missing" and states.get("synced_bundle") == "missing" and states.get("synthesized_drg") in {"missing", "built_in_only"}
 
 
 def _is_legacy_charter_bundle(repo_root: Path) -> bool:

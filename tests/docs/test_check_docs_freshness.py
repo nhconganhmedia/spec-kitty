@@ -129,28 +129,20 @@ def _stub_subchecks_clean(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def _fake_ref(argv: list[str]) -> int:
         report_path = Path(argv[argv.index("--report") + 1])
-        report_path.write_text(
-            json.dumps({"findings": []}), encoding="utf-8"
-        )
+        report_path.write_text(json.dumps({"findings": []}), encoding="utf-8")
         return 0
 
     monkeypatch.setattr(orchestrator, "_invoke_version_leakage", _fake_leakage)
-    monkeypatch.setattr(
-        orchestrator, "_invoke_cli_reference_freshness", _fake_ref
-    )
+    monkeypatch.setattr(orchestrator, "_invoke_cli_reference_freshness", _fake_ref)
     # The inventory-lockfile drift sub-check is now default-on (WP14) and would
     # otherwise regenerate against the staged fixture inventory. It has its own
     # dedicated suite (test_inventory_lockfile.py); isolate it here so these
     # orchestration tests stay focused on aggregation, mirroring the leakage/ref
     # sub-check stubs above.
-    monkeypatch.setattr(
-        orchestrator, "_check_inventory_lockfile_drift", lambda *_a, **_k: []
-    )
+    monkeypatch.setattr(orchestrator, "_check_inventory_lockfile_drift", lambda *_a, **_k: [])
 
 
-def test_happy_path_exits_0(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_happy_path_exits_0(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     _stub_subchecks_clean(monkeypatch)
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", True)
@@ -175,9 +167,7 @@ def test_happy_path_exits_0(
     assert rc == 0
 
 
-def test_happy_path_writes_report(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_happy_path_writes_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     _stub_subchecks_clean(monkeypatch)
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", True)
@@ -213,9 +203,7 @@ def test_happy_path_writes_report(
 # ---------------------------------------------------------------------------
 
 
-def test_one_leak_plus_one_reference_miss_exits_1(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_one_leak_plus_one_reference_miss_exits_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", True)
 
@@ -262,9 +250,7 @@ def test_one_leak_plus_one_reference_miss_exits_1(
         return 1
 
     monkeypatch.setattr(orchestrator, "_invoke_version_leakage", _fake_leakage)
-    monkeypatch.setattr(
-        orchestrator, "_invoke_cli_reference_freshness", _fake_ref
-    )
+    monkeypatch.setattr(orchestrator, "_invoke_cli_reference_freshness", _fake_ref)
 
     with chdir(workspace):
         rc = orchestrator.main(
@@ -290,9 +276,7 @@ def test_one_leak_plus_one_reference_miss_exits_1(
 # ---------------------------------------------------------------------------
 
 
-def test_missing_inventory_exits_2(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_missing_inventory_exits_2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", True)
     (tmp_path / "ref.md").write_text("# ref\n", encoding="utf-8")
     (tmp_path / "agent.md").write_text("# agent\n", encoding="utf-8")
@@ -315,9 +299,7 @@ def test_missing_inventory_exits_2(
     assert rc == 2
 
 
-def test_missing_reference_exits_2(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_missing_reference_exits_2(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", True)
     workspace = _stage_clean(tmp_path)
     rc = orchestrator.main(
@@ -338,9 +320,7 @@ def test_missing_reference_exits_2(
     assert rc == 2
 
 
-def test_missing_inventory_writes_report(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_missing_inventory_writes_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", True)
     (tmp_path / "ref.md").write_text("# ref\n", encoding="utf-8")
     (tmp_path / "agent.md").write_text("# agent\n", encoding="utf-8")
@@ -366,9 +346,7 @@ def test_missing_inventory_writes_report(
     assert rc == 2
     payload = json.loads(report_path.read_text(encoding="utf-8"))
     assert payload["exit_code"] == 2
-    assert any(
-        f["rule_id"] == "INPUT-MISSING" for f in payload["findings"]
-    )
+    assert any(f["rule_id"] == "INPUT-MISSING" for f in payload["findings"])
 
 
 # ---------------------------------------------------------------------------
@@ -376,9 +354,7 @@ def test_missing_inventory_writes_report(
 # ---------------------------------------------------------------------------
 
 
-def test_saas_sync_off_exits_3(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_saas_sync_off_exits_3(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", False)
     monkeypatch.setenv("SPEC_KITTY_ENABLE_SAAS_SYNC", "0")
@@ -401,9 +377,7 @@ def test_saas_sync_off_exits_3(
     assert rc == 3
 
 
-def test_saas_sync_off_writes_report(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_saas_sync_off_writes_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     monkeypatch.setattr(orchestrator, "_SAAS_SYNC_PRESET", False)
     monkeypatch.setenv("SPEC_KITTY_ENABLE_SAAS_SYNC", "0")
@@ -430,9 +404,7 @@ def test_saas_sync_off_writes_report(
     payload = json.loads(report_path.read_text(encoding="utf-8"))
     assert payload["exit_code"] == 3
     assert payload["saas_sync_flag"] is False
-    assert any(
-        f["rule_id"] == "ENV-SAAS-SYNC-OFF" for f in payload["findings"]
-    )
+    assert any(f["rule_id"] == "ENV-SAAS-SYNC-OFF" for f in payload["findings"])
 
 
 # ---------------------------------------------------------------------------
@@ -450,15 +422,12 @@ def test_link_check_none_returns_no_findings(tmp_path: Path) -> None:
     assert findings == []
 
 
-def test_link_check_spot_emits_warning_for_bad_url(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_link_check_spot_emits_warning_for_bad_url(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     # Inject an http link into a current page.
     current_page = workspace / "docs" / "current" / "index.md"
     current_page.write_text(
-        current_page.read_text(encoding="utf-8")
-        + "\n\nSee https://example.invalid/foo\n",
+        current_page.read_text(encoding="utf-8") + "\n\nSee https://example.invalid/foo\n",
         encoding="utf-8",
     )
 
@@ -483,14 +452,11 @@ def test_link_check_spot_emits_warning_for_bad_url(
             assert f.severity == "warning"
 
 
-def test_link_check_full_visits_all_current_pages(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_link_check_full_visits_all_current_pages(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     current_page = workspace / "docs" / "current" / "index.md"
     current_page.write_text(
-        current_page.read_text(encoding="utf-8")
-        + "\n\nhttps://example.test/a\nhttps://example.test/b\n",
+        current_page.read_text(encoding="utf-8") + "\n\nhttps://example.test/a\nhttps://example.test/b\n",
         encoding="utf-8",
     )
     probed: list[str] = []
@@ -518,9 +484,7 @@ def test_iter_http_links_dedups() -> None:
     assert urls == ["https://example.test/x"]
 
 
-def test_select_link_check_paths_samples_when_oversize(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_select_link_check_paths_samples_when_oversize(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     docs = tmp_path / "docs" / "current"
     docs.mkdir(parents=True)
     inventory_lines = []
@@ -561,28 +525,18 @@ def test_inventory_completeness_flags_orphan(tmp_path: Path) -> None:
     (docs / "orphan.md").write_text("# orphan\n", encoding="utf-8")
     inventory = tmp_path / "inventory.yaml"
     inventory.write_text(
-        "- path: docs/other.md\n"
-        "  tag: current\n  divio_type: how-to\n"
-        "  owning_workstream: E\n  current_target: true\n"
-        "  citation_refs: []\n  notes: null\n",
+        "- path: docs/other.md\n  tag: current\n  divio_type: how-to\n  owning_workstream: E\n  current_target: true\n  citation_refs: []\n  notes: null\n",
         encoding="utf-8",
     )
     with chdir(tmp_path):
-        findings = orchestrator._check_page_inventory_completeness(
-            Path("inventory.yaml"), Path("docs")
-        )
-    assert any(
-        f.rule_id == "INVENTORY-INCOMPLETE" and "orphan" in f.location
-        for f in findings
-    )
+        findings = orchestrator._check_page_inventory_completeness(Path("inventory.yaml"), Path("docs"))
+    assert any(f.rule_id == "INVENTORY-INCOMPLETE" and "orphan" in f.location for f in findings)
 
 
 def test_inventory_completeness_skips_when_inventory_unreadable(
     tmp_path: Path,
 ) -> None:
-    findings = orchestrator._check_page_inventory_completeness(
-        tmp_path / "absent.yaml", tmp_path / "docs"
-    )
+    findings = orchestrator._check_page_inventory_completeness(tmp_path / "absent.yaml", tmp_path / "docs")
     assert findings == []
 
 
@@ -591,9 +545,7 @@ def test_inventory_completeness_skips_when_docs_root_missing(
 ) -> None:
     inventory = tmp_path / "inventory.yaml"
     inventory.write_text("[]\n", encoding="utf-8")
-    findings = orchestrator._check_page_inventory_completeness(
-        inventory, tmp_path / "absent"
-    )
+    findings = orchestrator._check_page_inventory_completeness(inventory, tmp_path / "absent")
     assert findings == []
 
 
@@ -714,9 +666,7 @@ def test_tempfile_path_is_unique(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_run_orchestrator_clean_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_orchestrator_clean_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     _stub_subchecks_clean(monkeypatch)
     with chdir(workspace):
@@ -733,18 +683,14 @@ def test_run_orchestrator_clean_path(
     assert report.saas_sync_flag is True
 
 
-def test_run_orchestrator_strict_mode_flag_propagates(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_orchestrator_strict_mode_flag_propagates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace = _stage_clean(tmp_path)
     seen_argv: dict[str, list[str]] = {}
 
     def _fake_leakage(argv: list[str]) -> int:
         report_path = Path(argv[argv.index("--report") + 1])
         report_path.write_text(
-            json.dumps(
-                {"inventory_rows_count": 0, "findings": [], "exit_code": 0}
-            ),
+            json.dumps({"inventory_rows_count": 0, "findings": [], "exit_code": 0}),
             encoding="utf-8",
         )
         return 0
@@ -756,12 +702,8 @@ def test_run_orchestrator_strict_mode_flag_propagates(
         return 0
 
     monkeypatch.setattr(orchestrator, "_invoke_version_leakage", _fake_leakage)
-    monkeypatch.setattr(
-        orchestrator, "_invoke_cli_reference_freshness", _fake_ref
-    )
-    monkeypatch.setattr(
-        orchestrator, "_check_inventory_lockfile_drift", lambda *_a, **_k: []
-    )
+    monkeypatch.setattr(orchestrator, "_invoke_cli_reference_freshness", _fake_ref)
+    monkeypatch.setattr(orchestrator, "_check_inventory_lockfile_drift", lambda *_a, **_k: [])
 
     with chdir(workspace):
         report = orchestrator.run_orchestrator(
@@ -777,9 +719,7 @@ def test_run_orchestrator_strict_mode_flag_propagates(
     assert report.exit_code == 0
 
 
-def test_emit_report_in_ci_mode_writes_to_stdout(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_emit_report_in_ci_mode_writes_to_stdout(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     report = orchestrator.FreshnessReport(
         started_at="2026-05-21T00:00:00+00:00",
         cli_version="test",
@@ -854,7 +794,5 @@ def test_probe_url_handles_2xx(monkeypatch: pytest.MonkeyPatch) -> None:
         def getcode(self) -> int:
             return 200
 
-    monkeypatch.setattr(
-        orchestrator.urllib.request, "urlopen", lambda *a, **k: _Resp()
-    )
+    monkeypatch.setattr(orchestrator.urllib.request, "urlopen", lambda *a, **k: _Resp())
     assert orchestrator._probe_url("https://example.test/") is None

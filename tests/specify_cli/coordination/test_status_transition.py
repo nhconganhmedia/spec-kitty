@@ -741,9 +741,7 @@ def test_transactional_batch_rejects_request_without_any_feature_dir(repo: Path)
         repo_root=repo,
     )
 
-    with pytest.raises(
-        TypeError, match="requires feature_dir/mission_dir, mission_slug, and wp_id"
-    ):
+    with pytest.raises(TypeError, match="requires feature_dir/mission_dir, mission_slug, and wp_id"):
         emit_status_transition_batch_transactional([request])
 
 
@@ -1015,9 +1013,7 @@ class _AcquireHalted(Exception):
     """Sentinel: the acquire shape was recorded; nothing beyond it runs."""
 
 
-def test_batch_door_refuses_owned_mission_without_transaction_like_single(
-    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_batch_door_refuses_owned_mission_without_transaction_like_single(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Both doors raise the same ``OWNED_TRANSACTION_UNAVAILABLE`` refusal.
 
     An owned-mission (``effective_root``) request must never degrade to the
@@ -1042,9 +1038,7 @@ def test_batch_door_refuses_owned_mission_without_transaction_like_single(
     assert not (repo / "kitty-specs" / MISSION_DIRNAME / "status.events.jsonl").exists()
 
 
-def test_batch_door_acquires_transaction_with_the_single_door_shape(
-    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_batch_door_acquires_transaction_with_the_single_door_shape(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``BookkeepingTransaction.acquire`` receives identical identity fields.
 
     For an owned mission the lock/worktree anchor is ``identity.primary_root``
@@ -1156,9 +1150,7 @@ def _claim_with_policy(feature_dir: Path, repo_root: Path) -> TransitionRequest:
     )
 
 
-def test_three_doors_build_the_same_event_and_validate_once_each(
-    repo: Path, tmp_path: Path, mock_saas_sink: Any, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_three_doors_build_the_same_event_and_validate_once_each(repo: Path, tmp_path: Path, mock_saas_sink: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.coordination import status_transition as st
     from specify_cli.status import emit as status_emit
     from specify_cli.status import transition_pipeline
@@ -1183,9 +1175,7 @@ def test_three_doors_build_the_same_event_and_validate_once_each(
     # (the worktree holding the branch must go before the ref can move).
     _git(repo, "worktree", "remove", "-f", str(CoordinationWorkspace.worktree_path(repo, MISSION_SLUG, MID8)))
     _git(repo, "branch", "-f", COORD_BRANCH, f"{COORD_BRANCH}~1")
-    (batch,) = emit_status_transition_batch_transactional(
-        [_claim_with_policy(coord_feature_dir, repo)], ensure_sync_daemon=False
-    )
+    (batch,) = emit_status_transition_batch_transactional([_claim_with_policy(coord_feature_dir, repo)], ensure_sync_daemon=False)
     assert len(calls) == 3
 
     assert _event_identity(plain) == _event_identity(single) == _event_identity(batch)
@@ -1212,9 +1202,7 @@ def _threaded_owned(repo: Path, tmp_path: Path) -> OwnedMission:
     )
 
 
-def test_identity_reuses_threaded_owned_mission_without_rederivation(
-    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_identity_reuses_threaded_owned_mission_without_rederivation(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A threaded ``owned_mission`` short-circuits the per-event re-resolve.
 
     Neither ``resolve_owned_mission`` nor the ``_repo_root_for_feature`` git
@@ -1248,9 +1236,7 @@ def test_identity_reuses_threaded_owned_mission_without_rederivation(
 
 
 @pytest.mark.parametrize("mismatch", ["checkout", "mission"])
-def test_identity_fails_closed_on_threaded_owned_mission_mismatch(
-    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mismatch: str
-) -> None:
+def test_identity_fails_closed_on_threaded_owned_mission_mismatch(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mismatch: str) -> None:
     """A threaded object that does not describe the request is refused.
 
     The mismatch is never silently re-resolved — falling back would both hide
@@ -1275,9 +1261,7 @@ def test_identity_fails_closed_on_threaded_owned_mission_mismatch(
     assert refused.value.code == "OWNED_MISSION_PATH_REFUSED"
 
 
-def test_inner_state_door_threads_owned_mission_into_identity(
-    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_inner_state_door_threads_owned_mission_into_identity(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``emit_inner_state_changed_transactional`` carries the kwarg onto the request.
 
     The identity seam must see the caller's value object, not just the bare

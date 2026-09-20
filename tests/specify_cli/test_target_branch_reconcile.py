@@ -43,9 +43,7 @@ def _init_repo_on_branch(repo_root: Path, branch: str) -> None:
     (current branch) -- exactly the discriminator this file needs.
     """
     subprocess.run(["git", "init", "-q", "-b", branch], cwd=repo_root, check=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"], cwd=repo_root, check=True
-    )
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_root, check=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=repo_root, check=True)
     (repo_root / "README.md").write_text("test\n", encoding="utf-8")
     subprocess.run(["git", "add", "README.md"], cwd=repo_root, check=True)
@@ -70,9 +68,7 @@ def _write_meta_without_target_branch(feature_dir: Path, mission_slug: str) -> N
 class TestContextResolverReadMetaJson:
     """``context/resolver.py::_read_meta_json`` -- routed at T021 (line 82)."""
 
-    def test_absent_target_branch_resolves_primary_branch_not_hardcoded_main(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_target_branch_resolves_primary_branch_not_hardcoded_main(self, tmp_path: Path) -> None:
         _init_repo_on_branch(tmp_path, NON_MAIN_BRANCH)
         feature_dir = tmp_path / "kitty-specs" / "reconcile-resolver"
         _write_meta_without_target_branch(feature_dir, "reconcile-resolver")
@@ -86,9 +82,7 @@ class TestContextResolverReadMetaJson:
 class TestMissionBranchContextResolver:
     """``mission_branch_context.py::_resolve_feature_target_branch`` -- T021 (line 63)."""
 
-    def test_absent_target_branch_falls_back_to_current_branch_not_empty_string(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_target_branch_falls_back_to_current_branch_not_empty_string(self, tmp_path: Path) -> None:
         _init_repo_on_branch(tmp_path, NON_MAIN_BRANCH)
         feature_dir = tmp_path / "kitty-specs" / "reconcile-branch-context"
         _write_meta_without_target_branch(feature_dir, "reconcile-branch-context")
@@ -104,9 +98,7 @@ class TestAcceptanceTargetBranchForFeature:
     two call sites (former lines 1075 and 1696).
     """
 
-    def test_absent_target_branch_returns_none_not_empty_string(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_target_branch_returns_none_not_empty_string(self, tmp_path: Path) -> None:
         feature_dir = tmp_path / "kitty-specs" / "reconcile-acceptance"
         _write_meta_without_target_branch(feature_dir, "reconcile-acceptance")
 
@@ -119,9 +111,7 @@ class TestAcceptanceTargetBranchForFeature:
 class TestGeneratorTargetBranch:
     """``retrospective/generator.py::generate_retrospective`` -- T021 (line 1263)."""
 
-    def test_absent_target_branch_resolves_primary_branch_not_hardcoded_main(
-        self, tmp_path: Path
-    ) -> None:
+    def test_absent_target_branch_resolves_primary_branch_not_hardcoded_main(self, tmp_path: Path) -> None:
         _init_repo_on_branch(tmp_path, NON_MAIN_BRANCH)
         mission_slug = "reconcile-generator"
         feature_dir = tmp_path / "kitty-specs" / mission_slug

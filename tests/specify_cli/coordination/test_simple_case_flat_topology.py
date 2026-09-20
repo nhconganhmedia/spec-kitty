@@ -189,9 +189,7 @@ def _stage_flat_status_event(primary: PrimaryTopology) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def test_flat_save_writes_target_branch_via_full_save_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flat_save_writes_target_branch_via_full_save_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """KEYSTONE (NFR-006 / SC-008): the full save path commits to base == target_branch.
 
     Drives ``MissionStatus.load(...).save(...)`` end-to-end on a real
@@ -259,9 +257,7 @@ def test_flat_save_writes_target_branch_via_full_save_path(
     assert ".worktrees" not in receipt.worktree_root.resolve().parts
 
 
-def test_flat_save_touches_zero_worktree_or_coord_paths(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flat_save_touches_zero_worktree_or_coord_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """KEYSTONE (NFR-006 / SC-007): the captured path-set has ZERO coord/lane entries.
 
     Renata S-1 — "byte-identical to pre-lane" needs an OBSERVABLE baseline, not a
@@ -291,10 +287,7 @@ def test_flat_save_touches_zero_worktree_or_coord_paths(
 
     # Assert on the captured path-SET (not a spot-check): zero coord/lane writes.
     worktree_writes = [p for p in opened_for_write if ".worktrees" in p.parts]
-    assert worktree_writes == [], (
-        "flat-topology save must touch ZERO .worktrees/coord paths; got: "
-        f"{worktree_writes}"
-    )
+    assert worktree_writes == [], f"flat-topology save must touch ZERO .worktrees/coord paths; got: {worktree_writes}"
     # And every write that DID happen lives under the primary checkout root.
     repo_root = primary.repo_root.resolve()
     stray = [p for p in opened_for_write if repo_root not in p.parents and p != repo_root]
@@ -307,9 +300,7 @@ def test_flat_save_touches_zero_worktree_or_coord_paths(
 # ---------------------------------------------------------------------------
 
 
-def test_flat_every_adopted_fragment_resolves_to_base(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flat_every_adopted_fragment_resolves_to_base(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """KEYSTONE (NFR-006 / SC-007): every adopted fragment == base, zero coord paths.
 
     The full-save path above proves the committed behaviour; this pins the
@@ -334,14 +325,10 @@ def test_flat_every_adopted_fragment_resolves_to_base(
     # --- placement / write-target fragment (branch_ref.destination_ref, FR-004) ---
     # STATUS_STATE (coord-preserving) kind: flat topology → target_branch
     # (write-surface-coherence WP02 / T031).
-    placement = resolve_placement_only(
-        primary.repo_root, primary.mission_slug, kind=MissionArtifactKind.STATUS_STATE
-    )
+    placement = resolve_placement_only(primary.repo_root, primary.mission_slug, kind=MissionArtifactKind.STATUS_STATE)
     assert placement.ref == primary.target_branch  # flat arm → target_branch
     # The adopted write-target resolver agrees and is CWD-invariant base, NOT HEAD.
-    assert _resolve_write_target(primary.repo_root, primary.mission_slug, None) == (
-        primary.target_branch
-    )
+    assert _resolve_write_target(primary.repo_root, primary.mission_slug, None) == (primary.target_branch)
 
     # --- status surface fragment (status_surface.status_write_dir, FR-003) ---
     surface = resolve_status_surface(primary.repo_root, primary.mission_slug)
@@ -368,9 +355,7 @@ def test_flat_every_adopted_fragment_resolves_to_base(
         assert ".worktrees" not in str(value), f"fragment leaked a coord path: {value}"
 
 
-def test_flat_write_target_is_cwd_invariant_base_not_head(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flat_write_target_is_cwd_invariant_base_not_head(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """SC-008 flat arm: the adopted write-target stays base even off-target.
 
     This isolates the WP05 fragment-level fix from the BookkeepingTransaction

@@ -151,9 +151,7 @@ def test_strip_then_backfill_round_trips_to_pre_strip_parity(tmp_path: Path) -> 
 
     assert seeded_snapshot == post_strip_snapshot
     assert post_strip_snapshot["shell_pid"] == pre_strip_legacy.shell_pid
-    assert post_strip_snapshot["subtasks"] == {
-        sid: str(status) for sid, status in pre_strip_legacy.subtasks.items()
-    }
+    assert post_strip_snapshot["subtasks"] == {sid: str(status) for sid, status in pre_strip_legacy.subtasks.items()}
 
 
 def test_repo_walker_backfills_every_mission(tmp_path: Path) -> None:
@@ -243,7 +241,4 @@ def test_migrate_cli_single_then_corpus_preserves_terminal_lanes(
     assert single_result.exit_code == 0, single_result.stdout
     assert corpus_result.exit_code == 0, corpus_result.stdout
     for feature_dir in (single, corpus):
-        assert (
-            materialize_snapshot(feature_dir).work_packages["WP01"]["lane"]
-            == "done"
-        )
+        assert materialize_snapshot(feature_dir).work_packages["WP01"]["lane"] == "done"

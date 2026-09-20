@@ -5,6 +5,7 @@ from charter.activation.evidence.corpus_loader import CorpusLoader, CorpusLoader
 
 pytestmark = [pytest.mark.unit]
 
+
 def test_exact_match_python():
     snap = CorpusLoader().load("python")
     assert snap is not None
@@ -56,12 +57,7 @@ def test_loaded_at_is_iso_utc():
 
 def test_malformed_snapshot_id_raises(tmp_path):
     """CorpusLoaderError raised on invalid snapshot_id format."""
-    bad_yaml = (
-        "schema_version: '1'\n"
-        "profile_key: test\n"
-        "snapshot_id: INVALID_FORMAT\n"
-        "entries: []\n"
-    )
+    bad_yaml = "schema_version: '1'\nprofile_key: test\nsnapshot_id: INVALID_FORMAT\nentries: []\n"
     (tmp_path / "test.corpus.yaml").write_text(bad_yaml)
     loader = CorpusLoader(corpus_root=tmp_path)
     with pytest.raises((CorpusLoaderError, ValueError)):

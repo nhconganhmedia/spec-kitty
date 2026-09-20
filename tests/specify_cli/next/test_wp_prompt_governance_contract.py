@@ -131,9 +131,7 @@ def _write_minimal_kittify_charter(repo_root: Path) -> None:
     # ``UnknownMissionTypeError`` (empty activation set) exactly as it would
     # for a genuinely unprovisioned project (WP04 construction-total pivot:
     # the fail-closed lives at the create / use boundary, not construction).
-    (repo_root / ".kittify" / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (repo_root / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 _WP_WITH_PYTHON_PEDRO = """\
@@ -248,9 +246,7 @@ def _contains_either_body_or_fetch_with_conditional(text: str, *body_markers: st
     return bool(_FETCH_CMD_RE.search(text) and _WHEN_DOING_RE.search(text))
 
 
-_RUN_CMD_SELECTOR_RE = re.compile(
-    r"Run:\s+spec-kitty\s+charter\s+context\s+--include\s+(\S+)", re.IGNORECASE
-)
+_RUN_CMD_SELECTOR_RE = re.compile(r"Run:\s+spec-kitty\s+charter\s+context\s+--include\s+(\S+)", re.IGNORECASE)
 
 
 def _when_you_stanzas(prompt: str) -> list[tuple[str | None, str]]:
@@ -290,9 +286,7 @@ def _when_you_stanzas(prompt: str) -> list[tuple[str | None, str]]:
 class TestImplementPromptInvokesCharterPipeline:
     """The entry point IS wired. This pins it so a refactor cannot silently remove it."""
 
-    def test_build_wp_prompt_for_implement_calls_governance_context(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_build_wp_prompt_for_implement_calls_governance_context(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """`_build_wp_prompt(action="implement", ...)` MUST call `_governance_context`.
 
         Today this is verified at `src/specify_cli/next/prompt_builder.py:147`.
@@ -317,13 +311,9 @@ class TestImplementPromptInvokesCharterPipeline:
             "section 'Empirical addendum'."
         )
         call_kwargs = gov.call_args.kwargs
-        assert call_kwargs.get("action") == "implement", (
-            "Governance must be resolved with the action label, not a stale default."
-        )
+        assert call_kwargs.get("action") == "implement", "Governance must be resolved with the action label, not a stale default."
 
-    def test_build_wp_prompt_for_review_calls_governance_context(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_build_wp_prompt_for_review_calls_governance_context(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         with patch("runtime.next.prompt_builder._governance_context") as gov:
             gov.return_value = "Governance: stub for test"
@@ -339,15 +329,11 @@ class TestImplementPromptInvokesCharterPipeline:
         assert gov.called
         assert gov.call_args.kwargs.get("action") == "review"
 
-    def test_governance_context_output_is_present_in_wp_prompt_text(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_governance_context_output_is_present_in_wp_prompt_text(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """The text returned by `_governance_context` MUST appear in the rendered prompt."""
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         sentinel = "GOVERNANCE-INJECTION-SENTINEL-7af3b9"
-        with patch(
-            "runtime.next.prompt_builder._governance_context", return_value=sentinel
-        ):
+        with patch("runtime.next.prompt_builder._governance_context", return_value=sentinel):
             prompt = _build_wp_prompt(
                 action="implement",
                 feature_dir=feature_dir,
@@ -357,10 +343,7 @@ class TestImplementPromptInvokesCharterPipeline:
                 repo_root=repo_root,
                 mission_type="software-dev",
             )
-        assert sentinel in prompt, (
-            "_build_wp_prompt MUST embed the _governance_context output into the prompt "
-            "string returned to the agent."
-        )
+        assert sentinel in prompt, "_build_wp_prompt MUST embed the _governance_context output into the prompt string returned to the agent."
 
 
 # ---------------------------------------------------------------------------
@@ -372,9 +355,7 @@ class TestImplementPromptInvokesCharterPipeline:
 class TestImplementPromptContainsActionableGovernance:
     """The payload MUST be either verbatim rule body OR fetch + when-doing rule."""
 
-    def test_implement_prompt_terminology_canon_body_or_fetch_with_when_doing_rule(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_prompt_terminology_canon_body_or_fetch_with_when_doing_rule(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """The Terminology Canon section governs renames. The implementer MUST receive
         either the body of that section or a fetch command paired with an explicit
         ``when you rename / introduce a term, …`` conditional. Today the prompt
@@ -404,9 +385,7 @@ class TestImplementPromptContainsActionableGovernance:
             "prompt only includes the section TITLE 'Terminology Canon'."
         )
 
-    def test_implement_prompt_regression_vigilance_body_or_fetch_with_when_doing_rule(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_prompt_regression_vigilance_body_or_fetch_with_when_doing_rule(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """The Regression Vigilance section is the project's explicit guard against
         the very class of drift this contract is designed to prevent. Implementers
         MUST receive its rules, not only its heading.
@@ -425,14 +404,9 @@ class TestImplementPromptContainsActionableGovernance:
             prompt,
             "reviewer MUST grep the diff for the old term",
         )
-        assert ok, (
-            "The implement WP prompt MUST surface the Regression Vigilance rule body "
-            "OR the fetch + when-doing pair so the implementer can apply the rule."
-        )
+        assert ok, "The implement WP prompt MUST surface the Regression Vigilance rule body OR the fetch + when-doing pair so the implementer can apply the rule."
 
-    def test_implement_prompt_is_not_only_section_anchors(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_prompt_is_not_only_section_anchors(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """Detection: if the prompt's governance block lists section titles but
         contains no body text, the implementer is governance-blind. We require at
         least one body sentence (or at least one fetch command + conditional) to
@@ -449,9 +423,8 @@ class TestImplementPromptContainsActionableGovernance:
             mission_type="software-dev",
         )
         has_anchors = "Section Anchors:" in prompt or "Terminology Canon" in prompt
-        has_body_or_fetch = (
-            "canonical term for a unit of governed work is **Mission**" in prompt
-            or bool(_FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt))
+        has_body_or_fetch = "canonical term for a unit of governed work is **Mission**" in prompt or bool(
+            _FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt)
         )
         assert not (has_anchors and not has_body_or_fetch), (
             "Anchors-only injection is the documented failure mode. The prompt has "
@@ -475,9 +448,7 @@ class TestProfileDirectivesSurfacedInWpPrompt:
     paired with a 'when doing X, fetch directive Y' rule.
     """
 
-    def test_python_pedro_directive_010_referenced_in_implement_prompt(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_python_pedro_directive_010_referenced_in_implement_prompt(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """python-pedro's profile (`src/charter/offering/agent_profiles/built-in/`
         `python-pedro.agent.yaml`) declares directive 010 (Specification Fidelity).
         The implement WP whose frontmatter selects python-pedro MUST surface
@@ -497,9 +468,7 @@ class TestProfileDirectivesSurfacedInWpPrompt:
         )
         directive_id_present = "DIRECTIVE_010" in prompt or "directive 010" in prompt.lower()
         body_present = "Specification Fidelity" in prompt
-        fetch_with_conditional = bool(
-            _FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt)
-        )
+        fetch_with_conditional = bool(_FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt))
         assert directive_id_present and (body_present or fetch_with_conditional), (
             "WP01 selects agent_profile=python-pedro, which carries directive 010 in "
             "its directive-references. The prompt MUST cite DIRECTIVE_010 and either "
@@ -509,9 +478,7 @@ class TestProfileDirectivesSurfacedInWpPrompt:
             "this test pins."
         )
 
-    def test_python_pedro_directive_024_locality_referenced_in_implement_prompt(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_python_pedro_directive_024_locality_referenced_in_implement_prompt(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """Locality of Change (DIRECTIVE_024) is a python-pedro directive."""
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         prompt = _build_wp_prompt(
@@ -524,13 +491,10 @@ class TestProfileDirectivesSurfacedInWpPrompt:
             mission_type="software-dev",
         )
         assert "DIRECTIVE_024" in prompt or "Locality of Change" in prompt, (
-            "Implement prompt MUST surface DIRECTIVE_024 (Locality of Change) when the "
-            "loaded profile is python-pedro."
+            "Implement prompt MUST surface DIRECTIVE_024 (Locality of Change) when the loaded profile is python-pedro."
         )
 
-    def test_python_pedro_directive_030_test_typecheck_gate_referenced(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_python_pedro_directive_030_test_typecheck_gate_referenced(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """Test + Typecheck Quality Gate (DIRECTIVE_030) is the most concrete check
         for an implementer — must be surfaced explicitly.
         """
@@ -544,16 +508,9 @@ class TestProfileDirectivesSurfacedInWpPrompt:
             repo_root=repo_root,
             mission_type="software-dev",
         )
-        assert (
-            "DIRECTIVE_030" in prompt
-            or "Test and Typecheck Quality Gate" in prompt
-        ), (
-            "Implement prompt MUST surface DIRECTIVE_030 — pre-handoff quality gate."
-        )
+        assert "DIRECTIVE_030" in prompt or "Test and Typecheck Quality Gate" in prompt, "Implement prompt MUST surface DIRECTIVE_030 — pre-handoff quality gate."
 
-    def test_reviewer_renata_directive_032_conceptual_alignment_in_review_prompt(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_reviewer_renata_directive_032_conceptual_alignment_in_review_prompt(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """The reviewer-renata profile cites DIRECTIVE_032 (Conceptual Alignment) with
         the rationale: 'Terminology in code and docs must align with the project
         glossary — language drift signals architectural drift'. THIS is the
@@ -570,12 +527,8 @@ class TestProfileDirectivesSurfacedInWpPrompt:
             repo_root=repo_root,
             mission_type="software-dev",
         )
-        directive_present = (
-            "DIRECTIVE_032" in prompt or "Conceptual Alignment" in prompt
-        )
-        glossary_pointer = (
-            "docs/context/" in prompt or "project glossary" in prompt
-        )
+        directive_present = "DIRECTIVE_032" in prompt or "Conceptual Alignment" in prompt
+        glossary_pointer = "docs/context/" in prompt or "project glossary" in prompt
         assert directive_present and glossary_pointer, (
             "Review WP prompt MUST cite DIRECTIVE_032 (Conceptual Alignment) AND "
             "include a glossary pointer. This is the directive whose absence "
@@ -583,9 +536,7 @@ class TestProfileDirectivesSurfacedInWpPrompt:
             "review of mission layered-doctrine-org-layer-01KRNPEE."
         )
 
-    def test_reviewer_renata_tactic_language_driven_design_in_review_prompt(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_reviewer_renata_tactic_language_driven_design_in_review_prompt(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """reviewer-renata declares the `language-driven-design` tactic with rationale:
         'Detect terminology conflicts in diffs as early signals of architectural
         problems'. This MUST appear in the review prompt — either inline or via
@@ -601,22 +552,15 @@ class TestProfileDirectivesSurfacedInWpPrompt:
             repo_root=repo_root,
             mission_type="software-dev",
         )
-        tactic_present = (
-            "language-driven-design" in prompt
-            or "Detect terminology conflicts" in prompt
-        )
-        fetch_with_conditional = bool(
-            _FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt)
-        )
+        tactic_present = "language-driven-design" in prompt or "Detect terminology conflicts" in prompt
+        fetch_with_conditional = bool(_FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt))
         assert tactic_present or fetch_with_conditional, (
             "Review prompt MUST surface the profile-declared `language-driven-design` "
             "tactic, either by name + rationale or via a fetch command paired with a "
             "when-doing-X conditional."
         )
 
-    def test_profile_directives_use_doctrine_catalog_namespace_in_prompt(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_profile_directives_use_doctrine_catalog_namespace_in_prompt(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """When the prompt cites a profile-declared directive, the citation MUST use
         the doctrine-catalog namespace (`DIRECTIVE_NNN`), not the charter-extracted
         namespace (`DIR-NNN`). The two namespaces exist today; the contract is that
@@ -664,9 +608,7 @@ class TestPromptReferencesAuthorityPaths:
     explicitly (verbatim path or via fetch command), so the agent can locate them.
     """
 
-    def test_implement_prompt_references_glossary_path(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_prompt_references_glossary_path(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         prompt = _build_wp_prompt(
             action="implement",
@@ -677,22 +619,15 @@ class TestPromptReferencesAuthorityPaths:
             repo_root=repo_root,
             mission_type="software-dev",
         )
-        glossary_path_present = (
-            "docs/context/" in prompt or "glossary/" in prompt
-        )
-        glossary_fetch_with_conditional = bool(
-            re.search(r"spec-kitty\s+.*glossary", prompt, re.IGNORECASE)
-            and _WHEN_DOING_RE.search(prompt)
-        )
+        glossary_path_present = "docs/context/" in prompt or "glossary/" in prompt
+        glossary_fetch_with_conditional = bool(re.search(r"spec-kitty\s+.*glossary", prompt, re.IGNORECASE) and _WHEN_DOING_RE.search(prompt))
         assert glossary_path_present or glossary_fetch_with_conditional, (
             "Implement prompt MUST reference the project glossary path "
             "(`docs/context/`) OR include a fetch command paired with a "
             'when-doing-X conditional ("when you introduce a new term, consult …").'
         )
 
-    def test_implement_prompt_references_adr_path(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_prompt_references_adr_path(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         prompt = _build_wp_prompt(
             action="implement",
@@ -704,12 +639,9 @@ class TestPromptReferencesAuthorityPaths:
             mission_type="software-dev",
         )
         adr_path_present = "docs/adr/3.x/" in prompt or "architecture/adr" in prompt
-        adr_fetch_with_conditional = bool(
-            re.search(r"adr", prompt, re.IGNORECASE) and _WHEN_DOING_RE.search(prompt)
-        )
+        adr_fetch_with_conditional = bool(re.search(r"adr", prompt, re.IGNORECASE) and _WHEN_DOING_RE.search(prompt))
         assert adr_path_present or adr_fetch_with_conditional, (
-            "Implement prompt MUST reference the architecture ADR directory or include "
-            "a when-doing-X conditional pointing at ADRs."
+            "Implement prompt MUST reference the architecture ADR directory or include a when-doing-X conditional pointing at ADRs."
         )
 
 
@@ -781,9 +713,7 @@ class TestCharterContextResolverCompleteness:
     next mission knows where to make the change.
     """
 
-    def test_implement_action_context_includes_terminology_canon_body(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_action_context_includes_terminology_canon_body(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, _feature_dir, _mission_slug = project_with_implement_wp
         result = build_charter_context(repo_root, action="implement", mark_loaded=False)
         assert (
@@ -797,23 +727,16 @@ class TestCharterContextResolverCompleteness:
             "returns only the section title."
         )
 
-    def test_implement_action_context_includes_code_review_checklist_body(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_action_context_includes_code_review_checklist_body(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, _feature_dir, _mission_slug = project_with_implement_wp
         result = build_charter_context(repo_root, action="implement", mark_loaded=False)
-        assert "agent profile's directive-references" in result.text or (
-            "## Code Review Checklist" in result.text
-            and "DIRECTIVE_032" in result.text
-        ), (
+        assert "agent profile's directive-references" in result.text or ("## Code Review Checklist" in result.text and "DIRECTIVE_032" in result.text), (
             "build_charter_context(action='implement') MUST surface the Code Review "
             "Checklist body for the implement action (it is the precondition the "
             "reviewer will measure against)."
         )
 
-    def test_implement_action_context_emits_no_template_set_fallback_diagnostic(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_action_context_emits_no_template_set_fallback_diagnostic(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """The fixture charter declares a template_set explicitly. The resolver MUST
         NOT emit the 'fallback applied' diagnostic when a declaration exists.
         Today the resolver emits it unconditionally because the parser does not
@@ -828,9 +751,7 @@ class TestCharterContextResolverCompleteness:
             "regardless of declaration, which is what hides the operator gap."
         )
 
-    def test_implement_action_context_includes_profile_directive_references_when_profile_known(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_action_context_includes_profile_directive_references_when_profile_known(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """When `build_charter_context` is called with `profile=` set, it MUST resolve
         the agent profile's `directive-references` and either embed their bodies or
         emit fetch commands. The `profile=` kwarg exists in the signature today
@@ -838,19 +759,11 @@ class TestCharterContextResolverCompleteness:
         contract is that the kwarg becomes load-bearing.
         """
         repo_root, _feature_dir, _mission_slug = project_with_implement_wp
-        result = build_charter_context(
-            repo_root, action="implement", profile="python-pedro", mark_loaded=False
-        )
+        result = build_charter_context(repo_root, action="implement", profile="python-pedro", mark_loaded=False)
         carries_catalog_directive = bool(re.search(r"\bDIRECTIVE_\d{3}\b", result.text))
         carries_specification_fidelity_body = "Specification Fidelity" in result.text
-        carries_fetch_with_conditional = bool(
-            _FETCH_CMD_RE.search(result.text) and _WHEN_DOING_RE.search(result.text)
-        )
-        assert (
-            carries_catalog_directive
-            or carries_specification_fidelity_body
-            or carries_fetch_with_conditional
-        ), (
+        carries_fetch_with_conditional = bool(_FETCH_CMD_RE.search(result.text) and _WHEN_DOING_RE.search(result.text))
+        assert carries_catalog_directive or carries_specification_fidelity_body or carries_fetch_with_conditional, (
             "build_charter_context(profile='python-pedro') MUST surface at least one "
             "of the profile's directive-references (DIRECTIVE_010 / 024 / 025 / 030 / "
             "034) — either by ID, by body, or by fetch + when-doing rule. Today the "
@@ -873,9 +786,7 @@ class TestPromptSelfSufficiency:
     inline OR cited by an actionable command + when-doing rule.
     """
 
-    def test_implement_prompt_self_sufficiency(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_implement_prompt_self_sufficiency(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         prompt = _build_wp_prompt(
             action="implement",
@@ -894,12 +805,8 @@ class TestPromptSelfSufficiency:
             # Post common-docs move ADRs live at docs/adr/<era>/; the pre-move
             # architecture/<era>/adr path is still accepted for robustness (mirrors
             # test_implement_prompt_references_adr_path above).
-            "adr_pointer": re.compile(
-                r"docs/adr/|architecture/([23]\.x/)?adr", re.IGNORECASE
-            ),
-            "terminology_canon_body_or_fetch": re.compile(
-                r"canonical term|spec-kitty\s+charter\s+context", re.IGNORECASE
-            ),
+            "adr_pointer": re.compile(r"docs/adr/|architecture/([23]\.x/)?adr", re.IGNORECASE),
+            "terminology_canon_body_or_fetch": re.compile(r"canonical term|spec-kitty\s+charter\s+context", re.IGNORECASE),
             "regression_vigilance_body_or_fetch": re.compile(
                 r"grep the diff|reviewer MUST|spec-kitty\s+charter\s+context",
                 re.IGNORECASE,
@@ -909,15 +816,11 @@ class TestPromptSelfSufficiency:
         missing: list[str] = []
         for name, pattern in required_surfaces.items():
             if name == "fetch_command_with_when_doing":
-                if not (
-                    _FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt)
-                ):
+                if not (_FETCH_CMD_RE.search(prompt) and _WHEN_DOING_RE.search(prompt)):
                     # only required if any other surface is NOT verbatim — then we
                     # need at least one fetch command + conditional rule to cover
                     # those.
-                    other_misses = [
-                        n for n in required_surfaces if n != name and n not in missing
-                    ]
+                    other_misses = [n for n in required_surfaces if n != name and n not in missing]
                     if len(other_misses) < len(required_surfaces) - 1:
                         missing.append(name)
                 continue
@@ -988,9 +891,7 @@ class TestGovernanceContextUsesMonorepoAwarePath:
     a future refactor cannot accidentally bypass the CharterScope resolver.
     """
 
-    def test_governance_context_uses_build_with_scope_not_direct_call(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_governance_context_uses_build_with_scope_not_direct_call(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """_governance_context MUST call build_with_scope (not build_charter_context
         directly) so that monorepo CharterScope resolution is exercised.
 
@@ -1020,10 +921,13 @@ class TestGovernanceContextUsesMonorepoAwarePath:
         calls: list[tuple] = []
 
         def _capturing_build_with_scope(
-            r: Path, f: Path, **kwargs  # type: ignore[no-untyped-def]
+            r: Path,
+            f: Path,
+            **kwargs,  # type: ignore[no-untyped-def]
         ):
             calls.append((r, f))
             from charter.activation.context import build_charter_context  # noqa: PLC0415
+
             return build_charter_context(r, **kwargs)
 
         with patch(
@@ -1042,9 +946,7 @@ class TestGovernanceContextUsesMonorepoAwarePath:
         assert called_repo_root == repo_root
         assert called_feature_dir == feature_dir
 
-    def test_build_wp_prompt_passes_feature_dir_to_governance_context(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_build_wp_prompt_passes_feature_dir_to_governance_context(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """_build_wp_prompt MUST forward feature_dir to _governance_context.
 
         Without feature_dir, the CharterScope resolver cannot determine which
@@ -1092,9 +994,7 @@ class TestGovernanceContextUsesMonorepoAwarePath:
         )
         assert captured_feature_dir[0] == feature_dir
 
-    def test_governance_context_does_not_mask_scope_routing_failures(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_governance_context_does_not_mask_scope_routing_failures(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         """Scope resolver failures must fail closed instead of falling back."""
         repo_root, feature_dir, _mission_slug = project_with_implement_wp
 
@@ -1142,9 +1042,7 @@ class TestPerStanzaWhenDoingGrammaticality:
     ``section:`` gap is left for a follow-up rather than masked here.
     """
 
-    def test_every_fetch_stanza_when_you_line_matches_the_closed_lead_in_set(
-        self, project_with_implement_wp: tuple[Path, Path, str]
-    ) -> None:
+    def test_every_fetch_stanza_when_you_line_matches_the_closed_lead_in_set(self, project_with_implement_wp: tuple[Path, Path, str]) -> None:
         repo_root, feature_dir, mission_slug = project_with_implement_wp
         prompt = _build_wp_prompt(
             action="implement",
@@ -1156,11 +1054,7 @@ class TestPerStanzaWhenDoingGrammaticality:
             mission_type="software-dev",
         )
         stanzas = _when_you_stanzas(prompt)
-        fetch_stanza_owned = [
-            (selector, line)
-            for selector, line in stanzas
-            if selector is None or not selector.startswith("section:")
-        ]
+        fetch_stanza_owned = [(selector, line) for selector, line in stanzas if selector is None or not selector.startswith("section:")]
         assert fetch_stanza_owned, (
             "Expected at least one fetch_stanza.py-rendered 'When you ...' "
             "stanza line in the implement WP prompt for python-pedro (whose "
@@ -1169,7 +1063,5 @@ class TestPerStanzaWhenDoingGrammaticality:
         )
         for selector, line in fetch_stanza_owned:
             assert _WHEN_DOING_RE.search(line), (
-                "Rendered stanza line does not match the closed _WHEN_DOING_RE "
-                f"lead-in set (#3082 SC-003 per-stanza guarantee) for selector "
-                f"{selector!r}: {line!r}"
+                f"Rendered stanza line does not match the closed _WHEN_DOING_RE lead-in set (#3082 SC-003 per-stanza guarantee) for selector {selector!r}: {line!r}"
             )

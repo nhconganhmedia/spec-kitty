@@ -56,9 +56,8 @@ def _parse_json_from_output(output: str) -> dict[str, object]:
         stripped = line.strip()
         if stripped.startswith("{"):
             return dict(json.loads(stripped))
-    raise ValueError(
-        f"No JSON object found in finalize-tasks output:\n{output}"
-    )
+    raise ValueError(f"No JSON object found in finalize-tasks output:\n{output}")
+
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
@@ -68,8 +67,6 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
         capture_output=True,
         text=True,
     )
-
-
 
 
 def _write_wp_file(tasks_dir: Path, wp_id: str, req_ref: str = "FR-001") -> Path:
@@ -107,9 +104,7 @@ def _write_minimal_spec(feature_dir: Path, req_ref: str = "FR-001") -> Path:
 
 def _write_tasks_md(feature_dir: Path, wp_ids: list[str]) -> Path:
     tasks = feature_dir / "tasks.md"
-    sections = "\n".join(
-        f"## Work Package {wp}\n\n**Dependencies**: None\n" for wp in wp_ids
-    )
+    sections = "\n".join(f"## Work Package {wp}\n\n**Dependencies**: None\n" for wp in wp_ids)
     tasks.write_text(f"# Tasks\n\n{sections}\n", encoding="utf-8")
     return tasks
 
@@ -212,30 +207,22 @@ class TestT024CoordFinalizePreservesBootstrapEvents:
     from ``_stage_finalize_artifacts_in_coord_worktree``.
     """
 
-    def test_coord_event_log_survives_finalize(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        repo, mission_slug, mid8, coord_branch, feature_dir = _build_coord_topology(
-            tmp_path
-        )
+    def test_coord_event_log_survives_finalize(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, mission_slug, mid8, coord_branch, feature_dir = _build_coord_topology(tmp_path)
 
         # Step 1: bootstrap seeded events into the coord worktree (genesis → planned).
         bootstrap_result = bootstrap_canonical_state(
-            feature_dir, mission_slug, dry_run=False,
+            feature_dir,
+            mission_slug,
+            dry_run=False,
             capability=GuardCapability.TEST_MODE,
         )
-        assert bootstrap_result.newly_seeded == 2, (
-            f"bootstrap should have seeded 2 WPs, got {bootstrap_result.newly_seeded}"
-        )
+        assert bootstrap_result.newly_seeded == 2, f"bootstrap should have seeded 2 WPs, got {bootstrap_result.newly_seeded}"
 
         # Confirm the coord worktree now holds the seeded events.
-        events_before = read_events_transactional(
-            feature_dir=feature_dir, mission_slug=mission_slug
-        )
+        events_before = read_events_transactional(feature_dir=feature_dir, mission_slug=mission_slug)
         seeded_before = {e.wp_id: str(e.to_lane) for e in events_before if e.wp_id}
-        assert seeded_before == {"WP01": "planned", "WP02": "planned"}, (
-            f"bootstrap events not visible before finalize: {seeded_before}"
-        )
+        assert seeded_before == {"WP01": "planned", "WP02": "planned"}, f"bootstrap events not visible before finalize: {seeded_before}"
 
         # Step 2: run the real finalize-tasks command via CliRunner.
         # We patch locate_project_root so the command operates on our test repo.
@@ -255,25 +242,18 @@ class TestT024CoordFinalizePreservesBootstrapEvents:
                 catch_exceptions=False,
             )
 
-        assert result.exit_code == 0, (
-            f"finalize-tasks failed (exit {result.exit_code}):\n{result.output}"
-        )
+        assert result.exit_code == 0, f"finalize-tasks failed (exit {result.exit_code}):\n{result.output}"
 
         # The CliRunner captures stdout; with --json the final line is the JSON payload.
         # Warning lines may appear before it (event validation warnings, etc.).
         output_json = _parse_json_from_output(result.output)
-        assert output_json.get("result") == "success", (
-            f"finalize-tasks returned unexpected result: {output_json}"
-        )
+        assert output_json.get("result") == "success", f"finalize-tasks returned unexpected result: {output_json}"
 
         # Step 3: assert the coordination event log STILL contains the seeded events.
-        events_after = read_events_transactional(
-            feature_dir=feature_dir, mission_slug=mission_slug
-        )
+        events_after = read_events_transactional(feature_dir=feature_dir, mission_slug=mission_slug)
         seeded_after = {e.wp_id: str(e.to_lane) for e in events_after if e.wp_id}
         assert seeded_after == {"WP01": "planned", "WP02": "planned"}, (
-            f"finalize-tasks clobbered the coord event log! "
-            f"Expected planned events for WP01+WP02 but got: {seeded_after}"
+            f"finalize-tasks clobbered the coord event log! Expected planned events for WP01+WP02 but got: {seeded_after}"
         )
 
 
@@ -290,9 +270,7 @@ class TestT025NonCoordMissionCommitsStatusFiles:
     normal (non-coord) path.
     """
 
-    def test_non_coord_finalize_includes_status_files_in_commit(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_coord_finalize_includes_status_files_in_commit(self, tmp_path: Path) -> None:
         """On a non-coord mission the status files appear in files_to_commit."""
         from specify_cli.cli.commands.agent.mission import _collect_finalize_artifacts
 
@@ -339,18 +317,10 @@ class TestT025NonCoordMissionCommitsStatusFiles:
         artifacts = _collect_finalize_artifacts(feature_dir, tasks_dir)
         artifact_names = {p.name for p in artifacts}
 
-        assert "status.events.jsonl" in artifact_names, (
-            "status.events.jsonl must be collected for non-coord missions "
-            f"(got: {artifact_names})"
-        )
-        assert "status.json" in artifact_names, (
-            "status.json must be collected for non-coord missions "
-            f"(got: {artifact_names})"
-        )
+        assert "status.events.jsonl" in artifact_names, f"status.events.jsonl must be collected for non-coord missions (got: {artifact_names})"
+        assert "status.json" in artifact_names, f"status.json must be collected for non-coord missions (got: {artifact_names})"
 
-    def test_stage_helper_passes_status_files_when_not_coord_owned(
-        self, tmp_path: Path
-    ) -> None:
+    def test_stage_helper_passes_status_files_when_not_coord_owned(self, tmp_path: Path) -> None:
         """_stage_finalize_artifacts_in_coord_worktree skips status files from src.
 
         The skip operates on src.name membership in _COORD_OWNED_STATUS_FILES.
@@ -371,15 +341,11 @@ class TestT025NonCoordMissionCommitsStatusFiles:
         lanes_json.write_text('{"lanes":[]}\n', encoding="utf-8")
 
         coord_wt = tmp_path / "coord"
-        staged = _stage_finalize_artifacts_in_coord_worktree(
-            [tasks_md, lanes_json], coord_wt, repo_root
-        )
+        staged = _stage_finalize_artifacts_in_coord_worktree([tasks_md, lanes_json], coord_wt, repo_root)
 
         staged_names = {p.name for p in staged}
         # Both non-status artifacts must be staged.
-        assert staged_names == {"tasks.md", "lanes.json"}, (
-            f"Expected both non-status artifacts staged, got {staged_names}"
-        )
+        assert staged_names == {"tasks.md", "lanes.json"}, f"Expected both non-status artifacts staged, got {staged_names}"
 
 
 # ---------------------------------------------------------------------------
@@ -405,17 +371,15 @@ class TestT026CoordReFinalizeEmptyChangeset:
     NOT an Exit(1) ``git commit`` failure.
     """
 
-    def test_coord_refinalize_with_only_status_changes_is_noop(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_coord_refinalize_with_only_status_changes_is_noop(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Re-finalize where only status files changed exits 0 with commit_created=False."""
-        repo, mission_slug, mid8, coord_branch, feature_dir = _build_coord_topology(
-            tmp_path
-        )
+        repo, mission_slug, mid8, coord_branch, feature_dir = _build_coord_topology(tmp_path)
 
         # Bootstrap the coord events first.
         bootstrap_canonical_state(
-            feature_dir, mission_slug, dry_run=False,
+            feature_dir,
+            mission_slug,
+            dry_run=False,
             capability=GuardCapability.TEST_MODE,
         )
 
@@ -437,10 +401,7 @@ class TestT026CoordReFinalizeEmptyChangeset:
                 ["finalize-tasks", "--mission", mission_slug, "--json"],
                 catch_exceptions=False,
             )
-        assert first_result.exit_code == 0, (
-            f"First finalize-tasks failed (exit {first_result.exit_code}):\n"
-            f"{first_result.output}"
-        )
+        assert first_result.exit_code == 0, f"First finalize-tasks failed (exit {first_result.exit_code}):\n{first_result.output}"
 
         # Now simulate Attack 3b: manually write a new event to the primary-checkout
         # status.events.jsonl (dirtying it) WITHOUT touching any other artifact.
@@ -477,9 +438,7 @@ class TestT026CoordReFinalizeEmptyChangeset:
             capture_output=True,
             text=True,
         )
-        assert _git_out.stdout.strip(), (
-            "status.events.jsonl should be dirty for Attack 3b simulation"
-        )
+        assert _git_out.stdout.strip(), "status.events.jsonl should be dirty for Attack 3b simulation"
 
         # Re-run finalize-tasks.  The coord staging helper skips the dirty status
         # file; the remaining non-status artifacts are already committed → no new
@@ -492,9 +451,7 @@ class TestT026CoordReFinalizeEmptyChangeset:
             )
 
         assert second_result.exit_code == 0, (
-            f"Second (re-)finalize-tasks should succeed even when only status "
-            f"files changed, but got exit {second_result.exit_code}:\n"
-            f"{second_result.output}"
+            f"Second (re-)finalize-tasks should succeed even when only status files changed, but got exit {second_result.exit_code}:\n{second_result.output}"
         )
 
 

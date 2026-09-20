@@ -13,6 +13,7 @@ missing, ``json.dumps`` raises and the command exits non-zero.
 Production-shaped identity: a real 26-char Crockford-base32 ULID with an
 8-char mid8 tail, never a hand-rolled short placeholder (testing-principles).
 """
+
 from __future__ import annotations
 
 import json
@@ -31,14 +32,7 @@ _MISSION_ID = "01KVRJ6PABCDEFGHJKMNPQRSTV"
 _MID8 = _MISSION_ID[:8]
 MISSION_SLUG = f"single-authority-topology-cleanup-{_MID8}"
 _SPEC_MD_TEXT = "# Spec\n\n| FR-001 | Do the thing. | Proposed |\n"
-_WP01_FRONTMATTER = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: Example\n"
-    "requirement_refs: []\n"
-    "---\n"
-    "# WP01\n"
-)
+_WP01_FRONTMATTER = "---\nwork_package_id: WP01\ntitle: Example\nrequirement_refs: []\n---\n# WP01\n"
 _COMMIT_SHA = "0f1e2d3c4b5a69788796a5b4c3d2e1f00d1c2b3a"
 
 
@@ -58,9 +52,7 @@ def _build_primary_and_coord(tmp_path: Path) -> tuple[Path, Path, Path]:
     # path under test (the commit itself is monkeypatched to the coord worktree).
     primary_tasks_dir = primary_mission_dir / "tasks"
     primary_tasks_dir.mkdir(parents=True)
-    (primary_tasks_dir / "WP01-example.md").write_text(
-        _WP01_FRONTMATTER, encoding="utf-8"
-    )
+    (primary_tasks_dir / "WP01-example.md").write_text(_WP01_FRONTMATTER, encoding="utf-8")
     (primary_mission_dir / "meta.json").write_text(
         json.dumps(
             {
@@ -78,15 +70,11 @@ def _build_primary_and_coord(tmp_path: Path) -> tuple[Path, Path, Path]:
     coord_mission_dir = coord_root / "kitty-specs" / MISSION_SLUG
     coord_tasks_dir = coord_mission_dir / "tasks"
     coord_tasks_dir.mkdir(parents=True)
-    (coord_tasks_dir / "WP01-example.md").write_text(
-        _WP01_FRONTMATTER, encoding="utf-8"
-    )
+    (coord_tasks_dir / "WP01-example.md").write_text(_WP01_FRONTMATTER, encoding="utf-8")
     return primary_root, primary_mission_dir, coord_root
 
 
-def test_map_requirements_json_serializes_real_commit_result(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_map_requirements_json_serializes_real_commit_result(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``--json --auto-commit`` emits valid JSON carrying the serialized
     ``CommitResult``; ``worktree_root`` is rendered as a non-empty slug-bearing
     string.
@@ -142,14 +130,14 @@ def test_map_requirements_json_serializes_real_commit_result(
         "_ensure_target_branch_checked_out",
         lambda *_args, **_kwargs: (primary_root, "main"),
     )
-    monkeypatch.setattr(
-        tasks_mod, "_emit_sparse_session_warning", lambda *_args, **_kwargs: None
-    )
+    monkeypatch.setattr(tasks_mod, "_emit_sparse_session_warning", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(tasks_mod, "commit_for_mission", fake_commit_for_mission)
     monkeypatch.setattr(
         # write-surface-coherence WP02 / T009: ``_resolve_planning_placement`` gained
         # a required ``kind`` keyword; the stub accepts it.
-        commit_router_mod, "_resolve_planning_placement", lambda *_args, **_kwargs: placement
+        commit_router_mod,
+        "_resolve_planning_placement",
+        lambda *_args, **_kwargs: placement,
     )
     # read-side-seam-primary-primitive-closure-01KYKMMT WP08 (T035): the
     # ``primary_feature_dir_for_mission`` patch this block used to install is
@@ -181,8 +169,7 @@ def test_map_requirements_json_serializes_real_commit_result(
     )
 
     assert result.exit_code == 0, (
-        "map-requirements --json --auto-commit must exit 0 with a serializable "
-        f"CommitResult; exit={result.exit_code}, output={result.output!r}"
+        f"map-requirements --json --auto-commit must exit 0 with a serializable CommitResult; exit={result.exit_code}, output={result.output!r}"
     )
     # The whole point: stdout parses as JSON (would raise pre-fix).
     payload = json.loads(result.output)
@@ -194,16 +181,12 @@ def test_map_requirements_json_serializes_real_commit_result(
     assert commit_result["destination_ref"] == placement.ref
 
     worktree_root = commit_result["worktree_root"]
-    assert isinstance(worktree_root, str), (
-        f"worktree_root must serialize to a string, got {type(worktree_root)!r}"
-    )
+    assert isinstance(worktree_root, str), f"worktree_root must serialize to a string, got {type(worktree_root)!r}"
     # Negative control on the serialization mutant: not "" / "None". A primary
     # kind (WORK_PACKAGE_TASK) commits from the PRIMARY checkout (WP07 routing),
     # so worktree_root is the primary repo root — assert it is that path string.
     assert worktree_root not in ("", "None")
-    assert worktree_root == str(primary_root), (
-        f"worktree_root should be the primary checkout; got {worktree_root!r}"
-    )
+    assert worktree_root == str(primary_root), f"worktree_root should be the primary checkout; got {worktree_root!r}"
 
 
 def test_commit_result_to_dict_renders_path_as_string() -> None:

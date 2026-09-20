@@ -145,9 +145,7 @@ def test_a_malformed_wp_prompt_does_not_crash_resolution(tmp_path: Path) -> None
     tasks = tmp_path / "tasks"
     tasks.mkdir()
     (tasks / "WP01-broken.md").write_text("---\nnot: [valid\n", encoding="utf-8")
-    (tasks / "WP02-fine.md").write_text(
-        "---\nwork_package_id: WP02\nsubtasks:\n- T007\n---\n", encoding="utf-8"
-    )
+    (tasks / "WP02-fine.md").write_text("---\nwork_package_id: WP02\nsubtasks:\n- T007\n---\n", encoding="utf-8")
 
     result = _resolve_authored_roster("T007", tmp_path)
 
@@ -191,9 +189,7 @@ def test_owning_wp_from_authored_roster_kind_co_membership_is_pinned() -> None:
     from mission_runtime import MissionArtifactKind, is_primary_artifact_kind
 
     tasks_index_is_primary = is_primary_artifact_kind(MissionArtifactKind.TASKS_INDEX)
-    work_package_task_is_primary = is_primary_artifact_kind(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    work_package_task_is_primary = is_primary_artifact_kind(MissionArtifactKind.WORK_PACKAGE_TASK)
 
     assert tasks_index_is_primary == work_package_task_is_primary, (
         "TASKS_INDEX and WORK_PACKAGE_TASK have diverged into different "

@@ -120,9 +120,7 @@ def _make_mission(
     lane_worktree = repo_root / ".worktrees" / f"{mission_slug}-{mid8}-lane-a"
     lane_worktree.parent.mkdir(parents=True, exist_ok=True)
     _git(repo_root, "worktree", "add", str(lane_worktree), lane_branch)
-    assert (lane_worktree / ".git").is_file(), (
-        "git worktree add must produce a real gitdir-pointer file"
-    )
+    assert (lane_worktree / ".git").is_file(), "git worktree add must produce a real gitdir-pointer file"
 
     return {
         "feature_dir": feature_dir,
@@ -154,9 +152,7 @@ def test_genuinely_legacy_is_legacy_mission_true(repo_root: Path) -> None:
     assert _is_legacy_mission(repo_root, mission["mission_slug"], mission["mid8"]) is True
 
 
-def test_genuinely_legacy_resolve_legacy_lane_destination_is_cwd_derived(
-    repo_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_genuinely_legacy_resolve_legacy_lane_destination_is_cwd_derived(repo_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``_resolve_legacy_lane_destination`` itself stays a pure cwd walk.
 
     Unchanged by the #2453 fix — the fix only changes WHICH classification
@@ -173,9 +169,7 @@ def test_genuinely_legacy_resolve_legacy_lane_destination_is_cwd_derived(
     assert branch == mission["lane_branch"]
 
 
-def test_genuinely_legacy_acquire_routes_to_lane_worktree(
-    repo_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_genuinely_legacy_acquire_routes_to_lane_worktree(repo_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """End-to-end: ``.acquire()`` still resolves to the operator's lane cwd.
 
     A permanent regression guard (both BEFORE and AFTER the #2453 fix) — a
@@ -217,9 +211,7 @@ def test_genuinely_legacy_acquire_routes_to_lane_worktree(
         pytest.param(None, True, id="flattened"),
     ],
 )
-def test_modern_coordinationless_is_legacy_mission_true(
-    repo_root: Path, topology: str | None, flattened: bool
-) -> None:
+def test_modern_coordinationless_is_legacy_mission_true(repo_root: Path, topology: str | None, flattened: bool) -> None:
     """``_is_legacy_mission`` alone does NOT distinguish (a) from (b) — by
     design (C-005): it keys ONLY on ``coordination_branch`` absence. The
     routing split lives in ``_acquire_locked``, not this predicate.
@@ -281,12 +273,10 @@ def test_modern_coordinationless_acquire_routes_to_repo_root_not_cwd(
         operation="t029a-modern-coordinationless",
     ) as txn:
         assert txn.worktree_root == repo_root, (
-            "modern coordination-less routing must land on repo_root, not the "
-            f"operator's cwd lane worktree {mission['lane_worktree']}"
+            f"modern coordination-less routing must land on repo_root, not the operator's cwd lane worktree {mission['lane_worktree']}"
         )
         assert txn.destination_ref == target_branch, (
-            "the caller-supplied destination_ref must NOT be overridden by a "
-            "cwd-derived branch for a modern coordination-less mission"
+            "the caller-supplied destination_ref must NOT be overridden by a cwd-derived branch for a modern coordination-less mission"
         )
         # Still classified _is_legacy_mission=True (coordination_branch is
         # absent) -- only the ROUTING differs from the genuine-legacy arm.
@@ -311,9 +301,7 @@ def test_coordination_topology_is_legacy_mission_false(repo_root: Path) -> None:
     assert _is_legacy_mission(repo_root, mission_slug, mid8) is False
 
 
-def test_coordination_topology_acquire_routes_to_coord_worktree(
-    repo_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coordination_topology_acquire_routes_to_coord_worktree(repo_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Coord-topology routing is untouched by the #2453 fix.
 
     ``_is_legacy_mission`` is ``False``, so ``_acquire_locked`` never enters

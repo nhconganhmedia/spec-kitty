@@ -62,9 +62,7 @@ def _feature_dir_with_blocking_rejection(root: Path) -> Path:
         force=False,
         execution_mode="worktree",
         reason="approved for merge",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     append_event(feature_dir, event)
     return feature_dir
@@ -107,9 +105,7 @@ def test_skip_bypasses_gate_and_records_evidence(tmp_path: Path) -> None:
 
     # Evidence: a complete override carrying the note is now in the status log.
     review_slot = materialize(feature_dir).work_packages[_WP_ID].get("review")
-    assert review_slot is not None, (
-        "the skip must record durable override evidence, not silently bypass"
-    )
+    assert review_slot is not None, "the skip must record durable override evidence, not silently bypass"
     override = ReviewOverride.from_dict(review_slot)
     assert override.complete
     assert override.reason == _NOTE
@@ -132,9 +128,7 @@ def test_cli_skip_requires_note(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     # Keep the guard the only thing that can fire: point the command at a repo
     # root and stub the real merge so a green path would otherwise proceed.
     monkeypatch.setattr(merge_mod, "find_repo_root", lambda: tmp_path)
-    monkeypatch.setattr(
-        merge_mod, "_run_real_merge", lambda *a, **k: None
-    )
+    monkeypatch.setattr(merge_mod, "_run_real_merge", lambda *a, **k: None)
 
     result = CliRunner().invoke(app, ["--skip-review-artifact-check"])
     assert result.exit_code != 0

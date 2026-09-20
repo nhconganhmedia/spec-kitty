@@ -109,6 +109,7 @@ def _composite_from_file(rel_path: str, line: int) -> CompositeKey:
     qualname, token = composite_key_from_file(_SRC_ROOT / rel_path, line)
     return (rel_path, qualname, _normalize_token(token))
 
+
 # --------------------------------------------------------------------------- #
 # Canonical resolver / seam source files. Callsites WITHIN these files are
 # tracked to ensure the seam implementations themselves remain correct.
@@ -611,9 +612,7 @@ def _composite_from_locator(locator: str) -> CompositeKey:
     return _composite_from_file(rel, int(line_s))
 
 
-def _inventory_composites(
-    rows: list[dict[str, str]], table_name: str
-) -> tuple[dict[CompositeKey, str], set[CompositeKey], list[str]]:
+def _inventory_composites(rows: list[dict[str, str]], table_name: str) -> tuple[dict[CompositeKey, str], set[CompositeKey], list[str]]:
     """Build composite identities from stored inventory columns (fail-closed).
 
     Returns ``(active, all_keys, parse_errors)`` where:
@@ -634,9 +633,7 @@ def _inventory_composites(
         token = row["token"]
         if not qualname or not token:
             errors.append(
-                f"{table_name} inventory row {loc!r} is missing its stored "
-                f"qualname/token identity — cannot build a composite key "
-                f"(fail-closed parse abort)"
+                f"{table_name} inventory row {loc!r} is missing its stored qualname/token identity — cannot build a composite key (fail-closed parse abort)"
             )
             continue
         rel = loc.rsplit(":", 1)[0] if ":" in loc else loc
@@ -647,9 +644,7 @@ def _inventory_composites(
     return active, all_keys, errors
 
 
-def check_undercount(
-    discovered: dict[CompositeKey, str], inventory_keys: set[CompositeKey]
-) -> list[str]:
+def check_undercount(discovered: dict[CompositeKey, str], inventory_keys: set[CompositeKey]) -> list[str]:
     """Discovered composite keys absent from the inventory (undercount tripwire).
 
     Pure over its inputs (``main()`` calls it — no duplicated inline diff).
@@ -660,16 +655,11 @@ def check_undercount(
     for key, locator in sorted(discovered.items()):
         if key not in inventory_keys:
             _rel, qualname, token = key
-            errors.append(
-                f"discovered callsite {locator} ({qualname}) [token=`{token}`] "
-                f"is MISSING from inventory.md (undercount tripwire)"
-            )
+            errors.append(f"discovered callsite {locator} ({qualname}) [token=`{token}`] is MISSING from inventory.md (undercount tripwire)")
     return errors
 
 
-def check_overcount(
-    inventory: dict[CompositeKey, str], discovered_keys: set[CompositeKey]
-) -> list[str]:
+def check_overcount(inventory: dict[CompositeKey, str], discovered_keys: set[CompositeKey]) -> list[str]:
     """Inventory composite keys with no live discovered sink (overcount/ghost).
 
     Pure over its inputs. ``inventory`` maps each NON-``[inventory-only]``
@@ -695,9 +685,7 @@ def _fail(messages: list[str]) -> int:
     return 1
 
 
-def _resolution_checks(
-    discovered: list[ResolutionRow], inventory_rows: list[dict[str, str]]
-) -> list[str]:
+def _resolution_checks(discovered: list[ResolutionRow], inventory_rows: list[dict[str, str]]) -> list[str]:
     """Check-2: ResolutionRow undercount + overcount by COMPOSITE identity.
 
     Drives the pure ``check_undercount`` / ``check_overcount`` seams over
@@ -714,9 +702,7 @@ def _resolution_checks(
     return errors
 
 
-def _selection_checks(
-    selection_rows: list[SelectionRow], selection_inventory_rows: list[dict[str, str]]
-) -> list[str]:
+def _selection_checks(selection_rows: list[SelectionRow], selection_inventory_rows: list[dict[str, str]]) -> list[str]:
     """Check 4: SelectionRow FR-006a bypass + undercount/overcount by COMPOSITE.
 
     The read-SELECTION authority (``resolve_mission_read_path``) is reached ONLY
@@ -726,9 +712,7 @@ def _selection_checks(
     pure seams cross-check the read-SELECTION inventory table for drift/ghosts.
     """
     errors: list[str] = []
-    allow_composite = {
-        _composite_from_locator(loc) for loc in ALLOWLISTED_SELECTION_CALLSITES
-    }
+    allow_composite = {_composite_from_locator(loc) for loc in ALLOWLISTED_SELECTION_CALLSITES}
     for sel in selection_rows:
         if sel.in_seam_file:
             continue
@@ -739,9 +723,7 @@ def _selection_checks(
                 "ALLOWLISTED_SELECTION_CALLSITES (FR-006a bypass)"
             )
     discovered_keys = {sel.composite_key(): sel.key() for sel in selection_rows}
-    active, all_keys, parse_errors = _inventory_composites(
-        selection_inventory_rows, "read-SELECTION"
-    )
+    active, all_keys, parse_errors = _inventory_composites(selection_inventory_rows, "read-SELECTION")
     errors.extend(parse_errors)
     errors.extend(check_undercount(discovered_keys, all_keys))
     errors.extend(check_overcount(active, set(discovered_keys)))
@@ -765,10 +747,7 @@ def main() -> int:
     for row in inventory_rows:
         disp = row["disposition"]
         if disp not in VALID_DISPOSITIONS:
-            errors.append(
-                f"row {row['locator']!r} has invalid/missing disposition {disp!r} "
-                f"(must be one of: {', '.join(sorted(VALID_DISPOSITIONS))})"
-            )
+            errors.append(f"row {row['locator']!r} has invalid/missing disposition {disp!r} (must be one of: {', '.join(sorted(VALID_DISPOSITIONS))})")
 
     # ---- Check 2: ResolutionRow undercount + overcount (composite identity). -
     errors.extend(_resolution_checks(discovered, inventory_rows))
@@ -778,14 +757,10 @@ def main() -> int:
         in_discovered = cand in discovered_files
         in_inventory = any(r["locator"].startswith(cand) for r in inventory_rows)
         if not (in_discovered or in_inventory):
-            errors.append(
-                f"known candidate {cand!r} absent from BOTH discovered rows and inventory"
-            )
+            errors.append(f"known candidate {cand!r} absent from BOTH discovered rows and inventory")
 
     # ---- Check 4: SelectionRow FR-006a bypass + undercount/overcount. --------
-    errors.extend(
-        _selection_checks(discover_selection_callsites(), selection_inventory_rows)
-    )
+    errors.extend(_selection_checks(discover_selection_callsites(), selection_inventory_rows))
 
     if errors:
         return _fail(errors)

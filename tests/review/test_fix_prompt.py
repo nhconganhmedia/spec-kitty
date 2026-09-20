@@ -22,6 +22,7 @@ pytestmark = pytest.mark.fast
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_artifact(**kwargs: object) -> ReviewCycleArtifact:
     defaults: dict = {
         "cycle_number": 1,
@@ -54,6 +55,7 @@ def _write_source_file(tmp_path: Path, rel_path: str, content: str) -> Path:
 # T007/T008: Unit tests for generate_fix_prompt
 # ---------------------------------------------------------------------------
 
+
 class TestGenerateFixPromptSingleFile:
     """test_generate_fix_prompt_single_file — one affected file, verify findings + code appear."""
 
@@ -63,7 +65,6 @@ class TestGenerateFixPromptSingleFile:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -75,7 +76,6 @@ class TestGenerateFixPromptSingleFile:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -84,13 +84,10 @@ class TestGenerateFixPromptSingleFile:
     def test_contains_code(self, tmp_path: Path) -> None:
         content = "\n".join(f"line {i}" for i in range(1, 31))
         _write_source_file(tmp_path, "src/specify_cli/example.py", content)
-        artifact = _make_artifact(
-            affected_files=[AffectedFile(path="src/specify_cli/example.py", line_range="10-20")]
-        )
+        artifact = _make_artifact(affected_files=[AffectedFile(path="src/specify_cli/example.py", line_range="10-20")])
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -103,7 +100,6 @@ class TestGenerateFixPromptSingleFile:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -129,7 +125,6 @@ class TestGenerateFixPromptMultipleFiles:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -149,7 +144,6 @@ class TestGenerateFixPromptMultipleFiles:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -165,13 +159,10 @@ class TestGenerateFixPromptWithLineRange:
         content = "\n".join(lines)
         _write_source_file(tmp_path, "src/big.py", content)
 
-        artifact = _make_artifact(
-            affected_files=[AffectedFile(path="src/big.py", line_range="50-60")]
-        )
+        artifact = _make_artifact(affected_files=[AffectedFile(path="src/big.py", line_range="50-60")])
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -181,13 +172,10 @@ class TestGenerateFixPromptWithLineRange:
 
     def test_line_range_label_shown(self, tmp_path: Path) -> None:
         _write_source_file(tmp_path, "src/big.py", "x = 1\n" * 20)
-        artifact = _make_artifact(
-            affected_files=[AffectedFile(path="src/big.py", line_range="5-10")]
-        )
+        artifact = _make_artifact(affected_files=[AffectedFile(path="src/big.py", line_range="5-10")])
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -197,13 +185,10 @@ class TestGenerateFixPromptWithLineRange:
         """Lines slightly outside the range should appear (context padding)."""
         lines = [f"L{i}" for i in range(1, 31)]
         _write_source_file(tmp_path, "src/ctx.py", "\n".join(lines))
-        artifact = _make_artifact(
-            affected_files=[AffectedFile(path="src/ctx.py", line_range="15-15")]
-        )
+        artifact = _make_artifact(affected_files=[AffectedFile(path="src/ctx.py", line_range="15-15")])
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -224,7 +209,6 @@ class TestGenerateFixPromptWithoutLineRange:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -235,13 +219,10 @@ class TestGenerateFixPromptWithoutLineRange:
     def test_long_file_truncated(self, tmp_path: Path) -> None:
         lines = [f"line {i}" for i in range(1, _MAX_FULL_FILE_LINES + 50)]
         _write_source_file(tmp_path, "src/long.py", "\n".join(lines))
-        artifact = _make_artifact(
-            affected_files=[AffectedFile(path="src/long.py")]
-        )
+        artifact = _make_artifact(affected_files=[AffectedFile(path="src/long.py")])
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -269,14 +250,12 @@ class TestFixPromptSizeVsOriginal:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
         threshold = typical_wp_size * 0.25
         assert len(prompt) < threshold, (
-            f"Fix prompt ({len(prompt)} chars) should be < 25% of typical WP prompt "
-            f"({typical_wp_size} chars), threshold={threshold:.0f}"
+            f"Fix prompt ({len(prompt)} chars) should be < 25% of typical WP prompt ({typical_wp_size} chars), threshold={threshold:.0f}"
         )
 
 
@@ -284,13 +263,10 @@ class TestGenerateFixPromptMissingFile:
     """test_generate_fix_prompt_missing_file — affected file doesn't exist, handled gracefully."""
 
     def test_missing_file_no_exception(self, tmp_path: Path) -> None:
-        artifact = _make_artifact(
-            affected_files=[AffectedFile(path="src/nonexistent.py")]
-        )
+        artifact = _make_artifact(affected_files=[AffectedFile(path="src/nonexistent.py")])
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -305,7 +281,6 @@ class TestGenerateFixPromptMissingFile:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -321,7 +296,6 @@ class TestFixPromptIncludesReproductionCommand:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -333,7 +307,6 @@ class TestFixPromptIncludesReproductionCommand:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )
@@ -345,7 +318,6 @@ class TestFixPromptIncludesReproductionCommand:
         prompt = generate_fix_prompt(
             artifact=artifact,
             worktree_path=tmp_path,
-
             mission_slug="066-review-loop-stabilization",
             wp_id="WP01",
         )

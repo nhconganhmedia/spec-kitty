@@ -208,9 +208,7 @@ def _claim_wp01(mission_slug: str = _MISSION_SLUG, agent: str = "test-agent") ->
 
 
 class TestStaleSweepResolvesLivenessFromSnapshot:
-    def test_live_snapshot_pid_after_real_claim_suppresses_stale(
-        self, workflow_repo: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_live_snapshot_pid_after_real_claim_suppresses_stale(self, workflow_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A real ``implement`` claim carries the claiming shell's live PID
         (``os.getppid()``) in the emitted event's ``policy_metadata``. This
         test does not fake the PID: it lets the real claim path capture the
@@ -239,9 +237,7 @@ class TestStaleSweepResolvesLivenessFromSnapshot:
         assert outcome.is_stale is False
         assert outcome.stale.reason == LIVE_CLAIM_PROCESS_REASON
 
-    def test_dead_snapshot_pid_after_real_claim_falls_through_to_timestamp_check(
-        self, workflow_repo: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_dead_snapshot_pid_after_real_claim_falls_through_to_timestamp_check(self, workflow_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Same real claim path, but the snapshot PID is forced dead
         (monkeypatched at the PID-VALUE level, mirroring the prior mission's
         two-sided proof pattern) -- the outcome must NOT carry
@@ -270,9 +266,7 @@ class TestStaleSweepResolvesLivenessFromSnapshot:
 
         assert outcome.stale.reason != LIVE_CLAIM_PROCESS_REASON
 
-    def test_no_claim_event_yields_conservative_not_alive_not_crash(
-        self, workflow_repo: Path
-    ) -> None:
+    def test_no_claim_event_yields_conservative_not_alive_not_crash(self, workflow_repo: Path) -> None:
         """Edge case (T021): a mission with no claim event at all -- the
         snapshot has no entry for the WP -- degrades to "not provably alive"
         rather than raising or falsely reporting live."""
@@ -298,9 +292,7 @@ class TestStaleSweepResolvesLivenessFromSnapshot:
 
 
 class TestClaimFrontmatterWriteRetired:
-    def test_wp_file_carries_no_shell_pid_or_agent_bytes_after_real_claim(
-        self, workflow_repo: Path
-    ) -> None:
+    def test_wp_file_carries_no_shell_pid_or_agent_bytes_after_real_claim(self, workflow_repo: Path) -> None:
         feature_dir, wp_path = _seed_mission(workflow_repo)
         before = wp_path.read_bytes()
 
@@ -325,9 +317,7 @@ class TestClaimFrontmatterWriteRetired:
 
 
 class TestTaskMetadataValidationHasNoLivenessReader:
-    def test_repair_lane_mismatch_shell_pid_is_audit_note_only_never_a_structured_field(
-        self, tmp_path: Path
-    ) -> None:
+    def test_repair_lane_mismatch_shell_pid_is_audit_note_only_never_a_structured_field(self, tmp_path: Path) -> None:
         """``repair_lane_mismatch``'s ``shell_pid`` parameter is folded into
         the free-text Activity-Log note -- it is never written back as a
         structured, re-readable frontmatter field, so there is nothing here
@@ -367,8 +357,7 @@ class TestTaskMetadataValidationHasNoLivenessReader:
         # exact contiguous substring.
         assert "shell_pid" in raw and "99999" in raw, "the pid must land in the free-text audit note"
         assert not re.search(r"^shell_pid\s*:", raw, flags=re.MULTILINE), (
-            "shell_pid must never be written as a standalone structured frontmatter field "
-            "by the legacy repair path"
+            "shell_pid must never be written as a standalone structured frontmatter field by the legacy repair path"
         )
 
     def test_validate_task_metadata_never_inspects_shell_pid(self, tmp_path: Path) -> None:

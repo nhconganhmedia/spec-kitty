@@ -58,17 +58,10 @@ class CodexProfileRenderer:
         """Return ``True`` for the three Codex tool-key aliases."""
         return tool_key in {"codex", "codex-cli", FORMAT_CODEX_AGENT}
 
-    def output_path(
-        self, tool_key: str, profile: ProfilePathIdentity, project_root: Path
-    ) -> Path:
+    def output_path(self, tool_key: str, profile: ProfilePathIdentity, project_root: Path) -> Path:
         """Return ``.codex/agents/<profile_id>.toml`` under *project_root*."""
         _ = tool_key  # path is identical across the renderer's accepted tool keys
-        return (
-            project_root
-            / _CODEX_DIR
-            / _CODEX_AGENTS_SUBDIR
-            / f"{profile.profile_id}{_CODEX_SUFFIX}"
-        )
+        return project_root / _CODEX_DIR / _CODEX_AGENTS_SUBDIR / f"{profile.profile_id}{_CODEX_SUFFIX}"
 
     def render(self, profile: AgentProfile) -> str:
         """Return valid TOML text for the Codex per-project agent format.

@@ -65,16 +65,13 @@ _COORD_BRANCH: str = f"kitty/mission-{_SLUG}-{_MID8}"
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _git_nocheck(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
 
 
 def _write_kittify_protection(repo_root: Path, content: str) -> None:
@@ -138,9 +135,7 @@ class TestProtectedBranchesConfigHonoring:
     Row 2: explicit ``[main]`` → main protected → routes to coord worktree.
     """
 
-    def test_empty_protected_branches_routes_directly(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_empty_protected_branches_routes_directly(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """US2: ``protection.protected_branches: []`` → commit lands directly on main.
 
         No coord worktree is created.  This proves the config IS honoured:
@@ -165,12 +160,8 @@ class TestProtectedBranchesConfigHonoring:
 
         # Re-resolve policy after writing the empty-list config.
         policy = ProtectionPolicy.resolve(repo.repo_root)
-        assert policy.protected_branches == frozenset(), (
-            "Precondition: policy must resolve to empty set after setting []."
-        )
-        assert not policy.is_protected("main"), (
-            "Precondition: 'main' must NOT be protected with explicit []."
-        )
+        assert policy.protected_branches == frozenset(), "Precondition: policy must resolve to empty set after setting []."
+        assert not policy.is_protected("main"), "Precondition: 'main' must NOT be protected with explicit []."
 
         coord_worktree = repo.repo_root / ".worktrees" / f"{slug}-{mid8}-coord"
 
@@ -203,20 +194,14 @@ class TestProtectedBranchesConfigHonoring:
 
         # With empty protected_branches + PRIMARY kind, the router should NOT try to
         # create a coord worktree.  In the real code path it commits directly.
-        assert not coord_worktree.exists(), (
-            "T024 violated: coord worktree was created even though config has []. "
-            "The protection config is NOT being honoured."
-        )
+        assert not coord_worktree.exists(), "T024 violated: coord worktree was created even though config has []. The protection config is NOT being honoured."
         # The result must NOT be "no_op_wrong_surface" (which would indicate a refusal
         # on a protected branch — but we declared no branches protected).
         assert result.status != "no_op_wrong_surface", (
-            f"T024: router returned 'no_op_wrong_surface' for a non-protected branch. "
-            f"Config [] is not being respected. Diagnostic: {result.diagnostic!r}"
+            f"T024: router returned 'no_op_wrong_surface' for a non-protected branch. Config [] is not being respected. Diagnostic: {result.diagnostic!r}"
         )
 
-    def test_protected_main_routes_to_coord_worktree(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_protected_main_routes_to_coord_worktree(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """US2: ``protection.protected_branches: [main]`` → routes to coord worktree.
 
         The complement of the empty-list test: when main IS declared protected,
@@ -248,18 +233,19 @@ class TestProtectedBranchesConfigHonoring:
         report.write_text('{"updated": "via coord"}\n', encoding="utf-8")
 
         policy = ProtectionPolicy.resolve(repo.repo_root)
-        assert policy.is_protected("main"), (
-            "Precondition: 'main' must be protected with explicit [main]."
-        )
+        assert policy.is_protected("main"), "Precondition: 'main' must be protected with explicit [main]."
 
         from mission_runtime import CommitTarget
 
-        with patch(
-            "specify_cli.coordination.commit_router.resolve_placement_only",
-            return_value=CommitTarget(ref=coord_branch),
-        ), patch(
-            "specify_cli.coordination.commit_router._resolve_mid8",
-            return_value=mid8,
+        with (
+            patch(
+                "specify_cli.coordination.commit_router.resolve_placement_only",
+                return_value=CommitTarget(ref=coord_branch),
+            ),
+            patch(
+                "specify_cli.coordination.commit_router._resolve_mid8",
+                return_value=mid8,
+            ),
         ):
             result = commit_for_mission(
                 repo_root=repo.repo_root,
@@ -272,13 +258,9 @@ class TestProtectedBranchesConfigHonoring:
 
         coord_worktree = repo.repo_root / ".worktrees" / f"{slug}-{mid8}-coord"
         assert coord_worktree.exists(), (
-            "T024: coord worktree NOT created even though main is explicitly protected. "
-            "Protection config [main] is not being respected."
+            "T024: coord worktree NOT created even though main is explicitly protected. Protection config [main] is not being respected."
         )
-        assert result.status == "committed", (
-            f"T024: expected 'committed' on protected-then-coord path, "
-            f"got {result.status!r}. Diagnostic: {result.diagnostic!r}"
-        )
+        assert result.status == "committed", f"T024: expected 'committed' on protected-then-coord path, got {result.status!r}. Diagnostic: {result.diagnostic!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -289,9 +271,7 @@ class TestProtectedBranchesConfigHonoring:
 class TestFR006HatchEndToEnd:
     """T025: active hatch → is_protected False → direct commit (no coord worktree)."""
 
-    def test_hatch_active_routes_directly_not_to_coord(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_hatch_active_routes_directly_not_to_coord(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-006: hatch active ⇒ is_protected False end-to-end.
 
         With the hatch set, even a repo on ``main`` (normally protected) must:
@@ -312,9 +292,7 @@ class TestFR006HatchEndToEnd:
         policy = ProtectionPolicy.resolve(repo.repo_root)
         # FR-006 invariant 1: hatch active → is_protected returns False.
         assert policy.operator_hatch_active is True, "Precondition: hatch must be active."
-        assert not policy.is_protected("main"), (
-            "FR-006: is_protected('main') must be False when hatch is active."
-        )
+        assert not policy.is_protected("main"), "FR-006: is_protected('main') must be False when hatch is active."
 
         from mission_runtime import CommitTarget
 
@@ -338,18 +316,14 @@ class TestFR006HatchEndToEnd:
 
         # FR-006 invariant 2: no coord worktree created (direct routing).
         assert not coord_worktree.exists(), (
-            "FR-006 violated: coord worktree was created even though hatch is active. "
-            "is_protected should have returned False and skipped materialisation."
+            "FR-006 violated: coord worktree was created even though hatch is active. is_protected should have returned False and skipped materialisation."
         )
         # FR-006 invariant 3: result must not be no_op_wrong_surface (a protection refusal).
         assert result.status != "no_op_wrong_surface", (
-            "FR-006: got 'no_op_wrong_surface' despite hatch active — "
-            "the hatch is not controlling is_protected end-to-end."
+            "FR-006: got 'no_op_wrong_surface' despite hatch active — the hatch is not controlling is_protected end-to-end."
         )
 
-    def test_hatch_inactive_does_route_to_coord(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_hatch_inactive_does_route_to_coord(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Baseline: without hatch, the normal protect→coord routing applies.
 
         Exercised with a COORDINATION-partition kind (``ACCEPTANCE_MATRIX``): under
@@ -379,12 +353,15 @@ class TestFR006HatchEndToEnd:
 
         from mission_runtime import CommitTarget
 
-        with patch(
-            "specify_cli.coordination.commit_router.resolve_placement_only",
-            return_value=CommitTarget(ref=coord_branch),
-        ), patch(
-            "specify_cli.coordination.commit_router._resolve_mid8",
-            return_value=mid8,
+        with (
+            patch(
+                "specify_cli.coordination.commit_router.resolve_placement_only",
+                return_value=CommitTarget(ref=coord_branch),
+            ),
+            patch(
+                "specify_cli.coordination.commit_router._resolve_mid8",
+                return_value=mid8,
+            ),
         ):
             result = commit_for_mission(
                 repo_root=repo.repo_root,
@@ -396,9 +373,7 @@ class TestFR006HatchEndToEnd:
             )
 
         coord_worktree = repo.repo_root / ".worktrees" / f"{slug}-{mid8}-coord"
-        assert coord_worktree.exists(), (
-            "Baseline: coord worktree must be created when hatch is OFF and main is protected."
-        )
+        assert coord_worktree.exists(), "Baseline: coord worktree must be created when hatch is OFF and main is protected."
         assert result.status == "committed", f"Baseline: expected committed, got {result.status!r}."
 
 
@@ -416,9 +391,7 @@ class TestNFR004ByteIdenticalDefault:
     (T002 / FR-010), so the two must produce byte-identical results.
     """
 
-    def test_no_config_returns_exact_default_set(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_config_returns_exact_default_set(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-004: ProtectionPolicy.resolve on a no-config repo == {main, master}."""
         monkeypatch.delenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", raising=False)
 
@@ -435,9 +408,7 @@ class TestNFR004ByteIdenticalDefault:
             "A no-remote repo must NOT have additional branches in the default set."
         )
 
-    def test_no_config_policy_delegate_byte_identical_to_protected_branches(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_config_policy_delegate_byte_identical_to_protected_branches(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-004: ProtectionPolicy.resolve result is byte-identical to protected_branches().
 
         ``commit_helpers.protected_branches()`` is the public delegate:
@@ -453,13 +424,10 @@ class TestNFR004ByteIdenticalDefault:
         via_delegate = legacy_delegate(repo)
 
         assert via_policy == via_delegate, (
-            f"NFR-004: ProtectionPolicy.resolve().protected_branches {via_policy!r} != "
-            f"legacy delegate {via_delegate!r}. The two must be byte-identical."
+            f"NFR-004: ProtectionPolicy.resolve().protected_branches {via_policy!r} != legacy delegate {via_delegate!r}. The two must be byte-identical."
         )
 
-    def test_remote_default_augments_default_set(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_remote_default_augments_default_set(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-004: with a fake remote default 'develop', set == {main, master, develop}."""
         monkeypatch.delenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", raising=False)
 
@@ -469,13 +437,10 @@ class TestNFR004ByteIdenticalDefault:
         policy = ProtectionPolicy.resolve(repo)
 
         assert policy.protected_branches == frozenset({"main", "master", "develop"}), (
-            f"NFR-004: expected {{main, master, develop}} with remote-default=develop, "
-            f"got {policy.protected_branches!r}."
+            f"NFR-004: expected {{main, master, develop}} with remote-default=develop, got {policy.protected_branches!r}."
         )
 
-    def test_explicit_empty_list_is_not_the_default(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_explicit_empty_list_is_not_the_default(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-004 boundary: explicit [] is NOT the same as absent key.
 
         The absent-key path returns {main, master}; explicit [] returns frozenset().
@@ -498,8 +463,7 @@ class TestNFR004ByteIdenticalDefault:
         assert explicit_empty_policy.protected_branches == frozenset()
 
         assert absent_key_policy.protected_branches != explicit_empty_policy.protected_branches, (
-            "NFR-004: absent-key and explicit-[] must NOT produce the same set. "
-            "The distinction is load-bearing for US2 opt-out."
+            "NFR-004: absent-key and explicit-[] must NOT produce the same set. The distinction is load-bearing for US2 opt-out."
         )
 
 
@@ -516,9 +480,7 @@ class TestNFR002MaterialisationFunctional:
     asserted here.
     """
 
-    def test_coord_worktree_materialises_and_is_idempotent(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_coord_worktree_materialises_and_is_idempotent(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-002 (functional, #4015 split): materialise-on-demand is idempotent."""
         monkeypatch.delenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", raising=False)
 
@@ -544,9 +506,7 @@ class TestNFR002MaterialisationFunctional:
         assert wt_path.exists(), "CoordinationWorkspace.resolve did not create the worktree."
         assert wt_path_2 == wt_path, "Idempotent resolve returned a different path."
 
-    def test_protection_policy_resolve_has_no_remote_and_correct_defaults(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_protection_policy_resolve_has_no_remote_and_correct_defaults(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-004 (functional, #4015 split): correct default set, no remote configured.
 
         A repo with no remote configured must produce {main, master}. We verify
@@ -558,12 +518,8 @@ class TestNFR002MaterialisationFunctional:
         repo = _build_git_repo_on_main(tmp_path)
 
         # Sanity: no remote configured.
-        result = subprocess.run(
-            ["git", "remote"], cwd=repo, capture_output=True, text=True
-        )
-        assert result.stdout.strip() == "", (
-            "Precondition: test repo must have no remotes (otherwise timing is unreliable)."
-        )
+        result = subprocess.run(["git", "remote"], cwd=repo, capture_output=True, text=True)
+        assert result.stdout.strip() == "", "Precondition: test repo must have no remotes (otherwise timing is unreliable)."
 
         policy = ProtectionPolicy.resolve(repo)
 
@@ -587,9 +543,7 @@ class TestNFR002MaterialisationTimingBound:
     """
 
     @pytest.mark.performance
-    def test_coord_worktree_materialises_within_two_seconds(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_coord_worktree_materialises_within_two_seconds(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-002: CoordinationWorkspace.resolve (materialise-on-demand) < 2 s warm."""
         monkeypatch.delenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", raising=False)
 
@@ -622,9 +576,7 @@ class TestNFR002MaterialisationTimingBound:
         assert_timing_budget(warm_elapsed, 2.0, name="warm_elapsed")
 
     @pytest.mark.performance
-    def test_protection_policy_resolve_is_zero_network(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_protection_policy_resolve_is_zero_network(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-002 / NFR-004: ProtectionPolicy.resolve makes 0 network calls.
 
         A repo with no remote configured must produce {main, master} without

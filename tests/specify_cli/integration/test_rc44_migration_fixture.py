@@ -44,12 +44,8 @@ def rc44_project(tmp_path: Path) -> Path:
     templates and a self-consistent manifest), then degrading it to the rc44
     shape the upgrade path must heal.
     """
-    init_result = run_spec_kitty(
-        "init", "--ai", "claude,codex", "--non-interactive", cwd=tmp_path
-    )
-    assert init_result.returncode == 0, (
-        f"init failed:\nstdout: {init_result.stdout}\nstderr: {init_result.stderr}"
-    )
+    init_result = run_spec_kitty("init", "--ai", "claude,codex", "--non-interactive", cwd=tmp_path)
+    assert init_result.returncode == 0, f"init failed:\nstdout: {init_result.stdout}\nstderr: {init_result.stderr}"
 
     # Degrade 1 — remove native agent-profile directories entirely.
     for profile_dir in ((tmp_path / ".claude" / "agents"), (tmp_path / ".codex" / "agents")):
@@ -69,9 +65,7 @@ def rc44_project(tmp_path: Path) -> Path:
 def test_upgrade_heals_rc44_project(rc44_project: Path) -> None:
     """Full upgrade from rc44 state heals all surfaces and repairs the manifest."""
     result = run_spec_kitty("upgrade", "--yes", cwd=rc44_project)
-    assert result.returncode == 0, (
-        f"upgrade --yes failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
-    )
+    assert result.returncode == 0, f"upgrade --yes failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
 
     # Native agent-profile directories recreated for both configured agents.
     claude_agents = rc44_project / ".claude" / "agents"
@@ -89,17 +83,10 @@ def test_upgrade_heals_rc44_project(rc44_project: Path) -> None:
     assert codex_tomls, ".codex/agents/ must contain at least one .toml profile"
 
     # Manifest repaired to the canonical entry count.
-    manifest = json.loads(
-        (rc44_project / ".kittify" / "command-skills-manifest.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    manifest = json.loads((rc44_project / ".kittify" / "command-skills-manifest.json").read_text(encoding="utf-8"))
     assert manifest.get("schema_version") == 1
     assert "entries" in manifest, "repaired manifest must use the 'entries' key"
-    assert len(manifest["entries"]) == len(CANONICAL_COMMANDS), (
-        f"manifest has {len(manifest['entries'])} entries, "
-        f"expected {len(CANONICAL_COMMANDS)}"
-    )
+    assert len(manifest["entries"]) == len(CANONICAL_COMMANDS), f"manifest has {len(manifest['entries'])} entries, expected {len(CANONICAL_COMMANDS)}"
 
 
 def test_doctor_agent_profile_clean_after_rc44_upgrade(rc44_project: Path) -> None:
@@ -107,19 +94,12 @@ def test_doctor_agent_profile_clean_after_rc44_upgrade(rc44_project: Path) -> No
     upgrade = run_spec_kitty("upgrade", "--yes", cwd=rc44_project)
     assert upgrade.returncode == 0, upgrade.stderr
 
-    doctor = run_spec_kitty(
-        "doctor", "tool-surfaces", "--kind", "agent-profile", "--json", cwd=rc44_project
-    )
+    doctor = run_spec_kitty("doctor", "tool-surfaces", "--kind", "agent-profile", "--json", cwd=rc44_project)
     payload = doctor.json()
     states = {surface["state"] for surface in payload["surfaces"]}
-    assert states <= _HEALTHY_AGENT_STATES, (
-        f"unhealthy agent-profile states after rc44 upgrade: "
-        f"{states - _HEALTHY_AGENT_STATES}"
-    )
+    assert states <= _HEALTHY_AGENT_STATES, f"unhealthy agent-profile states after rc44 upgrade: {states - _HEALTHY_AGENT_STATES}"
     tools = {surface["tool"] for surface in payload["surfaces"]}
-    assert {"claude", "codex"} <= tools, (
-        "both configured agents must appear in the agent-profile surface report"
-    )
+    assert {"claude", "codex"} <= tools, "both configured agents must appear in the agent-profile surface report"
     assert payload["ok"] is True, "doctor must report ok after rc44 healing"
 
 
@@ -128,16 +108,8 @@ def test_rc44_upgrade_is_idempotent(rc44_project: Path) -> None:
     first = run_spec_kitty("upgrade", "--yes", cwd=rc44_project)
     assert first.returncode == 0, first.stderr
 
-    before = {
-        path.relative_to(rc44_project): path.read_bytes()
-        for path in rc44_project.rglob("*")
-        if path.is_file()
-    }
+    before = {path.relative_to(rc44_project): path.read_bytes() for path in rc44_project.rglob("*") if path.is_file()}
     second = run_spec_kitty("upgrade", "--yes", cwd=rc44_project)
     assert second.returncode == 0, second.stderr
-    after = {
-        path.relative_to(rc44_project): path.read_bytes()
-        for path in rc44_project.rglob("*")
-        if path.is_file()
-    }
+    after = {path.relative_to(rc44_project): path.read_bytes() for path in rc44_project.rglob("*") if path.is_file()}
     assert after == before, "second rc44 upgrade must not change any file bytes"

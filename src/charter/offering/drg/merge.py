@@ -161,9 +161,7 @@ class OrgDRGConflict:
     built_in_value: Any | None
     org_value: Any
     project_value: Any | None
-    resolution_applied: Literal[
-        "hard_fail", "built_in_wins", "project_wins", "org_override"
-    ]
+    resolution_applied: Literal["hard_fail", "built_in_wins", "project_wins", "org_override"]
 
 
 #: Per-conflict-class operator remediation, rendered by
@@ -172,36 +170,22 @@ class OrgDRGConflict:
 #: remediation hands the operator a label and no way to act on it (the gate is
 #: ``test_every_conflict_class_carries_a_remediation_line``).
 _OVERRIDE_REMEDIATION = (
-    "Remediation (override): remove the override from the org pack, OR "
-    "escalate the built-in invariant change via a spec-kitty governance "
-    "proposal."
+    "Remediation (override): remove the override from the org pack, OR escalate the built-in invariant change via a spec-kitty governance proposal."
 )
 
 _CONFLICT_REMEDIATIONS: dict[str, str] = {
     "edge_override": _OVERRIDE_REMEDIATION,
     "node_override": _OVERRIDE_REMEDIATION,
-    "layer_rule_violation": (
-        "Remediation (layer rule): an org-pack node must not reference "
-        "src/specify_cli/ — doctrine sits below the runtime layer."
-    ),
-    "kind_mismatch": (
-        "Remediation (kind): declare the node under a canonical org-pack "
-        "plural kind (charter.offering.drg.org_pack_loader._ORG_DRG_KIND_ALIASES)."
-    ),
+    "layer_rule_violation": ("Remediation (layer rule): an org-pack node must not reference src/specify_cli/ — doctrine sits below the runtime layer."),
+    "kind_mismatch": ("Remediation (kind): declare the node under a canonical org-pack plural kind (charter.offering.drg.org_pack_loader._ORG_DRG_KIND_ALIASES)."),
     "unresolved_edge_endpoint": (
         "Remediation (endpoint): an edge endpoint must be either a bare id "
         "the fragment declares in its own nodes:, or a fully-qualified DRG "
         "URN '<kind>:<id>' whose <kind> is a NodeKind member (e.g. "
         "'agent_profile:researcher-ryan'). Nothing else resolves."
     ),
-    "ambiguous_edge_endpoint": (
-        "Remediation (ambiguity): this bare id exists under more than one "
-        "kind. Qualify it as '<kind>:<id>' to say which one you mean."
-    ),
-    "malformed_urn": (
-        "Remediation (URN syntax): a URN is '<lower_snake_kind>:<id>' where "
-        "the id may contain letters, digits, '_', '/', '.' and '-' only."
-    ),
+    "ambiguous_edge_endpoint": ("Remediation (ambiguity): this bare id exists under more than one kind. Qualify it as '<kind>:<id>' to say which one you mean."),
+    "malformed_urn": ("Remediation (URN syntax): a URN is '<lower_snake_kind>:<id>' where the id may contain letters, digits, '_', '/', '.' and '-' only."),
 }
 
 
@@ -262,20 +246,13 @@ class OrgDRGConflictError(Exception):
         here, next to :meth:`_format_message`, so the three collectors share one
         wording instead of each inventing its own.
         """
-        return [
-            f"org-DRG hard failure: {c.kind} target={c.target_id} "
-            f"layers={c.conflicting_layers}"
-            for c in self.hard_failures
-        ]
+        return [f"org-DRG hard failure: {c.kind} target={c.target_id} layers={c.conflicting_layers}" for c in self.hard_failures]
 
     @staticmethod
     def _format_message(conflicts: list[OrgDRGConflict]) -> str:
         lines = [f"{len(conflicts)} org-DRG conflict(s):"]
         for c in conflicts:
-            lines.append(
-                f"  - kind={c.kind}, target_id={c.target_id}, "
-                f"layers={c.conflicting_layers}, resolution={c.resolution_applied}"
-            )
+            lines.append(f"  - kind={c.kind}, target_id={c.target_id}, layers={c.conflicting_layers}, resolution={c.resolution_applied}")
         # One remediation per conflict class actually present, so an
         # operator is never told to "remove the override" for what is really
         # a typo'd edge endpoint (FR-010 — guidance has to be followable).
@@ -327,9 +304,7 @@ _DUPLICATE_URN_ERROR_CODES: dict[str, str] = {
 #: uniqueness scan covers (D-04 revised / research.md D-03). Expressed as
 #: :class:`NodeKind` members (built-in/project layers) and as the org-pack
 #: canonical plural strings (org layer, pre-bridge) respectively.
-_URN_UNIQUENESS_NODE_KINDS: frozenset[NodeKind] = frozenset(
-    {NodeKind.ASSET, NodeKind.TEMPLATE}
-)
+_URN_UNIQUENESS_NODE_KINDS: frozenset[NodeKind] = frozenset({NodeKind.ASSET, NodeKind.TEMPLATE})
 _URN_UNIQUENESS_ORG_KINDS: frozenset[str] = frozenset({"assets", "templates"})
 
 
@@ -407,9 +382,7 @@ def _violates_layer_rule(node: Any) -> bool:
     if node.title:
         text_blobs.append(node.title)
     text_blobs.append(node.id)
-    return any(
-        "src/specify_cli/" in blob or "specify_cli." in blob for blob in text_blobs
-    )
+    return any("src/specify_cli/" in blob or "specify_cli." in blob for blob in text_blobs)
 
 
 def _built_in_invariant_ids(built_in: DRGGraph) -> frozenset[str]:
@@ -437,9 +410,7 @@ def _built_in_invariant_ids(built_in: DRGGraph) -> frozenset[str]:
 # ---------------------------------------------------------------------------
 
 
-def _bridge_org_node_to_drg_node(
-    node: Any, source: str
-) -> tuple[str, DRGNode] | OrgDRGConflict:
+def _bridge_org_node_to_drg_node(node: Any, source: str) -> tuple[str, DRGNode] | OrgDRGConflict:
     """Mint a URN-shaped :class:`DRGNode` from a fragment-side node.
 
     URN convention: ``<singular_kind>:<id>`` (e.g. ``directive:sox-controls``).
@@ -601,9 +572,7 @@ def _resolve_edge_endpoint(
         # not a raw pydantic failure surfacing from DRGEdge construction.
         raise _EndpointResolutionError("malformed_urn", raw)
 
-    matches = sorted(
-        {urn for urn in built_in_urns if ":" in urn and urn.partition(":")[2] == raw}
-    )
+    matches = sorted({urn for urn in built_in_urns if ":" in urn and urn.partition(":")[2] == raw})
     if len(matches) == 1:
         return matches[0]
     if len(matches) > 1:
@@ -611,9 +580,7 @@ def _resolve_edge_endpoint(
     raise _EndpointResolutionError("unresolved_edge_endpoint", raw)
 
 
-def _endpoint_conflict(
-    conflict_kind: _EndpointConflictKind, raw: str, edge: Any, source: str
-) -> OrgDRGConflict:
+def _endpoint_conflict(conflict_kind: _EndpointConflictKind, raw: str, edge: Any, source: str) -> OrgDRGConflict:
     """Build the typed record for an endpoint the bridge refused to bind."""
     return OrgDRGConflict(
         kind=conflict_kind,
@@ -876,10 +843,7 @@ def bridge_org_edge_to_drg_edge(
     relation = _resolve_relation(edge.relation, source)
 
     try:
-        source_urn, target_urn = (
-            _resolve_edge_endpoint(raw, node_id_to_urn, built_in_urns)
-            for raw in (edge.source, edge.target)
-        )
+        source_urn, target_urn = (_resolve_edge_endpoint(raw, node_id_to_urn, built_in_urns) for raw in (edge.source, edge.target))
     except _EndpointResolutionError as exc:
         return None, _endpoint_conflict(exc.conflict_kind, exc.raw, edge, source)
 
@@ -1002,9 +966,7 @@ def _merge_org_fragment(
         urn, drg_node = minted
         node_id_to_urn[node.id] = urn
         if urn in invariant_urns:
-            _resolve_builtin_collision(
-                urn, node, drg_node, merged_nodes, conflicts, source_marker
-            )
+            _resolve_builtin_collision(urn, node, drg_node, merged_nodes, conflicts, source_marker)
             continue
         if urn not in merged_nodes:
             merged_nodes[urn] = drg_node
@@ -1014,9 +976,7 @@ def _merge_org_fragment(
     # built-in URN set, so the result does not depend on where this pack sits
     # in the operator's declaration order.
     for edge in fragment.edges:
-        drg_edge, conflict = bridge_org_edge_to_drg_edge(
-            edge, node_id_to_urn, invariant_urns, source_marker
-        )
+        drg_edge, conflict = bridge_org_edge_to_drg_edge(edge, node_id_to_urn, invariant_urns, source_marker)
         if conflict is not None:
             conflicts.append(conflict)
             continue
@@ -1116,9 +1076,7 @@ def _asset_template_candidates(
     therefore unreachable in practice, but is skipped rather than unpacked so
     this helper stays total under any future caller ordering.
     """
-    candidates: list[DRGNode] = [
-        node for node in built_in.nodes if node.kind in _URN_UNIQUENESS_NODE_KINDS
-    ]
+    candidates: list[DRGNode] = [node for node in built_in.nodes if node.kind in _URN_UNIQUENESS_NODE_KINDS]
     for fragment in org_fragments:
         source_marker = f"org:{fragment.pack_name}"
         for node in fragment.nodes:
@@ -1129,9 +1087,7 @@ def _asset_template_candidates(
                 continue
             candidates.append(minted[1])
     if project is not None:
-        candidates.extend(
-            node for node in project.nodes if node.kind in _URN_UNIQUENESS_NODE_KINDS
-        )
+        candidates.extend(node for node in project.nodes if node.kind in _URN_UNIQUENESS_NODE_KINDS)
     return candidates
 
 
@@ -1239,12 +1195,8 @@ def merge_three_layers(
     collector = _OrgEdgeCollector()
 
     # Seed the merged maps with the built-in layer.
-    merged_nodes: dict[str, DRGNode] = {
-        n.urn: _tag_source(n, "built-in") for n in built_in.nodes
-    }
-    merged_edges: list[DRGEdge] = [
-        _tag_source(e, "built-in") for e in built_in.edges
-    ]
+    merged_nodes: dict[str, DRGNode] = {n.urn: _tag_source(n, "built-in") for n in built_in.nodes}
+    merged_edges: list[DRGEdge] = [_tag_source(e, "built-in") for e in built_in.edges]
 
     invariant_urns = _built_in_invariant_ids(built_in)
 
@@ -1274,9 +1226,7 @@ def merge_three_layers(
     # accepted verbatim at mint time because the project layer had not merged
     # yet; now it has, so the deferral is collected here rather than left to a
     # validator that no caller of this function was actually running.
-    _warn_dangling_org_endpoints(
-        _dangling_org_endpoints(collector.contributions, merged_nodes)
-    )
+    _warn_dangling_org_endpoints(_dangling_org_endpoints(collector.contributions, merged_nodes))
 
     # Global URN-uniqueness scan (FR-008/FR-004, D-04 revised): a single
     # post-merge, order-independent, prefix-scoped check covering all three
@@ -1285,9 +1235,7 @@ def merge_three_layers(
     # per-layer union (not ``merged_nodes``), since TEMPLATE/ASSET have no
     # legitimate override semantics and the override machinery above would
     # otherwise hide a same-URN collision by collapsing it in place.
-    asset_template_candidates = _asset_template_candidates(
-        built_in, org_fragments, project
-    )
+    asset_template_candidates = _asset_template_candidates(built_in, org_fragments, project)
     _check_node_urn_unique("asset:", asset_template_candidates)
     _check_node_urn_unique("template:", asset_template_candidates)
 

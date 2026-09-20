@@ -598,11 +598,7 @@ def _check_in_review_approval(ctx: TransitionInputs) -> tuple[bool, str | None]:
     if ctx.evidence is not None:
         return _check_reviewer_approval(ctx)
     review_result = ctx.review_result
-    if (
-        getattr(review_result, "reviewer", None)
-        and getattr(review_result, "verdict", None) == "approved"
-        and getattr(review_result, "reference", None)
-    ):
+    if getattr(review_result, "reviewer", None) and getattr(review_result, "verdict", None) == "approved" and getattr(review_result, "reference", None):
         return True, None
     return False, _REVIEWER_APPROVAL_REQUIRED
 

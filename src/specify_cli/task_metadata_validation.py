@@ -140,12 +140,7 @@ def repair_lane_mismatch(  # MIGRATION-ONLY
         # kept only as inert audit provenance inside the human-readable action
         # note (never parsed as a runtime field).
         repair_note = f"Auto-repaired lane metadata (was: {actual_lane}) [shell_pid {shell_pid}]"
-        history_entry = (
-            f'  - timestamp: "{timestamp}"\n'
-            f'    lane: "{expected_lane}"\n'
-            f'    agent: "{agent}"\n'
-            f'    action: "{repair_note}"\n'
-        )
+        history_entry = f'  - timestamp: "{timestamp}"\n    lane: "{expected_lane}"\n    agent: "{agent}"\n    action: "{repair_note}"\n'
 
         # Find activity_log in frontmatter
         if "activity_log" in frontmatter:

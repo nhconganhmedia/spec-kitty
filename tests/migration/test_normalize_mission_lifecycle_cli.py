@@ -16,6 +16,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 def _write_meta(feature_dir: Path, *, mission_id: str | None = None) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -39,10 +40,7 @@ def _write_task(feature_dir: Path, *, lane: str = "in_progress") -> None:
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
     (tasks_dir / "WP01-test.md").write_text(
-        "---\n"
-        "title: Test WP\n"
-        f"lane: {lane}\n"
-        "---\n",
+        f"---\ntitle: Test WP\nlane: {lane}\n---\n",
         encoding="utf-8",
     )
 

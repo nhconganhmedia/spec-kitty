@@ -26,13 +26,15 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir.mkdir(parents=True)
 
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-            "friendly_name": "Attribution Test Mission",
-            "mission_number": None,
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+                "friendly_name": "Attribution Test Mission",
+                "mission_number": None,
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text(
@@ -47,27 +49,29 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir()
     (tasks_dir / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\nlane: done\ndependencies: []\n"
-        "requirement_refs: [FR-001]\ntitle: WP01 Attribution Test\n---\n# WP01\n",
+        "---\nwork_package_id: WP01\nlane: done\ndependencies: []\nrequirement_refs: [FR-001]\ntitle: WP01 Attribution Test\n---\n# WP01\n",
         encoding="utf-8",
     )
 
     events_path = feature_dir / "status.events.jsonl"
     events_path.write_text(
-        json.dumps({
-            "actor": "test",
-            "at": "2026-01-01T00:00:00+00:00",
-            "event_id": str(_ulid_mod.ULID()),
-            "evidence": None,
-            "execution_mode": "worktree",
-            "feature_slug": mission_slug,
-            "force": False,
-            "from_lane": "planned",
-            "reason": None,
-            "review_ref": None,
-            "to_lane": "done",
-            "wp_id": "WP01",
-        }) + "\n",
+        json.dumps(
+            {
+                "actor": "test",
+                "at": "2026-01-01T00:00:00+00:00",
+                "event_id": str(_ulid_mod.ULID()),
+                "evidence": None,
+                "execution_mode": "worktree",
+                "feature_slug": mission_slug,
+                "force": False,
+                "from_lane": "planned",
+                "reason": None,
+                "review_ref": None,
+                "to_lane": "done",
+                "wp_id": "WP01",
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
     return feature_dir, mission_id
@@ -78,15 +82,8 @@ def _read_retro_events(feature_dir: Path) -> list[dict[str, Any]]:
     events_path = feature_dir / "status.events.jsonl"
     if not events_path.exists():
         return []
-    events = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    return [
-        e for e in events
-        if e.get("type", "").startswith("Retrospective")
-    ]
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [e for e in events if e.get("type", "").startswith("Retrospective")]
 
 
 @pytest.mark.integration
@@ -115,21 +112,14 @@ def test_captured_event_has_non_empty_policy_source_defaults_only(tmp_path: Path
     for event in retro_events:
         event_type = event.get("type")
         ps = event.get("policy_source")
-        assert ps, (
-            f"policy_source must be non-empty on {event_type}; got: {ps!r}"
-        )
+        assert ps, f"policy_source must be non-empty on {event_type}; got: {ps!r}"
         # When no charter or config is present, all leaf keys should be '<default>'.
         for key, value in ps.items():
-            assert value == "<default>", (
-                f"Expected '<default>' for policy_source[{key!r}] with no config; "
-                f"got {value!r} on event {event_type}"
-            )
+            assert value == "<default>", f"Expected '<default>' for policy_source[{key!r}] with no config; got {value!r} on event {event_type}"
 
 
 @pytest.mark.integration
-def test_all_retro_events_have_policy_source_after_callback(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_all_retro_events_have_policy_source_after_callback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Every RetroX event emitted by the callback has a non-empty policy_source.
 
     Triggers both captured AND capture_failed by running two scenarios and
@@ -179,6 +169,4 @@ def test_all_retro_events_have_policy_source_after_callback(
         retro_events = _read_retro_events(feature_dir)
         for event in retro_events:
             ps = event.get("policy_source")
-            assert ps, (
-                f"[{label}] policy_source empty on {event.get('type')}; event: {event}"
-            )
+            assert ps, f"[{label}] policy_source empty on {event.get('type')}; event: {event}"

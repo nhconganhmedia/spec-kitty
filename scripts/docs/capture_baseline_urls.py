@@ -183,11 +183,7 @@ def _block_urls(
             if _is_excluded(rel_posix, path.name, block.exclude):
                 continue
             if rel_posix.endswith(MD_SUFFIX):
-                published = (
-                    f"{rel_posix[: -len(MD_SUFFIX)]}{HTML_SUFFIX}"
-                    if render_markdown
-                    else rel_posix
-                )
+                published = f"{rel_posix[: -len(MD_SUFFIX)]}{HTML_SUFFIX}" if render_markdown else rel_posix
                 urls.add(_join_url(site_url, block.dest, published))
             elif rel_posix.endswith(HTML_SUFFIX):
                 urls.add(_join_url(site_url, block.dest, rel_posix))
@@ -225,11 +221,7 @@ def urls_from_site(site_dir: Path, site_url: str = SITE_URL) -> list[str]:
     to ``site_dir`` (no ``_site/`` prefix leakage). The result is sorted and
     de-duplicated for a diff-stable manifest.
     """
-    urls = {
-        f"{site_url}{path.relative_to(site_dir).as_posix()}"
-        for path in site_dir.rglob(f"*{HTML_SUFFIX}")
-        if path.is_file()
-    }
+    urls = {f"{site_url}{path.relative_to(site_dir).as_posix()}" for path in site_dir.rglob(f"*{HTML_SUFFIX}") if path.is_file()}
     return sorted(urls)
 
 
@@ -289,10 +281,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest = build_manifest(urls, method, args.site_url)
     if not args.print_only:
         write_manifest(args.output, manifest)
-    print(
-        f"captured {manifest['url_count']} baseline URLs "
-        f"(method={method}) -> {args.output}"
-    )
+    print(f"captured {manifest['url_count']} baseline URLs (method={method}) -> {args.output}")
     return 0
 
 

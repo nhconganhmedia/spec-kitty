@@ -78,9 +78,7 @@ _THEIRS_RENDER = (
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=str(repo), capture_output=True, text=True, check=True
-    )
+    return subprocess.run(["git", *args], cwd=str(repo), capture_output=True, text=True, check=True)
 
 
 def _init_repo(repo: Path) -> None:
@@ -94,7 +92,9 @@ def _init_repo(repo: Path) -> None:
 def _show(repo: Path, ref: str, rel_path: str) -> str:
     result = subprocess.run(
         ["git", "show", f"{ref}:{rel_path}"],
-        cwd=str(repo), capture_output=True, text=True,
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         raise AssertionError(f"git show {ref}:{rel_path} failed: {result.stderr}")
@@ -134,7 +134,8 @@ def _bootstrap_divergent_renders(repo: Path) -> str:
 
 
 def test_divergent_best_effort_renders_do_not_abort_the_squash(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """T044/T045 (FR-014): a genuine two-render collision under
     ``review-cycle-1.md`` must NOT abort ``git merge --squash -X theirs``.
@@ -164,12 +165,6 @@ def test_divergent_best_effort_renders_do_not_abort_the_squash(
     assert changed is True
 
     post_main = _show(repo, "main", _REVIEW_CYCLE_REL_PATH)
-    assert _OURS_RENDER in post_main, (
-        "the target's own best-effort render must survive verbatim, embedded "
-        f"inside the conflict-marked document. Got: {post_main!r}"
-    )
-    assert _THEIRS_RENDER in post_main, (
-        "the incoming mission-side render must also survive verbatim -- "
-        f"never lost/fabricated. Got: {post_main!r}"
-    )
+    assert _OURS_RENDER in post_main, f"the target's own best-effort render must survive verbatim, embedded inside the conflict-marked document. Got: {post_main!r}"
+    assert _THEIRS_RENDER in post_main, f"the incoming mission-side render must also survive verbatim -- never lost/fabricated. Got: {post_main!r}"
     assert "<<<<<<<" in post_main, "both renders must stay demarcated, never blended"

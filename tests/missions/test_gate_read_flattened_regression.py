@@ -104,14 +104,11 @@ def flattened_mission(tmp_path: Path) -> tuple[Path, Path]:
     (feature_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
     for name in _PLANNING_FILES:
         (feature_dir / name).write_text(f"# {name}\n\nContent.\n", encoding="utf-8")
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(_STATUS_EVENT) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(_STATUS_EVENT) + "\n", encoding="utf-8")
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True)
     (tasks_dir / "WP01-sample.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: Sample\nagent: claude\n"
-        "assignee: claude\nshell_pid: '1'\n---\n\n# WP01\n",
+        "---\nwork_package_id: WP01\ntitle: Sample\nagent: claude\nassignee: claude\nshell_pid: '1'\n---\n\n# WP01\n",
         encoding="utf-8",
     )
 
@@ -133,8 +130,7 @@ def test_all_reads_resolve_target_branch_dir(
     for label, kind in _ALL_READ_KINDS.items():
         resolved = resolve_planning_read_dir(repo_root, _HANDLE, kind=kind).resolve()
         assert resolved == feature_dir.resolve(), (
-            f"{label}: flattened read resolved {resolved} — expected the single "
-            f"feature dir {feature_dir} (NFR-001 behavior neutrality)."
+            f"{label}: flattened read resolved {resolved} — expected the single feature dir {feature_dir} (NFR-001 behavior neutrality)."
         )
 
 
@@ -148,10 +144,7 @@ def test_primary_anchor_is_the_flattened_dir(
     ``_compose_primary_feature_dir`` leaf it delegated to.
     """
     repo_root, feature_dir = flattened_mission
-    assert (
-        _compose_primary_feature_dir(repo_root, _HANDLE).resolve()
-        == feature_dir.resolve()
-    )
+    assert _compose_primary_feature_dir(repo_root, _HANDLE).resolve() == feature_dir.resolve()
 
 
 def test_accept_gate_passes_on_flattened_mission(
@@ -160,16 +153,12 @@ def test_accept_gate_passes_on_flattened_mission(
     """Accept gate finds planning docs AND status on the single flattened surface."""
     repo_root, _feature_dir = flattened_mission
 
-    summary = collect_feature_summary(
-        repo_root, _HANDLE, strict_metadata=False, mutate_matrix=False
-    )
+    summary = collect_feature_summary(repo_root, _HANDLE, strict_metadata=False, mutate_matrix=False)
 
-    assert summary.missing_artifacts == [], (
-        "Flattened accept gate mis-blocked planning artifacts (NFR-001 regression)."
+    assert summary.missing_artifacts == [], "Flattened accept gate mis-blocked planning artifacts (NFR-001 regression)."
+    assert not [issue for issue in summary.activity_issues if "No canonical state found" in issue], (
+        "Flattened accept gate lost the status event log (NFR-001 regression)."
     )
-    assert not [
-        issue for issue in summary.activity_issues if "No canonical state found" in issue
-    ], "Flattened accept gate lost the status event log (NFR-001 regression)."
 
 
 def test_write_twin_resolves_target_branch_on_flattened(
@@ -179,11 +168,7 @@ def test_write_twin_resolves_target_branch_on_flattened(
     repo_root, _feature_dir = flattened_mission
 
     assert get_feature_target_branch(repo_root, _HANDLE) == _TARGET
-    resolution = resolve_target_branch(
-        _HANDLE, repo_root, current_branch="feat/other", respect_current=True
-    )
+    resolution = resolve_target_branch(_HANDLE, repo_root, current_branch="feat/other", respect_current=True)
     assert resolution.target == _TARGET
-    placement = resolve_placement_only(
-        repo_root, _HANDLE, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    placement = resolve_placement_only(repo_root, _HANDLE, kind=MissionArtifactKind.TASKS_INDEX)
     assert placement.ref == _TARGET

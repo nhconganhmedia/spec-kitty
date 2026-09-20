@@ -9,6 +9,7 @@ Topology-true (NFR-002): the fixtures use a full 26-char ULID ``mission_id`` —
 never a fabricated short id. These assertions are pure (construct a context,
 assert invariant/immutability), so the ULID realism is the load-bearing part.
 """
+
 from __future__ import annotations
 
 import pytest

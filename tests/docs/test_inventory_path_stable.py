@@ -68,6 +68,5 @@ def test_inventory_file_exists_at_canonical_path() -> None:
     """The page-inventory artifact really sits at the pinned, stable path."""
     inventory_file = _REPO_ROOT / CANONICAL_INVENTORY_PATH
     assert inventory_file.is_file(), (
-        f"page-inventory must stay put at {CANONICAL_INVENTORY_PATH}; "
-        "a re-section moved it (re-opens the freshness-gate self-block, #2054)"
+        f"page-inventory must stay put at {CANONICAL_INVENTORY_PATH}; a re-section moved it (re-opens the freshness-gate self-block, #2054)"
     )

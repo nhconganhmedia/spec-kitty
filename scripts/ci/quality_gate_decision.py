@@ -114,9 +114,7 @@ def _coerce_bool(value: object, field_name: str) -> bool:
         return value
     if isinstance(value, str) and value.lower() in {"true", "false"}:
         return value.lower() == "true"
-    raise InputContractError(
-        f"input field {field_name!r} must be a boolean or 'true'/'false', got {value!r}"
-    )
+    raise InputContractError(f"input field {field_name!r} must be a boolean or 'true'/'false', got {value!r}")
 
 
 def _coerce_result(value: object, job: str) -> str:
@@ -124,10 +122,7 @@ def _coerce_result(value: object, job: str) -> str:
     if isinstance(value, Mapping):
         result = value.get("result")
     if not isinstance(result, str) or result not in VALID_RESULTS:
-        raise InputContractError(
-            f"job {job!r} has invalid result {result!r}; "
-            f"expected one of {sorted(VALID_RESULTS)}"
-        )
+        raise InputContractError(f"job {job!r} has invalid result {result!r}; expected one of {sorted(VALID_RESULTS)}")
     return result
 
 
@@ -138,9 +133,7 @@ def _parse_str_list(payload: Mapping[str, object], field_name: str) -> tuple[str
     items: list[str] = []
     for entry in raw:
         if not isinstance(entry, str):
-            raise InputContractError(
-                f"input field {field_name!r} must contain only strings, got {entry!r}"
-            )
+            raise InputContractError(f"input field {field_name!r} must contain only strings, got {entry!r}")
         items.append(entry)
     return tuple(items)
 
@@ -156,15 +149,10 @@ def _parse_changes(payload: Mapping[str, object]) -> dict[str, bool]:
     raw = payload.get("changes")
     if not isinstance(raw, Mapping):
         raise InputContractError(_MUST_BE_MAPPING.format(field="changes"))
-    return {
-        str(group): _coerce_bool(value, f"changes[{group}]")
-        for group, value in raw.items()
-    }
+    return {str(group): _coerce_bool(value, f"changes[{group}]") for group, value in raw.items()}
 
 
-def _parse_job_groups(
-    payload: Mapping[str, object], changes: Mapping[str, bool]
-) -> dict[str, tuple[str, ...]]:
+def _parse_job_groups(payload: Mapping[str, object], changes: Mapping[str, bool]) -> dict[str, tuple[str, ...]]:
     raw = payload.get("job_groups")
     if not isinstance(raw, Mapping):
         raise InputContractError(_MUST_BE_MAPPING.format(field="job_groups"))
@@ -212,9 +200,7 @@ def parse_payload(payload: Mapping[str, object]) -> GateInput:
         changes=changes,
         job_groups=_parse_job_groups(payload, changes),
         run_all=_coerce_bool(payload.get("run_all"), "run_all"),
-        catchall_unmatched=_coerce_bool(
-            payload.get("catchall_unmatched"), "catchall_unmatched"
-        ),
+        catchall_unmatched=_coerce_bool(payload.get("catchall_unmatched"), "catchall_unmatched"),
         pr_is_draft=_coerce_bool(payload.get("pr_is_draft"), "pr_is_draft"),
         draft_gated_jobs=frozenset(_parse_str_list(payload, "draft_gated_jobs")),
         release_required_jobs=_parse_str_list(payload, "release_required_jobs"),
@@ -255,8 +241,7 @@ def evaluate_job(job: str, result: str, gate: GateInput) -> JobVerdict:
             state,
             result,
             VERDICT_FAIL,
-            f"improperly skipped: filter output(s) {', '.join(matched)} "
-            "matched but the suite did not run",
+            f"improperly skipped: filter output(s) {', '.join(matched)} matched but the suite did not run",
         )
     if filter_true and full_run:
         return JobVerdict(job, state, result, VERDICT_OK, "superseded by full run")
@@ -270,9 +255,7 @@ def _apply_release_arm(gate: GateInput, verdicts: list[JobVerdict]) -> list[JobV
         return verdicts
     missing = [job for job in gate.release_required_jobs if job not in gate.needs]
     if missing:
-        raise InputContractError(
-            f"release-required job(s) absent from 'needs': {', '.join(missing)}"
-        )
+        raise InputContractError(f"release-required job(s) absent from 'needs': {', '.join(missing)}")
     required = set(gate.release_required_jobs)
     return [
         replace(
@@ -280,9 +263,7 @@ def _apply_release_arm(gate: GateInput, verdicts: list[JobVerdict]) -> list[JobV
             verdict=VERDICT_FAIL,
             reason="release-required job must succeed",
         )
-        if verdict.job in required
-        and verdict.result != RESULT_SUCCESS
-        and verdict.verdict == VERDICT_OK
+        if verdict.job in required and verdict.result != RESULT_SUCCESS and verdict.verdict == VERDICT_OK
         else verdict
         for verdict in verdicts
     ]
@@ -290,9 +271,7 @@ def _apply_release_arm(gate: GateInput, verdicts: list[JobVerdict]) -> list[JobV
 
 def evaluate(gate: GateInput) -> list[JobVerdict]:
     """Verdicts for every job in the blocking ``needs`` set, in stable order."""
-    verdicts = [
-        evaluate_job(job, result, gate) for job, result in sorted(gate.needs.items())
-    ]
+    verdicts = [evaluate_job(job, result, gate) for job, result in sorted(gate.needs.items())]
     return _apply_release_arm(gate, verdicts)
 
 
@@ -313,10 +292,7 @@ def render_summary(verdicts: Sequence[JobVerdict]) -> str:
         cell = verdict.verdict
         if verdict.verdict == VERDICT_FAIL:
             cell = f"{VERDICT_FAIL} — {verdict.reason}"
-        lines.append(
-            f"| {verdict.job} | {verdict.filter_state} "
-            f"| {verdict.result} | {cell} |"
-        )
+        lines.append(f"| {verdict.job} | {verdict.filter_state} | {verdict.result} | {cell} |")
     failed = [verdict for verdict in verdicts if verdict.verdict == VERDICT_FAIL]
     lines.append("")
     if failed:
@@ -361,8 +337,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if failed:
         for verdict in failed:
             print(
-                f"::error::{verdict.job}: {verdict.reason} "
-                f"(filter state: {verdict.filter_state}, result: {verdict.result})",
+                f"::error::{verdict.job}: {verdict.reason} (filter state: {verdict.filter_state}, result: {verdict.result})",
                 file=sys.stderr,
             )
         return EXIT_FAIL

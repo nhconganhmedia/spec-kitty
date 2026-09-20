@@ -249,9 +249,7 @@ class TestFormatInlineBodies:
 
     def test_step_contract_body_falls_back_to_bare_description_without_id(self) -> None:
         without_id = type("Step", (), {"description": "do other thing"})()
-        contract = type(
-            "Contract", (), {"action": "review", "mission": "software-dev", "steps": [without_id]}
-        )()
+        contract = type("Contract", (), {"action": "review", "mission": "software-dev", "steps": [without_id]})()
         lines = _format_inline_step_contract_body(contract)
         assert "      - do other thing" in lines
 
@@ -314,9 +312,7 @@ class TestContextStateBookkeeping:
         assert isinstance(actions, dict)
         assert "implement" in actions
 
-    def test_mark_action_loaded_matches_pre_migration_golden_bytes(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mark_action_loaded_matches_pre_migration_golden_bytes(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """SC-004 persisted-artifact golden (kernel-clock-single-door WP07).
 
         Captured from the PRE-migration tree (before ``context_state.py``
@@ -345,9 +341,7 @@ class TestContextStateBookkeeping:
         assert isinstance(actions, dict)
         assert actions["implement"] == "2026-11-02T14:15:16Z"
 
-    def test_prepare_context_state_first_load_uses_min_effective_depth(
-        self, tmp_path: Path
-    ) -> None:
+    def test_prepare_context_state_first_load_uses_min_effective_depth(self, tmp_path: Path) -> None:
         bundle = _prepare_context_state(tmp_path, "implement", None)
         assert isinstance(bundle, _ContextStateBundle)
         assert bundle.first_load is True

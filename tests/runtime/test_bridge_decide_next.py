@@ -307,9 +307,7 @@ def test_bootstrap_proceeds_for_unmerged_mission(tmp_path: Path, monkeypatch: py
         json.dumps({"mission_slug": slug, "mission_type": "software-dev"}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(
-        status_pkg, "is_mission_completed", lambda *_a, **_k: True
-    )
+    monkeypatch.setattr(status_pkg, "is_mission_completed", lambda *_a, **_k: True)
     monkeypatch.setattr(rb, "_resolve_runtime_feature_dir", lambda repo_root, mission_slug: primary_dir)
     monkeypatch.setattr(rb, "get_mission_type", lambda feature_dir: "software-dev")
 
@@ -401,8 +399,10 @@ def test_bootstrap_preserves_phase_and_guards_when_optional_seed_unavailable(
                 if seed_mode == "lookup_raises":
                     raise RuntimeError("seed lookup failed")
                 if seed_mode == "raises":
+
                     def fail(snapshot: Any) -> None:
                         raise RuntimeError("seed failed")
+
                     return fail
             raise AttributeError(name)
 
@@ -424,8 +424,10 @@ def test_bootstrap_preserves_phase_and_guards_when_optional_seed_unavailable(
         return OperationalContext()
 
     monkeypatch.setattr(_io_seam, "_build_operational_context_for_decision", context)
+
     def no_template(*args: Any) -> Any:
         raise FileNotFoundError()
+
     monkeypatch.setattr("specify_cli.runtime.resolver.resolve_mission", no_template)
     ctx, decision = rb._dn_bootstrap("agent-x", "042-mission", "success", tmp_path)
     assert decision is None
@@ -434,8 +436,10 @@ def test_bootstrap_preserves_phase_and_guards_when_optional_seed_unavailable(
     assert context_calls[0]["step_id"] == "implement"
     assert context_calls[0]["mission_state"] == "implement"
     monkeypatch.setattr(rb, "_is_wp_iteration_step", lambda _: True)
+
     def unavailable_status(*args: Any, **kwargs: Any) -> bool:
         raise CanonicalStatusNotFoundError("guard still active")
+
     monkeypatch.setattr(rb, "_should_advance_wp_step", unavailable_status)
     guarded = rb._dn_dependency_gate(ctx)
     assert guarded is not None

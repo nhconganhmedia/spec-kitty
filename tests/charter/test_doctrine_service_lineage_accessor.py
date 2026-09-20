@@ -58,9 +58,7 @@ class TestRegisterOverlayDoesNotBypassActivationFilter:
 
         shadow_profile = MagicMock()
         shadow_profile.profile_id = "shadow-sam"
-        wrapped.agent_profile_repository.register_overlay(
-            shadow_profile, layer="org", source_path=None
-        )
+        wrapped.agent_profile_repository.register_overlay(shadow_profile, layer="org", source_path=None)
 
         # The mutation landed on the raw repository...
         assert wrapped.agent_profile_repository.get("shadow-sam") is shadow_profile
@@ -82,9 +80,7 @@ class TestRegisterOverlayDoesNotBypassActivationFilter:
 
         shadow_profile = MagicMock()
         shadow_profile.profile_id = "shadow-sam"
-        wrapped.agent_profile_repository.register_overlay(
-            shadow_profile, layer="org", source_path=None
-        )
+        wrapped.agent_profile_repository.register_overlay(shadow_profile, layer="org", source_path=None)
 
         assert wrapped.agent_profiles == {"shadow-sam": shadow_profile}
 

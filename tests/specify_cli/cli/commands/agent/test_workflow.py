@@ -157,9 +157,7 @@ def test_resolved_agent_returns_agent_assignment_type() -> None:
     for agent_val in [None, "claude", {"tool": "gemini"}]:
         meta = WPMetadata(work_package_id="WP01", agent=agent_val)
         assignment = meta.resolved_agent()
-        assert isinstance(assignment, AgentAssignment), (
-            f"Expected AgentAssignment for agent={agent_val!r}, got {type(assignment)}"
-        )
+        assert isinstance(assignment, AgentAssignment), f"Expected AgentAssignment for agent={agent_val!r}, got {type(assignment)}"
 
 
 # ---------------------------------------------------------------------------
@@ -194,20 +192,23 @@ def test_implement_command_calls_resolved_agent(tmp_path: Path) -> None:
     # Write status events so the lane reader works
     events_path = feature_dir / "status.events.jsonl"
     events_path.write_text(
-        json.dumps({
-            "actor": "test",
-            "at": "2026-04-09T00:00:00+00:00",
-            "event_id": "01TESTWP01PLANNED",
-            "evidence": None,
-            "execution_mode": "worktree",
-            "feature_slug": mission_slug,
-            "force": False,
-            "from_lane": "planned",
-            "reason": None,
-            "review_ref": None,
-            "to_lane": "in_progress",
-            "wp_id": "WP01",
-        }) + "\n",
+        json.dumps(
+            {
+                "actor": "test",
+                "at": "2026-04-09T00:00:00+00:00",
+                "event_id": "01TESTWP01PLANNED",
+                "evidence": None,
+                "execution_mode": "worktree",
+                "feature_slug": mission_slug,
+                "force": False,
+                "from_lane": "planned",
+                "reason": None,
+                "review_ref": None,
+                "to_lane": "in_progress",
+                "wp_id": "WP01",
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -222,11 +223,13 @@ def test_implement_command_calls_resolved_agent(tmp_path: Path) -> None:
         return original_resolved_agent(self)
 
     from specify_cli.status.wp_metadata import WPMetadata
+
     original_resolved_agent = WPMetadata.resolved_agent
 
     with patch.object(WPMetadata, "resolved_agent", _patched_resolved_agent):
         # Try to load a WP and call resolved_agent as the implement command does
         from specify_cli.status.wp_metadata import read_wp_frontmatter
+
         try:
             wp_meta, _ = read_wp_frontmatter(wp_file)
             # The implement command calls wp_meta.resolved_agent() after loading
@@ -253,6 +256,7 @@ def test_workflow_source_has_no_doing_string() -> None:
 
     # Look for the "doing" string literal (in quotes)
     import re
+
     doing_pattern = re.compile(r'(?<![#])["\']doing["\']')  # Exclude comments
     matches = doing_pattern.findall(source_text)
 
@@ -265,10 +269,8 @@ def test_workflow_source_has_no_doing_string() -> None:
         if doing_pattern.search(line):
             problematic_lines.append(f"  Line {i}: {line.rstrip()}")
 
-    assert not problematic_lines, (
-        "workflow.py must not contain the 'doing' alias string.\n"
-        "Consumer code must use Lane.IN_PROGRESS directly.\n"
-        "Found:\n" + "\n".join(problematic_lines)
+    assert not problematic_lines, "workflow.py must not contain the 'doing' alias string.\nConsumer code must use Lane.IN_PROGRESS directly.\nFound:\n" + "\n".join(
+        problematic_lines
     )
 
 
@@ -280,9 +282,7 @@ def test_workflow_uses_lane_in_progress_not_doing_string() -> None:
     source_text = source_path.read_text(encoding="utf-8")
 
     # Verify Lane.IN_PROGRESS is used (not the "doing" alias)
-    assert "Lane.IN_PROGRESS" in source_text, (
-        "workflow.py should reference Lane.IN_PROGRESS for in_progress lane comparisons"
-    )
+    assert "Lane.IN_PROGRESS" in source_text, "workflow.py should reference Lane.IN_PROGRESS for in_progress lane comparisons"
 
 
 def test_auto_claim_failure_message_preserves_dependency_reason() -> None:
@@ -297,9 +297,7 @@ def test_auto_claim_failure_message_preserves_dependency_reason() -> None:
     assert "all dependencies must be approved or done" in message
 
 
-def test_preview_claimable_wp_for_mission_reads_repo_root_not_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_preview_claimable_wp_for_mission_reads_repo_root_not_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The auto-claim readiness preview resolves to the repository-root checkout's
     canonical event log (via get_main_repo_root), never a stale worktree-local copy.
 
@@ -442,11 +440,13 @@ class TestLoadCoordBranchMeta:
         from specify_cli.cli.commands.agent.workflow import _load_coord_branch_meta
 
         (tmp_path / "meta.json").write_text(
-            json.dumps({
-                "mission_id": "01ABCDEFGHJKMNPQRSTVWXYZ12",
-                "mid8": "01ABCDEF",
-                "coordination_branch": "kitty/mission-foo-01ABCDEF",
-            }),
+            json.dumps(
+                {
+                    "mission_id": "01ABCDEFGHJKMNPQRSTVWXYZ12",
+                    "mid8": "01ABCDEF",
+                    "coordination_branch": "kitty/mission-foo-01ABCDEF",
+                }
+            ),
             encoding="utf-8",
         )
         coord, mid, mid8 = _load_coord_branch_meta(tmp_path)
@@ -507,9 +507,11 @@ class TestTransactionPathFor:
 
         # Legacy mission: mission_id present but no coordination_branch.
         (tmp_path / "meta.json").write_text(
-            json.dumps({
-                "mission_id": "01ABCDEFGHJKMNPQRSTVWXYZ12",
-            }),
+            json.dumps(
+                {
+                    "mission_id": "01ABCDEFGHJKMNPQRSTVWXYZ12",
+                }
+            ),
             encoding="utf-8",
         )
         coord, mid, mid8 = _load_coord_branch_meta(tmp_path)
@@ -538,11 +540,13 @@ class TestCommitWorkflowChange:
         events_path.write_text("before\nnew-event\n", encoding="utf-8")
         status_path.write_text('{"lane":"new"}', encoding="utf-8")
         (feature_dir / "meta.json").write_text(
-            json.dumps({
-                "mission_id": "01ABCDEFGHJKMNPQRSTVWXYZ12",
-                "mid8": "01ABCDEF",
-                "coordination_branch": "kitty/mission-test-01ABCDEF",
-            }),
+            json.dumps(
+                {
+                    "mission_id": "01ABCDEFGHJKMNPQRSTVWXYZ12",
+                    "mid8": "01ABCDEF",
+                    "coordination_branch": "kitty/mission-test-01ABCDEF",
+                }
+            ),
             encoding="utf-8",
         )
         restore_calls: list[object] = []
@@ -602,9 +606,7 @@ class TestPrintCommitSummary:
         captured = capsys.readouterr()
         assert captured.out == ""
 
-    def test_human_format_shows_committed_and_refused(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_human_format_shows_committed_and_refused(self, capsys: pytest.CaptureFixture[str]) -> None:
         from specify_cli.cli.commands.agent import workflow
 
         workflow._reset_workflow_receipts()
@@ -630,9 +632,7 @@ class TestPrintCommitSummary:
         assert "[refused]" in captured.out
         workflow._reset_workflow_receipts()
 
-    def test_json_format_emits_structured_payload(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_format_emits_structured_payload(self, capsys: pytest.CaptureFixture[str]) -> None:
         import json as _json
         from specify_cli.cli.commands.agent import workflow
 
@@ -653,9 +653,7 @@ class TestPrintCommitSummary:
         workflow._reset_workflow_receipts()
 
 
-def test_find_mission_slug_ambiguous_handle_exits_cleanly(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_find_mission_slug_ambiguous_handle_exits_cleanly(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """#450: workflow.py's ``_find_mission_slug`` short-circuit call
 
     (``_resolve_workflow_read_dir`` -> ``_workflow_placement_seam(...).read_dir``)
@@ -668,9 +666,7 @@ def test_find_mission_slug_ambiguous_handle_exits_cleanly(
     from specify_cli.cli.commands.agent import workflow
     from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 
-    exc = MissionSelectorAmbiguous(
-        handle="charter", candidates=["020-charter", "030-charter"]
-    )
+    exc = MissionSelectorAmbiguous(handle="charter", candidates=["020-charter", "030-charter"])
     seam_mock = MagicMock()
     seam_mock.read_dir.side_effect = exc
     with (

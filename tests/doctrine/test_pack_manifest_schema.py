@@ -43,9 +43,7 @@ class TestConstituent:
 
     def test_provenance_path_optional_and_defaults_none(self) -> None:
         assert _c(ArtifactKind.DIRECTIVE, "d").provenance_path is None
-        c = Constituent(
-            kind=ArtifactKind.DIRECTIVE, id="d", path="p", content_hash="h", provenance_path="x"
-        )
+        c = Constituent(kind=ArtifactKind.DIRECTIVE, id="d", path="p", content_hash="h", provenance_path="x")
         assert c.provenance_path == "x"
 
     def test_extra_fields_forbidden(self) -> None:
@@ -68,28 +66,20 @@ class TestOrderingAndHash:
         ]
 
     def test_finalize_sets_64_char_hash_and_orders(self) -> None:
-        m = finalize_pack_manifest(
-            PackManifest(constituents=[_c(ArtifactKind.TACTIC, "b"), _c(ArtifactKind.DIRECTIVE, "a")])
-        )
+        m = finalize_pack_manifest(PackManifest(constituents=[_c(ArtifactKind.TACTIC, "b"), _c(ArtifactKind.DIRECTIVE, "a")]))
         assert m.manifest_hash is not None and len(m.manifest_hash) == 64
         assert [c.id for c in m.constituents] == ["a", "b"]
 
     def test_hash_excludes_generated_provenance(self) -> None:
-        assert frozenset(
-            {"manifest_hash", "generated_at", "generated_by"}
-        ) == HASH_EXCLUDED_FIELDS
+        assert frozenset({"manifest_hash", "generated_at", "generated_by"}) == HASH_EXCLUDED_FIELDS
         base = PackManifest(constituents=[_c(ArtifactKind.DIRECTIVE, "a")])
         h1 = compute_pack_manifest_hash(base.model_copy(update={"generated_by": "x", "generated_at": "t1"}))
         h2 = compute_pack_manifest_hash(base.model_copy(update={"generated_by": "y", "generated_at": "t2"}))
         assert h1 == h2
 
     def test_hash_is_order_independent(self) -> None:
-        a = finalize_pack_manifest(
-            PackManifest(constituents=[_c(ArtifactKind.DIRECTIVE, "a"), _c(ArtifactKind.TACTIC, "b")])
-        )
-        b = finalize_pack_manifest(
-            PackManifest(constituents=[_c(ArtifactKind.TACTIC, "b"), _c(ArtifactKind.DIRECTIVE, "a")])
-        )
+        a = finalize_pack_manifest(PackManifest(constituents=[_c(ArtifactKind.DIRECTIVE, "a"), _c(ArtifactKind.TACTIC, "b")]))
+        b = finalize_pack_manifest(PackManifest(constituents=[_c(ArtifactKind.TACTIC, "b"), _c(ArtifactKind.DIRECTIVE, "a")]))
         assert a.manifest_hash == b.manifest_hash
 
     def test_hash_changes_when_a_constituent_changes(self) -> None:
@@ -120,9 +110,7 @@ class TestSchemaVersionAndRoundTrip:
         ]
 
     def test_dump_is_byte_deterministic(self) -> None:
-        m = finalize_pack_manifest(
-            PackManifest(generated_by="t", constituents=[_c(ArtifactKind.DIRECTIVE, "a")])
-        )
+        m = finalize_pack_manifest(PackManifest(generated_by="t", constituents=[_c(ArtifactKind.DIRECTIVE, "a")]))
         first = dump_pack_manifest_bytes(m)
         second = dump_pack_manifest_bytes(m)
         assert first == second

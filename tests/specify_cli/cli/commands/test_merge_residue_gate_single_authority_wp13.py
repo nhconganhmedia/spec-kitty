@@ -68,9 +68,7 @@ MISSION_SLUG = f"single-authority-topology-cleanup-{MID8}"
 
 
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd, cwd=str(cwd) if cwd else None, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(cmd, cwd=str(cwd) if cwd else None, check=True, capture_output=True, text=True)
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -108,9 +106,7 @@ def _make_lane() -> ExecutionLane:
 # ---------------------------------------------------------------------------
 
 
-def _advance_branch_carrying_path(
-    repo: Path, branch: str, tracked_relpath: str
-) -> tuple[Path, str]:
+def _advance_branch_carrying_path(repo: Path, branch: str, tracked_relpath: str) -> tuple[Path, str]:
     """Create a linked worktree on *branch*, then advance *branch* by committing
     *tracked_relpath* into the tree from a detached temp worktree (the merge
     pipeline's ``update-ref``-from-detached pattern).
@@ -167,9 +163,7 @@ def test_ff_advance_ignores_obstructing_coordination_status_residue(
     obstruction.write_text("stale primary residue\n", encoding="utf-8")
 
     # With the residue predicate, the gate does not abort the advance.
-    advance_branch_ref(
-        repo, branch, new_sha, is_residue=is_toolchain_generated_churn
-    )
+    advance_branch_ref(repo, branch, new_sha, is_residue=is_toolchain_generated_churn)
 
     assert _rev_parse(repo, branch) == new_sha
     assert _rev_parse(wt, "HEAD") == new_sha
@@ -194,9 +188,7 @@ def test_ff_advance_still_raises_on_obstructing_non_residue_file(
     obstruction.write_text("operator evidence must survive\n", encoding="utf-8")
 
     with pytest.raises(RefAdvanceDirtyWorktreeError) as excinfo:
-        advance_branch_ref(
-            repo, branch, new_sha, is_residue=is_toolchain_generated_churn
-        )
+        advance_branch_ref(repo, branch, new_sha, is_residue=is_toolchain_generated_churn)
 
     # Atomic refusal: nothing reset, the operator's bytes survive untouched.
     assert _rev_parse(repo, branch) == old_sha
@@ -247,9 +239,7 @@ def _seed_conflict_repo(repo: Path, conflict_rel: str) -> tuple[str, Path]:
     "artifact_name",
     ["issue-matrix.md", "acceptance-matrix.json"],
 )
-def test_take_theirs_recognizes_previously_omitted_residue_member(
-    tmp_path: Path, artifact_name: str
-) -> None:
+def test_take_theirs_recognizes_previously_omitted_residue_member(tmp_path: Path, artifact_name: str) -> None:
     """T026: the COORD-partition residue members the drifting local subset omitted
     are treated as coordination-owned ("take theirs" wins) — drawn from the single
     authority, not a hardcoded literal.
@@ -280,14 +270,8 @@ def test_take_theirs_recognizes_previously_omitted_residue_member(
     assert isinstance(report, AutoRebaseReport)
     assert report.succeeded is True, f"halt_reason={report.halt_reason}"
     # Take-theirs: the coordination-side copy wins, the conflict is resolved.
-    assert (worktree / conflict_rel).read_text(encoding="utf-8") == (
-        "coordination authoritative copy\n"
-    )
-    rule_ids = {
-        c.resolution.rule_id
-        for c in report.classifications
-        if hasattr(c.resolution, "rule_id")
-    }
+    assert (worktree / conflict_rel).read_text(encoding="utf-8") == ("coordination authoritative copy\n")
+    rule_ids = {c.resolution.rule_id for c in report.classifications if hasattr(c.resolution, "rule_id")}
     assert "R-COORDINATION-ARTIFACT-THEIRS" in rule_ids
 
 
@@ -321,12 +305,9 @@ def test_take_theirs_does_not_swallow_non_residue_source_conflict(
     # docstring: spec.md still blocks). A plain prose conflict the classifier
     # has no rule for must surface as a Manual halt, not a silent take-theirs.
     assert report.succeeded is False
-    rule_ids = {
-        c.resolution.rule_id
-        for c in report.classifications
-        if hasattr(c.resolution, "rule_id")
-    }
+    rule_ids = {c.resolution.rule_id for c in report.classifications if hasattr(c.resolution, "rule_id")}
     assert "R-COORDINATION-ARTIFACT-THEIRS" not in rule_ids
+
 
 def test_take_theirs_does_not_swallow_primary_planning_conflict(
     tmp_path: Path,
@@ -355,9 +336,5 @@ def test_take_theirs_does_not_swallow_primary_planning_conflict(
     )
 
     assert report.succeeded is False
-    rule_ids = {
-        c.resolution.rule_id
-        for c in report.classifications
-        if hasattr(c.resolution, "rule_id")
-    }
+    rule_ids = {c.resolution.rule_id for c in report.classifications if hasattr(c.resolution, "rule_id")}
     assert "R-COORDINATION-ARTIFACT-THEIRS" not in rule_ids

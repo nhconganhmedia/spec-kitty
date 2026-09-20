@@ -73,9 +73,7 @@ class FakeTTY:
 # --- 1. no controlling terminal -> refused -----------------------------------
 
 
-def test_approve_with_no_controlling_terminal_is_refused_and_item_stays_pending(
-    state_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_approve_with_no_controlling_terminal_is_refused_and_item_stays_pending(state_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     item = outbox_approval.submit(repo="spec-kitty", audience="team-a", content="ship it")
     monkeypatch.setattr(outbox_approval, "_controlling_tty", lambda: None)
 
@@ -141,9 +139,7 @@ def test_approve_with_a_wrong_confirmation_phrase_is_refused(state_root: Path, m
     assert outbox_approval.show(item.item_id).status == "pending"
 
 
-def test_approve_challenge_is_bound_to_the_specific_item_not_reusable_across_items(
-    state_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_approve_challenge_is_bound_to_the_specific_item_not_reusable_across_items(state_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     item_a = outbox_approval.submit(repo="spec-kitty", audience="team-a", content="message A")
     item_b = outbox_approval.submit(repo="spec-kitty", audience="team-a", content="message B")
 
@@ -154,9 +150,7 @@ def test_approve_challenge_is_bound_to_the_specific_item_not_reusable_across_ite
         outbox_approval.approve(item_b.item_id, actor="robert")
 
 
-def test_approve_prompt_discloses_the_exact_content_directly_on_the_tty(
-    state_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_approve_prompt_discloses_the_exact_content_directly_on_the_tty(state_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     verbatim = "Ship the release notes to #team-a exactly as written."
     item = outbox_approval.submit(repo="spec-kitty", audience="team-a", content=verbatim)
     tty = FakeTTY(item.item_id[:8])
@@ -192,9 +186,7 @@ def test_decision_functions_accept_no_bypass_parameter(name: str) -> None:
         {"DEBIAN_FRONTEND": "noninteractive"},
     ],
 )
-def test_no_plausible_bypass_environment_variable_avoids_the_tty_requirement(
-    state_root: Path, monkeypatch: pytest.MonkeyPatch, env: dict[str, str]
-) -> None:
+def test_no_plausible_bypass_environment_variable_avoids_the_tty_requirement(state_root: Path, monkeypatch: pytest.MonkeyPatch, env: dict[str, str]) -> None:
     for key, value in env.items():
         monkeypatch.setenv(key, value)
     item = outbox_approval.submit(repo="spec-kitty", audience="team-a", content="ship it")

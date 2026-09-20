@@ -166,12 +166,7 @@ class TestFeatureDirStatusEntries:
         move-task``'s own preflight already strips
         (``tasks_shared.py::_strip_runtime_state_lines``,
         ``tasks_parsing_validation.py``)."""
-        fake = _FakeGitPort(
-            porcelain=(
-                " M kitty-specs/m/.kittify/dossiers/m/snapshot-latest.json\n"
-                " M kitty-specs/m/tasks.md\n"
-            )
-        )
+        fake = _FakeGitPort(porcelain=(" M kitty-specs/m/.kittify/dossiers/m/snapshot-latest.json\n M kitty-specs/m/tasks.md\n"))
         entries = _feature_dir_status_entries(Path("/repo"), Path("/repo/kitty-specs/m"), git=fake)
         assert entries == [_PorcelainEntry(xy=" M", path="kitty-specs/m/tasks.md", is_structural=False)]
 
@@ -249,9 +244,7 @@ class TestStatusPathsForCommit:
             _PorcelainEntry(xy=" M", path="kitty-specs/m/status.json", is_structural=False),
         ]
         assert _status_paths_for_commit(entries, "kitty/mission-m-AAAA1111") == ["kitty-specs/m/issue-matrix.md"]
-        assert _drop_if(
-            [e.path for e in entries], is_status_state_path
-        ) == ["kitty-specs/m/issue-matrix.md"]
+        assert _drop_if([e.path for e in entries], is_status_state_path) == ["kitty-specs/m/issue-matrix.md"]
 
 
 # ---------------------------------------------------------------------------

@@ -171,9 +171,7 @@ def _feature_dir(repo_root: Path, mission_slug: str) -> Path:
     # ``specify_cli.*`` -- the same pre-existing systemic pattern documented
     # via the ``_compose_mission_dir`` cast note in ``_read_path_resolver.py``);
     # bind explicitly so the return narrows back to ``Path``.
-    resolved: Path = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    resolved: Path = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
     return resolved
 
 

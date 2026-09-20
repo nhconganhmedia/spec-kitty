@@ -115,8 +115,7 @@ def test_no_absolute_built_in_pack_path_in_charter_yaml_catalog() -> None:
     assert violations == [], (
         "charter.yaml catalog references leak an absolute built-in-pack "
         "source_path (C-PRV-5). Run `spec-kitty migrate` to apply "
-        "m_3_2_7_heal_provenance_paths.\nViolations:\n"
-        + "\n".join(f"  {v}" for v in violations)
+        "m_3_2_7_heal_provenance_paths.\nViolations:\n" + "\n".join(f"  {v}" for v in violations)
     )
 
 
@@ -125,8 +124,7 @@ def test_no_absolute_built_in_pack_path_in_agent_profiles_manifest() -> None:
     assert violations == [], (
         "agent_profiles_manifest.json entries leak an absolute built-in-pack "
         "source_path (C-PRV-5). Run `spec-kitty migrate` to apply "
-        "m_3_2_7_heal_provenance_paths.\nViolations:\n"
-        + "\n".join(f"  {v}" for v in violations)
+        "m_3_2_7_heal_provenance_paths.\nViolations:\n" + "\n".join(f"  {v}" for v in violations)
     )
 
 
@@ -138,6 +136,5 @@ def test_excluded_template_set_reference_is_not_flagged() -> None:
 
     assert template_refs, "expected at least one template_set reference in charter.yaml (test non-vacuity)"
     assert _is_absolute_built_in_shape(template_refs[0].get("source_path")), (
-        "the template_set reference is expected to remain absolute (excluded, C-PRV-6) -- "
-        "if this now fails, the exclusion may have regressed to a scanned shape."
+        "the template_set reference is expected to remain absolute (excluded, C-PRV-6) -- if this now fails, the exclusion may have regressed to a scanned shape."
     )

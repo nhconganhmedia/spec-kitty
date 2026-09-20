@@ -56,9 +56,7 @@ def _summary(*, warnings: list[str]) -> AcceptanceSummary:
 
 def _render(summary: AcceptanceSummary, monkeypatch: pytest.MonkeyPatch) -> str:
     buf = StringIO()
-    monkeypatch.setattr(
-        accept_cmd, "console", Console(file=buf, highlight=False, markup=True, width=200)
-    )
+    monkeypatch.setattr(accept_cmd, "console", Console(file=buf, highlight=False, markup=True, width=200))
     accept_cmd._print_acceptance_summary(summary)
     return buf.getvalue()
 

@@ -225,9 +225,7 @@ def test_audit_repo_unstattable_entry_is_skipped_not_crashed(tmp_path: Path) -> 
         os.chmod(vault, 0o700)
 
     slugs = {s.slug for s in result}
-    assert slugs == {"001-hello"}, (
-        f"the unstattable candidate must be skipped and the readable one kept: {slugs!r}"
-    )
+    assert slugs == {"001-hello"}, f"the unstattable candidate must be skipped and the readable one kept: {slugs!r}"
 
 
 def test_audit_repo_all_four_states(tmp_path: Path) -> None:
@@ -302,9 +300,7 @@ def test_find_duplicate_prefixes_three_080(tmp_path: Path) -> None:
     _mission_dir(specs, "080-gamma", _ULID_C, 80)
     dupes = find_duplicate_prefixes(tmp_path)
     assert "080" in dupes
-    assert frozenset(s.slug for s in dupes["080"]) == frozenset(
-        {"080-alpha", "080-beta", "080-gamma"}
-    )
+    assert frozenset(s.slug for s in dupes["080"]) == frozenset({"080-alpha", "080-beta", "080-gamma"})
 
 
 def test_find_duplicate_prefixes_single_not_flagged(tmp_path: Path) -> None:
@@ -416,9 +412,7 @@ def test_find_ambiguous_selectors_three_080(tmp_path: Path) -> None:
     states = audit_repo(tmp_path)
     ambiguous = find_ambiguous_selectors(states)
     assert "080" in ambiguous
-    assert frozenset(s.slug for s in ambiguous["080"]) == frozenset(
-        {"080-alpha", "080-beta", "080-gamma"}
-    )
+    assert frozenset(s.slug for s in ambiguous["080"]) == frozenset({"080-alpha", "080-beta", "080-gamma"})
 
 
 def test_find_ambiguous_selectors_shared_human_slug(tmp_path: Path) -> None:
@@ -429,9 +423,7 @@ def test_find_ambiguous_selectors_shared_human_slug(tmp_path: Path) -> None:
     states = audit_repo(tmp_path)
     ambiguous = find_ambiguous_selectors(states)
     assert "foo-bar" in ambiguous
-    assert frozenset(s.slug for s in ambiguous["foo-bar"]) == frozenset(
-        {"081-foo-bar", "082-foo-bar"}
-    )
+    assert frozenset(s.slug for s in ambiguous["foo-bar"]) == frozenset({"081-foo-bar", "082-foo-bar"})
 
 
 def test_find_ambiguous_selectors_no_ambiguity(tmp_path: Path) -> None:
@@ -464,9 +456,7 @@ def test_find_ambiguous_selectors_distinct_081_and_081_bar(tmp_path: Path) -> No
     states = audit_repo(tmp_path)
     ambiguous = find_ambiguous_selectors(states)
     assert "081" in ambiguous
-    assert frozenset(s.slug for s in ambiguous["081"]) == frozenset(
-        {"081-foo", "081-bar"}
-    )
+    assert frozenset(s.slug for s in ambiguous["081"]) == frozenset({"081-foo", "081-bar"})
 
 
 # ---------------------------------------------------------------------------
@@ -538,9 +528,7 @@ def test_identity_json_schema(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
 
     # Duplicate prefixes
     assert "080" in doc["duplicate_prefixes"]
-    assert frozenset(m["slug"] for m in doc["duplicate_prefixes"]["080"]) == frozenset(
-        {"080-foo", "080-bar"}
-    )
+    assert frozenset(m["slug"] for m in doc["duplicate_prefixes"]["080"]) == frozenset({"080-foo", "080-bar"})
 
     # fail_on_triggered is False when --fail-on not given
     assert doc["fail_on_triggered"] is False

@@ -12,6 +12,7 @@ from specify_cli.auth import TokenManager, get_token_manager, reset_token_manage
 
 pytestmark = [pytest.mark.integration]
 
+
 @pytest.fixture(autouse=True)
 def _reset_tm():
     reset_token_manager()

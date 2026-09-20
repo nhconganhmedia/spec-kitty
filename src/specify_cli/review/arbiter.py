@@ -474,9 +474,7 @@ def persist_arbiter_decision(
     # (``cli/commands/agent/workflow_executor.py:1134``) needs the full
     # parsed body and is out of this WP's scope -- flagged as a same-shape
     # follow-up, not fixed here.
-    cycle_number = (
-        ReviewCycleArtifact.latest_cycle_number(wp_subdir) if wp_subdir.exists() else 0
-    )
+    cycle_number = ReviewCycleArtifact.latest_cycle_number(wp_subdir) if wp_subdir.exists() else 0
     artifact_path: Path = wp_subdir / _review_cycle_filename(cycle_number)
 
     reason = f"[{decision.category}] {decision.explanation}"

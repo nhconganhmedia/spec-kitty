@@ -138,12 +138,8 @@ def test_synthesize_preserves_on_disk_graph_content_backed_by_artifacts(
     )
     _dump_graph(graph_path, graph)
 
-    existing_artifact = (
-        doctrine_dir / "tactic" / "how-we-apply-directive-003.tactic.yaml"
-    )
-    legacy_artifact = (
-        doctrine_dir / "tactic" / "legacy-preference-order-3270.tactic.yaml"
-    )
+    existing_artifact = doctrine_dir / "tactic" / "how-we-apply-directive-003.tactic.yaml"
+    legacy_artifact = doctrine_dir / "tactic" / "legacy-preference-order-3270.tactic.yaml"
     legacy_artifact.write_bytes(existing_artifact.read_bytes())
 
     assert _LEGACY_URN in graph_path.read_text(), "precondition: legacy content injected"
@@ -160,16 +156,11 @@ def test_synthesize_preserves_on_disk_graph_content_backed_by_artifacts(
 
     # 4. The backing artifact file survives (reporter: the .yaml files stay on
     #    disk; only the graph index is truncated) ...
-    assert legacy_artifact.exists(), (
-        "the backing tactic artifact should remain on disk after re-synthesis"
-    )
+    assert legacy_artifact.exists(), "the backing tactic artifact should remain on disk after re-synthesis"
 
     merged = _load_graph(graph_path)
     surviving_urns = {node["urn"] for node in merged["nodes"]}
-    surviving_edges = {
-        (edge["source"], edge["target"], edge["relation"])
-        for edge in merged.get("edges", [])
-    }
+    surviving_edges = {(edge["source"], edge["target"], edge["relation"]) for edge in merged.get("edges", [])}
 
     # ... but neither the node nor its edge may have silently vanished. These
     # are the load-bearing assertions: they fail today because the rebuild

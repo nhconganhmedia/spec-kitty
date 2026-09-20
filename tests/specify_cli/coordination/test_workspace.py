@@ -85,27 +85,34 @@ def test_branch_name_is_pure() -> None:
 
 def test_resolve_creates_worktree(repo_with_coord_branch: Path) -> None:
     path = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert path.exists()
     assert path.is_dir()
     # HEAD should be on the coord branch.
     head = subprocess.check_output(
-        ["git", "-C", str(path), "symbolic-ref", "HEAD"], text=True,
+        ["git", "-C", str(path), "symbolic-ref", "HEAD"],
+        text=True,
     ).strip()
     assert head == f"refs/heads/{COORD_BRANCH}"
 
 
 def test_resolve_reuses_existing(repo_with_coord_branch: Path) -> None:
     first = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     # Touch a file so we can verify the worktree wasn't recreated.
     marker = first / "MARKER"
     marker.write_text("preserved\n")
 
     second = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert first == second
     assert marker.exists()
@@ -116,14 +123,18 @@ def test_resolve_recovers_stale_prunable_registration(
     repo_with_coord_branch: Path,
 ) -> None:
     path = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     shutil.rmtree(path)
     assert not path.exists()
     assert "prunable" in _worktree_list(repo_with_coord_branch)
 
     recovered = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
 
     assert recovered == path
@@ -133,14 +144,18 @@ def test_resolve_recovers_stale_prunable_registration(
 
 def test_resolve_branch_mismatch_raises(repo_with_coord_branch: Path) -> None:
     path = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     # Switch the worktree to a different branch.
     _git(path, "checkout", "-q", "-b", "interloper")
 
     with pytest.raises(CoordinationWorkspaceBranchMismatch) as exc:
         CoordinationWorkspace.resolve(
-            repo_with_coord_branch, MISSION_SLUG, MID8,
+            repo_with_coord_branch,
+            MISSION_SLUG,
+            MID8,
         )
 
     err = exc.value
@@ -152,18 +167,24 @@ def test_resolve_branch_mismatch_raises(repo_with_coord_branch: Path) -> None:
 
 def test_teardown_idempotent(repo_with_coord_branch: Path) -> None:
     path = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert path.exists()
 
     CoordinationWorkspace.teardown(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert not path.exists()
 
     # Second call is a no-op.
     CoordinationWorkspace.teardown(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert not path.exists()
 
@@ -172,14 +193,18 @@ def test_teardown_prunes_stale_missing_registration(
     repo_with_coord_branch: Path,
 ) -> None:
     path = CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     shutil.rmtree(path)
     assert not path.exists()
     assert "prunable" in _worktree_list(repo_with_coord_branch)
 
     CoordinationWorkspace.teardown(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
 
     worktree_list = _worktree_list(repo_with_coord_branch)
@@ -191,33 +216,47 @@ def test_teardown_does_not_delete_branch(
     repo_with_coord_branch: Path,
 ) -> None:
     CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     CoordinationWorkspace.teardown(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     # The branch must still exist; deletion is the merge command's job.
     result = subprocess.run(
-        ["git", "-C", str(repo_with_coord_branch), "rev-parse",
-         "--verify", f"refs/heads/{COORD_BRANCH}"],
-        capture_output=True, text=True,
+        ["git", "-C", str(repo_with_coord_branch), "rev-parse", "--verify", f"refs/heads/{COORD_BRANCH}"],
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0
 
 
 def test_is_present(repo_with_coord_branch: Path) -> None:
     assert not CoordinationWorkspace.is_present(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     CoordinationWorkspace.resolve(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert CoordinationWorkspace.is_present(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     CoordinationWorkspace.teardown(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )
     assert not CoordinationWorkspace.is_present(
-        repo_with_coord_branch, MISSION_SLUG, MID8,
+        repo_with_coord_branch,
+        MISSION_SLUG,
+        MID8,
     )

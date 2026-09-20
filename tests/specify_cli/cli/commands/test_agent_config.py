@@ -72,9 +72,7 @@ class TestSurfacePresenceIndex:
         resolver = _fake_global_resolver(global_root)
         resolver(_GLOBAL_AGENT).mkdir(parents=True)
 
-        index = SurfacePresenceIndex.build(
-            tmp_path, [_GLOBAL_AGENT], global_command_dir=resolver
-        )
+        index = SurfacePresenceIndex.build(tmp_path, [_GLOBAL_AGENT], global_command_dir=resolver)
 
         assert index.exists(_GLOBAL_AGENT) is True
 
@@ -82,9 +80,7 @@ class TestSurfacePresenceIndex:
         """Arrange: no global dir; Act: build; Assert: exists False (isolated)."""
         resolver = _fake_global_resolver(tmp_path / "home")
 
-        index = SurfacePresenceIndex.build(
-            tmp_path, [_GLOBAL_AGENT], global_command_dir=resolver
-        )
+        index = SurfacePresenceIndex.build(tmp_path, [_GLOBAL_AGENT], global_command_dir=resolver)
 
         assert index.exists(_GLOBAL_AGENT) is False
 
@@ -93,9 +89,7 @@ class TestSurfacePresenceIndex:
         (tmp_path / ".agents" / "skills").mkdir(parents=True)
         resolver = _fake_global_resolver(tmp_path / "home")
 
-        index = SurfacePresenceIndex.build(
-            tmp_path, [_SKILL_ONLY], global_command_dir=resolver
-        )
+        index = SurfacePresenceIndex.build(tmp_path, [_SKILL_ONLY], global_command_dir=resolver)
 
         presence = index.presence(_SKILL_ONLY)
         assert presence.exists is True
@@ -110,9 +104,7 @@ class TestSurfacePresenceIndex:
         """
         resolver = _fake_global_resolver(tmp_path / "home")
 
-        index = SurfacePresenceIndex.build(
-            tmp_path, [_SKILL_ONLY], global_command_dir=resolver
-        )
+        index = SurfacePresenceIndex.build(tmp_path, [_SKILL_ONLY], global_command_dir=resolver)
 
         roots = index.presence(_SKILL_ONLY).roots
         assert roots == (tmp_path / ".agents" / "skills",)
@@ -120,9 +112,7 @@ class TestSurfacePresenceIndex:
     def test_unplanned_tool_reports_empty_presence(self, tmp_path: Path) -> None:
         """Arrange: tool not built; Act: query; Assert: empty roots, not present."""
         resolver = _fake_global_resolver(tmp_path / "home")
-        index = SurfacePresenceIndex.build(
-            tmp_path, [_GLOBAL_AGENT], global_command_dir=resolver
-        )
+        index = SurfacePresenceIndex.build(tmp_path, [_GLOBAL_AGENT], global_command_dir=resolver)
 
         presence = index.presence("not-a-real-tool")
         assert presence.roots == ()
@@ -141,9 +131,7 @@ class TestSurfacePresenceIndex:
 
     def test_presence_exists_requires_real_directory(self, tmp_path: Path) -> None:
         """ToolSurfacePresence.exists is False when no root directory exists."""
-        presence = ToolSurfacePresence(
-            tool_key="x", roots=(tmp_path / "missing",)
-        )
+        presence = ToolSurfacePresence(tool_key="x", roots=(tmp_path / "missing",))
         assert presence.exists is False
 
     def test_default_resolver_is_used_when_not_injected(self, tmp_path: Path) -> None:
@@ -182,23 +170,17 @@ class TestSurfacePresenceIndex:
         assert index.exists(_GLOBAL_AGENT) is True
         assert index.exists(_SKILL_ONLY) is True
 
-    def test_static_fallback_skill_only_has_no_global_root(
-        self, tmp_path: Path
-    ) -> None:
+    def test_static_fallback_skill_only_has_no_global_root(self, tmp_path: Path) -> None:
         """Degraded path keeps the same applicability as the providers."""
         kittify = tmp_path / ".kittify"
         kittify.mkdir(parents=True)
         (kittify / "command-skills-manifest.json").write_text("{}", encoding="utf-8")
         resolver = _fake_global_resolver(tmp_path / "home")
 
-        index = SurfacePresenceIndex.build(
-            tmp_path, [_SKILL_ONLY], global_command_dir=resolver
-        )
+        index = SurfacePresenceIndex.build(tmp_path, [_SKILL_ONLY], global_command_dir=resolver)
 
         # No global command directory root for a skill-only tool, even degraded.
-        assert index.presence(_SKILL_ONLY).roots == (
-            tmp_path / ".agents" / "skills",
-        )
+        assert index.presence(_SKILL_ONLY).roots == (tmp_path / ".agents" / "skills",)
 
 
 # ---------------------------------------------------------------------------
@@ -212,13 +194,16 @@ class TestListConsultsSurfacePlan:
         _write_project(tmp_path, [_GLOBAL_AGENT])
 
         real_build = SurfacePresenceIndex.build
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
-            side_effect=real_build,
-        ) as spy:
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
+                side_effect=real_build,
+            ) as spy,
+        ):
             result = runner.invoke(app, ["list"])
 
         assert result.exit_code == 0
@@ -231,12 +216,15 @@ class TestListConsultsSurfacePlan:
         resolver(_GLOBAL_AGENT).mkdir(parents=True)
         _write_project(tmp_path, [_GLOBAL_AGENT])
 
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.get_global_command_dir",
-            side_effect=resolver,
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.get_global_command_dir",
+                side_effect=resolver,
+            ),
         ):
             result = runner.invoke(app, ["list"])
 
@@ -249,12 +237,15 @@ class TestListConsultsSurfacePlan:
         resolver = _fake_global_resolver(tmp_path / "home")
         _write_project(tmp_path, [_GLOBAL_AGENT])
 
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.get_global_command_dir",
-            side_effect=resolver,
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.get_global_command_dir",
+                side_effect=resolver,
+            ),
         ):
             result = runner.invoke(app, ["list"])
 
@@ -270,12 +261,15 @@ class TestStatusConsultsSurfacePlan:
         resolver(_GLOBAL_AGENT).mkdir(parents=True)
         _write_project(tmp_path, [_GLOBAL_AGENT])
 
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.get_global_command_dir",
-            side_effect=resolver,
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.get_global_command_dir",
+                side_effect=resolver,
+            ),
         ):
             result = runner.invoke(app, ["status"])
 
@@ -286,13 +280,16 @@ class TestStatusConsultsSurfacePlan:
         """``status`` must build a SurfacePresenceIndex for the known tools."""
         _write_project(tmp_path, [_GLOBAL_AGENT])
         real_build = SurfacePresenceIndex.build
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
-            side_effect=real_build,
-        ) as spy:
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
+                side_effect=real_build,
+            ) as spy,
+        ):
             result = runner.invoke(app, ["status"])
 
         assert result.exit_code == 0
@@ -320,16 +317,20 @@ class TestConfiguredClaudeSessionPresence:
         _write_project(tmp_path, [self._CLAUDE])
 
         real_build = SurfacePresenceIndex.build
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.get_global_command_dir",
-            side_effect=resolver,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
-            side_effect=real_build,
-        ) as spy:
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.get_global_command_dir",
+                side_effect=resolver,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
+                side_effect=real_build,
+            ) as spy,
+        ):
             result = runner.invoke(app, ["list"])
 
         assert result.exit_code == 0
@@ -345,16 +346,20 @@ class TestConfiguredClaudeSessionPresence:
         _write_project(tmp_path, [self._CLAUDE])
 
         real_build = SurfacePresenceIndex.build
-        with patch(
-            "specify_cli.cli.commands.agent.config.find_repo_root",
-            return_value=tmp_path,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.get_global_command_dir",
-            side_effect=resolver,
-        ), patch(
-            "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
-            side_effect=real_build,
-        ) as spy:
+        with (
+            patch(
+                "specify_cli.cli.commands.agent.config.find_repo_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.get_global_command_dir",
+                side_effect=resolver,
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.config.SurfacePresenceIndex.build",
+                side_effect=real_build,
+            ) as spy,
+        ):
             result = runner.invoke(app, ["list"])
 
         assert result.exit_code == 0

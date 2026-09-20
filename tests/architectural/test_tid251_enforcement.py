@@ -57,11 +57,7 @@ def test_no_whole_dir_tid251_exemption_for_tests() -> None:
     """No ``tests/**`` per-file-ignore may disable TID251 (F2 / F5 scope hole)."""
     config = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     per_file = config["tool"]["ruff"]["lint"]["per-file-ignores"]
-    offenders = {
-        pattern: codes
-        for pattern, codes in per_file.items()
-        if pattern.startswith("tests") and "TID251" in codes
-    }
+    offenders = {pattern: codes for pattern, codes in per_file.items() if pattern.startswith("tests") and "TID251" in codes}
     assert not offenders, (
         "Whole-directory per-file-ignores re-introduce the TID251 scope hole for "
         f"test trees: {offenders}. Annotate individual call sites with "
@@ -73,11 +69,7 @@ def test_no_blanket_src_tid251_exemption() -> None:
     """No ``src/**`` per-file-ignore may disable Gap-5 for all production code."""
     config = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     per_file = config["tool"]["ruff"]["lint"]["per-file-ignores"]
-    offenders = {
-        pattern: codes
-        for pattern, codes in per_file.items()
-        if pattern.rstrip("/") in {"src", "src/**"} and "TID251" in codes
-    }
+    offenders = {pattern: codes for pattern, codes in per_file.items() if pattern.rstrip("/") in {"src", "src/**"} and "TID251" in codes}
     assert not offenders, (
         "Whole-tree src TID251 ignores make the click.exceptions ban dead config "
         f"for production code: {offenders}. Keep exceptions scoped to exact "
@@ -89,14 +81,9 @@ def test_no_src_file_level_tid251_exemptions() -> None:
     """Production raw-SHA exceptions must be inline, not file-level."""
     config = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     per_file = config["tool"]["ruff"]["lint"]["per-file-ignores"]
-    offenders = {
-        pattern: codes
-        for pattern, codes in per_file.items()
-        if pattern.startswith("src/") and "TID251" in codes
-    }
+    offenders = {pattern: codes for pattern, codes in per_file.items() if pattern.startswith("src/") and "TID251" in codes}
     assert not offenders, (
-        "File-level src TID251 ignores also disable the click.exceptions ban "
-        f"inside raw-SHA owner files: {offenders}. Keep raw-SHA exceptions inline."
+        f"File-level src TID251 ignores also disable the click.exceptions ban inside raw-SHA owner files: {offenders}. Keep raw-SHA exceptions inline."
     )
 
 
@@ -131,8 +118,7 @@ def test_raw_sha256_in_formerly_exempt_dir_is_flagged() -> None:
         "tests/charter/synthesizer/_tid251_probe.py",
     )
     assert proc.returncode != 0, (
-        "Unannotated hashlib.sha256 under tests/charter/ was NOT flagged — the "
-        f"whole-directory exemption appears to be back.\nstdout:\n{proc.stdout}"
+        f"Unannotated hashlib.sha256 under tests/charter/ was NOT flagged — the whole-directory exemption appears to be back.\nstdout:\n{proc.stdout}"
     )
     assert "TID251" in proc.stdout
 
@@ -143,10 +129,7 @@ def test_annotated_sha256_is_allowed() -> None:
         'import hashlib\nhashlib.sha256(b"x").hexdigest()  # noqa: TID251 - probe\n',
         "tests/charter/synthesizer/_tid251_probe.py",
     )
-    assert proc.returncode == 0, (
-        f"`# noqa: TID251` did not suppress the ban.\nstdout:\n{proc.stdout}\n"
-        f"stderr:\n{proc.stderr}"
-    )
+    assert proc.returncode == 0, f"`# noqa: TID251` did not suppress the ban.\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 
 
 def test_retired_subsystem_imports_are_flagged() -> None:
@@ -158,10 +141,7 @@ def test_retired_subsystem_imports_are_flagged() -> None:
         f"import {retired_sync}\nfrom specify_cli import {retired_delivery.split(dotted, 1)[1]}\n",
         "src/specify_cli/_retired_subsystem_probe.py",
     )
-    assert proc.returncode != 0, (
-        "Ruff did not flag retired subsystem imports.\n"
-        f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
-    )
+    assert proc.returncode != 0, f"Ruff did not flag retired subsystem imports.\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
     assert retired_sync in proc.stdout
     assert retired_delivery in proc.stdout
 
@@ -173,8 +153,7 @@ def test_click_exceptions_probe_in_src_is_flagged() -> None:
         "src/specify_cli/orchestrator_api/_tid251_probe.py",
     )
     assert proc.returncode != 0, (
-        "Bare click.exceptions.UsageError under src/ was NOT flagged — "
-        f"Gap-5 enforcement is dead for production code.\nstdout:\n{proc.stdout}"
+        f"Bare click.exceptions.UsageError under src/ was NOT flagged — Gap-5 enforcement is dead for production code.\nstdout:\n{proc.stdout}"
     )
     assert "TID251" in proc.stdout
 
@@ -185,8 +164,5 @@ def test_click_exceptions_probe_in_raw_sha_owner_file_is_flagged() -> None:
         "import click\nraise click.exceptions.UsageError('bad')\n",
         "src/specify_cli/sync/body_upload.py",
     )
-    assert proc.returncode != 0, (
-        "Bare click.exceptions.UsageError inside a raw-SHA owner file was NOT "
-        f"flagged.\nstdout:\n{proc.stdout}"
-    )
+    assert proc.returncode != 0, f"Bare click.exceptions.UsageError inside a raw-SHA owner file was NOT flagged.\nstdout:\n{proc.stdout}"
     assert "TID251" in proc.stdout

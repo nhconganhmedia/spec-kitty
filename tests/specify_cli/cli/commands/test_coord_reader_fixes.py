@@ -7,6 +7,7 @@ T019: implement.py dependency gate uses resolved coord path (not raw repo_root/k
 T020: mid8 extraction from slug works for slugs with 8-char ULID suffix.
 T021: mid8 extraction returns empty string for legacy slugs without ULID suffix.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -17,6 +18,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 # ---------------------------------------------------------------------------
 # T016 / T017: resolve_mission_read_path path selection
 # ---------------------------------------------------------------------------
+
 
 class TestResolveMissionReadPath:
     """Verify coord-worktree-first priority in resolve_mission_read_path."""
@@ -31,9 +33,7 @@ class TestResolveMissionReadPath:
         mid8 = "01KT3YBD"
 
         # Create coord worktree directory
-        coord_mission_dir = (
-            tmp_path / ".worktrees" / f"{slug}-{mid8}-coord" / "kitty-specs" / f"{slug}-{mid8}"
-        )
+        coord_mission_dir = tmp_path / ".worktrees" / f"{slug}-{mid8}-coord" / "kitty-specs" / f"{slug}-{mid8}"
         coord_mission_dir.mkdir(parents=True)
 
         result = resolve_mission_read_path(tmp_path, slug, mid8)
@@ -55,9 +55,7 @@ class TestResolveMissionReadPath:
         result = resolve_mission_read_path(tmp_path, slug, mid8)
         assert result == primary_mission_dir
 
-    def test_declared_coord_topology_without_worktree_reads_primary(
-        self, tmp_path: Path
-    ) -> None:
+    def test_declared_coord_topology_without_worktree_reads_primary(self, tmp_path: Path) -> None:
         """Before coord worktree materialization, bootstrap status lives in primary."""
         from specify_cli.missions._read_path_resolver import (
             _resolve_mission_read_path as resolve_mission_read_path,
@@ -75,9 +73,7 @@ class TestResolveMissionReadPath:
 
         assert resolve_mission_read_path(tmp_path, slug, mid8) == primary_mission_dir
 
-    def test_declared_coord_topology_materialized_empty_worktree_fails_closed(
-        self, tmp_path: Path
-    ) -> None:
+    def test_declared_coord_topology_materialized_empty_worktree_fails_closed(self, tmp_path: Path) -> None:
         """Modern coord missions must not read primary once coord root exists."""
         from specify_cli.missions._read_path_resolver import (
             StatusReadPathNotFound,
@@ -155,6 +151,7 @@ class TestResolveMissionReadPath:
 # T018: orchestrator_api _resolve_mission_dir returns None when absent
 # ---------------------------------------------------------------------------
 
+
 class TestResolveMissionDirOrchestratorApi:
     """Verify _resolve_mission_dir behaves correctly for coord and legacy missions."""
 
@@ -171,9 +168,7 @@ class TestResolveMissionDirOrchestratorApi:
 
         slug = "my-feature"
         mid8 = "01KT3YBD"
-        coord_mission_dir = (
-            tmp_path / ".worktrees" / f"{slug}-{mid8}-coord" / "kitty-specs" / f"{slug}-{mid8}"
-        )
+        coord_mission_dir = tmp_path / ".worktrees" / f"{slug}-{mid8}-coord" / "kitty-specs" / f"{slug}-{mid8}"
         coord_mission_dir.mkdir(parents=True)
 
         result = _resolve_mission_dir(tmp_path, f"{slug}-{mid8}")
@@ -207,21 +202,25 @@ class TestResolveMissionDirOrchestratorApi:
 # T019 / T020 / T021: mid8 extraction from mission slug
 # ---------------------------------------------------------------------------
 
+
 class TestMid8Extraction:
     """Verify mid8 extraction heuristic used in implement.py and tasks.py (T020, T021)."""
 
-    @pytest.mark.parametrize("slug,expected_mid8", [
-        # post-083 slug with ULID mid8 suffix (8 UPPER ALNUM chars)
-        ("my-feature-01KT3YBD", "01KT3YBD"),
-        ("execution-context-unification-01KT3YBD", "01KT3YBD"),
-        # legacy slug — no ULID suffix
-        ("legacy-feature", ""),
-        ("012-old-style-mission", ""),
-        # suffix present but not all-uppercase alphanumeric
-        ("my-feature-abcd1234", ""),  # lowercase → not a ULID mid8
-        # slug with numeric-only tail
-        ("feature-12345678", "12345678"),
-    ])
+    @pytest.mark.parametrize(
+        "slug,expected_mid8",
+        [
+            # post-083 slug with ULID mid8 suffix (8 UPPER ALNUM chars)
+            ("my-feature-01KT3YBD", "01KT3YBD"),
+            ("execution-context-unification-01KT3YBD", "01KT3YBD"),
+            # legacy slug — no ULID suffix
+            ("legacy-feature", ""),
+            ("012-old-style-mission", ""),
+            # suffix present but not all-uppercase alphanumeric
+            ("my-feature-abcd1234", ""),  # lowercase → not a ULID mid8
+            # slug with numeric-only tail
+            ("feature-12345678", "12345678"),
+        ],
+    )
     def test_mid8_extraction(self, slug: str, expected_mid8: str) -> None:
         """mid8 is extracted iff tail is exactly 8 Crockford base32 chars (T020, T021)."""
         from specify_cli.lanes.branch_naming import mid8_from_slug

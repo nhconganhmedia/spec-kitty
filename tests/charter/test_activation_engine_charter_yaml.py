@@ -108,18 +108,14 @@ class TestResolveActivationWriteTargetLegacy:
         assert isinstance(data, dict)
         assert "charter" not in data
 
-    def test_no_config_yaml_at_all_targets_config_yaml_empty_dict(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_config_yaml_at_all_targets_config_yaml_empty_dict(self, tmp_path: Path) -> None:
         target_path, data, _save = resolve_activation_write_target(tmp_path)
 
         assert target_path == tmp_path / ".kittify" / "config.yaml"
         assert data == {}
 
     def test_legacy_save_writes_full_config_document(self, tmp_path: Path) -> None:
-        config_path = _write_config(
-            tmp_path, "vcs:\n  type: git\nactivated_directives:\n  - existing\n"
-        )
+        config_path = _write_config(tmp_path, "vcs:\n  type: git\nactivated_directives:\n  - existing\n")
         target_path, data, save = resolve_activation_write_target(tmp_path)
 
         data["activated_directives"] = ["existing", "new-one"]
@@ -146,9 +142,7 @@ class TestResolveActivationWriteTargetMigrated:
         assert "governance" in data  # full document loaded, not just activation
 
     def test_dangling_pointer_raises(self, tmp_path: Path) -> None:
-        _write_config(
-            tmp_path, "vcs:\n  type: git\ncharter: .kittify/charter/charter.yaml\n"
-        )
+        _write_config(tmp_path, "vcs:\n  type: git\ncharter: .kittify/charter/charter.yaml\n")
         # charter.yaml deliberately not created.
 
         with pytest.raises(CharterPackConfigError, match="CHARTER_PACK_CONFIG_INVALID"):
@@ -162,9 +156,7 @@ class TestResolveActivationWriteTargetMigrated:
 
 
 class TestCommitPlanChartersYamlSectionPreservation:
-    def test_commit_plan_writes_activation_and_preserves_governance_and_catalog(
-        self, tmp_path: Path
-    ) -> None:
+    def test_commit_plan_writes_activation_and_preserves_governance_and_catalog(self, tmp_path: Path) -> None:
         _migrated_project(tmp_path)
         charter_path = tmp_path / ".kittify" / "charter" / "charter.yaml"
         before_text = charter_path.read_text(encoding="utf-8")
@@ -189,9 +181,7 @@ class TestCommitPlanChartersYamlSectionPreservation:
         assert after["directives"] == before["directives"]
         assert after["metadata"] == before["metadata"]
 
-    def test_commit_plan_does_not_create_an_activation_subsection(
-        self, tmp_path: Path
-    ) -> None:
+    def test_commit_plan_does_not_create_an_activation_subsection(self, tmp_path: Path) -> None:
         """Activation keys are FLAT root keys (paula BLOCKER-1) — commit_plan
         must never nest them under an ``activation:`` mapping key."""
         _migrated_project(tmp_path)
@@ -230,34 +220,24 @@ def manager() -> CharterPackManager:
 
 
 class TestActivateAgainstMigratedProject:
-    def test_activate_writes_into_charter_yaml_not_config_yaml(
-        self, manager: CharterPackManager, tmp_path: Path
-    ) -> None:
+    def test_activate_writes_into_charter_yaml_not_config_yaml(self, manager: CharterPackManager, tmp_path: Path) -> None:
         _migrated_project(tmp_path)
         ctx = ProjectContext(repo_root=tmp_path)
 
-        manager.activate(
-            ctx, kind="directive", artifact_id="010-specification-fidelity-requirement"
-        )
+        manager.activate(ctx, kind="directive", artifact_id="010-specification-fidelity-requirement")
 
         charter_path = tmp_path / ".kittify" / "charter" / "charter.yaml"
         charter_data = pyyaml.safe_load(charter_path.read_text(encoding="utf-8"))
         assert "010-specification-fidelity-requirement" in charter_data["activated_directives"]
 
-        config_data = pyyaml.safe_load(
-            (tmp_path / ".kittify" / "config.yaml").read_text(encoding="utf-8")
-        )
+        config_data = pyyaml.safe_load((tmp_path / ".kittify" / "config.yaml").read_text(encoding="utf-8"))
         assert "activated_directives" not in config_data
 
-    def test_activate_preserves_governance_section(
-        self, manager: CharterPackManager, tmp_path: Path
-    ) -> None:
+    def test_activate_preserves_governance_section(self, manager: CharterPackManager, tmp_path: Path) -> None:
         _migrated_project(tmp_path)
         ctx = ProjectContext(repo_root=tmp_path)
 
-        manager.activate(
-            ctx, kind="directive", artifact_id="010-specification-fidelity-requirement"
-        )
+        manager.activate(ctx, kind="directive", artifact_id="010-specification-fidelity-requirement")
 
         charter_path = tmp_path / ".kittify" / "charter" / "charter.yaml"
         charter_data = pyyaml.safe_load(charter_path.read_text(encoding="utf-8"))
@@ -265,15 +245,11 @@ class TestActivateAgainstMigratedProject:
 
 
 class TestDeactivateAgainstMigratedProject:
-    def test_deactivate_removes_from_charter_yaml(
-        self, manager: CharterPackManager, tmp_path: Path
-    ) -> None:
+    def test_deactivate_removes_from_charter_yaml(self, manager: CharterPackManager, tmp_path: Path) -> None:
         _migrated_project(tmp_path)
         ctx = ProjectContext(repo_root=tmp_path)
 
-        result = manager.deactivate(
-            ctx, kind="directive", artifact_id="001-architectural-integrity-standard"
-        )
+        result = manager.deactivate(ctx, kind="directive", artifact_id="001-architectural-integrity-standard")
 
         assert result.deactivated == ["001-architectural-integrity-standard"]
         charter_path = tmp_path / ".kittify" / "charter" / "charter.yaml"
@@ -282,9 +258,7 @@ class TestDeactivateAgainstMigratedProject:
 
 
 class TestListActivatedAgainstMigratedProject:
-    def test_list_activated_reads_from_charter_yaml(
-        self, manager: CharterPackManager, tmp_path: Path
-    ) -> None:
+    def test_list_activated_reads_from_charter_yaml(self, manager: CharterPackManager, tmp_path: Path) -> None:
         _migrated_project(tmp_path)
         ctx = ProjectContext(repo_root=tmp_path)
 
@@ -294,9 +268,7 @@ class TestListActivatedAgainstMigratedProject:
 
 
 class TestMergeDefaultsAgainstMigratedProject:
-    def test_merge_defaults_seeds_absent_keys_into_charter_yaml_single_write(
-        self, manager: CharterPackManager, tmp_path: Path
-    ) -> None:
+    def test_merge_defaults_seeds_absent_keys_into_charter_yaml_single_write(self, manager: CharterPackManager, tmp_path: Path) -> None:
         _migrated_project(tmp_path)
         ctx = ProjectContext(repo_root=tmp_path)
 

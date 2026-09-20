@@ -144,9 +144,7 @@ class MissionAuditResult:
             "findings": [f.to_dict() for f in self.findings],
             "has_errors": self.has_errors,
             "has_teamspace_blockers": self.has_teamspace_blockers,
-            "mission_dir": _stable_mission_dir_for_json(
-                self.mission_dir, self.mission_slug
-            ),
+            "mission_dir": _stable_mission_dir_for_json(self.mission_dir, self.mission_slug),
             "mission_slug": self.mission_slug,
         }
 

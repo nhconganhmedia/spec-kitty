@@ -133,11 +133,13 @@ class TestValidateGlobMatchesClassification:
         existing.write_text("# real\n")
 
         manifests = {
-            "WP01": _make_manifest([
-                "src/*.py",           # glob — matches (no warning)
-                "src/missing.py",     # literal — no match (hard error)
-                "tests/**/*.py",      # glob — no match (warning)
-            ])
+            "WP01": _make_manifest(
+                [
+                    "src/*.py",  # glob — matches (no warning)
+                    "src/missing.py",  # literal — no match (hard error)
+                    "tests/**/*.py",  # glob — no match (warning)
+                ]
+            )
         }
         result = validate_glob_matches(manifests, tmp_path)
 
@@ -208,10 +210,12 @@ class TestCreateIntentSuppression:
     def test_create_intent_partial_suppression(self, tmp_path: Path) -> None:
         """Only the exact paths in create_intent are suppressed; others still error."""
         manifests = {
-            "WP01": _make_manifest([
-                "src/new_module.py",    # suppressed
-                "src/other_module.py",  # not suppressed → hard error
-            ])
+            "WP01": _make_manifest(
+                [
+                    "src/new_module.py",  # suppressed
+                    "src/other_module.py",  # not suppressed → hard error
+                ]
+            )
         }
         create_intent = {"WP01": ["src/new_module.py"]}
 

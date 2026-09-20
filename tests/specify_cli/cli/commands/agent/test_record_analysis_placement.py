@@ -53,10 +53,7 @@ class TestRequireRecordAnalysisPlacementFailClosed:
         )
 
         target = CommitTarget(ref="kitty/mission-001-demo-AAAA1111")
-        assert (
-            _require_record_analysis_placement(target, mission_slug="001-demo")
-            is target
-        )
+        assert _require_record_analysis_placement(target, mission_slug="001-demo") is target
 
 
 # ---------------------------------------------------------------------------
@@ -67,9 +64,7 @@ class TestRequireRecordAnalysisPlacementFailClosed:
 
 
 class TestResolverContractUnchanged:
-    def test_resolver_still_returns_none_on_resolution_failure(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_resolver_still_returns_none_on_resolution_failure(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         import mission_runtime
 
         from specify_cli.cli.commands.agent import mission_record_analysis as seam
@@ -81,10 +76,7 @@ class TestResolverContractUnchanged:
         # (NOT ``resolve_action_context``); patch the symbol actually on the path so the
         # ActionContextError is raised inside the seam call and caught → None.
         monkeypatch.setattr(mission_runtime, "placement_seam", _boom, raising=False)
-        assert (
-            seam._resolve_record_analysis_placement_ref(tmp_path, tmp_path / "001-demo")
-            is None
-        )
+        assert seam._resolve_record_analysis_placement_ref(tmp_path, tmp_path / "001-demo") is None
 
 
 # ---------------------------------------------------------------------------
@@ -106,9 +98,7 @@ class TestRecordAnalysisCommandFailsClosedOnUnresolvedPlacement:
     ``PLACEMENT_RESOLUTION_REQUIRED`` error BEFORE the preflight even runs.
     """
 
-    def test_json_output_reports_structured_error_before_preflight(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_json_output_reports_structured_error_before_preflight(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from specify_cli.cli.commands.agent import mission_record_analysis as seam
         from specify_cli.cli.commands.agent.mission import app as mission_app
 
@@ -138,9 +128,7 @@ class TestRecordAnalysisCommandFailsClosedOnUnresolvedPlacement:
         # The fail-closed check must gate BEFORE the (now-unreachable) preflight.
         assert preflight_calls == []
 
-    def test_human_output_reports_structured_error(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_human_output_reports_structured_error(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from specify_cli.cli.commands.agent import mission_record_analysis as seam
         from specify_cli.cli.commands.agent.mission import app as mission_app
 
@@ -162,9 +150,7 @@ class TestRecordAnalysisCommandFailsClosedOnUnresolvedPlacement:
         assert "001-demo" in result.stdout
         assert "canonical write placement" in result.stdout
 
-    def test_resolved_placement_ref_proceeds_to_preflight(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_resolved_placement_ref_proceeds_to_preflight(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Control: when placement DOES resolve, the command proceeds past
         the new gate to the (mocked) preflight and empty-body check, proving
         the gate does not over-trigger on the healthy path."""
@@ -185,8 +171,6 @@ class TestRecordAnalysisCommandFailsClosedOnUnresolvedPlacement:
 
         # Empty stdin -> the pre-existing "empty body" branch, proving control
         # flow reached PAST the placement gate.
-        result = _RUNNER.invoke(
-            mission_app, ["record-analysis", "--json", "--mission", "001-demo"], input="   \n"
-        )
+        result = _RUNNER.invoke(mission_app, ["record-analysis", "--json", "--mission", "001-demo"], input="   \n")
         assert result.exit_code == 1
         assert "empty" in result.stdout.lower()

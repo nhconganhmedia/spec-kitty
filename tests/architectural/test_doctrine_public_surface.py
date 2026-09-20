@@ -261,10 +261,7 @@ def test_every_public_symbol_is_routed_through_a_facade() -> None:
     facade_reexports = _api_symbols_reexported_by_facades()
 
     unknown = sorted(facade_reexports - api_all)
-    assert not unknown, (
-        "A charter facade re-exports names from charter.offering.api that are absent from "
-        f"charter.offering.api.__all__ (surface drift): {unknown}"
-    )
+    assert not unknown, f"A charter facade re-exports names from charter.offering.api that are absent from charter.offering.api.__all__ (surface drift): {unknown}"
 
     coverage_gap = sorted(api_all - facade_reexports)
     assert not coverage_gap, (

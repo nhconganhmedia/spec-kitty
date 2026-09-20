@@ -101,8 +101,11 @@ def _payload(
 
 
 def _resolve_commit_inputs(
-    repo_root: Path, files: list[Path], mission: str | None,
-    owned_checkout: Path | None, target_branch: str | None,
+    repo_root: Path,
+    files: list[Path],
+    mission: str | None,
+    owned_checkout: Path | None,
+    target_branch: str | None,
 ) -> tuple[str | None, list[Path], OwnedMission | None]:
     """Resolve and validate the complete commit batch before any mutation."""
     mission_slug = _derive_mission_slug(str(files[0]) if files else None, mission)
@@ -139,28 +142,18 @@ def _reject_directory_args(abs_files: list[Path], json_output: bool) -> None:
 def spec_commit_command(
     files: list[Path] = typer.Argument(
         ...,
-        help=(
-            "Spec artifacts to commit (absolute or relative paths). "
-            "Must belong to the mission resolved via --mission or the "
-            "kitty-specs/<slug>/ path."
-        ),
+        help=("Spec artifacts to commit (absolute or relative paths). Must belong to the mission resolved via --mission or the kitty-specs/<slug>/ path."),
     ),
     message: str = typer.Option(..., "--message", "-m", help="Commit message."),
     mission: str | None = typer.Option(
         None,
         "--mission",
-        help=(
-            "Mission slug (e.g. '001-my-mission'). When omitted, the slug is "
-            "derived from the first file argument's kitty-specs/<slug>/ path."
-        ),
+        help=("Mission slug (e.g. '001-my-mission'). When omitted, the slug is derived from the first file argument's kitty-specs/<slug>/ path."),
     ),
     target_branch: str | None = typer.Option(
         None,
         "--target-branch",
-        help=(
-            "Short primary branch name used for the post-commit ff-advance "
-            "(WP09 / FR-010). Optional."
-        ),
+        help=("Short primary branch name used for the post-commit ff-advance (WP09 / FR-010). Optional."),
     ),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
     owned_checkout: Annotated[Path | None, typer.Option("--owned-checkout", help="Explicit single-branch checkout root.")] = None,
@@ -184,8 +177,7 @@ def spec_commit_command(
         if not mission_slug:
             _err(
                 json_output,
-                "Cannot resolve mission slug. Pass --mission <slug> or provide a "
-                "kitty-specs/<slug>/ path as the first argument.",
+                "Cannot resolve mission slug. Pass --mission <slug> or provide a kitty-specs/<slug>/ path as the first argument.",
             )
             raise typer.Exit(1)
 
@@ -217,9 +209,7 @@ def spec_commit_command(
             if json_output:
                 print(json.dumps(payload, indent=2))
             else:
-                console.print(
-                    f"[green]✓[/green] Spec artifact(s) committed to {result.placement_ref}"
-                )
+                console.print(f"[green]✓[/green] Spec artifact(s) committed to {result.placement_ref}")
                 if result.commit_hash:
                     console.print(f"[dim]Commit: {result.commit_hash[:7]}[/dim]")
 

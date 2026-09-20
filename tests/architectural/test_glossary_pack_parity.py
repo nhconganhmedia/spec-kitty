@@ -54,6 +54,7 @@ _OPTIONAL_SEED_KEYS: tuple[str, ...] = (
     "synonyms_to_avoid",
 )
 
+
 def _load_seed_terms() -> list[dict[str, Any]]:
     yaml = YAML(typ="safe")
     with _SEED_PATH.open("r", encoding="utf-8") as fh:
@@ -111,9 +112,7 @@ def pack_terms_by_surface() -> dict[str, Any]:
 #: (C-003, pinned by ``test_glossary_pack_no_regression``), so these additions
 #: live only pack-side; parity is therefore ``pack == seed ∪ {these}``, which
 #: still proves no seed term was dropped and no *unexpected* term invented.
-_MISSION_ADDED_SURFACES: frozenset[str] = frozenset(
-    {"transition gate", "gate handler", "gate binding", "canonical issue-matrix"}
-)
+_MISSION_ADDED_SURFACES: frozenset[str] = frozenset({"transition gate", "gate handler", "gate binding", "canonical issue-matrix"})
 
 
 def test_surface_set_parity(seed_terms: list[dict[str, Any]], pack_terms_by_surface: dict[str, Any]) -> None:
@@ -156,19 +155,13 @@ def test_every_seed_term_every_present_key_round_trips_identically(
             if key == "confidence":
                 # confidence compares as float (contract explicit carve-out).
                 if pack_term.confidence != float(seed_value):
-                    mismatches.append(
-                        f"{surface!r}.confidence: seed={seed_value!r} "
-                        f"pack={pack_term.confidence!r}"
-                    )
+                    mismatches.append(f"{surface!r}.confidence: seed={seed_value!r} pack={pack_term.confidence!r}")
                 continue
 
             if key == "see_also":
                 expected = _expected_see_also(seed_value)
                 if pack_term.see_also != expected:
-                    mismatches.append(
-                        f"{surface!r}.see_also: expected={expected!r} "
-                        f"pack={pack_term.see_also!r}"
-                    )
+                    mismatches.append(f"{surface!r}.see_also: expected={expected!r} pack={pack_term.see_also!r}")
                 continue
 
             # definition, status, introduced_in_mission, synonyms_to_avoid:
@@ -176,14 +169,9 @@ def test_every_seed_term_every_present_key_round_trips_identically(
             # list[str] shaped in the seed -- no transform needed).
             pack_value = getattr(pack_term, key, "<MISSING ATTRIBUTE>")
             if pack_value != seed_value:
-                mismatches.append(
-                    f"{surface!r}.{key}: seed={seed_value!r} pack={pack_value!r}"
-                )
+                mismatches.append(f"{surface!r}.{key}: seed={seed_value!r} pack={pack_value!r}")
 
-    assert not mismatches, (
-        "seed<->pack parity broke for the following seed-present field(s) "
-        "(NFR-002 standing invariant):\n  " + "\n  ".join(mismatches)
-    )
+    assert not mismatches, "seed<->pack parity broke for the following seed-present field(s) (NFR-002 standing invariant):\n  " + "\n  ".join(mismatches)
 
 
 def test_terms_with_no_optional_seed_fields_have_none_on_pack_side(
@@ -204,9 +192,6 @@ def test_terms_with_no_optional_seed_fields_have_none_on_pack_side(
             if key in seed_term:
                 continue
             if getattr(pack_term, key) is not None:
-                violations.append(
-                    f"{surface!r}.{key}: seed has no value but pack has "
-                    f"{getattr(pack_term, key)!r}"
-                )
+                violations.append(f"{surface!r}.{key}: seed has no value but pack has {getattr(pack_term, key)!r}")
 
     assert not violations, "\n".join(violations)

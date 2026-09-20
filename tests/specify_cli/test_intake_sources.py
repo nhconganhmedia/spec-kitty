@@ -1,4 +1,5 @@
 """Unit tests for specify_cli.intake_sources."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,6 +12,8 @@ from tests.specify_cli.intake_test_helpers import patched_harness_plan_sources
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 class TestHarnessPlanSources:
     def test_list_is_defined(self):
         assert isinstance(HARNESS_PLAN_SOURCES, list)
@@ -126,14 +129,12 @@ class TestScanForPlans:
             results = scan_for_plans(tmp_path)
         assert results == []
 
-
     def test_handoff_dir_is_an_active_scan_entry(self):
         keys = [entry[0] for entry in HARNESS_PLAN_SOURCES]
         assert "handoff" in keys
         handoff = next(e for e in HARNESS_PLAN_SOURCES if e[0] == "handoff")
         assert handoff[1] is None
         assert handoff[2] == [".handoff"]
-
 
     def test_scans_handoff_markdown_files(self, tmp_path: Path):
         packet = tmp_path / ".handoff" / "widget-booking.md"

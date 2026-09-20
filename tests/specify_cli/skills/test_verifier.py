@@ -260,6 +260,7 @@ def test_repair_restores_missing_file(tmp_path: Path) -> None:
 def test_repair_restores_drifted_file(tmp_path: Path) -> None:
     """Only exact-path consent permits overwriting modified managed content."""
     from specify_cli.tool_surface.operations import ApplyConsent
+
     canonical = "---\nname: test-skill\n---\n# Canonical\nCorrect content.\n"
     registry = _create_registry(tmp_path, "test-skill", {"SKILL.md": canonical})
 
@@ -281,7 +282,9 @@ def test_repair_restores_drifted_file(tmp_path: Path) -> None:
     assert repair_skills(tmp_path, verify_result, registry) == (0, 1)
     assert (tmp_path / installed_path).read_text() == "user edited this"
     repaired, failed = repair_skills(
-        tmp_path, verify_result, registry,
+        tmp_path,
+        verify_result,
+        registry,
         consent=ApplyConsent(automatic=True, overwrite_paths=(installed_path,)),
     )
     assert repaired == 1
@@ -563,14 +566,10 @@ def test_repair_unsafe_skill_name_never_touches_global_root(tmp_path: Path, monk
 
 def _registry_with_kept_skill(tmp_path: Path) -> SkillRegistry:
     """A live registry that positively lacks the retired skill."""
-    return _create_registry(
-        tmp_path, "kept-skill", {"SKILL.md": "---\nname: kept-skill\n---\n# Kept\n"}
-    )
+    return _create_registry(tmp_path, "kept-skill", {"SKILL.md": "---\nname: kept-skill\n---\n# Kept\n"})
 
 
-def test_retired_skill_broken_symlink_drained_without_warning(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_retired_skill_broken_symlink_drained_without_warning(tmp_path: Path, caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     """The #2409 loop: a retired skill's projection symlink breaks when the
     global root drops the skill; repair used to warn 'not found in registry'
     on every upgrade and leave the orphan. It must now drain it silently."""
@@ -614,9 +613,7 @@ def test_retired_skill_clean_copy_removed(tmp_path: Path) -> None:
     """A hash-clean copy-mode file of a retired skill is deleted outright."""
     registry = _registry_with_kept_skill(tmp_path)
     installed_path = ".claude/skills/retired-skill/SKILL.md"
-    entry = _setup_manifest_and_file(
-        tmp_path, installed_path, "# Retired\n", skill_name="retired-skill"
-    )
+    entry = _setup_manifest_and_file(tmp_path, installed_path, "# Retired\n", skill_name="retired-skill")
     save_manifest(ManagedSkillManifest(entries=[entry]), tmp_path)
 
     # Force the repair path with an unrelated missing entry so verify is not ok.
@@ -634,9 +631,7 @@ def test_retired_skill_modified_copy_archived_not_deleted(tmp_path: Path) -> Non
     """A user-MODIFIED copy of a retired skill is archived, never deleted."""
     registry = _registry_with_kept_skill(tmp_path)
     installed_path = ".claude/skills/retired-skill/SKILL.md"
-    entry = _setup_manifest_and_file(
-        tmp_path, installed_path, "# Retired\n", skill_name="retired-skill"
-    )
+    entry = _setup_manifest_and_file(tmp_path, installed_path, "# Retired\n", skill_name="retired-skill")
     dest = tmp_path / installed_path
     dest.write_text("# Retired — with my local edits\n", encoding="utf-8")
     save_manifest(ManagedSkillManifest(entries=[entry]), tmp_path)
@@ -646,14 +641,11 @@ def test_retired_skill_modified_copy_archived_not_deleted(tmp_path: Path) -> Non
     repaired, failed = repair_skills(tmp_path, VerifyResult(ok=False), registry)
     assert (repaired, failed) == (0, 1)
     assert dest.read_text(encoding="utf-8") == "# Retired — with my local edits\n"
-    repaired, failed = repair_skills(tmp_path, VerifyResult(ok=False), registry,
-                                     consent=ApplyConsent(automatic=True, overwrite_paths=(installed_path,)))
+    repaired, failed = repair_skills(tmp_path, VerifyResult(ok=False), registry, consent=ApplyConsent(automatic=True, overwrite_paths=(installed_path,)))
 
     assert (repaired, failed) == (1, 0)
     assert not dest.exists()
-    backups = list(
-        (tmp_path / ".kittify" / ".migration-backup" / "agent-skills").rglob("SKILL.md")
-    )
+    backups = list((tmp_path / ".kittify" / ".migration-backup" / "agent-skills").rglob("SKILL.md"))
     assert len(backups) == 1
     assert backups[0].read_text(encoding="utf-8") == "# Retired — with my local edits\n"
 
@@ -666,9 +658,7 @@ def test_empty_registry_never_retires(tmp_path: Path, absent: bool) -> None:
     if not absent:
         (tmp_path / "_empty_registry").mkdir()
     installed_path = ".claude/skills/some-skill/SKILL.md"
-    entry = _setup_manifest_and_file(
-        tmp_path, installed_path, "# Skill\n", skill_name="some-skill"
-    )
+    entry = _setup_manifest_and_file(tmp_path, installed_path, "# Skill\n", skill_name="some-skill")
     save_manifest(ManagedSkillManifest(entries=[entry]), tmp_path)
 
     repaired, failed = repair_skills(tmp_path, VerifyResult(ok=False), registry)
@@ -690,9 +680,7 @@ def test_user_authored_skill_in_projection_root_untouched(tmp_path: Path) -> Non
     user_skill.write_text("# Mine, not spec-kitty's\n", encoding="utf-8")
 
     retired_path = ".claude/skills/retired-skill/SKILL.md"
-    entry = _setup_manifest_and_file(
-        tmp_path, retired_path, "# Retired\n", skill_name="retired-skill"
-    )
+    entry = _setup_manifest_and_file(tmp_path, retired_path, "# Retired\n", skill_name="retired-skill")
     save_manifest(ManagedSkillManifest(entries=[entry]), tmp_path)
 
     repaired, failed = repair_skills(tmp_path, VerifyResult(ok=False), registry)

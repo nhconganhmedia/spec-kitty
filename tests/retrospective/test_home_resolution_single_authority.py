@@ -54,14 +54,10 @@ _PLACEMENT_MODULES = (
 # The retired coord-aware resolvers — a placement site that CALLS one of these is
 # an independent home-resolution (the #1771 leak source). They remain importable
 # (genuine topology-aware STATUS reads use them), but NEVER from a placement site.
-_COORD_AWARE_RESOLVERS = frozenset(
-    {"resolve_feature_dir_for_slug", "resolve_feature_dir_for_mission"}
-)
+_COORD_AWARE_RESOLVERS = frozenset({"resolve_feature_dir_for_slug", "resolve_feature_dir_for_mission"})
 
 # The single sanctioned authority surface a placement site may route through.
-_AUTHORITY_NAMES = frozenset(
-    {"resolve_retrospective_home", "canonical_record_path", "primary_feature_dir_for_mission"}
-)
+_AUTHORITY_NAMES = frozenset({"resolve_retrospective_home", "canonical_record_path", "primary_feature_dir_for_mission"})
 
 # Functions that are RE-HOMED-OFF the placement partition: load-bearing
 # back-compat READ paths (C-004 KEEP). ``_legacy_record_path`` constructs the
@@ -105,21 +101,11 @@ def _placement_string_literals(tree: ast.AST) -> set[str]:
     archived records still resolve (C-004 KEEP); their bodies are excluded so the
     scan flags only a PLACEMENT (write) site that hardcodes the payload.
     """
-    skip_funcs = {
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.FunctionDef) and node.name in _READ_PATH_FUNCTIONS
-    }
+    skip_funcs = {node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name in _READ_PATH_FUNCTIONS}
     skip_nodes: set[int] = set()
     for func in skip_funcs:
         skip_nodes.update(id(n) for n in ast.walk(func))
-    return {
-        node.value
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and id(node) not in skip_nodes
-    }
+    return {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in skip_nodes}
 
 
 def _hardcoded_kittify_retrospective_payloads(tree: ast.AST) -> list[str]:
@@ -175,9 +161,7 @@ def test_no_placement_site_hardcodes_kittify_retrospective_payload() -> None:
             offenders.append(f"{path}: {hits}")
 
     assert not offenders, (
-        "Retrospective placement site(s) hardcode a .kittify/missions/ "
-        "retrospective payload instead of routing through the authority:\n"
-        + "\n".join(offenders)
+        "Retrospective placement site(s) hardcode a .kittify/missions/ retrospective payload instead of routing through the authority:\n" + "\n".join(offenders)
     )
 
 
@@ -196,10 +180,7 @@ def test_every_placement_module_routes_through_the_authority() -> None:
         if not (called & _AUTHORITY_NAMES):
             missing.append(path)
 
-    assert not missing, (
-        "Placement module(s) do not route home-resolution through the single "
-        "authority surface:\n" + "\n".join(missing)
-    )
+    assert not missing, "Placement module(s) do not route home-resolution through the single authority surface:\n" + "\n".join(missing)
 
 
 def test_writer_authority_gates_on_primary_partition_kind() -> None:
@@ -211,26 +192,12 @@ def test_writer_authority_gates_on_primary_partition_kind() -> None:
     """
     _path, source = _module_source(writer)
     tree = ast.parse(source)
-    func = next(
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.FunctionDef) and node.name == "resolve_retrospective_home"
-    )
+    func = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "resolve_retrospective_home")
     names = _called_names(func)
-    referenced = {
-        node.attr
-        for node in ast.walk(func)
-        if isinstance(node, ast.Attribute)
-    } | {
-        node.id for node in ast.walk(func) if isinstance(node, ast.Name)
-    }
+    referenced = {node.attr for node in ast.walk(func) if isinstance(node, ast.Attribute)} | {node.id for node in ast.walk(func) if isinstance(node, ast.Name)}
 
-    assert "is_primary_artifact_kind" in names, (
-        "resolve_retrospective_home must gate on is_primary_artifact_kind(RETROSPECTIVE)."
-    )
-    assert "RETROSPECTIVE" in referenced, (
-        "resolve_retrospective_home must reference MissionArtifactKind.RETROSPECTIVE."
-    )
+    assert "is_primary_artifact_kind" in names, "resolve_retrospective_home must gate on is_primary_artifact_kind(RETROSPECTIVE)."
+    assert "RETROSPECTIVE" in referenced, "resolve_retrospective_home must reference MissionArtifactKind.RETROSPECTIVE."
     # read-side-seam-primary-primitive-closure-01KYKMMT WP03 cycle-1 (B1) fix:
     # this function is the callee `PlacementSeam.read_dir` dispatches
     # `RETROSPECTIVE` reads to — BENEATH `read_dir` in the call graph. The
@@ -267,6 +234,5 @@ def test_writer_authority_gates_on_primary_partition_kind() -> None:
         "_canonicalize_bare_modern_handle",
     }
     assert names & _SANCTIONED_CANONICALIZERS, (
-        "resolve_retrospective_home must canonicalize the handle (FR-011 write leg) "
-        f"via one of {sorted(_SANCTIONED_CANONICALIZERS)}; called: {sorted(names)}"
+        f"resolve_retrospective_home must canonicalize the handle (FR-011 write leg) via one of {sorted(_SANCTIONED_CANONICALIZERS)}; called: {sorted(names)}"
     )

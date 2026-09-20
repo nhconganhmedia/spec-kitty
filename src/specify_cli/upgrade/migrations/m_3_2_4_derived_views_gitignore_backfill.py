@@ -38,11 +38,7 @@ _DERIVED_VIEWS_EQUIVALENT_ENTRIES = frozenset({".kittify/derived/", ".kittify/de
 
 def _read_gitignore_entries(project_path: Path) -> set[str]:
     content = read_ignore_file_text(project_path / ".gitignore")
-    return {
-        line.strip()
-        for line in content.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    }
+    return {line.strip() for line in content.splitlines() if line.strip() and not line.lstrip().startswith("#")}
 
 
 @MigrationRegistry.register
@@ -54,9 +50,7 @@ class DerivedViewsGitignoreBackfillMigration(BaseMigration):
     target_version = "3.2.4"
 
     def detect(self, project_path: Path) -> bool:
-        return _DERIVED_VIEWS_EQUIVALENT_ENTRIES.isdisjoint(
-            _read_gitignore_entries(project_path)
-        )
+        return _DERIVED_VIEWS_EQUIVALENT_ENTRIES.isdisjoint(_read_gitignore_entries(project_path))
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:
         if not project_path.exists():
@@ -64,29 +58,17 @@ class DerivedViewsGitignoreBackfillMigration(BaseMigration):
         return True, ""
 
     def apply(self, project_path: Path, dry_run: bool = False) -> MigrationResult:
-        already_present = not _DERIVED_VIEWS_EQUIVALENT_ENTRIES.isdisjoint(
-            _read_gitignore_entries(project_path)
-        )
+        already_present = not _DERIVED_VIEWS_EQUIVALENT_ENTRIES.isdisjoint(_read_gitignore_entries(project_path))
 
         if dry_run:
-            changes = (
-                []
-                if already_present
-                else [f"Would add {_DERIVED_VIEWS_ENTRY} to .gitignore"]
-            )
+            changes = [] if already_present else [f"Would add {_DERIVED_VIEWS_ENTRY} to .gitignore"]
             return MigrationResult(success=True, changes_made=changes)
 
         if already_present:
             # A ``.kittify/derived`` (no trailing slash) variant already ignores
             # the dir — don't append a duplicate ``.kittify/derived/`` beside it.
-            return MigrationResult(
-                success=True, changes_made=["gitignore entry already present"]
-            )
+            return MigrationResult(success=True, changes_made=["gitignore entry already present"])
 
         modified = GitignoreManager(project_path).ensure_entries([_DERIVED_VIEWS_ENTRY])
-        changes = (
-            [f"Added gitignore entry: {_DERIVED_VIEWS_ENTRY}"]
-            if modified
-            else ["gitignore entry already present"]
-        )
+        changes = [f"Added gitignore entry: {_DERIVED_VIEWS_ENTRY}"] if modified else ["gitignore entry already present"]
         return MigrationResult(success=True, changes_made=changes)

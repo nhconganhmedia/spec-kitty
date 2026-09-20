@@ -38,19 +38,9 @@ _MISSION_SLUG = "check-unchecked-snapshot-source"
 #: WP01's three canonical subtask rows in tasks.md — deliberately CONTRADICTING
 #: the snapshot in every fixture, to prove they are ignored (the roster is the
 #: frontmatter ``subtasks:`` list, not these rows).
-_TASKS_MD_ALL_UNCHECKED = (
-    "# Tasks\n\n## WP01 - repro\n"
-    "- [ ] T001 alpha\n"
-    "- [ ] T002 beta\n"
-    "- [ ] T003 gamma\n"
-)
+_TASKS_MD_ALL_UNCHECKED = "# Tasks\n\n## WP01 - repro\n- [ ] T001 alpha\n- [ ] T002 beta\n- [ ] T003 gamma\n"
 
-_TASKS_MD_ALL_CHECKED = (
-    "# Tasks\n\n## WP01 - repro\n"
-    "- [x] T001 alpha\n"
-    "- [x] T002 beta\n"
-    "- [x] T003 gamma\n"
-)
+_TASKS_MD_ALL_CHECKED = "# Tasks\n\n## WP01 - repro\n- [x] T001 alpha\n- [x] T002 beta\n- [x] T003 gamma\n"
 
 
 def _ulid(suffix: str) -> str:
@@ -111,9 +101,7 @@ def _seed_subtasks_annotation(feature_dir: Path, wp_id: str, subtasks: dict[str,
 
 
 def _check(tmp_path: Path, feature_dir: Path, wp_id: str) -> list[str]:
-    with patch(
-        "specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path
-    ):
+    with patch("specify_cli.cli.commands.agent.tasks.get_main_repo_root", return_value=tmp_path):
         result: list[str] = _check_unchecked_subtasks(tmp_path, _MISSION_SLUG, wp_id, False)
         return result
 
@@ -126,39 +114,27 @@ def _check(tmp_path: Path, feature_dir: Path, wp_id: str) -> list[str]:
 def test_gate_follows_snapshot_complete_over_unchecked_markdown(tmp_path: Path) -> None:
     """Snapshot says DONE; tasks.md checkboxes are UNCHECKED — the gate must
     return ``[]`` (complete), honoring the log over the noise markdown byte."""
-    feature_dir = _seed_feature_dir(
-        tmp_path, _TASKS_MD_ALL_UNCHECKED, roster=["T001", "T002", "T003"]
-    )
+    feature_dir = _seed_feature_dir(tmp_path, _TASKS_MD_ALL_UNCHECKED, roster=["T001", "T002", "T003"])
     _seed_claim_transition(feature_dir, "WP01")
-    _seed_subtasks_annotation(
-        feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.DONE, "T003": Lane.DONE}
-    )
+    _seed_subtasks_annotation(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.DONE, "T003": Lane.DONE})
 
     result = _check(tmp_path, feature_dir, "WP01")
 
-    assert result == [], (
-        "the gate must resolve completion from the reduced snapshot, not the "
-        f"unchecked tasks.md bytes; got {result!r}"
-    )
+    assert result == [], f"the gate must resolve completion from the reduced snapshot, not the unchecked tasks.md bytes; got {result!r}"
 
 
 def test_gate_follows_snapshot_incomplete_over_checked_markdown(tmp_path: Path) -> None:
     """Mirror case: snapshot says one subtask is still incomplete while tasks.md
     shows every checkbox CHECKED — the gate must still refuse on the log's
     incomplete id, not wave it through because the markdown looks done."""
-    feature_dir = _seed_feature_dir(
-        tmp_path, _TASKS_MD_ALL_CHECKED, roster=["T001", "T002", "T003"]
-    )
+    feature_dir = _seed_feature_dir(tmp_path, _TASKS_MD_ALL_CHECKED, roster=["T001", "T002", "T003"])
     _seed_claim_transition(feature_dir, "WP01")
-    _seed_subtasks_annotation(
-        feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.IN_PROGRESS, "T003": Lane.DONE}
-    )
+    _seed_subtasks_annotation(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.IN_PROGRESS, "T003": Lane.DONE})
 
     result = _check(tmp_path, feature_dir, "WP01")
 
     assert result == ["T002"], (
-        "the gate must resolve completion from the reduced snapshot (T002 is "
-        f"NOT done there), not the fully-checked tasks.md bytes; got {result!r}"
+        f"the gate must resolve completion from the reduced snapshot (T002 is NOT done there), not the fully-checked tasks.md bytes; got {result!r}"
     )
 
 
@@ -173,18 +149,13 @@ def test_fail_closed_when_snapshot_silent(tmp_path: Path) -> None:
     """A WP with an authored roster whose snapshot slot is silent must block
     (every roster id incomplete), even though tasks.md shows every box checked —
     the checkbox fallback is gone; unprovable completeness fails closed."""
-    feature_dir = _seed_feature_dir(
-        tmp_path, _TASKS_MD_ALL_CHECKED, roster=["T001", "T002", "T003"]
-    )
+    feature_dir = _seed_feature_dir(tmp_path, _TASKS_MD_ALL_CHECKED, roster=["T001", "T002", "T003"])
     _seed_claim_transition(feature_dir, "WP01")
     # No subtasks annotation seeded: the snapshot slot is silent for WP01.
 
     result = _check(tmp_path, feature_dir, "WP01")
 
-    assert result == ["T001", "T002", "T003"], (
-        "a silent snapshot must fail-closed (block), not fall back to the "
-        f"checked tasks.md bytes; got {result!r}"
-    )
+    assert result == ["T001", "T002", "T003"], f"a silent snapshot must fail-closed (block), not fall back to the checked tasks.md bytes; got {result!r}"
 
 
 def test_empty_authored_roster_is_nothing_to_block_on(tmp_path: Path) -> None:

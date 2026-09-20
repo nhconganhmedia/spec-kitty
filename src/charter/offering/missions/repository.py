@@ -189,10 +189,7 @@ class MissionTemplateRepository:
         root = built_in_missions_root()
         if root.is_dir():
             return root
-        raise MissionsRootNotFound(
-            f"Built-in pack root has no {_MISSIONS_ROOT_SIBLING_PATTERN.name!r} "
-            f"leaf directory: {root}"
-        )
+        raise MissionsRootNotFound(f"Built-in pack root has no {_MISSIONS_ROOT_SIBLING_PATTERN.name!r} leaf directory: {root}")
 
     @classmethod
     def default(cls) -> MissionTemplateRepository:
@@ -211,11 +208,7 @@ class MissionTemplateRepository:
         """
         if not self._root.is_dir():
             return []
-        return sorted(
-            d.name
-            for d in self._root.iterdir()
-            if d.is_dir() and (d / "mission.yaml").exists()
-        )
+        return sorted(d.name for d in self._root.iterdir() if d.is_dir() and (d / "mission.yaml").exists())
 
     # ------------------------------------------------------------------
     # Public content-returning methods
@@ -282,19 +275,12 @@ class MissionTemplateRepository:
         """
         cmd_dir = self._root / mission / "command-templates"
         if cmd_dir.is_dir():
-            return sorted(
-                p.stem for p in cmd_dir.iterdir()
-                if p.is_file() and p.suffix == ".md" and p.name != "README.md"
-            )
+            return sorted(p.stem for p in cmd_dir.iterdir() if p.is_file() and p.suffix == ".md" and p.name != "README.md")
 
         steps_dir = self._root / "mission-steps" / mission
         if not steps_dir.is_dir():
             return []
-        return sorted(
-            step_dir.name
-            for step_dir in steps_dir.iterdir()
-            if step_dir.is_dir() and (step_dir / "prompt.md").is_file()
-        )
+        return sorted(step_dir.name for step_dir in steps_dir.iterdir() if step_dir.is_dir() and (step_dir / "prompt.md").is_file())
 
     def list_content_templates(self, mission: str) -> list[str]:
         """Return filenames of all content templates for a mission.
@@ -310,10 +296,7 @@ class MissionTemplateRepository:
         tpl_dir = self._root / mission / "templates"
         if not tpl_dir.is_dir():
             return []
-        return sorted(
-            p.name for p in tpl_dir.iterdir()
-            if p.is_file() and p.name != "README.md"
-        )
+        return sorted(p.name for p in tpl_dir.iterdir() if p.is_file() and p.name != "README.md")
 
     # ------------------------------------------------------------------
     # Public config-returning methods
@@ -425,9 +408,7 @@ class MissionTemplateRepository:
             # from a schema/extra=forbid violation. Without this guard the value would
             # flow to model_validate and surface as ManifestSchemaError, breaking the
             # both-tiers-agree sibling model.
-            raise MalformedManifestError(
-                path, TypeError(f"expected a YAML mapping, got {type(parsed).__name__}")
-            )
+            raise MalformedManifestError(path, TypeError(f"expected a YAML mapping, got {type(parsed).__name__}"))
         origin = f"doctrine/{mission}/expected-artifacts.yaml"
         return ConfigResult(content=content, origin=origin, parsed=parsed)
 

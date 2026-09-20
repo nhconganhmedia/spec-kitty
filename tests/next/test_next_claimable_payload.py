@@ -46,9 +46,7 @@ def _scaffold(
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps(
-            {"mission_type": "software-dev", "mission_id": "01KRKTT58XC5KR0HF523333R9S"}
-        ),
+        json.dumps({"mission_type": "software-dev", "mission_id": "01KRKTT58XC5KR0HF523333R9S"}),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text("# Spec\n", encoding="utf-8")
@@ -58,12 +56,7 @@ def _scaffold(
     for wp_id, lane in wps.items():
         deps = dependencies.get(wp_id, []) if dependencies else []
         (tasks_dir / f"{wp_id}.md").write_text(
-            "---\n"
-            f"work_package_id: {wp_id}\n"
-            f"dependencies: {json.dumps(deps)}\n"
-            f"title: {wp_id}\n"
-            "---\n"
-            f"# {wp_id}\n",
+            f"---\nwork_package_id: {wp_id}\ndependencies: {json.dumps(deps)}\ntitle: {wp_id}\n---\n# {wp_id}\n",
             encoding="utf-8",
         )
         reason_source = reason_sources.get(wp_id) if reason_sources else None

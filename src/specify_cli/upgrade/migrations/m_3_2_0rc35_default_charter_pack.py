@@ -68,13 +68,7 @@ _PER_KIND_KEYS: list[str] = list(PER_KIND_ACTIVATION_KEYS)
 #: repo root. Four ``.parent`` hops: migrations/ -> upgrade/ -> specify_cli/
 #: -> src/. ``packs/`` relocated under ``charter/activation/`` by mission
 #: charter-activation-split-01M16ZSE (MAP-A MOVE).
-_DEFAULT_YAML_PATH: Path = (
-    Path(__file__).parent.parent.parent.parent
-    / "charter"
-    / "activation"
-    / "packs"
-    / "default.yaml"
-)
+_DEFAULT_YAML_PATH: Path = Path(__file__).parent.parent.parent.parent / "charter" / "activation" / "packs" / "default.yaml"
 
 
 @MigrationRegistry.register
@@ -88,10 +82,7 @@ class DefaultCharterPackMigration(BaseMigration):
     """
 
     migration_id = "3.2.0rc35_default_charter_pack"
-    description = (
-        "Write per-kind activation keys from default.yaml into "
-        ".kittify/config.yaml for projects that lack them (FR-002, FR-003)."
-    )
+    description = "Write per-kind activation keys from default.yaml into .kittify/config.yaml for projects that lack them (FR-002, FR-003)."
     target_version = "3.2.0rc35"
 
     def detect(self, project_path: Path) -> bool:
@@ -172,10 +163,7 @@ class DefaultCharterPackMigration(BaseMigration):
             backup_path = backup_dir / f"charter-{timestamp}.md"
             shutil.copy2(charter_md_path, backup_path)
             console = Console()
-            console.print(
-                f"[yellow]Existing charter backed up to {backup_path}. "
-                "Review after upgrade.[/yellow]"
-            )
+            console.print(f"[yellow]Existing charter backed up to {backup_path}. Review after upgrade.[/yellow]")
 
         # Load config with round-trip parser to preserve formatting
         yaml = YAML()
@@ -186,9 +174,7 @@ class DefaultCharterPackMigration(BaseMigration):
             return MigrationResult(success=False, errors=[f"Invalid YAML: {exc}"])
 
         if not isinstance(data, dict):
-            return MigrationResult(
-                success=False, errors=["config.yaml root must be a mapping"]
-            )
+            return MigrationResult(success=False, errors=["config.yaml root must be a mapping"])
 
         # Load default.yaml with safe loader (values only)
         safe_yaml = YAML(typ="safe")
@@ -214,8 +200,6 @@ class DefaultCharterPackMigration(BaseMigration):
             with config_file.open("w", encoding="utf-8") as fh:
                 yaml.dump(data, fh)
         except OSError as exc:
-            return MigrationResult(
-                success=False, errors=[f"Failed writing config.yaml: {exc}"]
-            )
+            return MigrationResult(success=False, errors=[f"Failed writing config.yaml: {exc}"])
 
         return MigrationResult(success=True, changes_made=keys_written)

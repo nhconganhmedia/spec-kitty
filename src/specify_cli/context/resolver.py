@@ -198,10 +198,7 @@ def resolve_context(
         # generic "check the slug" mis-routes the operator (the mission is not
         # missing — its read path is broken). Mirror the agent/context.py
         # translation: carry ``exc.code`` + the resolver message through verbatim.
-        msg = (
-            f"[{exc.code}] Read path could not be resolved for mission "
-            f"'{mission_slug}'. {exc}"
-        )
+        msg = f"[{exc.code}] Read path could not be resolved for mission '{mission_slug}'. {exc}"
         raise FeatureNotFoundError(msg) from exc
 
     # F-001 boundary canonicalization (the finalize-tasks pattern): the
@@ -223,9 +220,7 @@ def resolve_context(
     # anchor also used for the immediately-following ``meta.json`` read (both
     # WORK_PACKAGE_TASK and PRIMARY_METADATA are PRIMARY-partition and resolve
     # to the identical dir).
-    feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     if not feature_dir.exists():
         msg = f"Feature directory not found: {feature_dir}. Check that '{mission_slug}' is the correct feature slug."
         raise FeatureNotFoundError(msg)
@@ -256,9 +251,7 @@ def resolve_context(
     # read-side-placement-seam-migration WP07: routed through
     # ``placement_seam`` (fail-loud on a deleted-coord mismatch, NFR-002)
     # instead of the kind-blind ``resolve_planning_read_dir``.
-    _lanes_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.LANE_STATE
-    )
+    _lanes_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.LANE_STATE)
     lane = require_lanes_json(_lanes_dir).lane_for_wp(wp_code)
     if lane is None:
         msg = (

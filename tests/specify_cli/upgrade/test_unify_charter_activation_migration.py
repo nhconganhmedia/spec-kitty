@@ -92,8 +92,7 @@ def test_detect_false_when_no_skew(tmp_path: Path) -> None:
     )
     m = UnifyCharterActivationMigration()
     assert m.detect(tmp_path) is False, (
-        "Same directive in canonical form (answers) vs stem form (config) is "
-        "exact parity, not a skew — must not be misdetected as answers-only."
+        "Same directive in canonical form (answers) vs stem form (config) is exact parity, not a skew — must not be misdetected as answers-only."
     )
 
 
@@ -102,10 +101,7 @@ def test_detect_true_on_answers_only_directive_and_paradigm(tmp_path: Path) -> N
     _write(_kittify_config(tmp_path), "activated_directives:\n  - 001-architectural-integrity-standard\n")
     _write(
         _answers_path(tmp_path),
-        "selected_directives:\n"
-        "  - 001-architectural-integrity-standard\n"
-        f"  - {_DIRECTIVE_010_CANONICAL}\n"
-        f"selected_paradigms:\n  - {_PARADIGM_DDD}\n",
+        f"selected_directives:\n  - 001-architectural-integrity-standard\n  - {_DIRECTIVE_010_CANONICAL}\nselected_paradigms:\n  - {_PARADIGM_DDD}\n",
     )
     m = UnifyCharterActivationMigration()
     assert m.detect(tmp_path) is True
@@ -133,8 +129,7 @@ def test_apply_promotes_answers_only_directive_and_paradigm_zero_drop(tmp_path: 
     """The T025 fixture: an answers-only directive AND paradigm are both promoted, nothing dropped."""
     _write(
         _kittify_config(tmp_path),
-        "activated_directives:\n  - 001-architectural-integrity-standard\n"
-        "activated_paradigms:\n  - structured-prompt-driven-development\n",
+        "activated_directives:\n  - 001-architectural-integrity-standard\nactivated_paradigms:\n  - structured-prompt-driven-development\n",
     )
     _write(
         _answers_path(tmp_path),
@@ -257,9 +252,7 @@ def test_apply_absent_key_preserves_real_builtins_not_bare_list(tmp_path: Path) 
 
     real_builtins = load_default_pack_ids().get("activated_directives", [])
     assert real_builtins, "sanity: packs/default.yaml must ship a non-empty built-in directive set"
-    assert committed != [_DIRECTIVE_010_STEM], (
-        "must not collapse to a bare list containing only the promoted id"
-    )
+    assert committed != [_DIRECTIVE_010_STEM], "must not collapse to a bare list containing only the promoted id"
     assert set(real_builtins).issubset(set(committed))
     assert _DIRECTIVE_010_STEM in committed
 
@@ -282,9 +275,7 @@ def test_resolve_selected_id_to_stem_already_stem() -> None:
     from charter.offering.artifact_kinds import ArtifactKind
 
     doctrine_root = resolve_doctrine_root()
-    stem = resolve_selected_id_to_stem(
-        ArtifactKind.DIRECTIVE, _DIRECTIVE_010_STEM, doctrine_root=doctrine_root
-    )
+    stem = resolve_selected_id_to_stem(ArtifactKind.DIRECTIVE, _DIRECTIVE_010_STEM, doctrine_root=doctrine_root)
     assert stem == _DIRECTIVE_010_STEM
 
 
@@ -293,9 +284,7 @@ def test_resolve_selected_id_to_stem_canonical_form() -> None:
     from charter.offering.artifact_kinds import ArtifactKind
 
     doctrine_root = resolve_doctrine_root()
-    stem = resolve_selected_id_to_stem(
-        ArtifactKind.DIRECTIVE, _DIRECTIVE_010_CANONICAL, doctrine_root=doctrine_root
-    )
+    stem = resolve_selected_id_to_stem(ArtifactKind.DIRECTIVE, _DIRECTIVE_010_CANONICAL, doctrine_root=doctrine_root)
     assert stem == _DIRECTIVE_010_STEM
 
 
@@ -304,9 +293,7 @@ def test_resolve_selected_id_to_stem_unresolvable_returns_none() -> None:
     from charter.offering.artifact_kinds import ArtifactKind
 
     doctrine_root = resolve_doctrine_root()
-    stem = resolve_selected_id_to_stem(
-        ArtifactKind.DIRECTIVE, _MALFORMED_ID, doctrine_root=doctrine_root
-    )
+    stem = resolve_selected_id_to_stem(ArtifactKind.DIRECTIVE, _MALFORMED_ID, doctrine_root=doctrine_root)
     assert stem is None
 
 
@@ -356,14 +343,10 @@ def test_load_default_pack_activation_ids_returns_real_per_kind_builtin_stems() 
         "activated_agent_profiles",
         "activated_mission_step_contracts",
     ):
-        assert kind_key in ids and ids[kind_key], (
-            f"shipped default.yaml must ship a non-empty built-in set for {kind_key}"
-        )
+        assert kind_key in ids and ids[kind_key], f"shipped default.yaml must ship a non-empty built-in set for {kind_key}"
 
     assert _DIRECTIVE_010_STEM in ids["activated_directives"]
-    assert _DIRECTIVE_010_CANONICAL not in ids["activated_directives"], (
-        "default.yaml ships config-stem ids, not canonical id: form"
-    )
+    assert _DIRECTIVE_010_CANONICAL not in ids["activated_directives"], "default.yaml ships config-stem ids, not canonical id: form"
     assert _PARADIGM_DDD in ids["activated_paradigms"]
 
 
@@ -385,9 +368,7 @@ def test_load_default_pack_activation_ids_filters_non_list_values(tmp_path: Path
     packs_dir = tmp_path / "packs"
     packs_dir.mkdir(parents=True)
     (packs_dir / "default.yaml").write_text(
-        "schema_version: 1\n"
-        "activated_directives:\n"
-        "  - 001-architectural-integrity-standard\n",
+        "schema_version: 1\nactivated_directives:\n  - 001-architectural-integrity-standard\n",
         encoding="utf-8",
     )
 

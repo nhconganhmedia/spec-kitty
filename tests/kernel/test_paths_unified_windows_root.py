@@ -5,6 +5,7 @@ Auth session storage now resolves through the shared runtime root
 LocalAppData base (``%LOCALAPPDATA%\\spec-kitty\\auth``), the same base
 tracker state uses, and honors ``SPEC_KITTY_HOME`` when set.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -25,18 +26,14 @@ def test_runtime_consumers_share_single_windows_root_except_auth() -> None:
     from specify_cli.paths import get_runtime_root
 
     root = get_runtime_root()
-    assert root.platform == "win32", (
-        f"This test must run on Windows; platform={root.platform}"
-    )
+    assert root.platform == "win32", f"This test must run on Windows; platform={root.platform}"
     base_str = str(root.base).lower()
 
     # Tracker
     from specify_cli.tracker import credentials
 
     tracker_root = credentials._tracker_root()
-    assert base_str in str(tracker_root).lower(), (
-        f"Tracker root {tracker_root} is not under unified root {root.base}"
-    )
+    assert base_str in str(tracker_root).lower(), f"Tracker root {tracker_root} is not under unified root {root.base}"
 
     # kernel.paths — get_kittify_home() Windows branch uses the same
     # platformdirs call (app="spec-kitty", roaming=False) as get_runtime_root(),
@@ -44,10 +41,7 @@ def test_runtime_consumers_share_single_windows_root_except_auth() -> None:
     from kernel import paths as kernel_paths
 
     kittify_home = kernel_paths.get_kittify_home()
-    assert base_str in str(kittify_home).lower(), (
-        f"kernel.paths.get_kittify_home() resolves to {kittify_home}, "
-        f"outside the unified Windows root {root.base}"
-    )
+    assert base_str in str(kittify_home).lower(), f"kernel.paths.get_kittify_home() resolves to {kittify_home}, outside the unified Windows root {root.base}"
 
 
 @pytest.mark.windows_ci
@@ -96,9 +90,7 @@ def test_runtime_root_base_is_absolute() -> None:
 
 
 @pytest.mark.parametrize("platform", ["linux", "darwin", "win32"])
-def test_spec_kitty_home_sets_runtime_base_on_all_platforms(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, platform: str
-) -> None:
+def test_spec_kitty_home_sets_runtime_base_on_all_platforms(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, platform: str) -> None:
     """A non-empty SPEC_KITTY_HOME is the unified base on every platform."""
     from specify_cli.paths import get_runtime_root, windows_paths
 
@@ -116,9 +108,7 @@ def test_spec_kitty_home_sets_runtime_base_on_all_platforms(
 
 
 @pytest.mark.parametrize("platform", ["linux", "darwin"])
-def test_empty_spec_kitty_home_falls_through_to_posix_default(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, platform: str
-) -> None:
+def test_empty_spec_kitty_home_falls_through_to_posix_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, platform: str) -> None:
     """An empty SPEC_KITTY_HOME is falsy ⇒ POSIX ``~/.spec-kitty`` default."""
     from specify_cli.paths import get_runtime_root, windows_paths
 

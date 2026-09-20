@@ -61,15 +61,7 @@ _GET_APPLICABLE = "specify_cli.upgrade.runner.MigrationRegistry.get_applicable"
 # boundary fails CLOSED on (ruamel ``DuplicateKeyError``), so an upgrade migration
 # reading it dies — the exact wedge WP03's keep-last-non-empty heal repairs.
 _WEDGED_ARTIFACT = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: Wedged mission artifact\n"
-    "review_feedback: ''\n"
-    "subtasks:\n"
-    "- T001\n"
-    "review_feedback: review-cycle-1.md\n"
-    "---\n"
-    "Body content.\n"
+    "---\nwork_package_id: WP01\ntitle: Wedged mission artifact\nreview_feedback: ''\nsubtasks:\n- T001\nreview_feedback: review-cycle-1.md\n---\nBody content.\n"
 )
 _RECORDED_POINTER = "review-cycle-1.md"
 
@@ -119,9 +111,7 @@ def _write_metadata(kittify_dir: Path, version: str, schema_version: int) -> Non
         "environment": {},
         "migrations": {"applied": []},
     }
-    (kittify_dir / "metadata.yaml").write_text(
-        yaml.safe_dump(data, sort_keys=False), encoding="utf-8"
-    )
+    (kittify_dir / "metadata.yaml").write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
 
 def _write_wedged_artifact(project_path: Path) -> Path:
@@ -138,9 +128,7 @@ def _build_wedged_project(project_path: Path, schema_version: int) -> Path:
     return _write_wedged_artifact(project_path)
 
 
-def _run_upgrade(
-    monkeypatch: pytest.MonkeyPatch, project_path: Path, migration: BaseMigration
-) -> object:
+def _run_upgrade(monkeypatch: pytest.MonkeyPatch, project_path: Path, migration: BaseMigration) -> object:
     runner = MigrationRunner(project_path)
     monkeypatch.setattr(
         _GET_APPLICABLE,
@@ -149,9 +137,7 @@ def _run_upgrade(
     return runner.upgrade("99.0.0", include_worktrees=False)
 
 
-def _doctor_fix(
-    project_path: Path, monkeypatch: pytest.MonkeyPatch, *, allow_dirty: bool
-) -> None:
+def _doctor_fix(project_path: Path, monkeypatch: pytest.MonkeyPatch, *, allow_dirty: bool) -> None:
     """Drive the real ``doctor mission-state --fix`` CLI dispatch.
 
     The FR-008 dup-key heal runs for real; the unrelated mission-state
@@ -212,9 +198,7 @@ def _git(project_path: Path, *args: str) -> str:
 
 
 @pytest.mark.git_repo
-def test_sc001_wedged_project_recovers_with_zero_manual_git_steps(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_sc001_wedged_project_recovers_with_zero_manual_git_steps(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """doctor --fix -> re-run upgrade heals a wedged project without any git step.
 
     The wedge (invalid artifact + below-target schema) is COMMITTED, mirroring a
@@ -267,9 +251,7 @@ def test_sc001_wedged_project_recovers_with_zero_manual_git_steps(
 
 
 @pytest.mark.fast
-def test_no_vcs_wedged_project_recovers_on_disk(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_no_vcs_wedged_project_recovers_on_disk(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Recovery needs no git checkpoint: a non-git project heals purely on disk.
 
     ``doctor --fix``'s git-safety preflight is skipped when there is no repo, and

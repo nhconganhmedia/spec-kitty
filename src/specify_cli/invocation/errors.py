@@ -55,8 +55,7 @@ class LegacyRecordError(InvocationError):
         self.invocation_id = invocation_id
         self.reason = reason
         super().__init__(
-            f"Legacy Op record{f' {invocation_id}' if invocation_id else ''}: {reason}. "
-            "Run 'spec-kitty upgrade' to migrate kitty-ops records to the v2 schema."
+            f"Legacy Op record{f' {invocation_id}' if invocation_id else ''}: {reason}. Run 'spec-kitty upgrade' to migrate kitty-ops records to the v2 schema."
         )
 
 

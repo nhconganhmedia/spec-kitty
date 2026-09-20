@@ -11,7 +11,6 @@ from typing import Any
 from collections.abc import Sequence
 
 
-
 def _spec_kitty_dir() -> Path:
     # Unified runtime root honors SPEC_KITTY_HOME; the flat ``trackers`` suffix
     # is re-appended by ``_trackers_dir()`` (POSIX layout preserved, NFR-001).

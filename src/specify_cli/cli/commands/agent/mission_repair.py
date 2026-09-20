@@ -67,7 +67,11 @@ def _mission_dir(repo_root: Path, mission: str) -> Path:
 
 
 def _classify_repair_state(
-    repo_root: Path, coord_branch: str, target_branch: str, coord_sha: str, target_sha: str,
+    repo_root: Path,
+    coord_branch: str,
+    target_branch: str,
+    coord_sha: str,
+    target_sha: str,
 ) -> tuple[str, str | None, str | None, str | None, str | None]:
     """Classify the repair state and, for ``ff_candidate``, the direction to forward.
 
@@ -85,23 +89,23 @@ def _classify_repair_state(
         return "clean", None, None, None, None
 
     coord_behind = _fast_forward_finding(
-        subject_sha=coord_sha, tip_sha=target_sha, repo_root=repo_root,
-        message=(
-            f"Coordination partition {coord_branch!r} is behind primary "
-            f"partition {target_branch!r}."
-        ),
-        next_step="", error_code=_COORD_BEHIND_CODE,
+        subject_sha=coord_sha,
+        tip_sha=target_sha,
+        repo_root=repo_root,
+        message=(f"Coordination partition {coord_branch!r} is behind primary partition {target_branch!r}."),
+        next_step="",
+        error_code=_COORD_BEHIND_CODE,
     )
     if coord_behind is not None:
         return "ff_candidate", coord_branch, target_branch, coord_sha, target_sha
 
     primary_behind = _fast_forward_finding(
-        subject_sha=target_sha, tip_sha=coord_sha, repo_root=repo_root,
-        message=(
-            f"Primary partition {target_branch!r} is behind coordination "
-            f"partition {coord_branch!r}."
-        ),
-        next_step="", error_code=_PRIMARY_BEHIND_CODE,
+        subject_sha=target_sha,
+        tip_sha=coord_sha,
+        repo_root=repo_root,
+        message=(f"Primary partition {target_branch!r} is behind coordination partition {coord_branch!r}."),
+        next_step="",
+        error_code=_PRIMARY_BEHIND_CODE,
     )
     if primary_behind is not None:
         return "ff_candidate", target_branch, coord_branch, target_sha, coord_sha
@@ -121,7 +125,8 @@ def _worktree_for_branch(repo_root: Path, branch: str) -> Path | None:
     try:
         out = subprocess.check_output(
             ["git", "-C", str(repo_root), "worktree", "list", "--porcelain"],
-            text=True, stderr=subprocess.DEVNULL,
+            text=True,
+            stderr=subprocess.DEVNULL,
         )
     except (OSError, subprocess.CalledProcessError):
         return None
@@ -130,11 +135,7 @@ def _worktree_for_branch(repo_root: Path, branch: str) -> Path | None:
     for line in out.splitlines():
         if line.startswith("worktree "):
             current_path = Path(line.removeprefix("worktree ").strip())
-        elif (
-            line.startswith("branch ")
-            and current_path is not None
-            and line.removeprefix("branch ").strip() == expected_ref
-        ):
+        elif line.startswith("branch ") and current_path is not None and line.removeprefix("branch ").strip() == expected_ref:
             return current_path
     return None
 
@@ -142,7 +143,8 @@ def _worktree_for_branch(repo_root: Path, branch: str) -> Path | None:
 def _is_worktree_dirty(worktree: Path) -> bool:
     try:
         dirty = subprocess.check_output(
-            ["git", "-C", str(worktree), "status", "--porcelain"], text=True,
+            ["git", "-C", str(worktree), "status", "--porcelain"],
+            text=True,
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return True  # unreadable -> treat as unsafe (C-005 warn-first)
@@ -150,7 +152,12 @@ def _is_worktree_dirty(worktree: Path) -> bool:
 
 
 def _forward_ref(
-    repo_root: Path, *, behind_branch: str, ahead_branch: str, behind_sha: str, ahead_sha: str,
+    repo_root: Path,
+    *,
+    behind_branch: str,
+    ahead_branch: str,
+    behind_sha: str,
+    ahead_sha: str,
 ) -> tuple[bool, str]:
     """Attempt to fast-forward *behind_branch* onto *ahead_branch*.
 
@@ -162,22 +169,18 @@ def _forward_ref(
     write.
     """
     if not _is_ff_candidate(repo_root, behind_sha, ahead_sha):
-        return False, (
-            f"{behind_branch!r} is no longer a strict ancestor of {ahead_branch!r} "
-            "(it moved between classification and repair)"
-        )
+        return False, (f"{behind_branch!r} is no longer a strict ancestor of {ahead_branch!r} (it moved between classification and repair)")
     worktree = _worktree_for_branch(repo_root, behind_branch)
     if worktree is None:
-        return False, (
-            f"no worktree is checked out to {behind_branch!r}; cannot safely "
-            "fast-forward it without one"
-        )
+        return False, (f"no worktree is checked out to {behind_branch!r}; cannot safely fast-forward it without one")
     if _is_worktree_dirty(worktree):
         return False, f"the worktree for {behind_branch!r} ({worktree}) has uncommitted changes"
 
     subprocess.run(
         ["git", "-C", str(worktree), "merge", "--ff-only", ahead_branch],
-        check=True, capture_output=True, text=True,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     return True, ""
 
@@ -193,9 +196,10 @@ def _mission_diff(repo_root: Path, mission: str, ref_a: str, ref_b: str) -> str:
     """
     try:
         result = subprocess.run(
-            ["git", "-C", str(repo_root), "diff", ref_a, ref_b, "--",
-             f"{KITTY_SPECS_DIR}/{mission}/"],
-            capture_output=True, text=True, check=False,
+            ["git", "-C", str(repo_root), "diff", ref_a, ref_b, "--", f"{KITTY_SPECS_DIR}/{mission}/"],
+            capture_output=True,
+            text=True,
+            check=False,
         )
     except OSError:
         return ""
@@ -210,8 +214,7 @@ def _report_clean(mission: str, coord_branch: str, target_branch: str, sha: str)
     )
 
 
-def _report_divergent(repo_root: Path, mission: str, coord_branch: str, target_branch: str,
-                       coord_sha: str, target_sha: str) -> None:
+def _report_divergent(repo_root: Path, mission: str, coord_branch: str, target_branch: str, coord_sha: str, target_sha: str) -> None:
     console.print(
         f"[red]Refusing to repair:[/red] mission {mission!r}'s coordination "
         f"partition ({coord_branch!r}, {coord_sha[:8]}) and primary partition "
@@ -223,20 +226,24 @@ def _report_divergent(repo_root: Path, mission: str, coord_branch: str, target_b
     if diff_text:
         console.print(diff_text)
     else:
-        console.print(
-            "(no content diff detected under this mission's own directory — "
-            "the divergence lies elsewhere in the two branches' history)"
-        )
+        console.print("(no content diff detected under this mission's own directory — the divergence lies elsewhere in the two branches' history)")
     raise typer.Exit(1)
 
 
 def _apply_forward(
-    mission: str, repo_root: Path, behind_branch: str, ahead_branch: str,
-    behind_sha: str, ahead_sha: str,
+    mission: str,
+    repo_root: Path,
+    behind_branch: str,
+    ahead_branch: str,
+    behind_sha: str,
+    ahead_sha: str,
 ) -> None:
     forwarded, reason = _forward_ref(
-        repo_root, behind_branch=behind_branch, ahead_branch=ahead_branch,
-        behind_sha=behind_sha, ahead_sha=ahead_sha,
+        repo_root,
+        behind_branch=behind_branch,
+        ahead_branch=ahead_branch,
+        behind_sha=behind_sha,
+        ahead_sha=ahead_sha,
     )
     if not forwarded:
         console.print(
@@ -245,10 +252,7 @@ def _apply_forward(
             f"the forward is not safe right now: {reason}. Repair mutates nothing."
         )
         raise typer.Exit(1)
-    console.print(
-        f"[green]Repaired:[/green] fast-forwarded {behind_branch!r} onto "
-        f"{ahead_branch!r} for mission {mission!r} (zero data loss)."
-    )
+    console.print(f"[green]Repaired:[/green] fast-forwarded {behind_branch!r} onto {ahead_branch!r} for mission {mission!r} (zero data loss).")
 
 
 def run_mission_repair(mission: str) -> None:
@@ -276,10 +280,7 @@ def run_mission_repair(mission: str) -> None:
         if not mission_dir.exists():
             console.print(f"[red]Error:[/red] Mission not found: {mission!r}")
         else:
-            console.print(
-                f"[red]Error:[/red] Could not read meta.json for mission "
-                f"{mission!r} (missing or malformed)."
-            )
+            console.print(f"[red]Error:[/red] Could not read meta.json for mission {mission!r} (missing or malformed).")
         raise typer.Exit(1)
 
     shas = _coord_vs_target_shas(repo_root, meta)
@@ -293,7 +294,11 @@ def run_mission_repair(mission: str) -> None:
 
     coord_branch, target_branch, coord_sha, target_sha = shas
     state, behind_branch, ahead_branch, behind_sha, ahead_sha = _classify_repair_state(
-        repo_root, coord_branch, target_branch, coord_sha, target_sha,
+        repo_root,
+        coord_branch,
+        target_branch,
+        coord_sha,
+        target_sha,
     )
 
     if state == "clean":

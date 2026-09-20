@@ -53,8 +53,7 @@ def test_monolith_absent_from_shipped_doctrine() -> None:
     a silent stale read.
     """
     assert not (DOCTRINE_ROOT / "graph.yaml").exists(), (
-        "packs/built-in/graph.yaml must be deleted atomically with the fragment "
-        "writes (DD-7); its presence masks the *.graph.yaml fragments on load."
+        "packs/built-in/graph.yaml must be deleted atomically with the fragment writes (DD-7); its presence masks the *.graph.yaml fragments on load."
     )
 
 
@@ -79,13 +78,9 @@ def test_fragment_per_populated_node_kind() -> None:
     """
     graph = load_built_in_graph()
     populated_kinds = {node.kind.value for node in graph.nodes}
-    fragment_kinds = {
-        _fragment_kind(p) for p in DOCTRINE_ROOT.glob(f"*{_FRAGMENT_SUFFIX}")
-    }
+    fragment_kinds = {_fragment_kind(p) for p in DOCTRINE_ROOT.glob(f"*{_FRAGMENT_SUFFIX}")}
     assert fragment_kinds == populated_kinds, (
-        "fragment set must equal the populated node-kinds exactly; "
-        f"missing={populated_kinds - fragment_kinds} "
-        f"extra={fragment_kinds - populated_kinds}"
+        f"fragment set must equal the populated node-kinds exactly; missing={populated_kinds - fragment_kinds} extra={fragment_kinds - populated_kinds}"
     )
 
 

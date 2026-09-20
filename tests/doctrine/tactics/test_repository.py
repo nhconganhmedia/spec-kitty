@@ -6,8 +6,8 @@ import pytest
 from ruamel.yaml import YAML
 
 from charter.offering.tactics.repository import TacticRepository
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 class TestTacticRepository:
@@ -42,15 +42,11 @@ class TestTacticRepository:
 
         assert repo.list_all() == []
 
-    def test_save_writes_valid_yaml(
-        self, tmp_path: Path, sample_tactic_data: dict
-    ) -> None:
+    def test_save_writes_valid_yaml(self, tmp_path: Path, sample_tactic_data: dict) -> None:
         from charter.offering.tactics.models import Tactic
 
         project_dir = tmp_path / "project"
-        repo = TacticRepository(
-            built_in_dir=tmp_path / "empty", project_dir=project_dir
-        )
+        repo = TacticRepository(built_in_dir=tmp_path / "empty", project_dir=project_dir)
 
         tactic = Tactic.model_validate(sample_tactic_data)
         path = repo.save(tactic)
@@ -62,9 +58,7 @@ class TestTacticRepository:
         data = yaml.load(path)
         assert data["id"] == "test-tactic"
 
-    def test_save_raises_without_project_dir(
-        self, tmp_path: Path, sample_tactic_data: dict
-    ) -> None:
+    def test_save_raises_without_project_dir(self, tmp_path: Path, sample_tactic_data: dict) -> None:
         from charter.offering.tactics.models import Tactic
 
         repo = TacticRepository(built_in_dir=tmp_path / "empty")
@@ -72,9 +66,7 @@ class TestTacticRepository:
         with pytest.raises(ValueError, match="project_dir not configured"):
             repo.save(tactic)
 
-    def test_field_level_merge_with_project_override(
-        self, tmp_path: Path
-    ) -> None:
+    def test_field_level_merge_with_project_override(self, tmp_path: Path) -> None:
         """Project tactic overrides shipped fields at field level."""
         shipped = tmp_path / "built-in"
         shipped.mkdir()
@@ -135,24 +127,17 @@ class TestTacticRepository:
         assert tactic.steps[0].title == "Step A"
         assert len(tactic.steps[0].examples) == 2
 
-    def test_save_and_reload_preserves_fields(
-        self, tmp_path: Path, enriched_tactic_data: dict
-    ) -> None:
+    def test_save_and_reload_preserves_fields(self, tmp_path: Path, enriched_tactic_data: dict) -> None:
         """Acceptance: saving and reloading preserves all fields."""
         from charter.offering.tactics.models import Tactic
 
-
         project_dir = tmp_path / "project"
-        repo = TacticRepository(
-            built_in_dir=tmp_path / "empty", project_dir=project_dir
-        )
+        repo = TacticRepository(built_in_dir=tmp_path / "empty", project_dir=project_dir)
 
         tactic = Tactic.model_validate(enriched_tactic_data)
         repo.save(tactic)
 
-        repo2 = TacticRepository(
-            built_in_dir=tmp_path / "empty", project_dir=project_dir
-        )
+        repo2 = TacticRepository(built_in_dir=tmp_path / "empty", project_dir=project_dir)
         loaded = repo2.get("enriched-tactic")
         assert loaded is not None
         assert loaded.name == tactic.name
@@ -160,9 +145,7 @@ class TestTacticRepository:
         assert len(loaded.steps) == len(tactic.steps)
         assert len(loaded.references) == len(tactic.references)
 
-    def test_filters_language_scoped_tactics_when_active_languages_do_not_match(
-        self, tmp_path: Path
-    ) -> None:
+    def test_filters_language_scoped_tactics_when_active_languages_do_not_match(self, tmp_path: Path) -> None:
         shipped = tmp_path / "built-in"
         shipped.mkdir()
 
@@ -197,9 +180,7 @@ class TestTacticRepository:
         assert "generic-tactic" in tactic_ids
         assert "python-tactic" not in tactic_ids
 
-    def test_skips_project_tactics_when_language_scope_does_not_match(
-        self, tmp_path: Path
-    ) -> None:
+    def test_skips_project_tactics_when_language_scope_does_not_match(self, tmp_path: Path) -> None:
         shipped = tmp_path / "built-in"
         shipped.mkdir()
         project = tmp_path / "project"

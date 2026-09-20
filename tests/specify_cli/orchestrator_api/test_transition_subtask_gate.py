@@ -71,6 +71,8 @@ def _disable_emit_side_effects(monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status.emit as status_emit
 
     monkeypatch.setattr(status_emit, "_saas_fan_out", lambda *args, **kwargs: None)
+
+
 def _git(repo: Path, *args: str) -> str:
     result = subprocess.run(
         ["git", "-C", str(repo), *args],
@@ -168,15 +170,7 @@ def _seed_mission(
     )
     (primary / "tasks.md").write_text(tasks_md, encoding="utf-8")
     (tasks_dir / "WP01.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Example\n"
-        "dependencies: []\n"
-        "subtasks:\n"
-        "- T001\n"
-        "- T002\n"
-        "---\n\n"
-        "body\n",
+        "---\nwork_package_id: WP01\ntitle: Example\ndependencies: []\nsubtasks:\n- T001\n- T002\n---\n\nbody\n",
         encoding="utf-8",
     )
     # WP01 already sits in in_progress -- the only lane from which
@@ -234,12 +228,8 @@ def _run_transition(repo_root: Path, extra_args: list[str] | None = None):
         )
 
 
-_UNCHECKED_TASKS_MD = (
-    "# Tasks\n\n## WP01 — Repro\n- [ ] T001 First (WP01)\n- [ ] T002 Second (WP01)\n"
-)
-_CHECKED_TASKS_MD = (
-    "# Tasks\n\n## WP01 — Repro\n- [x] T001 First (WP01)\n- [x] T002 Second (WP01)\n"
-)
+_UNCHECKED_TASKS_MD = "# Tasks\n\n## WP01 — Repro\n- [ ] T001 First (WP01)\n- [ ] T002 Second (WP01)\n"
+_CHECKED_TASKS_MD = "# Tasks\n\n## WP01 — Repro\n- [x] T001 First (WP01)\n- [x] T002 Second (WP01)\n"
 
 
 def test_unasserted_flag_blocks_on_silent_snapshot(tmp_path: Path) -> None:
@@ -282,9 +272,7 @@ def test_explicit_caller_assertion_cannot_bypass_snapshot_gate(tmp_path: Path) -
     ``--subtasks-complete``; only the explicit force-with-reason path bypasses.
     """
     repo_root = _seed_mission(tmp_path, tasks_md=_UNCHECKED_TASKS_MD)
-    result = _run_transition(
-        repo_root, ["--subtasks-complete", "--implementation-evidence-present"]
-    )
+    result = _run_transition(repo_root, ["--subtasks-complete", "--implementation-evidence-present"])
 
     assert result.exit_code != 0, result.output
     payload = json.loads(result.output)

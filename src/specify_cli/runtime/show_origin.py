@@ -92,11 +92,7 @@ def _discover_command_names(mission: str) -> list[str]:
             names.update(f.name for f in pkg_cmd_dir.iterdir() if f.is_file() and f.suffix == ".md")
         pkg_steps_dir = pkg_root / "mission-steps" / mission
         if pkg_steps_dir.is_dir():
-            names.update(
-                f"{step_dir.name}.md"
-                for step_dir in pkg_steps_dir.iterdir()
-                if step_dir.is_dir() and (step_dir / "prompt.md").is_file()
-            )
+            names.update(f"{step_dir.name}.md" for step_dir in pkg_steps_dir.iterdir() if step_dir.is_dir() and (step_dir / "prompt.md").is_file())
     except OSError:
         pass
 

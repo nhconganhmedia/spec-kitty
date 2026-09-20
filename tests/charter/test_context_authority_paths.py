@@ -35,18 +35,14 @@ def _make_dir(repo_root: Path, relative: str) -> None:
 class TestDefaultAuthorityPaths:
     """Default entries surface only when their directory exists on disk."""
 
-    def test_default_glossary_path_surfaces_when_directory_present(
-        self, tmp_path: Path
-    ) -> None:
+    def test_default_glossary_path_surfaces_when_directory_present(self, tmp_path: Path) -> None:
         _make_dir(tmp_path, "docs/context")
         result = render_authority_paths(tmp_path, DoctrineSelectionConfig())
         assert AUTHORITY_PATHS_HEADER in result
         assert "docs/context/" in result
         assert DEFAULT_AUTHORITY_PATHS["docs/context/"] in result
 
-    def test_default_adr_path_surfaces_when_directory_present(
-        self, tmp_path: Path
-    ) -> None:
+    def test_default_adr_path_surfaces_when_directory_present(self, tmp_path: Path) -> None:
         _make_dir(tmp_path, "docs/adr/3.x")
         result = render_authority_paths(tmp_path, DoctrineSelectionConfig())
         assert AUTHORITY_PATHS_HEADER in result
@@ -71,9 +67,7 @@ class TestCharterDeclaredAuthorityPaths:
         assert "docs/runbooks/" in result
         assert DEFAULT_CHARTER_DECLARED_WHEN_CLAUSE in result
 
-    def test_charter_declared_duplicate_of_default_deduped(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_declared_duplicate_of_default_deduped(self, tmp_path: Path) -> None:
         _make_dir(tmp_path, "docs/context")
         selection = DoctrineSelectionConfig(authority_paths=["docs/context/"])
         result = render_authority_paths(tmp_path, selection)

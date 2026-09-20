@@ -135,9 +135,7 @@ def _minimal_project(repo_root: Path) -> Path:
     """
     kittify = repo_root / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     init_git_repo(repo_root)
     write_interview_answers(repo_root / ".kittify/charter/interview/answers.yaml", default_interview(mission="software-dev"))
     return repo_root
@@ -212,9 +210,7 @@ def _inject_backed_legacy_content(repo_root: Path) -> None:
     doctrine_dir = repo_root / ".kittify" / "doctrine"
     graph_path = _graph_path(repo_root)
     graph = _load_graph(graph_path)
-    graph["nodes"].append(
-        {"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"}
-    )
+    graph["nodes"].append({"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"})
     graph.setdefault("edges", []).append(
         {
             "source": _LEGACY_URN,
@@ -250,9 +246,7 @@ def _inject_backed_legacy_content(repo_root: Path) -> None:
         content_hash=content_hash,
     )
     updated_manifest = finalize_manifest(manifest.model_copy(update={"artifacts": [*manifest.artifacts, new_entry]}))
-    manifest_path.write_text(
-        canonical_yaml(updated_manifest.model_dump(mode="python")).decode("utf-8"), encoding="utf-8"
-    )
+    manifest_path.write_text(canonical_yaml(updated_manifest.model_dump(mode="python")).decode("utf-8"), encoding="utf-8")
 
     existing_prov_path = repo_root / ".kittify" / "charter" / "provenance" / "tactic-how-we-apply-directive-003.yaml"
     existing_prov_entry = load_provenance(existing_prov_path)
@@ -344,20 +338,15 @@ def test_activate_resynthesize_preserves_backed_overlay_content(tmp_path: Path) 
     assert result.exit_code == 0, result.output
     graph = _load_graph(_graph_path(project_root))
     node_urns = {n["urn"] for n in graph["nodes"]}
-    assert _LEGACY_URN in node_urns, (
-        "activate --resynthesize silently dropped backed overlay content"
-    )
-    assert any(e["source"] == _LEGACY_URN for e in graph.get("edges", [])), (
-        "activate --resynthesize dropped the legacy node's edge"
-    )
+    assert _LEGACY_URN in node_urns, "activate --resynthesize silently dropped backed overlay content"
+    assert any(e["source"] == _LEGACY_URN for e in graph.get("edges", [])), "activate --resynthesize dropped the legacy node's edge"
 
 
 def test_deactivate_resynthesize_preserves_backed_overlay_content(tmp_path: Path) -> None:
     """``deactivate --resynthesize`` is symmetric: preserves backed content too."""
     project_root = _minimal_project(tmp_path)
     (project_root / ".kittify" / "config.yaml").write_text(
-        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-        "mission_type_activations:\n  - software-dev\n",
+        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
     _seed_complete_bundle(project_root)
@@ -377,9 +366,7 @@ def test_deactivate_resynthesize_preserves_backed_overlay_content(tmp_path: Path
     assert result.exit_code == 0, result.output
     graph = _load_graph(_graph_path(project_root))
     node_urns = {n["urn"] for n in graph["nodes"]}
-    assert _LEGACY_URN in node_urns, (
-        "deactivate --resynthesize silently dropped backed overlay content"
-    )
+    assert _LEGACY_URN in node_urns, "deactivate --resynthesize silently dropped backed overlay content"
 
 
 # ---------------------------------------------------------------------------
@@ -392,12 +379,8 @@ def test_renamed_function_is_the_live_symbol() -> None:
     import specify_cli.cli.commands.charter.activate as activate_mod
     import specify_cli.cli.commands.charter.deactivate as deactivate_mod
 
-    assert hasattr(activate_mod, "run_full_synthesize"), (
-        "the renamed function must exist on activate.py"
-    )
-    assert not hasattr(activate_mod, "run_resynthesize_pipeline"), (
-        "the mis-named symbol must be gone, not aliased"
-    )
+    assert hasattr(activate_mod, "run_full_synthesize"), "the renamed function must exist on activate.py"
+    assert not hasattr(activate_mod, "run_resynthesize_pipeline"), "the mis-named symbol must be gone, not aliased"
     # C-006 reconciliation (#4785 WP03): deactivate.py no longer imports
     # run_full_synthesize directly -- it imports the shared
     # recompile_or_notify tail activate.py defines (T012/T013 campsite),
@@ -407,8 +390,7 @@ def test_renamed_function_is_the_live_symbol() -> None:
     # now witnessed one level up, at the shared seam both commands route
     # through, rather than as a direct attribute on deactivate_mod.
     assert not hasattr(deactivate_mod, "run_full_synthesize"), (
-        "deactivate.py should route through the shared recompile_or_notify "
-        "seam, not re-import run_full_synthesize directly"
+        "deactivate.py should route through the shared recompile_or_notify seam, not re-import run_full_synthesize directly"
     )
     assert activate_mod.recompile_or_notify is deactivate_mod.recompile_or_notify, (
         "deactivate.py must import the SAME shared tail activate.py defines "
@@ -416,9 +398,7 @@ def test_renamed_function_is_the_live_symbol() -> None:
         "run_full_synthesize under --resynthesize for both commands"
     )
     docstring = activate_mod.run_full_synthesize.__doc__ or ""
-    assert "full" in docstring.lower() and "synthesize" in docstring.lower(), (
-        "the renamed function's docstring should clarify it calls FULL synthesize"
-    )
+    assert "full" in docstring.lower() and "synthesize" in docstring.lower(), "the renamed function's docstring should clarify it calls FULL synthesize"
 
 
 # ---------------------------------------------------------------------------
@@ -440,9 +420,7 @@ def test_renamed_function_is_the_live_symbol() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_activate_resynthesize_call_site_passes_prune_false_explicitly(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_activate_resynthesize_call_site_passes_prune_false_explicitly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T023b (#3270): the ``run_full_synthesize`` call site passes real ``prune=False``.
 
     Patches ``charter_synthesize`` (the CLI command body itself) so this
@@ -474,21 +452,16 @@ def test_activate_resynthesize_call_site_passes_prune_false_explicitly(
     assert result.exit_code == 0, result.output
     assert mock_synthesize.call_count == 1
     assert mock_synthesize.call_args.kwargs["prune"] is False, (
-        "run_full_synthesize must pass prune=False explicitly -- an omitted "
-        "keyword would resolve to Typer's truthy OptionInfo sentinel and "
-        "silently prune (#3270)"
+        "run_full_synthesize must pass prune=False explicitly -- an omitted keyword would resolve to Typer's truthy OptionInfo sentinel and silently prune (#3270)"
     )
     assert mock_synthesize.call_args.kwargs["dry_run"] is False
 
 
-def test_deactivate_resynthesize_call_site_passes_prune_false_explicitly(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_deactivate_resynthesize_call_site_passes_prune_false_explicitly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T023b (#3270): the ``deactivate`` --resynthesize call site is symmetric."""
     project_root = _minimal_project(tmp_path)
     (project_root / ".kittify" / "config.yaml").write_text(
-        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-        "mission_type_activations:\n  - software-dev\n",
+        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
     synthesize_module = importlib.import_module("specify_cli.cli.commands.charter.synthesize")
@@ -513,9 +486,7 @@ def test_deactivate_resynthesize_call_site_passes_prune_false_explicitly(
     assert result.exit_code == 0, result.output
     assert mock_synthesize.call_count == 1
     assert mock_synthesize.call_args.kwargs["prune"] is False, (
-        "run_full_synthesize must pass prune=False explicitly -- an omitted "
-        "keyword would resolve to Typer's truthy OptionInfo sentinel and "
-        "silently prune (#3270)"
+        "run_full_synthesize must pass prune=False explicitly -- an omitted keyword would resolve to Typer's truthy OptionInfo sentinel and silently prune (#3270)"
     )
     assert mock_synthesize.call_args.kwargs["dry_run"] is False
 
@@ -540,8 +511,7 @@ def test_activate_resynthesize_never_enters_prune_mode(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     assert synth_spy.call_count == 1
     assert synth_spy.call_args.kwargs["mode"] is SynthesizeMode.preserve, (
-        "activate --resynthesize must never leak an unset OptionInfo sentinel "
-        "into `prune` -- it must call synthesize() in explicit preserve mode"
+        "activate --resynthesize must never leak an unset OptionInfo sentinel into `prune` -- it must call synthesize() in explicit preserve mode"
     )
     # Behavioral corroboration: preserve mode really did keep the backed node.
     graph = _load_graph(_graph_path(project_root))
@@ -552,8 +522,7 @@ def test_deactivate_resynthesize_never_enters_prune_mode(tmp_path: Path) -> None
     """Behavioral corroboration: ``deactivate --resynthesize`` synthesizes in preserve mode."""
     project_root = _minimal_project(tmp_path)
     (project_root / ".kittify" / "config.yaml").write_text(
-        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-        "mission_type_activations:\n  - software-dev\n",
+        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
     _seed_complete_bundle(project_root)
@@ -573,8 +542,7 @@ def test_deactivate_resynthesize_never_enters_prune_mode(tmp_path: Path) -> None
     assert result.exit_code == 0, result.output
     assert synth_spy.call_count == 1
     assert synth_spy.call_args.kwargs["mode"] is SynthesizeMode.preserve, (
-        "deactivate --resynthesize must never leak an unset OptionInfo sentinel "
-        "into `prune` -- it must call synthesize() in explicit preserve mode"
+        "deactivate --resynthesize must never leak an unset OptionInfo sentinel into `prune` -- it must call synthesize() in explicit preserve mode"
     )
 
 
@@ -603,9 +571,7 @@ def test_corrupt_overlay_via_activate_fails_closed_with_no_write(tmp_path: Path)
 
     # Half-written / unparseable YAML (truncated mapping, bad indentation) --
     # same corruption shape WP01's and WP03's own fail-closed suites use.
-    _graph_path(project_root).write_text(
-        "schema_version: '1.0'\nnodes: [\n  {urn: broken\n", encoding="utf-8"
-    )
+    _graph_path(project_root).write_text("schema_version: '1.0'\nnodes: [\n  {urn: broken\n", encoding="utf-8")
 
     result, _spy = _invoke_with_resynthesize(
         "activate",
@@ -617,6 +583,4 @@ def test_corrupt_overlay_via_activate_fails_closed_with_no_write(tmp_path: Path)
     )
 
     assert result.exit_code == 1, result.output
-    assert manifest_path.read_bytes() == manifest_before, (
-        "a corrupt-overlay refusal reached through activate must not rewrite the manifest"
-    )
+    assert manifest_path.read_bytes() == manifest_before, "a corrupt-overlay refusal reached through activate must not rewrite the manifest"

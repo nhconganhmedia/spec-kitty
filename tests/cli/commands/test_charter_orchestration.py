@@ -70,6 +70,7 @@ def _make_project(tmp_path: Path, *, with_charter: bool = True, with_git: bool =
 # T023a — ``charter interview --defaults`` exits 0 and writes interview file
 # ---------------------------------------------------------------------------
 
+
 def test_interview_defaults_exits_zero_and_writes_answers(tmp_path: Path) -> None:
     """Arrange: project with .kittify + git; Act: invoke interview --defaults;
     Assert: exit 0 and interview answers file written."""
@@ -155,6 +156,7 @@ def test_interview_defaults_json_output(tmp_path: Path) -> None:
 # T023b — ``charter sync`` exits 0 when charter exists and is synced
 # ---------------------------------------------------------------------------
 
+
 def test_sync_exits_zero_when_charter_synced(tmp_path: Path) -> None:
     """Arrange: project with charter.md; Act: sync; Assert: exit 0."""
     project = _make_project(tmp_path)
@@ -212,6 +214,7 @@ def test_sync_noop_when_already_synced(tmp_path: Path) -> None:
 # T023c — ``charter status`` exits 0 and includes "Charter" in output
 # ---------------------------------------------------------------------------
 
+
 def test_status_exits_zero_with_human_output(tmp_path: Path) -> None:
     """Arrange: project with charter.md; Act: status; Assert: exit 0, "Charter" in output."""
     project = _make_project(tmp_path)
@@ -222,23 +225,50 @@ def test_status_exits_zero_with_human_output(tmp_path: Path) -> None:
     fake_synthesis = {
         "generation_state": "not_started",
         "generated_inputs": {"path": ".kittify/charter/generated", "exists": False, "counts": {"directive": 0, "tactic": 0, "styleguide": 0}, "total": 0},
-        "manifest": {"state": "missing", "path": ".kittify/charter/synthesis-manifest.yaml", "exists": False, "artifact_count": 0, "live_artifact_count": 0, "live_provenance_count": 0, "run_id": None, "created_at": None, "adapter_id": None, "adapter_version": None, "missing_provenance_paths": [], "error": None},  # noqa: E501
-        "provenance": {"path": ".kittify/charter/provenance", "count": 0, "parsed_count": 0, "manifest_artifact_count": 0, "missing_for_manifest_count": 0, "missing_for_manifest": [], "corpus_snapshot_ids": [], "adapters": [], "warnings": [], "entries": []},  # noqa: E501
+        "manifest": {
+            "state": "missing",
+            "path": ".kittify/charter/synthesis-manifest.yaml",
+            "exists": False,
+            "artifact_count": 0,
+            "live_artifact_count": 0,
+            "live_provenance_count": 0,
+            "run_id": None,
+            "created_at": None,
+            "adapter_id": None,
+            "adapter_version": None,
+            "missing_provenance_paths": [],
+            "error": None,
+        },  # noqa: E501
+        "provenance": {
+            "path": ".kittify/charter/provenance",
+            "count": 0,
+            "parsed_count": 0,
+            "manifest_artifact_count": 0,
+            "missing_for_manifest_count": 0,
+            "missing_for_manifest": [],
+            "corpus_snapshot_ids": [],
+            "adapters": [],
+            "warnings": [],
+            "entries": [],
+        },  # noqa: E501
         "evidence": {"warnings": [], "code": None, "configured_urls": [], "configured_url_count": 0, "corpus_snapshot_id": None, "corpus_entry_count": 0},
     }
 
     with (
         patch("specify_cli.cli.commands.charter.find_repo_root", return_value=project),
-        patch("specify_cli.cli.commands.charter._collect_charter_sync_status", return_value={
-            "available": True,
-            "charter_path": ".kittify/charter/charter.md",
-            "status": "synced",
-            "current_hash": "abc123",
-            "stored_hash": "abc123",
-            "last_sync": None,
-            "library_docs": 0,
-            "files": [],
-        }),
+        patch(
+            "specify_cli.cli.commands.charter._collect_charter_sync_status",
+            return_value={
+                "available": True,
+                "charter_path": ".kittify/charter/charter.md",
+                "status": "synced",
+                "current_hash": "abc123",
+                "stored_hash": "abc123",
+                "last_sync": None,
+                "library_docs": 0,
+                "files": [],
+            },
+        ),
         patch("specify_cli.cli.commands.charter._collect_synthesis_status", return_value=fake_synthesis),
     ):
         result = runner.invoke(app, ["status"])
@@ -254,23 +284,50 @@ def test_status_json_output_contains_result_key(tmp_path: Path) -> None:
     fake_synthesis: dict[str, Any] = {
         "generation_state": "not_started",
         "generated_inputs": {"path": ".kittify/charter/generated", "exists": False, "counts": {"directive": 0, "tactic": 0, "styleguide": 0}, "total": 0},
-        "manifest": {"state": "missing", "path": ".kittify/charter/synthesis-manifest.yaml", "exists": False, "artifact_count": 0, "live_artifact_count": 0, "live_provenance_count": 0, "run_id": None, "created_at": None, "adapter_id": None, "adapter_version": None, "missing_provenance_paths": [], "error": None},  # noqa: E501
-        "provenance": {"path": ".kittify/charter/provenance", "count": 0, "parsed_count": 0, "manifest_artifact_count": 0, "missing_for_manifest_count": 0, "missing_for_manifest": [], "corpus_snapshot_ids": [], "adapters": [], "warnings": [], "entries": []},  # noqa: E501
+        "manifest": {
+            "state": "missing",
+            "path": ".kittify/charter/synthesis-manifest.yaml",
+            "exists": False,
+            "artifact_count": 0,
+            "live_artifact_count": 0,
+            "live_provenance_count": 0,
+            "run_id": None,
+            "created_at": None,
+            "adapter_id": None,
+            "adapter_version": None,
+            "missing_provenance_paths": [],
+            "error": None,
+        },  # noqa: E501
+        "provenance": {
+            "path": ".kittify/charter/provenance",
+            "count": 0,
+            "parsed_count": 0,
+            "manifest_artifact_count": 0,
+            "missing_for_manifest_count": 0,
+            "missing_for_manifest": [],
+            "corpus_snapshot_ids": [],
+            "adapters": [],
+            "warnings": [],
+            "entries": [],
+        },  # noqa: E501
         "evidence": {"warnings": [], "code": None, "configured_urls": [], "configured_url_count": 0, "corpus_snapshot_id": None, "corpus_entry_count": 0},
     }
 
     with (
         patch("specify_cli.cli.commands.charter.find_repo_root", return_value=project),
-        patch("specify_cli.cli.commands.charter._collect_charter_sync_status", return_value={
-            "available": True,
-            "charter_path": ".kittify/charter/charter.md",
-            "status": "synced",
-            "current_hash": "abc123",
-            "stored_hash": "abc123",
-            "last_sync": None,
-            "library_docs": 0,
-            "files": [],
-        }),
+        patch(
+            "specify_cli.cli.commands.charter._collect_charter_sync_status",
+            return_value={
+                "available": True,
+                "charter_path": ".kittify/charter/charter.md",
+                "status": "synced",
+                "current_hash": "abc123",
+                "stored_hash": "abc123",
+                "last_sync": None,
+                "library_docs": 0,
+                "files": [],
+            },
+        ),
         patch("specify_cli.cli.commands.charter._collect_synthesis_status", return_value=fake_synthesis),
     ):
         result = runner.invoke(app, ["status", "--json"])
@@ -283,6 +340,7 @@ def test_status_json_output_contains_result_key(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # T023d — ``charter context`` exits 0 and emits action context text
 # ---------------------------------------------------------------------------
+
 
 def test_context_exits_zero_for_known_action(tmp_path: Path) -> None:
     """Arrange: project; Act: context --action specify; Assert: exit 0."""

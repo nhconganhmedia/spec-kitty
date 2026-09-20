@@ -49,9 +49,7 @@ def _write_gitignore(project_root: Path, *entries: str) -> None:
 
 
 def _write_metadata(project_root: Path, version: str) -> None:
-    ProjectMetadata(version=version, initialized_at=now_utc()).save(
-        project_root / ".kittify"
-    )
+    ProjectMetadata(version=version, initialized_at=now_utc()).save(project_root / ".kittify")
 
 
 def _is_ignored(project_root: Path, path: str) -> bool:
@@ -115,11 +113,7 @@ def test_detect_false_for_no_trailing_slash_variant(tmp_path: Path) -> None:
     migration = DerivedViewsGitignoreBackfillMigration()
     assert migration.detect(tmp_path) is False
     migration.apply(tmp_path)
-    entries = [
-        line.strip()
-        for line in tmp_path.joinpath(".gitignore").read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    entries = [line.strip() for line in tmp_path.joinpath(".gitignore").read_text(encoding="utf-8").splitlines() if line.strip()]
     assert ".kittify/derived/" not in entries  # no duplicate beside the variant
 
 
@@ -152,9 +146,7 @@ def test_dry_run_reports_without_mutating(tmp_path: Path) -> None:
     assert result.success
     assert result.changes_made == [f"Would add {_DERIVED_VIEWS_ENTRY} to .gitignore"]
     # Dry run must not touch the file.
-    assert _DERIVED_VIEWS_ENTRY not in tmp_path.joinpath(".gitignore").read_text(
-        encoding="utf-8"
-    )
+    assert _DERIVED_VIEWS_ENTRY not in tmp_path.joinpath(".gitignore").read_text(encoding="utf-8")
 
 
 def test_backfill_fires_on_already_current_3_2_4_project(tmp_path: Path) -> None:
@@ -170,8 +162,5 @@ def test_backfill_fires_on_already_current_3_2_4_project(tmp_path: Path) -> None
     result = MigrationRunner(tmp_path).upgrade("3.2.4", include_worktrees=False)
 
     assert result.success
-    assert (
-        DerivedViewsGitignoreBackfillMigration.migration_id
-        in result.migrations_applied
-    )
+    assert DerivedViewsGitignoreBackfillMigration.migration_id in result.migrations_applied
     assert _is_ignored(tmp_path, _DERIVED_VIEW_PATH)

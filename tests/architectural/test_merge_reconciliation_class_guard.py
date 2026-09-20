@@ -76,9 +76,7 @@ _AUTHORITATIVE_ARTIFACT_TOKENS: tuple[str, ...] = ("events", "meta", "trace")
 
 # A write argument that is one of these is a raw *foreign* read passed straight
 # through to the target (a blind copy), rather than a reconciled value.
-_RAW_READ_CALLEES: frozenset[str] = frozenset(
-    {"_read_optional_bytes", "read_bytes", "read_text"}
-)
+_RAW_READ_CALLEES: frozenset[str] = frozenset({"_read_optional_bytes", "read_bytes", "read_text"})
 
 
 # ---------------------------------------------------------------------------
@@ -142,9 +140,7 @@ def test_no_blind_copy_of_foreign_source_onto_authoritative_target() -> None:
         offenders.extend(
             f"{source.relative_to(SRC_ROOT)}:{node.lineno}"
             for node in ast.walk(tree)
-            if isinstance(node, ast.Call)
-            and _is_authoritative_target_write(node)
-            and _arg_is_raw_foreign_read(node)
+            if isinstance(node, ast.Call) and _is_authoritative_target_write(node) and _arg_is_raw_foreign_read(node)
         )
     assert not offenders, (
         "Blind copy of a foreign source onto an authoritative both-sides-divergent "
@@ -182,25 +178,13 @@ def test_declared_merge_drivers_are_registered_in_gitattributes() -> None:
     registered = _gitattributes_merge_drivers()
     declared = {driver.pattern: driver.config_key for driver in _MERGE_DRIVERS}
 
-    unregistered = [
-        f"{pattern} merge={key}"
-        for pattern, key in declared.items()
-        if registered.get(pattern) != key
-    ]
+    unregistered = [f"{pattern} merge={key}" for pattern, key in declared.items() if registered.get(pattern) != key]
     assert not unregistered, (
-        "Merge driver declared in specify_cli.lanes.merge._MERGE_DRIVERS but not "
-        f"registered in root .gitattributes (#2709 re-inheritance risk): {unregistered}"
+        f"Merge driver declared in specify_cli.lanes.merge._MERGE_DRIVERS but not registered in root .gitattributes (#2709 re-inheritance risk): {unregistered}"
     )
 
-    orphaned = [
-        f"{pattern} merge={key}"
-        for pattern, key in registered.items()
-        if key.startswith("spec-kitty-") and declared.get(pattern) != key
-    ]
-    assert not orphaned, (
-        "Spec Kitty merge driver registered in .gitattributes with no matching "
-        f"_MERGE_DRIVERS declaration (drift): {orphaned}"
-    )
+    orphaned = [f"{pattern} merge={key}" for pattern, key in registered.items() if key.startswith("spec-kitty-") and declared.get(pattern) != key]
+    assert not orphaned, f"Spec Kitty merge driver registered in .gitattributes with no matching _MERGE_DRIVERS declaration (drift): {orphaned}"
 
 
 # Canonical artifacts the mission classifies as NOT both-sides-divergent, so a
@@ -254,10 +238,7 @@ def _canonical_artifact_file_globs() -> dict[str, MissionArtifactKind]:
     completeness lint below (non-tautology). Directory kinds (``tasks/``,
     ``checklists/`` — human-authored planning collections) are handled separately.
     """
-    return {
-        f"kitty-specs/**/{filename}": kind
-        for filename, kind in _MISSION_FILE_KIND_BY_BASENAME.items()
-    }
+    return {f"kitty-specs/**/{filename}": kind for filename, kind in _MISSION_FILE_KIND_BY_BASENAME.items()}
 
 
 # Directory-kind coordination residues that are human-authored planning
@@ -547,11 +528,7 @@ def _init_seed_attribute_lines() -> set[str]:
     constant), NOT a hardcoded list — a NEW driver constant is picked up
     automatically, and a registry driver with NO init constant trips the lint.
     """
-    return {
-        value
-        for value in vars(_init_command).values()
-        if isinstance(value, str) and _MERGE_ATTRIBUTES_LINE.match(value)
-    }
+    return {value for value in vars(_init_command).values() if isinstance(value, str) and _MERGE_ATTRIBUTES_LINE.match(value)}
 
 
 def _migration_seed_attribute_lines() -> set[str]:

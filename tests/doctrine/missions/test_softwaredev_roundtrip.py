@@ -66,11 +66,7 @@ def _clear_mission_type_default_cache() -> Iterator[None]:
 
 def _software_dev_steps() -> list[MissionStep]:
     """Resolve all 12 built-in software-dev steps (built-in layer only)."""
-    return list(
-        MissionStepRepository.default()
-        .resolve_all_for_mission_type("software-dev", pack_context=None)
-        .values()
-    )
+    return list(MissionStepRepository.default().resolve_all_for_mission_type("software-dev", pack_context=None).values())
 
 
 class TestSoftwareDevProjectionParity:
@@ -154,9 +150,5 @@ class TestMissionTypeRepositoryLiveProjection:
         mission_type = MissionTypeRepository.default().get("software-dev")
         assert mission_type is not None
 
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type("software-dev", pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type("software-dev", pack_context=None).values())
         assert project_template_set(steps) == _AUTHORED_TEMPLATE_SET

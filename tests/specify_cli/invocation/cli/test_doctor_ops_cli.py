@@ -49,9 +49,7 @@ def _fresh_ts() -> str:
     return (now_utc() - timedelta(minutes=5)).isoformat()
 
 
-def test_threshold_without_close_stale_is_usage_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_threshold_without_close_stale_is_usage_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _project(tmp_path, monkeypatch)
 
     result = runner.invoke(cli_app, ["doctor", "ops", "--threshold", "12"])
@@ -62,9 +60,7 @@ def test_threshold_without_close_stale_is_usage_error(
     assert "--close-stale" in strip_ansi(result.output)
 
 
-def test_close_stale_sweeps_stale_op_json_and_exits_zero(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_stale_sweeps_stale_op_json_and_exits_zero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ops_dir = _project(tmp_path, monkeypatch)
     path = _write_open_op(ops_dir, "01KTBE0RQY9XKTV0PE49PJDC01", _stale_ts())
 
@@ -92,9 +88,7 @@ def test_close_stale_sweeps_stale_op_json_and_exits_zero(
     assert closure.closed_by == "doctor_sweep"
 
 
-def test_close_stale_fresh_only_sweeps_nothing_and_exits_one(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_stale_fresh_only_sweeps_nothing_and_exits_one(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ops_dir = _project(tmp_path, monkeypatch)
     _write_open_op(ops_dir, "01KTBE0RQY9XKTV0PE49PJDC02", _fresh_ts())
 
@@ -107,16 +101,12 @@ def test_close_stale_fresh_only_sweeps_nothing_and_exits_one(
     assert payload["open_ops"][0]["action_taken"] == "none"
 
 
-def test_close_stale_threshold_zero_sweeps_all(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_stale_threshold_zero_sweeps_all(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ops_dir = _project(tmp_path, monkeypatch)
     _write_open_op(ops_dir, "01KTBE0RQY9XKTV0PE49PJDC03", _fresh_ts())
     _write_open_op(ops_dir, "01KTBE0RQY9XKTV0PE49PJDC04", _stale_ts())
 
-    result = runner.invoke(
-        cli_app, ["doctor", "ops", "--close-stale", "--threshold", "0", "--json"]
-    )
+    result = runner.invoke(cli_app, ["doctor", "ops", "--close-stale", "--threshold", "0", "--json"])
 
     assert result.exit_code == 0
     payload = json.loads(result.output)
@@ -125,9 +115,7 @@ def test_close_stale_threshold_zero_sweeps_all(
     assert payload["threshold_hours"] == 0.0
 
 
-def test_close_stale_human_output_mentions_sweep_counts(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_stale_human_output_mentions_sweep_counts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ops_dir = _project(tmp_path, monkeypatch)
     _write_open_op(ops_dir, "01KTBE0RQY9XKTV0PE49PJDC05", _stale_ts())
 
@@ -138,9 +126,7 @@ def test_close_stale_human_output_mentions_sweep_counts(
     assert "1 closed as abandoned" in result.output
 
 
-def test_report_mode_unchanged_without_flag(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_report_mode_unchanged_without_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ops_dir = _project(tmp_path, monkeypatch)
     path = _write_open_op(ops_dir, "01KTBE0RQY9XKTV0PE49PJDC06", _stale_ts())
 

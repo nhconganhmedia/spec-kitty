@@ -200,15 +200,12 @@ def test_corrupt_meta_degrades_shape_helper_instead_of_raising(tmp_path: Path) -
     _git(repo, "branch", _COORD_BRANCH)
 
     identity = _identity(repo)
-    assert st._read_contract_routes_through_coordination(identity) is False, (
-        "sanity: the stored single_branch topology must dispose False before corruption"
-    )
+    assert st._read_contract_routes_through_coordination(identity) is False, "sanity: the stored single_branch topology must dispose False before corruption"
 
     (feature_dir / "meta.json").write_text("{ not valid json", encoding="utf-8")
 
     assert st._read_contract_routes_through_coordination(identity) is True, (
-        "corrupt meta.json must degrade the SHAPE helper via the except-clause's "
-        "coordination-branch fallback (True here), not raise MissionMetaReadError"
+        "corrupt meta.json must degrade the SHAPE helper via the except-clause's coordination-branch fallback (True here), not raise MissionMetaReadError"
     )
 
 
@@ -256,8 +253,7 @@ def test_coord_branch_deleted_transient_falls_back_to_primary(tmp_path: Path) ->
     # … but the transient probe routes the actual contract to the primary checkout.
     contract = st._read_contract_from_transaction_target(identity, _SLUG)
     assert contract == EventLogReadContract.primary_checkout(identity.feature_dir), (
-        "the #1848 coord-deleted transient arm must keep routing to primary even "
-        "though the stored topology shape is coord"
+        "the #1848 coord-deleted transient arm must keep routing to primary even though the stored topology shape is coord"
     )
 
 

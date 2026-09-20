@@ -110,9 +110,7 @@ def _list_cycle_artifacts(sub_artifact_dir: Path) -> list[str]:
 
 
 @pytest.fixture()
-def for_review_repo(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> tuple[Path, Path, Path]:
+def for_review_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, Path]:
     """Initialise a git repo with one mission, one WP, currently in ``for_review``.
 
     Returns ``(repo_root, feature_dir, sub_artifact_dir)``.
@@ -120,9 +118,7 @@ def for_review_repo(
     repo = tmp_path / "repo"
     repo.mkdir()
     subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
         cwd=repo,
@@ -173,9 +169,7 @@ def for_review_repo(
             computed_from="test",
         ),
     )
-    (feature_dir / "tasks.md").write_text(
-        "## WP01 Test\n\n- [x] T001 Placeholder task\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("## WP01 Test\n\n- [x] T001 Placeholder task\n", encoding="utf-8")
     _write_cli_wp(tasks_dir / f"{WP_SLUG}.md")
 
     # Drive event log: planned -> claimed -> in_progress -> for_review.
@@ -297,8 +291,7 @@ def test_review_cycle_counter_advances_only_on_real_rejection(
             f"assertion would otherwise be vacuous. CLI stdout:\n{result.stdout}"
         )
         assert _count_cycle_artifacts(sub_artifact_dir) == 0, (
-            f"Implement rerun #{attempt + 1} unexpectedly created an artifact: "
-            f"{_list_cycle_artifacts(sub_artifact_dir)}\nstdout:\n{result.stdout}"
+            f"Implement rerun #{attempt + 1} unexpectedly created an artifact: {_list_cycle_artifacts(sub_artifact_dir)}\nstdout:\n{result.stdout}"
         )
 
     # Step 3: Trigger a real rejection event. Counter must advance by 1.
@@ -329,17 +322,12 @@ def test_review_cycle_counter_advances_only_on_real_rejection(
     # As above: 2 is a Typer usage error and would mean `implement` never
     # ran, making the no-inflation assertion below vacuous.
     assert result.exit_code in (0, 1), (
-        f"Implement rerun after rejection returned a Typer usage error "
-        f"(exit {result.exit_code}) -- `implement` never ran. "
-        f"CLI stdout:\n{result.stdout}"
+        f"Implement rerun after rejection returned a Typer usage error (exit {result.exit_code}) -- `implement` never ran. CLI stdout:\n{result.stdout}"
     )
     assert _count_cycle_artifacts(sub_artifact_dir) == 1, (
-        f"Implement rerun after rejection unexpectedly inflated counter; "
-        f"artifacts now: {_list_cycle_artifacts(sub_artifact_dir)}\nstdout:\n{result.stdout}"
+        f"Implement rerun after rejection unexpectedly inflated counter; artifacts now: {_list_cycle_artifacts(sub_artifact_dir)}\nstdout:\n{result.stdout}"
     )
-    assert persisted.stat().st_mtime_ns == artifact_mtime, (
-        "Existing review-cycle-1.md must not be rewritten by an implement rerun."
-    )
+    assert persisted.stat().st_mtime_ns == artifact_mtime, "Existing review-cycle-1.md must not be rewritten by an implement rerun."
     assert persisted.stat().st_size == artifact_size
 
     # Bonus: confirm that the canonical artifact-set is exactly {1}.
@@ -463,9 +451,7 @@ def test_approving_a_rejected_wp_writes_no_verdict_artifact(
 
     # Commit the freshly-written review-cycle-1.md -- the CLI's own
     # dirty-worktree guard requires this before any further lane transition.
-    subprocess.run(
-        ["git", "add", f"kitty-specs/{MISSION_SLUG}/"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "add", f"kitty-specs/{MISSION_SLUG}/"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "docs(WP01): record cycle 1 rejection feedback"],
         cwd=repo,
@@ -551,10 +537,7 @@ def test_approving_a_rejected_wp_writes_no_verdict_artifact(
             "--no-auto-commit",
         ],
     )
-    assert mark_status_result.exit_code == 0, (
-        "expected marking T001 done via the real mark-status command to "
-        f"succeed. CLI stdout:\n{mark_status_result.stdout}"
-    )
+    assert mark_status_result.exit_code == 0, f"expected marking T001 done via the real mark-status command to succeed. CLI stdout:\n{mark_status_result.stdout}"
 
     # The reviewer is now satisfied and approves -- a plain approve, with NO
     # override flags, and a caller-declared reviewer identity via --agent.
@@ -579,8 +562,7 @@ def test_approving_a_rejected_wp_writes_no_verdict_artifact(
     # Assert artifact FIRST (names the missing producer, not the guard).
     latest = ReviewCycleArtifact.latest(sub_artifact_dir)
     assert latest is not None, (
-        "expected a fresh review-cycle-N.md verdict artifact to exist after "
-        f"the approve attempt; none was created. CLI stdout:\n{result.stdout}"
+        f"expected a fresh review-cycle-N.md verdict artifact to exist after the approve attempt; none was created. CLI stdout:\n{result.stdout}"
     )
     assert latest.cycle_number > 1, (
         f"expected a fresh cycle number above the rejected cycle 1, got "
@@ -593,20 +575,13 @@ def test_approving_a_rejected_wp_writes_no_verdict_artifact(
     # checkable proxy that this is genuinely an approval, not a stale
     # rejection artifact.
     assert latest.body.startswith("Approved by "), (
-        f"expected the latest review-cycle artifact to carry an approval "
-        f"body, got {latest.body!r}. CLI stdout:\n{result.stdout}"
+        f"expected the latest review-cycle artifact to carry an approval body, got {latest.body!r}. CLI stdout:\n{result.stdout}"
     )
     assert latest.reviewer_agent == reviewer_identity, (
-        f"expected the approval artifact to echo the declared --agent "
-        f"identity {reviewer_identity!r}, got {latest.reviewer_agent!r}. "
-        f"CLI stdout:\n{result.stdout}"
+        f"expected the approval artifact to echo the declared --agent identity {reviewer_identity!r}, got {latest.reviewer_agent!r}. CLI stdout:\n{result.stdout}"
     )
-    assert latest.body.strip(), (
-        "expected the approval artifact to carry non-empty reviewer-authored "
-        f"body content, got an empty body. CLI stdout:\n{result.stdout}"
-    )
+    assert latest.body.strip(), f"expected the approval artifact to carry non-empty reviewer-authored body content, got an empty body. CLI stdout:\n{result.stdout}"
 
     assert result.exit_code == 0, (
-        f"expected the well-behaved reworked-and-resubmitted approve to "
-        f"succeed; got exit code {result.exit_code}. CLI stdout:\n{result.stdout}"
+        f"expected the well-behaved reworked-and-resubmitted approve to succeed; got exit code {result.exit_code}. CLI stdout:\n{result.stdout}"
     )

@@ -7,7 +7,7 @@ from pathlib import Path
 
 __all__ = ["get_dashboard_html", "get_dashboard_html_bytes"]
 
-_TEMPLATE_PATH = Path(__file__).with_name('index.html')
+_TEMPLATE_PATH = Path(__file__).with_name("index.html")
 # The shell carries the optional mission context in an inert
 # `<script type="application/json">` data island: the dashboard CSP
 # (`script-src 'self'`) blocks executable inline scripts, so a
@@ -41,19 +41,11 @@ def get_dashboard_html(*, mission_context: dict[str, str] | None = None) -> str:
 
     # Encode as HTML-safe JSON: escape characters that would break a <script> block
     # (<, >, & must be Unicode-escaped so a value like "</script>" can't inject markup).
-    mission_json = (
-        json.dumps(mission_context)
-        .replace("<", r"\u003c")
-        .replace(">", r"\u003e")
-        .replace("&", r"\u0026")
-    )
+    mission_json = json.dumps(mission_context).replace("<", r"\u003c").replace(">", r"\u003e").replace("&", r"\u0026")
     if _MISSION_PLACEHOLDER not in base_html:
         return base_html
 
-    injected = (
-        '<script type="application/json" id="initial-mission">'
-        f"{mission_json}</script>"
-    )
+    injected = f'<script type="application/json" id="initial-mission">{mission_json}</script>'
     return base_html.replace(_MISSION_PLACEHOLDER, injected, 1)
 
 

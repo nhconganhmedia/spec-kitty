@@ -60,6 +60,7 @@ class _PackContextLike(Protocol):
 
     def __hash__(self) -> int: ...
 
+
 __all__ = [
     "StepKey",
     "MissionStepRepository",
@@ -170,16 +171,11 @@ def _add_step_ids_from_dir(step_ids: set[str], mission_type_dir: Path) -> None:
 
 
 def _project_mission_type_dir(
-    pack_context: _PackContextLike, mission_type_id: str,
+    pack_context: _PackContextLike,
+    mission_type_id: str,
 ) -> Path:
     """Return the project override directory for a mission type."""
-    return (
-        pack_context.repo_root
-        / ".kittify"
-        / "overrides"
-        / "mission-steps"
-        / mission_type_id
-    )
+    return pack_context.repo_root / ".kittify" / "overrides" / "mission-steps" / mission_type_id
 
 
 # ---------------------------------------------------------------------------
@@ -263,9 +259,7 @@ class MissionStepRepository:
         """
         # ── Layer 1: project ──────────────────────────────────────────────
         if pack_context is not None:
-            project_step = self._resolve_project_layer(
-                mission_type_id, step_id, pack_context
-            )
+            project_step = self._resolve_project_layer(mission_type_id, step_id, pack_context)
             if project_step is not None:
                 return project_step
 
@@ -316,9 +310,7 @@ class MissionStepRepository:
             Only step IDs that exist in the built-in layer (or in org/project
             overrides for the same mission type) are returned.
         """
-        return _resolve_all_for_mission_type_cached(
-            self._builtin_root, mission_type_id, pack_context
-        )
+        return _resolve_all_for_mission_type_cached(self._builtin_root, mission_type_id, pack_context)
 
     @staticmethod
     def cache_clear() -> None:
@@ -353,7 +345,8 @@ class MissionStepRepository:
         # Project layer (collect any extra step_ids present in project overrides)
         if pack_context is not None:
             _add_step_ids_from_dir(
-                step_ids, _project_mission_type_dir(pack_context, mission_type_id),
+                step_ids,
+                _project_mission_type_dir(pack_context, mission_type_id),
             )
 
         # Resolve each step_id through the full layer stack.
@@ -368,9 +361,7 @@ class MissionStepRepository:
     # Private layer helpers
     # ------------------------------------------------------------------
 
-    def _collect_org_step_ids(
-        self, mission_type_id: str, pack_context: _PackContextLike
-    ) -> set[str]:
+    def _collect_org_step_ids(self, mission_type_id: str, pack_context: _PackContextLike) -> set[str]:
         """Collect step_ids discoverable in org packs for *mission_type_id*.
 
         Iterates over ``pack_context.pack_roots``, skipping the built-in root
@@ -385,9 +376,7 @@ class MissionStepRepository:
             _add_step_ids_from_dir(step_ids, org_mt_dir)
         return step_ids
 
-    def _resolve_builtin_layer(
-        self, mission_type_id: str, step_id: str
-    ) -> MissionStep | None:
+    def _resolve_builtin_layer(self, mission_type_id: str, step_id: str) -> MissionStep | None:
         """Attempt to load ``{builtin_steps_root}/{mission_type_id}/{step_id}/step.yaml``."""
         step_file = self._builtin_root / mission_type_id / step_id / _STEP_FILENAME
         return _load_step_yaml(step_file)
@@ -414,9 +403,7 @@ class MissionStepRepository:
         for pack_root in pack_context.pack_roots:
             if pack_root == builtin_pack_root:
                 continue
-            step_file = (
-                pack_root / "mission-steps" / mission_type_id / step_id / _STEP_FILENAME
-            )
+            step_file = pack_root / "mission-steps" / mission_type_id / step_id / _STEP_FILENAME
             step = _load_step_yaml(step_file)
             if step is not None:
                 return step
@@ -432,9 +419,14 @@ class MissionStepRepository:
 
         Project-layer shadow wins over both org and built-in layers.
         """
-        step_file = _project_mission_type_dir(
-            pack_context, mission_type_id,
-        ) / step_id / _STEP_FILENAME
+        step_file = (
+            _project_mission_type_dir(
+                pack_context,
+                mission_type_id,
+            )
+            / step_id
+            / _STEP_FILENAME
+        )
         return _load_step_yaml(step_file)
 
 
@@ -465,6 +457,4 @@ def _resolve_all_for_mission_type_cached(
     never call ``.cache_clear()`` on this private function directly from
     outside this module.
     """
-    return MissionStepRepository(
-        builtin_root
-    )._resolve_all_for_mission_type_uncached(mission_type_id, pack_context)
+    return MissionStepRepository(builtin_root)._resolve_all_for_mission_type_uncached(mission_type_id, pack_context)

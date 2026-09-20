@@ -108,12 +108,8 @@ def test_shipped_asset_resolves_from_clean_wheel_install(
     # not the repository source tree. The venv holds the wheel's site-packages;
     # the repo root must not appear anywhere in the resolved path.
     resolved_str = str(resolved.resolve())
-    assert str(venv_dir.resolve()) in resolved_str, (
-        f"expected resolution inside the venv {venv_dir}, got {resolved_str}"
-    )
-    assert str(REPO_ROOT.resolve()) not in resolved_str, (
-        f"resolution leaked back through the repository root: {resolved_str}"
-    )
+    assert str(venv_dir.resolve()) in resolved_str, f"expected resolution inside the venv {venv_dir}, got {resolved_str}"
+    assert str(REPO_ROOT.resolve()) not in resolved_str, f"resolution leaked back through the repository root: {resolved_str}"
 
     # SC-003 ran — record it (the criterion's runnable artefact executed).
     print(  # noqa: T201 — intentional run-marker for the SC-003 proof

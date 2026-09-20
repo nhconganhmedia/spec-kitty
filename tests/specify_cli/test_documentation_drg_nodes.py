@@ -105,18 +105,9 @@ def _type_grain_urns(repo_root: Path) -> set[str]:
     """
     # Mission doctrine-consumer-surface-missions-extraction-01KZ6G6H (FR-005)
     # relocated missions/ from src/charter/offering/missions to packs/built-in/missions.
-    profile_path = (
-        repo_root
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "documentation"
-        / "governance-profile.yaml"
-    )
+    profile_path = repo_root / "packs" / "built-in" / "missions" / "documentation" / "governance-profile.yaml"
     profile = yaml.safe_load(profile_path.read_text(encoding="utf-8"))
-    slugs: list[str] = list(profile.get("selected_directives", []) or []) + list(
-        profile.get("selected_tactics", []) or []
-    )
+    slugs: list[str] = list(profile.get("selected_directives", []) or []) + list(profile.get("selected_tactics", []) or [])
     return {_SLUG_TO_URN[slug] for slug in slugs}
 
 
@@ -144,10 +135,7 @@ def test_each_documentation_action_has_drg_node_and_context(action: str) -> None
     assert node is not None, f"missing DRG node: {urn}"
 
     ctx = resolve_context(graph, urn, depth=_COMPOSITION_RESOLUTION_DEPTH)
-    assert ctx.artifact_urns, (
-        f"empty artifact_urns for {urn}; verify graph.yaml edges "
-        f"from this action node to directives/tactics."
-    )
+    assert ctx.artifact_urns, f"empty artifact_urns for {urn}; verify graph.yaml edges from this action node to directives/tactics."
 
 
 @pytest.mark.parametrize("action", _DOC_ACTIONS)
@@ -165,38 +153,20 @@ def test_action_bundle_matches_drg_edges(action: str) -> None:
     inheritance.
     """
     repo_root = _repo_root()
-    bundle_path = (
-        repo_root
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "documentation"
-        / "actions"
-        / action
-        / "index.yaml"
-    )
+    bundle_path = repo_root / "packs" / "built-in" / "missions" / "documentation" / "actions" / action / "index.yaml"
     bundle = yaml.safe_load(bundle_path.read_text(encoding="utf-8"))
-    slugs: list[str] = list(bundle.get("directives", []) or []) + list(
-        bundle.get("tactics", []) or []
-    )
+    slugs: list[str] = list(bundle.get("directives", []) or []) + list(bundle.get("tactics", []) or [])
     expected_urns = {_SLUG_TO_URN[slug] for slug in slugs}
 
     # FR-006 edge check reads the built-in DRG through the WP03 seam so it stays
     # layout-agnostic across the WP05 monolith->fragment migration.
     graph = load_built_in_graph()
-    actual_urns = {
-        edge.target
-        for edge in graph.edges
-        if edge.source == f"action:documentation/{action}"
-        and str(edge.relation) == "scope"
-    }
+    actual_urns = {edge.target for edge in graph.edges if edge.source == f"action:documentation/{action}" and str(edge.relation) == "scope"}
 
     type_grain_urns = _type_grain_urns(repo_root)
     inherited_urns = actual_urns & type_grain_urns
     actual_action_grain_urns = actual_urns - inherited_urns
 
     assert expected_urns == actual_action_grain_urns, (
-        f"bundle <-> DRG mismatch for {action}: bundle has {expected_urns}, "
-        f"graph (excl. type-grain-inherited {inherited_urns}) has "
-        f"{actual_action_grain_urns}"
+        f"bundle <-> DRG mismatch for {action}: bundle has {expected_urns}, graph (excl. type-grain-inherited {inherited_urns}) has {actual_action_grain_urns}"
     )

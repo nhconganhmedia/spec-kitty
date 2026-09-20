@@ -54,9 +54,7 @@ from typing import Final, Literal
 
 #: The four verdict values a review-cycle artifact (or an arbiter action) may
 #: carry.
-ArtifactVerdict = Literal[
-    "approved", "rejected", "arbiter_override", "approved_after_orchestrator_fix"
-]
+ArtifactVerdict = Literal["approved", "rejected", "arbiter_override", "approved_after_orchestrator_fix"]
 
 #: The subset of :data:`ArtifactVerdict` that is a legal input to an *emitted*
 #: ``review_result`` event (D-PLAN-14). ``arbiter_override`` and

@@ -72,11 +72,7 @@ Test fixture for the unified bundle migration.
 """
 
 _CONTRACTS_SCHEMA_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "kitty-specs"
-    / "unified-charter-bundle-chokepoint-01KP5Q2G"
-    / "contracts"
-    / "migration-report.schema.json"
+    Path(__file__).resolve().parents[2] / "kitty-specs" / "unified-charter-bundle-chokepoint-01KP5Q2G" / "contracts" / "migration-report.schema.json"
 )
 
 
@@ -99,8 +95,7 @@ def _init_git_repo(root: Path) -> None:
         capture_output=True,
     )
     subprocess.run(
-        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit",
-         "--allow-empty", "-m", "init"],
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "--allow-empty", "-m", "init"],
         cwd=root,
         check=True,
         capture_output=True,
@@ -237,9 +232,7 @@ def _decode_report(result: Any) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def test_fixture_a_passes_bundle_validation_no_chokepoint_refresh(
-    fixture_a_with_full_derivatives: Path, migration: Any
-) -> None:
+def test_fixture_a_passes_bundle_validation_no_chokepoint_refresh(fixture_a_with_full_derivatives: Path, migration: Any) -> None:
     """(a) derivatives already present → applied=False, chokepoint_refreshed=False."""
     result = migration.apply(fixture_a_with_full_derivatives)
     report = _decode_report(result)
@@ -253,9 +246,7 @@ def test_fixture_a_passes_bundle_validation_no_chokepoint_refresh(
     assert report["errors"] == []
 
 
-def test_fixture_b_missing_charter_yaml_stays_unrefreshed(
-    fixture_b_no_derivatives: Path, migration: Any
-) -> None:
+def test_fixture_b_missing_charter_yaml_stays_unrefreshed(fixture_b_no_derivatives: Path, migration: Any) -> None:
     """(b) charter.md only, no charter.yaml → chokepoint CANNOT self-heal.
 
     consolidate-charter-bundle (WP04/WP01, T028b): ``sync()`` no longer
@@ -278,9 +269,7 @@ def test_fixture_b_missing_charter_yaml_stays_unrefreshed(
     assert not (fixture_b_no_derivatives / ".kittify" / "charter" / "charter.yaml").exists()
 
 
-def test_fixture_c_second_apply_is_no_op(
-    fixture_c_phase_2_shaped: Path, migration: Any
-) -> None:
+def test_fixture_c_second_apply_is_no_op(fixture_c_phase_2_shaped: Path, migration: Any) -> None:
     """(c) already-applied fixture: second apply must be applied=False, no errors."""
     # First apply (may or may not refresh — depends on pre-state).
     first = migration.apply(fixture_c_phase_2_shaped)
@@ -298,9 +287,7 @@ def test_fixture_c_second_apply_is_no_op(
     assert second_report["bundle_validation"]["passed"] is True
 
 
-def test_fixture_d_stale_metadata_does_not_refresh(
-    fixture_d_stale_metadata: Path, migration: Any
-) -> None:
+def test_fixture_d_stale_metadata_does_not_refresh(fixture_d_stale_metadata: Path, migration: Any) -> None:
     """(d) stale charter.md hash → chokepoint is retired, never refreshes anything.
 
     consolidate-charter-bundle (WP04/WP01, T028b): ``sync()``'s staleness
@@ -319,9 +306,7 @@ def test_fixture_d_stale_metadata_does_not_refresh(
     assert report["bundle_validation"]["passed"] is True
 
 
-def test_fixture_e_no_charter_is_clean_no_op(
-    fixture_e_no_charter: Path, migration: Any
-) -> None:
+def test_fixture_e_no_charter_is_clean_no_op(fixture_e_no_charter: Path, migration: Any) -> None:
     """(e) no charter.md → charter_present=False, applied=False, validation trivial."""
     result = migration.apply(fixture_e_no_charter)
     report = _decode_report(result)
@@ -350,9 +335,7 @@ def test_report_matches_schema(fixture_b_no_derivatives: Path, migration: Any) -
     jsonschema.validate(instance=report, schema=schema)
 
 
-def test_report_matches_schema_for_no_charter(
-    fixture_e_no_charter: Path, migration: Any
-) -> None:
+def test_report_matches_schema_for_no_charter(fixture_e_no_charter: Path, migration: Any) -> None:
     """The no-charter shape also satisfies the schema."""
     jsonschema = pytest.importorskip("jsonschema")
     schema = json.loads(_CONTRACTS_SCHEMA_PATH.read_text("utf-8"))
@@ -366,9 +349,7 @@ def test_report_matches_schema_for_no_charter(
 # ---------------------------------------------------------------------------
 
 
-def test_migration_does_not_touch_worktree(
-    fixture_b_no_derivatives: Path, migration: Any
-) -> None:
+def test_migration_does_not_touch_worktree(fixture_b_no_derivatives: Path, migration: Any) -> None:
     """A pre-existing worktree directory is untouched by the migration."""
     worktree_dir = fixture_b_no_derivatives / ".worktrees" / "dummy-lane-a"
     worktree_dir.mkdir(parents=True)
@@ -386,9 +367,7 @@ def test_migration_does_not_touch_worktree(
     assert descendants == ["ledger.txt"]
 
 
-def test_migration_does_not_touch_gitignore(
-    fixture_b_no_derivatives: Path, migration: Any
-) -> None:
+def test_migration_does_not_touch_gitignore(fixture_b_no_derivatives: Path, migration: Any) -> None:
     """``.gitignore`` is not read or written by the v1.0.0 migration."""
     gitignore = fixture_b_no_derivatives / ".gitignore"
     gitignore.write_text("# sentinel\nfoo/\n", encoding="utf-8")
@@ -402,9 +381,7 @@ def test_migration_does_not_touch_gitignore(
     assert gitignore.stat().st_mtime_ns == before_mtime
 
 
-def test_migration_does_not_touch_memory_symlinks(
-    fixture_b_no_derivatives: Path, migration: Any
-) -> None:
+def test_migration_does_not_touch_memory_symlinks(fixture_b_no_derivatives: Path, migration: Any) -> None:
     """``.kittify/memory`` and ``.kittify/AGENTS.md`` are left alone (C-011).
 
     On filesystems that refuse symlinks (Windows CI, etc.) the test falls
@@ -440,9 +417,7 @@ def test_migration_does_not_touch_memory_symlinks(
 
 
 @pytest.mark.performance
-def test_duration_ms_under_2000(
-    fixture_b_no_derivatives: Path, migration: Any
-) -> None:
+def test_duration_ms_under_2000(fixture_b_no_derivatives: Path, migration: Any) -> None:
     """NFR-006: wall-time must stay at or under 2 s on the reference fixture."""
     result = migration.apply(fixture_b_no_derivatives)
     report = _decode_report(result)
@@ -505,9 +480,7 @@ def _make_3_2_0rc34_project(root: Path) -> None:
     _clear_resolver_cache()
 
 
-def test_upgrade_cli_json_includes_migration_reports(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_upgrade_cli_json_includes_migration_reports(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """`spec-kitty upgrade --json` exposes the schema-shaped migration report.
 
     Cycle-1 Finding 2: the CLI must plumb per-migration
@@ -561,9 +534,7 @@ def test_upgrade_cli_json_includes_migration_reports(
     assert unified["errors"] == []
 
 
-def test_upgrade_cli_json_reports_no_charter_case(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_upgrade_cli_json_reports_no_charter_case(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Finding 1 regression (fixture e): no-charter project still emits a report.
 
     Before the fix, the narrow ``detect()`` returned False on projects without
@@ -607,9 +578,7 @@ def test_upgrade_cli_json_reports_no_charter_case(
     assert unified["bundle_validation"]["passed"] is True
 
 
-def test_upgrade_runner_invokes_migration_on_stale_metadata(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_upgrade_runner_invokes_migration_on_stale_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Finding 1 repro: stale-metadata fixture goes THROUGH the runner.
 
     The old narrow ``detect()`` returned False when derivatives were present
@@ -650,8 +619,7 @@ def test_upgrade_runner_invokes_migration_on_stale_metadata(
     # NOT absent — absence is the cycle-1 bug signature.
     migration_ids_seen = set(result.migrations_applied) | set(result.migrations_skipped)
     assert "3.2.0rc35_unified_bundle" in migration_ids_seen, (
-        "3.2.0rc35_unified_bundle was not invoked by the runner on a stale "
-        "fixture — regression of review-cycle-1 Finding 1"
+        "3.2.0rc35_unified_bundle was not invoked by the runner on a stale fixture — regression of review-cycle-1 Finding 1"
     )
 
     # And its structured payload must be captured for the CLI --json surface.
@@ -735,18 +703,13 @@ def test_detect_returns_false_inside_linked_worktree(tmp_path: Path) -> None:
     assert (main_root / ".git").is_dir()
 
     migration = UnifiedBundleMigration()
-    assert migration.detect(main_root) is True, (
-        "detect(main_checkout) must be True so the migration runs on 3.2.0rc35 upgrades"
-    )
+    assert migration.detect(main_root) is True, "detect(main_checkout) must be True so the migration runs on 3.2.0rc35 upgrades"
     assert migration.detect(worktree) is False, (
-        "detect(linked_worktree) must be False so the runner's worktree loop "
-        "skips the migration (no worktree scanning / mutation per §C-011/§C-012)"
+        "detect(linked_worktree) must be False so the runner's worktree loop skips the migration (no worktree scanning / mutation per §C-011/§C-012)"
     )
 
 
-def test_runner_include_worktrees_does_not_mutate_worktree_metadata(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_runner_include_worktrees_does_not_mutate_worktree_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The live runner must skip this migration entirely for `.worktrees/*`.
 
     `detect(False)` alone is insufficient if the runner still records a
@@ -797,7 +760,4 @@ def test_runner_include_worktrees_does_not_mutate_worktree_metadata(
     result = runner.upgrade("3.2.0rc35", include_worktrees=True, force=True)
 
     assert result.success is True, result.errors
-    assert wt_metadata.read_text("utf-8") == before, (
-        "worktree metadata changed even though "
-        "3.2.0rc35_unified_bundle is out of scope for worktree upgrades"
-    )
+    assert wt_metadata.read_text("utf-8") == before, "worktree metadata changed even though 3.2.0rc35_unified_bundle is out of scope for worktree upgrades"

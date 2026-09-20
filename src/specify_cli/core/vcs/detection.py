@@ -264,10 +264,7 @@ def get_vcs(
         return GitVCS()
 
     # 4. git not available
-    raise VCSNotFoundError(
-        "git is not available. "
-        "Please install git: https://git-scm.com/downloads"
-    )
+    raise VCSNotFoundError("git is not available. Please install git: https://git-scm.com/downloads")
 
 
 # =============================================================================

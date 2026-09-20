@@ -15,6 +15,7 @@ from runtime.next._internal_runtime.schema import PromptStep
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def test_default_fields_are_none() -> None:
     step = PromptStep(id="x", title="X")
     assert step.agent_profile is None
@@ -27,16 +28,12 @@ def test_default_fields_are_none() -> None:
     ids=["snake-alias", "kebab-alias"],
 )
 def test_agent_profile_alias_parses(key: str) -> None:
-    step = PromptStep.model_validate(
-        {"id": "x", "title": "X", key: "implementer-ivan"}
-    )
+    step = PromptStep.model_validate({"id": "x", "title": "X", key: "implementer-ivan"})
     assert step.agent_profile == "implementer-ivan"
 
 
 def test_contract_ref_parses() -> None:
-    set_step = PromptStep.model_validate(
-        {"id": "x", "title": "X", "contract_ref": "abc"}
-    )
+    set_step = PromptStep.model_validate({"id": "x", "title": "X", "contract_ref": "abc"})
     assert set_step.contract_ref == "abc"
 
     default_step = PromptStep.model_validate({"id": "x", "title": "X"})

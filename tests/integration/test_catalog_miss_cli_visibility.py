@@ -82,19 +82,27 @@ def _git_init(repo: Path) -> None:
     """Initialise a minimal git repo so the charter resolver accepts the path."""
     subprocess.run(
         ["git", "init", "--initial-branch=main"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.email", "atdd@example.com"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "ATDD"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "commit.gpgsign", "false"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -251,7 +259,10 @@ def test_typoed_styleguide_produces_visible_stderr_warning(
     """
     result = _run_cli(
         project_with_typo_charter,
-        "charter", "context", "--action", "implement",
+        "charter",
+        "context",
+        "--action",
+        "implement",
     )
 
     # Combine stdout + stderr: the bootstrap routes warnings to stderr but we

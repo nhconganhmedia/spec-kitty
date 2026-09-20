@@ -1,4 +1,5 @@
 """``spec-kitty charter context`` command (WP06 per-subcommand split)."""
+
 from __future__ import annotations
 
 import json
@@ -29,10 +30,7 @@ def context(
     include: str | None = typer.Option(
         None,
         "--include",
-        help=(
-            "Fetch selector, e.g. agent-profile:<id>, "
-            "template:<mission>/<name>, directive:<id>, section:<slug>."
-        ),
+        help=("Fetch selector, e.g. agent-profile:<id>, template:<mission>/<name>, directive:<id>, section:<slug>."),
     ),
     mark_loaded: bool = typer.Option(True, "--mark-loaded/--no-mark-loaded", help="Persist first-load state"),
     mission_type: str | None = typer.Option(
@@ -157,9 +155,7 @@ def context(
                     {
                         "result": "success",
                         "success": True,
-                        "context_schema_version": structured.get(
-                            "context_schema_version", CONTEXT_SCHEMA_VERSION
-                        ),
+                        "context_schema_version": structured.get("context_schema_version", CONTEXT_SCHEMA_VERSION),
                         "action": result.action,
                         "mode": result.mode,
                         "first_load": result.first_load,
@@ -172,9 +168,7 @@ def context(
                         "styleguides": structured.get("styleguides", []),
                         "toolguides": structured.get("toolguides", []),
                         "references": structured.get("references", []),
-                        "governance_references": structured.get(
-                            "governance_references", []
-                        ),
+                        "governance_references": structured.get("governance_references", []),
                         "project_charter": structured.get(
                             "project_charter",
                             # FR-006: kept consistent with the producer
@@ -189,9 +183,7 @@ def context(
                                 "charter_md_path": ".kittify/charter/charter.md",
                             },
                         ),
-                        "org_charter": structured.get(
-                            "org_charter", {"present": False, "packs": []}
-                        ),
+                        "org_charter": structured.get("org_charter", {"present": False, "packs": []}),
                     },
                     indent=2,
                 )

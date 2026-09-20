@@ -62,9 +62,7 @@ def _step(
     )
 
 
-def _write_builtin_step_yaml(
-    builtin_root: Path, mission_type_id: str, step_id: str, body: str
-) -> None:
+def _write_builtin_step_yaml(builtin_root: Path, mission_type_id: str, step_id: str, body: str) -> None:
     """Write *body* verbatim as ``step.yaml`` under the builtin-layout path."""
     step_dir = builtin_root / mission_type_id / step_id
     step_dir.mkdir(parents=True, exist_ok=True)
@@ -153,9 +151,7 @@ class TestProjectTemplateSet:
     def test_keyed_by_artifact_key_not_step_id(self) -> None:
         specify_step = _step(
             "specify",
-            template=MissionStepTemplateRef(
-                artifact_key="spec", template_file="spec-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md"),
         )
 
         result = project_template_set([specify_step])
@@ -166,9 +162,7 @@ class TestProjectTemplateSet:
     def test_drops_steps_without_a_template(self) -> None:
         specify_step = _step(
             "specify",
-            template=MissionStepTemplateRef(
-                artifact_key="spec", template_file="spec-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md"),
         )
         implement_step = _step("implement", template=None)
 
@@ -188,15 +182,11 @@ class TestProjectTemplateSet:
     def test_multiple_templates_all_present(self) -> None:
         specify_step = _step(
             "specify",
-            template=MissionStepTemplateRef(
-                artifact_key="spec", template_file="spec-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md"),
         )
         plan_step = _step(
             "plan",
-            template=MissionStepTemplateRef(
-                artifact_key="plan", template_file="plan-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="plan", template_file="plan-template.md"),
         )
 
         result = project_template_set([specify_step, plan_step])
@@ -216,9 +206,7 @@ class TestIterTemplateRefs:
         specify_step = _step(
             "specify",
             sequence_index=0,
-            template=MissionStepTemplateRef(
-                artifact_key="spec", template_file="spec-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md"),
         )
         implement_step = _step("implement", sequence_index=1, template=None)
 
@@ -230,16 +218,12 @@ class TestIterTemplateRefs:
         plan_step = _step(
             "plan",
             sequence_index=1,
-            template=MissionStepTemplateRef(
-                artifact_key="plan", template_file="plan-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="plan", template_file="plan-template.md"),
         )
         specify_step = _step(
             "specify",
             sequence_index=0,
-            template=MissionStepTemplateRef(
-                artifact_key="spec", template_file="spec-template.md"
-            ),
+            template=MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md"),
         )
 
         # Input order is [plan, specify] -- reversed relative to sequence_index.
@@ -279,9 +263,7 @@ def _clear_mission_type_default_cache() -> Iterator[None]:
 class TestMissionTypeRepositoryProjectionInjection:
     """The ``_load`` injection: transitional fallback + projection preference."""
 
-    def test_unannotated_builtin_steps_fall_back_to_authored_yaml(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unannotated_builtin_steps_fall_back_to_authored_yaml(self, tmp_path: Path) -> None:
         """Today, software-dev's real builtin steps carry no sequence_index/
         in_action_sequence yet (pending WP03) -- the injected value must fall
         back to the still-authored YAML rather than overwrite it with an
@@ -313,9 +295,7 @@ class TestMissionTypeRepositoryProjectionInjection:
         assert mt is not None
         assert mt.action_sequence == ["specify", "plan", "tasks", "implement", "review"]
 
-    def test_annotated_builtin_steps_override_stale_authored_yaml(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_annotated_builtin_steps_override_stale_authored_yaml(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Once a mission type's builtin steps carry sequence_index/
         in_action_sequence/template (WP03/WP05 future state), the *projected*
         value wins over a stale raw YAML value -- proving the injection is
@@ -340,30 +320,18 @@ class TestMissionTypeRepositoryProjectionInjection:
             builtin_steps_root,
             "synth-type",
             "beta",
-            "id: beta\n"
-            "display_name: Beta\n"
-            "step_type: agent\n"
-            "prompt_template: prompt.md\n"
-            "in_action_sequence: true\n"
-            "sequence_index: 0\n",
+            "id: beta\ndisplay_name: Beta\nstep_type: agent\nprompt_template: prompt.md\nin_action_sequence: true\nsequence_index: 0\n",
         )
 
         def _fake_step_repo_default(cls: type[MissionStepRepository]) -> MissionStepRepository:
             return cls(builtin_steps_root)
 
-        monkeypatch.setattr(
-            MissionStepRepository, "default", classmethod(_fake_step_repo_default)
-        )
+        monkeypatch.setattr(MissionStepRepository, "default", classmethod(_fake_step_repo_default))
 
         mission_types_dir = tmp_path / "mission_types"
         mission_types_dir.mkdir()
         (mission_types_dir / "synth-type.yaml").write_text(
-            "schema_version: 1\n"
-            "id: synth-type\n"
-            "display_name: Synth\n"
-            "action_sequence:\n"
-            "  - stale-a\n"
-            "  - stale-b\n",
+            "schema_version: 1\nid: synth-type\ndisplay_name: Synth\naction_sequence:\n  - stale-a\n  - stale-b\n",
             encoding="utf-8",
         )
 
@@ -377,11 +345,7 @@ class TestMissionTypeRepositoryProjectionInjection:
         # overlay -- the alpha step's template ref still feeds the
         # consumption-boundary projection (proving the ref is genuinely
         # wired, not merely present-but-unused).
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type("synth-type", pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type("synth-type", pack_context=None).values())
         assert project_template_set(steps) == {"alpha-artifact": "alpha-template.md"}
 
 

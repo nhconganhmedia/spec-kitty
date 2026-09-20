@@ -75,9 +75,7 @@ def _run_finalize(mission_slug: str, patches: dict[str, object]) -> None:
             p.stop()
 
 
-def test_ownership_only_amendment_preserves_established_lanes_and_provenance(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_ownership_only_amendment_preserves_established_lanes_and_provenance(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # Keep finalize-tasks on the offline path: tests/conftest.py enables SaaS sync
     # globally, which can let a machine-local daemon-owner record short-circuit
     # finalize before these assertions run (mirrors the source module's autouse
@@ -89,9 +87,7 @@ def test_ownership_only_amendment_preserves_established_lanes_and_provenance(
 
     patches = _common_patches(tmp_path, mission_slug)
     patches[f"{MODULE}._find_feature_directory"] = MagicMock(return_value=feature_dir)
-    patches[f"{MODULE}.bootstrap_canonical_state"] = MagicMock(
-        return_value=_make_bootstrap_result()
-    )
+    patches[f"{MODULE}.bootstrap_canonical_state"] = MagicMock(return_value=_make_bootstrap_result())
 
     # Run 1: materialize the established topology (WP01 and WP02 own disjoint
     # files → two independent lanes).
@@ -100,8 +96,7 @@ def test_ownership_only_amendment_preserves_established_lanes_and_provenance(
     assert established is not None
     baseline_topology = {lane.lane_id: sorted(lane.wp_ids) for lane in established.lanes}
     assert sorted(baseline_topology.values()) == [["WP01"], ["WP02"]], (
-        "sanity: two disjoint WPs must materialize two independent single-WP "
-        f"lanes; got {baseline_topology}"
+        f"sanity: two disjoint WPs must materialize two independent single-WP lanes; got {baseline_topology}"
     )
 
     # Stand in a recorded planning provenance SHA (finalize cannot capture one in a

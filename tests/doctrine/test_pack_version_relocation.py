@@ -71,9 +71,7 @@ class TestResolvePackVersionAuthoredWhenPresent:
         assert fetched_at is None
         assert is_git is False
 
-    def test_authored_pack_yaml_wins_even_when_generated_manifest_also_has_it(
-        self, tmp_path: Path
-    ) -> None:
+    def test_authored_pack_yaml_wins_even_when_generated_manifest_also_has_it(self, tmp_path: Path) -> None:
         """Authored takes priority regardless of what the generated file says."""
         _write_yaml(tmp_path / "pack.yaml", {"pack_version": "5.0.0"})
         _write_yaml(tmp_path / "pack-manifest.yaml", _fetched_pack_manifest_payload(pack_version="1.0.0"))
@@ -112,9 +110,7 @@ class TestResolvePackVersionGeneratedFallback:
         assert fetched_at is None
         assert is_git is False
 
-    def test_git_pack_still_takes_precedence_over_a_missing_authored_descriptor(
-        self, tmp_path: Path
-    ) -> None:
+    def test_git_pack_still_takes_precedence_over_a_missing_authored_descriptor(self, tmp_path: Path) -> None:
         (tmp_path / ".git").mkdir()
 
         version, fetched_at, is_git = _resolve_pack_version(tmp_path)
@@ -134,9 +130,7 @@ class TestResolvePackVersionGeneratedFallback:
 
 
 class TestHasRecognisablePackManifest:
-    def test_fetched_pack_with_generated_pack_version_stays_recognisable(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fetched_pack_with_generated_pack_version_stays_recognisable(self, tmp_path: Path) -> None:
         """Regression pin (unchanged behavior): the ordinary fetched/org
         shape -- pack_version present on the generated manifest, no
         pack.yaml -- must keep passing exactly as before."""
@@ -144,9 +138,7 @@ class TestHasRecognisablePackManifest:
 
         assert _has_recognisable_pack_manifest(tmp_path) is True
 
-    def test_built_in_shaped_manifest_without_pack_version_is_recognisable_via_authored_sibling(
-        self, tmp_path: Path
-    ) -> None:
+    def test_built_in_shaped_manifest_without_pack_version_is_recognisable_via_authored_sibling(self, tmp_path: Path) -> None:
         """New behavior: a generated manifest omitting pack_version (as the
         built-in generator does) is still recognisable when a sibling
         authored pack.yaml supplies the value."""
@@ -163,9 +155,7 @@ class TestHasRecognisablePackManifest:
 
         assert _has_recognisable_pack_manifest(tmp_path) is True
 
-    def test_manifest_without_pack_version_and_without_authored_sibling_is_unrecognisable(
-        self, tmp_path: Path
-    ) -> None:
+    def test_manifest_without_pack_version_and_without_authored_sibling_is_unrecognisable(self, tmp_path: Path) -> None:
         """Neither source has it -- still correctly refused (fail-closed, no
         silent widening of what counts as 'a pack')."""
         _write_yaml(

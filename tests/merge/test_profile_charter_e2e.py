@@ -25,6 +25,8 @@ from charter.activation.resolver import resolve_governance_for_profile
 
 runner = CliRunner()
 pytestmark = [pytest.mark.non_sandbox, pytest.mark.integration, pytest.mark.git_repo]
+
+
 def _write_yaml(path: Path, data: dict[object, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     yaml = YAML()
@@ -33,9 +35,7 @@ def _write_yaml(path: Path, data: dict[object, object]) -> None:
         yaml.dump(data, handle)
 
 
-def test_profile_aware_charter_compilation_resolves_transitive_references(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_profile_aware_charter_compilation_resolves_transitive_references(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # ``built_in_root`` still simulates the doctrine root ``resolve_doctrine_root``
     # is patched to return below (missions/ and the synthetic graph.yaml -- both
     # unrelated to the WP04 DoctrineService seam). The directive/tactic/
@@ -118,9 +118,7 @@ def test_profile_aware_charter_compilation_resolves_transitive_references(
                 "avoidance-boundary": "implementation",
                 "success-definition": "find issues before merge",
             },
-            "directive-references": [
-                {"code": "REVIEW_FIRST", "name": "Review First", "rationale": "Review every change."}
-            ],
+            "directive-references": [{"code": "REVIEW_FIRST", "name": "Review First", "rationale": "Review every change."}],
         },
     )
     _write_yaml(
@@ -234,12 +232,15 @@ def test_profile_aware_charter_compilation_resolves_transitive_references(
     # where none of the synthetic fixture URNs exist, and every start URN is
     # recorded as an unresolved reference. Patch it to the same synthetic graph
     # the resolver used so both seams agree.
-    with patch(
-        "charter.activation.compiler.resolve_doctrine_root",
-        return_value=built_in_root,
-    ), patch(
-        "charter.offering.drg.loader.load_built_in_graph",
-        return_value=drg,
+    with (
+        patch(
+            "charter.activation.compiler.resolve_doctrine_root",
+            return_value=built_in_root,
+        ),
+        patch(
+            "charter.offering.drg.loader.load_built_in_graph",
+            return_value=drg,
+        ),
     ):
         compiled = compile_charter(
             mission="software-dev",
@@ -405,6 +406,4 @@ def test_local_support_additive_warning_when_overlapping_built_in_concept(tmp_pa
     # Write to disk and confirm no library/ directory is created
     result = write_compiled_charter(output_dir, compiled, force=True)
     assert "charter.yaml" in result.files_written  # consolidate-charter-bundle: write_compiled_charter no longer emits charter.md (INV-3)
-    assert not (output_dir / "library").exists(), (
-        "library/ directory must NOT be created even when local support files are declared"
-    )
+    assert not (output_dir / "library").exists(), "library/ directory must NOT be created even when local support files are declared"

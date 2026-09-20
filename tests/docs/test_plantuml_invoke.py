@@ -80,9 +80,7 @@ def test_verify_jar_sha256_accepts_match(tmp_path: Path) -> None:
 def test_svg_is_error_detects_error_signatures() -> None:
     assert plantuml_invoke.svg_is_error(b"<svg><text>An error has occurred</text></svg>")
     assert plantuml_invoke.svg_is_error(b"<svg><text>Syntax Error?</text></svg>")
-    assert not plantuml_invoke.svg_is_error(
-        b'<svg><text>Agent Profile Schema</text><text>researcher-ryan</text></svg>'
-    )
+    assert not plantuml_invoke.svg_is_error(b"<svg><text>Agent Profile Schema</text><text>researcher-ryan</text></svg>")
 
 
 def test_extract_title_reads_plantuml_title() -> None:
@@ -127,9 +125,7 @@ def _slow_chunked_download(_url: str, dest: Path) -> None:
             time.sleep(0.001)
 
 
-def test_ensure_jar_is_race_safe_under_concurrent_callers(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_ensure_jar_is_race_safe_under_concurrent_callers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(plantuml_invoke, "_download_once", _slow_chunked_download)
     pins = plantuml_invoke.Pins(
         plantuml_version="race-test",

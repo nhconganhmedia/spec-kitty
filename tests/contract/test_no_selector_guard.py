@@ -25,17 +25,11 @@ runner = CliRunner()
 
 def _assert_no_selector_contract(result: Result) -> None:
     """Assert the no-selector-error contract for any command."""
-    assert result.exit_code != 0, (
-        f"Expected non-zero exit, got {result.exit_code}"
+    assert result.exit_code != 0, f"Expected non-zero exit, got {result.exit_code}"
+    assert not isinstance(result.exception, TypeError), f"Got TypeError (traceback risk): {result.exception}"
+    assert "--mission" in result.output or "required" in result.output.lower() or "error" in result.output.lower(), (
+        f"No user-readable error in output: {result.output!r}"
     )
-    assert not isinstance(result.exception, TypeError), (
-        f"Got TypeError (traceback risk): {result.exception}"
-    )
-    assert (
-        "--mission" in result.output
-        or "required" in result.output.lower()
-        or "error" in result.output.lower()
-    ), f"No user-readable error in output: {result.output!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -60,9 +54,7 @@ def test_implement_no_mission_exits_2() -> None:
     Authority: SC-003; no-selector-error-contract.md.
     """
     result = runner.invoke(app, ["implement", "WP01"])
-    assert result.exit_code == 2, (
-        f"Expected exit code 2 (SC-003 no-selector contract), got {result.exit_code}"
-    )
+    assert result.exit_code == 2, f"Expected exit code 2 (SC-003 no-selector contract), got {result.exit_code}"
 
 
 def test_merge_no_mission_exits_cleanly() -> None:
@@ -144,9 +136,7 @@ def test_lifecycle_tasks_no_mission_exits_cleanly() -> None:
     _assert_no_selector_contract(result)
 
 
-def test_mission_type_current_no_mission_exits_cleanly(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_current_no_mission_exits_cleanly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """mission-type current without --mission must exit 2 (SC-003 no-selector guard).
 
     Creates a minimal project context (``.kittify/``) so ``get_project_root_or_exit``
@@ -158,9 +148,7 @@ def test_mission_type_current_no_mission_exits_cleanly(
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["mission-type", "current"])
     _assert_no_selector_contract(result)
-    assert result.exit_code == 2, (
-        f"Expected exit code 2 (SC-003 no-selector guard), got {result.exit_code}"
-    )
+    assert result.exit_code == 2, f"Expected exit code 2 (SC-003 no-selector guard), got {result.exit_code}"
 
 
 def test_implement_recover_no_mission_exits_2() -> None:
@@ -172,9 +160,6 @@ def test_implement_recover_no_mission_exits_2() -> None:
     Authority: SC-003; FR-008; no-selector-error-contract.md.
     """
     result = runner.invoke(app, ["implement", "WP01", "--recover"])
-    assert result.exit_code == 2, (
-        f"Expected exit code 2 (SC-003 no-selector guard before --recover), "
-        f"got {result.exit_code}"
-    )
+    assert result.exit_code == 2, f"Expected exit code 2 (SC-003 no-selector guard before --recover), got {result.exit_code}"
     assert not isinstance(result.exception, TypeError)
     assert "--mission" in result.output or "required" in result.output.lower()

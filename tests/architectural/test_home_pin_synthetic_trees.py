@@ -42,9 +42,7 @@ TESTS_ROOT = Path("tests")
 #: Directory names that, under ``tests/``, hold test-owned fixture material rather than collected
 #: test modules. A synthetic tree checked in would land under one of these — it is where such a
 #: thing is naturally put, and where a reviewer would not look for a 41st member.
-FIXTURE_ROOT_NAMES: frozenset[str] = frozenset(
-    {"fixtures", "fixture", "_fixtures", "data", "testdata", "golden", "snapshots", "synthetic"}
-)
+FIXTURE_ROOT_NAMES: frozenset[str] = frozenset({"fixtures", "fixture", "_fixtures", "data", "testdata", "golden", "snapshots", "synthetic"})
 
 #: The trees that are built to be scanned cleanly. The ``SyntaxError`` tree is deliberately absent
 #: — it is built to RAISE, and SC-013 exercises it in the guard module.
@@ -71,11 +69,7 @@ def walked_relpaths(root: Path) -> set[str]:
 
 def members_under_a_fixture_root(root: Path) -> set[tuple[str, str]]:
     """The ONE matcher. Run over the real tree it must be empty; over the control, exactly one hit."""
-    return {
-        site
-        for site in member_sites(root)
-        if FIXTURE_ROOT_NAMES & set(Path(site[0]).parts)
-    }
+    return {site for site in member_sites(root) if FIXTURE_ROOT_NAMES & set(Path(site[0]).parts)}
 
 
 @pytest.mark.parametrize("name", sorted(CLEAN_TREE_BUILDERS))
@@ -114,8 +108,7 @@ def test_no_member_of_the_real_tree_lives_under_a_fixture_root() -> None:
     """
     planted = members_under_a_fixture_root(TESTS_ROOT)
     assert planted == set(), (
-        f"member(s) found under a test-owned fixture root: {sorted(planted)}. Synthetic trees are "
-        f"MATERIALISED into tmp_path, never checked in (FR-009)."
+        f"member(s) found under a test-owned fixture root: {sorted(planted)}. Synthetic trees are MATERIALISED into tmp_path, never checked in (FR-009)."
     )
 
 
@@ -138,11 +131,7 @@ def test_the_materialiser_ships_no_assignment_bound_pin_constant() -> None:
     """
     own = Path(synthetic.__file__)
     bindings = scan.module_level_bindings(scan.parse_module(own))
-    offenders = {
-        name
-        for name, value in bindings.items()
-        if isinstance(value, ast.Constant) and value.value == scan.NEEDLE
-    }
+    offenders = {name for name, value in bindings.items() if isinstance(value, ast.Constant) and value.value == scan.NEEDLE}
     assert offenders == set(), f"{own.name} binds {sorted(offenders)} to the pin — this reds SC-002b"
 
 
@@ -156,6 +145,5 @@ def test_the_materialiser_holds_no_assertions() -> None:
     tree = scan.parse_module(Path(synthetic.__file__))
     asserts = sorted(node.lineno for node in ast.walk(tree) if isinstance(node, ast.Assert))
     assert asserts == [], (
-        f"_home_pin_synthetic.py holds assert statement(s) at {asserts}. It is NEVER COLLECTED, so "
-        f"those never run — the proof belongs in this module."
+        f"_home_pin_synthetic.py holds assert statement(s) at {asserts}. It is NEVER COLLECTED, so those never run — the proof belongs in this module."
     )

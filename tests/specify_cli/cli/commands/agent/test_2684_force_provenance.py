@@ -58,9 +58,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.fast]
 runner = CliRunner()
 
 
-def _seed_wp_in_lane(
-    tmp_path: Path, *, mission_slug: str, wp_id: str, lane: str
-) -> Path:
+def _seed_wp_in_lane(tmp_path: Path, *, mission_slug: str, wp_id: str, lane: str) -> Path:
     """Seed a feature dir with ``wp_id`` at ``lane`` in the canonical event log."""
     feature_dir = tmp_path / "kitty-specs" / mission_slug
     (feature_dir / "tasks").mkdir(parents=True, exist_ok=True)
@@ -98,9 +96,7 @@ def _feedback_file(tmp_path: Path) -> Path:
 
 
 def _invoke(tmp_path: Path, mission_slug: str, args: list[str]) -> Result:
-    with setup_mocked_env(
-        tmp_path, mission_slug=mission_slug, workspace_resolution=FileNotFoundError
-    ):
+    with setup_mocked_env(tmp_path, mission_slug=mission_slug, workspace_resolution=FileNotFoundError):
         return runner.invoke(app, args, catch_exceptions=False)
 
 
@@ -127,14 +123,10 @@ def _persisted_force(feature_dir: Path, wp_id: str) -> bool:
         ("in_review", "planned"),  # review-rejection family
     ],
 )
-def test_review_rejection_family_persists_force_true(
-    tmp_path: Path, starting_lane: str, target: str
-) -> None:
+def test_review_rejection_family_persists_force_true(tmp_path: Path, starting_lane: str, target: str) -> None:
     mission_slug = f"prov-{starting_lane}-{target}"
     wp_id = "WP05"
-    feature_dir = _seed_wp_in_lane(
-        tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane=starting_lane
-    )
+    feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane=starting_lane)
     feedback = _feedback_file(tmp_path)
 
     args = [
@@ -153,8 +145,7 @@ def test_review_rejection_family_persists_force_true(
 
     assert result.exit_code == 0, f"move-task failed:\n{result.output}"
     assert _persisted_force(feature_dir, wp_id) is True, (
-        f"{starting_lane} -> {target}: review-rejection family must persist "
-        f"force=True to conform to the shared spec-kitty-events wire contract"
+        f"{starting_lane} -> {target}: review-rejection family must persist force=True to conform to the shared spec-kitty-events wire contract"
     )
 
 
@@ -171,9 +162,7 @@ def test_in_review_to_in_progress_stays_force_free_with_review_ref(
 ) -> None:
     mission_slug = "prov-in_review-in_progress"
     wp_id = "WP05"
-    feature_dir = _seed_wp_in_lane(
-        tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="in_review"
-    )
+    feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="in_review")
 
     result = _invoke(
         tmp_path,
@@ -190,10 +179,7 @@ def test_in_review_to_in_progress_stays_force_free_with_review_ref(
     )
 
     assert result.exit_code == 0, f"move-task failed:\n{result.output}"
-    assert _persisted_force(feature_dir, wp_id) is False, (
-        "in_review -> in_progress is force-free-legal WITH a review_ref; "
-        "it must not be force-promoted"
-    )
+    assert _persisted_force(feature_dir, wp_id) is False, "in_review -> in_progress is force-free-legal WITH a review_ref; it must not be force-promoted"
 
 
 # ---------------------------------------------------------------------------
@@ -207,9 +193,7 @@ def test_genuine_force_leaving_done_persists_force_truthy(tmp_path: Path) -> Non
     T007 over-suppresses (silent provenance loss the other way)."""
     mission_slug = "prov-done-force"
     wp_id = "WP05"
-    feature_dir = _seed_wp_in_lane(
-        tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="done"
-    )
+    feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane="done")
 
     result = _invoke(
         tmp_path,
@@ -229,9 +213,7 @@ def test_genuine_force_leaving_done_persists_force_truthy(tmp_path: Path) -> Non
     )
 
     assert result.exit_code == 0, f"forced move failed:\n{result.output}"
-    assert _persisted_force(feature_dir, wp_id) is True, (
-        "leaving terminal done via --force must persist force=True (genuine bypass)"
-    )
+    assert _persisted_force(feature_dir, wp_id) is True, "leaving terminal done via --force must persist force=True (genuine bypass)"
 
 
 # ---------------------------------------------------------------------------
@@ -247,9 +229,7 @@ def test_genuine_force_leaving_done_persists_force_truthy(tmp_path: Path) -> Non
         ("approved", "in_progress"),  # review_ref seam is caller-side; no CLI flag reaches it
     ],
 )
-def test_wp02_window_edges_persist_force_truthy(
-    tmp_path: Path, starting_lane: str, target: str
-) -> None:
+def test_wp02_window_edges_persist_force_truthy(tmp_path: Path, starting_lane: str, target: str) -> None:
     """This edge is force-free-legal WITH a ``review_ref``, but the review_ref seam
     is caller-side (``tasks_move_task.py``, WP06-owned) and no CLI flag reaches it,
     so the persisted ``force`` is truthfully ``True`` — honest, not a false stamp.
@@ -257,9 +237,7 @@ def test_wp02_window_edges_persist_force_truthy(
     ``test_evidence_gated_backward_edge_persists_force_free``.)"""
     mission_slug = f"prov-{starting_lane}-{target}"
     wp_id = "WP05"
-    feature_dir = _seed_wp_in_lane(
-        tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane=starting_lane
-    )
+    feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=mission_slug, wp_id=wp_id, lane=starting_lane)
     args = [
         "move-task",
         wp_id,
@@ -276,6 +254,5 @@ def test_wp02_window_edges_persist_force_truthy(
 
     assert result.exit_code == 0, f"move-task failed:\n{result.output}"
     assert _persisted_force(feature_dir, wp_id) is True, (
-        f"{starting_lane} -> {target}: WP02 threads no force-free evidence, so the "
-        f"persisted force is honestly True (WP06 flips it)"
+        f"{starting_lane} -> {target}: WP02 threads no force-free evidence, so the persisted force is honestly True (WP06 flips it)"
     )

@@ -301,9 +301,7 @@ def test_atomic_write_yaml_strips_trailing_whitespace_from_wrapped_scalars(tmp_p
     probe_buf = _io.BytesIO()
     probe.dump(data, probe_buf)
     raw = probe_buf.getvalue().decode("utf-8")
-    assert any(line.endswith((" ", "\t")) for line in raw.splitlines()), (
-        "expected the raw dump to contain a trailing-whitespace line; test is vacuous otherwise"
-    )
+    assert any(line.endswith((" ", "\t")) for line in raw.splitlines()), "expected the raw dump to contain a trailing-whitespace line; test is vacuous otherwise"
 
     _atomic_write_yaml(data, canonical, tmp_path)
 
@@ -339,9 +337,7 @@ def test_atomic_write_yaml_wraps_prose_scalars_at_120_columns(tmp_path: Path) ->
 
 
 @pytest.mark.parametrize("trailing", [" ", "\t"])
-def test_atomic_write_yaml_preserves_literal_scalar_trailing_whitespace(
-    tmp_path: Path, trailing: str
-) -> None:
+def test_atomic_write_yaml_preserves_literal_scalar_trailing_whitespace(tmp_path: Path, trailing: str) -> None:
     """Literal scalar content may intentionally end a line with whitespace."""
     from ruamel.yaml import YAML
     from ruamel.yaml.scalarstring import LiteralScalarString

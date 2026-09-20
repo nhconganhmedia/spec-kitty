@@ -87,10 +87,7 @@ def test_no_stale_doctrine_missions_data_path_in_active_doctrine_prose() -> None
             if _resolves_on_disk(remainder):
                 continue
             line_no = content.count("\n", 0, match.start()) + 1
-            violations.append(
-                f"{path.relative_to(_REPO_ROOT)}:{line_no}: "
-                f"{_STALE_FRAGMENT}{remainder}"
-            )
+            violations.append(f"{path.relative_to(_REPO_ROOT)}:{line_no}: {_STALE_FRAGMENT}{remainder}")
 
     assert not violations, (
         "Stale src/charter/offering/missions/ data references found in active doctrine "

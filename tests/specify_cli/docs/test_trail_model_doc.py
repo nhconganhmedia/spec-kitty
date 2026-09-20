@@ -1,4 +1,5 @@
 """WP08 — docs/architecture/trail-model.md subsection presence regression tests."""
+
 from pathlib import Path
 
 import pytest

@@ -156,9 +156,7 @@ def _write_meta(feature_dir: Path) -> None:
         "purpose_tldr": "resume non-reemission class guard (#2711)",
         "purpose_context": "resume must derive progress from the durable event log",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _bootstrap_coord_ref(repo: Path, done_subset: tuple[str, ...]) -> Path:
@@ -178,9 +176,7 @@ def _bootstrap_coord_ref(repo: Path, done_subset: tuple[str, ...]) -> Path:
     feature_dir = repo / "kitty-specs" / MISSION_SLUG
     feature_dir.mkdir(parents=True)
     _write_meta(feature_dir)
-    lines = "".join(
-        json.dumps(evt, sort_keys=True) + "\n" for evt in _events_for(done_subset)
-    )
+    lines = "".join(json.dumps(evt, sort_keys=True) + "\n" for evt in _events_for(done_subset))
     (feature_dir / "status.events.jsonl").write_text(lines, encoding="utf-8")
 
     _git(["add", "."], repo)
@@ -212,9 +208,7 @@ def _committed_done_ground_truth(repo: Path) -> set[str]:
     return {wp for wp, lane in latest.items() if lane == "done"}
 
 
-def _resume_reemit_set(
-    *, feature_dir: Path, repo: Path, merge_state: MergeState
-) -> set[str]:
+def _resume_reemit_set(*, feature_dir: Path, repo: Path, merge_state: MergeState) -> set[str]:
     """The WPs the resume WOULD re-emit ``done`` for — the real skip decision.
 
     Mirrors ``_record_merged_wps_done_for_merge`` exactly: a WP is skipped (not
@@ -257,12 +251,8 @@ def _completed_wps_variants(done_subset: tuple[str, ...]) -> list[list[str]]:
 
 
 @pytest.mark.architectural
-@pytest.mark.parametrize(
-    "done_subset", _representative_done_subsets(), ids=lambda s: "-".join(s) or "none"
-)
-def test_resume_never_reemits_a_durably_recorded_done(
-    tmp_path: Path, done_subset: tuple[str, ...]
-) -> None:
+@pytest.mark.parametrize("done_subset", _representative_done_subsets(), ids=lambda s: "-".join(s) or "none")
+def test_resume_never_reemits_a_durably_recorded_done(tmp_path: Path, done_subset: tuple[str, ...]) -> None:
     """#2711 / FR-008 / SC-005: resume re-emits ``done`` for no already-recorded WP.
 
     Property over an arbitrary committed coordination log (``done`` set == the
@@ -288,8 +278,7 @@ def test_resume_never_reemits_a_durably_recorded_done(
     # pass). Ground truth is read independently of the product surface. ---
     committed_done = _committed_done_ground_truth(repo)
     assert committed_done == set(done_subset), (
-        "precondition: the committed coordination ref must carry exactly the "
-        f"parametrized done set; expected {set(done_subset)}, got {committed_done}"
+        f"precondition: the committed coordination ref must carry exactly the parametrized done set; expected {set(done_subset)}, got {committed_done}"
     )
 
     # The product durable-authority read must agree with the independent oracle
@@ -300,8 +289,7 @@ def test_resume_never_reemits_a_durably_recorded_done(
         candidate_wps=list(ALL_WPS),
     )
     assert product_durable_done == committed_done, (
-        "resume durable-progress authority disagreed with the committed ref: "
-        f"product read {product_durable_done} != committed {committed_done}"
+        f"resume durable-progress authority disagreed with the committed ref: product read {product_durable_done} != committed {committed_done}"
     )
 
     for completed_wps in _completed_wps_variants(done_subset):
@@ -330,9 +318,7 @@ def test_resume_never_reemits_a_durably_recorded_done(
 
         # --- Identity-idempotence (FR-008): resume re-emits ``done`` for NO WP
         # already recorded ``done`` on the durable ref. ``resume ∩ D == ∅``. ---
-        reemit = _resume_reemit_set(
-            feature_dir=feature_dir, repo=repo, merge_state=merge_state
-        )
+        reemit = _resume_reemit_set(feature_dir=feature_dir, repo=repo, merge_state=merge_state)
         assert reemit & committed_done == set(), (
             "#2711 duplicate-emit: resume would re-emit ``done`` for already-"
             f"recorded WP(s) {sorted(reemit & committed_done)} "

@@ -200,12 +200,7 @@ class TestExtractArtifactEdges:
     def test_paradigm_directive_refs_normalised(self) -> None:
         """Paradigm directive_refs (DIRECTIVE_NNN format) should be normalised."""
         _, edges = extract_artifact_edges(DOCTRINE_ROOT)
-        ddd_requires = [
-            e for e in edges
-            if e.source == "paradigm:domain-driven-design"
-            and e.relation == Relation.REQUIRES
-            and e.target.startswith("directive:")
-        ]
+        ddd_requires = [e for e in edges if e.source == "paradigm:domain-driven-design" and e.relation == Relation.REQUIRES and e.target.startswith("directive:")]
         targets = {e.target for e in ddd_requires}
         assert "directive:DIRECTIVE_001" in targets
         assert "directive:DIRECTIVE_031" in targets
@@ -214,22 +209,13 @@ class TestExtractArtifactEdges:
     def test_curated_paradigm_tactic_edges_are_preserved(self) -> None:
         """Curated paradigm tactic edges should survive regeneration."""
         _, edges = extract_artifact_edges(DOCTRINE_ROOT)
-        targets = {
-            e.target
-            for e in edges
-            if e.source == "paradigm:specification-by-example"
-            and e.relation == Relation.REQUIRES
-        }
+        targets = {e.target for e in edges if e.source == "paradigm:specification-by-example" and e.relation == Relation.REQUIRES}
         assert "tactic:usage-examples-sync" in targets
 
     def test_tactic_references_produce_suggests(self) -> None:
         """Tactic references should produce 'suggests' edges."""
         _, edges = extract_artifact_edges(DOCTRINE_ROOT)
-        pd_suggests = [
-            e for e in edges
-            if e.source == "tactic:problem-decomposition"
-            and e.relation == Relation.SUGGESTS
-        ]
+        pd_suggests = [e for e in edges if e.source == "tactic:problem-decomposition" and e.relation == Relation.SUGGESTS]
         # problem-decomposition has 4 top-level refs (skipping template)
         # -> eisenhower-prioritisation, stakeholder-alignment, review-intent-and-risk-first
         targets = {e.target for e in pd_suggests}
@@ -266,12 +252,7 @@ class TestExtractArtifactEdges:
 
         _, edges = extract_artifact_edges(doctrine_root)
 
-        edge = next(
-            edge
-            for edge in edges
-            if edge.source == "tactic:metadata-merge"
-            and edge.target == "tactic:target-tactic"
-        )
+        edge = next(edge for edge in edges if edge.source == "tactic:metadata-merge" and edge.target == "tactic:target-tactic")
         assert edge.when == "Preserve this metadata."
 
     def test_directive_reference_reason_roundtrips(self, tmp_path: Path) -> None:
@@ -308,16 +289,12 @@ class TestExtractArtifactEdges:
 
         _, edges = extract_artifact_edges(doctrine_root)
 
-        with_reason = next(
-            e for e in edges if e.target == "styleguide:with-reason"
-        )
+        with_reason = next(e for e in edges if e.target == "styleguide:with-reason")
         assert with_reason.relation == Relation.SUGGESTS
         assert with_reason.when == "applying the styleguide"
         assert with_reason.reason == "because the directive suggests it here"
 
-        without_reason = next(
-            e for e in edges if e.target == "toolguide:without-reason"
-        )
+        without_reason = next(e for e in edges if e.target == "toolguide:without-reason")
         assert without_reason.when == "running the tool"
         assert without_reason.reason is None
 
@@ -405,22 +382,16 @@ class TestExtractArtifactEdges:
 
         _, edges = extract_artifact_edges(doctrine_root)
 
-        with_reason = next(
-            e for e in edges if e.target == "styleguide:with-reason"
-        )
+        with_reason = next(e for e in edges if e.target == "styleguide:with-reason")
         assert with_reason.relation == Relation.SUGGESTS
         assert with_reason.when == "applying the styleguide"
         assert with_reason.reason == "because the procedure suggests it here"
 
-        without_reason = next(
-            e for e in edges if e.target == "toolguide:without-reason"
-        )
+        without_reason = next(e for e in edges if e.target == "toolguide:without-reason")
         assert without_reason.when == "running the tool"
         assert without_reason.reason is None
 
-    def test_procedure_reference_metadata_addition_preserves_triples(
-        self, tmp_path: Path
-    ) -> None:
+    def test_procedure_reference_metadata_addition_preserves_triples(self, tmp_path: Path) -> None:
         """T003/NFR-002/AC-009 triple-identity guard: adding ``when``/``reason``
         metadata to procedure references must never change the edge
         **(source, target, relation)** triple set -- only the two metadata
@@ -433,6 +404,7 @@ class TestExtractArtifactEdges:
         re-ledger (WP04) relies on: WP01 only ever adds metadata to an edge
         that already exists, it never mints, drops, or retargets one.
         """
+
         def _make_fixture(root: Path, *, with_metadata: bool) -> Path:
             procedures_dir = root / "procedures"
             procedures_dir.mkdir(parents=True)
@@ -457,33 +429,21 @@ class TestExtractArtifactEdges:
                 "    id: suggested-guide",
                 "",
             ]
-            (procedures_dir / "triple-identity.procedure.yaml").write_text(
-                "\n".join(lines), encoding="utf-8"
-            )
+            (procedures_dir / "triple-identity.procedure.yaml").write_text("\n".join(lines), encoding="utf-8")
             return root
 
         def _procedure_triples(
             edges: list[DRGEdge],
         ) -> set[tuple[str, str, str]]:
-            return {
-                (e.source, e.target, e.relation.value)
-                for e in edges
-                if e.source == "procedure:triple-identity"
-            }
+            return {(e.source, e.target, e.relation.value) for e in edges if e.source == "procedure:triple-identity"}
 
-        _, bare_edges = extract_artifact_edges(
-            _make_fixture(tmp_path / "bare", with_metadata=False)
-        )
-        _, annotated_edges = extract_artifact_edges(
-            _make_fixture(tmp_path / "annotated", with_metadata=True)
-        )
+        _, bare_edges = extract_artifact_edges(_make_fixture(tmp_path / "bare", with_metadata=False))
+        _, annotated_edges = extract_artifact_edges(_make_fixture(tmp_path / "annotated", with_metadata=True))
 
         bare_triples = _procedure_triples(bare_edges)
         annotated_triples = _procedure_triples(annotated_edges)
 
-        assert bare_triples == annotated_triples, (
-            "adding when/reason metadata changed the procedure edge triple set"
-        )
+        assert bare_triples == annotated_triples, "adding when/reason metadata changed the procedure edge triple set"
         assert bare_triples == {
             ("procedure:triple-identity", "procedure:required-sibling", "requires"),
             ("procedure:triple-identity", "styleguide:suggested-guide", "suggests"),
@@ -539,8 +499,7 @@ class TestExtractArtifactEdges:
                 expected_relation = _relation_for_procedure_ref_type(ref_type)
                 tgt_urn = f"{ref_type}:{ref_id}"
                 assert (src_urn, tgt_urn, expected_relation) in edges_by_triple, (
-                    f"{src_urn} -> {tgt_urn}: expected extracted edge with "
-                    f"relation {expected_relation}, not found in graph"
+                    f"{src_urn} -> {tgt_urn}: expected extracted edge with relation {expected_relation}, not found in graph"
                 )
                 checked += 1
         assert checked > 0, "expected at least one procedure reference to check"
@@ -552,32 +511,20 @@ class TestExtractArtifactEdges:
         lines += [f"    - {e}" for e in op_entries]
         (profiles_dir / "p.agent.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    def test_operating_procedure_edge_emitted_for_resolvable_target(
-        self, tmp_path: Path
-    ) -> None:
+    def test_operating_procedure_edge_emitted_for_resolvable_target(self, tmp_path: Path) -> None:
         """A resolvable operating-procedures entry emits one requires edge (M3)."""
         root = tmp_path / "pack"
         procedures_dir = root / "procedures"
         procedures_dir.mkdir(parents=True)
-        (procedures_dir / "foo.procedure.yaml").write_text(
-            "id: foo\nname: Foo\n", encoding="utf-8"
-        )
+        (procedures_dir / "foo.procedure.yaml").write_text("id: foo\nname: Foo\n", encoding="utf-8")
         self._write_profile(root, ["foo"])
 
         _, edges = extract_artifact_edges(root)
 
-        matches = [
-            e
-            for e in edges
-            if e.source == "agent_profile:p"
-            and e.target == "procedure:foo"
-            and e.relation is Relation.REQUIRES
-        ]
+        matches = [e for e in edges if e.source == "agent_profile:p" and e.target == "procedure:foo" and e.relation is Relation.REQUIRES]
         assert len(matches) == 1
 
-    def test_unresolvable_operating_procedure_fails_closed(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unresolvable_operating_procedure_fails_closed(self, tmp_path: Path) -> None:
         """A fictional operating-procedures entry raises at extraction (M3)."""
         root = tmp_path / "pack"
         (root / "procedures").mkdir(parents=True)
@@ -586,16 +533,12 @@ class TestExtractArtifactEdges:
         with pytest.raises(ValueError, match="operating-procedures"):
             extract_artifact_edges(root)
 
-    def test_wrong_kind_operating_procedure_fails_closed(
-        self, tmp_path: Path
-    ) -> None:
+    def test_wrong_kind_operating_procedure_fails_closed(self, tmp_path: Path) -> None:
         """An operating-procedures entry naming a tactic (wrong kind) raises (M3)."""
         root = tmp_path / "pack"
         tactics_dir = root / "tactics"
         tactics_dir.mkdir(parents=True)
-        (tactics_dir / "t.tactic.yaml").write_text(
-            "schema_version: '1.0'\nid: t\nname: T\npurpose: test\n", encoding="utf-8"
-        )
+        (tactics_dir / "t.tactic.yaml").write_text("schema_version: '1.0'\nid: t\nname: T\npurpose: test\n", encoding="utf-8")
         (root / "procedures").mkdir(parents=True)
         self._write_profile(root, ["t"])
 
@@ -605,12 +548,7 @@ class TestExtractArtifactEdges:
     def test_procedure_template_references_produce_template_edges(self) -> None:
         """Procedure template references should be represented in the DRG."""
         _, edges = extract_artifact_edges(DOCTRINE_ROOT)
-        issue_triage_suggests = [
-            e
-            for e in edges
-            if e.source == "procedure:issue-triage-state-machine"
-            and e.relation == Relation.SUGGESTS
-        ]
+        issue_triage_suggests = [e for e in edges if e.source == "procedure:issue-triage-state-machine" and e.relation == Relation.SUGGESTS]
 
         targets = {e.target for e in issue_triage_suggests}
         assert "template:agent-brief-template" in targets
@@ -619,42 +557,21 @@ class TestExtractArtifactEdges:
     def test_agent_profile_references_produce_requires(self) -> None:
         """Agent profile context and tactic references should enter the DRG."""
         nodes, edges = extract_artifact_edges(DOCTRINE_ROOT)
-        assert any(
-            n.urn == "agent_profile:debugger-debbie"
-            and n.kind == NodeKind.AGENT_PROFILE
-            for n in nodes
-        )
-        targets = {
-            e.target
-            for e in edges
-            if e.source == "agent_profile:debugger-debbie"
-            and e.relation == Relation.REQUIRES
-        }
+        assert any(n.urn == "agent_profile:debugger-debbie" and n.kind == NodeKind.AGENT_PROFILE for n in nodes)
+        targets = {e.target for e in edges if e.source == "agent_profile:debugger-debbie" and e.relation == Relation.REQUIRES}
         assert "tactic:five-paradigm-parallel-debugging" in targets
 
     def test_walks_all_built_in_directives(self) -> None:
         nodes, _ = extract_artifact_edges(DOCTRINE_ROOT)
-        directive_count = len(
-            list(
-                (built_in_graph_source() / "directives").glob("*.directive.yaml")
-            )
-        )
-        graph_directive_nodes = [
-            n for n in nodes
-            if n.kind == NodeKind.DIRECTIVE and n.label is not None
-        ]
+        directive_count = len(list((built_in_graph_source() / "directives").glob("*.directive.yaml")))
+        graph_directive_nodes = [n for n in nodes if n.kind == NodeKind.DIRECTIVE and n.label is not None]
         # Each shipped directive should appear as a labelled node
         assert len(graph_directive_nodes) >= directive_count
 
     def test_walks_all_shipped_paradigms(self) -> None:
         nodes, _ = extract_artifact_edges(DOCTRINE_ROOT)
-        paradigm_files = list(
-            (built_in_graph_source() / "paradigms").glob("*.paradigm.yaml")
-        )
-        graph_paradigm_nodes = [
-            n for n in nodes
-            if n.kind == NodeKind.PARADIGM and n.label is not None
-        ]
+        paradigm_files = list((built_in_graph_source() / "paradigms").glob("*.paradigm.yaml"))
+        graph_paradigm_nodes = [n for n in nodes if n.kind == NodeKind.PARADIGM and n.label is not None]
         assert len(graph_paradigm_nodes) == len(paradigm_files)
 
 
@@ -685,11 +602,7 @@ class TestExtractActionEdges:
     def test_directive_slugs_normalised(self) -> None:
         """Directive slugs in action indices should be normalised to DIRECTIVE_NNN."""
         _, edges = extract_action_edges(DOCTRINE_ROOT)
-        implement_edges = [
-            e for e in edges
-            if e.source == "action:software-dev/implement"
-            and e.target.startswith("directive:")
-        ]
+        implement_edges = [e for e in edges if e.source == "action:software-dev/implement" and e.target.startswith("directive:")]
         for edge in implement_edges:
             assert edge.target.startswith("directive:DIRECTIVE_")
 
@@ -702,10 +615,7 @@ class TestExtractActionEdges:
     def test_empty_lists_produce_no_edges(self) -> None:
         """Empty styleguides/toolguides/procedures lists should produce no edges."""
         _, edges = extract_action_edges(DOCTRINE_ROOT)
-        specify_edges = [
-            e for e in edges
-            if e.source == "action:software-dev/specify"
-        ]
+        specify_edges = [e for e in edges if e.source == "action:software-dev/specify"]
         # specify has 2 directives + 1 tactic = 3 scope edges
         assert {e.target for e in specify_edges} == {
             "directive:DIRECTIVE_010",
@@ -716,40 +626,21 @@ class TestExtractActionEdges:
     def test_agent_profile_scope_edges(self) -> None:
         """Action indexes may scope built-in agent profiles."""
         nodes, edges = extract_action_edges(DOCTRINE_ROOT)
+        assert any(n.urn == "agent_profile:retrospective-facilitator" and n.kind == NodeKind.AGENT_PROFILE for n in nodes)
         assert any(
-            n.urn == "agent_profile:retrospective-facilitator"
-            and n.kind == NodeKind.AGENT_PROFILE
-            for n in nodes
-        )
-        assert any(
-            e.source == "action:software-dev/retrospect"
-            and e.target == "agent_profile:retrospective-facilitator"
-            and e.relation == Relation.SCOPE
-            for e in edges
+            e.source == "action:software-dev/retrospect" and e.target == "agent_profile:retrospective-facilitator" and e.relation == Relation.SCOPE for e in edges
         )
 
     def test_paradigm_scope_edges(self) -> None:
         """Action indexes may scope built-in paradigms."""
         nodes, edges = extract_action_edges(DOCTRINE_ROOT)
-        assert any(
-            n.urn == "paradigm:execution-lanes"
-            and n.kind == NodeKind.PARADIGM
-            for n in nodes
-        )
-        assert any(
-            e.source == "action:software-dev/implement"
-            and e.target == "paradigm:execution-lanes"
-            and e.relation == Relation.SCOPE
-            for e in edges
-        )
+        assert any(n.urn == "paradigm:execution-lanes" and n.kind == NodeKind.PARADIGM for n in nodes)
+        assert any(e.source == "action:software-dev/implement" and e.target == "paradigm:execution-lanes" and e.relation == Relation.SCOPE for e in edges)
 
     def test_tasks_action_has_seven_refs(self) -> None:
         """The tasks action index should produce 7 scope edges."""
         _, edges = extract_action_edges(DOCTRINE_ROOT)
-        tasks_edges = [
-            e for e in edges
-            if e.source == "action:software-dev/tasks"
-        ]
+        tasks_edges = [e for e in edges if e.source == "action:software-dev/tasks"]
         assert {e.target for e in tasks_edges} == {
             "directive:DIRECTIVE_003",
             "directive:DIRECTIVE_010",
@@ -848,18 +739,13 @@ class TestGenerateGraph:
         write_reference_graph_with_overlay(DOCTRINE_ROOT, tmp_path / "graph.yaml")
 
         def _fragments(directory: Path) -> dict[str, str]:
-            return {
-                p.name: p.read_text(encoding="utf-8")
-                for p in sorted(directory.glob("*.graph.yaml"))
-            }
+            return {p.name: p.read_text(encoding="utf-8") for p in sorted(directory.glob("*.graph.yaml"))}
 
         regenerated = _fragments(tmp_path)
         committed = _fragments(built_in_graph_source())
         assert regenerated, "generate_graph produced no fragments"
         assert regenerated == committed, (
-            "packs/built-in/*.graph.yaml fragments are stale. Regenerate the "
-            "shipped DRG with `spec-kitty doctrine regenerate-graph` and commit "
-            "the result."
+            "packs/built-in/*.graph.yaml fragments are stale. Regenerate the shipped DRG with `spec-kitty doctrine regenerate-graph` and commit the result."
         )
 
     def test_surface_inequalities(self, tmp_path: Path) -> None:
@@ -876,9 +762,7 @@ class TestGenerateGraph:
         assert specify < plan, f"|specify| ({specify}) should be < |plan| ({plan})"
         assert plan < implement, f"|plan| ({plan}) should be < |implement| ({implement})"
         assert tasks < implement, f"|tasks| ({tasks}) should be < |implement| ({implement})"
-        assert review >= 0.80 * implement, (
-            f"|review| ({review}) should be >= 80% of |implement| ({implement})"
-        )
+        assert review >= 0.80 * implement, f"|review| ({review}) should be >= 80% of |implement| ({implement})"
 
     def test_resolved_surface_inequalities(self, tmp_path: Path) -> None:
         """Generated graph must satisfy shipped resolved-context calibration."""
@@ -901,15 +785,9 @@ class TestGenerateGraph:
         review = _resolved("review")
 
         assert specify < plan, f"resolved specify ({specify}) should be < plan ({plan})"
-        assert plan < implement, (
-            f"resolved plan ({plan}) should be < implement ({implement})"
-        )
-        assert tasks < implement, (
-            f"resolved tasks ({tasks}) should be < implement ({implement})"
-        )
-        assert review >= 0.80 * implement, (
-            f"resolved review ({review}) should be >= 80% of implement ({implement})"
-        )
+        assert plan < implement, f"resolved plan ({plan}) should be < implement ({implement})"
+        assert tasks < implement, f"resolved tasks ({tasks}) should be < implement ({implement})"
+        assert review >= 0.80 * implement, f"resolved review ({review}) should be >= 80% of implement ({implement})"
 
     def test_discovers_styleguide_nodes(self, tmp_path: Path) -> None:
         output = tmp_path / "graph.yaml"
@@ -946,10 +824,7 @@ class TestEdgeCountCompleteness:
         output = tmp_path / "graph.yaml"
         graph = generate_graph(DOCTRINE_ROOT, output)
         total_inline = _count_inline_refs(DOCTRINE_ROOT)
-        assert len(graph.edges) >= total_inline, (
-            f"Edge count ({len(graph.edges)}) < inline refs ({total_inline}). "
-            f"Some references were dropped."
-        )
+        assert len(graph.edges) >= total_inline, f"Edge count ({len(graph.edges)}) < inline refs ({total_inline}). Some references were dropped."
 
     def test_per_directive_edges_complete(self) -> None:
         """Each directive's inline refs should have corresponding edges."""
@@ -968,10 +843,7 @@ class TestEdgeCountCompleteness:
                 if ref.get("type", "") not in _SKIP_REF_TYPES:
                     expected_count += 1
 
-            assert len(src_edges) >= expected_count, (
-                f"{path.name}: expected >= {expected_count} edges from "
-                f"{src_urn}, found {len(src_edges)}"
-            )
+            assert len(src_edges) >= expected_count, f"{path.name}: expected >= {expected_count} edges from {src_urn}, found {len(src_edges)}"
 
     def test_per_paradigm_edges_complete(self) -> None:
         """Each paradigm's inline refs should have corresponding edges."""
@@ -985,15 +857,9 @@ class TestEdgeCountCompleteness:
             src_urn = f"paradigm:{src_id}"
             src_edges = [e for e in edges if e.source == src_urn]
 
-            expected_count = (
-                len(data.get("tactic_refs", []) or [])
-                + len(data.get("directive_refs", []) or [])
-            )
+            expected_count = len(data.get("tactic_refs", []) or []) + len(data.get("directive_refs", []) or [])
 
-            assert len(src_edges) >= expected_count, (
-                f"{path.name}: expected >= {expected_count} edges from "
-                f"{src_urn}, found {len(src_edges)}"
-            )
+            assert len(src_edges) >= expected_count, f"{path.name}: expected >= {expected_count} edges from {src_urn}, found {len(src_edges)}"
 
     def test_per_action_edges_complete(self) -> None:
         """Each action's scope refs should have corresponding edges."""
@@ -1020,10 +886,7 @@ class TestEdgeCountCompleteness:
             ):
                 expected_count += len(data.get(field, []) or [])
 
-            assert len(action_edges) == expected_count, (
-                f"{action_name}: expected {expected_count} edges, "
-                f"found {len(action_edges)}"
-            )
+            assert len(action_edges) == expected_count, f"{action_name}: expected {expected_count} edges, found {len(action_edges)}"
 
 
 # ---------------------------------------------------------------------------
@@ -1045,10 +908,7 @@ def _shipped_action_sequences() -> dict[str, list[str]]:
     unchanged.
     """
     repo = MissionTypeRepository(MISSION_TYPES_DIR)
-    return {
-        mission_type.id: list(mission_type.action_sequence or [])
-        for mission_type in repo.load_all()
-    }
+    return {mission_type.id: list(mission_type.action_sequence or []) for mission_type in repo.load_all()}
 
 
 @pytest.mark.doctrine
@@ -1063,9 +923,7 @@ class TestMissionTypeEdges:
     def test_plan_emits_exactly_its_four_requires_edges(self) -> None:
         """``mission_type:plan`` emits exactly 4 requires edges to its actions."""
         edges = extract_mission_type_edges(DOCTRINE_ROOT)
-        plan_edges = [
-            e for e in edges if e.source == "mission_type:plan"
-        ]
+        plan_edges = [e for e in edges if e.source == "mission_type:plan"]
 
         assert all(e.relation is Relation.REQUIRES for e in plan_edges)
         assert {e.target for e in plan_edges} == {
@@ -1079,9 +937,7 @@ class TestMissionTypeEdges:
     def test_documentation_emits_full_seven_edge_sequence(self) -> None:
         """A non-plan type emits its full 7-step sequence (FR-001 breadth)."""
         edges = extract_mission_type_edges(DOCTRINE_ROOT)
-        doc_edges = [
-            e for e in edges if e.source == "mission_type:documentation"
-        ]
+        doc_edges = [e for e in edges if e.source == "mission_type:documentation"]
 
         assert all(e.relation is Relation.REQUIRES for e in doc_edges)
         assert {e.target for e in doc_edges} == {
@@ -1102,14 +958,8 @@ class TestMissionTypeEdges:
 
         for mission_id, steps in sequences.items():
             source_urn = f"mission_type:{mission_id}"
-            emitted = {
-                e.target
-                for e in edges
-                if e.source == source_urn and e.relation is Relation.REQUIRES
-            }
-            assert emitted == {
-                f"action:{mission_id}/{step}" for step in steps
-            }, f"{source_urn} edges do not match its action_sequence"
+            emitted = {e.target for e in edges if e.source == source_urn and e.relation is Relation.REQUIRES}
+            assert emitted == {f"action:{mission_id}/{step}" for step in steps}, f"{source_urn} edges do not match its action_sequence"
 
     def test_total_mission_type_edge_count_is_twenty_one(self) -> None:
         """SC-001: the four shipped types emit 21 requires edges in total.
@@ -1119,17 +969,10 @@ class TestMissionTypeEdges:
         types, not incidental golden-count debt.
         """
         edges = extract_mission_type_edges(DOCTRINE_ROOT)
-        requires_edges = [
-            e
-            for e in edges
-            if e.source.startswith("mission_type:")
-            and e.relation is Relation.REQUIRES
-        ]
+        requires_edges = [e for e in edges if e.source.startswith("mission_type:") and e.relation is Relation.REQUIRES]
         assert len(requires_edges) == 21
 
-    def test_no_mission_type_or_sequence_action_node_is_orphan(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_mission_type_or_sequence_action_node_is_orphan(self, tmp_path: Path) -> None:
         """No mission_type node -- and no action node named in a sequence --
         remains an orphan in the fully generated graph (SC-001)."""
         output = tmp_path / "graph.yaml"
@@ -1140,24 +983,14 @@ class TestMissionTypeEdges:
             incident.add(edge.source)
             incident.add(edge.target)
 
-        mission_type_urns = {
-            n.urn for n in graph.nodes if n.kind == NodeKind.MISSION_TYPE
-        }
+        mission_type_urns = {n.urn for n in graph.nodes if n.kind == NodeKind.MISSION_TYPE}
         assert mission_type_urns, "expected shipped mission_type nodes"
         orphan_mission_types = mission_type_urns - incident
-        assert not orphan_mission_types, (
-            f"mission_type nodes are orphaned: {orphan_mission_types}"
-        )
+        assert not orphan_mission_types, f"mission_type nodes are orphaned: {orphan_mission_types}"
 
-        sequence_action_urns = {
-            f"action:{mission_id}/{step}"
-            for mission_id, steps in _shipped_action_sequences().items()
-            for step in steps
-        }
+        sequence_action_urns = {f"action:{mission_id}/{step}" for mission_id, steps in _shipped_action_sequences().items() for step in steps}
         orphan_sequence_actions = sequence_action_urns - incident
-        assert not orphan_sequence_actions, (
-            f"sequence action nodes are orphaned: {orphan_sequence_actions}"
-        )
+        assert not orphan_sequence_actions, f"sequence action nodes are orphaned: {orphan_sequence_actions}"
 
 
 def _hand_partition_graph() -> DRGGraph:
@@ -1232,9 +1065,7 @@ class TestPartitionByKind:
             NodeKind.TEMPLATE,
         }
         # TEMPLATE owns a node but sources no edge -> present, with no edges.
-        assert [n.urn for n in fragments[NodeKind.TEMPLATE].nodes] == [
-            "template:spec_tmpl"
-        ]
+        assert [n.urn for n in fragments[NodeKind.TEMPLATE].nodes] == ["template:spec_tmpl"]
         assert fragments[NodeKind.TEMPLATE].edges == []
 
     def test_each_fragment_is_kind_homogeneous(self) -> None:
@@ -1247,11 +1078,7 @@ class TestPartitionByKind:
         """FR-007 (the invisible clause): each edge is placed in the fragment of
         its **source** node's kind -- not its target's."""
         fragments = _partition_by_kind(_hand_partition_graph())
-        kind_by_urn = {
-            n.urn: n.kind
-            for frag in fragments.values()
-            for n in frag.nodes
-        }
+        kind_by_urn = {n.urn: n.kind for frag in fragments.values() for n in frag.nodes}
         for kind, fragment in fragments.items():
             for edge in fragment.edges:
                 assert kind_by_urn[edge.source] == kind
@@ -1260,9 +1087,7 @@ class TestPartitionByKind:
         # the template lands in ACTION (not TEMPLATE), and the mission_type
         # edges land in MISSION_TYPE (not ACTION).
         action_edges = fragments[NodeKind.ACTION].edges
-        assert [(e.source, e.target) for e in action_edges] == [
-            ("action:specify", "template:spec_tmpl")
-        ]
+        assert [(e.source, e.target) for e in action_edges] == [("action:specify", "template:spec_tmpl")]
         mt_sources = {e.source for e in fragments[NodeKind.MISSION_TYPE].edges}
         assert mt_sources == {
             "mission_type:research",
@@ -1282,10 +1107,7 @@ class TestPartitionByKind:
             "action:plan",
             "action:specify",
         ]
-        assert [
-            (e.source, e.target, e.relation.value)
-            for e in fragments[NodeKind.MISSION_TYPE].edges
-        ] == [
+        assert [(e.source, e.target, e.relation.value) for e in fragments[NodeKind.MISSION_TYPE].edges] == [
             ("mission_type:research", "action:specify", "requires"),
             ("mission_type:software_dev", "action:plan", "requires"),
             ("mission_type:software_dev", "action:specify", "requires"),
@@ -1298,18 +1120,12 @@ class TestPartitionByKind:
         fragments = _partition_by_kind(graph)
 
         recomposed_nodes = [n.urn for frag in fragments.values() for n in frag.nodes]
-        recomposed_edges = [
-            (e.source, e.target, e.relation.value)
-            for frag in fragments.values()
-            for e in frag.edges
-        ]
+        recomposed_edges = [(e.source, e.target, e.relation.value) for frag in fragments.values() for e in frag.edges]
         # No duplication (disjointness) + exact set equality (completeness).
         assert len(recomposed_nodes) == len(graph.nodes)
         assert set(recomposed_nodes) == {n.urn for n in graph.nodes}
         assert len(recomposed_edges) == len(graph.edges)
-        assert set(recomposed_edges) == {
-            (e.source, e.target, e.relation.value) for e in graph.edges
-        }
+        assert set(recomposed_edges) == {(e.source, e.target, e.relation.value) for e in graph.edges}
 
 
 class TestDiscoverBuiltInNodesInDir:
@@ -1320,52 +1136,36 @@ class TestDiscoverBuiltInNodesInDir:
     def test_registers_a_node_per_artifact_with_label(self, tmp_path: Path) -> None:
         styleguide_dir = tmp_path / "styleguides"
         styleguide_dir.mkdir()
-        (styleguide_dir / "one.styleguide.yaml").write_text(
-            "id: my-style\nname: My Style\n", encoding="utf-8"
-        )
+        (styleguide_dir / "one.styleguide.yaml").write_text("id: my-style\nname: My Style\n", encoding="utf-8")
 
         nodes_by_urn: dict[str, DRGNode] = {}
-        _discover_built_in_nodes_in_dir(
-            styleguide_dir, "styleguide", NodeKind.STYLEGUIDE, nodes_by_urn
-        )
+        _discover_built_in_nodes_in_dir(styleguide_dir, "styleguide", NodeKind.STYLEGUIDE, nodes_by_urn)
 
         assert set(nodes_by_urn) == {"styleguide:my-style"}
         node = nodes_by_urn["styleguide:my-style"]
         assert node.kind == NodeKind.STYLEGUIDE
         assert node.label == "My Style"
 
-    def test_agent_profile_kind_uses_profile_id_key_and_agent_glob(
-        self, tmp_path: Path
-    ) -> None:
+    def test_agent_profile_kind_uses_profile_id_key_and_agent_glob(self, tmp_path: Path) -> None:
         """agent_profile is the one kind with a different glob/id-key pair."""
         profiles_dir = tmp_path / "agent_profiles"
         profiles_dir.mkdir()
-        (profiles_dir / "pedro.agent.yaml").write_text(
-            "profile-id: python-pedro\nname: Python Pedro\n", encoding="utf-8"
-        )
+        (profiles_dir / "pedro.agent.yaml").write_text("profile-id: python-pedro\nname: Python Pedro\n", encoding="utf-8")
         # A same-named .toolguide.yaml sibling must NOT match the agent glob.
-        (profiles_dir / "pedro.toolguide.yaml").write_text(
-            "id: not-an-agent\n", encoding="utf-8"
-        )
+        (profiles_dir / "pedro.toolguide.yaml").write_text("id: not-an-agent\n", encoding="utf-8")
 
         nodes_by_urn: dict[str, DRGNode] = {}
-        _discover_built_in_nodes_in_dir(
-            profiles_dir, "agent_profile", NodeKind.AGENT_PROFILE, nodes_by_urn
-        )
+        _discover_built_in_nodes_in_dir(profiles_dir, "agent_profile", NodeKind.AGENT_PROFILE, nodes_by_urn)
 
         assert set(nodes_by_urn) == {"agent_profile:python-pedro"}
 
     def test_file_with_no_artifact_id_is_skipped(self, tmp_path: Path) -> None:
         toolguides_dir = tmp_path / "toolguides"
         toolguides_dir.mkdir()
-        (toolguides_dir / "noid.toolguide.yaml").write_text(
-            "name: No ID Here\n", encoding="utf-8"
-        )
+        (toolguides_dir / "noid.toolguide.yaml").write_text("name: No ID Here\n", encoding="utf-8")
 
         nodes_by_urn: dict[str, DRGNode] = {}
-        _discover_built_in_nodes_in_dir(
-            toolguides_dir, "toolguide", NodeKind.TOOLGUIDE, nodes_by_urn
-        )
+        _discover_built_in_nodes_in_dir(toolguides_dir, "toolguide", NodeKind.TOOLGUIDE, nodes_by_urn)
 
         assert nodes_by_urn == {}
 
@@ -1375,26 +1175,18 @@ class TestDiscoverBuiltInNodesInDir:
         (procedures_dir / "empty.procedure.yaml").write_text("", encoding="utf-8")
 
         nodes_by_urn: dict[str, DRGNode] = {}
-        _discover_built_in_nodes_in_dir(
-            procedures_dir, "procedure", NodeKind.PROCEDURE, nodes_by_urn
-        )
+        _discover_built_in_nodes_in_dir(procedures_dir, "procedure", NodeKind.PROCEDURE, nodes_by_urn)
 
         assert nodes_by_urn == {}
 
-    def test_nested_subdirectory_artifacts_are_discovered_via_rglob(
-        self, tmp_path: Path
-    ) -> None:
+    def test_nested_subdirectory_artifacts_are_discovered_via_rglob(self, tmp_path: Path) -> None:
         assets_dir = tmp_path / "assets"
         nested = assets_dir / "nested" / "deeper"
         nested.mkdir(parents=True)
-        (nested / "deep.asset.yaml").write_text(
-            "id: deep-asset\ntitle: Deep Asset\n", encoding="utf-8"
-        )
+        (nested / "deep.asset.yaml").write_text("id: deep-asset\ntitle: Deep Asset\n", encoding="utf-8")
 
         nodes_by_urn: dict[str, DRGNode] = {}
-        _discover_built_in_nodes_in_dir(
-            assets_dir, "asset", NodeKind.ASSET, nodes_by_urn
-        )
+        _discover_built_in_nodes_in_dir(assets_dir, "asset", NodeKind.ASSET, nodes_by_urn)
 
         assert set(nodes_by_urn) == {"asset:deep-asset"}
 
@@ -1409,10 +1201,7 @@ class TestAgentProfileImplementerIvanConstant:
 
     def test_implementer_lineage_edges_reference_the_constant(self) -> None:
         lineage_sources = [
-            source
-            for source, target, relation in _CURATED_ARTIFACT_EDGES
-            if relation == Relation.SPECIALIZES_FROM
-            and target == _AGENT_PROFILE_IMPLEMENTER_IVAN
+            source for source, target, relation in _CURATED_ARTIFACT_EDGES if relation == Relation.SPECIALIZES_FROM and target == _AGENT_PROFILE_IMPLEMENTER_IVAN
         ]
         # Non-empty guards against a vacuous pass; uniqueness catches a
         # specialist registered twice. Deliberately no frozen count: adding an
@@ -1464,18 +1253,14 @@ class TestExtractGovernanceProfileScopeEdges:
             )
         }
 
-    def test_explicit_mission_type_overrides_parent_dir_name(
-        self, tmp_path: Path
-    ) -> None:
+    def test_explicit_mission_type_overrides_parent_dir_name(self, tmp_path: Path) -> None:
         """When authored, the ``mission_type`` key wins over the parent
         directory name -- proving the fallback above really is a fallback,
         not an always-preferred value."""
         profile_dir = tmp_path / "missions" / "on-disk-dir-name"
         profile_dir.mkdir(parents=True)
         (profile_dir / "governance-profile.yaml").write_text(
-            "mission_type: authored-type\n"
-            "selected_paradigms:\n"
-            "  - fixture-paradigm\n",
+            "mission_type: authored-type\nselected_paradigms:\n  - fixture-paradigm\n",
             encoding="utf-8",
         )
 
@@ -1489,9 +1274,7 @@ class TestExtractGovernanceProfileScopeEdges:
             )
         }
 
-    def test_duplicate_selected_id_is_deduplicated_via_seen_triples(
-        self, tmp_path: Path
-    ) -> None:
+    def test_duplicate_selected_id_is_deduplicated_via_seen_triples(self, tmp_path: Path) -> None:
         """The same target id repeated within a ``selected_*`` list collapses
         to a single ``(source, target, relation)`` edge via the
         ``seen_triples`` guard, instead of emitting a duplicate edge per
@@ -1499,11 +1282,7 @@ class TestExtractGovernanceProfileScopeEdges:
         profile_dir = tmp_path / "missions" / "plan"
         profile_dir.mkdir(parents=True)
         (profile_dir / "governance-profile.yaml").write_text(
-            "mission_type: plan\n"
-            "selected_tactics:\n"
-            "  - fixture-tactic\n"
-            "  - fixture-tactic\n"
-            "  - fixture-tactic\n",
+            "mission_type: plan\nselected_tactics:\n  - fixture-tactic\n  - fixture-tactic\n  - fixture-tactic\n",
             encoding="utf-8",
         )
 
@@ -1519,20 +1298,14 @@ class TestExtractGovernanceProfileScopeEdges:
             )
         ]
 
-    def test_multiple_profiles_and_fields_each_emit_their_own_edge(
-        self, tmp_path: Path
-    ) -> None:
+    def test_multiple_profiles_and_fields_each_emit_their_own_edge(self, tmp_path: Path) -> None:
         """Sanity check the dedup guard is scoped per-triple, not global: two
         distinct mission types, and two distinct fields on the same profile,
         each still produce their own edge."""
         research_dir = tmp_path / "missions" / "research"
         research_dir.mkdir(parents=True)
         (research_dir / "governance-profile.yaml").write_text(
-            "mission_type: research\n"
-            "selected_directives:\n"
-            "  - DIRECTIVE_999\n"
-            "selected_tactics:\n"
-            "  - fixture-tactic\n",
+            "mission_type: research\nselected_directives:\n  - DIRECTIVE_999\nselected_tactics:\n  - fixture-tactic\n",
             encoding="utf-8",
         )
         plan_dir = tmp_path / "missions" / "plan"
@@ -1563,9 +1336,7 @@ class TestExtractGovernanceProfileScopeEdges:
             ),
         }
 
-    def test_selected_agent_profiles_and_step_contracts_project_scope_edges(
-        self, tmp_path: Path
-    ) -> None:
+    def test_selected_agent_profiles_and_step_contracts_project_scope_edges(self, tmp_path: Path) -> None:
         """#3633 item 3: the two fields ``TestMultipleProfilesAndFields``
         (and the rest of this class) never exercises --
         ``selected_agent_profiles`` / ``selected_mission_step_contracts`` --
@@ -1579,11 +1350,7 @@ class TestExtractGovernanceProfileScopeEdges:
         profile_dir = tmp_path / "missions" / "software-dev"
         profile_dir.mkdir(parents=True)
         (profile_dir / "governance-profile.yaml").write_text(
-            "mission_type: software-dev\n"
-            "selected_agent_profiles:\n"
-            "  - implementer-ivan\n"
-            "selected_mission_step_contracts:\n"
-            "  - software-dev/implement\n",
+            "mission_type: software-dev\nselected_agent_profiles:\n  - implementer-ivan\nselected_mission_step_contracts:\n  - software-dev/implement\n",
             encoding="utf-8",
         )
 
@@ -1633,9 +1400,7 @@ class TestAssertGovernanceScopeEdgesResolve:
             target=target_urn,
             relation=Relation.SCOPE,
         )
-        nodes_by_urn = {
-            target_urn: DRGNode(urn=target_urn, kind=NodeKind.DIRECTIVE, label="DIRECTIVE_001")
-        }
+        nodes_by_urn = {target_urn: DRGNode(urn=target_urn, kind=NodeKind.DIRECTIVE, label="DIRECTIVE_001")}
 
         # Must not raise.
         assert_governance_scope_edges_resolve(edges=[edge], nodes_by_urn=nodes_by_urn)
@@ -1682,9 +1447,7 @@ class TestGenerateGraphFailsLoudOnFictionalGovernanceSelection:
         shutil.copytree(packs_built_in, pack_copy)
         return pack_copy
 
-    def test_fictional_selected_agent_profile_raises_not_phantom_mints(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fictional_selected_agent_profile_raises_not_phantom_mints(self, tmp_path: Path) -> None:
         pack_root = self._copy_real_pack_root(tmp_path)
         profile_path = pack_root / "missions" / "research" / "governance-profile.yaml"
         original = profile_path.read_text(encoding="utf-8")

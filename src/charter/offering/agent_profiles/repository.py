@@ -63,26 +63,19 @@ def _filter_candidates_by_role(candidates: list[AgentProfile], required_role: st
     if not required_role:
         return candidates
     normalized = str(required_role).lower()
-    return [
-        p for p in candidates
-        if normalized in p.roles or p.profile_id == normalized
-    ]
+    return [p for p in candidates if normalized in p.roles or p.profile_id == normalized]
 
 
 def _language_signal(context: TaskContext, profile: AgentProfile) -> float:
     """Return 1.0 if the context language matches the profile's specialization."""
-    if context.language and profile.specialization_context and context.language.lower() in [
-        lang.lower() for lang in profile.specialization_context.languages
-    ]:
+    if context.language and profile.specialization_context and context.language.lower() in [lang.lower() for lang in profile.specialization_context.languages]:
         return 1.0
     return 0.0
 
 
 def _framework_signal(context: TaskContext, profile: AgentProfile) -> float:
     """Return 1.0 if the context framework matches the profile's specialization."""
-    if context.framework and profile.specialization_context and context.framework.lower() in [
-        fw.lower() for fw in profile.specialization_context.frameworks
-    ]:
+    if context.framework and profile.specialization_context and context.framework.lower() in [fw.lower() for fw in profile.specialization_context.frameworks]:
         return 1.0
     return 0.0
 
@@ -166,10 +159,15 @@ def _score_profile(
 # ── Profile inheritance helpers ───────────────────────────────────────────────
 
 # List-type profile fields merged by union rather than child-replaces-parent.
-_LIST_FIELDS: frozenset[str] = frozenset({
-    "capabilities", "directive-references", "canonical-verbs", "mode-defaults",
-    "tactic-references",
-})
+_LIST_FIELDS: frozenset[str] = frozenset(
+    {
+        "capabilities",
+        "directive-references",
+        "canonical-verbs",
+        "mode-defaults",
+        "tactic-references",
+    }
+)
 
 
 def _item_key(item: Any) -> str:
@@ -216,9 +214,7 @@ def _apply_excluding(
         for field_name, values_to_remove in excluding.items():
             if field_name in merged and isinstance(merged[field_name], list):
                 remove_set = {str(v) for v in values_to_remove}
-                merged[field_name] = [
-                    item for item in merged[field_name] if _item_key(item) not in remove_set
-                ]
+                merged[field_name] = [item for item in merged[field_name] if _item_key(item) not in remove_set]
     return merged
 
 
@@ -423,9 +419,7 @@ class AgentProfileRepository:
 
         scan = directory.rglob(_AGENT_PROFILE_GLOB) if recursive else directory.glob(_AGENT_PROFILE_GLOB)
         for yaml_file in sorted(scan):
-            profile = self._parse_profile_from_file(
-                yaml, yaml_file, layer=layer, built_in_profiles=built_in_profiles
-            )
+            profile = self._parse_profile_from_file(yaml, yaml_file, layer=layer, built_in_profiles=built_in_profiles)
             if profile is None:
                 continue
 
@@ -497,22 +491,13 @@ class AgentProfileRepository:
                 layer=layer,
                 path=yaml_file,
                 profile_id=profile_id,
-                error_summary=(
-                    f"Forbidden inline-reference field '{exc.forbidden_field}'. "
-                    f"{exc.migration_hint}"
-                ),
+                error_summary=(f"Forbidden inline-reference field '{exc.forbidden_field}'. {exc.migration_hint}"),
             )
             return None
 
         if not profile_id:
-            schema_errors = (
-                validate_agent_profile_yaml(data) if isinstance(data, dict) else []
-            )
-            summary = (
-                "; ".join(schema_errors)
-                if schema_errors
-                else "Missing required 'profile-id'"
-            )
+            schema_errors = validate_agent_profile_yaml(data) if isinstance(data, dict) else []
+            summary = "; ".join(schema_errors) if schema_errors else "Missing required 'profile-id'"
             self._record_skip(
                 layer=layer,
                 path=yaml_file,
@@ -527,9 +512,7 @@ class AgentProfileRepository:
             else:
                 profile = AgentProfile.model_validate(data)
         except ValidationError as exc:
-            schema_errors = (
-                validate_agent_profile_yaml(data) if isinstance(data, dict) else []
-            )
+            schema_errors = validate_agent_profile_yaml(data) if isinstance(data, dict) else []
             summary = "; ".join(schema_errors) if schema_errors else str(exc)
             self._record_skip(
                 layer=layer,
@@ -658,9 +641,7 @@ class AgentProfileRepository:
         """
         profile_id = profile.profile_id
         existing_layer = self._provenance.get(profile_id)
-        if existing_layer is not None and _LAYER_RANK.get(layer, -1) < _LAYER_RANK.get(
-            existing_layer, -1
-        ):
+        if existing_layer is not None and _LAYER_RANK.get(layer, -1) < _LAYER_RANK.get(existing_layer, -1):
             return
         self._profiles[profile_id] = profile
         self._provenance[profile_id] = layer
@@ -766,11 +747,7 @@ class AgentProfileRepository:
         self._build_hierarchy_index()
 
         # Find roots (profiles with no lineage parent in the DRG)
-        roots = [
-            profile_id
-            for profile_id in self._profiles
-            if not self._lineage_parent(profile_id)
-        ]
+        roots = [profile_id for profile_id in self._profiles if not self._lineage_parent(profile_id)]
 
         def build_subtree(profile_id: str) -> dict[str, Any]:
             """Recursively build subtree for a profile."""
@@ -822,10 +799,7 @@ class AgentProfileRepository:
         for profile_id in self._profiles:
             parent_id = self._lineage_parent(profile_id)
             if parent_id and parent_id not in self._profiles:
-                errors.append(
-                    f"Orphaned reference: {profile_id} specializes from "
-                    f"nonexistent {parent_id}"
-                )
+                errors.append(f"Orphaned reference: {profile_id} specializes from nonexistent {parent_id}")
 
         return errors
 
@@ -895,8 +869,7 @@ class AgentProfileRepository:
             parent = self.get(parent_id)
             if parent is None:
                 raise KeyError(
-                    f"Profile '{profile_id}' references missing parent '{parent_id}'. "
-                    "Ensure the parent profile exists in built-in/ or _proposed/ before resolving."
+                    f"Profile '{profile_id}' references missing parent '{parent_id}'. Ensure the parent profile exists in built-in/ or _proposed/ before resolving."
                 )
 
             visited.add(parent.profile_id)
@@ -970,7 +943,7 @@ class AgentProfileRepository:
         """
         prefix = f"{NodeKind.PROCEDURE.value}{_URN_SEP}"
         reached = self.profile_channel_reached(profile_id)
-        return sorted(urn[len(prefix):] for urn in reached if urn.startswith(prefix))
+        return sorted(urn[len(prefix) :] for urn in reached if urn.startswith(prefix))
 
     def save(self, profile: AgentProfile) -> None:
         """Save profile to project directory.
@@ -993,7 +966,7 @@ class AgentProfileRepository:
         yaml_file = self._project_dir / f"{profile.profile_id}.agent.yaml"
 
         # Convert profile to dict, excluding unset fields to keep YAML clean
-        profile_dict = profile.model_dump(mode='json', by_alias=True, exclude_unset=True)
+        profile_dict = profile.model_dump(mode="json", by_alias=True, exclude_unset=True)
 
         with yaml_file.open("w") as f:
             yaml.dump(profile_dict, f)

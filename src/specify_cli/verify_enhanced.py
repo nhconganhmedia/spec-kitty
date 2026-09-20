@@ -46,7 +46,7 @@ def _parse_skill_name_from_frontmatter(content: str) -> str | None:
     for line in frontmatter.splitlines():
         stripped = line.strip()
         if stripped.startswith("name:"):
-            value = stripped[len("name:"):].strip()
+            value = stripped[len("name:") :].strip()
             # Remove optional surrounding quotes
             if len(value) >= 2 and value[0] in ('"', "'") and value[-1] == value[0]:
                 value = value[1:-1]
@@ -69,14 +69,7 @@ def run_enhanced_verify(
 
     Returns a dict suitable for JSON output if needed.
     """
-    output_data = {
-        "environment": {},
-        "feature_detection": {},
-        "worktree_status": {},
-        "file_integrity": {},
-        "feature_analysis": {},
-        "recommendations": []
-    }
+    output_data = {"environment": {}, "feature_detection": {}, "worktree_status": {}, "file_integrity": {}, "feature_analysis": {}, "recommendations": []}
 
     # Resolve mission from feature-level meta.json when available
     mission_type: str | None = None
@@ -88,9 +81,7 @@ def run_enhanced_verify(
         # than the kind-blind resolver (NFR-001).
         from mission_runtime import MissionArtifactKind, placement_seam
 
-        candidate = placement_seam(project_root, feature).read_dir(
-            MissionArtifactKind.PRIMARY_METADATA
-        )
+        candidate = placement_seam(project_root, feature).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         if candidate.is_dir():
             mission_type = _resolve_mission_from_feature(candidate)
 
@@ -100,17 +91,11 @@ def run_enhanced_verify(
     worktree_status = WorktreeStatus(repo_root)
 
     # 1. Environment Information
-    in_worktree = '.worktrees' in str(cwd)
+    in_worktree = ".worktrees" in str(cwd)
 
     try:
         current_branch = subprocess.run(
-            ["git", "branch", "--show-current"],
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            check=True
+            ["git", "branch", "--show-current"], cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True
         ).stdout.strip()
     except subprocess.CalledProcessError:
         current_branch = None
@@ -121,7 +106,7 @@ def run_enhanced_verify(
         "project_root": str(project_root),
         "in_worktree": in_worktree,
         "current_branch": current_branch,
-        "active_mission": mission_type or "no mission context"
+        "active_mission": mission_type or "no mission context",
     }
 
     if not json_output:
@@ -160,7 +145,7 @@ def run_enhanced_verify(
             "total_present": total_present,
             "total_missing": total_missing,
             "missing_files": file_check["missing"],
-            "categories": {}
+            "categories": {},
         }
 
         # Count by category
@@ -169,7 +154,7 @@ def run_enhanced_verify(
             output_data["file_integrity"]["categories"][category] = {
                 "expected": len(files),
                 "present": present_in_category,
-                "missing": len(files) - present_in_category
+                "missing": len(files) - present_in_category,
             }
 
         if not json_output:
@@ -212,9 +197,7 @@ def run_enhanced_verify(
         # rather than the kind-blind resolver (NFR-001).
         from mission_runtime import MissionArtifactKind, placement_seam
 
-        resolved_feature_dir = feature_dir or placement_seam(
-            project_root, mission_slug
-        ).read_dir(MissionArtifactKind.PRIMARY_METADATA)
+        resolved_feature_dir = feature_dir or placement_seam(project_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         identity = resolve_mission_identity(resolved_feature_dir)
 
         output_data["feature_detection"] = {
@@ -260,10 +243,7 @@ def run_enhanced_verify(
                 console.print("   [dim]○[/dim] Feature not yet started")
 
     except (ValueError, Exception) as exc:
-        output_data["feature_detection"] = {
-            "detected": False,
-            "error": str(exc)
-        }
+        output_data["feature_detection"] = {"detected": False, "error": str(exc)}
 
         if not json_output:
             console.print("\n[cyan]4. Feature Analysis[/cyan]")
@@ -291,7 +271,7 @@ def run_enhanced_verify(
                 "in_development": "[yellow]ACTIVE[/yellow]",
                 "ready_to_merge": "[blue]READY[/blue]",
                 "not_started": "[dim]NOT STARTED[/dim]",
-                "unknown": "[dim]?[/dim]"
+                "unknown": "[dim]?[/dim]",
             }.get(feat_status["state"], feat_status["state"])
 
             branch_display = "✓" if feat_status["branch_exists"] else "-"
@@ -303,13 +283,7 @@ def run_enhanced_verify(
             artifact_count = len(feat_status["artifacts_in_main"]) + len(feat_status["artifacts_in_worktree"])
             artifacts_display = str(artifact_count) if artifact_count > 0 else "-"
 
-            table.add_row(
-                feat,
-                state_display,
-                branch_display,
-                worktree_display,
-                artifacts_display
-            )
+            table.add_row(feat, state_display, branch_display, worktree_display, artifacts_display)
 
         console.print(table)
 
@@ -344,10 +318,7 @@ def run_enhanced_verify(
                 "drifted": n_drifted,
                 "errors": n_errors,
                 "missing_files": [e.installed_path for e in skill_result.missing],
-                "drifted_files": [
-                    {"path": e.installed_path, "skill": e.skill_name}
-                    for e, _hash in skill_result.drifted
-                ],
+                "drifted_files": [{"path": e.installed_path, "skill": e.skill_name} for e, _hash in skill_result.drifted],
                 "error_messages": skill_result.errors,
             }
 

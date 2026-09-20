@@ -67,14 +67,13 @@ MAP_REQUIREMENTS_COMMAND_NAME = "spec-kitty agent tasks map-requirements"
 def _default_map_requirements_ports(target_branch: str | None) -> TasksPorts:
     """Production port bundle for ``map_requirements`` (coord router bound to tasks.py)."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     return TasksPorts(
         fs=_tasks.RealFsReader(),
         # map_requirements threads the resolved ``target_branch`` into
         # ``commit_for_mission`` (ff-advance parity) and routes only the commit
         # seam through ``tasks`` (it inherited the base ``commit_status``).
-        coord=_tasks.seam_coord_router(
-            thread_target_branch=True, target_branch=target_branch
-        ),
+        coord=_tasks.seam_coord_router(thread_target_branch=True, target_branch=target_branch),
         git=_tasks.RealGitOps(),
         render=_tasks.RealRender(),
     )
@@ -137,6 +136,7 @@ class _MapReqState:
 def _mr_validate_modes(st: _MapReqState) -> None:
     """Phase A: the operator-mode gates (batch vs wp/refs vs tracker-only)."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     # T040 / FR-011 (F-10): tracker_ref values are persisted alongside
     # requirement_refs.  --tracker-ref is repeatable and requires --wp.
     st.tracker_ref_values = [t.strip() for t in (st.tracker_ref or []) if t and t.strip()]
@@ -168,6 +168,7 @@ def _mr_validate_modes(st: _MapReqState) -> None:
 def _mr_resolve_context(st: _MapReqState) -> None:
     """Phase B: repo/mission/target-branch resolution + the protected-branch gate."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     repo_root = _tasks.locate_project_root()
     if repo_root is None:
         _tasks._output_error(st.json_output, "Could not locate project root")
@@ -177,15 +178,9 @@ def _mr_resolve_context(st: _MapReqState) -> None:
     # FR-010 / FR-019: one-shot sparse-checkout session warning.
     _tasks._emit_sparse_session_warning(repo_root, command="spec-kitty agent tasks map-requirements")
 
-    st.mission_slug = _tasks._find_mission_slug(
-        explicit_mission=st.mission, json_output=st.json_output, repo_root=repo_root
-    )
-    st.main_repo_root, st.target_branch = _tasks._ensure_target_branch_checked_out(
-        repo_root, st.mission_slug, st.json_output
-    )
-    st.auto_commit_on = (
-        _tasks.get_auto_commit_default(st.main_repo_root) if st.auto_commit is None else st.auto_commit
-    )
+    st.mission_slug = _tasks._find_mission_slug(explicit_mission=st.mission, json_output=st.json_output, repo_root=repo_root)
+    st.main_repo_root, st.target_branch = _tasks._ensure_target_branch_checked_out(repo_root, st.mission_slug, st.json_output)
+    st.auto_commit_on = _tasks.get_auto_commit_default(st.main_repo_root) if st.auto_commit is None else st.auto_commit
     st.commit_target = CommitTarget(ref=st.target_branch)
     if st.auto_commit_on:
         from specify_cli.coordination.commit_router import _resolve_planning_placement
@@ -193,9 +188,7 @@ def _mr_resolve_context(st: _MapReqState) -> None:
         # map-requirements edits WP prompt files → WORK_PACKAGE_TASK (primary)
         # (write-surface-coherence WP02 / T009). Resolve the destination through
         # the kind authority instead of the hardcoded target_branch above.
-        st.commit_target = _resolve_planning_placement(
-            st.main_repo_root, st.mission_slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-        )
+        st.commit_target = _resolve_planning_placement(st.main_repo_root, st.mission_slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
         protected_error = _tasks._protected_branch_status_commit_error(
             st.commit_target.ref,
             st.main_repo_root,
@@ -209,6 +202,7 @@ def _mr_resolve_context(st: _MapReqState) -> None:
 def _mr_build_new_mappings(st: _MapReqState) -> None:
     """Phase C(i): build the per-WP new-mapping dict from the active input mode."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     if st.batch:
         try:
             parsed_batch = json.loads(st.batch)
@@ -242,6 +236,7 @@ def _mr_build_new_mappings(st: _MapReqState) -> None:
 def _mr_unknown_wp_gate(st: _MapReqState) -> None:
     """Phase C(ii): reject WP ids the tasks/ dir does not carry."""
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     existing_wps: set[str] = set()
     if st.tasks_dir.exists():
         for wp_file in st.tasks_dir.glob("WP*.md"):
@@ -323,12 +318,7 @@ def _mr_resolve_read_dirs(st: _MapReqState, ports: TasksPorts) -> None:
     # files are WORK_PACKAGE_TASK — a PRIMARY-partition kind. Resolve the read dir
     # through the kind-aware seam (the SAME single authority WP01 routed the rest
     # of the gate reads onto) instead of the topology-routed ``feature_dir``.
-    st.tasks_dir = (
-        placement_seam(st.main_repo_root, st.mission_slug).read_dir(
-            MissionArtifactKind.WORK_PACKAGE_TASK
-        )
-        / "tasks"
-    )
+    st.tasks_dir = placement_seam(st.main_repo_root, st.mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK) / "tasks"
     _mr_unknown_wp_gate(st)
 
 
@@ -351,9 +341,7 @@ def _mr_detect_bare_prose_requirement_ids(spec_content: str) -> frozenset[str]:
         candidates = find_bare_prose_requirement_ids(spec_content)
         return frozenset(req_id for candidate in candidates for req_id in candidate.ids)
     except Exception as exc:  # noqa: BLE001 -- fail-loud: converted below into an explicit, non-empty failure, never swallowed
-        return frozenset(
-            {f"<bare-prose-detection-error: {exc!r} -- treating as blocking, never silently clean (NFR-002)>"}
-        )
+        return frozenset({f"<bare-prose-detection-error: {exc!r} -- treating as blocking, never silently clean (NFR-002)>"})
 
 
 def _mr_plan(st: _MapReqState) -> None:
@@ -373,9 +361,7 @@ def _mr_plan(st: _MapReqState) -> None:
             _parse_requirement_refs_from_tasks_md,
         )
 
-        tasks_md_refs = _parse_requirement_refs_from_tasks_md(
-            tasks_md_file.read_text(encoding="utf-8")
-        )
+        tasks_md_refs = _parse_requirement_refs_from_tasks_md(tasks_md_file.read_text(encoding="utf-8"))
 
     if st.tracker_only_mode:
         _mapping_mode = TRACKER_ONLY_MODE
@@ -406,6 +392,7 @@ def _mr_gate_offenders(st: _MapReqState) -> None:
     refuses with NO write.
     """
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     assert st.mapping_plan is not None
     if st.mapping_plan.offenders.malformed:
         malformed = list(st.mapping_plan.offenders.malformed)
@@ -572,6 +559,7 @@ def _mr_auto_commit(st: _MapReqState, ports: TasksPorts) -> None:
     ``commit_result`` envelope shape (#1891 / FR-013) is reconstructed byte-identically.
     """
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     if not st.auto_commit_on:
         return
     written_files: list[Path] = []
@@ -652,10 +640,7 @@ def _mr_emit_output(st: _MapReqState) -> None:
         for warning in st.requirement_extraction_warnings:
             _tasks.console.print(f"[yellow]Warning:[/yellow] {warning}")
         if st.mapping_plan.bare_prose_requirement_ids:
-            _tasks.console.print(
-                f"  [red]Bare-prose requirement id(s) found, uncounted:[/red] "
-                f"{', '.join(st.mapping_plan.bare_prose_requirement_ids)}"
-            )
+            _tasks.console.print(f"  [red]Bare-prose requirement id(s) found, uncounted:[/red] {', '.join(st.mapping_plan.bare_prose_requirement_ids)}")
 
 
 def _do_map_requirements(
@@ -680,6 +665,7 @@ def _do_map_requirements(
     gate (partial-write-on-refusal timing, NFR-001/WP04).
     """
     from specify_cli.cli.commands.agent import tasks as _tasks
+
     st = _MapReqState(
         wp=wp,
         refs=refs,
@@ -740,7 +726,5 @@ def _map_requirements_feature_dir(main_repo_root: Path, mission_slug: str) -> Pa
     # WP03 / FR-001 / C-001: tasks/ is WORK_PACKAGE_TASK (PRIMARY-partition).
     # The topology-blind primary_feature_dir_for_mission never raises, so the
     # caller's existence guard preserves the historical user-facing contract.
-    resolved: Path = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    resolved: Path = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     return resolved

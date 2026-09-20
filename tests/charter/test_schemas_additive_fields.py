@@ -58,12 +58,7 @@ class TestDirectiveReferencesField:
         re-serializes (with ``exclude_defaults=True``) without emitting the
         new key — i.e. bytes-on-disk shape is preserved for missions that
         never touched the new field (NFR-005)."""
-        yaml_text = (
-            "id: DIR-001\n"
-            "title: Example\n"
-            "description: A directive\n"
-            "severity: warn\n"
-        )
+        yaml_text = "id: DIR-001\ntitle: Example\ndescription: A directive\nseverity: warn\n"
         data = _load_yaml_str(yaml_text)
         directive = Directive(**data)
 
@@ -75,15 +70,7 @@ class TestDirectiveReferencesField:
     def test_round_trip_with_references(self) -> None:
         """YAML carrying ``references: [DIRECTIVE_032]`` loads with the list
         intact."""
-        yaml_text = (
-            "id: DIR-001\n"
-            "title: Example\n"
-            "description: A directive\n"
-            "severity: warn\n"
-            "references:\n"
-            "  - DIRECTIVE_032\n"
-            "  - some-tactic-slug\n"
-        )
+        yaml_text = "id: DIR-001\ntitle: Example\ndescription: A directive\nseverity: warn\nreferences:\n  - DIRECTIVE_032\n  - some-tactic-slug\n"
         data = _load_yaml_str(yaml_text)
         directive = Directive(**data)
 
@@ -93,9 +80,7 @@ class TestDirectiveReferencesField:
         assert dumped["references"] == ["DIRECTIVE_032", "some-tactic-slug"]
 
     def test_references_accepts_empty_list_explicitly(self) -> None:
-        directive = Directive(
-            id="DIR-001", title="t", description="d", references=[]
-        )
+        directive = Directive(id="DIR-001", title="t", description="d", references=[])
         assert directive.references == []
 
 
@@ -118,13 +103,7 @@ class TestDoctrineSelectionAuthorityPathsField:
     def test_round_trip_without_authority_paths(self) -> None:
         """Existing YAML lacking ``authority_paths:`` loads with ``[]`` and
         does not emit the new key when dumped with ``exclude_defaults=True``."""
-        yaml_text = (
-            "selected_paradigms: []\n"
-            "selected_directives: []\n"
-            "selected_tactics: []\n"
-            "available_tools: []\n"
-            "template_set: null\n"
-        )
+        yaml_text = "selected_paradigms: []\nselected_directives: []\nselected_tactics: []\navailable_tools: []\ntemplate_set: null\n"
         data = _load_yaml_str(yaml_text)
         config = DoctrineSelectionConfig(**data)
 
@@ -180,9 +159,7 @@ def _discover_directives_yaml_paths() -> list[Path]:
     for path in repo_root.rglob("directives.yaml"):
         # Skip generated agent-copy directories and node_modules-style noise.
         parts = set(path.parts)
-        if ".worktrees" in parts and repo_root.name not in path.relative_to(
-            repo_root
-        ).parts[:1]:
+        if ".worktrees" in parts and repo_root.name not in path.relative_to(repo_root).parts[:1]:
             # only include paths inside our own worktree
             pass
         candidates.append(path)
@@ -225,7 +202,4 @@ class TestExistingDirectivesFixturesStillLoad:
                     continue
             loaded_any = True
 
-        assert loaded_any, (
-            "Found directives.yaml files but none matched expected shapes — "
-            "this is a discovery bug, not a schema bug"
-        )
+        assert loaded_any, "Found directives.yaml files but none matched expected shapes — this is a discovery bug, not a schema bug"

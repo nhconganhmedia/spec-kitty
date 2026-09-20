@@ -91,9 +91,7 @@ def _make_merged_mission(
         "merged_strategy": "merge",
         "merged_commit": "deadbeef",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     # A terminal WP chain in the event log so the classifier sees a completed
     # mission (no active WPs) — re-open actionability must come from the event,
     # not from clearing merged_* (D-A2). Each line is a reducer-valid StatusEvent.
@@ -138,9 +136,7 @@ def _invoke(repo: Path, *args: str):
     return runner.invoke(mission_type.app, list(args), env={"PWD": str(repo)})
 
 
-def test_reopen_clears_merged_and_emits_event_and_is_actionable(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_reopen_clears_merged_and_emits_event_and_is_actionable(tmp_path: Path, monkeypatch) -> None:
     repo = _init_repo(tmp_path)
     feature_dir = _make_merged_mission(repo)
     monkeypatch.chdir(repo)
@@ -206,9 +202,7 @@ def test_reopen_fail_closed_when_meta_missing(tmp_path: Path, monkeypatch) -> No
     assert not [e for e in events if e.get("event_type") == MISSION_REOPENED]
 
 
-def test_reopen_fail_closed_when_branch_in_neither_local_nor_remote(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_reopen_fail_closed_when_branch_in_neither_local_nor_remote(tmp_path: Path, monkeypatch) -> None:
     repo = _init_repo(tmp_path)
     feature_dir = _make_merged_mission(repo, create_branch=False)
     # No branch exists locally, and there is no configured remote.
@@ -224,9 +218,7 @@ def test_reopen_fail_closed_when_branch_in_neither_local_nor_remote(
     assert meta.get("merged_at") == "2026-02-01T00:00:00+00:00"
 
 
-def test_reopen_recoverable_when_only_worktree_missing(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_reopen_recoverable_when_only_worktree_missing(tmp_path: Path, monkeypatch) -> None:
     # Missing worktree dir ALONE is recoverable (branch present) — NOT fail-closed.
     repo = _init_repo(tmp_path)
     feature_dir = _make_merged_mission(repo, create_branch=True)
@@ -259,9 +251,7 @@ def _make_uncompleted_mission(repo: Path) -> Path:
         "mid8": _MID8,
         "mission_branch": branch,
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     # A WP still in progress — not terminal — so the mission is not completed.
     log = feature_dir / "status.events.jsonl"
     chain = [("genesis", "planned"), ("planned", "claimed"), ("claimed", "in_progress")]
@@ -404,9 +394,7 @@ def test_format_post_mission_events_renders_reopen_and_follow_up(
     assert format_post_mission_events([]) == []
 
 
-def test_reopen_ambiguous_handle_emits_structured_error(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_reopen_ambiguous_handle_emits_structured_error(tmp_path: Path, monkeypatch) -> None:
     repo = _init_repo(tmp_path)
     # Two missions whose mission_id shares the same mid8 prefix → ambiguous handle.
     _make_merged_mission(repo, slug="alpha", mission_id=_MID8 + "AAAAAAAAAAAAAAAAAA")
@@ -422,9 +410,7 @@ def test_reopen_ambiguous_handle_emits_structured_error(
         "mission_id": _MID8 + "BBBBBBBBBBBBBBBBBB",
         "mid8": _MID8,
     }
-    (second / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (second / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     monkeypatch.chdir(repo)
 
     result = _invoke(repo, "reopen", _MID8, "--reason", "x")
@@ -448,9 +434,7 @@ def test_reopen_ambiguous_handle_emits_json_envelope(tmp_path: Path, monkeypatch
         "mission_id": _MID8 + "BBBBBBBBBBBBBBBBBB",
         "mid8": _MID8,
     }
-    (second / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (second / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     monkeypatch.chdir(repo)
 
     result = _invoke(repo, "reopen", _MID8, "--reason", "x", "--json")

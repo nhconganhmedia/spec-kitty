@@ -87,9 +87,7 @@ def test_first_missing_pack_is_reported_when_multiple_configured(
     existing = tmp_path / "existing"
     existing.mkdir()
     missing = tmp_path / "missing"
-    _write_kittify_config(
-        consumer, [("existing", existing), ("missing", missing)]
-    )
+    _write_kittify_config(consumer, [("existing", existing), ("missing", missing)])
 
     with pytest.raises(MissingDoctrinePackError) as excinfo:
         assert_pack_local_paths_exist(consumer)

@@ -321,9 +321,7 @@ class TestPackRegistryPersistence:
         assert "test-pack" in content
         assert pack_id in content
 
-    def test_pack_registry_multiple_packs_distinct_ids(
-        self, tmp_path: Path
-    ) -> None:
+    def test_pack_registry_multiple_packs_distinct_ids(self, tmp_path: Path) -> None:
         """Multiple packs with distinct pack_ids persist correctly."""
         id1 = str(ULID())
         id2 = str(ULID())

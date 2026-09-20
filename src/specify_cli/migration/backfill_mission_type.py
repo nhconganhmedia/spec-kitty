@@ -221,9 +221,7 @@ def backfill_mission_type_repo(
 
     if not kitty_specs.is_dir():
         if mission_slug is not None:
-            raise MissionNotFoundError(
-                f"No mission directory found for slug {mission_slug!r} under {kitty_specs}"
-            )
+            raise MissionNotFoundError(f"No mission directory found for slug {mission_slug!r} under {kitty_specs}")
         logger.warning("kitty-specs/ not found at %s", repo_root)
         return []
 
@@ -234,17 +232,12 @@ def backfill_mission_type_repo(
     if mission_slug is not None:
         candidates = [entry for entry in all_dirs if entry.name == mission_slug]
         if not candidates:
-            raise MissionNotFoundError(
-                f"No mission directory found for slug {mission_slug!r} under {kitty_specs}"
-            )
+            raise MissionNotFoundError(f"No mission directory found for slug {mission_slug!r} under {kitty_specs}")
     else:
         candidates = all_dirs
 
     repo = MissionTypeProfileRepository.for_project(repo_root)
-    return [
-        backfill_mission_mission_type(feature_dir, repo=repo, dry_run=dry_run)
-        for feature_dir in candidates
-    ]
+    return [backfill_mission_mission_type(feature_dir, repo=repo, dry_run=dry_run) for feature_dir in candidates]
 
 
 # Only the repo-walk entry point is consumed by another ``src/`` module (the

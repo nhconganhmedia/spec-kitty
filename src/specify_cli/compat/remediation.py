@@ -29,9 +29,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 COMMAND_ALLOWLIST_MAX_LEN = 512
-_COMMAND_RE = re.compile(
-    rf"^[A-Za-z0-9 .\-+_/=:]{{1,{COMMAND_ALLOWLIST_MAX_LEN}}}$"
-)  # CHK028 — character class unchanged; length raised for index URLs
+_COMMAND_RE = re.compile(rf"^[A-Za-z0-9 .\-+_/=:]{{1,{COMMAND_ALLOWLIST_MAX_LEN}}}$")  # CHK028 — character class unchanged; length raised for index URLs
 
 # Version specifier validation — same pattern as upgrade_hint.py _VERSION_RE
 _VERSION_RE = re.compile(r"^[A-Za-z0-9.\-+]{1,64}$")
@@ -44,10 +42,7 @@ _PYTEST_NAME = "pytest"
 # requirement shape, or missing spec-kitty entry). Mirrors the legacy
 # ``_fallback_uv_tool_reinstall_command`` guidance; the substring
 # "same uv tool source" is asserted by the provenance regression tests.
-_UV_PROVENANCE_FALLBACK_NOTE = (
-    "Spec Kitty could not preserve uv receipt provenance automatically; "
-    "reinstall the same uv tool source with --with pytest"
-)
+_UV_PROVENANCE_FALLBACK_NOTE = "Spec Kitty could not preserve uv receipt provenance automatically; reinstall the same uv tool source with --with pytest"
 
 
 # ---------------------------------------------------------------------------
@@ -95,9 +90,9 @@ class RemediationCommand:
     """
 
     intent: RemediationIntent
-    argv: tuple[str, ...] | None              # subprocess-ready args, or None for manual
-    env: Mapping[str, str]                    # env vars to prepend (e.g. UV_TOOL_DIR=...)
-    note: str | None                          # human-readable note, or None
+    argv: tuple[str, ...] | None  # subprocess-ready args, or None for manual
+    env: Mapping[str, str]  # env vars to prepend (e.g. UV_TOOL_DIR=...)
+    note: str | None  # human-readable note, or None
 
     def render(self, platform: Literal["posix", "windows"]) -> str:
         """Return a CHK028-validated, env-prefixed, platform-quoted command string.
@@ -115,10 +110,7 @@ class RemediationCommand:
         import shlex  # stdlib — deferred to keep module-level imports minimal
 
         if self.intent == RemediationIntent.MANUAL_GUIDANCE:
-            raise ValueError(
-                "cannot render MANUAL_GUIDANCE RemediationCommand"
-                " — check intent before calling render()"
-            )
+            raise ValueError("cannot render MANUAL_GUIDANCE RemediationCommand — check intent before calling render()")
         if self.argv is None:
             raise ValueError("argv is None")
 
@@ -126,23 +118,15 @@ class RemediationCommand:
         if self.env:
             if platform == "posix":
                 # KEY=shlex.quote(value) per entry, space-joined with trailing space.
-                env_prefix = "".join(
-                    f"{k}={shlex.quote(v)} " for k, v in self.env.items()
-                )
+                env_prefix = "".join(f"{k}={shlex.quote(v)} " for k, v in self.env.items())
             else:
                 # $env:KEY='ps-quoted-value'; per entry, concatenated with trailing space.
-                env_prefix = "".join(
-                    f"$env:{k}={_powershell_quote(v)}; " for k, v in self.env.items()
-                )
+                env_prefix = "".join(f"$env:{k}={_powershell_quote(v)}; " for k, v in self.env.items())
         else:
             env_prefix = ""
 
         # --- 2. Build argv string -------------------------------------------
-        argv_str = (
-            " ".join(shlex.quote(a) for a in self.argv)
-            if platform == "posix"
-            else " ".join(self.argv)
-        )
+        argv_str = " ".join(shlex.quote(a) for a in self.argv) if platform == "posix" else " ".join(self.argv)
 
         # --- 3. Compose and CHK028-validate ---------------------------------
         composed = env_prefix + argv_str
@@ -275,11 +259,7 @@ def _pypi_package_arg(
     package_name: str,
 ) -> str:
     """``package_name``, version-pinned when *target_version* is valid (CHK)."""
-    return (
-        f"{package_name}=={target_version}"
-        if target_version is not None and _VERSION_RE.match(target_version)
-        else package_name
-    )
+    return f"{package_name}=={target_version}" if target_version is not None and _VERSION_RE.match(target_version) else package_name
 
 
 def _plan_uv_tool_upgrade(
@@ -296,9 +276,7 @@ def _plan_uv_tool_upgrade(
     base = base + (pkg,)
     base = _with_index_before_package(base, packaging)
 
-    return RemediationCommand(
-        intent=RemediationIntent.UPGRADE, argv=base, env=_uv_tool_env(runtime), note=None
-    )
+    return RemediationCommand(intent=RemediationIntent.UPGRADE, argv=base, env=_uv_tool_env(runtime), note=None)
 
 
 def _plan_uv_tool_reinstall(
@@ -549,29 +527,16 @@ def _plan_pip_system(
 _MANUAL_NOTES: dict[str, dict[str, str]] = {
     RemediationIntent.UPGRADE: {
         "source": "Rebuild from source using your normal dev workflow.",
-        "unknown": (
-            "Reinstall spec-kitty-cli using your original install method. "
-            "See https://spec-kitty.dev/docs/how-to/install-and-upgrade for guidance."
-        ),
-        "system-package": (
-            "Use your system package manager to upgrade spec-kitty-cli."
-        ),
+        "unknown": ("Reinstall spec-kitty-cli using your original install method. See https://spec-kitty.dev/docs/how-to/install-and-upgrade for guidance."),
+        "system-package": ("Use your system package manager to upgrade spec-kitty-cli."),
     },
     RemediationIntent.REINSTALL_WITH_TEST: {
-        "brew": (
-            "Homebrew does not support test extras automatically. "
-            "Run: pip install spec-kitty-cli[test] in a virtual environment."
-        ),
+        "brew": ("Homebrew does not support test extras automatically. Run: pip install spec-kitty-cli[test] in a virtual environment."),
         "pip-user": "Run: pip install --user spec-kitty-cli[test]",
         "pip-system": "Run: pip install spec-kitty-cli[test]",
         "source": "Run: pip install -e .[test] to reinstall with test extras.",
-        "unknown": (
-            "Install spec-kitty-cli with test extras using your original install method."
-        ),
-        "system-package": (
-            "Use your system package manager to install spec-kitty-cli, "
-            "then add test extras via pip."
-        ),
+        "unknown": ("Install spec-kitty-cli with test extras using your original install method."),
+        "system-package": ("Use your system package manager to install spec-kitty-cli, then add test extras via pip."),
     },
 }
 

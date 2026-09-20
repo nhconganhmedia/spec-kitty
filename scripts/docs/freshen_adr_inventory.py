@@ -69,14 +69,10 @@ _WHITESPACE_RE: Final[re.Pattern[str]] = re.compile(r"\s+")
 # ADR index table detection. The header carries both "Date" and "Title"; the
 # next line is the markdown separator; data rows follow until the first
 # non-pipe line.
-_TABLE_HEADER_RE: Final[re.Pattern[str]] = re.compile(
-    r"^\s*\|.*\bdate\b.*\|.*\btitle\b.*\|\s*$", re.IGNORECASE
-)
+_TABLE_HEADER_RE: Final[re.Pattern[str]] = re.compile(r"^\s*\|.*\bdate\b.*\|.*\btitle\b.*\|\s*$", re.IGNORECASE)
 _TABLE_SEP_RE: Final[re.Pattern[str]] = re.compile(r"^\s*\|[\s:|-]*-[\s:|-]*\|\s*$")
 _TABLE_ROW_RE: Final[re.Pattern[str]] = re.compile(r"^\s*\|.*\|\s*$")
-_INDEX_HEADING_RE: Final[re.Pattern[str]] = re.compile(
-    r"^\s*##\s+Index\s*$", re.IGNORECASE
-)
+_INDEX_HEADING_RE: Final[re.Pattern[str]] = re.compile(r"^\s*##\s+Index\s*$", re.IGNORECASE)
 
 
 class FreshenError(Exception):
@@ -130,14 +126,9 @@ def _era_index_for(adr_path: Path, docs_root: Path) -> Path:
         rel_parts = adr_path.resolve().relative_to(docs_root.resolve()).parts
     except ValueError:  # adr_path is not inside docs_root
         rel_parts = ()
-    if (
-        len(rel_parts) != 3
-        or rel_parts[0] != _ADR_SUBDIR
-        or not _ERA_RE.match(rel_parts[1])
-    ):
+    if len(rel_parts) != 3 or rel_parts[0] != _ADR_SUBDIR or not _ERA_RE.match(rel_parts[1]):
         raise FreshenError(
-            f"{adr_path} is not under {docs_root.name}/{_ADR_SUBDIR}/<era>/<file>.md "
-            f"(era must match N.x and the path must live inside the docs root)"
+            f"{adr_path} is not under {docs_root.name}/{_ADR_SUBDIR}/<era>/<file>.md (era must match N.x and the path must live inside the docs root)"
         )
     canonical_index = adr_path.parent / _INDEX_NAME
     if canonical_index.exists():
@@ -169,10 +160,7 @@ def _read_adr_meta(adr_path: Path) -> AdrMeta:
     title = _clean_title(frontmatter.get("title"))
     date = str(frontmatter.get("date", "")).strip()
     if not title or not date:
-        raise FreshenError(
-            f"{adr_path} frontmatter is missing a title and/or date "
-            f"(title={title!r}, date={date!r})"
-        )
+        raise FreshenError(f"{adr_path} frontmatter is missing a title and/or date (title={title!r}, date={date!r})")
     return AdrMeta(basename=adr_path.name, title=title, date=date)
 
 
@@ -189,9 +177,7 @@ def _find_adr_table(lines: list[str]) -> tuple[int, int]:
     ``| Date | Title |`` table exists.
     """
     for index in range(len(lines) - 1):
-        if _TABLE_HEADER_RE.match(lines[index]) and _TABLE_SEP_RE.match(
-            lines[index + 1]
-        ):
+        if _TABLE_HEADER_RE.match(lines[index]) and _TABLE_SEP_RE.match(lines[index + 1]):
             data_start = index + 2
             data_end = data_start
             while data_end < len(lines) and _TABLE_ROW_RE.match(lines[data_end]):
@@ -328,9 +314,7 @@ def _inventory_is_stale(docs_root: Path, repo_root: Path) -> bool:
     target = _inventory_path(repo_root)
     if not target.exists():
         return True
-    return target.read_text(encoding="utf-8") != _rendered_inventory(
-        docs_root, repo_root
-    )
+    return target.read_text(encoding="utf-8") != _rendered_inventory(docs_root, repo_root)
 
 
 # --------------------------------------------------------------------------- #
@@ -367,9 +351,7 @@ def detect_missing_adrs(docs_root: Path) -> list[Path]:
         if canonical_index.exists() and not _era_has_table(canonical_index):
             canonical_lines = canonical_index.read_text(encoding="utf-8").splitlines()
             if _declares_adr_index(canonical_lines):
-                raise FreshenError(
-                    f"canonical era index has no ADR table: {canonical_index}"
-                )
+                raise FreshenError(f"canonical era index has no ADR table: {canonical_index}")
         era_index = canonical_index if canonical_index.exists() else era_dir / _README_NAME
         if not _era_has_table(era_index):
             continue
@@ -455,10 +437,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--check",
         action="store_true",
-        help=(
-            "Verify only (no writes): exit non-zero if the inventory is stale "
-            "or any targeted ADR is missing its README row."
-        ),
+        help=("Verify only (no writes): exit non-zero if the inventory is stale or any targeted ADR is missing its README row."),
     )
     parser.add_argument(
         "--repo-root",
@@ -493,11 +472,7 @@ def _emit_check(result: FreshenResult) -> int:
     if result.inventory_stale:
         sys.stdout.write("INVENTORY-LOCKFILE-DRIFT (committed inventory is stale)\n")
     status = "clean" if result.is_clean else "STALE"
-    sys.stdout.write(
-        f"freshen_adr_inventory --check: {status} "
-        f"(missing_rows={len(result.missing_rows)} "
-        f"inventory_stale={result.inventory_stale})\n"
-    )
+    sys.stdout.write(f"freshen_adr_inventory --check: {status} (missing_rows={len(result.missing_rows)} inventory_stale={result.inventory_stale})\n")
     return 0 if result.is_clean else 1
 
 
@@ -506,10 +481,7 @@ def _emit_write(result: FreshenResult) -> int:
     for basename in result.readme_rows_added:
         sys.stdout.write(f"README-ROW-ADDED {basename}\n")
     inv = "regenerated" if result.inventory_written else "unchanged"
-    sys.stdout.write(
-        f"freshen_adr_inventory: rows_added={len(result.readme_rows_added)} "
-        f"inventory={inv}\n"
-    )
+    sys.stdout.write(f"freshen_adr_inventory: rows_added={len(result.readme_rows_added)} inventory={inv}\n")
     return 0
 
 
@@ -521,9 +493,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         targets = _resolve_targets(args, docs_root)
-        result = freshen(
-            targets, docs_root=docs_root, repo_root=repo_root, check=args.check
-        )
+        result = freshen(targets, docs_root=docs_root, repo_root=repo_root, check=args.check)
     except FreshenError as exc:
         sys.stderr.write(f"error: {exc}\n")
         return 2

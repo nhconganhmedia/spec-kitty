@@ -132,9 +132,7 @@ class TestSpecKittyHomeEnvOverride:
 class TestRuntimeRootSpecKittyHomeParity:
     """get_runtime_root().base honors SPEC_KITTY_HOME exactly like get_kittify_home."""
 
-    def test_runtime_root_base_matches_env(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_runtime_root_base_matches_env(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A non-empty SPEC_KITTY_HOME becomes get_runtime_root().base verbatim."""
         from specify_cli.paths import get_runtime_root
 
@@ -142,9 +140,7 @@ class TestRuntimeRootSpecKittyHomeParity:
         monkeypatch.setenv("SPEC_KITTY_HOME", custom)
         assert get_runtime_root().base == Path(custom)
 
-    def test_runtime_root_and_kittify_home_agree_under_env(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_runtime_root_and_kittify_home_agree_under_env(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Under SPEC_KITTY_HOME both helpers resolve to the same path."""
         from specify_cli.paths import get_runtime_root
 
@@ -152,9 +148,7 @@ class TestRuntimeRootSpecKittyHomeParity:
         monkeypatch.setenv("SPEC_KITTY_HOME", custom)
         assert get_runtime_root().base == get_kittify_home()
 
-    def test_empty_env_falls_through_for_runtime_root(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_empty_env_falls_through_for_runtime_root(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Empty SPEC_KITTY_HOME is falsy ⇒ POSIX ``~/.spec-kitty`` default."""
         from specify_cli.paths import get_runtime_root, windows_paths
 
@@ -180,9 +174,7 @@ class TestGetPackageAssetRoot:
         monkeypatch.setenv("SPEC_KITTY_TEMPLATE_ROOT", str(missions))
         assert get_package_asset_root() == missions
 
-    def test_template_root_checkout_root_normalizes_to_doctrine_missions(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_template_root_checkout_root_normalizes_to_doctrine_missions(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A checkout root env var resolves to src/charter/offering/missions.
 
         The fixture carries a realistic decoy at the checkout root itself
@@ -210,9 +202,7 @@ class TestGetPackageAssetRoot:
 
         assert get_package_asset_root() == missions
 
-    def test_template_root_direct_legacy_missions_remaps_to_sibling_doctrine(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_template_root_direct_legacy_missions_remaps_to_sibling_doctrine(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A direct stale specify_cli missions root resolves to doctrine assets."""
         checkout = tmp_path / "spec-kitty"
         stale_missions = checkout / "src" / "specify_cli" / "missions"
@@ -229,9 +219,7 @@ class TestGetPackageAssetRoot:
 
         assert get_package_asset_root() == doctrine_missions
 
-    def test_template_root_legacy_package_asset_root_with_command_templates(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_template_root_legacy_package_asset_root_with_command_templates(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A direct package asset root with command templates remains valid."""
         package_assets = tmp_path / "pkg"
         command_templates = package_assets / "software-dev" / "command-templates"
@@ -242,9 +230,7 @@ class TestGetPackageAssetRoot:
 
         assert get_package_asset_root() == package_assets
 
-    def test_template_root_legacy_package_asset_root_with_mission_yaml(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_template_root_legacy_package_asset_root_with_mission_yaml(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A direct package asset root with only mission YAML is incomplete."""
         package_assets = tmp_path / "pkg"
         mission = package_assets / "software-dev"
@@ -262,9 +248,7 @@ class TestGetPackageAssetRoot:
         with pytest.raises(FileNotFoundError, match="SPEC_KITTY_TEMPLATE_ROOT"):
             get_package_asset_root()
 
-    def test_template_root_existing_invalid_dir_raises(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_template_root_existing_invalid_dir_raises(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """SPEC_KITTY_TEMPLATE_ROOT must contain recognizable mission assets."""
         empty_root = tmp_path / "empty"
         empty_root.mkdir()
@@ -334,9 +318,7 @@ class TestGetPackageAssetRoot:
         )
         assert get_package_asset_root() == missions
 
-    def test_resolves_in_a_wheel_layout_via_the_caller_s_own_pattern(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_resolves_in_a_wheel_layout_via_the_caller_s_own_pattern(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Binds ``kernel.paths``' own ``MISSION_ASSETS_SIBLING_PATTERN``, not a
         pattern written inside the test.
 
@@ -392,9 +374,7 @@ class TestGetPackageAssetRootPacksRoot:
     through to a legacy layout (C-R4 / FR-013).
     """
 
-    def test_packs_root_relocates_the_door(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_packs_root_relocates_the_door(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A PACKS_ROOT with ``built-in/missions`` present resolves under it."""
         packs_root = tmp_path / "packs-root"
         missions = packs_root / "built-in" / "missions"
@@ -404,9 +384,7 @@ class TestGetPackageAssetRootPacksRoot:
 
         assert get_package_asset_root() == missions
 
-    def test_packs_root_without_missions_tree_fails_closed(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_packs_root_without_missions_tree_fails_closed(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A PACKS_ROOT whose ``built-in`` has no ``missions`` leaf raises, no fall-through."""
         packs_root = tmp_path / "packs-root"
         # ``built-in`` exists (the env override resolves) but carries no
@@ -419,9 +397,7 @@ class TestGetPackageAssetRootPacksRoot:
         with pytest.raises(FileNotFoundError):
             get_package_asset_root()
 
-    def test_packs_root_wins_over_template_root(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_packs_root_wins_over_template_root(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """With BOTH env vars set, PACKS_ROOT governs pack-root location (C-R3)."""
         packs_root = tmp_path / "packs-root"
         packs_missions = packs_root / "built-in" / "missions"
@@ -450,13 +426,9 @@ class TestGetBuiltInPackRootMisconfiguredPacksRootWarning:
     when the override resolves cleanly.
     """
 
-    def test_bogus_packs_root_warns_and_falls_back(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_bogus_packs_root_warns_and_falls_back(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """A nonexistent PACKS_ROOT warns, then still resolves via the ancestor walk."""
-        site, anchor, _repository_anchor = build_post_relocation_wheel_shaped_site_packages(
-            tmp_path
-        )
+        site, anchor, _repository_anchor = build_post_relocation_wheel_shaped_site_packages(tmp_path)
         monkeypatch.setattr(kernel_paths, "__file__", str(anchor))
         bogus_root = tmp_path / "does-not-exist"
         monkeypatch.setenv("SPEC_KITTY_PACKS_ROOT", str(bogus_root))
@@ -466,13 +438,9 @@ class TestGetBuiltInPackRootMisconfiguredPacksRootWarning:
 
         assert result == site / "packs" / "built-in"
 
-    def test_unset_packs_root_emits_no_warning(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, recwarn: pytest.WarningsRecorder
-    ) -> None:
+    def test_unset_packs_root_emits_no_warning(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, recwarn: pytest.WarningsRecorder) -> None:
         """No env var at all -- the ancestor walk resolves silently, no warning."""
-        site, anchor, _repository_anchor = build_post_relocation_wheel_shaped_site_packages(
-            tmp_path
-        )
+        site, anchor, _repository_anchor = build_post_relocation_wheel_shaped_site_packages(tmp_path)
         monkeypatch.setattr(kernel_paths, "__file__", str(anchor))
         monkeypatch.delenv("SPEC_KITTY_PACKS_ROOT", raising=False)
 
@@ -481,9 +449,7 @@ class TestGetBuiltInPackRootMisconfiguredPacksRootWarning:
         assert result == site / "packs" / "built-in"
         assert len(recwarn.list) == 0, [str(w.message) for w in recwarn.list]
 
-    def test_valid_packs_root_emits_no_warning(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, recwarn: pytest.WarningsRecorder
-    ) -> None:
+    def test_valid_packs_root_emits_no_warning(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, recwarn: pytest.WarningsRecorder) -> None:
         """A PACKS_ROOT whose ``built-in`` child exists wins silently, no warning."""
         env_root = tmp_path / "env-packs"
         env_built_in = env_root / "built-in"
@@ -492,9 +458,7 @@ class TestGetBuiltInPackRootMisconfiguredPacksRootWarning:
         # Anchor is irrelevant here since the valid override wins outright, but
         # point it at a real synthetic tree for realism/consistency with the
         # sibling tests above.
-        site, anchor, _repository_anchor = build_post_relocation_wheel_shaped_site_packages(
-            tmp_path
-        )
+        site, anchor, _repository_anchor = build_post_relocation_wheel_shaped_site_packages(tmp_path)
         monkeypatch.setattr(kernel_paths, "__file__", str(anchor))
         monkeypatch.setenv("SPEC_KITTY_PACKS_ROOT", str(env_root))
 
@@ -544,9 +508,7 @@ class TestRenderRuntimePathMutantKills:
     a specific surviving mutant, per the mutation-aware-test-design styleguide.
     """
 
-    def test_default_for_user_compresses_to_tilde_on_posix(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_default_for_user_compresses_to_tilde_on_posix(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Default for_user=True must tilde-compress on POSIX.
 
         Kills __mutmut_1 (for_user default flipped from True to False): with
@@ -559,9 +521,7 @@ class TestRenderRuntimePathMutantKills:
         assert rendered == "~/.kittify/auth"
         assert rendered.startswith("~/")
 
-    def test_home_must_exist_when_resolving(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_home_must_exist_when_resolving(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """home.resolve() uses strict=False so missing home does not raise.
 
         Kills __mutmut_11 (home resolve flipped to strict=True): if the home
@@ -578,9 +538,7 @@ class TestRenderRuntimePathMutantKills:
         rendered = render_runtime_path(fake_home / ".kittify" / "state")
         assert rendered == "~/.kittify/state"
 
-    def test_tilde_output_uses_forward_slash_separator(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_tilde_output_uses_forward_slash_separator(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Output uses forward-slash separator, never backslash.
 
         Kills __mutmut_21 (replace("\\\\", "/") mutated to replace("XX\\\\XX", "/"))
@@ -596,9 +554,7 @@ class TestRenderRuntimePathMutantKills:
         assert "XX" not in rendered
         assert "\\" not in rendered
 
-    def test_path_resolve_accepts_nonexistent_target(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_path_resolve_accepts_nonexistent_target(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Target path resolve uses strict=False so missing target is ok.
 
         Documents the behaviour that __mutmut_3 (resolve(strict=None)) leaves
@@ -628,9 +584,7 @@ class TestGetKittifyHomeWindowsPlatformdirsContract:
     replace, or drop one of those arguments.
     """
 
-    def _install_platformdirs_spy(
-        self, monkeypatch: pytest.MonkeyPatch, return_value: str
-    ) -> list[tuple[tuple[Any, ...], dict[str, Any]]]:
+    def _install_platformdirs_spy(self, monkeypatch: pytest.MonkeyPatch, return_value: str) -> list[tuple[tuple[Any, ...], dict[str, Any]]]:
         """Install a recording spy for platformdirs.user_data_dir.
 
         Returns a list that will accumulate (args, kwargs) tuples for each
@@ -650,9 +604,7 @@ class TestGetKittifyHomeWindowsPlatformdirsContract:
         monkeypatch.delenv("SPEC_KITTY_HOME", raising=False)
         return calls
 
-    def test_user_data_dir_receives_spec_kitty_app_name(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_user_data_dir_receives_spec_kitty_app_name(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """First argument to user_data_dir must be the exact string 'spec-kitty'.
 
         Kills __mutmut_7 (app name -> None), __mutmut_10 (positional arg removed),
@@ -670,9 +622,7 @@ class TestGetKittifyHomeWindowsPlatformdirsContract:
         assert app_name != "SPEC-KITTY"
         assert "XX" not in str(app_name)
 
-    def test_user_data_dir_receives_appauthor_false_explicitly(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_user_data_dir_receives_appauthor_false_explicitly(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """appauthor must be passed as exactly False (not True, not omitted).
 
         Kills __mutmut_8 (appauthor=None), __mutmut_11 (appauthor kwarg removed),
@@ -687,9 +637,7 @@ class TestGetKittifyHomeWindowsPlatformdirsContract:
         # Bi-Directional Logic: False and True are distinct observables.
         assert kwargs["appauthor"] is not True
 
-    def test_user_data_dir_receives_roaming_false_explicitly(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_user_data_dir_receives_roaming_false_explicitly(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """roaming must be passed as exactly False (not True, not omitted).
 
         Kills __mutmut_9 (roaming=None), __mutmut_12 (roaming kwarg removed),
@@ -714,9 +662,7 @@ class TestGetKittifyHomeWindowsPlatformdirsContract:
 class TestGetPackageAssetRootErrorMessage:
     """Pin the exact error message emitted when assets cannot be located."""
 
-    def test_missing_assets_error_message_is_exact(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_missing_assets_error_message_is_exact(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """FileNotFoundError message must be the plain English sentence.
 
         Kills __mutmut_17 (error string replaced with "XXCannot locate …XX").

@@ -233,9 +233,7 @@ def test_placement_home_and_canonicalize_agree_through_symlinked_root(tmp_path: 
     from specify_cli.workspace import canonicalize_feature_dir
 
     repo_root = resolve_canonical_root(feature_dir_via_link)
-    resolved_home = resolve_artifact_surface(
-        repo_root, _SLUG, MissionArtifactKind.PRIMARY_METADATA
-    ).path
+    resolved_home = resolve_artifact_surface(repo_root, _SLUG, MissionArtifactKind.PRIMARY_METADATA).path
     target = canonicalize_feature_dir(feature_dir_via_link)
 
     # The load-bearing contract _flip_phase relies on: identical normalization,
@@ -252,9 +250,7 @@ def test_placement_home_and_canonicalize_agree_through_symlinked_root(tmp_path: 
 # ---------------------------------------------------------------------------
 
 
-def test_cutover_repo_continues_past_placement_mismatch_and_stays_non_zero(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_cutover_repo_continues_past_placement_mismatch_and_stays_non_zero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """One placement-mismatched mission must not abort the whole corpus walk.
 
     ``cutover_mission`` itself is DOCUMENTED to RAISE ``PlacementMismatchError``
@@ -271,10 +267,7 @@ def test_cutover_repo_continues_past_placement_mismatch_and_stays_non_zero(
     alpha = build_mission(tmp_path, slug="alpha")
     beta = build_mission(tmp_path, slug="beta")
     real_cutover_mission = rsc.cutover_mission
-    mismatch_message = (
-        "_flip_phase refuses to write status_phase for 'alpha': the placement "
-        "port resolved its PRIMARY home elsewhere (fail-closed, FR-001)."
-    )
+    mismatch_message = "_flip_phase refuses to write status_phase for 'alpha': the placement port resolved its PRIMARY home elsewhere (fail-closed, FR-001)."
 
     def _fake_cutover_mission(
         feature_dir: Path,
@@ -284,9 +277,7 @@ def test_cutover_repo_continues_past_placement_mismatch_and_stays_non_zero(
     ) -> rsc.CutoverResult:
         if feature_dir.name == "alpha":
             raise rsc.PlacementMismatchError(mismatch_message)
-        return real_cutover_mission(
-            feature_dir, status_feature_dir=status_feature_dir, dry_run=dry_run
-        )
+        return real_cutover_mission(feature_dir, status_feature_dir=status_feature_dir, dry_run=dry_run)
 
     monkeypatch.setattr(rsc, "cutover_mission", _fake_cutover_mission)
 
@@ -316,9 +307,7 @@ def test_cutover_repo_continues_past_placement_mismatch_and_stays_non_zero(
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_primary_home_or_degrade_absorbs_action_context_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_primary_home_or_degrade_absorbs_action_context_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``ActionContextError`` degrades exactly like the other resolver failures.
 
     ``mission_runtime.coord_read_dir_for`` — the structurally equivalent
@@ -338,18 +327,14 @@ def test_resolve_primary_home_or_degrade_absorbs_action_context_error(
     _init_bare_git_marker(tmp_path)
 
     def _raise_action_context_error(*_args: object, **_kwargs: object) -> object:
-        raise mission_runtime.ActionContextError(
-            "FEATURE_CONTEXT_UNRESOLVED", "synthetic unresolvable action context"
-        )
+        raise mission_runtime.ActionContextError("FEATURE_CONTEXT_UNRESOLVED", "synthetic unresolvable action context")
 
     monkeypatch.setattr(mission_runtime, "resolve_artifact_surface", _raise_action_context_error)
 
     assert rsc._resolve_primary_home_or_degrade(feature_dir) is None
 
 
-def test_flip_phase_degrades_on_action_context_error_and_still_flips(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flip_phase_degrades_on_action_context_error_and_still_flips(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """End-to-end sibling: the ``ActionContextError`` degrade must not block the flip."""
     import mission_runtime
 
@@ -358,9 +343,7 @@ def test_flip_phase_degrades_on_action_context_error_and_still_flips(
     rsc._seed_phase(feature_dir, dry_run=False)
 
     def _raise_action_context_error(*_args: object, **_kwargs: object) -> object:
-        raise mission_runtime.ActionContextError(
-            "FEATURE_CONTEXT_UNRESOLVED", "synthetic unresolvable action context"
-        )
+        raise mission_runtime.ActionContextError("FEATURE_CONTEXT_UNRESOLVED", "synthetic unresolvable action context")
 
     monkeypatch.setattr(mission_runtime, "resolve_artifact_surface", _raise_action_context_error)
 

@@ -29,8 +29,6 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             relpath = str(getattr(item, "path", item.nodeid.split("::", 1)[0]))
         markers = sorted({mark.name for mark in item.iter_markers()})
         records.append({"nodeid": item.nodeid, "relpath": relpath, "markers": markers})
-    Path(os.environ["SK_GATE_DUMP"]).write_text(
-        json.dumps(records), encoding="utf-8"
-    )
+    Path(os.environ["SK_GATE_DUMP"]).write_text(json.dumps(records), encoding="utf-8")
     # Suppress execution: this is a collection-only introspection pass.
     items[:] = []

@@ -128,24 +128,14 @@ STATUS_ALIASES: Final[dict[str, str]] = {
 
 _FRONTMATTER_FENCE: Final[str] = "---"
 _TITLE_RE: Final[re.Pattern[str]] = re.compile(r"^#\s+(.+?)\s*$")
-_TABLE_ROW_RE: Final[re.Pattern[str]] = re.compile(
-    r"^\|\s*([^|]+?)\s*\|\s*(.*?)\s*\|\s*$"
-)
+_TABLE_ROW_RE: Final[re.Pattern[str]] = re.compile(r"^\|\s*([^|]+?)\s*\|\s*(.*?)\s*\|\s*$")
 # Bold-inline field, colon INSIDE the bold span: ``**Status:** Accepted``.
-_BOLD_FIELD_RE: Final[re.Pattern[str]] = re.compile(
-    r"^\*\*\s*([^*:]+?)\s*:\s*\*\*\s*(.*?)\s*$"
-)
+_BOLD_FIELD_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*\s*([^*:]+?)\s*:\s*\*\*\s*(.*?)\s*$")
 # Bold field, colon OUTSIDE the bold span: ``**Status**: Accepted`` (26 ADRs).
-_BOLD_OUTSIDE_FIELD_RE: Final[re.Pattern[str]] = re.compile(
-    r"^\*\*\s*([^*:]+?)\s*\*\*\s*:\s*(.*?)\s*$"
-)
-_DASH_FIELD_RE: Final[re.Pattern[str]] = re.compile(
-    r"^-\s+([^:]+?):\s*(.*?)\s*$"
-)
+_BOLD_OUTSIDE_FIELD_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*\s*([^*:]+?)\s*\*\*\s*:\s*(.*?)\s*$")
+_DASH_FIELD_RE: Final[re.Pattern[str]] = re.compile(r"^-\s+([^:]+?):\s*(.*?)\s*$")
 # Dash+bold hybrid: ``- **Status:** Accepted`` (1 ADR — monorepo charter scope).
-_DASH_BOLD_FIELD_RE: Final[re.Pattern[str]] = re.compile(
-    r"^-\s+\*\*\s*([^*:]+?)\s*:\s*\*\*\s*(.*?)\s*$"
-)
+_DASH_BOLD_FIELD_RE: Final[re.Pattern[str]] = re.compile(r"^-\s+\*\*\s*([^*:]+?)\s*:\s*\*\*\s*(.*?)\s*$")
 # Leading ``YYYY-MM-DD`` date prefix of an ADR filename (the Date fallback).
 _FILENAME_DATE_RE: Final[re.Pattern[str]] = re.compile(r"(\d{4}-\d{2}-\d{2})")
 
@@ -219,9 +209,7 @@ def _find_title(lines: list[str]) -> tuple[str, int]:
     raise AdrParseError("ADR has no '# ' title heading line")
 
 
-def _consume_header(
-    lines: list[str], start: int, match_field: _FieldMatch
-) -> tuple[dict[str, str], int]:
+def _consume_header(lines: list[str], start: int, match_field: _FieldMatch) -> tuple[dict[str, str], int]:
     """Collect header fields and return ``(fields, body_start_index)``.
 
     Consumes — as header decoration — blank lines, a lone ``---`` thematic
@@ -271,10 +259,7 @@ def _canonical_status(raw: str) -> str:
     aliased = STATUS_ALIASES.get(root.lower())
     if aliased is not None:
         return aliased
-    raise AdrParseError(
-        f"status {raw!r} (root {root!r}) is not MADR vocabulary "
-        f"({'/'.join(MADR_STATUSES.values())}) nor a reviewed alias"
-    )
+    raise AdrParseError(f"status {raw!r} (root {root!r}) is not MADR vocabulary ({'/'.join(MADR_STATUSES.values())}) nor a reviewed alias")
 
 
 def _date_from_filename(filename: str | None) -> str | None:
@@ -293,9 +278,7 @@ def _date_from_filename(filename: str | None) -> str | None:
     return match.group(1) if match else None
 
 
-def _build_header(
-    lines: list[str], match_field: _FieldMatch, filename: str | None = None
-) -> ParsedHeader:
+def _build_header(lines: list[str], match_field: _FieldMatch, filename: str | None = None) -> ParsedHeader:
     """Shared parse driver: title → fields → body for any dialect.
 
     ``filename`` (when given) feeds the Date-from-filename fallback for headers
@@ -308,10 +291,7 @@ def _build_header(
         raise AdrParseError("ADR header is missing a 'Status' field")
     date = fields.get("date") or _date_from_filename(filename)
     if date is None:
-        raise AdrParseError(
-            "ADR header is missing a 'Date' field and no filename date prefix "
-            "is available as a fallback"
-        )
+        raise AdrParseError("ADR header is missing a 'Date' field and no filename date prefix is available as a fallback")
 
     body = "".join(lines[body_index:]).lstrip("\n")
     return ParsedHeader(
@@ -361,9 +341,7 @@ def _detect_parser(text: str) -> _FieldMatch:
 
 def parse_header(text: str, filename: str | None = None) -> ParsedHeader:
     """Auto-detect the dialect and parse the header."""
-    return _build_header(
-        text.splitlines(keepends=True), _detect_parser(text), filename
-    )
+    return _build_header(text.splitlines(keepends=True), _detect_parser(text), filename)
 
 
 def render_frontmatter(header: ParsedHeader) -> str:

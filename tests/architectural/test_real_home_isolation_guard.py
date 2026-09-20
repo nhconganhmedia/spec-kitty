@@ -110,9 +110,7 @@ def _probe_body(out_dir: Path, *, write_sentinel: bool) -> str:
     return "\n".join(lines)
 
 
-def _run_probe(
-    out_dir: Path, *, parallel: bool, write_sentinel: bool
-) -> subprocess.CompletedProcess[str]:
+def _run_probe(out_dir: Path, *, parallel: bool, write_sentinel: bool) -> subprocess.CompletedProcess[str]:
     """Run the probe as a one-test pytest module in a subprocess.
 
     When *parallel* is True the run uses ``-n auto --dist loadfile`` so the probe
@@ -129,9 +127,7 @@ def _run_probe(
             _probe_body(out_dir, write_sentinel=write_sentinel),
             encoding="utf-8",
         )
-        parallel_flags = (
-            ["-n", "auto", "--dist", "loadfile"] if parallel else ["-p", "no:xdist"]
-        )
+        parallel_flags = ["-n", "auto", "--dist", "loadfile"] if parallel else ["-p", "no:xdist"]
         return subprocess.run(  # noqa: S603 — fixed pytest invocation, no shell input
             [
                 sys.executable,
@@ -160,11 +156,7 @@ def _read_worker_homes(out_dir: Path) -> list[str]:
     """
     if not out_dir.exists():
         return []
-    homes = {
-        f.read_text(encoding="utf-8").strip()
-        for f in out_dir.iterdir()
-        if f.is_file()
-    }
+    homes = {f.read_text(encoding="utf-8").strip() for f in out_dir.iterdir() if f.is_file()}
     return sorted(h for h in homes if h)
 
 
@@ -218,10 +210,7 @@ def test_detection_transport_observes_worker_home() -> None:
         out_dir = Path(tmp) / "homes"
         worker_homes, result = _detect_worker_homes(out_dir)
 
-    assert result.returncode == 0, (
-        "detection probe subprocess failed unexpectedly:\n"
-        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"detection probe subprocess failed unexpectedly:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     assert worker_homes, (
         "File transport observed NO worker homes under -n auto — the "
         "worker->parent channel is broken (the exact regression this test "
@@ -249,9 +238,7 @@ def test_no_real_home_mutation_under_xdist() -> None:
     # No homes at all → the transport observed nothing. Distinct from "isolation
     # absent"; treat as a hard failure so a transport breakage cannot silently
     # disarm the guard (secondary review point).
-    assert worker_homes, _NO_WORKER_HOMES.format(
-        stdout=detect_result.stdout, stderr=detect_result.stderr
-    )
+    assert worker_homes, _NO_WORKER_HOMES.format(stdout=detect_result.stdout, stderr=detect_result.stderr)
 
     if not _isolation_active_from_homes(worker_homes, str(real_home)):
         # Detection worked (we observed homes) and they equal the real home →
@@ -291,10 +278,7 @@ def _assert_real_sentinel_untouched(real_home: Path) -> None:  # pragma: no cove
     with tempfile.TemporaryDirectory() as tmp:
         mutate_dir = Path(tmp) / "homes"
         result = _run_probe(mutate_dir, parallel=True, write_sentinel=True)
-    assert result.returncode == 0, (
-        "home-isolation probe subprocess failed unexpectedly:\n"
-        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"home-isolation probe subprocess failed unexpectedly:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
 
     after = _snapshot()
     assert _sentinel_unchanged(before, after), (
@@ -368,10 +352,7 @@ def test_isolation_active_decision_is_real() -> None:
     assert _isolation_active_from_homes([_ISOLATED_HOME], _REAL_HOME) is True
     assert _isolation_active_from_homes([_REAL_HOME], _REAL_HOME) is False
     # A single leaked worker (real home) among isolated ones is NOT active.
-    assert (
-        _isolation_active_from_homes([_ISOLATED_HOME, _REAL_HOME], _REAL_HOME)
-        is False
-    )
+    assert _isolation_active_from_homes([_ISOLATED_HOME, _REAL_HOME], _REAL_HOME) is False
 
 
 def test_sentinel_guard_is_non_vacuous() -> None:

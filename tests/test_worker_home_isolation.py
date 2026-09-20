@@ -61,9 +61,7 @@ class _FakeConfig:
 
     def __init__(self, workerid: str | None, testrunuid: str = "run-fixed") -> None:
         if workerid is not None:
-            self.workerinput = _FakeWorkerInput(
-                workerid=workerid, testrunuid=testrunuid
-            )
+            self.workerinput = _FakeWorkerInput(workerid=workerid, testrunuid=testrunuid)
 
 
 def _as_config(fake: _FakeConfig) -> pytest.Config:
@@ -154,11 +152,6 @@ def test_real_spec_kitty_dir_untouched_by_worker_run(tmp_path: Path) -> None:
     assert (isolated_spec_kitty / "queue.db").exists()
 
     existed_after = real_spec_kitty.exists()
-    assert existed_after == existed_before, (
-        "isolation leaked: real ~/.spec-kitty existence changed "
-        f"({existed_before} -> {existed_after})"
-    )
+    assert existed_after == existed_before, f"isolation leaked: real ~/.spec-kitty existence changed ({existed_before} -> {existed_after})"
     if existed_before:
-        assert real_spec_kitty.stat().st_mtime == mtime_before, (
-            "isolation leaked: real ~/.spec-kitty was modified"
-        )
+        assert real_spec_kitty.stat().st_mtime == mtime_before, "isolation leaked: real ~/.spec-kitty was modified"

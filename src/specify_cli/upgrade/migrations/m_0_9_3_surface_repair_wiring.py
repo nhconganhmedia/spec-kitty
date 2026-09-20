@@ -41,9 +41,7 @@ class SurfaceRepairWiringMigration(BaseMigration):
     """Sentinel migration: record that tool-surface repair wiring is active."""
 
     migration_id = "0_9_3_surface_repair_wiring"
-    description = (
-        "Record that tool-surface repair wiring (WP01) is active for this project"
-    )
+    description = "Record that tool-surface repair wiring (WP01) is active for this project"
     target_version = "3.2.0rc44"
     runs_on_worktrees = False
 
@@ -78,9 +76,7 @@ class SurfaceRepairWiringMigration(BaseMigration):
 
         return MigrationResult(
             success=True,
-            changes_made=[
-                f"surface_repair_wiring: probed {surface_count} tool surface(s)"
-            ],
+            changes_made=[f"surface_repair_wiring: probed {surface_count} tool surface(s)"],
         )
 
 
@@ -104,9 +100,7 @@ def _probe_surface_count(project_path: Path) -> int:
         plan_tools = [*configured_tools, PLUGIN_BUNDLE_TOOL_KEY]
         builder = SurfacePlanBuilder(registry, providers)
         plans = builder.build(plan_tools, project_path)
-        report = SurfaceStatusService(providers).collect(
-            project_path, plans, configured_tools=configured_tools
-        )
+        report = SurfaceStatusService(providers).collect(project_path, plans, configured_tools=configured_tools)
         return len(report.surfaces)
     except Exception:  # noqa: BLE001 — probe is best-effort; never block migration
         return 0

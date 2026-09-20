@@ -68,7 +68,9 @@ def test_transition_preserves_runtime_slot_written_by_annotation() -> None:
     (the reducer replace-dict hazard is closed)."""
     t1 = _transition(_ulid("T01"), "WP01", "genesis", "planned", "2026-01-01T00:00:00Z")
     ann = _annotation(
-        _ulid("A01"), "WP01", "2026-01-01T00:01:00Z",
+        _ulid("A01"),
+        "WP01",
+        "2026-01-01T00:01:00Z",
         WPInnerStateDelta(subtasks={"T001": Lane.DONE}),
     )
     # A later transition MUST NOT rebuild the WP dict dropping subtasks.
@@ -85,7 +87,9 @@ def test_transition_preserves_every_untouched_runtime_slot() -> None:
     not just the one the test happened to set first."""
     t1 = _transition(_ulid("T01"), "WP01", "genesis", "planned", "2026-01-01T00:00:00Z")
     ann = _annotation(
-        _ulid("A01"), "WP01", "2026-01-01T00:01:00Z",
+        _ulid("A01"),
+        "WP01",
+        "2026-01-01T00:01:00Z",
         WPInnerStateDelta(
             shell_pid=111,
             shell_pid_created_at="c1",
@@ -116,7 +120,11 @@ def test_claim_transition_folds_policy_metadata_into_slots() -> None:
     its policy_metadata sidecar (FR-004 claim path)."""
     t1 = _transition(_ulid("T01"), "WP01", "genesis", "planned", "2026-01-01T00:00:00Z")
     claim = _transition(
-        _ulid("T02"), "WP01", "planned", "claimed", "2026-01-01T00:01:00Z",
+        _ulid("T02"),
+        "WP01",
+        "planned",
+        "claimed",
+        "2026-01-01T00:01:00Z",
         policy_metadata=build_claim_policy_metadata(12345, "2026-01-01T00:01:00Z", "claude"),
     )
 
@@ -151,12 +159,15 @@ def test_two_note_annotations_append_in_order() -> None:
 def test_subtasks_merge_per_id_and_tracker_refs_union_dedups() -> None:
     t1 = _transition(_ulid("T01"), "WP01", "genesis", "planned", "2026-01-01T00:00:00Z")
     a1 = _annotation(
-        _ulid("A01"), "WP01", "2026-01-01T00:01:00Z",
-        WPInnerStateDelta(subtasks={"T001": Lane.DONE, "T002": Lane.IN_PROGRESS},
-                          tracker_refs=["JIRA-1", "JIRA-1", "JIRA-2"]),
+        _ulid("A01"),
+        "WP01",
+        "2026-01-01T00:01:00Z",
+        WPInnerStateDelta(subtasks={"T001": Lane.DONE, "T002": Lane.IN_PROGRESS}, tracker_refs=["JIRA-1", "JIRA-1", "JIRA-2"]),
     )
     a2 = _annotation(
-        _ulid("A02"), "WP01", "2026-01-01T00:02:00Z",
+        _ulid("A02"),
+        "WP01",
+        "2026-01-01T00:02:00Z",
         WPInnerStateDelta(subtasks={"T002": Lane.DONE}, tracker_refs=["JIRA-2", "JIRA-3"]),
     )
 
@@ -173,11 +184,15 @@ def test_tracker_refs_replace_drops_stale_refs_and_wins_over_union() -> None:
     takes precedence over a same-delta union."""
     t1 = _transition(_ulid("T01"), "WP01", "genesis", "planned", "2026-01-01T00:00:00Z")
     seed = _annotation(
-        _ulid("A01"), "WP01", "2026-01-01T00:01:00Z",
+        _ulid("A01"),
+        "WP01",
+        "2026-01-01T00:01:00Z",
         WPInnerStateDelta(tracker_refs=["STALE-1", "STALE-2"]),
     )
     replace = _annotation(
-        _ulid("A02"), "WP01", "2026-01-01T00:02:00Z",
+        _ulid("A02"),
+        "WP01",
+        "2026-01-01T00:02:00Z",
         WPInnerStateDelta(tracker_refs=["IGNORED-9"], tracker_refs_replace=["KEEP-1", "KEEP-1", "KEEP-2"]),
     )
 
@@ -189,12 +204,14 @@ def test_tracker_refs_replace_drops_stale_refs_and_wins_over_union() -> None:
 
 def test_annotation_never_bumps_force_count() -> None:
     forced = _transition(
-        _ulid("T01"), "WP01", "in_review", "in_progress", "2026-01-01T00:00:00Z", force=True,
+        _ulid("T01"),
+        "WP01",
+        "in_review",
+        "in_progress",
+        "2026-01-01T00:00:00Z",
+        force=True,
     )
-    anns = [
-        _annotation(_ulid(f"A{i:02d}"), "WP01", f"2026-01-01T01:0{i}:00Z", WPInnerStateDelta(note=f"n{i}"))
-        for i in range(3)
-    ]
+    anns = [_annotation(_ulid(f"A{i:02d}"), "WP01", f"2026-01-01T01:0{i}:00Z", WPInnerStateDelta(note=f"n{i}")) for i in range(3)]
 
     wp = reduce([forced], anns).work_packages["WP01"]
 
@@ -250,18 +267,11 @@ def test_annotation_fold_does_not_rescan_transitions_ie_o_events() -> None:
     """Structural NFR-005 assertion: the number of times the transition list is
     scanned is INDEPENDENT of the annotation count M — so an accidental
     O(transitions x annotations) fold fails this test."""
-    transitions = [
-        _transition(_ulid(f"T{i:03d}"), "WP01", "genesis", "planned", f"2026-01-01T00:00:{i:02d}Z")
-        for i in range(5)
-    ]
+    transitions = [_transition(_ulid(f"T{i:03d}"), "WP01", "genesis", "planned", f"2026-01-01T00:00:{i:02d}Z") for i in range(5)]
 
     def scan_count(num_annotations: int) -> int:
         counting = _CountingList(transitions)
-        anns = [
-            _annotation(_ulid(f"A{i:03d}"), "WP01", f"2026-01-02T00:00:{i:02d}Z",
-                        WPInnerStateDelta(note=f"n{i}"))
-            for i in range(num_annotations)
-        ]
+        anns = [_annotation(_ulid(f"A{i:03d}"), "WP01", f"2026-01-02T00:00:{i:02d}Z", WPInnerStateDelta(note=f"n{i}")) for i in range(num_annotations)]
         reduce(counting, anns)
         return counting.iter_count
 
@@ -291,11 +301,15 @@ def test_same_field_annotations_resolve_by_timestamp_not_stream_order(
     # value MUST win. The event_ids are chosen so ULID order does NOT rescue a
     # naive tie-break (A_late's id sorts BEFORE A_early's).
     ann_early = _annotation(
-        _ulid("Z_EARLY"), "WP01", "2026-01-02T00:00:00Z",
+        _ulid("Z_EARLY"),
+        "WP01",
+        "2026-01-02T00:00:00Z",
         WPInnerStateDelta(assignee="early"),
     )
     ann_late = _annotation(
-        _ulid("A_LATE"), "WP01", "2026-01-02T09:00:00Z",
+        _ulid("A_LATE"),
+        "WP01",
+        "2026-01-02T09:00:00Z",
         WPInnerStateDelta(assignee="late"),
     )
 
@@ -306,6 +320,5 @@ def test_same_field_annotations_resolve_by_timestamp_not_stream_order(
     snapshot = reduce([t1], annotations)
 
     assert snapshot.work_packages["WP01"]["assignee"] == "late", (
-        "same-field annotation conflict must resolve to the later-`at` write, "
-        f"not the stream/file-order last write (order={stream_order})"
+        f"same-field annotation conflict must resolve to the later-`at` write, not the stream/file-order last write (order={stream_order})"
     )

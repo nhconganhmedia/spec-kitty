@@ -11,6 +11,7 @@ T017 verification: ``_legacy_aliases.py`` is confirmed absent — both
 ``find src/ -name '_legacy_aliases.py'`` and ``grep -rn '_legacy_aliases' src/``
 return zero results (verified during WP03 implementation).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -41,22 +42,19 @@ class TestRequireMissionOrExit:
     def test_valid_slug_passes_through(self) -> None:
         assert _require_mission_or_exit("  001-demo  ", json_output=False) == "001-demo"
 
-    def test_human_no_selector_exits_2_with_mission_hint(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_human_no_selector_exits_2_with_mission_hint(self, capsys: pytest.CaptureFixture[str]) -> None:
         with pytest.raises(typer.Exit) as exc_info:
             _require_mission_or_exit(None, json_output=False)
         assert exc_info.value.exit_code == 2
         assert "--mission" in capsys.readouterr().out
 
-    def test_json_no_selector_exits_2_with_mission_hint(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_no_selector_exits_2_with_mission_hint(self, capsys: pytest.CaptureFixture[str]) -> None:
         with pytest.raises(typer.Exit) as exc_info:
             _require_mission_or_exit("   ", json_output=True)
         assert exc_info.value.exit_code == 2
         out = capsys.readouterr().out
         assert '"error"' in out and "--mission" in out
+
 
 _plan_app = typer.Typer()
 _plan_app.command()(plan)
@@ -139,9 +137,7 @@ class TestMissionCurrentNoSelector:
         with patch("specify_cli.cli.commands.mission_type.get_project_root_or_exit") as mock_root:
             mock_root.return_value = tmp_path / "nonexistent-test-path"
             result = runner.invoke(main_app, ["mission", "current"])
-        assert result.exit_code == 2, (
-            f"Expected exit code 2 (SC-003 no-selector guard), got {result.exit_code}"
-        )
+        assert result.exit_code == 2, f"Expected exit code 2 (SC-003 no-selector guard), got {result.exit_code}"
         assert not isinstance(result.exception, TypeError)
 
     def test_mission_current_canonical_still_works(self, tmp_path: Path) -> None:

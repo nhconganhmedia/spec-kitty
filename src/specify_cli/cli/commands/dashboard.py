@@ -30,10 +30,7 @@ def dashboard(
     emit_json: bool = typer.Option(
         False,
         "--json",
-        help=(
-            "Print the mission registry as JSON (keyed by mission_id) and exit. "
-            "Does not start the dashboard server."
-        ),
+        help=("Print the mission registry as JSON (keyed by mission_id) and exit. Does not start the dashboard server."),
     ),
 ) -> None:
     """Open or stop the Spec Kitty dashboard."""
@@ -88,11 +85,7 @@ def dashboard(
         preflight_result = run_preflight_for_dashboard(project_root)
     except (NotInsideRepositoryError, GitCommonDirUnavailableError) as exc:
         exit_git_resolution_failure(exc, project_root)
-    warning = (
-        preflight_result.blocked_reason
-        if not preflight_result.passed
-        else "\n".join(preflight_result.warnings) or None
-    )
+    warning = preflight_result.blocked_reason if not preflight_result.passed else "\n".join(preflight_result.warnings) or None
     if warning:
         write_preflight_warning(project_root, warning)
         console.print(f"[yellow]⚠ Charter preflight warning:[/yellow] {warning}")

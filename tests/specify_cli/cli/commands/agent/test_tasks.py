@@ -65,11 +65,7 @@ def test_move_task_help_surfaces_review_artifact_override_audit_path() -> None:
     group = get_command(app)
     assert isinstance(group, click.Group)
     click_command = group.commands["move-task"]
-    skip_review_help = next(
-        param.help
-        for param in click_command.params
-        if isinstance(param, click.Option) and param.name == "skip_review_artifact_check"
-    )
+    skip_review_help = next(param.help for param in click_command.params if isinstance(param, click.Option) and param.name == "skip_review_artifact_check")
     assert skip_review_help is not None
 
     assert "rejected" in skip_review_help
@@ -209,11 +205,7 @@ def _assert_no_wp_activity_log(wp_file: Path) -> None:
     carry NO ``- `` activity rows (its ``owned_files`` frontmatter uses ``  - ``
     indentation, so it is never mistaken for an activity row).
     """
-    activity_rows = [
-        line
-        for line in wp_file.read_text(encoding="utf-8").splitlines()
-        if line.startswith("- ")
-    ]
+    activity_rows = [line for line in wp_file.read_text(encoding="utf-8").splitlines() if line.startswith("- ")]
     assert not activity_rows, f"expected no retired WP-file activity rows, found: {activity_rows}"
 
 
@@ -337,10 +329,7 @@ def test_move_task_direct_approval_without_agent_uses_hop_specific_actors(tmp_pa
     emitted = [event for event in events if event.get("kind") != "annotation"][1:]
     # The implementation handoff keeps the snapshot-assigned agent; the review
     # hops attribute to the operator — separate attribution per hop.
-    assert [
-        (event["to_lane"], actor_identity_str(event["actor"]))
-        for event in emitted
-    ] == [
+    assert [(event["to_lane"], actor_identity_str(event["actor"])) for event in emitted] == [
         ("for_review", "testbot"),
         ("in_review", "user"),
         ("approved", "user"),
@@ -392,11 +381,7 @@ def test_move_task_self_review_fallback_without_agent_records_operator(tmp_path:
         )
 
     assert result.exit_code == 0, result.output
-    lifecycle_events = [
-        event
-        for event in read_lifecycle_events(mission_event_log_path(feature_dir))
-        if event.get("event_type") == REVIEWER_SELF_APPROVAL
-    ]
+    lifecycle_events = [event for event in read_lifecycle_events(mission_event_log_path(feature_dir)) if event.get("event_type") == REVIEWER_SELF_APPROVAL]
     assert len(lifecycle_events) == 1
     assert lifecycle_events[0]["payload"]["implementing_actor"] == "user"
     # WP-file activity log retired (#2816): attribution lives in the event log only.
@@ -543,9 +528,7 @@ class TestUnknownVerdictWarning:
             "specify_cli.cli.commands.agent.tasks_parsing_validation.event_sourced_review_result",
             return_value=ReviewResultLookup(slot_present=True, result=None),
         ):
-            _apply_wp_review_verdict_flag(
-                wp, wp_id="WP01", feature_dir=tmp_path, stale_verdicts=stale_verdicts
-            )
+            _apply_wp_review_verdict_flag(wp, wp_id="WP01", feature_dir=tmp_path, stale_verdicts=stale_verdicts)
         assert wp["_damaged_verdict"] is True
         assert stale_verdicts and stale_verdicts[0]["damaged"] is True
 
@@ -616,9 +599,7 @@ class TestVerdictGuardInMoveTask:
             feature_dir,
             wp_id,
             "in_review",
-            review_result=ReviewResult(
-                reviewer="test-reviewer", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="test-reviewer", verdict="changes_requested", reference="x"),
         )
 
         # Write a review-cycle-1.md with verdict: rejected inside the WP sub-dir
@@ -653,6 +634,7 @@ class TestVerdictGuardInMoveTask:
         mock_locate_wp.return_value = mock_wp
 
         from specify_cli.status.store import read_events as _real_re
+
         mock_read_events.return_value = _real_re(feature_dir)
         mock_emit.return_value = MagicMock()
 
@@ -666,26 +648,16 @@ class TestVerdictGuardInMoveTask:
 
         latest = ReviewCycleArtifact.latest(wp_dir)
         assert latest is not None, f"expected a fresh approved artifact. Output:\n{result.output}"
-        assert latest.cycle_number == 2, (
-            f"expected the approval at the next sequential cycle number, got "
-            f"{latest.cycle_number}. Output:\n{result.output}"
-        )
+        assert latest.cycle_number == 2, f"expected the approval at the next sequential cycle number, got {latest.cycle_number}. Output:\n{result.output}"
         # WP06 (FR-003/SC-007): ReviewCycleArtifact no longer carries a
         # verdict field -- the approval write's own synthesized body
         # ("Approved by ...") is the checkable proxy.
-        assert latest.body.startswith("Approved by "), (
-            f"expected an 'Approved by ...' body, got "
-            f"{latest.body!r}. Output:\n{result.output}"
-        )
-        assert latest.reviewer_agent != "unknown", (
-            f"expected a real reviewer_agent, not 'unknown'. Output:\n{result.output}"
-        )
+        assert latest.body.startswith("Approved by "), f"expected an 'Approved by ...' body, got {latest.body!r}. Output:\n{result.output}"
+        assert latest.reviewer_agent != "unknown", f"expected a real reviewer_agent, not 'unknown'. Output:\n{result.output}"
         # The stale rejected cycle 1 remains untouched.
         assert (wp_dir / "review-cycle-1.md").exists()
 
-    @patch(
-        "specify_cli.cli.commands.agent.tasks_verdict_persistence.event_sourced_review_result"
-    )
+    @patch("specify_cli.cli.commands.agent.tasks_verdict_persistence.event_sourced_review_result")
     @patch("specify_cli.cli.commands.agent.tasks.commit_for_mission")
     @patch("specify_cli.cli.commands.agent.tasks.emit_status_transition_transactional")
     @patch("specify_cli.cli.commands.agent.tasks.read_events_transactional")
@@ -755,6 +727,7 @@ class TestVerdictGuardInMoveTask:
         mock_locate_wp.return_value = mock_wp
 
         from specify_cli.status.store import read_events as _real_re
+
         mock_read_events.return_value = _real_re(feature_dir)
         mock_emit.return_value = MagicMock()
 
@@ -826,9 +799,7 @@ class TestVerdictGuardInMoveTask:
             feature_dir,
             wp_id,
             "approved",
-            review_result=ReviewResult(
-                reviewer="test-reviewer", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="test-reviewer", verdict="changes_requested", reference="x"),
         )
 
         wp_dir = wp_file.parent / wp_file.stem
@@ -874,6 +845,7 @@ class TestVerdictGuardInMoveTask:
         )
 
         from specify_cli.status.store import read_events as _real_re
+
         mock_read_events.return_value = _real_re(feature_dir)
         mock_emit.return_value = MagicMock()
 
@@ -887,20 +859,12 @@ class TestVerdictGuardInMoveTask:
 
         latest = ReviewCycleArtifact.latest(wp_dir)
         assert latest is not None, f"expected a fresh approved artifact. Output:\n{result.output}"
-        assert latest.cycle_number == 2, (
-            f"expected the approval at the next sequential cycle number, got "
-            f"{latest.cycle_number}. Output:\n{result.output}"
-        )
+        assert latest.cycle_number == 2, f"expected the approval at the next sequential cycle number, got {latest.cycle_number}. Output:\n{result.output}"
         # WP06 (FR-003/SC-007): ReviewCycleArtifact no longer carries a
         # verdict field -- the approval write's own synthesized body
         # ("Approved by ...") is the checkable proxy.
-        assert latest.body.startswith("Approved by "), (
-            f"expected an 'Approved by ...' body, got "
-            f"{latest.body!r}. Output:\n{result.output}"
-        )
-        assert latest.reviewer_agent != "unknown", (
-            f"expected a real reviewer_agent, not 'unknown'. Output:\n{result.output}"
-        )
+        assert latest.body.startswith("Approved by "), f"expected an 'Approved by ...' body, got {latest.body!r}. Output:\n{result.output}"
+        assert latest.reviewer_agent != "unknown", f"expected a real reviewer_agent, not 'unknown'. Output:\n{result.output}"
         assert (wp_dir / "review-cycle-1.md").exists()
 
 
@@ -947,9 +911,7 @@ class TestSkipReviewArtifactCheck:
             feature_dir,
             wp_id,
             "in_review",
-            review_result=ReviewResult(
-                reviewer="test-reviewer", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="test-reviewer", verdict="changes_requested", reference="x"),
         )
 
         wp_dir = wp_file.parent / wp_file.stem
@@ -976,6 +938,7 @@ class TestSkipReviewArtifactCheck:
         mock_locate_wp.return_value = mock_wp
 
         from specify_cli.status.store import read_events as _real_re
+
         mock_read_events.return_value = _real_re(feature_dir)
         mock_emit.return_value = MagicMock()
 
@@ -999,18 +962,14 @@ class TestSkipReviewArtifactCheck:
         # Must NOT exit with the rejected-verdict guard (exit 1 with artifact name)
         # The guard message is: "Error: WP01 review-cycle-1.md has verdict: rejected."
         guard_triggered = result.exit_code == 1 and "review-cycle-1.md" in result.output and "rejected" in result.output
-        assert not guard_triggered, (
-            f"Verdict guard fired despite --skip-review-artifact-check.\nOutput:\n{result.output}"
-        )
+        assert not guard_triggered, f"Verdict guard fired despite --skip-review-artifact-check.\nOutput:\n{result.output}"
         # FR-009 (WP09): the override is event-sourced into the ``review`` snapshot
         # slot, not stamped onto the artifact frontmatter.
         from specify_cli.status import materialize
 
         review = materialize(feature_dir).work_packages["WP01"]["review"]
         assert review["actor"]
-        assert review["reason"] == (
-            "Arbiter override: latest rejection was superseded by manual release review"
-        )
+        assert review["reason"] == ("Arbiter override: latest rejection was superseded by manual release review")
         assert review["at"]
         assert "review_artifact_override" not in artifact.read_text(encoding="utf-8")
 
@@ -1060,9 +1019,7 @@ class TestSkipReviewArtifactCheck:
             feature_dir,
             wp_id,
             "in_review",
-            review_result=ReviewResult(
-                reviewer="test-reviewer", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="test-reviewer", verdict="changes_requested", reference="x"),
         )
 
         wp_dir = wp_file.parent / wp_file.stem
@@ -1091,6 +1048,7 @@ class TestSkipReviewArtifactCheck:
         mock_locate_wp.return_value = mock_wp
 
         from specify_cli.status.store import read_events as _real_re
+
         mock_read_events.return_value = _real_re(feature_dir)
         mock_emit.return_value = MagicMock()
 
@@ -1125,13 +1083,8 @@ class TestSkipReviewArtifactCheck:
         from specify_cli.status import materialize
 
         review = materialize(feature_dir).work_packages["WP01"].get("review")
-        assert review is not None, (
-            "Override evidence was NOT persisted before the later guard refused — "
-            "partial-write-on-refusal timing broken."
-        )
-        assert review["reason"] == (
-            "Arbiter override: rejection superseded by manual release review"
-        )
+        assert review is not None, "Override evidence was NOT persisted before the later guard refused — partial-write-on-refusal timing broken."
+        assert review["reason"] == ("Arbiter override: rejection superseded by manual release review")
         assert review["actor"]
         assert review["at"]
         assert "review_artifact_override" not in artifact.read_text(encoding="utf-8")
@@ -1175,9 +1128,7 @@ class TestSkipReviewArtifactCheck:
             feature_dir,
             wp_id,
             "in_review",
-            review_result=ReviewResult(
-                reviewer="test-reviewer", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="test-reviewer", verdict="changes_requested", reference="x"),
         )
 
         wp_dir = wp_file.parent / wp_file.stem
@@ -1204,6 +1155,7 @@ class TestSkipReviewArtifactCheck:
         mock_locate_wp.return_value = mock_wp
 
         from specify_cli.status.store import read_events as _real_re
+
         mock_read_events.return_value = _real_re(feature_dir)
         mock_emit.return_value = MagicMock()
 
@@ -1243,9 +1195,7 @@ class TestTasksStatusReviewWarnings:
         ):
             return runner.invoke(app, ["status", "--mission", mission_slug])
 
-    def test_status_warns_for_done_wp_with_rejected_review_artifact(
-        self, tmp_path: Path
-    ) -> None:
+    def test_status_warns_for_done_wp_with_rejected_review_artifact(self, tmp_path: Path) -> None:
         """The CLI status command resolves the event-sourced verdict (WP05,
         verdict-seam-write-unification-01KZ9Q35: never ``review-cycle-N.md``
         frontmatter -- the artifact below is written only as realistic
@@ -1256,9 +1206,7 @@ class TestTasksStatusReviewWarnings:
             feature_dir,
             "WP01",
             "done",
-            review_result=ReviewResult(
-                reviewer="test-reviewer", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="test-reviewer", verdict="changes_requested", reference="x"),
         )
 
         wp_dir = wp_file.parent / wp_file.stem
@@ -1340,9 +1288,7 @@ class TestLaneGuardErrorMessage:
             elif "rev-list" in cmd_str and "..HEAD" in cmd_str:
                 # commits ahead of base: 1 (so we reach the contamination guard)
                 result_mock.stdout = "1\n"
-            elif "rev-parse" in cmd_str and any(
-                ref in cmd_str for ref in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD")
-            ):
+            elif "rev-parse" in cmd_str and any(ref in cmd_str for ref in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD")):
                 # No in-progress git operation
                 result_mock.returncode = 1
                 result_mock.stdout = ""
@@ -1397,12 +1343,8 @@ class TestLaneGuardErrorMessage:
 
         assert not is_valid, "Expected validation to fail (lane contamination)"
         guidance_text = "\n".join(guidance)
-        assert "my-planning-branch" in guidance_text, (
-            f"Expected planning branch name in guidance; got:\n{guidance_text}"
-        )
-        assert "git show" in guidance_text, (
-            f"Expected git show example in guidance; got:\n{guidance_text}"
-        )
+        assert "my-planning-branch" in guidance_text, f"Expected planning branch name in guidance; got:\n{guidance_text}"
+        assert "git show" in guidance_text, f"Expected git show example in guidance; got:\n{guidance_text}"
         assert "git show my-planning-branch:kitty-specs/test-lane-guard-001/extra-plan.md" in guidance_text
 
     def test_lane_guard_fallback_no_meta(self, tmp_path: Path) -> None:
@@ -1418,13 +1360,9 @@ class TestLaneGuardErrorMessage:
 
         assert not is_valid, "Expected validation to fail (lane contamination)"
         guidance_text = "\n".join(guidance)
-        assert "planning branch unknown" in guidance_text, (
-            f"Expected fallback message; got:\n{guidance_text}"
-        )
+        assert "planning branch unknown" in guidance_text, f"Expected fallback message; got:\n{guidance_text}"
 
-    def test_missing_workspace_context_checks_coord_branch_not_pr_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_missing_workspace_context_checks_coord_branch_not_pr_branch(self, tmp_path: Path) -> None:
         """Legacy workspace fixtures still use the coord branch as review base."""
         from mission_runtime import CommitTarget, MissionTopology
         from specify_cli.cli.commands.agent.tasks import _validate_ready_for_review
@@ -1449,9 +1387,7 @@ class TestLaneGuardErrorMessage:
             cmd_str = " ".join(str(c) for c in cmd_list)
             if "rev-parse" in cmd_str and "--show-toplevel" in cmd_str:
                 result_mock.stdout = f"{fake_worktree}\n"
-            elif "rev-parse" in cmd_str and any(
-                ref in cmd_str for ref in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD")
-            ):
+            elif "rev-parse" in cmd_str and any(ref in cmd_str for ref in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD")):
                 result_mock.returncode = 1
             elif "status" in cmd_str and "--porcelain" in cmd_str:
                 result_mock.stdout = ""

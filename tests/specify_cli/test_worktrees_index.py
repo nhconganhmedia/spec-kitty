@@ -133,9 +133,7 @@ def test_safe_commit_rejects_worktrees_path(tmp_path: Path) -> None:
         check=False,
     )
     tracked = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    assert tracked == [], (
-        f"git index was mutated despite SafeCommitPathPolicyError: {tracked!r}"
-    )
+    assert tracked == [], f"git index was mutated despite SafeCommitPathPolicyError: {tracked!r}"
 
 
 def test_safe_commit_rejects_worktrees_path_in_primary_bundle(tmp_path: Path) -> None:
@@ -154,14 +152,7 @@ def test_safe_commit_rejects_worktrees_path_in_primary_bundle(tmp_path: Path) ->
     primary_file.parent.mkdir(parents=True)
     primary_file.write_text("# WP01\n", encoding="utf-8")
 
-    worktree_tasks_file = (
-        repo_root
-        / ".worktrees"
-        / "test-mission-coord"
-        / "kitty-specs"
-        / "test-mission"
-        / "tasks.md"
-    )
+    worktree_tasks_file = repo_root / ".worktrees" / "test-mission-coord" / "kitty-specs" / "test-mission" / "tasks.md"
     worktree_tasks_file.parent.mkdir(parents=True)
     worktree_tasks_file.write_text("# Tasks\n", encoding="utf-8")
 

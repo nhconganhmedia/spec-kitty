@@ -27,9 +27,7 @@ from specify_cli.compat.remediation import COMMAND_ALLOWLIST_MAX_LEN
 # Validation regex (CHK028) — shared max length with remediation.py
 # ---------------------------------------------------------------------------
 
-_COMMAND_RE = re.compile(
-    rf"^[A-Za-z0-9 .\-+_/=:]{{1,{COMMAND_ALLOWLIST_MAX_LEN}}}$"
-)
+_COMMAND_RE = re.compile(rf"^[A-Za-z0-9 .\-+_/=:]{{1,{COMMAND_ALLOWLIST_MAX_LEN}}}$")
 _VERSION_RE = re.compile(r"^[A-Za-z0-9.\-+]{1,64}$")
 
 

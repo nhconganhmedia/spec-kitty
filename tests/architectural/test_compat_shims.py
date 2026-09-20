@@ -39,11 +39,7 @@ _KNOWN_NON_SHIM_ADAPTERS = frozenset({"uv_receipt.py"})
 # the directory means a new pure-shim adapter is automatically covered, and
 # ``test_no_pure_shim_adapters_currently_exist`` below pins today's expected
 # (legitimately empty) state as a real, always-collected assertion.
-_ADAPTER_FILES: list[Path] = sorted(
-    p
-    for p in _ADAPTERS_DIR.glob("*.py")
-    if p.name != "__init__.py" and p.name not in _KNOWN_NON_SHIM_ADAPTERS
-)
+_ADAPTER_FILES: list[Path] = sorted(p for p in _ADAPTERS_DIR.glob("*.py") if p.name != "__init__.py" and p.name not in _KNOWN_NON_SHIM_ADAPTERS)
 
 _DISALLOWED_NODE_TYPES = (
     ast.FunctionDef,
@@ -133,8 +129,7 @@ def test_no_pure_shim_adapters_currently_exist() -> None:
     assertion instead of a silently-vestigial empty parametrize.
     """
     assert _ADAPTER_FILES == [], (
-        f"Expected no pure-shim adapter files, found: {[p.name for p in _ADAPTER_FILES]}. "
-        "If this is intentional, update this test's expectations."
+        f"Expected no pure-shim adapter files, found: {[p.name for p in _ADAPTER_FILES]}. If this is intentional, update this test's expectations."
     )
 
 

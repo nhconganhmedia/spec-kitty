@@ -287,10 +287,7 @@ def _charter_path(repo_root: Path) -> tuple[Path | None, Path]:
 def collect_input_artifact_hashes(feature_dir: Path, repo_root: Path) -> dict[str, dict[str, str | None]]:
     """Return current hashes for analyzer source artifacts."""
 
-    inputs = {
-        name: _artifact_hash_entry(feature_dir / name, repo_root)
-        for name in _hash_inputs()
-    }
+    inputs = {name: _artifact_hash_entry(feature_dir / name, repo_root) for name in _hash_inputs()}
     charter_path, canonical_root = _charter_path(repo_root)
     if charter_path is None:
         inputs["charter"] = {"path": None, "sha256": None}
@@ -335,9 +332,7 @@ def _split_carrier(body: str) -> tuple[dict[str, Any] | None, str]:
             closing = idx
             break
     if closing == -1:
-        raise FindingsCarrierError(
-            "Malformed analysis-findings carrier: opening '---' has no closing '---'."
-        )
+        raise FindingsCarrierError("Malformed analysis-findings carrier: opening '---' has no closing '---'.")
     try:
         parsed = yaml.load("\n".join(lines[1:closing]))
     except Exception as exc:  # pragma: no cover - ruamel raises subclasses
@@ -376,10 +371,7 @@ def _normalize_findings(
             raise FindingsCarrierError("Each analysis-findings entry must be a mapping.")
         severity = entry.get("severity")
         if severity not in _FINDING_SEVERITIES:
-            raise FindingsCarrierError(
-                f"Unknown finding severity {severity!r}; allowed (canonical): "
-                f"{sorted(_FINDING_SEVERITIES)}."
-            )
+            raise FindingsCarrierError(f"Unknown finding severity {severity!r}; allowed (canonical): {sorted(_FINDING_SEVERITIES)}.")
         tally[severity] += 1
         findings.append(
             {
@@ -392,9 +384,7 @@ def _normalize_findings(
     return findings, tally
 
 
-def _resolve_counts(
-    declared: Any, tally: dict[str, int]
-) -> dict[str, int | None]:
+def _resolve_counts(declared: Any, tally: dict[str, int]) -> dict[str, int | None]:
     """Reconcile the declared ``counts`` block (if any) against the tally."""
 
     if declared is None:
@@ -405,15 +395,11 @@ def _resolve_counts(
         raise FindingsCarrierError("analysis-findings 'counts' must be a mapping.")
     unknown_keys = set(declared) - _COUNT_KEYS
     if unknown_keys:
-        raise FindingsCarrierError(
-            f"Unknown counts keys {sorted(unknown_keys)}; allowed: {sorted(_COUNT_KEYS)}."
-        )
+        raise FindingsCarrierError(f"Unknown counts keys {sorted(unknown_keys)}; allowed: {sorted(_COUNT_KEYS)}.")
     for key in _FINDING_SEVERITIES:
         declared_count = declared.get(key, 0)
         if declared_count != tally[key]:
-            raise FindingsCarrierError(
-                f"counts[{key!r}]={declared_count} does not equal findings tally {tally[key]}."
-            )
+            raise FindingsCarrierError(f"counts[{key!r}]={declared_count} does not equal findings tally {tally[key]}.")
     counts = {key: int(tally[key]) for key in _FINDING_SEVERITIES}
     counts["info"] = int(declared.get("info", 0))
     return counts

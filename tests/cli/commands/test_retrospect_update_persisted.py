@@ -68,9 +68,7 @@ def _legacy_record_with_gap() -> GenRetrospectiveRecord:
     return base
 
 
-def _seed_and_invoke_update(
-    tmp_path: Path, *, emit_captured_replacement: MagicMock
-) -> tuple[Path, Result]:
+def _seed_and_invoke_update(tmp_path: Path, *, emit_captured_replacement: MagicMock) -> tuple[Path, Result]:
     """Seed an on-disk has_findings+1-gap record, then invoke `create --update`.
 
     Runs the REAL ``write_gen_record`` merge (not mocked); only mission
@@ -86,15 +84,11 @@ def _seed_and_invoke_update(
     _write_kitty_meta(feature_dir, MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
     _write_status_events_all_done(feature_dir, MISSION_SLUG_COMPLETED)
 
-    record_path = write_gen_record(
-        _legacy_record_with_gap(), mode="overwrite", repo_root=repo_root
-    )
+    record_path = write_gen_record(_legacy_record_with_gap(), mode="overwrite", repo_root=repo_root)
     assert record_path.exists(), "sanity: existing record seeded on disk"
 
     generated = _make_minimal_gen_record(findings_status="ran_no_findings")
-    resolved = _build_resolved_mission(
-        MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir
-    )
+    resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
     with (
         patch(f"{_RETRO_MODULE}.locate_project_root", return_value=repo_root),
@@ -119,9 +113,7 @@ def test_update_result_and_event_agree_with_persisted_record(tmp_path: Path) -> 
     Pins the fix: reported findings_status/gap-count == on-disk values, not
     the pre-merge ran_no_findings/zero-gaps that the generator produced.
     """
-    record_path, result = _seed_and_invoke_update(
-        tmp_path, emit_captured_replacement=MagicMock(return_value=None)
-    )
+    record_path, result = _seed_and_invoke_update(tmp_path, emit_captured_replacement=MagicMock(return_value=None))
 
     assert result.exit_code == 0, result.output
     reported = json.loads(result.output)
@@ -135,12 +127,10 @@ def test_update_result_and_event_agree_with_persisted_record(tmp_path: Path) -> 
     assert on_disk_gap_count == 1
 
     assert reported["findings_status"] == on_disk_status, (
-        "reported findings_status must match the persisted record; "
-        f"reported={reported['findings_status']!r} on_disk={on_disk_status!r}"
+        f"reported findings_status must match the persisted record; reported={reported['findings_status']!r} on_disk={on_disk_status!r}"
     )
     assert reported.get("counts", {}).get("gaps") == on_disk_gap_count, (
-        "reported gap count must match the persisted record; "
-        f"reported={reported.get('counts', {}).get('gaps')} on_disk={on_disk_gap_count}"
+        f"reported gap count must match the persisted record; reported={reported.get('counts', {}).get('gaps')} on_disk={on_disk_gap_count}"
     )
 
 
@@ -154,9 +144,7 @@ def test_emit_captured_spy_matches_persisted_record_on_disk(tmp_path: Path) -> N
     reports.
     """
     spy = MagicMock(return_value=None)
-    record_path, result = _seed_and_invoke_update(
-        tmp_path, emit_captured_replacement=spy
-    )
+    record_path, result = _seed_and_invoke_update(tmp_path, emit_captured_replacement=spy)
 
     assert result.exit_code == 0, result.output
     reported = json.loads(result.output)
@@ -174,12 +162,10 @@ def test_emit_captured_spy_matches_persisted_record_on_disk(tmp_path: Path) -> N
     assert isinstance(emitted_record, GenRetrospectiveRecord)
 
     assert emitted_record.findings_status == on_disk_status, (
-        "emit_captured must receive the persisted (merged) findings_status; "
-        f"emitted={emitted_record.findings_status!r} on_disk={on_disk_status!r}"
+        f"emit_captured must receive the persisted (merged) findings_status; emitted={emitted_record.findings_status!r} on_disk={on_disk_status!r}"
     )
     assert len(emitted_record.gaps) == on_disk_gap_count, (
-        "emit_captured must receive the persisted (merged) gap list; "
-        f"emitted={len(emitted_record.gaps)} on_disk={on_disk_gap_count}"
+        f"emit_captured must receive the persisted (merged) gap list; emitted={len(emitted_record.gaps)} on_disk={on_disk_gap_count}"
     )
 
     # Also assert the reported JSON matches disk (report == event == disk).

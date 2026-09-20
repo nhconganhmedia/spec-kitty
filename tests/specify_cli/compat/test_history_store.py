@@ -175,11 +175,13 @@ class TestIsIdempotent:
 
     def test_false_for_different_install_method(self, tmp_path: Path) -> None:
         store = _make_store(tmp_path)
-        store.append(_make_record(
-            attempt_id="01HUVTOOLSUCCESS00000001",
-            install_method=InstallMethod.UV_TOOL,
-            target_version="3.2.0",
-        ))
+        store.append(
+            _make_record(
+                attempt_id="01HUVTOOLSUCCESS00000001",
+                install_method=InstallMethod.UV_TOOL,
+                target_version="3.2.0",
+            )
+        )
         pipx_record = _make_record(
             install_method=InstallMethod.PIPX,
             target_version="3.2.0",
@@ -188,10 +190,12 @@ class TestIsIdempotent:
 
     def test_false_for_different_version(self, tmp_path: Path) -> None:
         store = _make_store(tmp_path)
-        store.append(_make_record(
-            attempt_id="01HVERSION320000000001",
-            target_version="3.2.0",
-        ))
+        store.append(
+            _make_record(
+                attempt_id="01HVERSION320000000001",
+                target_version="3.2.0",
+            )
+        )
         newer = _make_record(target_version="3.3.0")
         assert store.is_idempotent(newer) is False
 
@@ -209,20 +213,24 @@ class TestConsecutiveFailureCount:
     def test_zero_with_only_successes(self, tmp_path: Path) -> None:
         store = _make_store(tmp_path)
         for i in range(3):
-            store.append(_make_record(
-                attempt_id=f"01HSUCC{str(i).zfill(20)}",
-                outcome=UpgradeAttemptOutcome.SUCCESS,
-            ))
+            store.append(
+                _make_record(
+                    attempt_id=f"01HSUCC{str(i).zfill(20)}",
+                    outcome=UpgradeAttemptOutcome.SUCCESS,
+                )
+            )
         assert store.consecutive_failure_count(InstallMethod.UV_TOOL) == 0
 
     def test_three_consecutive_failures(self, tmp_path: Path) -> None:
         store = _make_store(tmp_path)
         for i in range(3):
-            store.append(_make_record(
-                attempt_id=f"01HFAIL{str(i).zfill(20)}",
-                outcome=UpgradeAttemptOutcome.FAILURE,
-                exit_code=1,
-            ))
+            store.append(
+                _make_record(
+                    attempt_id=f"01HFAIL{str(i).zfill(20)}",
+                    outcome=UpgradeAttemptOutcome.FAILURE,
+                    exit_code=1,
+                )
+            )
         assert store.consecutive_failure_count(InstallMethod.UV_TOOL) == 3
 
     def test_stops_counting_at_success(self, tmp_path: Path) -> None:
@@ -233,27 +241,33 @@ class TestConsecutiveFailureCount:
         # fixed seed date (the window is now - window_seconds).
         now = now_utc()
         # Insert: success (oldest), then 2 more-recent failures.
-        store.append(_make_record(
-            attempt_id="01HSUCC0000000000000001",
-            outcome=UpgradeAttemptOutcome.SUCCESS,
-            timestamp=now - timedelta(seconds=60),
-        ))
+        store.append(
+            _make_record(
+                attempt_id="01HSUCC0000000000000001",
+                outcome=UpgradeAttemptOutcome.SUCCESS,
+                timestamp=now - timedelta(seconds=60),
+            )
+        )
         for i in range(2):
-            store.append(_make_record(
-                attempt_id=f"01HFAILAFTER{str(i).zfill(14)}",
-                outcome=UpgradeAttemptOutcome.FAILURE,
-                exit_code=1,
-                timestamp=now - timedelta(seconds=40 - i * 10),
-            ))
+            store.append(
+                _make_record(
+                    attempt_id=f"01HFAILAFTER{str(i).zfill(14)}",
+                    outcome=UpgradeAttemptOutcome.FAILURE,
+                    exit_code=1,
+                    timestamp=now - timedelta(seconds=40 - i * 10),
+                )
+            )
         assert store.consecutive_failure_count(InstallMethod.UV_TOOL) == 2
 
     def test_zero_for_different_install_method(self, tmp_path: Path) -> None:
         store = _make_store(tmp_path)
-        store.append(_make_record(
-            attempt_id="01HPIPXFAIL0000000001",
-            install_method=InstallMethod.PIPX,
-            outcome=UpgradeAttemptOutcome.FAILURE,
-        ))
+        store.append(
+            _make_record(
+                attempt_id="01HPIPXFAIL0000000001",
+                install_method=InstallMethod.PIPX,
+                outcome=UpgradeAttemptOutcome.FAILURE,
+            )
+        )
         # UV_TOOL method has no records.
         assert store.consecutive_failure_count(InstallMethod.UV_TOOL) == 0
 
@@ -287,10 +301,12 @@ class TestRetentionTrim:
         store = _make_store(tmp_path)
         # Insert 205 records for UV_TOOL.
         for i in range(205):
-            store.append(_make_record(
-                attempt_id=f"01HRETENTION{str(i).zfill(15)}",
-                timestamp=datetime(2026, 1, 1, 0, 0, i % 60, tzinfo=UTC),
-            ))
+            store.append(
+                _make_record(
+                    attempt_id=f"01HRETENTION{str(i).zfill(15)}",
+                    timestamp=datetime(2026, 1, 1, 0, 0, i % 60, tzinfo=UTC),
+                )
+            )
         # Query: direct sqlite count to verify trim.
         import sqlite3
 
@@ -306,16 +322,20 @@ class TestRetentionTrim:
         store = _make_store(tmp_path)
         # Insert 205 UV_TOOL records.
         for i in range(205):
-            store.append(_make_record(
-                attempt_id=f"01HUVASYMM{str(i).zfill(16)}",
-                install_method=InstallMethod.UV_TOOL,
-            ))
+            store.append(
+                _make_record(
+                    attempt_id=f"01HUVASYMM{str(i).zfill(16)}",
+                    install_method=InstallMethod.UV_TOOL,
+                )
+            )
         # Insert 5 PIPX records.
         for j in range(5):
-            store.append(_make_record(
-                attempt_id=f"01HPIPXASYMM{str(j).zfill(14)}",
-                install_method=InstallMethod.PIPX,
-            ))
+            store.append(
+                _make_record(
+                    attempt_id=f"01HPIPXASYMM{str(j).zfill(14)}",
+                    install_method=InstallMethod.PIPX,
+                )
+            )
         import sqlite3
 
         conn = sqlite3.connect(str(tmp_path / "test-history.db"))
@@ -384,9 +404,11 @@ class TestConcurrentWrites:
             barrier.wait()
             try:
                 for i in range(10):
-                    store.append(_make_record(
-                        attempt_id=f"01HCONC{str(worker_id).zfill(1)}{str(i).zfill(19)}",
-                    ))
+                    store.append(
+                        _make_record(
+                            attempt_id=f"01HCONC{str(worker_id).zfill(1)}{str(i).zfill(19)}",
+                        )
+                    )
             except Exception as exc:  # noqa: BLE001
                 errors.append(exc)
 
@@ -474,9 +496,7 @@ class TestNoFdLeakOnErrorPath:
         assert result is False  # fail-open contract preserved
         mock_conn.close.assert_called_once()
 
-    def test_consecutive_failure_count_closes_conn_on_execute_error(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_consecutive_failure_count_closes_conn_on_execute_error(self, tmp_path: Path, monkeypatch: Any) -> None:
         store = _make_store(tmp_path)
         mock_conn = self._make_erroring_conn()
         monkeypatch.setattr(store, "_connect", lambda: mock_conn)
@@ -484,9 +504,7 @@ class TestNoFdLeakOnErrorPath:
         assert result == 0  # fail-open contract preserved
         mock_conn.close.assert_called_once()
 
-    def test_last_success_timestamp_closes_conn_on_execute_error(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_last_success_timestamp_closes_conn_on_execute_error(self, tmp_path: Path, monkeypatch: Any) -> None:
         store = _make_store(tmp_path)
         mock_conn = self._make_erroring_conn()
         monkeypatch.setattr(store, "_connect", lambda: mock_conn)
@@ -494,9 +512,7 @@ class TestNoFdLeakOnErrorPath:
         assert result is None  # fail-open contract preserved
         mock_conn.close.assert_called_once()
 
-    def test_connect_closes_conn_when_schema_init_raises(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_connect_closes_conn_when_schema_init_raises(self, tmp_path: Path, monkeypatch: Any) -> None:
         """A failure during PRAGMA/CREATE must close the fd before propagating.
 
         Otherwise the just-opened connection leaks (the caller's

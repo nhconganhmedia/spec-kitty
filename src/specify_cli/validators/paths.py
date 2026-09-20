@@ -99,10 +99,7 @@ class PathValidationResult:
             for suggestion in self.suggestions:
                 lines.append(f"  - {suggestion}")
         else:
-            lines.append(
-                "Run `accept --lenient` to treat these as warnings instead of blocking "
-                "errors for this mission run."
-            )
+            lines.append("Run `accept --lenient` to treat these as warnings instead of blocking errors for this mission run.")
 
         return "\n".join(lines)
 
@@ -172,9 +169,7 @@ def artifact_tokens_for_mission(mission: Mission) -> set[str]:
     return {normalize_path_token(name) for name in (*required, *optional)}
 
 
-def _remap_declared_paths(
-    declared: dict[str, str], path_overrides: dict[str, str] | None
-) -> dict[str, str]:
+def _remap_declared_paths(declared: dict[str, str], path_overrides: dict[str, str] | None) -> dict[str, str]:
     """Apply a remap-only project ``path_conventions`` override to declared paths (C-008 / C-010).
 
     Only keys the mission already declares are remapped; an override for a key the mission does not
@@ -287,10 +282,7 @@ def validate_mission_paths(
     mission_paths = dict(mission.config.paths or {})
     safe_overrides = _drop_overrides_colliding_with_artifacts(path_overrides, mission_paths, artifact_tokens)
     declared = _remap_declared_paths(mission_paths, safe_overrides)
-    required_paths = {
-        key: _prefix_required_path(path_prefix, relative_path)
-        for key, relative_path in declared.items()
-    }
+    required_paths = {key: _prefix_required_path(path_prefix, relative_path) for key, relative_path in declared.items()}
     result = PathValidationResult(
         mission_name=mission.name,
         required_paths=required_paths,

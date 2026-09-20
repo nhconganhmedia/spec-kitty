@@ -273,15 +273,11 @@ def test_plan_guard_missing_and_present() -> None:
 
 def test_cli_native_tasks_outline_only_checks_tasks_md() -> None:
     assert cores.evaluate_guards(_snapshot(step_id="tasks_outline")) == ["Required artifact missing: tasks.md"]
-    assert (
-        cores.evaluate_guards(_snapshot(present_artifacts=frozenset({"tasks.md"}), step_id="tasks_outline")) == []
-    )
+    assert cores.evaluate_guards(_snapshot(present_artifacts=frozenset({"tasks.md"}), step_id="tasks_outline")) == []
 
 
 def test_cli_native_tasks_packages_missing_files_message() -> None:
-    assert cores.evaluate_guards(_snapshot(step_id="tasks_packages")) == [
-        "Required: at least one tasks/WP*.md file"
-    ]
+    assert cores.evaluate_guards(_snapshot(step_id="tasks_packages")) == ["Required: at least one tasks/WP*.md file"]
 
 
 def test_cli_native_tasks_packages_extends_requirement_mapping_failures() -> None:
@@ -300,9 +296,7 @@ def test_cli_native_tasks_finalize_dir_missing_message_distinct_from_packages() 
     """The dir-missing message for tasks_finalize differs from the
     tasks_packages/composed 'at least one WP*.md file' message -- do not
     unify these two strings."""
-    assert cores.evaluate_guards(_snapshot(step_id="tasks_finalize")) == [
-        "Required: tasks/ directory with finalized WP files"
-    ]
+    assert cores.evaluate_guards(_snapshot(step_id="tasks_finalize")) == ["Required: tasks/ directory with finalized WP files"]
 
 
 def test_cli_native_tasks_finalize_empty_wp_files_message() -> None:
@@ -319,9 +313,7 @@ def test_cli_native_tasks_finalize_missing_dependency_uses_full_stem_breaks_on_f
         },
         step_id="tasks_finalize",
     )
-    assert cores.evaluate_guards(snapshot) == [
-        "WP WP02-rawjoin missing 'dependencies' in frontmatter (run 'spec-kitty agent mission finalize-tasks')"
-    ]
+    assert cores.evaluate_guards(snapshot) == ["WP WP02-rawjoin missing 'dependencies' in frontmatter (run 'spec-kitty agent mission finalize-tasks')"]
 
 
 def test_cli_native_tasks_finalize_occurrence_gate_always_appended() -> None:
@@ -343,9 +335,7 @@ def test_implement_and_review_use_wp_advance_ready() -> None:
         "Not all work packages have required status (for_review, approved, or done)"
     ]
     assert cores.evaluate_guards(_snapshot(step_id="review", wp_advance_ready=True)) == []
-    assert cores.evaluate_guards(_snapshot(step_id="review", wp_advance_ready=False)) == [
-        "Not all work packages are approved or done"
-    ]
+    assert cores.evaluate_guards(_snapshot(step_id="review", wp_advance_ready=False)) == ["Not all work packages are approved or done"]
 
 
 def test_unmatched_step_id_returns_empty() -> None:
@@ -511,9 +501,7 @@ def test_cli_native_and_composed_tasks_vocabularies_diverge_for_same_substep() -
     unification that would silently change guard_failures."""
     empty_tasks_dir_status = {"tasks_dir_is_dir": False}
     cli_native = cores.evaluate_guards(_snapshot(status_facts=empty_tasks_dir_status, step_id="tasks_finalize"))
-    composed = cores.evaluate_guards(
-        _snapshot(status_facts=empty_tasks_dir_status, step_id="tasks", legacy_step_id="tasks_finalize")
-    )
+    composed = cores.evaluate_guards(_snapshot(status_facts=empty_tasks_dir_status, step_id="tasks", legacy_step_id="tasks_finalize"))
     assert cli_native == ["Required: tasks/ directory with finalized WP files"]
     assert composed == [
         "Required artifact missing: tasks.md",
@@ -528,15 +516,9 @@ def test_cli_native_and_composed_tasks_vocabularies_diverge_for_same_substep() -
 
 
 def test_research_scoping_methodology_synthesis_single_artifact_checks() -> None:
-    assert cores.evaluate_guards(_snapshot(mission_family="research", step_id="scoping")) == [
-        "Required artifact missing: spec.md"
-    ]
-    assert cores.evaluate_guards(_snapshot(mission_family="research", step_id="methodology")) == [
-        "Required artifact missing: plan.md"
-    ]
-    assert cores.evaluate_guards(_snapshot(mission_family="research", step_id="synthesis")) == [
-        "Required artifact missing: findings.md"
-    ]
+    assert cores.evaluate_guards(_snapshot(mission_family="research", step_id="scoping")) == ["Required artifact missing: spec.md"]
+    assert cores.evaluate_guards(_snapshot(mission_family="research", step_id="methodology")) == ["Required artifact missing: plan.md"]
+    assert cores.evaluate_guards(_snapshot(mission_family="research", step_id="synthesis")) == ["Required artifact missing: findings.md"]
 
 
 def test_research_gathering_both_conditions_independently_appended() -> None:
@@ -567,16 +549,12 @@ def test_research_unknown_action_fail_closed_default() -> None:
     (v1 P1 silent-pass fix): ANY unrecognized action must produce a
     non-empty failures list, never an empty (silent-pass) one."""
     snapshot = _snapshot(
-        present_artifacts=frozenset(
-            {"spec.md", "plan.md", "tasks.md", "source-register.csv", "findings.md", "report.md"}
-        ),
+        present_artifacts=frozenset({"spec.md", "plan.md", "tasks.md", "source-register.csv", "findings.md", "report.md"}),
         status_facts={"source_documented_count": 5, "publication_approved": True},
         mission_family="research",
         step_id="not-a-real-research-action",
     )
-    assert cores.evaluate_guards(snapshot) == [
-        "No guard registered for research action: not-a-real-research-action"
-    ]
+    assert cores.evaluate_guards(snapshot) == ["No guard registered for research action: not-a-real-research-action"]
 
 
 # ---------------------------------------------------------------------------
@@ -585,31 +563,17 @@ def test_research_unknown_action_fail_closed_default() -> None:
 
 
 def test_documentation_single_artifact_checks() -> None:
-    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="discover")) == [
-        "Required artifact missing: spec.md"
-    ]
-    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="audit")) == [
-        "Required artifact missing: gap-analysis.md"
-    ]
-    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="design")) == [
-        "Required artifact missing: plan.md"
-    ]
-    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="validate")) == [
-        "Required artifact missing: audit-report.md"
-    ]
-    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="publish")) == [
-        "Required artifact missing: release.md"
-    ]
+    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="discover")) == ["Required artifact missing: spec.md"]
+    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="audit")) == ["Required artifact missing: gap-analysis.md"]
+    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="design")) == ["Required artifact missing: plan.md"]
+    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="validate")) == ["Required artifact missing: audit-report.md"]
+    assert cores.evaluate_guards(_snapshot(mission_family="documentation", step_id="publish")) == ["Required artifact missing: release.md"]
 
 
 def test_documentation_generate_custom_message() -> None:
     snapshot = _snapshot(mission_family="documentation", step_id="generate")
-    assert cores.evaluate_guards(snapshot) == [
-        "Required artifact missing: docs/**/*.md (no Markdown files found under docs/)"
-    ]
-    ready = _snapshot(
-        status_facts={"has_generated_docs": True}, mission_family="documentation", step_id="generate"
-    )
+    assert cores.evaluate_guards(snapshot) == ["Required artifact missing: docs/**/*.md (no Markdown files found under docs/)"]
+    ready = _snapshot(status_facts={"has_generated_docs": True}, mission_family="documentation", step_id="generate")
     assert cores.evaluate_guards(ready) == []
 
 
@@ -621,9 +585,7 @@ def test_documentation_unknown_action_fail_closed_default() -> None:
     """SC-007 highest-risk fixture #2 -- the documentation fail-closed
     default."""
     snapshot = _snapshot(mission_family="documentation", step_id="not-a-real-doc-action")
-    assert cores.evaluate_guards(snapshot) == [
-        "No guard registered for documentation action: not-a-real-doc-action"
-    ]
+    assert cores.evaluate_guards(snapshot) == ["No guard registered for documentation action: not-a-real-doc-action"]
 
 
 # ---------------------------------------------------------------------------
@@ -654,9 +616,7 @@ def test_plan_research_guard_absent_and_present() -> None:
     presence. The present-artifact assertion below already passes at base
     for that same wrong (unconditional) reason -- it is a companion
     target-shape assertion, not itself RED evidence."""
-    assert cores.evaluate_guards(_snapshot(mission_family="plan", step_id="research")) == [
-        "Required artifact missing: research.md"
-    ]
+    assert cores.evaluate_guards(_snapshot(mission_family="plan", step_id="research")) == ["Required artifact missing: research.md"]
     assert (
         cores.evaluate_guards(
             _snapshot(
@@ -678,24 +638,10 @@ def test_plan_guard_specify_and_plan_branches_direct_dispatch() -> None:
     branches coincidentally produce the same shape of output via two
     independent code paths (this function, and software-dev's fallthrough)
     both pre- and post-fix."""
-    assert cores._evaluate_plan_guards(_snapshot(mission_family="plan", step_id="specify")) == [
-        "Required artifact missing: spec.md"
-    ]
-    assert (
-        cores._evaluate_plan_guards(
-            _snapshot(mission_family="plan", step_id="specify", present_artifacts=frozenset({"spec.md"}))
-        )
-        == []
-    )
-    assert cores._evaluate_plan_guards(_snapshot(mission_family="plan", step_id="plan")) == [
-        "Required artifact missing: plan.md"
-    ]
-    assert (
-        cores._evaluate_plan_guards(
-            _snapshot(mission_family="plan", step_id="plan", present_artifacts=frozenset({"plan.md"}))
-        )
-        == []
-    )
+    assert cores._evaluate_plan_guards(_snapshot(mission_family="plan", step_id="specify")) == ["Required artifact missing: spec.md"]
+    assert cores._evaluate_plan_guards(_snapshot(mission_family="plan", step_id="specify", present_artifacts=frozenset({"spec.md"}))) == []
+    assert cores._evaluate_plan_guards(_snapshot(mission_family="plan", step_id="plan")) == ["Required artifact missing: plan.md"]
+    assert cores._evaluate_plan_guards(_snapshot(mission_family="plan", step_id="plan", present_artifacts=frozenset({"plan.md"}))) == []
 
 
 def test_plan_guard_fail_closed_else_branch() -> None:
@@ -736,9 +682,7 @@ def test_evaluate_guards_tolerant_wrapper_degrades_for_unregistered_mission_fami
     assert cores.evaluate_guards(_snapshot(mission_family="totally-unregistered-family", step_id="review")) == []
 
 
-def test_check_cli_guards_propagates_unregistered_mission_family_error(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_check_cli_guards_propagates_unregistered_mission_family_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """RED today: ``_check_cli_guards`` ends with
     ``return _cores.evaluate_guards(snapshot)`` (the tolerant function),
     which currently returns the software-dev misfire (or `[]`), never

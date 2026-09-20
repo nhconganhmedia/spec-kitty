@@ -83,9 +83,7 @@ class TestProjectNodeOverridesShippedAndEmitsWarning:
         project = _project_with_node(urn)
 
         with caplog.at_level(logging.WARNING, logger="charter.drg"):
-            merged = merge_three_layers(
-                built_in=built_in, org_fragments=[], project=project
-            )
+            merged = merge_three_layers(built_in=built_in, org_fragments=[], project=project)
 
         # Project node must be in the merged graph.
         matching = [n for n in merged.nodes if n.urn == urn]
@@ -96,9 +94,7 @@ class TestProjectNodeOverridesShippedAndEmitsWarning:
         assert winning_node.kind == NodeKind.DIRECTIVE
         assert getattr(winning_node, "provenance", None) == "project"
 
-    def test_project_overrides_shipped_emits_warning(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_project_overrides_shipped_emits_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         """A WARNING must name the URN when project overrides shipped."""
         urn = "directive:shared-policy"
         built_in = _built_in_with_node(urn)
@@ -116,9 +112,7 @@ class TestProjectNodeOverridesShippedAndEmitsWarning:
 class TestProjectNodeOverridesOrgAndEmitsWarning:
     """Project node overrides an org-tier node (org:... → project)."""
 
-    def test_project_node_overrides_org_node(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_project_node_overrides_org_node(self, caplog: pytest.LogCaptureFixture) -> None:
         urn = "directive:org-policy"
         fragment = OrgDRGFragment.model_validate(
             {
@@ -134,17 +128,13 @@ class TestProjectNodeOverridesOrgAndEmitsWarning:
         project = _project_with_node(urn)
 
         with caplog.at_level(logging.WARNING, logger="charter.drg"):
-            merged = merge_three_layers(
-                built_in=_empty_built_in(), org_fragments=[fragment], project=project
-            )
+            merged = merge_three_layers(built_in=_empty_built_in(), org_fragments=[fragment], project=project)
 
         matching = [n for n in merged.nodes if n.urn == urn]
         assert len(matching) == 1
         assert getattr(matching[0], "provenance", None) == "project"
 
-    def test_project_overrides_org_emits_warning(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_project_overrides_org_emits_warning(self, caplog: pytest.LogCaptureFixture) -> None:
         urn = "directive:org-policy"
         fragment = OrgDRGFragment.model_validate(
             {
@@ -160,9 +150,7 @@ class TestProjectNodeOverridesOrgAndEmitsWarning:
         project = _project_with_node(urn)
 
         with caplog.at_level(logging.WARNING, logger="charter.drg"):
-            merge_three_layers(
-                built_in=_empty_built_in(), org_fragments=[fragment], project=project
-            )
+            merge_three_layers(built_in=_empty_built_in(), org_fragments=[fragment], project=project)
 
         warning_records = [r for r in caplog.records if r.levelno == logging.WARNING]
         assert warning_records, "WARNING must be emitted on org-tier override"
@@ -173,23 +161,16 @@ class TestProjectNodeOverridesOrgAndEmitsWarning:
 class TestNoWarningWhenProjectIntroducesNewUrn:
     """Project adds a brand-new URN not in shipped or org — no warning expected."""
 
-    def test_no_warning_for_new_project_urn(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_no_warning_for_new_project_urn(self, caplog: pytest.LogCaptureFixture) -> None:
         built_in = _built_in_with_node("directive:existing")
         project = _project_with_node("directive:brand-new")  # not in built_in or org
 
         with caplog.at_level(logging.WARNING, logger="charter.drg"):
-            merged = merge_three_layers(
-                built_in=built_in, org_fragments=[], project=project
-            )
+            merged = merge_three_layers(built_in=built_in, org_fragments=[], project=project)
 
         warning_records = [r for r in caplog.records if r.levelno == logging.WARNING]
         # No override happened, so no warning.
-        assert not warning_records, (
-            f"No WARNING expected when project introduces a new URN; "
-            f"got: {[r.getMessage() for r in warning_records]}"
-        )
+        assert not warning_records, f"No WARNING expected when project introduces a new URN; got: {[r.getMessage() for r in warning_records]}"
         # Both nodes must be present.
         urns = {n.urn for n in merged.nodes}
         assert "directive:existing" in urns

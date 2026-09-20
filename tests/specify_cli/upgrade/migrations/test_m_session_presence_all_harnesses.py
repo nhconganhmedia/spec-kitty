@@ -53,11 +53,7 @@ def _make_project(
     """
     (tmp_path / ".kittify").mkdir()
     avail = agents or []
-    lines = (
-        "agents:\n  available:\n" + "".join(f"    - {a}\n" for a in avail)
-        if avail
-        else "agents:\n  available: []\n"
-    )
+    lines = "agents:\n  available:\n" + "".join(f"    - {a}\n" for a in avail) if avail else "agents:\n  available: []\n"
     (tmp_path / ".kittify" / "config.yaml").write_text(lines, encoding="utf-8")
     for d in agent_dirs or []:
         (tmp_path / d).mkdir(parents=True, exist_ok=True)
@@ -90,9 +86,7 @@ class TestDetect:
         migration = SessionPresenceAllHarnessesMigration()
         assert migration.detect(tmp_path) is False
 
-    def test_true_for_always_writable_harnesses_without_harness_dir(
-        self, tmp_path: Path
-    ) -> None:
+    def test_true_for_always_writable_harnesses_without_harness_dir(self, tmp_path: Path) -> None:
         """detect() is True for always-writable harnesses even when no harness dirs exist.
 
         AgentsMdWriter (codex, opencode, antigravity) and SkillsPreambleWriter
@@ -118,9 +112,7 @@ class TestDetect:
 
         # Write all pending harnesses
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -133,9 +125,7 @@ class TestDetect:
         # Now detect() must be False
         assert migration.detect(project) is False
 
-    def test_true_when_harness_dir_present_but_no_presence(
-        self, cursor_project: Path
-    ) -> None:
+    def test_true_when_harness_dir_present_but_no_presence(self, cursor_project: Path) -> None:
         """detect() is True when cursor dir exists but presence is missing."""
         migration = SessionPresenceAllHarnessesMigration()
         assert migration.detect(cursor_project) is True
@@ -145,9 +135,7 @@ class TestDetect:
         migration = SessionPresenceAllHarnessesMigration()
         # Write all pending harnesses
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -159,9 +147,7 @@ class TestDetect:
 
         assert migration.detect(cursor_project) is False
 
-    def test_true_when_second_harness_still_missing(
-        self, multi_harness_project: Path
-    ) -> None:
+    def test_true_when_second_harness_still_missing(self, multi_harness_project: Path) -> None:
         """detect() remains True when only one of two harnesses is written."""
         # Write cursor presence, leave gemini absent
         rules_file = multi_harness_project / ".cursor" / "rules" / "spec-kitty.mdc"
@@ -181,9 +167,7 @@ class TestApply:
         """Run apply() with patched heavy dependencies."""
         migration = SessionPresenceAllHarnessesMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -193,9 +177,7 @@ class TestApply:
             mock_checker_cls.return_value.get_available_version.return_value = None
             migration.apply(project_path)
 
-    def test_apply_writes_orientation_for_cursor(
-        self, cursor_project: Path
-    ) -> None:
+    def test_apply_writes_orientation_for_cursor(self, cursor_project: Path) -> None:
         self._apply(cursor_project)
         rules_file = cursor_project / ".cursor" / "rules" / "spec-kitty.mdc"
         assert rules_file.exists()
@@ -204,9 +186,7 @@ class TestApply:
     def test_apply_returns_success_result(self, cursor_project: Path) -> None:
         migration = SessionPresenceAllHarnessesMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -218,9 +198,7 @@ class TestApply:
         assert result.success
         assert len(result.changes_made) >= 1
 
-    def test_apply_dry_run_no_filesystem_changes(
-        self, cursor_project: Path
-    ) -> None:
+    def test_apply_dry_run_no_filesystem_changes(self, cursor_project: Path) -> None:
         """apply(dry_run=True) reports pending changes but writes nothing."""
         migration = SessionPresenceAllHarnessesMigration()
         result = migration.apply(cursor_project, dry_run=True)
@@ -231,9 +209,7 @@ class TestApply:
         # But at least one change should be described
         assert len(result.changes_made) >= 1
 
-    def test_apply_dry_run_changes_describe_pending_harness(
-        self, cursor_project: Path
-    ) -> None:
+    def test_apply_dry_run_changes_describe_pending_harness(self, cursor_project: Path) -> None:
         migration = SessionPresenceAllHarnessesMigration()
         result = migration.apply(cursor_project, dry_run=True)
         assert any("cursor" in change for change in result.changes_made)
@@ -249,15 +225,11 @@ class TestApply:
     def test_apply_skips_claude_harness(self, tmp_path: Path) -> None:
         """apply() never writes to the Claude harness (handled by Phase 1)."""
         _make_project(tmp_path, agent_dirs=[".claude"])
-        (tmp_path / ".kittify" / "config.yaml").write_text(
-            "agents:\n  available:\n    - claude\n", encoding="utf-8"
-        )
+        (tmp_path / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
         # Run apply — claude entries should not be processed
         migration = SessionPresenceAllHarnessesMigration()
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -275,9 +247,7 @@ class TestApply:
         migration = SessionPresenceAllHarnessesMigration()
         # First call writes everything
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -291,14 +261,10 @@ class TestApply:
         assert result.success
         assert result.changes_made == []
 
-    def test_apply_writes_multiple_harnesses(
-        self, multi_harness_project: Path
-    ) -> None:
+    def test_apply_writes_multiple_harnesses(self, multi_harness_project: Path) -> None:
         """apply() writes orientation for all pending harnesses in one pass."""
         self._apply(multi_harness_project)
-        cursor_file = (
-            multi_harness_project / ".cursor" / "rules" / "spec-kitty.mdc"
-        )
+        cursor_file = multi_harness_project / ".cursor" / "rules" / "spec-kitty.mdc"
         gemini_file = multi_harness_project / "GEMINI.md"
         assert SECTION_OPEN in cursor_file.read_text(encoding="utf-8")
         assert SECTION_OPEN in gemini_file.read_text(encoding="utf-8")
@@ -329,9 +295,7 @@ class TestMigrationAttributes:
 
 
 class TestForwardCompatibility:
-    def test_detect_true_when_qwen_monkey_patched_with_markdown_rules_writer(
-        self, tmp_path: Path
-    ) -> None:
+    def test_detect_true_when_qwen_monkey_patched_with_markdown_rules_writer(self, tmp_path: Path) -> None:
         """C2: monkey-patching WRITER_REGISTRY["qwen"] with a real MarkdownRulesWriter
         causes detect() to return True for a project where qwen's target dir exists
         but orientation is absent.

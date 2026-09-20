@@ -33,9 +33,7 @@ runner = CliRunner()
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, capture_output=True, text=True, check=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True, check=True)
 
 
 def _init_repo(repo: Path) -> None:
@@ -49,9 +47,7 @@ def _init_repo(repo: Path) -> None:
 
 
 def _wp(wp_id: str, deps: list[str]) -> str:
-    dep_block = "dependencies: []\n" if not deps else (
-        "dependencies:\n" + "".join(f"- {d}\n" for d in deps)
-    )
+    dep_block = "dependencies: []\n" if not deps else ("dependencies:\n" + "".join(f"- {d}\n" for d in deps))
     return (
         "---\n"
         f"work_package_id: {wp_id}\n"
@@ -102,9 +98,7 @@ def _seed_cyclic_mission(repo: Path) -> str:
     return mission_slug
 
 
-def test_move_task_names_dependency_cycle_when_status_uninitialized(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_move_task_names_dependency_cycle_when_status_uninitialized(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SPEC_KITTY_TEST_MODE", raising=False)
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -125,7 +119,5 @@ def test_move_task_names_dependency_cycle_when_status_uninitialized(
     # ACCEPTANCE: the operator must be told the real root cause — the dependency
     # cycle — not just "run finalize-tasks" (which loops). This is what fails on
     # the unfixed production code.
-    assert "circular" in out or "cycle" in out, (
-        f"expected the cycle to be named as the root cause; got:\n{result.output}"
-    )
+    assert "circular" in out or "cycle" in out, f"expected the cycle to be named as the root cause; got:\n{result.output}"
     assert "WP09" in result.output and "WP10" in result.output

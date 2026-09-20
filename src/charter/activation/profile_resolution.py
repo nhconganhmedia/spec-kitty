@@ -131,9 +131,7 @@ def _profiles_dict_from_service(service: object) -> dict[str, AgentProfile]:
     return dict(attr) if isinstance(attr, dict) else {}
 
 
-def _activation_aware_profile_map(
-    repo_root: Path, org_roots: list[Path]
-) -> dict[str, AgentProfile]:
+def _activation_aware_profile_map(repo_root: Path, org_roots: list[Path]) -> dict[str, AgentProfile]:
     """Return (and cache) the activation-gated profile map for ``repo_root``.
 
     Reuses :func:`~charter.activation.doctrine_service_builder._build_activation_aware_doctrine_service`
@@ -153,9 +151,7 @@ def _activation_aware_profile_map(
     return profile_map
 
 
-def _resolve_agent_profile_record(
-    profile_id: str, repo_root: Path | None
-) -> AgentProfile | None:
+def _resolve_agent_profile_record(profile_id: str, repo_root: Path | None) -> AgentProfile | None:
     """Resolve *profile_id*, threading charter activation when org packs exist.
 
     ``repo_root is None`` (callers with no repo context) and "no org packs
@@ -174,9 +170,7 @@ def _resolve_agent_profile_record(
     return _activation_aware_profile_map(repo_root, org_roots).get(profile_id)
 
 
-def _load_agent_profile(
-    profile_id: str, repo_root: Path | None = None
-) -> AgentProfile | None:
+def _load_agent_profile(profile_id: str, repo_root: Path | None = None) -> AgentProfile | None:
     """Resolve *profile_id* via the doctrine layer. Returns ``None`` on miss.
 
     Errors are intentionally swallowed: this helper is on the prompt-build

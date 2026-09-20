@@ -26,9 +26,7 @@ DEFAULT_TITLE = "Spec Kitty Documentation"
 #: built-output verifier treat a page carrying this exact string as equivalent
 #: to a page carrying no description at all. Making the backstop look like an
 #: authored description would let it mask the very defect it exists to reveal.
-FALLBACK_DESCRIPTION = (
-    "Spec Kitty documentation for CLI workflows, governed missions, AI harnesses, and 3.2 upgrades."
-)
+FALLBACK_DESCRIPTION = "Spec Kitty documentation for CLI workflows, governed missions, AI harnesses, and 3.2 upgrades."
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 DESCRIPTION_RE = re.compile(
@@ -133,9 +131,7 @@ def extract_description(markup: str) -> str:
 
 def breadcrumb_items(page: Page, base_url: str) -> list[dict[str, object]]:
     parts = page.relative_path.replace("\\", "/").split("/")
-    crumbs: list[dict[str, object]] = [
-        {"@type": "ListItem", "position": 1, "name": "Spec Kitty Docs", "item": normalize_base_url(base_url)}
-    ]
+    crumbs: list[dict[str, object]] = [{"@type": "ListItem", "position": 1, "name": "Spec Kitty Docs", "item": normalize_base_url(base_url)}]
     running: list[str] = []
     for part in parts[:-1]:
         running.append(part)
@@ -149,9 +145,7 @@ def breadcrumb_items(page: Page, base_url: str) -> list[dict[str, object]]:
             }
         )
     if page.relative_path != "index.html":
-        crumbs.append(
-            {"@type": "ListItem", "position": len(crumbs) + 1, "name": page.title, "item": page.url}
-        )
+        crumbs.append({"@type": "ListItem", "position": len(crumbs) + 1, "name": page.title, "item": page.url})
     return crumbs
 
 
@@ -306,8 +300,7 @@ def seo_block(page: Page, base_url: str, image_path: str, *, emit_description: b
         f'      <meta name="twitter:title" content="{escaped_title}">',
         f'      <meta name="twitter:description" content="{escaped_desc}">',
         f'      <meta name="twitter:image" content="{escaped_image}">',
-        "      <script type=\"application/ld+json\">"
-        f"{json.dumps(json_ld, ensure_ascii=False, separators=(',', ':'))}</script>",
+        f'      <script type="application/ld+json">{json.dumps(json_ld, ensure_ascii=False, separators=(",", ":"))}</script>',
         "      <!-- spec-kitty-seo:end -->",
     ]
     return "\n".join(lines) + "\n"
@@ -372,25 +365,16 @@ def write_sitemap(site_dir: Path, pages: list[Page]) -> None:
     # (e.g. near midnight). See research/migration-notes.md (WP14) for the
     # adjudication record and pinning test.
     today = now_utc().date().isoformat()
-    urls = "\n".join(
-        f"  <url><loc>{html.escape(page.url)}</loc><lastmod>{today}</lastmod></url>" for page in pages
-    )
+    urls = "\n".join(f"  <url><loc>{html.escape(page.url)}</loc><lastmod>{today}</lastmod></url>" for page in pages)
     site_dir.joinpath("sitemap.xml").write_text(
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f"{urls}\n"
-        "</urlset>\n",
+        f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}\n</urlset>\n',
         encoding="utf-8",
     )
 
 
 def write_robots(site_dir: Path, base_url: str) -> None:
     site_dir.joinpath("robots.txt").write_text(
-        "User-agent: *\n"
-        "Allow: /\n"
-        "Disallow: /toc.html\n"
-        "Disallow: /*/toc.html\n"
-        f"Sitemap: {normalize_base_url(base_url)}sitemap.xml\n",
+        f"User-agent: *\nAllow: /\nDisallow: /toc.html\nDisallow: /*/toc.html\nSitemap: {normalize_base_url(base_url)}sitemap.xml\n",
         encoding="utf-8",
     )
 

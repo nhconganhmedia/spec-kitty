@@ -24,11 +24,13 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir = tmp_path / "kitty-specs" / mission_slug
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+            }
+        ),
         encoding="utf-8",
     )
     return feature_dir, mission_id

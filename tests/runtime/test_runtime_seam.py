@@ -82,7 +82,13 @@ _EXPECTED_AUTHORED: dict[str, dict[str, Any]] = {
     },
     "documentation": {
         "action_sequence": [
-            "discover", "audit", "design", "generate", "validate", "publish", "accept",
+            "discover",
+            "audit",
+            "design",
+            "generate",
+            "validate",
+            "publish",
+            "accept",
         ],
         # S-C Concern B (mission-step-creatability-01KXQA6R WP02, reconciled by
         # WP05, C-003/C-010): documentation authors a spec ref (discover) and a
@@ -142,18 +148,14 @@ class TestSeamEquivalence:
     """The seam's resolved action_sequence/template_set equal the pinned authored contract."""
 
     @pytest.mark.parametrize("mission_type_id", _BUILTIN_TYPE_IDS)
-    def test_action_sequence_matches_authored_contract(
-        self, tmp_path: Path, mission_type_id: str
-    ) -> None:
+    def test_action_sequence_matches_authored_contract(self, tmp_path: Path, mission_type_id: str) -> None:
         expected = _expected_authored(mission_type_id)
         bundle = _resolve_via_seam(tmp_path, mission_type_id)
 
         assert bundle.action_sequence == expected["action_sequence"]
 
     @pytest.mark.parametrize("mission_type_id", _BUILTIN_TYPE_IDS)
-    def test_template_set_matches_authored_contract(
-        self, tmp_path: Path, mission_type_id: str
-    ) -> None:
+    def test_template_set_matches_authored_contract(self, tmp_path: Path, mission_type_id: str) -> None:
         expected = _expected_authored(mission_type_id)
         bundle = _resolve_via_seam(tmp_path, mission_type_id)
 
@@ -203,9 +205,7 @@ class TestGoldenParityUnaffectedByPackContextThreading:
     """
 
     @pytest.mark.parametrize("mission_type_id", _BUILTIN_TYPE_IDS)
-    def test_builtin_type_unaffected_by_real_pack_context_with_org_root(
-        self, tmp_path: Path, mission_type_id: str
-    ) -> None:
+    def test_builtin_type_unaffected_by_real_pack_context_with_org_root(self, tmp_path: Path, mission_type_id: str) -> None:
         from charter.activation.pack_context import PackContext
 
         expected = _expected_authored(mission_type_id)
@@ -219,9 +219,7 @@ class TestGoldenParityUnaffectedByPackContextThreading:
             repo_root=tmp_path,
         )
 
-        with patch(
-            "charter.activation.pack_context.PackContext.from_config", return_value=pack_context
-        ):
+        with patch("charter.activation.pack_context.PackContext.from_config", return_value=pack_context):
             bundle = _resolve_via_seam(tmp_path, mission_type_id)
 
         assert bundle.action_sequence == expected["action_sequence"]
@@ -232,9 +230,7 @@ class TestGoldenParityUnaffectedByPackContextThreading:
             assert bundle.template_set is not None
             assert dict(bundle.template_set) == expected_template_set
 
-    def test_builtin_layer_scan_receives_the_real_pack_context_once_per_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_builtin_layer_scan_receives_the_real_pack_context_once_per_type(self, tmp_path: Path) -> None:
         """WP01/T004 (NFR-004, mission mission-types-empty-action-sequence-01M0RMCA,
         #3701): closes two claims with call-level evidence rather than
         architectural assertion alone.
@@ -322,9 +318,7 @@ class TestGoldenParityUnaffectedByPackContextThreading:
         assert len(calls_for_software_dev) == 1
         assert calls_for_software_dev[0][1] is pack_context
 
-    def test_org_root_content_actually_resolves_through_the_seam(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_root_content_actually_resolves_through_the_seam(self, tmp_path: Path) -> None:
         """PR-TESTS-001 (pre-merge squad, mission up-mission-type-seam-01KZY1JB):
         the sibling test above (``test_builtin_type_unaffected_by_real_pack_
         context_with_org_root``) `mkdir`'s the org root's ``mission_types/``
@@ -345,12 +339,7 @@ class TestGoldenParityUnaffectedByPackContextThreading:
         mt_dir = org_root / "mission_types"
         mt_dir.mkdir(parents=True)
         (mt_dir / "unrelated-custom.yaml").write_text(
-            "schema_version: 1\n"
-            "id: unrelated-custom\n"
-            "display_name: Unrelated Custom\n"
-            "action_sequence:\n"
-            "  - design\n"
-            "  - implement\n",
+            "schema_version: 1\nid: unrelated-custom\ndisplay_name: Unrelated Custom\naction_sequence:\n  - design\n  - implement\n",
             encoding="utf-8",
         )
         activated = ["unrelated-custom", *_BUILTIN_TYPE_IDS]
@@ -391,9 +380,7 @@ class TestConsumerTransitivity:
     seam's resolved action_sequence rather than bypassing it.
     """
 
-    def test_should_dispatch_via_composition_true_for_seam_action(
-        self, tmp_path: Path
-    ) -> None:
+    def test_should_dispatch_via_composition_true_for_seam_action(self, tmp_path: Path) -> None:
         from runtime.next.runtime_bridge_composition import (
             _should_dispatch_via_composition,
         )
@@ -402,15 +389,11 @@ class TestConsumerTransitivity:
             "charter.activation.mission_type_profiles.existing_mission_types",
             return_value=list(_BUILTIN_TYPE_IDS),
         ):
-            result = _should_dispatch_via_composition(
-                "software-dev", "specify", run_dir=None, repo_root=tmp_path
-            )
+            result = _should_dispatch_via_composition("software-dev", "specify", run_dir=None, repo_root=tmp_path)
 
         assert result is True
 
-    def test_should_dispatch_via_composition_false_for_action_outside_sequence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_should_dispatch_via_composition_false_for_action_outside_sequence(self, tmp_path: Path) -> None:
         from runtime.next.runtime_bridge_composition import (
             _should_dispatch_via_composition,
         )
@@ -428,9 +411,7 @@ class TestConsumerTransitivity:
 
         assert result is False
 
-    def test_composition_dispatch_inputs_short_circuits_on_seam_action(
-        self, tmp_path: Path
-    ) -> None:
+    def test_composition_dispatch_inputs_short_circuits_on_seam_action(self, tmp_path: Path) -> None:
         from runtime.next.runtime_bridge_composition import (
             _composition_dispatch_inputs,
         )
@@ -451,22 +432,15 @@ class TestConsumerTransitivity:
         # ever touching run_dir (which does not exist on disk).
         assert result == (None, None)
 
-    def test_build_prompt_or_error_bypasses_prompt_builder_for_seam_action(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_build_prompt_or_error_bypasses_prompt_builder_for_seam_action(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """decision.py's composed-action fast path (:606) never reaches the
         file-based ``build_prompt`` for an action the seam recognises."""
         from runtime.next.decision import _build_prompt_or_error
 
         def _fail_if_called(**_kwargs: object) -> None:
-            raise AssertionError(
-                "build_prompt should not be called for a seam-recognised "
-                "composed action"
-            )
+            raise AssertionError("build_prompt should not be called for a seam-recognised composed action")
 
-        monkeypatch.setattr(
-            "runtime.next.prompt_builder.build_prompt", _fail_if_called
-        )
+        monkeypatch.setattr("runtime.next.prompt_builder.build_prompt", _fail_if_called)
 
         with patch(
             "charter.activation.mission_type_profiles.existing_mission_types",
@@ -510,9 +484,7 @@ class TestExtendsFallbackInert:
         assert mission.extends is None
 
     @pytest.mark.parametrize("mission_type_id", _BUILTIN_TYPE_IDS)
-    def test_builtin_type_action_sequence_is_authored_not_inherited(
-        self, mission_type_id: str
-    ) -> None:
+    def test_builtin_type_action_sequence_is_authored_not_inherited(self, mission_type_id: str) -> None:
         """Every built-in type's action_sequence comes from its own (projected)
         value, never from a parent via ``extends`` (there is no parent)."""
         mission = MissionTypeRepository.default().get(mission_type_id)
@@ -550,9 +522,7 @@ class TestMemoizedDefaultNoHotPathIO:
             return original(self, mission_type_id, pack_context)
 
         try:
-            with patch.object(
-                MissionStepRepository, "resolve_all_for_mission_type", _spy
-            ):
+            with patch.object(MissionStepRepository, "resolve_all_for_mission_type", _spy):
                 MissionTypeRepository.default()
                 MissionTypeRepository.default()
                 MissionTypeRepository.default()

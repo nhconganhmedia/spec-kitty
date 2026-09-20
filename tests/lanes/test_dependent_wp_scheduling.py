@@ -115,9 +115,7 @@ class TestDependentWpScheduler:
                 assert wp_to_lane[dep] in lanes_by_id[wp_to_lane[wp_id]].depends_on_lanes
 
         # And the two independent chains should still fan out.
-        assert wp_to_lane["WPa"] != wp_to_lane["WPc"], (
-            "Two independent chains should land in different lanes."
-        )
+        assert wp_to_lane["WPa"] != wp_to_lane["WPc"], "Two independent chains should land in different lanes."
 
     def test_planner_rejects_orphan_executable_wp(self):
         """A code WP with no ownership manifest must hard-fail rather than land

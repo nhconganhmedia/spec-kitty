@@ -60,6 +60,7 @@ def _bypass_charter_preflight(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda *_args, **_kwargs: result,
     )
 
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -509,9 +510,7 @@ class TestNextCommandKnownBlockedMissions:
         decision = decide_next("test-agent", "043-plan-feature", "success", repo_root)
         assert decision.kind in (DecisionKind.step, DecisionKind.blocked)
         if decision.kind == DecisionKind.step:
-            assert decision.prompt_file, (
-                "kind='step' must carry a real prompt_file (C1)"
-            )
+            assert decision.prompt_file, "kind='step' must carry a real prompt_file (C1)"
         assert decision.action is not None
 
     def test_documentation_mission_should_return_runnable_step_when_mapped(self, tmp_path: Path) -> None:
@@ -528,9 +527,7 @@ class TestNextCommandKnownBlockedMissions:
         decision = decide_next("test-agent", "044-docs-feature", "success", repo_root)
         assert decision.kind in (DecisionKind.step, DecisionKind.blocked)
         if decision.kind == DecisionKind.step:
-            assert decision.prompt_file, (
-                "kind='step' must carry a real prompt_file (C1)"
-            )
+            assert decision.prompt_file, "kind='step' must carry a real prompt_file (C1)"
         assert decision.action is not None
 
     def test_missing_canonical_status_during_wp_iteration_returns_structured_decision(self, tmp_path: Path) -> None:
@@ -968,9 +965,7 @@ class TestNextCommandAnswerJSON:
         assert data["answer"] == "yes"
         assert data["kind"] in {"step", "terminal", "blocked", "decision_required"}
         if data["kind"] == "step":
-            assert data.get("prompt_file"), (
-                "kind='step' must carry a real prompt_file (C1)"
-            )
+            assert data.get("prompt_file"), "kind='step' must carry a real prompt_file (C1)"
 
     def test_answer_json_never_emits_two_objects(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Regression: stdout must be exactly one JSON document, no trailing object."""
@@ -1084,8 +1079,7 @@ class TestAtomicTaskTransitions:
         tasks_dir = feature_dir / "tasks"
         tasks_dir.mkdir(exist_ok=True)
         (tasks_dir / "WP01.md").write_text(
-            "---\nwork_package_id: WP01\nlane: done\ndependencies: []\n"
-            "requirement_refs: [FR-001]\ntitle: WP01\n---\n# WP01\n",
+            "---\nwork_package_id: WP01\nlane: done\ndependencies: []\nrequirement_refs: [FR-001]\ntitle: WP01\n---\n# WP01\n",
             encoding="utf-8",
         )
         # Seed event log so runtime bridge reads WP01 as done

@@ -29,6 +29,7 @@ primary checkout. WP07 routes ``read_dir`` through the EXISTING, already-hardene
 substitution with the EXISTING typed ``CoordinationBranchDeleted`` exception — no
 new exception type needed.
 """
+
 from __future__ import annotations
 
 import json
@@ -73,9 +74,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "user.name", "Test")
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
-    (r / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (r / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return r
 
 
@@ -125,9 +124,7 @@ def _build_mission_materialized(repo_root: Path) -> tuple[Path, Path]:
     _git(repo_root, "branch", _COORD_BRANCH)
     coord_dir = coord_feature_dir(repo_root, _MISSION_SLUG, _MID8)
     coord_dir.mkdir(parents=True)
-    (coord_dir / "meta.json").write_text(
-        (feature_dir / "meta.json").read_text(encoding="utf-8"), encoding="utf-8"
-    )
+    (coord_dir / "meta.json").write_text((feature_dir / "meta.json").read_text(encoding="utf-8"), encoding="utf-8")
     return feature_dir, coord_dir
 
 
@@ -386,8 +383,7 @@ def test_retrospective_generator_reads_traces_from_materialized_coord_surface(
 
     summaries = [f.summary for f in record.helped]
     assert any("Coord-only tracer read" in s for s in summaries), (
-        f"tracer finding not present -- traces/ was not read from the coord "
-        f"surface (helped={summaries!r})"
+        f"tracer finding not present -- traces/ was not read from the coord surface (helped={summaries!r})"
     )
 
 
@@ -411,9 +407,7 @@ def test_retrospective_generator_reads_traces_from_materialized_coord_surface(
 # ---------------------------------------------------------------------------
 
 
-def test_mission_context_for_owned_checkout_flat_topology_resolves_primary(
-    repo: Path, tmp_path: Path
-) -> None:
+def test_mission_context_for_owned_checkout_flat_topology_resolves_primary(repo: Path, tmp_path: Path) -> None:
     """Owned checkout, coord-less topology: every artifact resolves off the
     validated owned checkout's own primary dir (FR-004/FR-005 owned branches:
     ``_resolve_status_surface_dir``'s ``not routes_through_coordination(...)``
@@ -430,9 +424,7 @@ def test_mission_context_for_owned_checkout_flat_topology_resolves_primary(
     assert status_artifact.write_dir == feature_dir
 
 
-def test_mission_context_for_owned_checkout_materialized_coord_resolves_coord_dir(
-    repo: Path, tmp_path: Path
-) -> None:
+def test_mission_context_for_owned_checkout_materialized_coord_resolves_coord_dir(repo: Path, tmp_path: Path) -> None:
     """Owned checkout, materialized coord surface: resolves the coord dir
     (the ``CoordState.MATERIALIZED`` -> ``return coord_dir`` owned tail)."""
     _feature_dir, coord_dir = _build_mission_materialized(repo)
@@ -445,9 +437,7 @@ def test_mission_context_for_owned_checkout_materialized_coord_resolves_coord_di
     assert status_artifact.read_dir == coord_dir
 
 
-def test_mission_context_for_owned_checkout_empty_coord_root_falls_back_to_primary(
-    repo: Path, tmp_path: Path
-) -> None:
+def test_mission_context_for_owned_checkout_empty_coord_root_falls_back_to_primary(repo: Path, tmp_path: Path) -> None:
     """Owned checkout, coord root materialized but this mission's subdir is
     not (``CoordState.EMPTY``): the owned branch degrades to the primary dir,
     never raises (FR-006 fail-closed is reserved for DELETED, not EMPTY)."""
@@ -460,9 +450,7 @@ def test_mission_context_for_owned_checkout_empty_coord_root_falls_back_to_prima
     assert status_artifact.read_dir == feature_dir
 
 
-def test_mission_context_for_owned_checkout_deleted_branch_fails_loud(
-    repo: Path, tmp_path: Path
-) -> None:
+def test_mission_context_for_owned_checkout_deleted_branch_fails_loud(repo: Path, tmp_path: Path) -> None:
     """Owned checkout, declared coordination branch deleted from git
     (``CoordState.DELETED``): fails loud with ``CoordinationBranchDeleted``
     instead of silently substituting the primary checkout (#1889/#1848)."""

@@ -325,9 +325,7 @@ def _merge_checkout_disagreements(
     from .models import Severity
 
     mission_slug = next(iter(allowed_dirs)).name if allowed_dirs else None
-    disagreements = audit_invocation_disagreement(
-        invoking_cwd, resolved_root, mission=mission_slug
-    )
+    disagreements = audit_invocation_disagreement(invoking_cwd, resolved_root, mission=mission_slug)
     if not disagreements:
         return
 
@@ -441,9 +439,7 @@ def _build_report(mission_results: list[MissionAuditResult]) -> RepoAuditReport:
           by ``RepoAuditReport.to_dict()``)
         - ``repo_summary`` with counts and severity breakdown
     """
-    counter: Counter[str] = Counter(
-        f.code for r in mission_results for f in r.findings
-    )
+    counter: Counter[str] = Counter(f.code for r in mission_results for f in r.findings)
 
     severity_counts: dict[str, int] = {"error": 0, "warning": 0, "info": 0}
     teamspace_blocker_count = 0
@@ -457,9 +453,7 @@ def _build_report(mission_results: list[MissionAuditResult]) -> RepoAuditReport:
         "total_missions": len(mission_results),
         "missions_with_errors": sum(1 for r in mission_results if r.has_errors),
         "missions_with_warnings": sum(1 for r in mission_results if r.has_warnings),
-        "missions_with_teamspace_blockers": sum(
-            1 for r in mission_results if r.has_teamspace_blockers
-        ),
+        "missions_with_teamspace_blockers": sum(1 for r in mission_results if r.has_teamspace_blockers),
         "total_findings": sum(len(r.findings) for r in mission_results),
         "teamspace_blockers": teamspace_blocker_count,
         "findings_by_severity": severity_counts,
@@ -505,17 +499,13 @@ def run_audit(options: AuditOptions) -> RepoAuditReport:
     identity_index: dict[str, Any] = {s.slug: s for s in identity_states}
 
     # Mission filter: resolve handle → allowed_dirs set (may raise on bad handle)
-    allowed_dirs = _resolve_mission_filter(
-        options.mission_filter, options.repo_root, scan_root
-    )
+    allowed_dirs = _resolve_mission_filter(options.mission_filter, options.repo_root, scan_root)
 
     # Per-mission classification
     mission_results = _scan_missions(scan_root, allowed_dirs, identity_index)
 
     # Repo-level findings with explicit slug attribution
-    attributed = _compute_repo_findings_by_slug(
-        options.repo_root, identity_states, mission_results
-    )
+    attributed = _compute_repo_findings_by_slug(options.repo_root, identity_states, mission_results)
 
     # Merge attributed repo-level findings into per-mission results
     if attributed:
@@ -528,9 +518,7 @@ def run_audit(options: AuditOptions) -> RepoAuditReport:
     # Invoking-checkout-vs-primary disagreement (no-op unless invoking_cwd
     # is set and really is a linked worktree of repo_root).
     if options.invoking_cwd is not None:
-        _merge_checkout_disagreements(
-            mission_results, options.repo_root, options.invoking_cwd, allowed_dirs
-        )
+        _merge_checkout_disagreements(mission_results, options.repo_root, options.invoking_cwd, allowed_dirs)
 
     # Build and return the final report
     return _build_report(mission_results)

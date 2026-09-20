@@ -47,9 +47,7 @@ _MINIMAL_CHARTER_YAML = "schema_version: '2.0.0'\ngovernance: {}\ndirectives: {}
 # compute_bundle_content_hash recipe over this fixed single-file content. If
 # this WP ever touches the hashing recipe (it must not), this assertion goes
 # red.
-_COMPLETE_BUNDLE_PINNED_HASH = (
-    "sha256:428280f0c3aaa4ba18a9c2ac0d45f611a742add2e7f6c3171767ac6a240c1cf8"
-)
+_COMPLETE_BUNDLE_PINNED_HASH = "sha256:428280f0c3aaa4ba18a9c2ac0d45f611a742add2e7f6c3171767ac6a240c1cf8"
 
 
 def _seed_charter_md_only(repo_root: Path) -> Path:

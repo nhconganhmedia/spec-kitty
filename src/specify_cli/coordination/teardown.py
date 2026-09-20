@@ -95,9 +95,7 @@ def _persist_retrospective(
     )
 
 
-def _destroy_coordination_worktree(
-    repo_root: Path, mission_slug: str, mid8: str
-) -> bool:
+def _destroy_coordination_worktree(repo_root: Path, mission_slug: str, mid8: str) -> bool:
     """Destroy the coordination worktree (best-effort). Returns ``True`` on success.
 
     Wraps ``CoordinationWorkspace.teardown`` in the best-effort ``except

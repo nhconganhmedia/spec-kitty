@@ -31,7 +31,7 @@ from ruamel.yaml import YAML
 from charter.offering.artifact_kinds import ArtifactKind
 from charter.offering.drg.migration.extractor import graph_document_to_dict, model_to_graph_dict
 from charter.offering.drg.models import DRGEdge, DRGGraph, DRGNode, NodeKind, Relation
-from charter.offering.drg.project_scan import (walk_project_agent_profile_nodes, scan_project_artifacts, project_reference_edges, ProjectArtifact)
+from charter.offering.drg.project_scan import walk_project_agent_profile_nodes, scan_project_artifacts, project_reference_edges, ProjectArtifact
 
 from charter.activation.synthesizer._constants import GRAPH_FILENAME as _GRAPH_FILENAME
 from kernel.clock import now_utc_seconds
@@ -181,15 +181,12 @@ def _append_project_profile_nodes(
                     f"hand-authored project profile must carry a new URN disjoint "
                     f"from built-in nodes.",
                 ),
-                merged_graph_summary=(
-                    f"built_in_nodes={built_in_node_count}, colliding_urn={urn!r}"
-                ),
+                merged_graph_summary=(f"built_in_nodes={built_in_node_count}, colliding_urn={urn!r}"),
             )
         if urn in seen_urns:
             continue  # INV-2 overlay dedupe: emit each agent_profile:<id> once.
         seen_urns.add(urn)
         nodes.append(node)
-
 
 
 def _registered_project_artifacts(project_root: Path) -> tuple[ProjectArtifact, ...]:
@@ -202,9 +199,9 @@ def _registered_project_artifacts(project_root: Path) -> tuple[ProjectArtifact, 
         return ()
     manifest = load_manifest(manifest_path)
     paths = frozenset(
-        project_root / entry.path for entry in manifest.artifacts
-        if (project_root / entry.provenance_path).exists()
-        and load_provenance(project_root / entry.provenance_path).adapter_id == "project-direct-write"
+        project_root / entry.path
+        for entry in manifest.artifacts
+        if (project_root / entry.provenance_path).exists() and load_provenance(project_root / entry.provenance_path).adapter_id == "project-direct-write"
     )
     return scan_project_artifacts(project_root, paths=paths)
 
@@ -287,9 +284,7 @@ def emit_project_layer(
 
     # Build indexes for additive-only checks.
     built_in_node_urns: frozenset[str] = frozenset(n.urn for n in built_in_drg.nodes)
-    built_in_edge_triples: frozenset[tuple[str, str, str]] = frozenset(
-        (e.source, e.target, e.relation.value) for e in built_in_drg.edges
-    )
+    built_in_edge_triples: frozenset[tuple[str, str, str]] = frozenset((e.source, e.target, e.relation.value) for e in built_in_drg.edges)
 
     nodes: list[DRGNode] = []
     edges: list[DRGEdge] = []
@@ -313,22 +308,14 @@ def emit_project_layer(
                     f"already exists in the built-in DRG layer.  Synthesized "
                     f"artifacts must carry new URNs disjoint from built-in nodes.",
                 ),
-                merged_graph_summary=(
-                    f"built_in_nodes={len(built_in_drg.nodes)}, "
-                    f"colliding_urn={urn!r}"
-                ),
+                merged_graph_summary=(f"built_in_nodes={len(built_in_drg.nodes)}, colliding_urn={urn!r}"),
             )
 
         # Overlay-internal duplicate guard.
         if urn in seen_urns:
             raise ProjectDRGValidationError(
-                errors=(
-                    f"Duplicate project-layer URN '{urn}': each target must "
-                    f"produce a distinct URN within one synthesis run.",
-                ),
-                merged_graph_summary=(
-                    f"colliding_urn={urn!r}"
-                ),
+                errors=(f"Duplicate project-layer URN '{urn}': each target must produce a distinct URN within one synthesis run.",),
+                merged_graph_summary=(f"colliding_urn={urn!r}"),
             )
         seen_urns.add(urn)
 
@@ -342,23 +329,14 @@ def emit_project_layer(
         # Derive edges from source_urns: project node *derived_from* (or
         # *requires* for directives) the upstream built-in/project URN.
         for source_urn in target.source_urns:
-            relation = (
-                Relation.REQUIRES if target.kind == "directive"
-                else Relation.APPLIES
-            )
+            relation = Relation.REQUIRES if target.kind == "directive" else Relation.APPLIES
             triple = (urn, source_urn, relation.value)
 
             # FR-020: reject edges whose triple already exists in built-in.
             if triple in built_in_edge_triples:
                 raise ProjectDRGValidationError(
-                    errors=(
-                        f"Duplicate edge (FR-020 / EC-6): triple "
-                        f"({urn!r} --{relation.value}--> {source_urn!r}) "
-                        f"already exists in the built-in DRG layer.",
-                    ),
-                    merged_graph_summary=(
-                        f"colliding_edge=({urn} --{relation.value}--> {source_urn})"
-                    ),
+                    errors=(f"Duplicate edge (FR-020 / EC-6): triple ({urn!r} --{relation.value}--> {source_urn!r}) already exists in the built-in DRG layer.",),
+                    merged_graph_summary=(f"colliding_edge=({urn} --{relation.value}--> {source_urn})"),
                 )
 
             edge = DRGEdge(
@@ -396,7 +374,6 @@ def emit_project_layer(
             logging.getLogger(__name__).warning("%s", warning)
         if warnings_out is not None:
             warnings_out.extend(warnings)
-
 
     return DRGGraph(
         schema_version="1.0",
@@ -468,9 +445,7 @@ def apply_post_condition(
     desired_built_in_only = not has_project_graph
 
     # Fast path: nothing to mutate.
-    if manifest.built_in_only == desired_built_in_only and not (
-        desired_built_in_only and graph_path.exists()
-    ):
+    if manifest.built_in_only == desired_built_in_only and not (desired_built_in_only and graph_path.exists()):
         return
 
     # Build the post-condition manifest (immutable Pydantic model -> copy).
@@ -481,9 +456,7 @@ def apply_post_condition(
     # "preserves unchanged via model_copy"; the reader short-circuits on
     # built_in_only before the hash comparison, so recomputing would be dead
     # work).
-    new_manifest = finalize_manifest(
-        manifest.model_copy(update={"built_in_only": desired_built_in_only})
-    )
+    new_manifest = finalize_manifest(manifest.model_copy(update={"built_in_only": desired_built_in_only}))
 
     # All writes go through PathGuard (R-10). The tmp file is a sibling of
     # ``manifest_path`` (same ``.kittify/charter/`` directory, which is in

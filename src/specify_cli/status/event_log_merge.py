@@ -21,18 +21,12 @@ def read_event_log_text(text: str, *, source: str = "<memory>") -> list[dict[str
         try:
             payload = json.loads(stripped)
         except json.JSONDecodeError as exc:
-            raise EventLogMergeError(
-                f"{source}: invalid JSON on line {line_number}: {exc}"
-            ) from exc
+            raise EventLogMergeError(f"{source}: invalid JSON on line {line_number}: {exc}") from exc
         if not isinstance(payload, dict):
-            raise EventLogMergeError(
-                f"{source}: line {line_number} is not a JSON object"
-            )
+            raise EventLogMergeError(f"{source}: line {line_number} is not a JSON object")
         event_id = payload.get("event_id")
         if not isinstance(event_id, str) or not event_id.strip():
-            raise EventLogMergeError(
-                f"{source}: line {line_number} is missing a valid event_id"
-            )
+            raise EventLogMergeError(f"{source}: line {line_number} is missing a valid event_id")
         # Non-status event types (e.g. tracker events) may lack 'at' or
         # 'timestamp'; accept them and sort them first via empty-string key.
         events.append(payload)
@@ -54,9 +48,7 @@ def merge_event_payloads(*event_groups: list[dict[str, Any]]) -> list[dict[str, 
             event_id = event["event_id"]
             existing = merged.get(event_id)
             if existing is not None and existing != event:
-                raise EventLogMergeError(
-                    f"Conflicting payloads found for event_id {event_id!r}"
-                )
+                raise EventLogMergeError(f"Conflicting payloads found for event_id {event_id!r}")
             merged[event_id] = event
 
     return sorted(
@@ -70,12 +62,7 @@ def merge_event_payloads(*event_groups: list[dict[str, Any]]) -> list[dict[str, 
 
 def merge_event_log_texts(*texts: str) -> str:
     """Union JSONL event-log texts and serialize deterministic JSONL."""
-    merged = merge_event_payloads(
-        *[
-            read_event_log_text(text, source=f"<merge-stage-{idx}>")
-            for idx, text in enumerate(texts, start=1)
-        ]
-    )
+    merged = merge_event_payloads(*[read_event_log_text(text, source=f"<merge-stage-{idx}>") for idx, text in enumerate(texts, start=1)])
     return "".join(json.dumps(event, sort_keys=True) + "\n" for event in merged)
 
 

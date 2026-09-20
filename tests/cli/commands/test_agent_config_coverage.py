@@ -53,6 +53,7 @@ def _patch_repo_and_config(tmp_path: Path, config: AgentConfig):
 # Bucket B — Filesystem I/O helpers
 # ---------------------------------------------------------------------------
 
+
 class TestDisplayPath:
     def test_returns_tilde_form_for_path_under_home(self) -> None:
         """Arrange: path under home; Act: display; Assert: ~ prefix in result."""
@@ -102,6 +103,7 @@ class TestRemoveProjectAgentSurface:
 # ---------------------------------------------------------------------------
 # Bucket A — CLI orchestration (list / add / remove / status)
 # ---------------------------------------------------------------------------
+
 
 class TestListCommand:
     def test_list_exits_zero_and_shows_configured_agents(self, tmp_path: Path) -> None:
@@ -157,8 +159,7 @@ class TestAddCommand:
         config = _mock_config(available=["claude"])
 
         patches = _patch_repo_and_config(tmp_path, config)
-        with patches[0], patches[1], \
-             patch("specify_cli.cli.commands.agent.config.save_agent_config"):
+        with patches[0], patches[1], patch("specify_cli.cli.commands.agent.config.save_agent_config"):
             result = runner.invoke(app, ["add", "claude"])
 
         assert result.exit_code == 0
@@ -182,8 +183,7 @@ class TestRemoveCommand:
         config = _mock_config(available=["claude"])
 
         patches = _patch_repo_and_config(tmp_path, config)
-        with patches[0], patches[1], \
-             patch("specify_cli.cli.commands.agent.config.save_agent_config"):
+        with patches[0], patches[1], patch("specify_cli.cli.commands.agent.config.save_agent_config"):
             result = runner.invoke(app, ["remove", "claude"])
 
         # Should exit 0 even if directory didn't exist (removed from config is the key behavior)

@@ -83,7 +83,10 @@ def test_refused_is_frozen() -> None:
 def test_allowed_and_refused_discriminate_via_isinstance() -> None:
     a: PolicyVerdict = Allowed()
     r: PolicyVerdict = Refused(
-        error_code="X", message="m", destination_ref="b", next_step="n",
+        error_code="X",
+        message="m",
+        destination_ref="b",
+        next_step="n",
     )
     assert isinstance(a, Allowed)
     assert not isinstance(a, Refused)

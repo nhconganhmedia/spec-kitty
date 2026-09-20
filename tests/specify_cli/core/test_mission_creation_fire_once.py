@@ -50,19 +50,11 @@ def _init_repo(repo: Path) -> None:
     # WP04 fail-closed (C-A1): create_mission_core requires a non-empty
     # activated mission-type set for the default software-dev resolution
     # exercised throughout this file.
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "init", "--allow-empty"], cwd=repo, capture_output=True, check=True
-    )
+    subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "init", "--allow-empty"], cwd=repo, capture_output=True, check=True)
 
 
 def _mission_summary(slug: str) -> dict[str, str]:
@@ -70,10 +62,7 @@ def _mission_summary(slug: str) -> dict[str, str]:
     return {
         "friendly_name": title,
         "purpose_tldr": f"Deliver {title} cleanly for the team.",
-        "purpose_context": (
-            f"This mission delivers {title} so product and engineering can move "
-            "forward with a clear outcome and shared understanding."
-        ),
+        "purpose_context": (f"This mission delivers {title} so product and engineering can move forward with a clear outcome and shared understanding."),
     }
 
 
@@ -110,9 +99,7 @@ def _isolated_adapter_registry() -> Iterator[_RegistryFixture]:
         status_adapters.reset_handlers()
 
 
-def test_mission_created_fanout_fires_exactly_once(
-    tmp_path: Path, _isolated_adapter_registry: _RegistryFixture
-) -> None:
+def test_mission_created_fanout_fires_exactly_once(tmp_path: Path, _isolated_adapter_registry: _RegistryFixture) -> None:
     """One mission creation => exactly one MissionCreated event + one fan-out."""
     lifecycle_events = _isolated_adapter_registry
     _init_repo(tmp_path)
@@ -130,25 +117,16 @@ def test_mission_created_fanout_fires_exactly_once(
     # No drop / no double-write: exactly one MissionCreated row on the canonical log.
     rows = _read_jsonl(result.feature_dir / "status.events.jsonl")
     mission_created_rows = [r for r in rows if r.get("event_type") == "MissionCreated"]
-    assert len(mission_created_rows) == 1, (
-        f"Expected exactly one MissionCreated row, got {len(mission_created_rows)}: "
-        f"{[r.get('event_type') for r in rows]}"
-    )
+    assert len(mission_created_rows) == 1, f"Expected exactly one MissionCreated row, got {len(mission_created_rows)}: {[r.get('event_type') for r in rows]}"
 
     # Daemon/SaaS lifecycle publish fires exactly once for MissionCreated.
-    mission_created_fanouts = [
-        e for e in lifecycle_events if e.get("event_type") == "MissionCreated"
-    ]
+    mission_created_fanouts = [e for e in lifecycle_events if e.get("event_type") == "MissionCreated"]
     assert len(mission_created_fanouts) == 1, (
-        f"Lifecycle SaaS fan-out must fire exactly once for MissionCreated; "
-        f"got {len(mission_created_fanouts)}: "
-        f"{[e.get('event_type') for e in lifecycle_events]}"
+        f"Lifecycle SaaS fan-out must fire exactly once for MissionCreated; got {len(mission_created_fanouts)}: {[e.get('event_type') for e in lifecycle_events]}"
     )
 
 
-def test_mission_created_resume_does_not_double_fire(
-    tmp_path: Path, _isolated_adapter_registry: _RegistryFixture
-) -> None:
+def test_mission_created_resume_does_not_double_fire(tmp_path: Path, _isolated_adapter_registry: _RegistryFixture) -> None:
     """Re-running create_mission_core (resume) must not duplicate the MissionCreated publish.
 
     ``append_lifecycle_event`` dedupes MissionCreated on ``mission_slug``, so the
@@ -187,14 +165,7 @@ def test_mission_created_resume_does_not_double_fire(
 
     rows = _read_jsonl(first.feature_dir / "status.events.jsonl")
     mission_created_rows = [r for r in rows if r.get("event_type") == "MissionCreated"]
-    assert len(mission_created_rows) == 1, (
-        f"Resume must not duplicate MissionCreated; got {len(mission_created_rows)} rows"
-    )
+    assert len(mission_created_rows) == 1, f"Resume must not duplicate MissionCreated; got {len(mission_created_rows)} rows"
 
-    mission_created_fanouts = [
-        e for e in lifecycle_events if e.get("event_type") == "MissionCreated"
-    ]
-    assert len(mission_created_fanouts) == 1, (
-        f"Resume must not re-fire the MissionCreated lifecycle publish; "
-        f"got {len(mission_created_fanouts)}"
-    )
+    mission_created_fanouts = [e for e in lifecycle_events if e.get("event_type") == "MissionCreated"]
+    assert len(mission_created_fanouts) == 1, f"Resume must not re-fire the MissionCreated lifecycle publish; got {len(mission_created_fanouts)}"

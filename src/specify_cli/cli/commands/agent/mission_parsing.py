@@ -28,7 +28,6 @@ from kernel.clock import now_utc_stamp
 from kernel.paths import to_posix
 
 
-
 # ---------------------------------------------------------------------------
 # WP-id / parsing helpers
 # ---------------------------------------------------------------------------
@@ -271,10 +270,7 @@ def _is_confined_planning_wp(metadata: WPMetadata) -> bool:
     """
     if str(metadata.execution_mode) != WorkProductKind.PLANNING_ARTIFACT.value:
         return False
-    return all(
-        _normalize_owned_file_path(owned_file).startswith(_PLANNING_PREFIXES)
-        for owned_file in metadata.owned_files
-    )
+    return all(_normalize_owned_file_path(owned_file).startswith(_PLANNING_PREFIXES) for owned_file in metadata.owned_files)
 
 
 def _invalid_mission_specs_owned_files(

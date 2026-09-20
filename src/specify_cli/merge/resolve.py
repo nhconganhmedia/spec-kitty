@@ -61,9 +61,7 @@ def _resolve_mission_slug(repo_root: Path, mission_slug: str | None) -> str | No
         from specify_cli.missions._read_path_resolver import StatusReadPathNotFound
 
         try:
-            candidate: Path = placement_seam(
-                get_main_repo_root(repo_root), mission_slug
-            ).read_dir(MissionArtifactKind.PRIMARY_METADATA)
+            candidate: Path = placement_seam(get_main_repo_root(repo_root), mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         except StatusReadPathNotFound:
             # Fail-closed coordination window (coord worktree root
             # materialized, mission dir absent): fall back to the raw handle —
@@ -114,9 +112,7 @@ def _merge_state_key_candidates(repo_root: Path, mission_slug: str | None) -> li
         # currently unreachable for this kind (PRIMARY_METADATA never raises
         # CoordinationBranchDeleted); it would become live again if the kind
         # this call resolves against ever changed.
-        feature_dir = placement_seam(
-            get_main_repo_root(repo_root), mission_slug
-        ).read_dir(MissionArtifactKind.PRIMARY_METADATA)
+        feature_dir = placement_seam(get_main_repo_root(repo_root), mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         if feature_dir.exists():
             identity = resolve_mission_identity(feature_dir)
             if identity.mission_id:
@@ -295,9 +291,7 @@ def _resolve_target_branch(
     """
     from specify_cli.core.paths import resolve_merge_target_branch
 
-    resolved: tuple[str, str | None] = resolve_merge_target_branch(
-        repo_root, mission_slug, explicit_target
-    )
+    resolved: tuple[str, str | None] = resolve_merge_target_branch(repo_root, mission_slug, explicit_target)
     return resolved
 
 

@@ -97,10 +97,7 @@ def test_doctor_py_source_never_hand_imports_the_provenance_sibling() -> None:
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "command":
             for keyword in node.keywords:
                 if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
-                    assert keyword.value.value != "provenance", (
-                        "doctor.py must not hand-write an @app.command(name='provenance') "
-                        "shell (discovery seam regression)"
-                    )
+                    assert keyword.value.value != "provenance", "doctor.py must not hand-write an @app.command(name='provenance') shell (discovery seam regression)"
 
 
 def test_register_is_idempotent_safe_to_call_directly() -> None:
@@ -156,9 +153,7 @@ class TestDoctorProvenanceCli:
         assert result.exit_code == 0, result.output
         assert "no absolute built-in-pack" in result.output.lower()
 
-    def test_human_output_with_leak_includes_heal_hint(
-        self, tmp_path: Path, packs_root: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_human_output_with_leak_includes_heal_hint(self, tmp_path: Path, packs_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         abs_source = packs_root / "built-in" / "paradigms" / "atomic-design.paradigm.yaml"
         refs = (
             "  - id: PARADIGM:atomic-design\n"

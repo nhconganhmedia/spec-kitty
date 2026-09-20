@@ -42,10 +42,5 @@ def test_read_path_resolver_is_mypy_clean() -> None:
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, (
-        "mypy failed on _read_path_resolver.py.\n"
-        "stdout:\n" + result.stdout + "\nstderr:\n" + result.stderr
-    )
-    assert "redundant-cast" not in result.stdout, (
-        "A redundant-cast error resurfaced in _read_path_resolver.py:\n" + result.stdout
-    )
+    assert result.returncode == 0, "mypy failed on _read_path_resolver.py.\nstdout:\n" + result.stdout + "\nstderr:\n" + result.stderr
+    assert "redundant-cast" not in result.stdout, "A redundant-cast error resurfaced in _read_path_resolver.py:\n" + result.stdout

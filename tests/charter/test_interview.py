@@ -242,9 +242,7 @@ def test_load_existing_answers_valid_mapping_returned(tmp_path: Path) -> None:
 def test_prefill_answer_defaults_sets_missing_keys_only() -> None:
     """Only keys absent from ``existing`` are set; present keys are preserved."""
     existing: dict[str, object] = {"project_intent": "already set"}
-    prefilled = _prefill_answer_defaults(
-        existing, {"project_intent": "should not overwrite", "quality_gates": "ci must pass"}
-    )
+    prefilled = _prefill_answer_defaults(existing, {"project_intent": "should not overwrite", "quality_gates": "ci must pass"})
     assert prefilled == 1
     assert existing["project_intent"] == "already set"
     assert existing["quality_gates"] == "ci must pass"

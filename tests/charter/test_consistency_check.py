@@ -171,10 +171,7 @@ def test_unknown_reference_detected(tmp_path: Path) -> None:
     )
     report = run_consistency_check(ctx)
 
-    assert any(fake_id in ref for ref in report.unknown_references), (
-        f"Expected '{fake_id}' in unknown_references but got: "
-        f"{report.unknown_references}"
-    )
+    assert any(fake_id in ref for ref in report.unknown_references), f"Expected '{fake_id}' in unknown_references but got: {report.unknown_references}"
     assert report.coherent is False
 
 
@@ -183,11 +180,7 @@ def test_duplicate_activation_entry_detected(tmp_path: Path) -> None:
     """Duplicate YAML entries must not be hidden by frozenset conversion."""
     ctx = _ctx_with_config(
         tmp_path,
-        (
-            "activated_directives:\n"
-            f"  - {_REAL_DIRECTIVE_ID}\n"
-            f"  - {_REAL_DIRECTIVE_ID}\n"
-        ),
+        (f"activated_directives:\n  - {_REAL_DIRECTIVE_ID}\n  - {_REAL_DIRECTIVE_ID}\n"),
     )
     report = run_consistency_check(ctx)
 
@@ -205,10 +198,7 @@ def test_suggestion_contains_resolution_command(tmp_path: Path) -> None:
     )
     report = run_consistency_check(ctx)
 
-    assert any("charter deactivate" in s for s in report.suggestions), (
-        f"Expected a suggestion containing 'charter deactivate' but got: "
-        f"{report.suggestions}"
-    )
+    assert any("charter deactivate" in s for s in report.suggestions), f"Expected a suggestion containing 'charter deactivate' but got: {report.suggestions}"
 
 
 @pytest.mark.doctrine
@@ -222,11 +212,8 @@ def test_none_kind_skipped(tmp_path: Path) -> None:
     ctx = _ctx_with_config(tmp_path, "# no activation keys\n")
     report = run_consistency_check(ctx)
 
-    assert not any(
-        ref.startswith("directive/") for ref in report.unknown_references
-    ), (
-        f"Expected no directive/ unknown_references but got: "
-        f"{report.unknown_references}"
+    assert not any(ref.startswith("directive/") for ref in report.unknown_references), (
+        f"Expected no directive/ unknown_references but got: {report.unknown_references}"
     )
 
 
@@ -310,10 +297,7 @@ def test_run_consistency_check_completes_within_budget(tmp_path: Path) -> None:
     run_consistency_check(ctx)
     elapsed = time.perf_counter() - start
 
-    assert elapsed < 3.0, (
-        f"consistency check took {elapsed:.2f}s (limit: 3s; nominal ~1.2s, "
-        "serial timing gate)"
-    )
+    assert elapsed < 3.0, f"consistency check took {elapsed:.2f}s (limit: 3s; nominal ~1.2s, serial timing gate)"
 
 
 # ---------------------------------------------------------------------------
@@ -323,9 +307,7 @@ def test_run_consistency_check_completes_within_budget(tmp_path: Path) -> None:
 
 
 @pytest.mark.doctrine
-def test_run_consistency_check_loads_drg_and_builds_doctrine_service_once_implicit_all_active(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_consistency_check_loads_drg_and_builds_doctrine_service_once_implicit_all_active(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T009/T011: in the implicit-all-active branch, the three DRG-backed
     gates are the ONLY ``load_validated_graph``/``_build_doctrine_service``
     callers in the whole ``run_consistency_check`` call (the parity/kind
@@ -347,22 +329,16 @@ def test_run_consistency_check_loads_drg_and_builds_doctrine_service_once_implic
         return real_build(*args, **kwargs)  # type: ignore[arg-type]
 
     monkeypatch.setattr(drg_helpers, "load_validated_graph", _counting_load)
-    monkeypatch.setattr(
-        doctrine_service_builder, "_build_doctrine_service", _counting_build
-    )
+    monkeypatch.setattr(doctrine_service_builder, "_build_doctrine_service", _counting_build)
 
     ctx = _ctx_with_config_no_activation_keys(tmp_path, "# minimal valid project\n")
     report = run_consistency_check(ctx)
 
     assert call_counts["load"] == 1, (
-        f"Expected load_validated_graph to run exactly once (shared across "
-        f"the tension/lattice/decision-documentation gates), got "
-        f"{call_counts['load']}"
+        f"Expected load_validated_graph to run exactly once (shared across the tension/lattice/decision-documentation gates), got {call_counts['load']}"
     )
     assert call_counts["build"] == 1, (
-        f"Expected _build_doctrine_service to run exactly once (shared "
-        f"between the lattice and decision-documentation gates), got "
-        f"{call_counts['build']}"
+        f"Expected _build_doctrine_service to run exactly once (shared between the lattice and decision-documentation gates), got {call_counts['build']}"
     )
     assert report.coherent is True
     assert report.unreconciled_tensions == []
@@ -372,9 +348,7 @@ def test_run_consistency_check_loads_drg_and_builds_doctrine_service_once_implic
 
 
 @pytest.mark.doctrine
-def test_run_consistency_check_load_count_explicit_activation_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_consistency_check_load_count_explicit_activation_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T009/T011: in the explicit-activation branch, two OTHER (out-of-scope,
     unshared) gates -- ``_check_drg_cross_kind_refs`` and
     ``_check_graph_kind_parity`` -- also call ``load_validated_graph``
@@ -393,9 +367,7 @@ def test_run_consistency_check_load_count_explicit_activation_branch(
 
     monkeypatch.setattr(drg_helpers, "load_validated_graph", _counting_load)
 
-    ctx = _ctx_with_config(
-        tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_ID}\n"
-    )
+    ctx = _ctx_with_config(tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_ID}\n")
     report = run_consistency_check(ctx)
 
     assert call_counts["load"] == 3, (
@@ -407,9 +379,7 @@ def test_run_consistency_check_load_count_explicit_activation_branch(
 
 
 @pytest.mark.doctrine
-def test_run_consistency_check_loads_drg_once_even_on_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_consistency_check_loads_drg_once_even_on_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T009/T011: a DRG load failure is memoized -- exactly ONE physical load
     attempt even though all three DRG-backed gates need it, replayed as the
     same exception to each, so each still produces its own fail-closed
@@ -428,20 +398,14 @@ def test_run_consistency_check_loads_drg_once_even_on_failure(
     report = run_consistency_check(ctx)
 
     assert call_counts["load"] == 1, (
-        f"Expected exactly one load_validated_graph attempt even on failure "
-        f"(memoized across the three gates), got {call_counts['load']}"
+        f"Expected exactly one load_validated_graph attempt even on failure (memoized across the three gates), got {call_counts['load']}"
     )
     assert report.coherent is False
     assert len(report.verification_errors) == 3, report.verification_errors
     assert any("tension reconciliation" in e for e in report.verification_errors)
     assert any("enforcement lattice" in e for e in report.verification_errors)
-    assert any(
-        "decision-documentation-on-implement gate" in e
-        for e in report.verification_errors
-    )
-    assert all(
-        "simulated drg load failure" in e for e in report.verification_errors
-    )
+    assert any("decision-documentation-on-implement gate" in e for e in report.verification_errors)
+    assert all("simulated drg load failure" in e for e in report.verification_errors)
 
 
 # ---------------------------------------------------------------------------
@@ -479,16 +443,11 @@ def test_run_fail_closed_gate_fail_arm() -> None:
     def _boom() -> list[str]:
         raise ValueError("kaboom")
 
-    _run_fail_closed_gate(
-        _boom, target, verification_errors, suggestions, message_stem="widget check"
-    )
+    _run_fail_closed_gate(_boom, target, verification_errors, suggestions, message_stem="widget check")
 
     assert target == []
     assert verification_errors == ["drg: Could not verify widget check (ValueError: kaboom)."]
-    assert suggestions == [
-        "drg: Could not verify widget check (ValueError: kaboom). "
-        "Regenerate graph.yaml / run 'spec-kitty charter resynthesize' and retry."
-    ]
+    assert suggestions == ["drg: Could not verify widget check (ValueError: kaboom). Regenerate graph.yaml / run 'spec-kitty charter resynthesize' and retry."]
 
 
 # ---------------------------------------------------------------------------
@@ -497,9 +456,7 @@ def test_run_fail_closed_gate_fail_arm() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_check_unreconciled_tensions_pass_arm_extends_target(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_unreconciled_tensions_pass_arm_extends_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     finding = TensionFinding(pair=("directive:A", "directive:B"))
 
     monkeypatch.setattr(
@@ -513,18 +470,14 @@ def test_check_unreconciled_tensions_pass_arm_extends_target(
     verification_errors: list[str] = []
     suggestions: list[str] = []
 
-    _check_unreconciled_tensions(
-        ctx, unreconciled_tensions, verification_errors, suggestions
-    )
+    _check_unreconciled_tensions(ctx, unreconciled_tensions, verification_errors, suggestions)
 
     assert unreconciled_tensions == [finding]
     assert verification_errors == []
     assert suggestions == []
 
 
-def test_check_unreconciled_tensions_fail_arm_message_stem(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_unreconciled_tensions_fail_arm_message_stem(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def _boom(_ctx: ProjectContext) -> list[TensionFinding]:
         raise RuntimeError("boom-tensions")
 
@@ -535,23 +488,16 @@ def test_check_unreconciled_tensions_fail_arm_message_stem(
     verification_errors: list[str] = []
     suggestions: list[str] = []
 
-    _check_unreconciled_tensions(
-        ctx, unreconciled_tensions, verification_errors, suggestions
-    )
+    _check_unreconciled_tensions(ctx, unreconciled_tensions, verification_errors, suggestions)
 
     assert unreconciled_tensions == []
-    assert verification_errors == [
-        "drg: Could not verify tension reconciliation (RuntimeError: boom-tensions)."
-    ]
+    assert verification_errors == ["drg: Could not verify tension reconciliation (RuntimeError: boom-tensions)."]
     assert suggestions == [
-        "drg: Could not verify tension reconciliation (RuntimeError: boom-tensions). "
-        "Regenerate graph.yaml / run 'spec-kitty charter resynthesize' and retry."
+        "drg: Could not verify tension reconciliation (RuntimeError: boom-tensions). Regenerate graph.yaml / run 'spec-kitty charter resynthesize' and retry."
     ]
 
 
-def test_check_enforcement_lattice_pass_arm_extends_target(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_enforcement_lattice_pass_arm_extends_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         consistency_check,
         "scan_enforcement_lattice_violations",
@@ -563,47 +509,34 @@ def test_check_enforcement_lattice_pass_arm_extends_target(
     verification_errors: list[str] = []
     suggestions: list[str] = []
 
-    _check_enforcement_lattice(
-        ctx, enforcement_lattice_violations, verification_errors, suggestions
-    )
+    _check_enforcement_lattice(ctx, enforcement_lattice_violations, verification_errors, suggestions)
 
     assert enforcement_lattice_violations == ["violation-a"]
     assert verification_errors == []
     assert suggestions == []
 
 
-def test_check_enforcement_lattice_fail_arm_message_stem(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_enforcement_lattice_fail_arm_message_stem(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def _boom(_ctx: ProjectContext) -> list[str]:
         raise RuntimeError("boom-lattice")
 
-    monkeypatch.setattr(
-        consistency_check, "scan_enforcement_lattice_violations", _boom
-    )
+    monkeypatch.setattr(consistency_check, "scan_enforcement_lattice_violations", _boom)
 
     ctx = _ctx_with_config(tmp_path, "")
     enforcement_lattice_violations: list[str] = []
     verification_errors: list[str] = []
     suggestions: list[str] = []
 
-    _check_enforcement_lattice(
-        ctx, enforcement_lattice_violations, verification_errors, suggestions
-    )
+    _check_enforcement_lattice(ctx, enforcement_lattice_violations, verification_errors, suggestions)
 
     assert enforcement_lattice_violations == []
-    assert verification_errors == [
-        "drg: Could not verify enforcement lattice (RuntimeError: boom-lattice)."
-    ]
+    assert verification_errors == ["drg: Could not verify enforcement lattice (RuntimeError: boom-lattice)."]
     assert suggestions == [
-        "drg: Could not verify enforcement lattice (RuntimeError: boom-lattice). "
-        "Regenerate graph.yaml / run 'spec-kitty charter resynthesize' and retry."
+        "drg: Could not verify enforcement lattice (RuntimeError: boom-lattice). Regenerate graph.yaml / run 'spec-kitty charter resynthesize' and retry."
     ]
 
 
-def test_check_decision_documentation_on_implement_pass_arm_extends_target(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_decision_documentation_on_implement_pass_arm_extends_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         consistency_check,
         "scan_decision_documentation_scoped_on_implement",
@@ -627,9 +560,7 @@ def test_check_decision_documentation_on_implement_pass_arm_extends_target(
     assert suggestions == []
 
 
-def test_check_decision_documentation_on_implement_fail_arm_message_stem(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_decision_documentation_on_implement_fail_arm_message_stem(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def _boom(_ctx: ProjectContext) -> list[str]:
         raise RuntimeError("boom-decision-doc")
 
@@ -652,10 +583,7 @@ def test_check_decision_documentation_on_implement_fail_arm_message_stem(
     )
 
     assert decision_documentation_on_implement_violations == []
-    assert verification_errors == [
-        "drg: Could not verify decision-documentation-on-implement gate "
-        "(RuntimeError: boom-decision-doc)."
-    ]
+    assert verification_errors == ["drg: Could not verify decision-documentation-on-implement gate (RuntimeError: boom-decision-doc)."]
     assert suggestions == [
         "drg: Could not verify decision-documentation-on-implement gate "
         "(RuntimeError: boom-decision-doc). Regenerate graph.yaml / run "

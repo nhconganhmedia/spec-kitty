@@ -69,8 +69,7 @@ def project_root(tmp_path: Path) -> Path:
     # genuinely absent key now raises rather than defaulting. Provision it so
     # the ``charter activate`` CLI invocation below can construct at all.
     (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n"
-        "activated_directives: []\nactivated_tactics: []\n",
+        "mission_type_activations:\n  - software-dev\nactivated_directives: []\nactivated_tactics: []\n",
         encoding="utf-8",
     )
     return tmp_path
@@ -95,9 +94,7 @@ def _activate(project_root: Path, *args: str) -> Result:
 
 
 class TestTensionPairNotAutoActivated:
-    def test_activating_locality_of_change_does_not_cascade_to_boy_scout_rule(
-        self, project_root: Path
-    ) -> None:
+    def test_activating_locality_of_change_does_not_cascade_to_boy_scout_rule(self, project_root: Path) -> None:
         result = _activate(
             project_root,
             "--cascade",
@@ -124,9 +121,7 @@ class TestTensionPairNotAutoActivated:
 
 
 class TestReconcilerNotAutoActivatingReconciledPair:
-    def test_activating_reconciler_does_not_cascade_to_reconciled_artefacts(
-        self, project_root: Path
-    ) -> None:
+    def test_activating_reconciler_does_not_cascade_to_reconciled_artefacts(self, project_root: Path) -> None:
         result = _activate(
             project_root,
             "--cascade",

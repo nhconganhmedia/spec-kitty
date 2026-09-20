@@ -198,9 +198,7 @@ DOCUMENT_WRITERS: Final[tuple[DocumentWriter, ...]] = (
     ),
 )
 
-MODEL_BRIDGES: Final[tuple[ModelBridge, ...]] = (
-    _OrgEdgeModelBridge(name="charter.offering.drg.merge.bridge_org_edge_to_drg_edge"),
-)
+MODEL_BRIDGES: Final[tuple[ModelBridge, ...]] = (_OrgEdgeModelBridge(name="charter.offering.drg.merge.bridge_org_edge_to_drg_edge"),)
 
 
 __all__ = [

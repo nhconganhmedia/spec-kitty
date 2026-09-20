@@ -225,9 +225,7 @@ def test_row_without_valid_id_is_excluded_from_the_lane_map() -> None:
     # A row lacking "id" is still rolled up by lane, but contributes no lane-map
     # entry — a dependency on its (unknown) id therefore reads as unsatisfied.
     idless: dict[str, object] = {"lane": Lane.APPROVED, "title": "no id"}
-    view = build_status_view(
-        _req([idless, _row("WP02", Lane.PLANNED)], wp_dependencies={"WP02": ["WP01"]})
-    )
+    view = build_status_view(_req([idless, _row("WP02", Lane.PLANNED)], wp_dependencies={"WP02": ["WP01"]}))
     assert view.total_wps == 2
     assert view.dependency_readiness["WP02"].satisfied is False
 
@@ -254,10 +252,7 @@ def test_stale_fallback_planning_artifact_repo_root_reason() -> None:
         [{"id": "WP01", "workspace_kind": "repo_root", "execution_mode": "planning_artifact"}],
         RuntimeError("boom"),
     )
-    assert (
-        cast(StaleCheckResult, results["WP01"]).stale.reason
-        == "planning_artifact_repo_root_shared_workspace"
-    )
+    assert cast(StaleCheckResult, results["WP01"]).stale.reason == "planning_artifact_repo_root_shared_workspace"
 
 
 def test_stale_fallback_skips_rows_without_an_id() -> None:
@@ -286,26 +281,17 @@ def _status_mission(root: Path, slug: str) -> Path:
     (feature_dir / "tasks").mkdir(parents=True)
     (root / ".kittify").mkdir(exist_ok=True)
     (feature_dir / "tasks" / "WP01-fixture.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Fixture WP01\n"
-        "execution_mode: code_change\n"
-        "agent: testbot\n"
-        "---\n\n# WP01\n\n## Activity Log\n",
+        "---\nwork_package_id: WP01\ntitle: Fixture WP01\nexecution_mode: code_change\nagent: testbot\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
-    (feature_dir / "tasks.md").write_text(
-        "# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8")
     (feature_dir / "spec.md").write_text("# Spec\n\nFR-001 do a thing.\n", encoding="utf-8")
     return feature_dir
 
 
 def _sentinel_view() -> StatusView:
     """A StatusView whose aggregates contradict the single-planned-WP fixture."""
-    lanes: dict[Lane | str, list[dict[str, object]]] = {
-        lane: [] for lane in Lane if lane not in NON_DISPLAY_LANES
-    }
+    lanes: dict[Lane | str, list[dict[str, object]]] = {lane: [] for lane in Lane if lane not in NON_DISPLAY_LANES}
     return StatusView(
         lanes=lanes,
         lane_counts={Lane.DONE: 7},
@@ -320,9 +306,7 @@ def _sentinel_view() -> StatusView:
     )
 
 
-def test_sentinel_view_drives_the_json_envelope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sentinel_view_drives_the_json_envelope(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A sentinel view's aggregates drive the ``--json`` envelope, not the real data.
 
     The fixture has ONE planned WP (real ``total_wps``/``done_count`` = 1/0), yet
@@ -344,9 +328,7 @@ def test_sentinel_view_drives_the_json_envelope(
     assert payload["by_lane"] == {"done": 7}
 
 
-def test_sentinel_view_drives_the_human_summary(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sentinel_view_drives_the_human_summary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The rendered human table follows the sentinel totals, not the real fixture."""
     fd = _status_mission(tmp_path, f"sentinel-status-human-{_MID8}")
     monkeypatch.setattr(tasks_module, "build_status_view", lambda _req: _sentinel_view())

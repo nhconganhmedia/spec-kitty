@@ -58,9 +58,7 @@ def _write_meta(repo: Path, payload: dict[str, object]) -> None:
     meta_path = repo / META_REL
     meta_path.parent.mkdir(parents=True, exist_ok=True)
     # Match the product's serialization: pretty-printed, sorted keys.
-    meta_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    meta_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _base_meta() -> dict[str, object]:
@@ -81,9 +79,7 @@ def _accepted_target_meta() -> dict[str, object]:
         {
             "accept_commit": "abc123def4567890abc123def4567890abc123de",
             "accepted_at": "2026-07-15T12:00:00+00:00",
-            "acceptance_history": [
-                {"at": "2026-07-15T12:00:00+00:00", "mode": "manual"}
-            ],
+            "acceptance_history": [{"at": "2026-07-15T12:00:00+00:00", "mode": "manual"}],
             "mission_number": 42,
             "status": "accepted",
             "vcs": "git",
@@ -166,28 +162,14 @@ def test_squash_merge_preserves_target_newer_acceptance_provenance(
     merged = _read_target_meta(repo)
 
     # Acceptance provenance must survive the squash merge.
-    assert merged.get("accept_commit") == "abc123def4567890abc123def4567890abc123de", (
-        "accept_commit was dropped/overwritten by the mission-branch copy"
+    assert merged.get("accept_commit") == "abc123def4567890abc123def4567890abc123de", "accept_commit was dropped/overwritten by the mission-branch copy"
+    assert merged.get("accepted_at") == "2026-07-15T12:00:00+00:00", "accepted_at was dropped/overwritten by the mission-branch copy"
+    assert merged.get("acceptance_history") == [{"at": "2026-07-15T12:00:00+00:00", "mode": "manual"}], (
+        "acceptance_history was dropped/overwritten by the mission-branch copy"
     )
-    assert merged.get("accepted_at") == "2026-07-15T12:00:00+00:00", (
-        "accepted_at was dropped/overwritten by the mission-branch copy"
-    )
-    assert merged.get("acceptance_history") == [
-        {"at": "2026-07-15T12:00:00+00:00", "mode": "manual"}
-    ], "acceptance_history was dropped/overwritten by the mission-branch copy"
-    assert merged.get("vcs") == "git", (
-        "vcs provenance was dropped by the -X theirs squash merge"
-    )
-    assert merged.get("vcs_locked_at") == "2026-07-15T12:00:00+00:00", (
-        "vcs_locked_at provenance was dropped by the -X theirs squash merge"
-    )
+    assert merged.get("vcs") == "git", "vcs provenance was dropped by the -X theirs squash merge"
+    assert merged.get("vcs_locked_at") == "2026-07-15T12:00:00+00:00", "vcs_locked_at provenance was dropped by the -X theirs squash merge"
 
     # Target-newer canonical fields must be reconciled, not replaced wholesale.
-    assert merged.get("mission_number") == 42, (
-        "target-newer mission_number was overwritten by the older mission-branch "
-        "value via -X theirs"
-    )
-    assert merged.get("status") == "accepted", (
-        "target-newer status was overwritten by the older mission-branch value "
-        "via -X theirs"
-    )
+    assert merged.get("mission_number") == 42, "target-newer mission_number was overwritten by the older mission-branch value via -X theirs"
+    assert merged.get("status") == "accepted", "target-newer status was overwritten by the older mission-branch value via -X theirs"

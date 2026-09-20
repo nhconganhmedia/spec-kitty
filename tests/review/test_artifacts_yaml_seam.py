@@ -82,10 +82,7 @@ def test_serialize_mapping_matches_make_yaml_byte_for_byte() -> None:
     for data in _representative_payloads():
         old_bytes = _dump_with_make_yaml(data)
         new_bytes = serialize_mapping(data)
-        assert new_bytes == old_bytes, (
-            f"serialize_mapping diverged from _make_yaml for payload {data!r}:\n"
-            f"old={old_bytes!r}\nnew={new_bytes!r}"
-        )
+        assert new_bytes == old_bytes, f"serialize_mapping diverged from _make_yaml for payload {data!r}:\nold={old_bytes!r}\nnew={new_bytes!r}"
 
 
 def test_serialize_mapping_output_still_parses_identically_to_make_yaml_load() -> None:
@@ -128,11 +125,7 @@ def test_review_cycle_write_emits_utf8_lf_bytes_under_windows_translation(
 
     artifact.write(path)
 
-    expected = (
-        b"---\n"
-        + serialize_mapping(artifact.to_dict())
-        + b"---\n\nGr\xc3\xbc\xc3\x9fe from Windows\nsecond line\n"
-    )
+    expected = b"---\n" + serialize_mapping(artifact.to_dict()) + b"---\n\nGr\xc3\xbc\xc3\x9fe from Windows\nsecond line\n"
     assert path.read_bytes() == expected
     assert b"\r\n" not in path.read_bytes()
     assert ReviewCycleArtifact.from_file(path) == artifact

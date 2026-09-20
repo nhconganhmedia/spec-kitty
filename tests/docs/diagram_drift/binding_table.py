@@ -63,9 +63,7 @@ BINDINGS: tuple[DiagramBinding, ...] = (
     DiagramBinding(_RELATIONSHIPS, "Relation", Relation, ModelKind.STRENUM),
     # mission-type-resolution.md — mission-step contract (nested) + action index
     DiagramBinding(_MISSION_TYPE, "MissionStepContract", MissionStepContract, ModelKind.PYDANTIC),
-    DiagramBinding(
-        _MISSION_TYPE, "MissionStepContractStep", MissionStepContractStep, ModelKind.PYDANTIC
-    ),
+    DiagramBinding(_MISSION_TYPE, "MissionStepContractStep", MissionStepContractStep, ModelKind.PYDANTIC),
     DiagramBinding(_MISSION_TYPE, "ActionIndex", ActionIndex, ModelKind.DATACLASS),
     # doctrine-kinds.md — the vocabulary + the agent-profile schema (aliased + nested)
     DiagramBinding(_KINDS, "ArtifactKind", ArtifactKind, ModelKind.STRENUM),

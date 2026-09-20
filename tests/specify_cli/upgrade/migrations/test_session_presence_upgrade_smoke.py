@@ -37,23 +37,34 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 # their ``can_write()`` always returns False — no directories needed.)
 # ---------------------------------------------------------------------------
 _HARNESS_DIRS = [
-    ".claude",       # Phase 1
-    ".cursor",       # cursor  (MarkdownRulesWriter)
-    ".windsurf",     # windsurf (MarkdownRulesWriter)
-    ".github",       # copilot  (MarkdownRulesWriter, check_dir=".github")
+    ".claude",  # Phase 1
+    ".cursor",  # cursor  (MarkdownRulesWriter)
+    ".windsurf",  # windsurf (MarkdownRulesWriter)
+    ".github",  # copilot  (MarkdownRulesWriter, check_dir=".github")
     # ".roo" omitted — Roo Code shut down on 2026-05-15 (C-007)
-    ".kiro",         # kiro     (MarkdownRulesWriter)
-    ".gemini",       # gemini   (MarkdownRulesWriter, append_mode=True)
+    ".kiro",  # kiro     (MarkdownRulesWriter)
+    ".gemini",  # gemini   (MarkdownRulesWriter, append_mode=True)
     # codex / opencode / antigravity → AgentsMdWriter (always can_write=True)
     # pi / vibe / letta            → SkillsPreambleWriter (always can_write=True)
 ]
 
 _ALL_AGENT_KEYS = [
     "claude",
-    "cursor", "windsurf", "copilot", "kiro", "gemini",
-    "codex", "opencode", "antigravity",
-    "pi", "vibe", "letta",
-    "qwen", "kilocode", "auggie", "q",
+    "cursor",
+    "windsurf",
+    "copilot",
+    "kiro",
+    "gemini",
+    "codex",
+    "opencode",
+    "antigravity",
+    "pi",
+    "vibe",
+    "letta",
+    "qwen",
+    "kilocode",
+    "auggie",
+    "q",
     # "roo" removed — Roo Code shut down on 2026-05-15 (C-007)
 ]
 
@@ -67,9 +78,7 @@ def _make_full_project(tmp_path: Path) -> Path:
     kittify.mkdir()
 
     # Write config.yaml with all agents listed
-    agents_yaml = "agents:\n  available:\n" + "".join(
-        f"    - {key}\n" for key in _ALL_AGENT_KEYS
-    )
+    agents_yaml = "agents:\n  available:\n" + "".join(f"    - {key}\n" for key in _ALL_AGENT_KEYS)
     (kittify / "config.yaml").write_text(agents_yaml, encoding="utf-8")
 
     # Write real upgrade metadata so full-suite registry state cannot make this
@@ -106,9 +115,7 @@ class TestUpgradeSmoke:
         """MigrationRunner.upgrade() completes without errors on a full project."""
         runner = MigrationRunner(full_project)
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -132,9 +139,7 @@ class TestUpgradeSmoke:
         """Running upgrade twice leaves the project in the same healthy state."""
         runner = MigrationRunner(full_project)
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -162,9 +167,7 @@ class TestUpgradeSmoke:
 
         runner = MigrationRunner(full_project)
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",
@@ -184,9 +187,7 @@ class TestUpgradeSmoke:
 
         runner = MigrationRunner(full_project)
         with (
-            patch(
-                "specify_cli.session_presence.manager.UpgradeChecker"
-            ) as mock_checker_cls,
+            patch("specify_cli.session_presence.manager.UpgradeChecker") as mock_checker_cls,
             patch("importlib.metadata.version", return_value="3.2.0"),
             patch(
                 "specify_cli.compat.plan",

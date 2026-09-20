@@ -46,12 +46,7 @@ def test_non_interactive_logged_out_emits_canonical_single_line(
 
     captured = capsys.readouterr()
     assert captured.out == ""
-    expected = (
-        "spec-kitty: logged_out_on_connected_teamspace "
-        "teamspace=acme-team "
-        "command=status "
-        "action=run-spec-kitty-auth-login\n"
-    )
+    expected = "spec-kitty: logged_out_on_connected_teamspace teamspace=acme-team command=status action=run-spec-kitty-auth-login\n"
     assert captured.err == expected
 
 

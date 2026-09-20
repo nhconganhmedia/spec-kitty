@@ -123,8 +123,7 @@ def test_singular_artifact_kind_is_accepted_and_normalised() -> None:
         artifact_kind="styleguide",
     )
     assert entry.artifact_kind == "styleguides", (
-        "Singular `styleguide` must be normalised to the canonical plural "
-        f"`styleguides`; observed: {entry.artifact_kind!r}"
+        f"Singular `styleguide` must be normalised to the canonical plural `styleguides`; observed: {entry.artifact_kind!r}"
     )
 
 
@@ -161,9 +160,7 @@ def test_resolver_matches_exact_context() -> None:
         doctrine_pack_id="project",
         artifact_id="x",
     )
-    matched = resolve_for_context(
-        [entry], mission_type="software-dev", action="implement"
-    )
+    matched = resolve_for_context([entry], mission_type="software-dev", action="implement")
     assert matched == [entry]
 
 
@@ -184,9 +181,7 @@ def test_resolver_wildcard_tokens_match_every_context(wildcard: str) -> None:
         doctrine_pack_id="project",
         artifact_id="x",
     )
-    matched = resolve_for_context(
-        [entry], mission_type="documentation", action="review"
-    )
+    matched = resolve_for_context([entry], mission_type="documentation", action="review")
     assert matched == [entry]
 
 
@@ -196,9 +191,7 @@ def test_resolver_absent_slot_is_wildcard() -> None:
         doctrine_pack_id="project",
         artifact_id="x",
     )
-    matched = resolve_for_context(
-        [entry], mission_type="documentation", action="implement"
-    )
+    matched = resolve_for_context([entry], mission_type="documentation", action="implement")
     assert matched == [entry]
 
 
@@ -227,24 +220,15 @@ def test_allowed_actions_is_the_canonical_10_token_set() -> None:
             "charter.activation.context",
         }
     )
-    assert expected_actions == ALLOWED_ACTIONS, (
-        "data-model.md §7 pins _ALLOWED_ACTIONS at exactly these 10 tokens; "
-        f"observed {sorted(ALLOWED_ACTIONS)}"
-    )
+    assert expected_actions == ALLOWED_ACTIONS, f"data-model.md §7 pins _ALLOWED_ACTIONS at exactly these 10 tokens; observed {sorted(ALLOWED_ACTIONS)}"
 
 
 def test_registered_triggers_is_superset_of_allowed_actions() -> None:
     assert isinstance(REGISTERED_TRIGGERS, frozenset)
-    assert ALLOWED_ACTIONS <= REGISTERED_TRIGGERS, (
-        "data-model.md §7 union formula violated — "
-        "_REGISTERED_TRIGGERS must contain every _ALLOWED_ACTIONS token."
-    )
+    assert ALLOWED_ACTIONS <= REGISTERED_TRIGGERS, "data-model.md §7 union formula violated — _REGISTERED_TRIGGERS must contain every _ALLOWED_ACTIONS token."
     extra = REGISTERED_TRIGGERS - ALLOWED_ACTIONS
-    assert extra == frozenset(
-        {"write_comment", "write_docstring", "rename_identifier", "add_dependency"}
-    ), (
-        "data-model.md §7 fine-grained suffix drifted; "
-        f"observed extras: {sorted(extra)}"
+    assert extra == frozenset({"write_comment", "write_docstring", "rename_identifier", "add_dependency"}), (
+        f"data-model.md §7 fine-grained suffix drifted; observed extras: {sorted(extra)}"
     )
     # Note: data-model.md §7 text says "15 tokens" but its embedded formula
     # yields 10 ∪ 4 = 14. We assert the formula (it is the executable

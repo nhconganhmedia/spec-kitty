@@ -62,9 +62,7 @@ class TestDocstring:
     def test_docstring_does_not_reference_quickstart(self) -> None:
         """quickstart.md was listed in the old WP02-prompt artifact chain; it is now gone."""
         doc = inspect.getdoc(generate_retrospective) or ""
-        assert "quickstart.md" not in doc, (
-            "generate_retrospective docstring still references the deprecated quickstart.md artifact"
-        )
+        assert "quickstart.md" not in doc, "generate_retrospective docstring still references the deprecated quickstart.md artifact"
 
     def test_docstring_references_new_ingestor_artifacts(self) -> None:
         """The docstring should list the new ingestor artifacts."""
@@ -128,11 +126,7 @@ class TestWorkflowFailuresIngestor:
         """Lines starting with '- [ ] FAIL:' produce not_helpful findings."""
         counters: dict = {}
         ev_reg = _EvidenceRegistry()
-        text = (
-            "# Workflow Failures\n"
-            "- [ ] FAIL: CI gate timed out on WP03\n"
-            "- [ ] FAIL: lint check failed on main\n"
-        )
+        text = "# Workflow Failures\n- [ ] FAIL: CI gate timed out on WP03\n- [ ] FAIL: lint check failed on main\n"
         helped, not_helpful, _gaps = _build_ingestor_findings(
             workflow_failures_text=text,
             analysis_report_text=None,
@@ -315,20 +309,7 @@ class TestAnalysisAndReviewIngestors:
     def test_zero_finding_analysis_report_emits_helped_not_claims(self) -> None:
         """#3793: a ready verdict with an empty findings list and all-zero
         issue_counts must not be reported as 'present with findings'."""
-        text = (
-            "---\n"
-            "verdict: ready\n"
-            "issue_counts:\n"
-            "  low: 0\n"
-            "  medium: 0\n"
-            "  critical: 0\n"
-            "  high: 0\n"
-            "  info: 0\n"
-            "findings: []\n"
-            "---\n"
-            "\n"
-            "# Analysis Report\n"
-        )
+        text = "---\nverdict: ready\nissue_counts:\n  low: 0\n  medium: 0\n  critical: 0\n  high: 0\n  info: 0\nfindings: []\n---\n\n# Analysis Report\n"
         helped, not_helpful, _gaps = self._ingestors(text, None)
         assert not_helpful == []
         assert len(helped) == 1
@@ -432,17 +413,7 @@ class TestAnalysisAndReviewIngestors:
     def test_zero_finding_review_report_emits_helped(self) -> None:
         """#3793: mission-review-report.md with findings: 0 (verdict pass)
         must not be reported as 'present with findings'."""
-        text = (
-            "---\n"
-            "verdict: pass\n"
-            "mode: lightweight\n"
-            "reviewed_at: 2026-06-13T00:00:00+00:00\n"
-            "findings: 0\n"
-            "gates_recorded: []\n"
-            "---\n"
-            "\n"
-            "No findings.\n"
-        )
+        text = "---\nverdict: pass\nmode: lightweight\nreviewed_at: 2026-06-13T00:00:00+00:00\nfindings: 0\ngates_recorded: []\n---\n\nNo findings.\n"
         helped, not_helpful, _gaps = self._ingestors(None, text)
         assert not_helpful == []
         assert len(helped) == 1
@@ -452,17 +423,7 @@ class TestAnalysisAndReviewIngestors:
     def test_review_report_with_findings_counts_them(self) -> None:
         """A review report whose frontmatter records a nonzero findings count
         reports the real count."""
-        text = (
-            "---\n"
-            "verdict: pass_with_notes\n"
-            "mode: lightweight\n"
-            "reviewed_at: 2026-06-13T00:00:00+00:00\n"
-            "findings: 3\n"
-            "gates_recorded: []\n"
-            "---\n"
-            "\n"
-            "## Findings\n"
-        )
+        text = "---\nverdict: pass_with_notes\nmode: lightweight\nreviewed_at: 2026-06-13T00:00:00+00:00\nfindings: 3\ngates_recorded: []\n---\n\n## Findings\n"
         helped, not_helpful, _gaps = self._ingestors(None, text)
         assert helped == []
         assert len(not_helpful) == 1
@@ -480,9 +441,7 @@ class TestHelpedByContrastRelaxation:
     when ingestor artifacts documenting failures are present.
     """
 
-    def test_clean_wps_surfaced_when_analysis_report_present(
-        self, tmp_path: Path
-    ) -> None:
+    def test_clean_wps_surfaced_when_analysis_report_present(self, tmp_path: Path) -> None:
         """A mission with clean WPs and an analysis-report should emit helped findings."""
         # Build a minimal mission fixture in tmp_path/kitty-specs/test-mission/
         feature_dir = tmp_path / "kitty-specs" / "test-ingestor-contrast"
@@ -522,14 +481,10 @@ class TestHelpedByContrastRelaxation:
             }
         ]
         events_path = feature_dir / "status.events.jsonl"
-        events_path.write_text(
-            "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
-        )
+        events_path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
         # analysis-report.md present (triggers relaxation of contrast rule)
-        (feature_dir / "analysis-report.md").write_text(
-            "# Analysis Report\n\nC1 (medium): something was off.\n", encoding="utf-8"
-        )
+        (feature_dir / "analysis-report.md").write_text("# Analysis Report\n\nC1 (medium): something was off.\n", encoding="utf-8")
 
         policy = _make_policy()
         record = generate_retrospective(
@@ -547,9 +502,7 @@ class TestHelpedByContrastRelaxation:
             f"Expected WP01 clean helped finding; got helped={helped_summaries!r}"
         )
 
-    def test_without_ingestor_content_clean_wps_not_surfaced(
-        self, tmp_path: Path
-    ) -> None:
+    def test_without_ingestor_content_clean_wps_not_surfaced(self, tmp_path: Path) -> None:
         """Without ingestor artifacts and without rejection cycles, no helped finding."""
         feature_dir = tmp_path / "kitty-specs" / "test-no-ingestor"
         feature_dir.mkdir(parents=True)
@@ -584,9 +537,7 @@ class TestHelpedByContrastRelaxation:
                 "execution_mode": "worktree",
             }
         ]
-        (feature_dir / "status.events.jsonl").write_text(
-            "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
-        )
+        (feature_dir / "status.events.jsonl").write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
         policy = _make_policy()
         record = generate_retrospective(
@@ -600,8 +551,7 @@ class TestHelpedByContrastRelaxation:
         # No rejection cycles, no ingestor content → clean WPs NOT surfaced as helped
         helped_summaries = [f.summary for f in record.helped]
         assert not any("completed without rejection" in s for s in helped_summaries), (
-            f"WP01 should NOT appear as helped without ingestor content or rejection cycles; "
-            f"got helped={helped_summaries!r}"
+            f"WP01 should NOT appear as helped without ingestor content or rejection cycles; got helped={helped_summaries!r}"
         )
 
 
@@ -636,25 +586,19 @@ class TestGoldenIngestorFixture:
 
         # workflow-failures-log.md with structured failure entries
         (feature_dir / "workflow-failures-log.md").write_text(
-            "# Workflow Failures\n\n"
-            "- [ ] FAIL: CI pipeline timed out on WP02\n"
-            "- [ ] FAIL: deploy smoke test failed\n",
+            "# Workflow Failures\n\n- [ ] FAIL: CI pipeline timed out on WP02\n- [ ] FAIL: deploy smoke test failed\n",
             encoding="utf-8",
         )
 
         # analysis-report.md with findings
         (feature_dir / "analysis-report.md").write_text(
-            "# Analysis Report\n\n"
-            "## C1 (critical): coordination bug in topology resolver\n"
-            "## C2 (medium): stale docstring in generator.py\n",
+            "# Analysis Report\n\n## C1 (critical): coordination bug in topology resolver\n## C2 (medium): stale docstring in generator.py\n",
             encoding="utf-8",
         )
 
         # mission-review-report.md with review findings
         (feature_dir / "mission-review-report.md").write_text(
-            "# Mission Review Report\n\n"
-            "## Findings\n\n"
-            "- R1: Naming inconsistency in API surface\n",
+            "# Mission Review Report\n\n## Findings\n\n- R1: Naming inconsistency in API surface\n",
             encoding="utf-8",
         )
 
@@ -774,37 +718,16 @@ class TestIssue3793ContentCheckedFindings:
                 "execution_mode": "worktree",
             },
         ]
-        (feature_dir / "status.events.jsonl").write_text(
-            "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
-        )
+        (feature_dir / "status.events.jsonl").write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
 
         # The reported zero-finding analysis-report.md frontmatter.
         (feature_dir / "analysis-report.md").write_text(
-            "---\n"
-            "verdict: ready\n"
-            "issue_counts:\n"
-            "  low: 0\n"
-            "  medium: 0\n"
-            "  critical: 0\n"
-            "  high: 0\n"
-            "  info: 0\n"
-            "findings: []\n"
-            "---\n"
-            "\n"
-            "# Analysis Report\n",
+            "---\nverdict: ready\nissue_counts:\n  low: 0\n  medium: 0\n  critical: 0\n  high: 0\n  info: 0\nfindings: []\n---\n\n# Analysis Report\n",
             encoding="utf-8",
         )
         # A clean mission-review-report.md (verdict pass, zero findings).
         (feature_dir / "mission-review-report.md").write_text(
-            "---\n"
-            "verdict: pass\n"
-            "mode: lightweight\n"
-            "reviewed_at: 2026-06-13T02:00:00+00:00\n"
-            "findings: 0\n"
-            "gates_recorded: []\n"
-            "---\n"
-            "\n"
-            "No findings.\n",
+            "---\nverdict: pass\nmode: lightweight\nreviewed_at: 2026-06-13T02:00:00+00:00\nfindings: 0\ngates_recorded: []\n---\n\nNo findings.\n",
             encoding="utf-8",
         )
 
@@ -819,9 +742,7 @@ class TestIssue3793ContentCheckedFindings:
 
         # Neither report may be reported as carrying findings it does not have.
         all_summaries = [f.summary for f in record.helped + record.not_helpful + record.gaps]
-        assert not any("present with findings" in s for s in all_summaries), (
-            f"presence-only claim leaked into findings: {all_summaries!r}"
-        )
+        assert not any("present with findings" in s for s in all_summaries), f"presence-only claim leaked into findings: {all_summaries!r}"
         helped_summaries = [f.summary for f in record.helped]
         assert any("analysis-report.md" in s and "no recorded findings" in s for s in helped_summaries)
         assert any("mission-review-report.md" in s and "no findings" in s for s in helped_summaries)

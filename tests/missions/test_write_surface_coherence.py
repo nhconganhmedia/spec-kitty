@@ -111,26 +111,19 @@ def test_flattened_topology_both_commits_land_on_target_branch(tmp_path: Path) -
     from specify_cli.coordination.commit_router import commit_for_mission
     from specify_cli.git.protection_policy import ProtectionPolicy
 
-    policy = ProtectionPolicy(
-        protected_branches=frozenset({"main", "master"}), operator_hatch_active=False
-    )
+    policy = ProtectionPolicy(protected_branches=frozenset({"main", "master"}), operator_hatch_active=False)
 
     # Planning commit lands on target_branch (real commit).
     spec_path = feature_dir / "spec.md"
     spec_path.write_text("# Spec edited\n", encoding="utf-8")
-    spec_result = commit_for_mission(
-        repo, slug, (spec_path,), "flat: spec", policy, kind=MissionArtifactKind.SPEC
-    )
+    spec_result = commit_for_mission(repo, slug, (spec_path,), "flat: spec", policy, kind=MissionArtifactKind.SPEC)
     assert spec_result.status == "committed", spec_result.diagnostic
     assert spec_result.placement_ref == _FLAT_TARGET_BRANCH
 
     # Status placement resolves to the SAME single branch (no coord split).
-    status_ref = resolve_placement_only(
-        repo, slug, kind=MissionArtifactKind.STATUS_STATE
-    ).ref
+    status_ref = resolve_placement_only(repo, slug, kind=MissionArtifactKind.STATUS_STATE).ref
     assert status_ref == _FLAT_TARGET_BRANCH, (
-        "flattened mission split status off the single branch — a coord split was "
-        "fabricated where none exists (NFR-001 regression)"
+        "flattened mission split status off the single branch — a coord split was fabricated where none exists (NFR-001 regression)"
     )
 
 
@@ -168,9 +161,7 @@ def _scaffold_coord_mission_with_mapping(repo: Path, *, target_branch: str) -> s
         + "\n",
         encoding="utf-8",
     )
-    (repo / ".gitignore").write_text(
-        ".worktrees/\n.kittify/sync-state.json\n", encoding="utf-8"
-    )
+    (repo / ".gitignore").write_text(".worktrees/\n.kittify/sync-state.json\n", encoding="utf-8")
     branch_strategy = (
         f"Planning artifacts for this mission were generated on {target_branch}. "
         f"During /spec-kitty.implement this WP may branch from a dependency-specific "
@@ -249,9 +240,7 @@ def test_fr007_finalize_validate_only_reports_full_mapping(tmp_path: Path) -> No
     into a coordination worktree first.
     """
     repo = _make_repo(tmp_path, head_branch=_FLAT_TARGET_BRANCH)
-    mission_slug = _scaffold_coord_mission_with_mapping(
-        repo, target_branch=_FLAT_TARGET_BRANCH
-    )
+    mission_slug = _scaffold_coord_mission_with_mapping(repo, target_branch=_FLAT_TARGET_BRANCH)
 
     # The mission really routes through coordination …
     assert routes_through_coordination(resolve_topology(repo, mission_slug))
@@ -308,9 +297,7 @@ def _build_protected_coord_mission(tmp_path: Path) -> _ProtectedCoordMission:
     _git(repo, "add", "-A")
     _git(repo, "commit", "-q", "-m", "seed protected coord mission")
     _git(repo, "branch", f"kitty/mission-{slug}")
-    return _ProtectedCoordMission(
-        repo_root=repo.resolve(), mission_slug=slug, feature_dir=feature_dir
-    )
+    return _ProtectedCoordMission(repo_root=repo.resolve(), mission_slug=slug, feature_dir=feature_dir)
 
 
 def test_fr008_router_returns_no_op_wrong_surface(tmp_path: Path) -> None:
@@ -325,9 +312,7 @@ def test_fr008_router_returns_no_op_wrong_surface(tmp_path: Path) -> None:
     from specify_cli.git.protection_policy import ProtectionPolicy
 
     mission = _build_protected_coord_mission(tmp_path)
-    policy = ProtectionPolicy(
-        protected_branches=frozenset({"main", "master"}), operator_hatch_active=False
-    )
+    policy = ProtectionPolicy(protected_branches=frozenset({"main", "master"}), operator_hatch_active=False)
     spec_path = mission.feature_dir / "spec.md"
     spec_path.write_text("# Spec edited\n", encoding="utf-8")
 

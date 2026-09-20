@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 class CharterEncodingDiagnostic(StrEnum):
     """JSON-stable diagnostic codes emitted by src/charter/activation/_io.py.
 

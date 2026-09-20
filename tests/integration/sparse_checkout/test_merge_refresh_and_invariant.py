@@ -32,6 +32,7 @@ from specify_cli.merge.config import MergeStrategy
 
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
+
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         cmd,
@@ -193,22 +194,16 @@ class TestPostMergeRefreshAndInvariant:
             )
 
         # Required ordering: hard_refresh → mark_done → status_check → safe_commit.
-        assert "hard_refresh" in call_log, (
-            f"FR-013: post-merge `git reset --hard HEAD` must fire; call_log={call_log}"
-        )
+        assert "hard_refresh" in call_log, f"FR-013: post-merge `git reset --hard HEAD` must fire; call_log={call_log}"
         assert "mark_done" in call_log, "Merged WPs must be recorded as done after refresh"
-        assert "status_check" in call_log, (
-            f"FR-014: post-merge `git status --porcelain` must fire; call_log={call_log}"
-        )
+        assert "status_check" in call_log, f"FR-014: post-merge `git status --porcelain` must fire; call_log={call_log}"
         assert "safe_commit" in call_log, "safe_commit must still fire after refresh/invariant"
 
         refresh_idx = call_log.index("hard_refresh")
         mark_done_idx = call_log.index("mark_done")
         status_idx = call_log.index("status_check")
         commit_idx = call_log.index("safe_commit")
-        assert refresh_idx < mark_done_idx < status_idx < commit_idx, (
-            f"Expected refresh → mark_done → status → safe_commit, got {call_log}"
-        )
+        assert refresh_idx < mark_done_idx < status_idx < commit_idx, f"Expected refresh → mark_done → status → safe_commit, got {call_log}"
 
     def test_invariant_violation_aborts_before_safe_commit(self, tmp_path: Path) -> None:
         """FR-014: an unexpected diverging path aborts the merge before safe_commit."""
@@ -302,7 +297,4 @@ class TestPostMergeRefreshAndInvariant:
                 )
 
         assert "status_check" in call_log, "status check must have run"
-        assert "safe_commit" not in call_log, (
-            "FR-014: safe_commit must NOT fire when invariant is violated; "
-            f"call_log={call_log}"
-        )
+        assert "safe_commit" not in call_log, f"FR-014: safe_commit must NOT fire when invariant is violated; call_log={call_log}"

@@ -207,11 +207,7 @@ def _load_existing_seed_metadata(seed_path: Path) -> dict[str, dict[str, Any]]:
         surface = term_data.get("surface")
         if not isinstance(surface, str):
             continue
-        preserved = {
-            field: term_data[field]
-            for field in _SEED_METADATA_FIELDS
-            if field in term_data
-        }
+        preserved = {field: term_data[field] for field in _SEED_METADATA_FIELDS if field in term_data}
         if preserved:
             metadata[surface] = preserved
     return metadata

@@ -159,9 +159,7 @@ def _seed_rejection_result_event(feature_dir: Path, wp_id: str) -> None:
             force=False,
             execution_mode="worktree",
             reason="rejected on review",
-            review_result=ReviewResult(
-                reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-            ),
+            review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
         ),
     )
 
@@ -293,9 +291,7 @@ def test_reject_approve_reject_approve_with_identical_note_succeeds(
     # WP06 (verdict-seam-write-unification-01KZ9Q35, FR-003/SC-007):
     # ReviewCycleArtifact no longer carries a verdict field -- the approval
     # write's own synthesized body ("Approved by ...") is the checkable proxy.
-    assert "Approved by" in (wp_dir / "review-cycle-2.md").read_text(
-        encoding="utf-8"
-    )
+    assert "Approved by" in (wp_dir / "review-cycle-2.md").read_text(encoding="utf-8")
 
     # Cycle 3: WP re-opened, rejected again with distinct feedback.
     _seed_wp_event(feature_dir, _WP_ID, "in_review")
@@ -312,9 +308,7 @@ def test_reject_approve_reject_approve_with_identical_note_succeeds(
         _run_move(tmp_path, to="approved", ports=ports, note="Review passed")
     except typer.Exit as exc:  # pragma: no cover - only on the pre-fix code path
         pytest.fail(
-            f"second approval with an identical --note raised typer.Exit"
-            f"({exc.exit_code}) -- the synthesized approval body collided "
-            "with the provenance guard (M1)"
+            f"second approval with an identical --note raised typer.Exit({exc.exit_code}) -- the synthesized approval body collided with the provenance guard (M1)"
         )
 
     # The identical approval adopts the already committed cycle-2 record.  A
@@ -326,8 +320,7 @@ def test_reject_approve_reject_approve_with_identical_note_succeeds(
         [
             "git",
             "show",
-            "wip-lane:kitty-specs/approval-body-collision/tasks/"
-            "WP01-test/review-cycle-2.md",
+            "wip-lane:kitty-specs/approval-body-collision/tasks/WP01-test/review-cycle-2.md",
         ],
         cwd=tmp_path,
         check=True,

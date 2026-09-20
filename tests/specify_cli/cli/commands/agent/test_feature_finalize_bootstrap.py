@@ -128,9 +128,7 @@ def _common_patches(tmp_path: Path, mission_slug: str = "060-test-feature") -> d
         f"{MODULE}._resolve_planning_branch": MagicMock(return_value="main"),
         f"{MODULE}._ensure_branch_checked_out": MagicMock(),
         # WP02 / T027: commit_for_mission is the canonical commit seam.
-        "specify_cli.coordination.commit_router.commit_for_mission": MagicMock(
-            return_value=_fake_commit_result
-        ),
+        "specify_cli.coordination.commit_router.commit_for_mission": MagicMock(return_value=_fake_commit_result),
         f"{MODULE}.run_command": MagicMock(return_value=(0, "abc1234", "")),
         f"{MODULE}.validate_ownership": MagicMock(
             return_value=MagicMock(passed=True, warnings=[], errors=[]),
@@ -399,9 +397,7 @@ class TestRequirementExtractionWarningsInJson:
     ``test_bare_sentence_frs_now_block_finalize_tasks_per_3396`` below.
     """
 
-    def test_bare_sentence_frs_now_block_finalize_tasks_per_3396(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_bare_sentence_frs_now_block_finalize_tasks_per_3396(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         """RE-PINNED (operator ruling 2026-08-14, same conflict as ``1b5b86e0f``'s
         spec-kitty-next re-pin): the F4 finding's own repro fixture (bare-prose
         FR-001/FR-002 alongside a properly DECLARED table-row FR-100 that both
@@ -964,11 +960,8 @@ class TestFinalizeScaffoldsAcceptanceMatrix:
                 commit_hash="abc1234",
             )
 
-
         def _write_snapshot(feature_path: Path) -> None:
-            snapshot_path = (
-                feature_path / ".kittify" / "dossiers" / mission_slug / "snapshot-latest.json"
-            )
+            snapshot_path = feature_path / ".kittify" / "dossiers" / mission_slug / "snapshot-latest.json"
             snapshot_path.parent.mkdir(parents=True, exist_ok=True)
             snapshot_path.write_text("{}", encoding="utf-8")
 

@@ -40,6 +40,7 @@ from specify_cli.compat.safety import SAFETY_REGISTRY, Safety, classify
 
 pytestmark = [pytest.mark.architectural]
 
+
 def _build_app() -> typer.Typer:
     """Return the root typer app with all commands registered.
 
@@ -126,9 +127,7 @@ class TestSafetyRegistryCompleteness:
         for path in all_command_paths:
             if path in SAFETY_REGISTRY and SAFETY_REGISTRY[path] is None:
                 result = classify(_inv(path))
-                assert result == Safety.SAFE, (
-                    f"Registered path {path!r} (seeded None → unconditionally SAFE) classified as UNSAFE."
-                )
+                assert result == Safety.SAFE, f"Registered path {path!r} (seeded None → unconditionally SAFE) classified as UNSAFE."
 
     def test_unregistered_commands_are_unsafe(self, all_command_paths: list[tuple[str, ...]]) -> None:
         """Commands NOT in SAFETY_REGISTRY must classify as UNSAFE (fail-closed).

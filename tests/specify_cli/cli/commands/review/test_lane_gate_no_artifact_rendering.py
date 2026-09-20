@@ -57,9 +57,7 @@ def test_check_wp_lanes_renders_no_artifact_conflict_without_literal_none(
         ),
     )
     artifact_dir = mission.tasks_dir / "WP01-regression-harness"
-    assert not artifact_dir.exists() or not list(
-        artifact_dir.glob("review-cycle-*.md")
-    ), "precondition: no on-disk review artifact must exist for this WP"
+    assert not artifact_dir.exists() or not list(artifact_dir.glob("review-cycle-*.md")), "precondition: no on-disk review artifact must exist for this WP"
 
     findings: list[dict[str, str]] = []
     check_wp_lanes(
@@ -69,9 +67,7 @@ def test_check_wp_lanes_renders_no_artifact_conflict_without_literal_none(
         findings,
     )
 
-    artifact_findings = [
-        finding for finding in findings if finding["type"] == "rejected_review_artifact"
-    ]
+    artifact_findings = [finding for finding in findings if finding["type"] == "rejected_review_artifact"]
     assert len(artifact_findings) == 1, findings
     assert artifact_findings[0]["artifact_path"] == "<no review artifact>"
     assert artifact_findings[0]["artifact_path"] != "None"

@@ -268,8 +268,7 @@ def test_advance_run_state_preserves_identity_through_autocomplete_reconstructio
     # Provide the frozen template with the exact name _load_frozen_template expects.
     # At least one step is required by load_mission_template_file validation.
     (run_dir / "mission_template_frozen.yaml").write_text(
-        "mission:\n  key: software-dev\n  name: Test\n  version: 1.0.0\n"
-        "steps:\n  - id: specify\n    title: Specify\n",
+        "mission:\n  key: software-dev\n  name: Test\n  version: 1.0.0\nsteps:\n  - id: specify\n    title: Specify\n",
         encoding="utf-8",
     )
 
@@ -324,12 +323,10 @@ def test_advance_run_state_preserves_identity_through_autocomplete_reconstructio
 
     persisted = _read_snapshot(run_dir)
     assert persisted.mission_id == "01REGR001TEST000000000000", (
-        f"Expected mission_id='01REGR001TEST000000000000' but got {persisted.mission_id!r}; "
-        "site-1 reconstruction dropped identity (#1663)"
+        f"Expected mission_id='01REGR001TEST000000000000' but got {persisted.mission_id!r}; site-1 reconstruction dropped identity (#1663)"
     )
     assert persisted.mission_slug == "regression-test-1663", (
-        f"Expected mission_slug='regression-test-1663' but got {persisted.mission_slug!r}; "
-        "site-1 reconstruction dropped identity (#1663)"
+        f"Expected mission_slug='regression-test-1663' but got {persisted.mission_slug!r}; site-1 reconstruction dropped identity (#1663)"
     )
 
     # Also confirm in the raw JSON (state.json round-trip)
@@ -357,8 +354,7 @@ def test_advance_run_state_preserves_identity_through_final_persist_reconstructi
     # Provide the frozen template with the exact name _load_frozen_template expects.
     # At least one step is required by load_mission_template_file validation.
     (run_dir / "mission_template_frozen.yaml").write_text(
-        "mission:\n  key: software-dev\n  name: Test\n  version: 1.0.0\n"
-        "steps:\n  - id: specify\n    title: Specify\n",
+        "mission:\n  key: software-dev\n  name: Test\n  version: 1.0.0\nsteps:\n  - id: specify\n    title: Specify\n",
         encoding="utf-8",
     )
 
@@ -414,10 +410,8 @@ def test_advance_run_state_preserves_identity_through_final_persist_reconstructi
 
     persisted = _read_snapshot(run_dir)
     assert persisted.mission_id == "01REGR002TEST000000000000", (
-        f"Expected mission_id='01REGR002TEST000000000000' but got {persisted.mission_id!r}; "
-        "site-2 final-persist reconstruction dropped identity (#1663)"
+        f"Expected mission_id='01REGR002TEST000000000000' but got {persisted.mission_id!r}; site-2 final-persist reconstruction dropped identity (#1663)"
     )
     assert persisted.mission_slug == "regression-test-1663-site2", (
-        f"Expected mission_slug='regression-test-1663-site2' but got {persisted.mission_slug!r}; "
-        "site-2 final-persist reconstruction dropped identity (#1663)"
+        f"Expected mission_slug='regression-test-1663-site2' but got {persisted.mission_slug!r}; site-2 final-persist reconstruction dropped identity (#1663)"
     )

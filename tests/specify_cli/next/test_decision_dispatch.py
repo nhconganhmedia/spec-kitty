@@ -53,9 +53,7 @@ class TestFrozensetDeletion:
         """_COMPOSED_ACTIONS_FOR_PROMPT MUST NOT be importable from decision."""
         import runtime.next.decision as decision_module
 
-        assert not hasattr(decision_module, "_COMPOSED_ACTIONS_FOR_PROMPT"), (
-            "_COMPOSED_ACTIONS_FOR_PROMPT still exists in decision.py — FR-007 violated"
-        )
+        assert not hasattr(decision_module, "_COMPOSED_ACTIONS_FOR_PROMPT"), "_COMPOSED_ACTIONS_FOR_PROMPT still exists in decision.py — FR-007 violated"
 
 
 # ---------------------------------------------------------------------------
@@ -67,9 +65,7 @@ class TestComposedActionMarkerFile:
     """_build_prompt_or_error returns a marker file path for composed actions."""
 
     @pytest.mark.parametrize("action", _SW_DEV_ACTIONS)
-    def test_software_dev_action_returns_marker_path(
-        self, action: str, tmp_path: Path
-    ) -> None:
+    def test_software_dev_action_returns_marker_path(self, action: str, tmp_path: Path) -> None:
         """For software-dev composed actions (wp_id=None), returns a marker path."""
         with patch(
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
@@ -85,16 +81,12 @@ class TestComposedActionMarkerFile:
                 mission_type="software-dev",
             )
 
-        assert path is not None, (
-            f"Expected a marker path for composed action '{action}', got error: {error}"
-        )
+        assert path is not None, f"Expected a marker path for composed action '{action}', got error: {error}"
         assert error is None
         assert Path(path).exists(), f"Marker file {path} does not exist on disk"
 
     @pytest.mark.parametrize("action", _DOCUMENTATION_ACTIONS)
-    def test_documentation_action_returns_marker_path(
-        self, action: str, tmp_path: Path
-    ) -> None:
+    def test_documentation_action_returns_marker_path(self, action: str, tmp_path: Path) -> None:
         """For documentation composed actions (wp_id=None), returns a marker path."""
         with patch(
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
@@ -110,15 +102,11 @@ class TestComposedActionMarkerFile:
                 mission_type="documentation",
             )
 
-        assert path is not None, (
-            f"Expected a marker path for documentation action '{action}', got error: {error}"
-        )
+        assert path is not None, f"Expected a marker path for documentation action '{action}', got error: {error}"
         assert error is None
 
     @pytest.mark.parametrize("action", _RESEARCH_ACTIONS)
-    def test_research_action_returns_marker_path(
-        self, action: str, tmp_path: Path
-    ) -> None:
+    def test_research_action_returns_marker_path(self, action: str, tmp_path: Path) -> None:
         """For research composed actions (wp_id=None), returns a marker path."""
         with patch(
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
@@ -134,9 +122,7 @@ class TestComposedActionMarkerFile:
                 mission_type="research",
             )
 
-        assert path is not None, (
-            f"Expected a marker path for research action '{action}', got error: {error}"
-        )
+        assert path is not None, f"Expected a marker path for research action '{action}', got error: {error}"
         assert error is None
 
 
@@ -152,9 +138,7 @@ class TestCharterCallSiteReached:
         """_build_prompt_or_error calls charter.resolve_mission_type_context."""
         call_log: list[str] = []
 
-        def _record_call(
-            repo_root: object, *, mission_type: str | None = None, feature_dir: object = None
-        ) -> SimpleNamespace:
+        def _record_call(repo_root: object, *, mission_type: str | None = None, feature_dir: object = None) -> SimpleNamespace:
             call_log.append(mission_type)
             return SimpleNamespace(action_sequence=_SW_DEV_ACTIONS)
 
@@ -172,9 +156,7 @@ class TestCharterCallSiteReached:
                 mission_type="software-dev",
             )
 
-        assert "software-dev" in call_log, (
-            "_build_prompt_or_error did not call charter.resolve_mission_type_context"
-        )
+        assert "software-dev" in call_log, "_build_prompt_or_error did not call charter.resolve_mission_type_context"
 
 
 # ---------------------------------------------------------------------------
@@ -213,16 +195,11 @@ class TestWpIdGuard:
         # it fails gracefully (path is None, error is set) — but a composed
         # marker path must never be produced for a WP-scoped action.
         if path is not None:
-            assert "spec-kitty-composed-" not in str(path), (
-                "WP-scoped actions must not produce a composed marker; "
-                f"got path: {path}"
-            )
+            assert "spec-kitty-composed-" not in str(path), f"WP-scoped actions must not produce a composed marker; got path: {path}"
         else:
             # path is None = template builder failed gracefully; that is acceptable,
             # but _error must explain why (not be an empty string).
-            assert _error, (
-                "When _build_prompt_or_error returns path=None, error must be non-empty"
-            )
+            assert _error, "When _build_prompt_or_error returns path=None, error must be non-empty"
 
 
 # ---------------------------------------------------------------------------

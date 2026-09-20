@@ -87,11 +87,9 @@ def native_name_violation(profile_id: str) -> str | None:
     if profile_id in _NATIVE_NAME_TRAVERSAL:
         return f"profile id {profile_id!r} is a path-traversal segment"
     if not _NATIVE_NAME_PATTERN.fullmatch(profile_id):
-        return (
-            f"profile id {profile_id!r} contains characters illegal in a "
-            "native agent filename (allowed: letters, digits, '.', '_', '-')"
-        )
+        return f"profile id {profile_id!r} contains characters illegal in a native agent filename (allowed: letters, digits, '.', '_', '-')"
     return None
+
 
 # Re-export shared helpers for backward compatibility.
 __all__ += [
@@ -114,9 +112,7 @@ class ProfileRenderer(Protocol):
         """Return whether this renderer handles ``tool_key``."""
         ...
 
-    def output_path(
-        self, tool_key: str, profile: ProfilePathIdentity, project_root: Path
-    ) -> Path:
+    def output_path(self, tool_key: str, profile: ProfilePathIdentity, project_root: Path) -> Path:
         """Return the absolute output path for ``profile`` under ``project_root``."""
         ...
 
@@ -133,16 +129,9 @@ class ClaudeCodeProfileRenderer:
     def can_render(self, tool_key: str) -> bool:
         return tool_key == "claude"
 
-    def output_path(
-        self, tool_key: str, profile: ProfilePathIdentity, project_root: Path
-    ) -> Path:
+    def output_path(self, tool_key: str, profile: ProfilePathIdentity, project_root: Path) -> Path:
         _ = tool_key  # path is identical across the renderer's accepted tool keys
-        return (
-            project_root
-            / _CLAUDE_AGENTS_DIR
-            / _AGENTS_SUBDIR
-            / f"{profile.profile_id}.md"
-        )
+        return project_root / _CLAUDE_AGENTS_DIR / _AGENTS_SUBDIR / f"{profile.profile_id}.md"
 
     def render(self, profile: AgentProfile) -> str:
         return _render_markdown_agent(profile)
@@ -156,16 +145,9 @@ class CopilotProfileRenderer:
     def can_render(self, tool_key: str) -> bool:
         return tool_key in ("copilot", "vscode")
 
-    def output_path(
-        self, tool_key: str, profile: ProfilePathIdentity, project_root: Path
-    ) -> Path:
+    def output_path(self, tool_key: str, profile: ProfilePathIdentity, project_root: Path) -> Path:
         _ = tool_key  # path is identical across the renderer's accepted tool keys
-        return (
-            project_root
-            / _GITHUB_DIR
-            / _AGENTS_SUBDIR
-            / f"{profile.profile_id}{_COPILOT_AGENT_SUFFIX}"
-        )
+        return project_root / _GITHUB_DIR / _AGENTS_SUBDIR / f"{profile.profile_id}{_COPILOT_AGENT_SUFFIX}"
 
     def render(self, profile: AgentProfile) -> str:
         return _render_markdown_agent(profile)

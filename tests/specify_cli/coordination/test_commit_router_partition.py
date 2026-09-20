@@ -69,9 +69,7 @@ def _make_policy(*, protected: bool) -> ProtectionPolicy:
     return ProtectionPolicy(protected_branches=branches, operator_hatch_active=False)
 
 
-def _fake_resolve_placement_only(
-    _repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind
-) -> CommitTarget:
+def _fake_resolve_placement_only(_repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind) -> CommitTarget:
     """Kind-aware placement stub: PRIMARY kinds -> main, everything else -> coord ref."""
     if is_primary_artifact_kind(kind):
         return CommitTarget(ref=_PRIMARY_REF)
@@ -125,9 +123,7 @@ def _install_common_fakes(
 # ---------------------------------------------------------------------------
 
 
-def test_mixed_batch_routes_each_file_to_its_own_partition_ref(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mixed_batch_routes_each_file_to_its_own_partition_ref(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """INV-C1: a mixed-partition batch lands each file on its OWN partition ref.
 
     Pre-fix: ``commit_for_mission`` resolves ONE placement for the whole batch
@@ -165,10 +161,7 @@ def test_mixed_batch_routes_each_file_to_its_own_partition_ref(
 
     # INV-C1: TWO commits, one per partition -- never one commit smearing both
     # files onto a single ref.
-    assert len(safe_commit_calls) == 2, (
-        f"expected 2 partition-scoped commits, got {len(safe_commit_calls)}: "
-        f"{safe_commit_calls!r}"
-    )
+    assert len(safe_commit_calls) == 2, f"expected 2 partition-scoped commits, got {len(safe_commit_calls)}: {safe_commit_calls!r}"
 
     ref_by_filename: dict[str, str] = {}
     for call in safe_commit_calls:
@@ -190,9 +183,7 @@ def test_mixed_batch_routes_each_file_to_its_own_partition_ref(
 # ---------------------------------------------------------------------------
 
 
-def test_none_classified_file_falls_back_to_caller_kind_and_still_lands(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_none_classified_file_falls_back_to_caller_kind_and_still_lands(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A ``None``-classified file (unrecognised path) is never dropped/misrouted.
 
     ``gap-analysis.md`` is not in ``_MISSION_FILE_KIND_BY_BASENAME`` /
@@ -213,8 +204,7 @@ def test_none_classified_file_falls_back_to_caller_kind_and_still_lands(
     gap_analysis_file.write_text("# Gap analysis\n", encoding="utf-8")
 
     assert kind_for_mission_file(gap_analysis_file, mission_slug=mission_slug) is None, (
-        "test fixture assumption broken: gap-analysis.md must be an unclassified "
-        "(kind=None) path for this test to exercise the fallback"
+        "test fixture assumption broken: gap-analysis.md must be an unclassified (kind=None) path for this test to exercise the fallback"
     )
 
     coord_worktree = tmp_path / ".worktrees" / "coord"
@@ -236,13 +226,11 @@ def test_none_classified_file_falls_back_to_caller_kind_and_still_lands(
     # None-classified file falls back to SPEC's own PRIMARY partition) -> ONE
     # safe_commit call, both files present, landing on the caller-kind ref.
     assert len(safe_commit_calls) == 1, (
-        f"expected the None-fallback to join the caller-kind's single partition "
-        f"group, got {len(safe_commit_calls)} commits: {safe_commit_calls!r}"
+        f"expected the None-fallback to join the caller-kind's single partition group, got {len(safe_commit_calls)} commits: {safe_commit_calls!r}"
     )
     committed_names = {p.name for p in _call_paths(safe_commit_calls[0])}
     assert committed_names == {"spec.md", "gap-analysis.md"}, (
-        "gap-analysis.md (kind=None) was dropped or split into a separate commit "
-        "instead of falling back to the caller-supplied kind's partition"
+        "gap-analysis.md (kind=None) was dropped or split into a separate commit instead of falling back to the caller-supplied kind's partition"
     )
     assert _call_target(safe_commit_calls[0]).ref == _PRIMARY_REF
     assert result.status == "committed"
@@ -253,9 +241,7 @@ def test_none_classified_file_falls_back_to_caller_kind_and_still_lands(
 # ---------------------------------------------------------------------------
 
 
-def test_single_partition_batch_keeps_the_fast_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_single_partition_batch_keeps_the_fast_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A batch that is ALL one partition commits via exactly one placement + one commit.
 
     No behavioural change for the overwhelmingly common real-world shape: every
@@ -274,19 +260,13 @@ def test_single_partition_batch_keeps_the_fast_path(
 
     resolve_calls: list[MissionArtifactKind] = []
 
-    def _spy_resolve(
-        _repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind
-    ) -> CommitTarget:
+    def _spy_resolve(_repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind) -> CommitTarget:
         resolve_calls.append(kind)
         return CommitTarget(ref=_PRIMARY_REF)
 
     monkeypatch.setattr(commit_router, "resolve_placement_only", _spy_resolve)
-    monkeypatch.setattr(
-        commit_router, "resolve_topology", lambda *_a, **_kw: MissionTopology.SINGLE_BRANCH
-    )
-    monkeypatch.setattr(
-        commit_router, "_resolve_mission_target_branch", lambda *_a, **_kw: _PRIMARY_REF
-    )
+    monkeypatch.setattr(commit_router, "resolve_topology", lambda *_a, **_kw: MissionTopology.SINGLE_BRANCH)
+    monkeypatch.setattr(commit_router, "_resolve_mission_target_branch", lambda *_a, **_kw: _PRIMARY_REF)
 
     safe_commit_calls: list[dict[str, object]] = []
 
@@ -306,9 +286,7 @@ def test_single_partition_batch_keeps_the_fast_path(
         kind=MissionArtifactKind.SPEC,
     )
 
-    assert resolve_calls == [MissionArtifactKind.SPEC], (
-        "fast path must resolve placement exactly once, with the caller's own kind"
-    )
+    assert resolve_calls == [MissionArtifactKind.SPEC], "fast path must resolve placement exactly once, with the caller's own kind"
     assert len(safe_commit_calls) == 1
     assert {p.name for p in _call_paths(safe_commit_calls[0])} == {
         "spec.md",
@@ -344,9 +322,7 @@ class _SequencedCommitResult:
         return _Result()
 
 
-def test_mixed_batch_result_reports_commit_hashes_for_both_partitions(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mixed_batch_result_reports_commit_hashes_for_both_partitions(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#2549 facet B: a split (coord-topology) commit reports BOTH commit hashes.
 
     Pre-fix, ``_merge_group_results`` discarded every group's result except the
@@ -389,14 +365,11 @@ def test_mixed_batch_result_reports_commit_hashes_for_both_partitions(
 
     assert result.status == "committed"
     hashes_by_ref = dict(result.commit_hashes)
-    assert len(result.commit_hashes) == 2, (
-        f"expected one commit hash per partition group, got {result.commit_hashes!r}"
-    )
+    assert len(result.commit_hashes) == 2, f"expected one commit hash per partition group, got {result.commit_hashes!r}"
     assert hashes_by_ref[_PRIMARY_REF] == "feature-branch-sha-0001"
     assert hashes_by_ref[_COORD_REF] == "coord-branch-sha-0002"
     assert hashes_by_ref[_PRIMARY_REF] != hashes_by_ref[_COORD_REF], (
-        "the feature-branch and coordination-branch commits are genuinely "
-        "distinct commits and must report distinct hashes"
+        "the feature-branch and coordination-branch commits are genuinely distinct commits and must report distinct hashes"
     )
     # Backward compatibility: the legacy single-value fields still describe the
     # caller-partition (TASKS_INDEX -> PRIMARY -> feature-branch) commit.
@@ -404,9 +377,7 @@ def test_mixed_batch_result_reports_commit_hashes_for_both_partitions(
     assert result.placement_ref == _PRIMARY_REF
 
 
-def test_single_partition_batch_commit_hashes_matches_legacy_single_commit_hash(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_single_partition_batch_commit_hashes_matches_legacy_single_commit_hash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Backward compatibility: a flat/single-partition commit reports ONE hash.
 
     Under a topology with no coordination routing (``SINGLE_BRANCH`` / flat
@@ -422,15 +393,9 @@ def test_single_partition_batch_commit_hashes_matches_legacy_single_commit_hash(
     spec_file = feature_dir / "spec.md"
     spec_file.write_text("# Spec\n", encoding="utf-8")
 
-    monkeypatch.setattr(
-        commit_router, "resolve_placement_only", lambda *_a, **_kw: CommitTarget(ref=_PRIMARY_REF)
-    )
-    monkeypatch.setattr(
-        commit_router, "resolve_topology", lambda *_a, **_kw: MissionTopology.SINGLE_BRANCH
-    )
-    monkeypatch.setattr(
-        commit_router, "_resolve_mission_target_branch", lambda *_a, **_kw: _PRIMARY_REF
-    )
+    monkeypatch.setattr(commit_router, "resolve_placement_only", lambda *_a, **_kw: CommitTarget(ref=_PRIMARY_REF))
+    monkeypatch.setattr(commit_router, "resolve_topology", lambda *_a, **_kw: MissionTopology.SINGLE_BRANCH)
+    monkeypatch.setattr(commit_router, "_resolve_mission_target_branch", lambda *_a, **_kw: _PRIMARY_REF)
     monkeypatch.setattr(commit_router, "safe_commit", lambda **_kw: _FakeCommitResult())
     policy = _make_policy(protected=False)
 

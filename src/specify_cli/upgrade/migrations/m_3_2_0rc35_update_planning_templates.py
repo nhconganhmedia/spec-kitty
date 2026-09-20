@@ -54,10 +54,7 @@ class UpdatePlanningTemplatesMigration(BaseMigration):
     """Replace pre-3.2.0 tasks-outline / tasks-packages with wps.yaml-based versions."""
 
     migration_id = "3.2.0rc35_update_planning_templates"
-    description = (
-        "Update tasks-outline and tasks-packages command files from prose tasks.md "
-        "authoring to structured wps.yaml manifest authoring"
-    )
+    description = "Update tasks-outline and tasks-packages command files from prose tasks.md authoring to structured wps.yaml manifest authoring"
     target_version = "3.2.0rc35"
 
     def detect(self, project_path: Path) -> bool:
@@ -100,8 +97,7 @@ class UpdatePlanningTemplatesMigration(BaseMigration):
         if templates_dir is None:
             return (
                 False,
-                "Runtime command templates not found. "
-                "Run 'spec-kitty upgrade' again after reinstalling spec-kitty-cli.",
+                "Runtime command templates not found. Run 'spec-kitty upgrade' again after reinstalling spec-kitty-cli.",
             )
         return True, ""
 
@@ -149,9 +145,7 @@ class UpdatePlanningTemplatesMigration(BaseMigration):
             for command in _COMMANDS_TO_UPDATE:
                 template_path = templates_dir / f"{command}.md"
                 if not template_path.is_file():
-                    warnings.append(
-                        f"Template not found for command '{command}' in {templates_dir} — skipping"
-                    )
+                    warnings.append(f"Template not found for command '{command}' in {templates_dir} — skipping")
                     continue
 
                 # Find the stale file for this command in this agent dir

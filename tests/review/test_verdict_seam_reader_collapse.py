@@ -195,8 +195,7 @@ def test_provenance_interlock_clears_after_backfill_and_reader_sees_correct_verd
 
     review_verdict, _, _ = resolve_review_verdict_facts(wp_file)
     assert review_verdict == "rejected", (
-        "post-backfill, the collapsed reader must resolve the historical "
-        "rejection from the event log alone -- the SC-008 guarantee"
+        "post-backfill, the collapsed reader must resolve the historical rejection from the event log alone -- the SC-008 guarantee"
     )
 
 
@@ -272,9 +271,7 @@ def test_board_shows_snapshot_rejected_despite_approved_frontmatter(tmp_path: Pa
     )
     work_packages: list[dict[str, object]] = [{"id": "WP01", "lane": Lane.DONE}]
 
-    stale, _ = _apply_review_status_flags(
-        work_packages, feature_dir=feature_dir, events=[], stall_threshold_minutes=30
-    )
+    stale, _ = _apply_review_status_flags(work_packages, feature_dir=feature_dir, events=[], stall_threshold_minutes=30)
 
     assert stale and stale[0]["wp_id"] == "WP01"
     assert work_packages[0]["_stale_verdict"] is True
@@ -296,8 +293,7 @@ def test_damaged_record_fails_closed_not_crash(tmp_path: Path) -> None:
 
     assert review_verdict is None
     assert review_artifact_name is not None, (
-        "damaged must still trip the caller's 'no parseable review verdict' "
-        "refusal (a None review_artifact_name would short-circuit it instead)"
+        "damaged must still trip the caller's 'no parseable review verdict' refusal (a None review_artifact_name would short-circuit it instead)"
     )
 
 
@@ -315,9 +311,7 @@ def test_status_display_fails_closed_on_damaged_record(tmp_path: Path) -> None:
         "specify_cli.cli.commands.agent.tasks_parsing_validation.event_sourced_review_result",
         return_value=_DAMAGED,
     ):
-        stale, _ = _apply_review_status_flags(
-            work_packages, feature_dir=feature_dir, events=[], stall_threshold_minutes=30
-        )
+        stale, _ = _apply_review_status_flags(work_packages, feature_dir=feature_dir, events=[], stall_threshold_minutes=30)
 
     assert stale and stale[0]["damaged"] is True
     assert work_packages[0]["_damaged_verdict"] is True
@@ -354,10 +348,7 @@ def test_merge_gate_fails_closed_on_damaged_record_never_blocks(tmp_path: Path) 
     ):
         findings = find_rejected_review_artifact_conflicts(feature_dir)
 
-    assert findings == [], (
-        "a damaged review_result record must not be fabricated into a "
-        "blocking merge-gate finding (G2 fail-closed, never a crash either)"
-    )
+    assert findings == [], "a damaged review_result record must not be fabricated into a blocking merge-gate finding (G2 fail-closed, never a crash either)"
 
 
 # ===========================================================================
@@ -399,9 +390,7 @@ def test_wp_id_from_stem_resolves_bare_id_for_every_accepted_separator(
     ["WP05-foo", "WP05.foo", "WP05_foo"],
     ids=["hyphen", "dot", "underscore"],
 )
-def test_approval_guard_resolves_rejection_for_every_accepted_separator(
-    tmp_path: Path, wp_slug: str
-) -> None:
+def test_approval_guard_resolves_rejection_for_every_accepted_separator(tmp_path: Path, wp_slug: str) -> None:
     """End-to-end proof, through the REAL caller the safety gate depends on:
     a WP whose task file uses a non-hyphen separator (``WP05.foo.md``,
     ``WP05_foo.md``) still resolves its genuine ``changes_requested`` event
@@ -430,17 +419,11 @@ def test_approval_guard_resolves_rejection_for_every_accepted_separator(
         reference=f"review-cycle://{feature_dir.name}/{wp_slug}/review-cycle-1.md",
     )
 
-    review_verdict, _artifact_path, review_artifact_name = resolve_review_verdict_facts(
-        wp_file
-    )
+    review_verdict, _artifact_path, review_artifact_name = resolve_review_verdict_facts(wp_file)
 
     assert review_verdict == "rejected", (
-        f"wp_slug={wp_slug!r}: the guard must resolve the genuine rejection "
-        "recorded under wp_id WP05 -- a fail-open here means the WRONG "
-        "wp_id key was looked up"
+        f"wp_slug={wp_slug!r}: the guard must resolve the genuine rejection recorded under wp_id WP05 -- a fail-open here means the WRONG wp_id key was looked up"
     )
     assert review_artifact_name is not None, (
-        f"wp_slug={wp_slug!r}: slot_present must be True (a real rejection "
-        "recorded) -- (None, None, None) is the fail-open shape this test "
-        "guards against"
+        f"wp_slug={wp_slug!r}: slot_present must be True (a real rejection recorded) -- (None, None, None) is the fail-open shape this test guards against"
     )

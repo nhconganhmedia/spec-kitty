@@ -175,13 +175,7 @@ def _review_cycle_candidate_dirs(feature_dir: Path, wp_id: str) -> list[Path]:
     exact = tasks_dir / wp_id
     if exact.is_dir():
         candidates.append(exact)
-    candidates.extend(
-        sorted(
-            entry
-            for entry in tasks_dir.iterdir()
-            if entry.is_dir() and entry.name.startswith(f"{wp_id}-")
-        )
-    )
+    candidates.extend(sorted(entry for entry in tasks_dir.iterdir() if entry.is_dir() and entry.name.startswith(f"{wp_id}-")))
     return candidates
 
 
@@ -258,9 +252,7 @@ def _legacy_frontmatter_verdict(path: Path) -> str | None:
     return verdict if isinstance(verdict, str) else None
 
 
-def terminal_review_artifact(
-    feature_dir: Path, wp_id: str
-) -> tuple[ReviewCycleArtifact, Path, str | None] | None:
+def terminal_review_artifact(feature_dir: Path, wp_id: str) -> tuple[ReviewCycleArtifact, Path, str | None] | None:
     """Return (artifact, path, legacy_verdict) for *wp_id*'s terminal verdict,
     or ``None``.
 
@@ -333,9 +325,7 @@ def stranded_verdict_findings(feature_dir: Path) -> list[ProvenanceFinding]:
         lookup = event_sourced_review_result(feature_dir, wp_id)
         if lookup.slot_present:
             continue
-        findings.append(
-            ProvenanceFinding(wp_id=wp_id, has_md_verdict=True, has_event_slot=False)
-        )
+        findings.append(ProvenanceFinding(wp_id=wp_id, has_md_verdict=True, has_event_slot=False))
     return findings
 
 
@@ -369,12 +359,7 @@ def _backfill_event_for_wp(
         reference=reference,
         feedback_path=str(path) if is_changes_requested(bridged_verdict) else None,
     )
-    event_id = str(
-        deterministic_ulid(
-            f"{mission_id or feature_dir.name}|{wp_id}|review_result|"
-            f"{legacy_verdict}|{artifact.cycle_number}"
-        )
-    )
+    event_id = str(deterministic_ulid(f"{mission_id or feature_dir.name}|{wp_id}|review_result|{legacy_verdict}|{artifact.cycle_number}"))
     return StatusEvent(
         event_id=event_id,
         mission_slug=feature_dir.name,
@@ -435,9 +420,7 @@ def _collect_backfill_events(feature_dir: Path, mission_id: str | None) -> tuple
             continue
         if event_sourced_review_result(feature_dir, wp_id).slot_present:
             continue
-        events.append(
-            _backfill_event_for_wp(feature_dir, wp_id, artifact, path, legacy_verdict, mission_id)
-        )
+        events.append(_backfill_event_for_wp(feature_dir, wp_id, artifact, path, legacy_verdict, mission_id))
         appended_wp_ids.append(wp_id)
     return events, appended_wp_ids
 

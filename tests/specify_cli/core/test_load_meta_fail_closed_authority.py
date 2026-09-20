@@ -80,9 +80,7 @@ def test_non_dict_meta_raises_typed_error_not_raw_value_error(tmp_path: Path) ->
         ("empty_file", ""),
     ],
 )
-def test_no_raw_value_error_escapes_the_public_reader(
-    tmp_path: Path, label: str, content: str
-) -> None:
+def test_no_raw_value_error_escapes_the_public_reader(tmp_path: Path, label: str, content: str) -> None:
     """NFR-003: zero raw ValueError across the malformed shapes."""
     _write_meta(tmp_path / label, content)
 
@@ -149,18 +147,8 @@ def test_mission_metadata_import_stays_function_local() -> None:
         "core.paths <-> mission_metadata circular import (research.md D4)."
     )
 
-    reader = next(
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.FunctionDef) and node.name == "load_meta_fail_closed"
-    )
+    reader = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "load_meta_fail_closed")
     local_imports = {
-        alias.name
-        for node in ast.walk(reader)
-        if isinstance(node, ast.ImportFrom) and node.module == "specify_cli.mission_metadata"
-        for alias in node.names
+        alias.name for node in ast.walk(reader) if isinstance(node, ast.ImportFrom) and node.module == "specify_cli.mission_metadata" for alias in node.names
     }
-    assert "load_meta" in local_imports, (
-        "load_meta_fail_closed must import the canonical parser inside the "
-        "function body (deferred import) — see research.md D4."
-    )
+    assert "load_meta" in local_imports, "load_meta_fail_closed must import the canonical parser inside the function body (deferred import) — see research.md D4."

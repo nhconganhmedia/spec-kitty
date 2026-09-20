@@ -241,9 +241,7 @@ def _page_body(text: str) -> str:
     return ""
 
 
-def derive_related(
-    page_path: Path, *, repo_root: Path, docs_root: Path
-) -> RelatedDerivation:
+def derive_related(page_path: Path, *, repo_root: Path, docs_root: Path) -> RelatedDerivation:
     """Derive ``related:`` edges from a page's in-body markdown links (T068).
 
     Each inline ``[text](target.md)`` link is resolved relative to the page's
@@ -277,9 +275,7 @@ def derive_related(
         else:
             unresolved.add(clean)
 
-    return RelatedDerivation(
-        resolved=sorted(resolved), unresolved=sorted(unresolved)
-    )
+    return RelatedDerivation(resolved=sorted(resolved), unresolved=sorted(unresolved))
 
 
 def _is_under(path: Path, root: Path) -> bool:
@@ -345,9 +341,7 @@ def build_backfill(
 
     updated = _coerce_str(existing.get(_FM_UPDATED))
     if updated is None:
-        resolver = updated_resolver or (
-            lambda rel: _git_last_updated(rel, repo_root=repo_root)
-        )
+        resolver = updated_resolver or (lambda rel: _git_last_updated(rel, repo_root=repo_root))
         updated = resolver(entry.path)
 
     return PageBackfill(
@@ -466,10 +460,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the backfill CLI parser."""
     parser = argparse.ArgumentParser(
         prog="frontmatter_backfill",
-        description=(
-            "Derive doc_status + carry inventory frontmatter fields onto docs "
-            "pages. Dry-run by default (prints the plan); pass --write to apply."
-        ),
+        description=("Derive doc_status + carry inventory frontmatter fields onto docs pages. Dry-run by default (prints the plan); pass --write to apply."),
     )
     parser.add_argument(
         "--inventory",
@@ -511,12 +502,8 @@ def main(argv: list[str] | None = None) -> int:
         docs_root=args.docs_root,
     )
     if args.write:
-        changed = sum(
-            apply_backfill((args.repo_root / bf.path).resolve(), bf) for bf in plan
-        )
-        sys.stdout.write(
-            f"frontmatter_backfill: applied to {changed}/{len(plan)} page(s).\n"
-        )
+        changed = sum(apply_backfill((args.repo_root / bf.path).resolve(), bf) for bf in plan)
+        sys.stdout.write(f"frontmatter_backfill: applied to {changed}/{len(plan)} page(s).\n")
         return 0
     _emit_plan(plan, as_json=args.json)
     return 0
@@ -530,10 +517,7 @@ def _emit_plan(plan: list[PageBackfill], *, as_json: bool) -> None:
         return
     needs_desc = sum(1 for bf in plan if bf.description is None)
     edges = sum(len(bf.related) for bf in plan)
-    sys.stdout.write(
-        f"frontmatter_backfill: planned {len(plan)} page(s); "
-        f"{needs_desc} need a description (WP12); {edges} related edge(s) derived.\n"
-    )
+    sys.stdout.write(f"frontmatter_backfill: planned {len(plan)} page(s); {needs_desc} need a description (WP12); {edges} related edge(s) derived.\n")
 
 
 if __name__ == "__main__":  # pragma: no cover - module-level CLI guard

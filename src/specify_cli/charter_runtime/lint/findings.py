@@ -107,9 +107,7 @@ class DecayReport:
     def filter_by_severity(self, min_severity: str) -> DecayReport:
         """Return a new DecayReport containing only findings at or above ``min_severity``."""
         threshold = SEVERITY_ORDER.get(min_severity, 0)
-        filtered = [
-            f for f in self.findings if SEVERITY_ORDER.get(f.severity, 0) >= threshold
-        ]
+        filtered = [f for f in self.findings if SEVERITY_ORDER.get(f.severity, 0) >= threshold]
         return DecayReport(
             findings=filtered,
             scanned_at=self.scanned_at,

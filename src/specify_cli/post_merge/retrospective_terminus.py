@@ -99,8 +99,7 @@ def run_retrospective_postcondition(
         # re-commits any leftover dirty append instead of leaving the durable
         # event log dirty forever. Capture itself is the only no-op here.
         logger.debug(
-            "retrospective.yaml already exists for mission %s — skipping capture; "
-            "healing any uncommitted retrospective append",
+            "retrospective.yaml already exists for mission %s — skipping capture; healing any uncommitted retrospective append",
             mission_slug,
         )
     else:
@@ -352,10 +351,7 @@ def _emit_capture_failed(
             repo_root=repo_root,
             failure_category=_classify,
             failure_message=f"post-merge retrospective capture: {exc!s}",
-            remediation_hint=(
-                "Run `spec-kitty agent retrospect synthesize --mission <slug>` "
-                "to retry retrospective capture after merge."
-            ),
+            remediation_hint=("Run `spec-kitty agent retrospect synthesize --mission <slug>` to retry retrospective capture after merge."),
             policy_source={"source": "merge_postcondition"},
             attempted_provenance_kind="runtime_post_completion",
             missing_artifacts=None,

@@ -39,7 +39,6 @@ class StatusValidationReadError(GuardedReadError, RuntimeError):
     """
 
 
-
 def _edge_is_legal(from_lane: str, to_lane: str) -> bool:
     """Decide edge legality via the FSM — the sole edge authority (I1).
 

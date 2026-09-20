@@ -134,6 +134,8 @@ def _no_emit_side_effects(monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.status.emit as status_emit
 
     monkeypatch.setattr(status_emit, "_saas_fan_out", lambda *a, **k: None, raising=False)
+
+
 # ── 1. Byte-stability (SC-004 / NFR-003) — the headline ─────────────────────
 
 
@@ -271,9 +273,7 @@ def test_infer_subtasks_complete_silent_snapshot_blocks_fail_closed(tmp_path: Pa
     fd = _make_feature_dir(tmp_path, status_phase=1)
     _write_wp_file(fd, extra_frontmatter="subtasks:\n- T001\n")
     # A tasks.md unchecked row is now IRRELEVANT — the roster is snapshot-gated.
-    (fd / "tasks.md").write_text(
-        f"## {_WP}: Repro\n- [ ] T001 First ({_WP})\n", encoding="utf-8"
-    )
+    (fd / "tasks.md").write_text(f"## {_WP}: Repro\n- [ ] T001 First ({_WP})\n", encoding="utf-8")
     # No snapshot subtasks slot -> silent -> fail-closed BLOCK on the roster id.
     assert _infer_subtasks_complete(fd, _WP) is False
 

@@ -69,10 +69,7 @@ def _format_too_large_message(exc: IntakeTooLargeError) -> str:
     else:
         size_str = "size unknown"
     cap_mb = max(cap // 1024 // 1024, 1)
-    return (
-        f"[red]File is too large to ingest ({size_str}). "
-        f"Maximum allowed size is {cap_mb} MB.[/red]"
-    )
+    return f"[red]File is too large to ingest ({size_str}). Maximum allowed size is {cap_mb} MB.[/red]"
 
 
 def _resolve_repo_root() -> Path:
@@ -154,9 +151,7 @@ def _write_brief_from_candidate(
     # If only one file exists, that is partial state from a prior interrupted write;
     # write_mission_brief() will clean it up before re-writing.
     if brief_path.exists() and source_path.exists() and not force:
-        err_console.print(
-            "Brief already exists at .kittify/mission-brief.md. Use --force to overwrite."
-        )
+        err_console.print("Brief already exists at .kittify/mission-brief.md. Use --force to overwrite.")
         raise typer.Exit(1)
     cap = load_max_brief_bytes(repo_root)
     try:
@@ -170,9 +165,7 @@ def _write_brief_from_candidate(
     except IntakeFileUnreadableError as exc:
         err_console.print(f"[red]Could not read file: {exc.__cause__}[/red]")
         raise typer.Exit(1) from None
-    _commit_brief(
-        repo_root, content, str(found_path), source_agent=source_agent_value
-    )
+    _commit_brief(repo_root, content, str(found_path), source_agent=source_agent_value)
     console.print("[green]\u2713[/green] Brief written to .kittify/mission-brief.md")
     console.print("[green]\u2713[/green] Provenance written to .kittify/brief-source.yaml")
 
@@ -186,9 +179,7 @@ def _prompt_candidate_selection(
         err_console.print(f"  {idx}. {found_path}  ({harness_key})")
 
     if not is_interactive():
-        err_console.print(
-            "\nNon-interactive — pass a path explicitly: spec-kitty intake <path>"
-        )
+        err_console.print("\nNon-interactive — pass a path explicitly: spec-kitty intake <path>")
         raise typer.Exit(1)
 
     selection_str = typer.prompt("Enter number")
@@ -197,9 +188,7 @@ def _prompt_candidate_selection(
         if not 1 <= selection <= len(candidates):
             raise ValueError  # noqa: TRY301
     except ValueError:
-        err_console.print(
-            f"[red]Invalid selection. Enter a number between 1 and {len(candidates)}.[/red]"
-        )
+        err_console.print(f"[red]Invalid selection. Enter a number between 1 and {len(candidates)}.[/red]")
         raise typer.Exit(1) from None
 
     return candidates[selection - 1]
@@ -210,10 +199,7 @@ def _auto_branch(repo_root: Path, *, force: bool) -> None:
     candidates = scan_for_plans(repo_root)
 
     if not candidates:
-        err_console.print(
-            "No plan document detected in known harness locations.\n"
-            "Pass a path explicitly: spec-kitty intake <path>"
-        )
+        err_console.print("No plan document detected in known harness locations.\nPass a path explicitly: spec-kitty intake <path>")
         raise typer.Exit(1)
 
     if len(candidates) == 1:
@@ -247,18 +233,12 @@ def intake(
         try:
             brief = read_mission_brief(repo_root)
         except IntakeFileUnreadableError as exc:
-            err_console.print(
-                f"[red]Brief file at .kittify/mission-brief.md exists but is "
-                f"unreadable: {exc.__cause__}[/red]"
-            )
+            err_console.print(f"[red]Brief file at .kittify/mission-brief.md exists but is unreadable: {exc.__cause__}[/red]")
             raise typer.Exit(2) from None
         try:
             source = read_brief_source(repo_root)
         except IntakeFileUnreadableError as exc:
-            err_console.print(
-                f"[red]Brief provenance at .kittify/brief-source.yaml exists "
-                f"but is unreadable: {exc.__cause__}[/red]"
-            )
+            err_console.print(f"[red]Brief provenance at .kittify/brief-source.yaml exists but is unreadable: {exc.__cause__}[/red]")
             raise typer.Exit(2) from None
         if brief is None and source is None:
             err_console.print("[red]No brief found at .kittify/mission-brief.md[/red]")
@@ -294,9 +274,7 @@ def intake(
     # Gate only on complete state (both files present). Partial state is recovered by
     # write_mission_brief() and should not block re-ingest.
     if brief_path.exists() and _source_path.exists() and not force:
-        err_console.print(
-            "Brief already exists at .kittify/mission-brief.md. Use --force to overwrite."
-        )
+        err_console.print("Brief already exists at .kittify/mission-brief.md. Use --force to overwrite.")
         raise typer.Exit(1)
 
     # Read content from file or stdin via the bounded intake helpers so

@@ -109,8 +109,7 @@ def test_load_mission_type_profile_returns_mission_type_profile(mission_type: st
     # the lookup.
     declared_type = getattr(profile, "mission_type", None)
     assert declared_type == mission_type, (
-        f"Profile for `{mission_type}` declares mission_type=`{declared_type}`. "
-        "The two must agree — otherwise the loader returned the wrong file."
+        f"Profile for `{mission_type}` declares mission_type=`{declared_type}`. The two must agree — otherwise the loader returned the wrong file."
     )
 
 
@@ -242,9 +241,7 @@ def test_resolve_governance_hard_fails_for_unknown_mission_type(tmp_path: Path) 
     feature_dir = repo_root / "kitty-specs" / "unknown-mission-001"
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps(
-            {"mission_type": "totally-made-up-mission-type", "mission_slug": "unknown-mission-001"}
-        ),
+        json.dumps({"mission_type": "totally-made-up-mission-type", "mission_slug": "unknown-mission-001"}),
         encoding="utf-8",
     )
 
@@ -252,9 +249,7 @@ def test_resolve_governance_hard_fails_for_unknown_mission_type(tmp_path: Path) 
         resolve_mission_type_context(repo_root, feature_dir=feature_dir)
 
     assert "totally-made-up-mission-type" in str(excinfo.value), (
-        "Hard-fail message MUST name the unknown mission_type so operators "
-        "can diagnose the typo / missing profile. Observed exception text:\n"
-        f"  {excinfo.value!r}"
+        f"Hard-fail message MUST name the unknown mission_type so operators can diagnose the typo / missing profile. Observed exception text:\n  {excinfo.value!r}"
     )
 
 
@@ -279,15 +274,9 @@ def test_profile_yaml_declares_its_mission_type(mission_type: str) -> None:
 
     profile_path = _MISSION_ROOT / mission_type / "governance-profile.yaml"
     if not profile_path.exists():
-        pytest.fail(
-            f"Missing {profile_path} — see "
-            "test_mission_type_ships_governance_profile_yaml for the gating "
-            "test that pins the file existence."
-        )
+        pytest.fail(f"Missing {profile_path} — see test_mission_type_ships_governance_profile_yaml for the gating test that pins the file existence.")
     data = YAML(typ="safe").load(profile_path.read_text(encoding="utf-8"))
-    assert isinstance(data, dict), (
-        f"{profile_path}: top level MUST be a YAML mapping."
-    )
+    assert isinstance(data, dict), f"{profile_path}: top level MUST be a YAML mapping."
     declared = data.get("mission_type")
     assert declared == mission_type, (
         f"{profile_path}: top-level `mission_type` is `{declared!r}`; "

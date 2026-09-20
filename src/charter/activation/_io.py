@@ -67,6 +67,7 @@ class CharterContent:
     source_path: Path | None
     normalization_applied: bool
 
+
 class CharterEncodingError(KittyInternalConsistencyError):
     """Raised when encoding detection fails and unsafe=False.
 

@@ -53,6 +53,7 @@ def seed_charter(repo: Path, body: str = "# Charter\n\nHello") -> tuple[Path, Pa
 def write_metadata(metadata_path: Path, charter_path: Path, *, mismatched: bool = False) -> None:
     """Write ``metadata.yaml`` with a charter_hash matching (or not) the charter file."""
     from charter.hasher import hash_content  # noqa: PLC0415
+
     charter_hash = hash_content(charter_path.read_text(encoding="utf-8"))  # "sha256:<hex>"
     digest = charter_hash.split(":", 1)[1]
     if mismatched:

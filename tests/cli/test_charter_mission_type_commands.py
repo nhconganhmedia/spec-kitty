@@ -137,9 +137,7 @@ def test_mission_type_show_rejects_an_unknown_id() -> None:
     assert "unknown-type" in result.output
 
 
-def test_charter_mission_type_list_reports_real_layer_for_activated_org_type(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_charter_mission_type_list_reports_real_layer_for_activated_org_type(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-006: an activated org-layer type reports its real ``source_layer``.
 
     Pre-fix, ``charter_mission_type_list`` only ever queries the built-in-only
@@ -185,9 +183,7 @@ def test_charter_mission_type_list_reports_real_layer_for_activated_org_type(
 # ---------------------------------------------------------------------------
 
 
-def test_sc001_org_pack_mission_type_resolves_across_all_four_cli_surfaces(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sc001_org_pack_mission_type_resolves_across_all_four_cli_surfaces(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """SC-001 capstone: T016-T019's fixes assembled into one coherent scenario."""
     from charter.offering.missions.mission_type_repository import MissionTypeRepository
 
@@ -276,9 +272,7 @@ def test_sc001_org_pack_mission_type_resolves_across_all_four_cli_surfaces(
             # not "unknown".
             list_result = runner.invoke(charter_app, ["mission-type", "list", "--json"])
             assert list_result.exit_code == 0, list_result.output
-            qa_row = next(
-                row for row in json.loads(list_result.output) if row["id"] == "qa"
-            )
+            qa_row = next(row for row in json.loads(list_result.output) if row["id"] == "qa")
             assert qa_row["source_layer"] == "org"
             assert qa_row["action_sequence"] == ["design", "implement"]
 
@@ -305,11 +299,7 @@ def test_sc001_org_pack_mission_type_resolves_across_all_four_cli_surfaces(
             # never lands inside the JSON payload under test here.
             doctrine_result = runner.invoke(doctrine_app, ["mission-type", "list", "--json"])
             assert doctrine_result.exit_code == 0, doctrine_result.output
-            doctrine_row = next(
-                row
-                for row in json.loads(doctrine_result.stdout.strip())
-                if row["id"] == "qa"
-            )
+            doctrine_row = next(row for row in json.loads(doctrine_result.stdout.strip()) if row["id"] == "qa")
             assert doctrine_row["source_layer"] == "org"
     finally:
         MissionTypeRepository.cache_clear()

@@ -80,13 +80,11 @@ DEFAULT_SITE_DIR = _REPO_ROOT / "docs" / "_site"
 # IC-11 / the PR gates always pass ``--occurrence-map <this mission>`` explicitly;
 # the constant only governs an argument-less invocation.
 MISSION_SLUG = "common-docs-convergence-01KZMTR9"
-DEFAULT_OCCURRENCE_MAP = (
-    _REPO_ROOT / "kitty-specs" / MISSION_SLUG / "occurrence_map.yaml"
-)
+DEFAULT_OCCURRENCE_MAP = _REPO_ROOT / "kitty-specs" / MISSION_SLUG / "occurrence_map.yaml"
 
 REDIRECT_MAP_HEADER = (
     "# Redirect map — DocFX has no native redirect; each old->new preserves a\n"
-    "# moved published URL via a <meta http-equiv=\"refresh\"> stub (FR-006).\n"
+    '# moved published URL via a <meta http-equiv="refresh"> stub (FR-006).\n'
     "#\n"
     "# SINGLE-WRITER (WP07-owned): DERIVED, do not hand-edit. Regenerate with\n"
     "#   python3 scripts/docs/redirect_stub_generator.py regenerate-map\n"
@@ -168,9 +166,7 @@ def load_baseline(manifest_path: Path) -> tuple[str, list[str]]:
 
 def load_moves(occurrence_map_path: Path) -> list[Move]:
     """Return the ``moves:`` spine from an ``occurrence_map.yaml``."""
-    data: dict[str, Any] = yaml.safe_load(
-        occurrence_map_path.read_text(encoding="utf-8")
-    )
+    data: dict[str, Any] = yaml.safe_load(occurrence_map_path.read_text(encoding="utf-8"))
     moves: list[Move] = []
     for raw in data.get("moves", []) or []:
         sources = tuple(str(s) for s in raw.get("from", []))
@@ -187,7 +183,7 @@ def load_redirect_map(redirect_map_path: Path) -> dict[str, str]:
 
 
 def _strip_site(url: str, site_url: str) -> str:
-    return url[len(site_url):] if url.startswith(site_url) else url
+    return url[len(site_url) :] if url.startswith(site_url) else url
 
 
 # --- Redirect-map derivation (single-writer) --------------------------------
@@ -220,7 +216,7 @@ def _relocate(repo_path: str, moves: list[Move]) -> str | None:
                 return f"{move.dest}/{Path(src).name}"
             prefix = f"{src.rstrip('/')}/"
             if repo_path.startswith(prefix):
-                return f"{move.dest}/{repo_path[len(prefix):]}"
+                return f"{move.dest}/{repo_path[len(prefix) :]}"
     return None
 
 
@@ -232,7 +228,7 @@ def _repo_path_to_url_path(repo_path: str) -> str | None:
     """
     if not repo_path.startswith(DOCS_PREFIX):
         return None
-    rel = repo_path[len(DOCS_PREFIX):]
+    rel = repo_path[len(DOCS_PREFIX) :]
     if rel.endswith(MD_SUFFIX):
         rel = f"{rel[: -len(MD_SUFFIX)]}{HTML_SUFFIX}"
     return rel
@@ -346,10 +342,7 @@ def check_coverage(
 def assert_non_vacuous(baseline_url_paths: list[str]) -> None:
     """Guard against a false-green coverage check over an empty baseline."""
     if not baseline_url_paths:
-        raise ValueError(
-            "baseline URL set is empty — coverage check would be vacuous "
-            "(NFR-002 denominator missing); refusing to report a false 100%."
-        )
+        raise ValueError("baseline URL set is empty — coverage check would be vacuous (NFR-002 denominator missing); refusing to report a false 100%.")
 
 
 # --- CLI --------------------------------------------------------------------
@@ -407,10 +400,7 @@ def _cmd_coverage(args: argparse.Namespace) -> int:
     assert_non_vacuous(baseline)
     redirect_map = load_redirect_map(args.redirect_map)
     uncovered = check_coverage(baseline, redirect_map, args.site_dir)
-    print(
-        f"coverage: {len(baseline) - len(uncovered)}/{len(baseline)} baseline URLs "
-        f"covered ({len(redirect_map)} redirects)."
-    )
+    print(f"coverage: {len(baseline) - len(uncovered)}/{len(baseline)} baseline URLs covered ({len(redirect_map)} redirects).")
     if uncovered:
         print("ERROR: uncovered baseline URLs (NFR-002 violation):")
         for url_path in uncovered:

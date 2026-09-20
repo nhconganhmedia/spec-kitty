@@ -19,6 +19,8 @@ from specify_cli.status.models import StatusEvent, Lane
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 def _seed_wp_lane(feature_dir: Path, wp_id: str, lane: str) -> None:
     """Seed a WP into a specific lane in the event log."""
     _lane_alias = {"doing": "in_progress"}
@@ -35,6 +37,7 @@ def _seed_wp_lane(feature_dir: Path, wp_id: str, lane: str) -> None:
         execution_mode="worktree",
     )
     append_event(feature_dir, event)
+
 
 runner = CliRunner()
 
@@ -74,10 +77,7 @@ class TestStatusInProgressLane:
     @patch("specify_cli.cli.commands.agent.tasks._ensure_target_branch_checked_out")
     @patch("specify_cli.cli.commands.agent.tasks.locate_project_root")
     @patch("specify_cli.cli.commands.agent.tasks._find_mission_slug")
-    def test_in_progress_wp_appears_in_json_output(
-        self, mock_slug: Mock, mock_root: Mock, mock_branch: Mock,
-        mock_status_read: Mock, tmp_path: Path
-    ):
+    def test_in_progress_wp_appears_in_json_output(self, mock_slug: Mock, mock_root: Mock, mock_branch: Mock, mock_status_read: Mock, tmp_path: Path):
         """WP with lane: in_progress must appear in by_lane count, not vanish."""
         repo_root = tmp_path
         (repo_root / ".kittify").mkdir()
@@ -88,20 +88,14 @@ class TestStatusInProgressLane:
         mock_status_read.return_value = repo_root
 
         # WP with canonical 'in_progress' lane (as persisted by 7-lane model)
-        (tasks_dir / "WP01-alpha.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "Alpha"\nlane: "in_progress"\n---\nContent\n'
-        )
+        (tasks_dir / "WP01-alpha.md").write_text('---\nwork_package_id: "WP01"\ntitle: "Alpha"\nlane: "in_progress"\n---\nContent\n')
         _seed_wp_lane(feature_dir, "WP01", "in_progress")
         # WP with legacy alias 'doing' -> seeded as canonical 'in_progress'
-        (tasks_dir / "WP02-beta.md").write_text(
-            '---\nwork_package_id: "WP02"\ntitle: "Beta"\nlane: "doing"\n---\nContent\n'
-        )
+        (tasks_dir / "WP02-beta.md").write_text('---\nwork_package_id: "WP02"\ntitle: "Beta"\nlane: "doing"\n---\nContent\n')
         _seed_wp_lane(feature_dir, "WP02", "doing")
         # WP exists but has no canonical seed yet: it must be reported as genesis,
         # not silently treated as planned.
-        (tasks_dir / "WP03-gamma.md").write_text(
-            '---\nwork_package_id: "WP03"\ntitle: "Gamma"\nlane: "planned"\n---\nContent\n'
-        )
+        (tasks_dir / "WP03-gamma.md").write_text('---\nwork_package_id: "WP03"\ntitle: "Gamma"\nlane: "planned"\n---\nContent\n')
 
         mock_root.return_value = repo_root
         mock_slug.return_value = "042-test"
@@ -118,9 +112,7 @@ class TestStatusInProgressLane:
 
         # Both WP01 (in_progress) and WP02 (doing alias) should be counted
         # under the canonical 'in_progress' key
-        assert output["by_lane"].get("in_progress", 0) == 2, (
-            f"Expected 2 in_progress WPs, got by_lane: {output['by_lane']}"
-        )
+        assert output["by_lane"].get("in_progress", 0) == 2, f"Expected 2 in_progress WPs, got by_lane: {output['by_lane']}"
         assert output["by_lane"].get("planned", 0) == 0
         assert output["by_lane"].get("genesis", 0) == 1
 
@@ -136,8 +128,7 @@ class TestStatusInProgressLane:
     @patch("specify_cli.cli.commands.agent.tasks.locate_project_root")
     @patch("specify_cli.cli.commands.agent.tasks._find_mission_slug")
     def test_in_progress_wp_appears_in_rich_output(
-        self, mock_slug: Mock, mock_root: Mock, mock_branch: Mock,
-        mock_stale: Mock, mock_status_read: Mock, tmp_path: Path
+        self, mock_slug: Mock, mock_root: Mock, mock_branch: Mock, mock_stale: Mock, mock_status_read: Mock, tmp_path: Path
     ):
         """WP with lane: in_progress must appear in the Doing column of the kanban board."""
         repo_root = tmp_path
@@ -148,9 +139,7 @@ class TestStatusInProgressLane:
         feature_dir = repo_root / "kitty-specs" / "042-test"
         mock_status_read.return_value = repo_root
 
-        (tasks_dir / "WP01-alpha.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "Alpha Task"\nlane: "in_progress"\n---\nContent\n'
-        )
+        (tasks_dir / "WP01-alpha.md").write_text('---\nwork_package_id: "WP01"\ntitle: "Alpha Task"\nlane: "in_progress"\n---\nContent\n')
         _seed_wp_lane(feature_dir, "WP01", "in_progress")
 
         mock_root.return_value = repo_root

@@ -164,9 +164,7 @@ def _stub_write_artifact_committed(monkeypatch: pytest.MonkeyPatch) -> list[dict
 
 
 class TestWriteIssueMatrix:
-    def test_writes_json_and_routes_through_write_seam(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_writes_json_and_routes_through_write_seam(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from mission_runtime import MissionArtifactKind
         from specify_cli.tasks.issue_matrix import IssueMatrixEntry, write_issue_matrix
 
@@ -338,24 +336,18 @@ class TestIssueMatrixArtifactPresent:
 
 
 class TestMigrateIssueMatrixToJson:
-    def test_migrates_legacy_markdown_rows_to_json(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_migrates_legacy_markdown_rows_to_json(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.tasks.issue_matrix_migration import migrate_issue_matrix_to_json
 
         calls = _stub_write_artifact_committed(monkeypatch)
         feature_dir = tmp_path / "kitty-specs" / _MISSION_SLUG
         feature_dir.mkdir(parents=True)
         (feature_dir / "issue-matrix.md").write_text(
-            "| Issue | Title | Verdict | Evidence ref |\n"
-            "|-------|-------|---------|--------------|\n"
-            "| #1726 | Fix the thing | fixed | commit abc123 |\n",
+            "| Issue | Title | Verdict | Evidence ref |\n|-------|-------|---------|--------------|\n| #1726 | Fix the thing | fixed | commit abc123 |\n",
             encoding="utf-8",
         )
 
-        result = migrate_issue_matrix_to_json(
-            feature_dir, repo_root=tmp_path, mission_slug=_MISSION_SLUG, policy=_Policy()
-        )
+        result = migrate_issue_matrix_to_json(feature_dir, repo_root=tmp_path, mission_slug=_MISSION_SLUG, policy=_Policy())
 
         assert result is not None
         assert result.status == "committed"
@@ -366,38 +358,28 @@ class TestMigrateIssueMatrixToJson:
         assert content["rows"]["#1726"]["evidence_ref"] == "commit abc123"
         assert len(calls) == 1
 
-    def test_noop_when_json_already_exists(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_noop_when_json_already_exists(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.tasks.issue_matrix_migration import migrate_issue_matrix_to_json
 
         calls = _stub_write_artifact_committed(monkeypatch)
         feature_dir = tmp_path / "kitty-specs" / _MISSION_SLUG
         feature_dir.mkdir(parents=True)
-        (feature_dir / "issue-matrix.json").write_text(
-            json.dumps({"schema_version": 1, "rows": {}}), encoding="utf-8"
-        )
+        (feature_dir / "issue-matrix.json").write_text(json.dumps({"schema_version": 1, "rows": {}}), encoding="utf-8")
         (feature_dir / "issue-matrix.md").write_text("| Issue |\n|---|\n", encoding="utf-8")
 
-        result = migrate_issue_matrix_to_json(
-            feature_dir, repo_root=tmp_path, mission_slug=_MISSION_SLUG, policy=_Policy()
-        )
+        result = migrate_issue_matrix_to_json(feature_dir, repo_root=tmp_path, mission_slug=_MISSION_SLUG, policy=_Policy())
 
         assert result is None
         assert not calls
 
-    def test_noop_when_no_legacy_markdown(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_noop_when_no_legacy_markdown(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.tasks.issue_matrix_migration import migrate_issue_matrix_to_json
 
         calls = _stub_write_artifact_committed(monkeypatch)
         feature_dir = tmp_path / "kitty-specs" / _MISSION_SLUG
         feature_dir.mkdir(parents=True)
 
-        result = migrate_issue_matrix_to_json(
-            feature_dir, repo_root=tmp_path, mission_slug=_MISSION_SLUG, policy=_Policy()
-        )
+        result = migrate_issue_matrix_to_json(feature_dir, repo_root=tmp_path, mission_slug=_MISSION_SLUG, policy=_Policy())
 
         assert result is None
         assert not calls
@@ -409,9 +391,7 @@ class TestMigrateIssueMatrixToJson:
 
 
 class TestBulkMigrateCommand:
-    def test_migrates_all_legacy_missions_and_skips_migrated_ones(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_migrates_all_legacy_missions_and_skips_migrated_ones(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from typer.testing import CliRunner
 
         from specify_cli.tasks import issue_matrix_migration
@@ -432,9 +412,7 @@ class TestBulkMigrateCommand:
         migrated_dir = tmp_path / "kitty-specs" / "061-already-json-mission"
         migrated_dir.mkdir(parents=True)
         (migrated_dir / "meta.json").write_text(json.dumps({"mission_slug": migrated_dir.name}), encoding="utf-8")
-        (migrated_dir / "issue-matrix.json").write_text(
-            json.dumps({"schema_version": 1, "rows": {}}), encoding="utf-8"
-        )
+        (migrated_dir / "issue-matrix.json").write_text(json.dumps({"schema_version": 1, "rows": {}}), encoding="utf-8")
 
         no_matrix_dir = tmp_path / "kitty-specs" / "062-no-matrix-mission"
         no_matrix_dir.mkdir(parents=True)

@@ -29,6 +29,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 class _CountingFastFileStorage(FileFallbackStorage):
     """File storage with production behavior, low KDF cost, and read counting."""
 
@@ -106,10 +107,7 @@ def test_many_short_lived_loads_defer_baseline_8_durable_reads(
     assert all(_new_process_auth_check(store_dir) for _ in range(process_count))
     baseline_durable_reads = _CountingFastFileStorage.durable_read_count
 
-    assert baseline_durable_reads == 8, (
-        "Mandatory baseline: before the hot path, each short-lived session load "
-        "performs one encrypted durable session read."
-    )
+    assert baseline_durable_reads == 8, "Mandatory baseline: before the hot path, each short-lived session load performs one encrypted durable session read."
 
     monkeypatch.delenv("SPEC_KITTY_DISABLE_SESSION_HOT_PATH", raising=False)
     _reset_read_count()
@@ -176,8 +174,7 @@ def test_stale_handoff_falls_back_to_encrypted_storage(tmp_path: Path) -> None:
     storage = _CountingFastFileStorage(base_dir=store_dir)
     storage.write(_make_session())
     handoff_path_for_store(store_dir).write_text(
-        '{"schema_version": 1, "generated_at": 0, "max_age_seconds": 30, '
-        '"durable_fingerprint": {}, "refresh_token_expires_at": null}',
+        '{"schema_version": 1, "generated_at": 0, "max_age_seconds": 30, "durable_fingerprint": {}, "refresh_token_expires_at": null}',
         encoding="utf-8",
     )
 
@@ -239,9 +236,7 @@ def test_naive_refresh_expiry_is_hot_path_miss(tmp_path: Path) -> None:
         "schema_version": 1,
         "generated_at": now_epoch(),
         "max_age_seconds": 30,
-        "durable_fingerprint": session_hot_path._durable_fingerprint(
-            store_dir / "session.json"
-        ),
+        "durable_fingerprint": session_hot_path._durable_fingerprint(store_dir / "session.json"),
         "refresh_token_expires_at": "2026-01-01T00:00:00",
     }
     handoff_path_for_store(store_dir).write_text(
@@ -364,9 +359,7 @@ async def test_hot_path_materializes_before_refresh_and_preserves_single_flight(
     monkeypatch.setitem(sys.modules, "specify_cli.auth.flows", flows_pkg)
     monkeypatch.setitem(sys.modules, "specify_cli.auth.flows.refresh", refresh_module)
 
-    FileFallbackStorage(base_dir=auth_store_root).write(
-        _make_session(access_expires_in=-1)
-    )
+    FileFallbackStorage(base_dir=auth_store_root).write(_make_session(access_expires_in=-1))
     tm_a = TokenManager(FileFallbackStorage(base_dir=auth_store_root))
     tm_b = TokenManager(FileFallbackStorage(base_dir=auth_store_root))
     tm_a.load_from_storage_sync()

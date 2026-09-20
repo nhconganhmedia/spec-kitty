@@ -71,7 +71,7 @@ def _build_charter_bundle(repo_root: Path) -> None:
         dedent(
             f"""\
             bundle_schema_version: 2
-            charter_hash: "sha256:{'0' * 64}"
+            charter_hash: "sha256:{"0" * 64}"
             timestamp_utc: {_UNQUOTED_ISO_TIMESTAMP}
             """
         ),
@@ -101,16 +101,13 @@ def _invoke_status_json(repo_root: Path) -> object:
     """
     with (
         patch.object(charter_pkg, "find_repo_root", return_value=repo_root),
-        patch.object(
-            charter_pkg, "_collect_synthesis_status", return_value={"stub": True}
-        ),
+        patch.object(charter_pkg, "_collect_synthesis_status", return_value={"stub": True}),
         patch(
             "specify_cli.cli.commands.charter.status._collect_org_layer_status",
             return_value={"packs": [], "has_built_in": True},
         ),
         patch(
-            "specify_cli.cli.commands.charter.status."
-            "_collect_governance_reference_status",
+            "specify_cli.cli.commands.charter.status._collect_governance_reference_status",
             return_value={"available": True, "references": [], "warnings": []},
         ),
         patch("specify_cli.charter_runtime.freshness.compute_freshness") as compute_freshness,
@@ -152,9 +149,7 @@ class TestNormalizeLastSync:
             _normalize_last_sync,
         )
 
-        assert _normalize_last_sync("2026-06-15T12:30:45+00:00") == (
-            "2026-06-15T12:30:45+00:00"
-        )
+        assert _normalize_last_sync("2026-06-15T12:30:45+00:00") == ("2026-06-15T12:30:45+00:00")
 
 
 # ---------------------------------------------------------------------------
@@ -175,19 +170,13 @@ class TestCharterStatusJsonSafe:
         """
         result = _invoke_status_json(charter_repo)
 
-        assert result.exit_code == 0, (
-            "charter status --json should succeed on an unquoted-datetime "
-            f"bundle; got exit {result.exit_code}:\n{result.stdout}"
-        )
+        assert result.exit_code == 0, f"charter status --json should succeed on an unquoted-datetime bundle; got exit {result.exit_code}:\n{result.stdout}"
 
         payload = json.loads(result.stdout)
         assert payload["result"] == "success", payload
 
         last_sync = payload["charter_sync"]["last_sync"]
-        assert isinstance(last_sync, str), (
-            "last_sync must be a JSON-safe string (F9 — not merely "
-            f"non-crashing); got {type(last_sync)!r}: {last_sync!r}"
-        )
+        assert isinstance(last_sync, str), f"last_sync must be a JSON-safe string (F9 — not merely non-crashing); got {type(last_sync)!r}: {last_sync!r}"
         # The normalized value must carry the original instant (ISO 8601).
         assert "2026-06-15T12:30:45" in last_sync, last_sync
 
@@ -215,18 +204,13 @@ class TestCharterStatusNoMutator:
     never called.
     """
 
-    def test_collector_does_not_call_ensure_charter_bundle_fresh(
-        self, charter_repo: Path
-    ) -> None:
+    def test_collector_does_not_call_ensure_charter_bundle_fresh(self, charter_repo: Path) -> None:
         from specify_cli.cli.commands.charter._status_collectors import (
             _collect_charter_sync_status,
         )
 
         def _boom(*_args: object, **_kwargs: object) -> object:
-            raise AssertionError(
-                "status read path must NOT call ensure_charter_bundle_fresh "
-                "(C2-a / NFR-006 — read-only consumer)"
-            )
+            raise AssertionError("status read path must NOT call ensure_charter_bundle_fresh (C2-a / NFR-006 — read-only consumer)")
 
         with patch("charter.activation.sync.ensure_charter_bundle_fresh", _boom):
             result = _collect_charter_sync_status(charter_repo)
@@ -239,11 +223,7 @@ class TestCharterStatusNoMutator:
         )
 
         def _boom(*_args: object, **_kwargs: object) -> object:
-            raise AssertionError(
-                "status read path must NOT call "
-                "GlossaryEntityPageRenderer.generate_all "
-                "(C2-a / NFR-006 — read-only consumer)"
-            )
+            raise AssertionError("status read path must NOT call GlossaryEntityPageRenderer.generate_all (C2-a / NFR-006 — read-only consumer)")
 
         with patch(
             "glossary.entity_pages.GlossaryEntityPageRenderer.generate_all",

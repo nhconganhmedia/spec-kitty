@@ -107,24 +107,14 @@ _CREATE_MODULE = "specify_cli.core.mission_creation"
 _SUBTASKS = ("T001", "T002", "T003")
 
 #: Unchecked ``tasks.md`` body — the genuinely-incomplete state (control).
-_TASKS_MD_UNCHECKED = (
-    "# Tasks\n\n"
-    "## WP01 - repro\n"
-    "- [ ] T001 alpha\n"
-    "- [ ] T002 beta\n"
-    "- [ ] T003 gamma\n"
-)
+_TASKS_MD_UNCHECKED = "# Tasks\n\n## WP01 - repro\n- [ ] T001 alpha\n- [ ] T002 beta\n- [ ] T003 gamma\n"
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True
-    ).stdout.strip()
+    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True).stdout.strip()
 
 
-def _build_single_branch_mission_with_in_progress_wp(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> tuple[Path, str, Path]:
+def _build_single_branch_mission_with_in_progress_wp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, str, Path]:
     """Materialise a single_branch mission with WP01 claimed to ``in_progress``.
 
     WP01's ``tasks.md`` section carries three UNCHECKED canonical subtask rows
@@ -173,10 +163,7 @@ def _build_single_branch_mission_with_in_progress_wp(
             "issue-2684-repro",
             friendly_name="Issue 2684 Regression",
             purpose_tldr="reproduce the markdown-gated subtask-completion bug",
-            purpose_context=(
-                "Drive the #2684 invariant-1 reproduction end to end so the "
-                "review gate's subtask-completion source of truth stays proven."
-            ),
+            purpose_context=("Drive the #2684 invariant-1 reproduction end to end so the review gate's subtask-completion source of truth stays proven."),
             topology=MissionTopology.SINGLE_BRANCH,
         )
     feature_dir = result.feature_dir
@@ -192,16 +179,10 @@ def _build_single_branch_mission_with_in_progress_wp(
     # the invariant-1 assertion exercises the event-sourced reader, not the
     # untouched (flag OFF) legacy path.
     meta["status_phase"] = "1"
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
-    (feature_dir / "spec.md").write_text(
-        "# Spec\n\n## Functional Requirements\n\n- **FR-001**: repro.\n", encoding="utf-8"
-    )
-    (feature_dir / "plan.md").write_text(
-        "# Plan\n\n**Language/Version**: Python 3.11\n", encoding="utf-8"
-    )
+    (feature_dir / "spec.md").write_text("# Spec\n\n## Functional Requirements\n\n- **FR-001**: repro.\n", encoding="utf-8")
+    (feature_dir / "plan.md").write_text("# Plan\n\n**Language/Version**: Python 3.11\n", encoding="utf-8")
     # WP01 carries three UNCHECKED canonical subtask rows.
     (feature_dir / "tasks.md").write_text(_TASKS_MD_UNCHECKED, encoding="utf-8")
     (feature_dir / "tasks").mkdir(exist_ok=True)
@@ -259,9 +240,7 @@ def _build_single_branch_mission_with_in_progress_wp(
     # Bootstrap canonical status (the finalize-tasks seed step) so WP01 has its
     # initial `planned` event before the claim.
     monkeypatch.chdir(repo)
-    bootstrap_canonical_state(
-        feature_dir, mission_slug, capability=GuardCapability.TEST_MODE
-    )
+    bootstrap_canonical_state(feature_dir, mission_slug, capability=GuardCapability.TEST_MODE)
     _git(repo, "add", "-A")
     subprocess.run(
         ["git", "-C", str(repo), "commit", "-m", "bootstrap canonical status"],
@@ -330,9 +309,7 @@ def _new_lane(result: object) -> str | None:
     return str(lane) if lane is not None else None
 
 
-def _record_subtasks_done_in_log_then_evict_markdown(
-    feature_dir: Path, mission_slug: str
-) -> None:
+def _record_subtasks_done_in_log_then_evict_markdown(feature_dir: Path, mission_slug: str) -> None:
     """Record subtask completion in the append-only log, then reset the markdown.
 
     Models the #2684 eviction end-state (AC-1/AC-3): the append-only event log
@@ -376,9 +353,7 @@ def _record_subtasks_done_in_log_then_evict_markdown(
     assert tasks_md.read_text(encoding="utf-8") == _TASKS_MD_UNCHECKED
 
 
-def test_move_to_for_review_honors_log_recorded_subtask_completion(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_move_to_for_review_honors_log_recorded_subtask_completion(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#2684 invariant (1): subtask completion recorded in the canonical
     append-only log MUST allow ``move-task WP01 --to for_review`` WITHOUT relying
     on ``tasks.md`` checkbox bytes.
@@ -391,9 +366,7 @@ def test_move_to_for_review_honors_log_recorded_subtask_completion(
     truth is the event log, not the markdown byte, and this is a permanent
     guard against the defect recurring.
     """
-    repo, mission_slug, feature_dir = _build_single_branch_mission_with_in_progress_wp(
-        tmp_path, monkeypatch
-    )
+    repo, mission_slug, feature_dir = _build_single_branch_mission_with_in_progress_wp(tmp_path, monkeypatch)
 
     # Log says done; markdown checkboxes evicted back to unchecked.
     _record_subtasks_done_in_log_then_evict_markdown(feature_dir, mission_slug)
@@ -413,9 +386,7 @@ def test_move_to_for_review_honors_log_recorded_subtask_completion(
     assert _new_lane(result) == "for_review", result.output
 
 
-def test_control_move_to_for_review_refused_when_subtasks_genuinely_incomplete(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_control_move_to_for_review_refused_when_subtasks_genuinely_incomplete(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Control (must PASS now): a WP whose subtasks are genuinely incomplete —
     no completion recorded in the log AND unchecked in ``tasks.md`` — is
     correctly REFUSED ``move-task --to for_review`` with the unchecked-subtasks
@@ -426,9 +397,7 @@ def test_control_move_to_for_review_refused_when_subtasks_genuinely_incomplete(
     correct. Guards against a vacuous primary that would pass even if the gate
     were simply removed.
     """
-    repo, mission_slug, _feature_dir = _build_single_branch_mission_with_in_progress_wp(
-        tmp_path, monkeypatch
-    )
+    repo, mission_slug, _feature_dir = _build_single_branch_mission_with_in_progress_wp(tmp_path, monkeypatch)
 
     # No mark-status; no log completion record; tasks.md checkboxes unchecked.
     result = _invoke_move_to_for_review(mission_slug)

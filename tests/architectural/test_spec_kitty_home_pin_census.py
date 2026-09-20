@@ -100,18 +100,14 @@ EXEMPT_MODULE = "tests.architectural._home_pin_exempt"
 
 #: C-011's evidence artefact. **Checked in verbatim; never imported by, merged into, or tidied
 #: against ``_home_pin_scan``.** ``discover()`` is compared *against* it, never derived *from* it.
-EVIDENCE_MEMBERS = Path(
-    "kitty-specs/isolated-home-pin-guard-r1a-01KZNMA3/research/spec_kitty_home_pin_evidence/members.json"
-)
+EVIDENCE_MEMBERS = Path("kitty-specs/isolated-home-pin-guard-r1a-01KZNMA3/research/spec_kitty_home_pin_evidence/members.json")
 
 #: M4's per-member labels — the second external anchor (FR-003).
 M4_TABLES = Path("kitty-specs/isolated-home-pin-guard-r1a-01KZNMA3/research/m4_ablation_evidence/TABLES.md")
 
 #: The census header's key set. Asserted **by equality**, so ``reason`` cannot hide in the header
 #: any more than it can hide in a row.
-CENSUS_HEADER_KEYS: frozenset[str] = frozenset(
-    {"generated_by", "regeneration_command", "frozen_at_sha", "owed_to", "fragility_note"}
-)
+CENSUS_HEADER_KEYS: frozenset[str] = frozenset({"generated_by", "regeneration_command", "frozen_at_sha", "owed_to", "fragility_note"})
 
 #: The census row column names. Asserted **by equality**, which is what makes ``reason``,
 #: ``frozen_at_sha`` and ``owed_to`` absent from rows BY CONSTRUCTION rather than by inspection.
@@ -119,9 +115,7 @@ CENSUS_ROW_COLUMNS: frozenset[str] = frozenset({"key", "lineno", "kind", "home_p
 
 #: The baseline's key set. ``tombstones`` is named here because this file is its **home** — the
 #: census header could not carry it without colliding with :data:`CENSUS_HEADER_KEYS`.
-BASELINE_KEYS: frozenset[str] = frozenset(
-    {"generated_by", "regeneration_command", "census_key_set_sha256", "exempt_set_sha256", "tombstones"}
-)
+BASELINE_KEYS: frozenset[str] = frozenset({"generated_by", "regeneration_command", "census_key_set_sha256", "exempt_set_sha256", "tombstones"})
 
 #: FR-003's ``owed_to`` shape — and nothing else. The struck second disjunct permitted
 #: ``SK-12-also-pins-home``, which is a reason column in kebab case.
@@ -429,9 +423,7 @@ def test_t023_the_census_equals_the_c011_anchor() -> None:
 # test_e_co_edit_has_no_tombstone_escape).
 
 
-def non_anchor_tombstones(
-    tombstones: frozenset[scan.MemberKey], anchored: frozenset[scan.MemberKey]
-) -> frozenset[scan.MemberKey]:
+def non_anchor_tombstones(tombstones: frozenset[scan.MemberKey], anchored: frozenset[scan.MemberKey]) -> frozenset[scan.MemberKey]:
     """Tombstones that are **not** members of the frozen C-011 anchor — the excuse-authority leak."""
     return tombstones - anchored
 
@@ -456,8 +448,7 @@ def test_t023_every_tombstone_is_a_frozen_c011_anchor_member() -> None:
     """
     manifest = repo_rooted(scan.load_tombstone_keys())
     assert non_anchor_tombstones(manifest, anchor()) == frozenset(), (
-        "a tombstone names a key outside the frozen C-011 anchor — an excuse must trace to a "
-        "frozen-evidence member, never fabricate one"
+        "a tombstone names a key outside the frozen C-011 anchor — an excuse must trace to a frozen-evidence member, never fabricate one"
     )
     assert manifest == tombstoned_keys(), (
         "the tombstone manifest (limb g's source) and the baseline (the census's source) disagree — "
@@ -507,11 +498,7 @@ def test_t023_the_frozen_anchor_re_encodes_members_json_and_never_re_decides_it(
     supply. Checking it against itself would prove nothing.
     """
     entries = json.loads(EVIDENCE_MEMBERS.read_text(encoding="utf-8"))
-    evidence = {
-        (str(entry["path"]), int(site), str(entry["qual"]))
-        for entry in entries
-        for site in entry["sites"]
-    }
+    evidence = {(str(entry["path"]), int(site), str(entry["qual"])) for entry in entries for site in entry["sites"]}
     doc = yaml.safe_load(Path(anchor_artefact.ANCHOR_PATH).read_text(encoding="utf-8"))
     frozen = {(str(row["join"][0]), int(row["lineno"]), str(row["join"][1])) for row in doc["rows"]}
 
@@ -563,9 +550,7 @@ def test_t024_the_real_tree_is_set_equal_to_the_census_union_e() -> None:
     say **which** limb spoke, and then again as a plain equality so the shape is unmistakable.
     """
     result = verdict.evaluate(TESTS_ROOT, census_text(), baseline_text(), E)
-    assert (result.unexpected, result.stale) == (frozenset(), frozenset()), guard_report(
-        TESTS_ROOT, result
-    )
+    assert (result.unexpected, result.stale) == (frozenset(), frozenset()), guard_report(TESTS_ROOT, result)
     assert discovered_keys() == verdict.census_keys(census_text()) | exempt_keys()
 
 
@@ -579,9 +564,7 @@ def test_t024_both_hashes_are_recomputed_from_content_and_match_the_baseline() -
     :func:`~tests.architectural._home_pin_verdict.evaluate`, through the seam's single hasher.
     """
     result = verdict.evaluate(TESTS_ROOT, census_text(), baseline_text(), E)
-    assert (result.census_hash_ok, result.exempt_hash_ok) == (True, True), guard_report(
-        TESTS_ROOT, result
-    )
+    assert (result.census_hash_ok, result.exempt_hash_ok) == (True, True), guard_report(TESTS_ROOT, result)
     assert result.ok, guard_report(TESTS_ROOT, result)
 
 
@@ -635,8 +618,7 @@ def effect_limb_sites(root: Path, relpath: str) -> frozenset[int]:
     return frozenset(
         site.lineno
         for site in scan.find_write_sites(tree, key=scan.NEEDLE)
-        if scan.resolve_value(site.value, scan.bindings_for_site(tree, site, module_bindings))
-        == scan.TMP_PATH_HOME
+        if scan.resolve_value(site.value, scan.bindings_for_site(tree, site, module_bindings)) == scan.TMP_PATH_HOME
     )
 
 
@@ -668,9 +650,7 @@ def test_t025_a_stale_row_whose_site_survives_is_not_an_adjudication(tmp_path: P
     before = frozenset(member.key for member in scan.discover(root))
     target = root / "test_alpha.py"
     target.write_text(
-        target.read_text(encoding="utf-8").replace(
-            _SILHOUETTE_SIGNATURE, _BROKEN_SILHOUETTE_SIGNATURE
-        ),
+        target.read_text(encoding="utf-8").replace(_SILHOUETTE_SIGNATURE, _BROKEN_SILHOUETTE_SIGNATURE),
         encoding="utf-8",
     )
     stale = _stale_keys(root, before)
@@ -709,15 +689,11 @@ def test_t025_the_effect_limb_is_not_an_exists_only_matcher(tmp_path: Path) -> N
     target = root / relpath
     assert effect_limb_sites(root, relpath) != frozenset(), "the limb should fire before the edit"
 
-    target.write_text(
-        target.read_text(encoding="utf-8").replace('"home"', '"elsewhere"'), encoding="utf-8"
-    )
+    target.write_text(target.read_text(encoding="utf-8").replace('"home"', '"elsewhere"'), encoding="utf-8")
 
     survived = target.read_text(encoding="utf-8")
     assert scan.NEEDLE in survived, "the file must stay a byte-prefilter hit"
-    assert scan.find_write_sites(scan.parse_module(target), key=scan.NEEDLE) != [], (
-        "the write site itself must survive — otherwise this control proves nothing"
-    )
+    assert scan.find_write_sites(scan.parse_module(target), key=scan.NEEDLE) != [], "the write site itself must survive — otherwise this control proves nothing"
     assert effect_limb_sites(root, relpath) == frozenset()
 
 
@@ -738,9 +714,7 @@ def test_t025_the_stale_diagnosis_reaches_the_guard_report(tmp_path: Path) -> No
 
     target = root / "test_alpha.py"
     target.write_text(
-        target.read_text(encoding="utf-8").replace(
-            _SILHOUETTE_SIGNATURE, _BROKEN_SILHOUETTE_SIGNATURE
-        ),
+        target.read_text(encoding="utf-8").replace(_SILHOUETTE_SIGNATURE, _BROKEN_SILHOUETTE_SIGNATURE),
         encoding="utf-8",
     )
 
@@ -779,9 +753,7 @@ def test_t025_the_fragility_register_can_see_a_second_member(tmp_path: Path) -> 
     for relpath in mutated:
         target = root / relpath
         target.write_text(
-            target.read_text(encoding="utf-8").replace(
-                _SILHOUETTE_SIGNATURE, _UNUSED_SILHOUETTE_SIGNATURE
-            ),
+            target.read_text(encoding="utf-8").replace(_SILHOUETTE_SIGNATURE, _UNUSED_SILHOUETTE_SIGNATURE),
             encoding="utf-8",
         )
     register = scan.fragility_register(root)
@@ -820,27 +792,17 @@ def disagreeing_keys(
     and prove it reds — an always-agreeing comparator produces exactly the same empty set on the
     real data.
     """
-    return frozenset(
-        key
-        for key, partition in partitions.items()
-        if key in join and join[key] in labels and labels[join[key]] != partition
-    )
+    return frozenset(key for key, partition in partitions.items() if key in join and join[key] in labels and labels[join[key]] != partition)
 
 
 def census_partitions() -> dict[scan.MemberKey, str]:
     """``MemberKey -> home_partition``, read off the census rows."""
-    return {
-        verdict.as_key(row["key"]): str(row["home_partition"])
-        for row in verdict.census_rows(census_text())
-    }
+    return {verdict.as_key(row["key"]): str(row["home_partition"]) for row in verdict.census_rows(census_text())}
 
 
 def _repo_rooted_partitions() -> dict[scan.MemberKey, str]:
     """Census partitions lifted into the anchor's key space, ready to join."""
-    return {
-        (f"{TESTS_ROOT.as_posix()}/{key[0]}", key[1], key[2]): partition
-        for key, partition in census_partitions().items()
-    }
+    return {(f"{TESTS_ROOT.as_posix()}/{key[0]}", key[1], key[2]): partition for key, partition in census_partitions().items()}
 
 
 def test_t026_the_join_key_is_injective_over_the_census() -> None:
@@ -878,8 +840,7 @@ def test_t026_home_partition_agrees_with_m4_on_the_named_join_key() -> None:
 
     assert unmatched == set(), f"M4 rows matched no census member: {sorted(unmatched)}"
     assert disagreeing_keys(partitions, labels, join) == frozenset(), (
-        f"intersection {len(matched)} of {len(labels)} M4 rows; "
-        f"disagreements {sorted(disagreeing_keys(partitions, labels, join))}"
+        f"intersection {len(matched)} of {len(labels)} M4 rows; disagreements {sorted(disagreeing_keys(partitions, labels, join))}"
     )
 
 
@@ -896,9 +857,7 @@ def test_t026_the_comparator_sees_a_deliberately_mislabelled_row() -> None:
     label for. :func:`disagreeing_keys` is a pure comparator, so the control runs on one synthetic
     member and demonstrates the same both-sided red it always did.
     """
-    victim = scan.MemberKey(
-        ("synthetic/test_member.py", "a_home_fixture", "monkeypatch . setenv ( , str ( home ) )")
-    )
+    victim = scan.MemberKey(("synthetic/test_member.py", "a_home_fixture", "monkeypatch . setenv ( , str ( home ) )"))
     join = {victim: ("synthetic/test_member.py", "a_home_fixture")}
     labels = {join[victim]: "A"}
     partitions: dict[scan.MemberKey, str] = {victim: "A"}
@@ -930,12 +889,9 @@ def test_t026_every_census_partition_is_recomputed_per_member() -> None:
     """
     census_label = census_partitions()
     discovered_label = {member.key: member.home_partition for member in scan.discover(TESTS_ROOT)}
-    disagreeing = {
-        key for key, label in census_label.items() if discovered_label.get(key) != label
-    }
+    disagreeing = {key for key, label in census_label.items() if discovered_label.get(key) != label}
     assert disagreeing == set(), (
-        f"census rows whose home_partition no longer recomputes: {sorted(disagreeing)}; "
-        f"census split {dict(sorted(Counter(census_label.values()).items()))}"
+        f"census rows whose home_partition no longer recomputes: {sorted(disagreeing)}; census split {dict(sorted(Counter(census_label.values()).items()))}"
     )
     assert {key for key, label in census_label.items() if label == "other"} == set()
 
@@ -992,9 +948,7 @@ def test_t026_home_partition_holds_no_key_no_hash_and_no_equality() -> None:
     reds in the package that gates the rest of the Mission.
     """
     rows = verdict.census_rows(census_text())
-    relabelled = verdict.with_rows(
-        census_text(), [{**row, "home_partition": "other"} for row in rows]
-    )
+    relabelled = verdict.with_rows(census_text(), [{**row, "home_partition": "other"} for row in rows])
     assert verdict.evaluate(TESTS_ROOT, relabelled, baseline_text(), E).ok
 
 

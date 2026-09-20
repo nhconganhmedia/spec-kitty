@@ -66,11 +66,13 @@ def _write_kitty_meta(kitty_dir: Path, mission_id: str, mission_slug: str) -> No
     """Write meta.json for a mission in kitty-specs/<slug>/."""
     kitty_dir.mkdir(parents=True, exist_ok=True)
     (kitty_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "slug": mission_slug,
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "slug": mission_slug,
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -136,6 +138,7 @@ def _make_minimal_gen_record(
         GenProvenance,
         GenRetrospectiveRecord,
     )
+
     now = now_utc_iso()
     return GenRetrospectiveRecord(
         schema_version=1,
@@ -181,6 +184,7 @@ def _build_resolved_mission(
 ) -> Any:
     """Build a ResolvedMission dataclass."""
     from specify_cli.context.mission_resolver import ResolvedMission
+
     return ResolvedMission(
         mission_id=mission_id,
         mission_slug=mission_slug,
@@ -239,11 +243,10 @@ class TestCreateCommand:
 
         gen_record = _make_minimal_gen_record()
 
-        resolved = _build_resolved_mission(
-            MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir
-        )
+        resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
         mock_policy_source = {}
 
@@ -293,12 +296,11 @@ class TestCreateCommand:
         existing_path.write_text("exists: true\n", encoding="utf-8")
 
         gen_record = _make_minimal_gen_record()
-        resolved = _build_resolved_mission(
-            MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir
-        )
+        resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
         from specify_cli.retrospective.writer import RecordExistsError
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -391,6 +393,7 @@ class TestCreateCommand:
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
         captured_mode: list[str] = []
 
@@ -424,6 +427,7 @@ class TestCreateCommand:
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
         captured_mode: list[str] = []
 
@@ -469,6 +473,7 @@ class TestCreateCommand:
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -907,9 +912,7 @@ class TestSynthesizeFabricateEmpty:
 
         retro_path = missions_dir / MISSION_ID_COMPLETED / "retrospective.yaml"
 
-        empty_synthesis = SynthesisResult(
-            dry_run=True, planned=[], applied=[], conflicts=[], rejected=[], events_emitted=[]
-        )
+        empty_synthesis = SynthesisResult(dry_run=True, planned=[], applied=[], conflicts=[], rejected=[], events_emitted=[])
 
         with (
             patch("specify_cli.cli.commands.agent_retrospect.locate_project_root", return_value=repo_root),
@@ -981,9 +984,7 @@ class TestResolveHandleErrorPaths:
             patch("specify_cli.cli.commands.retrospect.locate_project_root", return_value=repo_root),
             patch("specify_cli.cli.commands.retrospect.resolve_mission", side_effect=exc),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", "nonexistent-mission"]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", "nonexistent-mission"])
 
         assert result.exit_code == 1
         # Should not be JSON (no --json flag)
@@ -1001,9 +1002,7 @@ class TestResolveHandleErrorPaths:
             patch("specify_cli.cli.commands.retrospect.locate_project_root", return_value=repo_root),
             patch("specify_cli.cli.commands.retrospect.resolve_mission", side_effect=exc),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", "nonexistent-mission", "--json"]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", "nonexistent-mission", "--json"])
 
         assert result.exit_code == 1
         data = json.loads(result.output)
@@ -1034,9 +1033,7 @@ class TestResolveHandleErrorPaths:
             patch("specify_cli.cli.commands.retrospect.locate_project_root", return_value=repo_root),
             patch("specify_cli.cli.commands.retrospect.resolve_mission", side_effect=exc),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", "ambiguous"]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", "ambiguous"])
 
         assert result.exit_code == 2
 
@@ -1048,9 +1045,7 @@ class TestResolveHandleErrorPaths:
             patch("specify_cli.cli.commands.retrospect.locate_project_root", return_value=repo_root),
             patch("specify_cli.cli.commands.retrospect.resolve_mission", side_effect=SystemExit(1)),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", "anything"]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", "anything"])
 
         assert result.exit_code == 1
 
@@ -1067,11 +1062,10 @@ class TestCheckMissionCompleted:
         """Returns [] when feature_dir is None."""
         from specify_cli.cli.commands.retrospect import _check_mission_completed
 
-        resolved = _build_resolved_mission(
-            MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir=None
-        )
+        resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir=None)
         # Override to have feature_dir = None
         from specify_cli.context.mission_resolver import ResolvedMission
+
         resolved = ResolvedMission(
             mission_id=MISSION_ID_COMPLETED,
             mission_slug=MISSION_SLUG_COMPLETED,
@@ -1235,9 +1229,7 @@ class TestCreateCmdErrorPaths:
     def test_create_project_root_not_found(self, tmp_path: Path) -> None:
         """Exits 1 when project root cannot be located."""
         with patch("specify_cli.cli.commands.retrospect.locate_project_root", return_value=None):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", "anything", "--json"]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", "anything", "--json"])
 
         assert result.exit_code == 1
 
@@ -1246,6 +1238,7 @@ class TestCreateCmdErrorPaths:
         repo_root, _, _ = _setup_project(tmp_path)
 
         from specify_cli.retrospective.policy import PolicyResolutionError
+
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
 
         with (
@@ -1257,9 +1250,7 @@ class TestCreateCmdErrorPaths:
                 side_effect=PolicyResolutionError("config.yaml", "invalid key", "bad value"),
             ),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED, "--json"]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED, "--json"])
 
         assert result.exit_code == 1
         data = json.loads(result.output)
@@ -1271,6 +1262,7 @@ class TestCreateCmdErrorPaths:
         repo_root, _, _ = _setup_project(tmp_path)
 
         from specify_cli.retrospective.policy import PolicyResolutionError
+
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
 
         with (
@@ -1282,9 +1274,7 @@ class TestCreateCmdErrorPaths:
                 side_effect=PolicyResolutionError("config.yaml", "invalid key", "bad value"),
             ),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED])
 
         assert result.exit_code == 1
         assert "POLICY_RESOLUTION_ERROR" in result.output
@@ -1294,6 +1284,7 @@ class TestCreateCmdErrorPaths:
         repo_root, _, _ = _setup_project(tmp_path)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
@@ -1307,9 +1298,7 @@ class TestCreateCmdErrorPaths:
                 side_effect=FileNotFoundError("missing artifact"),
             ),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED])
 
         assert result.exit_code == 1
         assert "missing artifact" in result.output or "Could not find" in result.output
@@ -1319,6 +1308,7 @@ class TestCreateCmdErrorPaths:
         repo_root, _, _ = _setup_project(tmp_path)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
@@ -1332,9 +1322,7 @@ class TestCreateCmdErrorPaths:
                 side_effect=RuntimeError("generator crashed"),
             ),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED])
 
         assert result.exit_code == 1
         assert "generator crashed" in result.output or "Generator failed" in result.output
@@ -1344,6 +1332,7 @@ class TestCreateCmdErrorPaths:
         repo_root, _, _ = _setup_project(tmp_path)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
         mock_policy = MagicMock(spec=RetrospectivePolicy)
         gen_record = _make_minimal_gen_record()
@@ -1359,9 +1348,7 @@ class TestCreateCmdErrorPaths:
                 side_effect=OSError("disk full"),
             ),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED])
 
         assert result.exit_code == 1
 
@@ -1371,6 +1358,7 @@ class TestCreateCmdErrorPaths:
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
         from specify_cli.retrospective.writer import RecordExistsError
+
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED)
         mock_policy = MagicMock(spec=RetrospectivePolicy)
         gen_record = _make_minimal_gen_record()
@@ -1387,9 +1375,7 @@ class TestCreateCmdErrorPaths:
                 side_effect=RecordExistsError(existing_path),
             ),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_COMPLETED])
 
         assert result.exit_code == 1
         assert "RETROSPECTIVE_RECORD_EXISTS" in result.output
@@ -1406,9 +1392,7 @@ class TestCreateCmdErrorPaths:
             patch("specify_cli.cli.commands.retrospect._resolve_handle", return_value=resolved),
             patch("specify_cli.cli.commands.retrospect._check_mission_completed", return_value=open_wps),
         ):
-            result = RUNNER.invoke(
-                retrospect_app, ["create", "--mission", MISSION_SLUG_OPEN]
-            )
+            result = RUNNER.invoke(retrospect_app, ["create", "--mission", MISSION_SLUG_OPEN])
 
         assert result.exit_code == 1
         assert "MISSION_NOT_COMPLETED" in result.output
@@ -1444,9 +1428,7 @@ class TestBackfillDiscovery:
         # Should not crash; file is silently skipped
         assert isinstance(result, list)
 
-    def test_discover_missions_unstattable_entry_is_not_silently_skipped(
-        self, tmp_path: Path
-    ) -> None:
+    def test_discover_missions_unstattable_entry_is_not_silently_skipped(self, tmp_path: Path) -> None:
         """`#3194`: an unstattable mission entry must not be silently dropped.
 
         Companion to ``test_discover_missions_skips_non_dirs`` above, which pins
@@ -1517,9 +1499,7 @@ class TestBackfillDiscovery:
         missions_root.mkdir(parents=True)
         dir_entry = missions_root / "01SOMEMISSIONID0000003"
         dir_entry.mkdir()
-        (dir_entry / "meta.json").write_text(
-            json.dumps({"some_other_field": "value"}), encoding="utf-8"
-        )
+        (dir_entry / "meta.json").write_text(json.dumps({"some_other_field": "value"}), encoding="utf-8")
 
         now = now_utc()
         result = _discover_missions_for_backfill(tmp_path, now - timedelta(days=30), now, None)
@@ -1534,10 +1514,12 @@ class TestBackfillDiscovery:
         dir_entry = missions_root / MISSION_ID_COMPLETED
         dir_entry.mkdir()
         (dir_entry / "meta.json").write_text(
-            json.dumps({
-                "mission_id": MISSION_ID_COMPLETED,
-                "mission_slug": MISSION_SLUG_COMPLETED,
-            }),
+            json.dumps(
+                {
+                    "mission_id": MISSION_ID_COMPLETED,
+                    "mission_slug": MISSION_SLUG_COMPLETED,
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -1554,11 +1536,13 @@ class TestBackfillDiscovery:
         dir_entry = missions_root / MISSION_ID_COMPLETED
         dir_entry.mkdir()
         (dir_entry / "meta.json").write_text(
-            json.dumps({
-                "mission_id": MISSION_ID_COMPLETED,
-                "mission_slug": MISSION_SLUG_COMPLETED,
-                "completed_at": "not-a-date",
-            }),
+            json.dumps(
+                {
+                    "mission_id": MISSION_ID_COMPLETED,
+                    "mission_slug": MISSION_SLUG_COMPLETED,
+                    "completed_at": "not-a-date",
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -1609,6 +1593,7 @@ class TestBackfillDiscovery:
         written_path = mission_dir / "retrospective.yaml"
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -1636,6 +1621,7 @@ class TestBackfillDiscovery:
         _write_meta(mission_dir, MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, completed_at=completed_at)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -1663,6 +1649,7 @@ class TestBackfillDiscovery:
         _write_meta(mission_dir, MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, completed_at=completed_at)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -1690,6 +1677,7 @@ class TestBackfillDiscovery:
         _write_meta(mission_dir, MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, completed_at=completed_at)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -1720,6 +1708,7 @@ class TestBackfillDiscovery:
         written_path = mission_dir / "retrospective.yaml"
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -1746,6 +1735,7 @@ class TestBackfillDiscovery:
         _write_meta(mission_dir, MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, completed_at=completed_at)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -1830,9 +1820,7 @@ class TestSummaryCmdExtended:
         # Should have at least 2 missions
         assert len(data["missions"]) >= 2
 
-    def test_summary_unstattable_mission_candidate_is_not_silently_skipped(
-        self, tmp_path: Path
-    ) -> None:
+    def test_summary_unstattable_mission_candidate_is_not_silently_skipped(self, tmp_path: Path) -> None:
         """`#3194`: ``summary``'s mission enumeration must not use the
         EACCES-divergent ``Path.is_dir()`` predicate anywhere in its path.
 
@@ -1872,13 +1860,8 @@ class TestSummaryCmdExtended:
         finally:
             os.chmod(vault, 0o700)
 
-        assert result.exit_code == 2, (
-            "an unstattable mission candidate must not silently produce a "
-            f"successful, misleadingly-complete summary: {result.output!r}"
-        )
-        assert "I/O error reading corpus" in strip_ansi(result.output), (
-            f"expected the actionable I/O-error message, got: {result.output!r}"
-        )
+        assert result.exit_code == 2, f"an unstattable mission candidate must not silently produce a successful, misleadingly-complete summary: {result.output!r}"
+        assert "I/O error reading corpus" in strip_ansi(result.output), f"expected the actionable I/O-error message, got: {result.output!r}"
 
     def test_summary_rich_rendering_no_json(self, tmp_path: Path) -> None:
         """Non-JSON summary produces Rich output including state table."""
@@ -2077,11 +2060,13 @@ class TestSummaryCmdExtended:
         dir_entry.mkdir()
         # Naive timestamp (no timezone offset)
         (dir_entry / "meta.json").write_text(
-            json.dumps({
-                "mission_id": MISSION_ID_COMPLETED,
-                "mission_slug": MISSION_SLUG_COMPLETED,
-                "completed_at": "2026-05-01T10:00:00",  # no tzinfo
-            }),
+            json.dumps(
+                {
+                    "mission_id": MISSION_ID_COMPLETED,
+                    "mission_slug": MISSION_SLUG_COMPLETED,
+                    "completed_at": "2026-05-01T10:00:00",  # no tzinfo
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -2146,6 +2131,7 @@ class TestSummaryCmdExtended:
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
         from specify_cli.retrospective.writer import RecordExistsError as WriterRecordExistsError
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -2174,6 +2160,7 @@ class TestSummaryCmdExtended:
         _write_meta(mission_dir, MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, completed_at=completed_at)
 
         from specify_cli.retrospective.policy import RetrospectivePolicy
+
         mock_policy = MagicMock(spec=RetrospectivePolicy)
 
         with (
@@ -2320,9 +2307,7 @@ class TestSynthesizeFabricateProvenance:
         (tasks_dir / "WP01.md").write_text("# WP01\n", encoding="utf-8")
         return feature_dir
 
-    def test_fabricate_empty_writes_synthesize_fabricate_provenance_to_disk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fabricate_empty_writes_synthesize_fabricate_provenance_to_disk(self, tmp_path: Path) -> None:
         """--fabricate-empty: real writer path writes provenance.kind=synthesize_fabricate on disk.
 
         This test was MISSING before cycle-2 fix: the old test patched
@@ -2337,9 +2322,7 @@ class TestSynthesizeFabricateProvenance:
 
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
 
-        empty_synthesis = SynthesisResult(
-            dry_run=True, planned=[], applied=[], conflicts=[], rejected=[], events_emitted=[]
-        )
+        empty_synthesis = SynthesisResult(dry_run=True, planned=[], applied=[], conflicts=[], rejected=[], events_emitted=[])
 
         # Do NOT patch _create_empty_retrospective_record — exercise the real code path.
         with (
@@ -2359,24 +2342,16 @@ class TestSynthesizeFabricateProvenance:
         # gitignored .kittify/missions/ tree.
         retro_path = feature_dir / "retrospective.yaml"
         assert retro_path.exists(), "retrospective.yaml must be written to disk by --fabricate-empty"
-        assert not (missions_dir / MISSION_ID_COMPLETED / "retrospective.yaml").exists(), (
-            "record must NOT be written to the gitignored .kittify/missions/ tree"
-        )
+        assert not (missions_dir / MISSION_ID_COMPLETED / "retrospective.yaml").exists(), "record must NOT be written to the gitignored .kittify/missions/ tree"
 
         # Read back the YAML and verify provenance.kind
         raw = _yaml.safe_load(retro_path.read_text(encoding="utf-8"))
         assert isinstance(raw, dict), "retrospective.yaml must be a YAML mapping"
         provenance = raw.get("provenance", {})
-        assert provenance.get("kind") == "synthesize_fabricate", (
-            f"provenance.kind MUST be 'synthesize_fabricate', got {provenance.get('kind')!r}"
-        )
-        assert raw.get("findings_status") == "ran_no_findings", (
-            f"findings_status MUST be 'ran_no_findings', got {raw.get('findings_status')!r}"
-        )
+        assert provenance.get("kind") == "synthesize_fabricate", f"provenance.kind MUST be 'synthesize_fabricate', got {provenance.get('kind')!r}"
+        assert raw.get("findings_status") == "ran_no_findings", f"findings_status MUST be 'ran_no_findings', got {raw.get('findings_status')!r}"
 
-    def test_fabricate_empty_emits_captured_event_with_explicit_create_provenance_kind(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fabricate_empty_emits_captured_event_with_explicit_create_provenance_kind(self, tmp_path: Path) -> None:
         """The RetrospectiveCaptured event emitted has provenance_kind='explicit_create'.
 
         The event's provenance_kind is distinct from the record's provenance.kind per contract.
@@ -2388,9 +2363,7 @@ class TestSynthesizeFabricateProvenance:
         feature_dir = self._make_feature_dir(kitty_specs_dir)
 
         resolved = _build_resolved_mission(MISSION_ID_COMPLETED, MISSION_SLUG_COMPLETED, feature_dir)
-        empty_synthesis = SynthesisResult(
-            dry_run=True, planned=[], applied=[], conflicts=[], rejected=[], events_emitted=[]
-        )
+        empty_synthesis = SynthesisResult(dry_run=True, planned=[], applied=[], conflicts=[], rejected=[], events_emitted=[])
 
         with (
             patch("specify_cli.cli.commands.agent_retrospect.locate_project_root", return_value=repo_root),
@@ -2407,11 +2380,7 @@ class TestSynthesizeFabricateProvenance:
         # The lifecycle event must have provenance_kind="explicit_create"
         events_path = feature_dir / "status.events.jsonl"
         if events_path.exists():
-            raw_lines = [
-                line.strip()
-                for line in events_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+            raw_lines = [line.strip() for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
             all_events = []
             for raw_line in raw_lines:
                 try:
@@ -2421,9 +2390,7 @@ class TestSynthesizeFabricateProvenance:
             captured_events = [e for e in all_events if e.get("type") == "RetrospectiveCaptured"]
             if captured_events:
                 for evt in captured_events:
-                    assert evt.get("provenance_kind") == "explicit_create", (
-                        f"Event provenance_kind MUST be 'explicit_create', got {evt.get('provenance_kind')!r}"
-                    )
+                    assert evt.get("provenance_kind") == "explicit_create", f"Event provenance_kind MUST be 'explicit_create', got {evt.get('provenance_kind')!r}"
 
     def test_writer_rejects_synthesize_fabricate_with_has_findings(self) -> None:
         """T028 DoD: write_gen_record rejects synthesize_fabricate + has_findings.
@@ -2521,25 +2488,14 @@ class TestBackfillEmitSkipped:
 
         # A RetrospectiveSkipped event must have been written to status.events.jsonl
         events_path = feature_dir / "status.events.jsonl"
-        assert events_path.exists(), (
-            "status.events.jsonl must exist after --emit-skipped (event must be written)"
-        )
-        raw_lines = [
-            line.strip()
-            for line in events_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
+        assert events_path.exists(), "status.events.jsonl must exist after --emit-skipped (event must be written)"
+        raw_lines = [line.strip() for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
         all_events = [_json.loads(raw) for raw in raw_lines]
         skip_events = [e for e in all_events if e.get("type") == "RetrospectiveSkipped"]
-        assert len(skip_events) >= 1, (
-            f"Expected at least 1 RetrospectiveSkipped event in status.events.jsonl, "
-            f"found {len(skip_events)}. All events: {all_events}"
-        )
+        assert len(skip_events) >= 1, f"Expected at least 1 RetrospectiveSkipped event in status.events.jsonl, found {len(skip_events)}. All events: {all_events}"
         # Verify the skip_reason is structured
         for evt in skip_events:
-            assert evt.get("skip_reason", "").startswith("backfill_skip:"), (
-                f"skip_reason must start with 'backfill_skip:', got {evt.get('skip_reason')!r}"
-            )
+            assert evt.get("skip_reason", "").startswith("backfill_skip:"), f"skip_reason must start with 'backfill_skip:', got {evt.get('skip_reason')!r}"
 
     def test_emit_skipped_not_set_does_not_write_events(self, tmp_path: Path) -> None:
         """Without --emit-skipped, no RetrospectiveSkipped events are written."""
@@ -2571,16 +2527,11 @@ class TestBackfillEmitSkipped:
         events_path = feature_dir / "status.events.jsonl"
         if events_path.exists():
             import json as _json2
-            raw_lines = [
-                line.strip()
-                for line in events_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+
+            raw_lines = [line.strip() for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
             all_events = [_json2.loads(raw) for raw in raw_lines]
             skip_events = [e for e in all_events if e.get("type") == "RetrospectiveSkipped"]
-            assert len(skip_events) == 0, (
-                "Without --emit-skipped, no RetrospectiveSkipped events should be written"
-            )
+            assert len(skip_events) == 0, "Without --emit-skipped, no RetrospectiveSkipped events should be written"
 
     def test_emit_skipped_dry_run_does_not_write_events(self, tmp_path: Path) -> None:
         """--emit-skipped combined with --dry-run must NOT write any events."""
@@ -2612,13 +2563,8 @@ class TestBackfillEmitSkipped:
         events_path = feature_dir / "status.events.jsonl"
         if events_path.exists():
             import json as _json3
-            raw_lines = [
-                line.strip()
-                for line in events_path.read_text(encoding="utf-8").splitlines()
-                if line.strip()
-            ]
+
+            raw_lines = [line.strip() for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
             all_events = [_json3.loads(raw) for raw in raw_lines]
             skip_events = [e for e in all_events if e.get("type") == "RetrospectiveSkipped"]
-            assert len(skip_events) == 0, (
-                "--dry-run + --emit-skipped must NOT emit events"
-            )
+            assert len(skip_events) == 0, "--dry-run + --emit-skipped must NOT emit events"

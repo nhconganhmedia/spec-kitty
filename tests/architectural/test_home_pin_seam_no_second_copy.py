@@ -121,9 +121,7 @@ def seam_consumers(root: Path) -> frozenset[str]:
     second copy of it written for the test.
     """
     return frozenset(
-        path.relative_to(root).as_posix()
-        for path in scan.enumerate_py_files(root)
-        if SEAM_BYTES in path.read_bytes() and imports_seam(scan.parse_module(path))
+        path.relative_to(root).as_posix() for path in scan.enumerate_py_files(root) if SEAM_BYTES in path.read_bytes() and imports_seam(scan.parse_module(path))
     )
 
 
@@ -161,17 +159,11 @@ def banned_constructs(tree: ast.Module) -> frozenset[tuple[str, int]]:
         if isinstance(node, ast.Call) and _is_ast_member(node.func, PARSE_NAME, modules, names):
             hits.add(("ast.parse", node.lineno))
         elif isinstance(node, ast.ClassDef):
-            hits |= {
-                ("ast.NodeVisitor", node.lineno)
-                for base in node.bases
-                if any(_is_ast_member(base, name, modules, names) for name in VISITOR_NAMES)
-            }
+            hits |= {("ast.NodeVisitor", node.lineno) for base in node.bases if any(_is_ast_member(base, name, modules, names) for name in VISITOR_NAMES)}
     return frozenset(hits)
 
 
-def _is_ast_member(
-    node: ast.expr, member: str, modules: frozenset[str], names: frozenset[str]
-) -> bool:
+def _is_ast_member(node: ast.expr, member: str, modules: frozenset[str], names: frozenset[str]) -> bool:
     """``True`` when ``node`` denotes ``ast.<member>`` under this module's own import bindings."""
     if isinstance(node, ast.Attribute):
         return node.attr == member and isinstance(node.value, ast.Name) and node.value.id in modules
@@ -202,22 +194,17 @@ def test_consumer_set_is_discovered_non_empty_and_names_the_gate() -> None:
     """
     consumers = seam_consumers(TESTS_ROOT)
     assert consumers, (
-        "the seam consumer set is EMPTY — a hard-coded list would have greened here, which is "
-        "why the set is discovered and its non-emptiness asserted separately"
+        "the seam consumer set is EMPTY — a hard-coded list would have greened here, which is why the set is discovered and its non-emptiness asserted separately"
     )
     missing = {GATE_RELPATH, GUARD_RELPATH} - consumers
-    assert missing == set(), (
-        f"named consumers absent from the discovered set: {sorted(missing)}; "
-        f"discovered {sorted(consumers)}"
-    )
+    assert missing == set(), f"named consumers absent from the discovered set: {sorted(missing)}; discovered {sorted(consumers)}"
 
 
 def test_no_consumer_reimplements_the_predicate() -> None:
     """Every module importing the seam holds zero ``ast.parse`` calls and zero visitors."""
     consumers = seam_consumers(TESTS_ROOT)
     assert _offenders(TESTS_ROOT, consumers) == {}, (
-        "a seam consumer carries a banned construct — route the parse through "
-        "`_home_pin_scan.parse_module` rather than exempting the module"
+        "a seam consumer carries a banned construct — route the parse through `_home_pin_scan.parse_module` rather than exempting the module"
     )
 
 
@@ -247,9 +234,7 @@ def test_banned_construct_matchers_bite_on_a_materialised_second_copy(tmp_path: 
     _materialise(tmp_path, "innocent.py", "VALUE = 1\n")
 
     consumers = seam_consumers(tmp_path)
-    assert consumers == frozenset({"second_copy.py"}), (
-        "discovery must select exactly the importing module and leave the non-importer alone"
-    )
+    assert consumers == frozenset({"second_copy.py"}), "discovery must select exactly the importing module and leave the non-importer alone"
     offenders = _offenders(tmp_path, consumers)
     assert set(offenders) == {"second_copy.py"}
     assert {construct for construct, _ in offenders["second_copy.py"]} == {

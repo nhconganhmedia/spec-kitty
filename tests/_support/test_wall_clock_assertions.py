@@ -60,20 +60,12 @@ pytestmark = [pytest.mark.fast]
             9,
         ),
         (
-            "from datetime import datetime\n\n"
-            "class Holder:\n"
-            "    wall_now = datetime.now\n\n"
-            "def test_bad():\n"
-            "    assert Holder.wall_now().year == 2026\n",
+            "from datetime import datetime\n\nclass Holder:\n    wall_now = datetime.now\n\ndef test_bad():\n    assert Holder.wall_now().year == 2026\n",
             "Holder.wall_now()",
             7,
         ),
         (
-            "from datetime import datetime\n\n"
-            "class Holder:\n"
-            "    wall_now = datetime.now\n\n"
-            "    def test_bad(self):\n"
-            "        assert self.wall_now().year == 2026\n",
+            "from datetime import datetime\n\nclass Holder:\n    wall_now = datetime.now\n\n    def test_bad(self):\n        assert self.wall_now().year == 2026\n",
             "self.wall_now()",
             7,
         ),
@@ -99,46 +91,32 @@ pytestmark = [pytest.mark.fast]
         ),
         ("from datetime import datetime\n\nwall_now, other = datetime.now, object()\n\ndef test_bad():\n    assert wall_now().year == 2026\n", "wall_now()", 6),
         (
-            "from datetime import datetime\n\n"
-            "def test_bad(wall_now=datetime.now):\n"
-            "    assert wall_now().year == 2026\n",
+            "from datetime import datetime\n\ndef test_bad(wall_now=datetime.now):\n    assert wall_now().year == 2026\n",
             "wall_now()",
             4,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def wrapper(clock=datetime.now):\n"
-            "    return clock()\n\n"
-            "def test_bad():\n"
-            "    assert wrapper().year == 2026\n",
+            "from datetime import datetime\n\ndef wrapper(clock=datetime.now):\n    return clock()\n\ndef test_bad():\n    assert wrapper().year == 2026\n",
             "wrapper()",
             7,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def test_bad():\n"
-            "    assert (wall_now := datetime.now)().year == 2026\n",
+            "from datetime import datetime\n\ndef test_bad():\n    assert (wall_now := datetime.now)().year == 2026\n",
             "wall_now()",
             4,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def test_bad():\n"
-            "    assert (lambda wall_now=datetime.now: wall_now())().year == 2026\n",
+            "from datetime import datetime\n\ndef test_bad():\n    assert (lambda wall_now=datetime.now: wall_now())().year == 2026\n",
             "wall_now()",
             4,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def test_bad():\n"
-            "    assert False, datetime.now().isoformat()\n",
+            "from datetime import datetime\n\ndef test_bad():\n    assert False, datetime.now().isoformat()\n",
             "datetime.now()",
             4,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def test_bad():\n"
-            "    assert (dt := datetime).now().year == 2026\n",
+            "from datetime import datetime\n\ndef test_bad():\n    assert (dt := datetime).now().year == 2026\n",
             "dt.now()",
             4,
         ),
@@ -223,19 +201,12 @@ pytestmark = [pytest.mark.fast]
             8,
         ),
         (
-            "from datetime import datetime\n\n"
-            "if False:\n"
-            "    from fake_datetime import datetime\n\n"
-            "def test_bad():\n"
-            "    assert datetime.now().year == 2026\n",
+            "from datetime import datetime\n\nif False:\n    from fake_datetime import datetime\n\ndef test_bad():\n    assert datetime.now().year == 2026\n",
             "datetime.now()",
             7,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def test_bad():\n"
-            "    assert wall_now().year == 2026\n\n"
-            "wall_now = datetime.now\n",
+            "from datetime import datetime\n\ndef test_bad():\n    assert wall_now().year == 2026\n\nwall_now = datetime.now\n",
             "wall_now()",
             4,
         ),
@@ -507,11 +478,7 @@ pytestmark = [pytest.mark.fast]
             9,
         ),
         (
-            "from datetime import datetime\n\n"
-            "def is_current_year():\n"
-            "    return datetime.now().year == 2026\n\n"
-            "def test_bad():\n"
-            "    assert is_current_year()\n",
+            "from datetime import datetime\n\ndef is_current_year():\n    return datetime.now().year == 2026\n\ndef test_bad():\n    assert is_current_year()\n",
             "is_current_year()",
             7,
         ),
@@ -846,24 +813,9 @@ def test_find_wall_clock_assertion_violations_allows_freshness_bounds(tmp_path: 
             "        wall_now = lambda: 1\n"
             "        assert wall_now() == 1\n"
         ),
-        (
-            "from datetime import datetime\n"
-            "from fake_datetime import datetime\n\n"
-            "def test_good():\n"
-            "    assert datetime.now() == 1\n"
-        ),
-        (
-            "from datetime import datetime as dt\n"
-            "from fake_datetime import datetime as dt\n\n"
-            "def test_good():\n"
-            "    assert dt.now() == 1\n"
-        ),
-        (
-            "from datetime import datetime\n"
-            "from fake_datetime import *\n\n"
-            "def test_good():\n"
-            "    assert datetime.now() == 1\n"
-        ),
+        ("from datetime import datetime\nfrom fake_datetime import datetime\n\ndef test_good():\n    assert datetime.now() == 1\n"),
+        ("from datetime import datetime as dt\nfrom fake_datetime import datetime as dt\n\ndef test_good():\n    assert dt.now() == 1\n"),
+        ("from datetime import datetime\nfrom fake_datetime import *\n\ndef test_good():\n    assert datetime.now() == 1\n"),
         (
             "from datetime import datetime\n\n"
             "class Holder:\n"
@@ -952,48 +904,31 @@ def test_find_wall_clock_assertion_violations_resolves_cross_file_clock_aliases(
     wrapper_import_file = tests_root / "test_wrapper_import.py"
     helper_file.parent.mkdir(parents=True)
     helper_file.write_text(
-        "from datetime import datetime\n\n"
-        "wall_now = datetime.now\n\n"
-        "class Holder:\n"
-        "    wall_now = datetime.now\n\n"
-        "def wrapper_now():\n"
-        "    return datetime.now()\n",
+        "from datetime import datetime\n\nwall_now = datetime.now\n\nclass Holder:\n    wall_now = datetime.now\n\ndef wrapper_now():\n    return datetime.now()\n",
         encoding="utf-8",
     )
     direct_import_file.write_text(
-        "from helpers.clock import wall_now\n\n"
-        "def test_bad():\n"
-        "    assert wall_now().year == 2026\n",
+        "from helpers.clock import wall_now\n\ndef test_bad():\n    assert wall_now().year == 2026\n",
         encoding="utf-8",
     )
     module_import_file.write_text(
-        "import helpers.clock as clock\n\n"
-        "def test_bad():\n"
-        "    assert clock.wall_now().year == 2026\n",
+        "import helpers.clock as clock\n\ndef test_bad():\n    assert clock.wall_now().year == 2026\n",
         encoding="utf-8",
     )
     package_import_file.write_text(
-        "from helpers import clock\n\n"
-        "def test_bad():\n"
-        "    assert clock.wall_now().year == 2026\n",
+        "from helpers import clock\n\ndef test_bad():\n    assert clock.wall_now().year == 2026\n",
         encoding="utf-8",
     )
     class_import_file.write_text(
-        "from helpers.clock import Holder\n\n"
-        "def test_bad():\n"
-        "    assert Holder.wall_now().year == 2026\n",
+        "from helpers.clock import Holder\n\ndef test_bad():\n    assert Holder.wall_now().year == 2026\n",
         encoding="utf-8",
     )
     star_import_file.write_text(
-        "from helpers.clock import *\n\n"
-        "def test_bad():\n"
-        "    assert Holder.wall_now().year == 2026\n",
+        "from helpers.clock import *\n\ndef test_bad():\n    assert Holder.wall_now().year == 2026\n",
         encoding="utf-8",
     )
     wrapper_import_file.write_text(
-        "from helpers.clock import wrapper_now\n\n"
-        "def test_bad():\n"
-        "    assert wrapper_now().year == 2026\n",
+        "from helpers.clock import wrapper_now\n\ndef test_bad():\n    assert wrapper_now().year == 2026\n",
         encoding="utf-8",
     )
 
@@ -1025,24 +960,17 @@ def test_find_wall_clock_assertion_violations_resolves_conftest_fixture_returns(
     test_file = tests_root / "test_uses_conftest.py"
     tests_root.mkdir()
     conftest_file.write_text(
-        "import pytest\n"
-        "from datetime import datetime\n\n"
-        "@pytest.fixture\n"
-        "def wall_now():\n"
-        "    return datetime.now\n",
+        "import pytest\nfrom datetime import datetime\n\n@pytest.fixture\ndef wall_now():\n    return datetime.now\n",
         encoding="utf-8",
     )
     test_file.write_text(
-        "def test_bad(wall_now):\n"
-        "    assert wall_now().year == 2026\n",
+        "def test_bad(wall_now):\n    assert wall_now().year == 2026\n",
         encoding="utf-8",
     )
 
     violations = find_wall_clock_assertion_violations([conftest_file, test_file])
 
-    assert [(violation.path.name, violation.call, violation.line) for violation in violations] == [
-        ("test_uses_conftest.py", "wall_now()", 2)
-    ]
+    assert [(violation.path.name, violation.call, violation.line) for violation in violations] == [("test_uses_conftest.py", "wall_now()", 2)]
 
 
 def test_find_wall_clock_assertion_violations_resolves_conftest_autouse_helper_mutation(tmp_path: Path) -> None:
@@ -1052,8 +980,7 @@ def test_find_wall_clock_assertion_violations_resolves_conftest_autouse_helper_m
     test_file = tests_root / "test_uses_conftest_helper.py"
     helper_file.parent.mkdir(parents=True)
     helper_file.write_text(
-        "class Holder:\n"
-        "    pass\n",
+        "class Holder:\n    pass\n",
         encoding="utf-8",
     )
     conftest_file.write_text(
@@ -1066,17 +993,13 @@ def test_find_wall_clock_assertion_violations_resolves_conftest_autouse_helper_m
         encoding="utf-8",
     )
     test_file.write_text(
-        "import helpers.clock as clock\n\n"
-        "def test_bad():\n"
-        "    assert clock.Holder.wall_now().year == 2026\n",
+        "import helpers.clock as clock\n\ndef test_bad():\n    assert clock.Holder.wall_now().year == 2026\n",
         encoding="utf-8",
     )
 
     violations = find_wall_clock_assertion_violations([helper_file, conftest_file, test_file])
 
-    assert [(violation.path.name, violation.call, violation.line) for violation in violations] == [
-        ("test_uses_conftest_helper.py", "clock.Holder.wall_now()", 4)
-    ]
+    assert [(violation.path.name, violation.call, violation.line) for violation in violations] == [("test_uses_conftest_helper.py", "clock.Holder.wall_now()", 4)]
 
 
 def test_find_test_python_paths_includes_helper_modules(tmp_path: Path) -> None:
@@ -1093,9 +1016,7 @@ def test_find_test_python_paths_includes_helper_modules(tmp_path: Path) -> None:
 def test_format_wall_clock_assertion_violations_names_injection_pattern(tmp_path: Path) -> None:
     test_file = tmp_path / "test_bad.py"
     test_file.write_text(
-        "from datetime import datetime\n\n"
-        "def test_bad():\n"
-        "    assert datetime.now().year == 2026\n",
+        "from datetime import datetime\n\ndef test_bad():\n    assert datetime.now().year == 2026\n",
         encoding="utf-8",
     )
     violations = find_wall_clock_assertion_violations([test_file])
@@ -1110,11 +1031,7 @@ def _write_alias_chain(root: Path, size: int) -> list[Path]:
     paths: list[Path] = []
     for index in range(size):
         path = root / f"m{index:03d}.py"
-        source = (
-            "from datetime import datetime\nresult = datetime.now\n"
-            if index == 0
-            else f"from m{index - 1:03d} import result as upstream\nresult = upstream\n"
-        )
+        source = "from datetime import datetime\nresult = datetime.now\n" if index == 0 else f"from m{index - 1:03d} import result as upstream\nresult = upstream\n"
         path.write_text(source, encoding="utf-8")
         paths.append(path)
     return paths

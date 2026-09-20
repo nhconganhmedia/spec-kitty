@@ -14,6 +14,7 @@ from specify_cli.upgrade.runner import MigrationRunner
 
 pytestmark = pytest.mark.fast
 
+
 class _NotNeededMigration(BaseMigration):
     migration_id = "9.9.9_not_needed"
     description = "No-op migration for status classification tests"
@@ -169,12 +170,8 @@ def test_worktree_upgrade_stamps_schema_version_after_metadata_save(
     result = runner.upgrade("9.9.9", include_worktrees=True)
 
     assert result.success is True
-    main_metadata = yaml.safe_load(
-        (project_path / ".kittify" / "metadata.yaml").read_text(encoding="utf-8")
-    )
-    worktree_metadata = yaml.safe_load(
-        (worktree / ".kittify" / "metadata.yaml").read_text(encoding="utf-8")
-    )
+    main_metadata = yaml.safe_load((project_path / ".kittify" / "metadata.yaml").read_text(encoding="utf-8"))
+    worktree_metadata = yaml.safe_load((worktree / ".kittify" / "metadata.yaml").read_text(encoding="utf-8"))
     assert main_metadata["spec_kitty"]["schema_version"] == REQUIRED_SCHEMA_VERSION
     assert worktree_metadata["spec_kitty"]["schema_version"] == REQUIRED_SCHEMA_VERSION
 
@@ -206,12 +203,8 @@ def test_no_migrations_stamps_existing_worktree_schema_version(
     result = runner.upgrade("1.0.0", include_worktrees=True)
 
     assert result.success is True
-    main_metadata = yaml.safe_load(
-        (project_path / ".kittify" / "metadata.yaml").read_text(encoding="utf-8")
-    )
-    worktree_metadata = yaml.safe_load(
-        (worktree / ".kittify" / "metadata.yaml").read_text(encoding="utf-8")
-    )
+    main_metadata = yaml.safe_load((project_path / ".kittify" / "metadata.yaml").read_text(encoding="utf-8"))
+    worktree_metadata = yaml.safe_load((worktree / ".kittify" / "metadata.yaml").read_text(encoding="utf-8"))
     assert main_metadata["spec_kitty"]["schema_version"] == REQUIRED_SCHEMA_VERSION
     assert worktree_metadata["spec_kitty"]["schema_version"] == REQUIRED_SCHEMA_VERSION
 
@@ -414,9 +407,7 @@ def test_root_upgrade_no_op_keeps_metadata_stable(
 # ---------------------------------------------------------------------------
 
 
-def test_metadata_load_initialized_at_fallback_is_aware_utc(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_metadata_load_initialized_at_fallback_is_aware_utc(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """``ProjectMetadata.load()``'s ``initialized_at`` fallback (missing or
     unparseable ``spec_kitty.initialized_at``) stamps via the door's
     aware-UTC ``now_utc()``, not a naive ``datetime.now()``.
@@ -467,9 +458,7 @@ def test_record_migration_applied_at_is_aware_utc(monkeypatch: pytest.MonkeyPatc
     assert metadata.applied_migrations[0].applied_at == frozen_instant
 
 
-def test_no_migrations_needed_bumps_last_upgraded_at_as_aware_utc(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_no_migrations_needed_bumps_last_upgraded_at_as_aware_utc(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The "no migrations needed, still stamp the version" path
     (``MigrationRunner.upgrade``) bumps ``last_upgraded_at`` via the door's
     aware-UTC ``now_utc()``, not a naive ``datetime.now()``.
@@ -504,9 +493,7 @@ def test_no_migrations_needed_bumps_last_upgraded_at_as_aware_utc(
     assert updated.last_upgraded_at == frozen_instant
 
 
-def test_create_initial_metadata_initialized_at_is_aware_utc(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_create_initial_metadata_initialized_at_is_aware_utc(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """``MigrationRunner._create_initial_metadata`` (the "no existing
     metadata.yaml, but a migration is applicable" path) stamps
     ``initialized_at`` via the door's aware-UTC ``now_utc()``, not a naive

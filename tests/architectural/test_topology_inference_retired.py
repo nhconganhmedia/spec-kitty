@@ -40,6 +40,7 @@ FAILS when a negated/aliased inference-classification site is reintroduced — a
 gate that cannot fail is not a gate (the vacuous-grep REJECTION the prompt warns
 against).
 """
+
 from __future__ import annotations
 
 import ast
@@ -54,9 +55,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SRC_ROOT = _REPO_ROOT / "src"
 
 # Names whose presence/absence/disk-state historically inferred topology.
-_COORD_VALUE_NAMES: frozenset[str] = frozenset(
-    {"coordination_branch", "coord_branch"}
-)
+_COORD_VALUE_NAMES: frozenset[str] = frozenset({"coordination_branch", "coord_branch"})
 _COORD_PATH_TOKEN = "coord"
 
 # Tokens whose appearance in an inference branch body marks a TOPOLOGY/SURFACE
@@ -159,14 +158,9 @@ def _live_inference_classification_sites(path: Path) -> list[int]:
     hits: list[int] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.If):
-            if _test_references_coord_inference(node.test) and (
-                _branch_classifies_topology(node.body)
-                or _branch_classifies_topology(node.orelse)
-            ):
+            if _test_references_coord_inference(node.test) and (_branch_classifies_topology(node.body) or _branch_classifies_topology(node.orelse)):
                 hits.append(node.lineno)
-        elif isinstance(node, ast.IfExp) and _test_references_coord_inference(
-            node.test
-        ):
+        elif isinstance(node, ast.IfExp) and _test_references_coord_inference(node.test):
             # A ternary classifies when either arm names a classification token.
             body_src = ast.unparse(node.body) + " " + ast.unparse(node.orelse)
             if any(token in body_src for token in _CLASSIFICATION_TOKENS):
@@ -315,10 +309,7 @@ def test_negative_control_relayed_classify_topology_is_caught() -> None:
         hits = _live_relayed_classify_sites(tmp)
     finally:
         tmp.unlink()
-    assert hits, (
-        "The relay gate failed to catch a bare classify_topology(coord_branch, …) "
-        "relay with no stored-topology read — it is vacuous (NFR-004 / SC-001)."
-    )
+    assert hits, "The relay gate failed to catch a bare classify_topology(coord_branch, …) relay with no stored-topology read — it is vacuous (NFR-004 / SC-001)."
 
 
 def test_relayed_classify_with_stored_read_is_not_flagged() -> None:
@@ -347,9 +338,7 @@ def test_relayed_classify_with_stored_read_is_not_flagged() -> None:
         hits = _live_relayed_classify_sites(tmp)
     finally:
         tmp.unlink()
-    assert hits == [], (
-        f"A stored-read-then-fallback relay must not be flagged, got lines {hits}."
-    )
+    assert hits == [], f"A stored-read-then-fallback relay must not be flagged, got lines {hits}."
 
 
 def test_surface_resolver_600_gate_is_explicitly_covered() -> None:
@@ -446,7 +435,4 @@ def test_value_read_and_transient_arms_are_not_flagged() -> None:
         hits = _live_inference_classification_sites(tmp)
     finally:
         tmp.unlink()
-    assert hits == [], (
-        f"Value-reads / transient arms must not be flagged as classifiers, "
-        f"got lines {hits}."
-    )
+    assert hits == [], f"Value-reads / transient arms must not be flagged as classifiers, got lines {hits}."

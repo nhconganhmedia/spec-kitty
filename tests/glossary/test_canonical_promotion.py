@@ -8,6 +8,7 @@ RED on planning base (and after WP08): the 10 Slice F terms land as
 The glossary uses a Markdown table format:
     | **Status** | canonical |
 """
+
 from __future__ import annotations
 
 import functools
@@ -58,14 +59,9 @@ def test_all_slice_f_terms_are_canonical_in_doctrine_context() -> None:
         if not match:
             offenders.append(f"{term}: missing entry or malformed Status row")
         elif match.group(1).lower() != "canonical":
-            offenders.append(
-                f"{term}: Status={match.group(1)!r} (expected 'canonical')"
-            )
+            offenders.append(f"{term}: Status={match.group(1)!r} (expected 'canonical')")
 
-    assert not offenders, (
-        "Glossary canonical-promotion failures (C-010 binding):\n  "
-        + "\n  ".join(offenders)
-    )
+    assert not offenders, "Glossary canonical-promotion failures (C-010 binding):\n  " + "\n  ".join(offenders)
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +107,7 @@ def _resolve_wp02_base_commit() -> str | None:
     if result.returncode != 0:
         return None
     return _WP02_BASE_COMMIT
+
 
 _AGENT_PROFILE_NAMES = [
     "architect-alphonso",
@@ -232,8 +229,7 @@ def _context_sources_consolidation_expected(rel_path: str, old_lines: list[str])
             "The three unexpanded nested value objects (`collaboration`,",
         )
         text = text.replace(
-            "its `context-sources` pull in the\n"
-            "paradigm/directive/tactic/procedure/styleguide layers plus specific directives",
+            "its `context-sources` pull in the\nparadigm/directive/tactic/procedure/styleguide layers plus specific directives",
             "its `directive-references` name specific directives",
         )
     return text.splitlines()
@@ -305,9 +301,7 @@ def test_wp02_owned_referrers_have_zero_dangling_related_edges() -> None:
         f"{edge.from_path} -> {edge.to_path}" for edge in owned_dangling
     )
 
-    still_dangling_doctrine = {
-        edge.from_path for edge in report.dangling_edges if edge.to_path == f"docs/{_OLD_GLOSSARY_PATH}"
-    }
+    still_dangling_doctrine = {edge.from_path for edge in report.dangling_edges if edge.to_path == f"docs/{_OLD_GLOSSARY_PATH}"}
     known_wp01_gap = {
         "docs/context/configuration-project-structure.md",
         "docs/context/governance.md",
@@ -315,8 +309,7 @@ def test_wp02_owned_referrers_have_zero_dangling_related_edges() -> None:
     }
     unexpected = still_dangling_doctrine - known_wp01_gap
     assert not unexpected, (
-        "New/unexpected historical-glossary-path dangling referrers outside WP02's "
-        f"owned set and the known WP01 frontmatter gap: {sorted(unexpected)}"
+        f"New/unexpected historical-glossary-path dangling referrers outside WP02's owned set and the known WP01 frontmatter gap: {sorted(unexpected)}"
     )
 
 
@@ -330,10 +323,7 @@ def test_wp02_referrer_diffs_are_exactly_the_path_token() -> None:
     exceptions block)."""
     base_commit = _resolve_wp02_base_commit()
     if base_commit is None:
-        pytest.skip(
-            "WP02 base commit unavailable in this checkout (likely a shallow "
-            "clone) -- cannot diff against the pre-rename base"
-        )
+        pytest.skip("WP02 base commit unavailable in this checkout (likely a shallow clone) -- cannot diff against the pre-rename base")
     violations: list[str] = []
     for rel_path in WP02_PATH_TOKEN_ONLY_REFERRERS:
         old_lines = _git_show(rel_path, base_commit).splitlines()
@@ -342,9 +332,7 @@ def test_wp02_referrer_diffs_are_exactly_the_path_token() -> None:
             expected_lines = _context_sources_consolidation_expected(rel_path, old_lines)
             if _mask_updated_dates(new_lines) == _mask_updated_dates(expected_lines):
                 continue
-            violations.append(
-                f"{rel_path}: diff is not the sanctioned context-sources consolidation"
-            )
+            violations.append(f"{rel_path}: diff is not the sanctioned context-sources consolidation")
             continue
         if len(old_lines) != len(new_lines):
             violations.append(f"{rel_path}: line count changed ({len(old_lines)} -> {len(new_lines)})")
@@ -358,16 +346,10 @@ def test_wp02_referrer_diffs_are_exactly_the_path_token() -> None:
             # malformed updated: line still falls through and reds).
             if old.startswith("updated:") and new.startswith("updated:"):
                 continue
-            allow_source_topology = rel_path.startswith("src/charter/offering/") or rel_path == (
-                "tests/architectural/test_no_dead_doctrine_paths.py"
-            )
-            expected = _apply_later_wave_replacements(
-                rel_path, _flip_path_token(old, allow_source_topology=allow_source_topology)
-            )
+            allow_source_topology = rel_path.startswith("src/charter/offering/") or rel_path == ("tests/architectural/test_no_dead_doctrine_paths.py")
+            expected = _apply_later_wave_replacements(rel_path, _flip_path_token(old, allow_source_topology=allow_source_topology))
             if expected != new:
-                violations.append(
-                    f"{rel_path}:{lineno}: diff is not a pure path-token flip\n    old: {old!r}\n    new: {new!r}"
-                )
+                violations.append(f"{rel_path}:{lineno}: diff is not a pure path-token flip\n    old: {old!r}\n    new: {new!r}")
     assert not violations, "Non-path-token referrer diffs (T007b):\n" + "\n".join(violations)
 
 
@@ -377,10 +359,7 @@ def test_wp02_owned_referrers_flip_at_least_one_line() -> None:
     the hand-edit set must have actually changed."""
     base_commit = _resolve_wp02_base_commit()
     if base_commit is None:
-        pytest.skip(
-            "WP02 base commit unavailable in this checkout (likely a shallow "
-            "clone) -- cannot diff against the pre-rename base"
-        )
+        pytest.skip("WP02 base commit unavailable in this checkout (likely a shallow clone) -- cannot diff against the pre-rename base")
     unchanged: list[str] = []
     for rel_path in WP02_PATH_TOKEN_ONLY_REFERRERS:
         if _git_show(rel_path, base_commit) == (REPO_ROOT / rel_path).read_text(encoding="utf-8"):

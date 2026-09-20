@@ -56,14 +56,16 @@ def _make_manifest(
         mission_id=mission_id,
         mission_branch=mission_branch,
         target_branch="main",
-        lanes=[ExecutionLane(
-            lane_id=lane_id,
-            wp_ids=wp_ids,
-            write_scope=(),
-            predicted_surfaces=(),
-            depends_on_lanes=(),
-            parallel_group=0,
-        )],
+        lanes=[
+            ExecutionLane(
+                lane_id=lane_id,
+                wp_ids=wp_ids,
+                write_scope=(),
+                predicted_surfaces=(),
+                depends_on_lanes=(),
+                parallel_group=0,
+            )
+        ],
         computed_at=now_utc_iso(),
         computed_from="test",
     )
@@ -85,15 +87,17 @@ def new_topology_repo(tmp_path: Path) -> Path:
     spec_dir = repo / "kitty-specs" / MISSION_DIR_NEW
     spec_dir.mkdir(parents=True)
     (spec_dir / "spec.md").write_text("# spec\n")
-    (spec_dir / "status.events.jsonl").write_text(
-        '{"actor":"test","wp_id":"WP01"}\n'
-    )
+    (spec_dir / "status.events.jsonl").write_text('{"actor":"test","wp_id":"WP01"}\n')
     (spec_dir / "status.json").write_text("{}\n")
-    (spec_dir / "meta.json").write_text(json.dumps({
-        "mission_id": MISSION_ID,
-        "mission_slug": MISSION_SLUG,
-        "coordination_branch": COORD_BRANCH,
-    }))
+    (spec_dir / "meta.json").write_text(
+        json.dumps(
+            {
+                "mission_id": MISSION_ID,
+                "mission_slug": MISSION_SLUG,
+                "coordination_branch": COORD_BRANCH,
+            }
+        )
+    )
     _git(repo, "add", ".")
     _git(repo, "commit", "-q", "-m", "seed")
     _git(repo, "branch", COORD_BRANCH)
@@ -115,9 +119,13 @@ def legacy_repo(tmp_path: Path) -> Path:
     spec_dir.mkdir(parents=True)
     (spec_dir / "spec.md").write_text("# spec\n")
     # NB: no coordination_branch field, mirroring pre-WP03 missions.
-    (spec_dir / "meta.json").write_text(json.dumps({
-        "mission_slug": LEGACY_MISSION_SLUG,
-    }))
+    (spec_dir / "meta.json").write_text(
+        json.dumps(
+            {
+                "mission_slug": LEGACY_MISSION_SLUG,
+            }
+        )
+    )
     _git(repo, "add", ".")
     _git(repo, "commit", "-q", "-m", "seed")
     return repo
@@ -127,7 +135,8 @@ def test_new_topology_parents_on_coordination_branch(
     new_topology_repo: Path,
 ) -> None:
     manifest = _make_manifest(
-        mission_branch=COORD_BRANCH, mission_id=MISSION_ID,
+        mission_branch=COORD_BRANCH,
+        mission_id=MISSION_ID,
     )
     worktree_path, branch = allocate_lane_worktree(
         repo_root=new_topology_repo,
@@ -140,13 +149,10 @@ def test_new_topology_parents_on_coordination_branch(
 
     # The lane branch must be reachable from the coordination branch.
     result = subprocess.run(
-        ["git", "-C", str(new_topology_repo), "merge-base",
-         "--is-ancestor", COORD_BRANCH, branch],
+        ["git", "-C", str(new_topology_repo), "merge-base", "--is-ancestor", COORD_BRANCH, branch],
         capture_output=True,
     )
-    assert result.returncode == 0, (
-        f"lane branch {branch} should descend from {COORD_BRANCH}"
-    )
+    assert result.returncode == 0, f"lane branch {branch} should descend from {COORD_BRANCH}"
 
 
 def test_explicit_base_replaces_coordination_branch_parent(
@@ -166,7 +172,8 @@ def test_explicit_base_replaces_coordination_branch_parent(
     _git(repo, "commit", "-q", "-m", "coord-only work")
     coord_only_sha = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", COORD_BRANCH],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
     _git(repo, "checkout", "-q", "main")
 
@@ -175,8 +182,11 @@ def test_explicit_base_replaces_coordination_branch_parent(
 
     manifest = _make_manifest(mission_branch=COORD_BRANCH, mission_id=MISSION_ID)
     worktree_path, branch = allocate_lane_worktree(
-        repo_root=repo, mission_slug=MISSION_SLUG, wp_id="WP01",
-        lanes_manifest=manifest, base="explicit-base",
+        repo_root=repo,
+        mission_slug=MISSION_SLUG,
+        wp_id="WP01",
+        lanes_manifest=manifest,
+        base="explicit-base",
     )
     assert worktree_path.exists()
 
@@ -184,17 +194,14 @@ def test_explicit_base_replaces_coordination_branch_parent(
         ["git", "-C", str(repo), "merge-base", "--is-ancestor", "explicit-base", branch],
         capture_output=True,
     )
-    assert is_ancestor_base.returncode == 0, (
-        f"lane branch {branch} should descend from the supplied base"
-    )
+    assert is_ancestor_base.returncode == 0, f"lane branch {branch} should descend from the supplied base"
 
     is_ancestor_coord_only = subprocess.run(
         ["git", "-C", str(repo), "merge-base", "--is-ancestor", coord_only_sha, branch],
         capture_output=True,
     )
     assert is_ancestor_coord_only.returncode != 0, (
-        "lane must NOT inherit coord-only work landed after --base was chosen "
-        "(D1 -- base ALONE, coordination_branch not layered on)"
+        "lane must NOT inherit coord-only work landed after --base was chosen (D1 -- base ALONE, coordination_branch not layered on)"
     )
 
 
@@ -202,7 +209,8 @@ def test_new_topology_applies_sparse_checkout(
     new_topology_repo: Path,
 ) -> None:
     manifest = _make_manifest(
-        mission_branch=COORD_BRANCH, mission_id=MISSION_ID,
+        mission_branch=COORD_BRANCH,
+        mission_id=MISSION_ID,
     )
     worktree_path, _ = allocate_lane_worktree(
         repo_root=new_topology_repo,
@@ -237,9 +245,9 @@ def test_legacy_topology_skips_sparse_checkout(
     # No sparse-checkout was applied — legacy mission_dir was bare, no
     # status files to exclude, and `core.sparseCheckout` should remain unset.
     result = subprocess.run(
-        ["git", "-C", str(worktree_path), "config",
-         "--get", "core.sparseCheckout"],
-        capture_output=True, text=True,
+        ["git", "-C", str(worktree_path), "config", "--get", "core.sparseCheckout"],
+        capture_output=True,
+        text=True,
     )
     # config --get returns 1 when unset.
     assert result.returncode != 0 or result.stdout.strip() != "true"

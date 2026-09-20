@@ -51,9 +51,7 @@ class MergeAmbiguousStateError(Exception):
     def __init__(self, mission_ids: list[str]) -> None:
         self.mission_ids = mission_ids
         ids_formatted = "\n  ".join(mission_ids)
-        super().__init__(
-            f"Multiple active merge states found — pass --mission to disambiguate:\n  {ids_formatted}"
-        )
+        super().__init__(f"Multiple active merge states found — pass --mission to disambiguate:\n  {ids_formatted}")
 
 
 class MergeStateReadError(GuardedReadError, RuntimeError):
@@ -367,6 +365,7 @@ def iter_pending_coord_reconcile_markers(repo_root: Path) -> Iterable[MergeState
 # Lock management
 # ---------------------------------------------------------------------------
 
+
 def acquire_merge_lock(mission_id: str, repo_root: Path) -> bool:
     """Create a lock file to prevent concurrent merge operations.
 
@@ -422,6 +421,7 @@ def is_merge_locked(mission_id: str, repo_root: Path) -> bool:
 # ---------------------------------------------------------------------------
 # Git merge state helpers (unchanged from original)
 # ---------------------------------------------------------------------------
+
 
 def needs_number_assignment(feature_dir: Path) -> bool:
     """Return True if the mission's ``meta.json`` lacks an integer ``mission_number``.

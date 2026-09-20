@@ -207,8 +207,7 @@ _ALLOW_LIST_SEED: tuple[ContentDescriptor, ...] = (
 #: order-preserving with the seed tuple — the staleness twin-guards below index
 #: into both by descriptor identity, never a bare position).
 _ALLOW_LIST_KEYS: tuple[CompositeKey, ...] = tuple(
-    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor)
-    for descriptor in _ALLOW_LIST_SEED
+    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor) for descriptor in _ALLOW_LIST_SEED
 )
 
 #: Composite-keyed allow-list: ``frozenset[(rel_path, qualname, token_line)]``.
@@ -284,10 +283,7 @@ def test_adopted_modules_have_no_write_side_rederivation() -> None:
         for finding in _scan_module(module):
             if finding.as_allow_key() in _ALLOW_LIST:
                 continue
-            offenders.append(
-                f"{finding.path.relative_to(_REPO_ROOT)}:{finding.lineno} "
-                f"[{finding.kind}] {finding.code}"
-            )
+            offenders.append(f"{finding.path.relative_to(_REPO_ROOT)}:{finding.lineno} [{finding.kind}] {finding.code}")
 
     assert not offenders, (
         "Write-side re-derivation found in adopted modules (FR-005 / C-BOUNDARY). "
@@ -330,9 +326,7 @@ def test_ratchet_bites_on_planted_rederivation(planted: str, expected_kind: str)
     )
     findings = _scan_source(fixture_source, _SRC / "coordination" / "status_transition.py")
     kinds = {f.kind for f in findings}
-    assert expected_kind in kinds, (
-        f"ratchet failed to flag planted {expected_kind!r}; got {kinds}"
-    )
+    assert expected_kind in kinds, f"ratchet failed to flag planted {expected_kind!r}; got {kinds}"
 
 
 def test_ratchet_ignores_prose_quoting_a_prior_walk() -> None:
@@ -369,20 +363,12 @@ def test_allow_list_is_line_scoped_not_a_blanket_file_escape() -> None:
     """
     assert _ALLOW_LIST, "the allow-list must seed the remaining tracked deferred lines (WS#2/WS#3)"
     for entry in _ALLOW_LIST:
-        assert isinstance(entry, tuple) and len(entry) == 3, (
-            f"allow-list entry must be a (rel_path, qualname, token_line) "
-            f"composite, got {entry!r}"
-        )
+        assert isinstance(entry, tuple) and len(entry) == 3, f"allow-list entry must be a (rel_path, qualname, token_line) composite, got {entry!r}"
         rel_path, qualname, token_line = entry
-        assert isinstance(rel_path, str) and rel_path, (
-            f"rel_path component must be a non-empty str, got {rel_path!r}"
-        )
-        assert isinstance(qualname, str) and qualname, (
-            f"qualname component must be a non-empty str, got {qualname!r}"
-        )
+        assert isinstance(rel_path, str) and rel_path, f"rel_path component must be a non-empty str, got {rel_path!r}"
+        assert isinstance(qualname, str) and qualname, f"qualname component must be a non-empty str, got {qualname!r}"
         assert isinstance(token_line, str) and token_line, (
-            "token_line component must be a non-empty code line (a real line, "
-            f"not a whole-file wildcard), got {token_line!r}"
+            f"token_line component must be a non-empty code line (a real line, not a whole-file wildcard), got {token_line!r}"
         )
 
 
@@ -398,10 +384,7 @@ def test_ws1_descriptor_no_longer_seeded_after_the_1716_drain() -> None:
     fixed; either way this test should be revisited deliberately, not
     silently.
     """
-    assert all(
-        descriptor.rel_path != "src/specify_cli/coordination/status_transition.py"
-        for descriptor in _ALLOW_LIST_SEED
-    ), (
+    assert all(descriptor.rel_path != "src/specify_cli/coordination/status_transition.py" for descriptor in _ALLOW_LIST_SEED), (
         "a status_transition.py entry re-appeared in _ALLOW_LIST_SEED after the "
         "#1716 drain (WP04/T017) removed WS#1 -- confirm this is a genuinely "
         "NEW deferred finding, not the retired coord_branch-or-_current_branch "
@@ -413,11 +396,7 @@ def test_ws1_descriptor_no_longer_seeded_after_the_1716_drain() -> None:
     # CODE-token finding of kind write_target_head_selector would mean the
     # drain regressed.
     status_transition_path = _SRC / "coordination" / "status_transition.py"
-    findings = [
-        finding
-        for finding in _scan_module(status_transition_path)
-        if finding.kind == "write_target_head_selector"
-    ]
+    findings = [finding for finding in _scan_module(status_transition_path) if finding.kind == "write_target_head_selector"]
     assert not findings, (
         "the retired #1716 selector reappeared as CODE in status_transition.py; "
         f"the WS#1 allow-list entry was deleted on the assumption it is gone for good: {findings!r}"
@@ -435,9 +414,7 @@ def test_checkout_head_selector_entry_is_still_a_live_finding() -> None:
     now-stale allow-list entry (shrink-only), never to leave a vacuous
     allow-list rule masking nothing.
     """
-    descriptor, seeded_key = _seed_and_key_for(
-        "src/specify_cli/cli/commands/implement.py"
-    )
+    descriptor, seeded_key = _seed_and_key_for("src/specify_cli/cli/commands/implement.py")
     source = (_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8")
     assert descriptor_still_live(source, descriptor, seeded_key), (
         f"{descriptor.rel_path} ({descriptor.qualname}) checkout_head_selector "
@@ -448,8 +425,7 @@ def test_checkout_head_selector_entry_is_still_a_live_finding() -> None:
     # The pinned finding really IS the get_current_branch HEAD selector.
     _rel_path, _qualname, token_line = seeded_key
     assert "get_current_branch (" in token_line, (
-        f"allow-listed {descriptor.rel_path} ({descriptor.qualname}) no longer "
-        f"holds the get_current_branch HEAD selector (got token_line {token_line!r})."
+        f"allow-listed {descriptor.rel_path} ({descriptor.qualname}) no longer holds the get_current_branch HEAD selector (got token_line {token_line!r})."
     )
 
 
@@ -500,10 +476,7 @@ _RETIRED_EXTRA_CHECKOUT_GRAMMAR_MODULES: tuple[Path, ...] = (
     _SRC / "coordination" / "transaction.py",
     _SRC / "retrospective" / "writer.py",
 )
-_RETIRED_CHECKOUT_GRAMMAR_ALLOWLIST: frozenset[str] = frozenset(
-    _placement_rel_path(p)
-    for p in (_ADOPTED_MODULES + _RETIRED_EXTRA_CHECKOUT_GRAMMAR_MODULES)
-)
+_RETIRED_CHECKOUT_GRAMMAR_ALLOWLIST: frozenset[str] = frozenset(_placement_rel_path(p) for p in (_ADOPTED_MODULES + _RETIRED_EXTRA_CHECKOUT_GRAMMAR_MODULES))
 
 #: Pinned copy of the pre-widening ``BOUNDARY_SANCTIONED_PREFIXES`` (WP06 /
 #: T029 "prefix guard -- RETAIN, do not create"): the meta-test below asserts
@@ -562,9 +535,7 @@ def _checkout_grammar_parent_map(tree: ast.Module) -> dict[int, ast.AST]:
     return parents
 
 
-def _checkout_grammar_enclosing_function(
-    parents: dict[int, ast.AST], target: ast.AST
-) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+def _checkout_grammar_enclosing_function(parents: dict[int, ast.AST], target: ast.AST) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
     """Return the DIRECT enclosing ``ast.FunctionDef`` of *target*, or ``None``."""
     cur: ast.AST | None = target
     while cur is not None:
@@ -629,9 +600,7 @@ def _is_seam_derived(
 #: scan to 100% of ``src/`` (T026) newly brings ``commit_helpers.py`` into
 #: view, so without this discrimination the facade's own internals would
 #: false-red.
-_CHECKOUT_GRAMMAR_DEFINITION_SITE_FUNCTIONS: frozenset[str] = frozenset(
-    {"safe_commit", "write_meta"}
-)
+_CHECKOUT_GRAMMAR_DEFINITION_SITE_FUNCTIONS: frozenset[str] = frozenset({"safe_commit", "write_meta"})
 
 
 def _is_checkout_grammar_definition_site(
@@ -841,13 +810,10 @@ _CHECKOUT_GRAMMAR_ALLOW_LIST_SEED: tuple[ContentDescriptor, ...] = (
 #: Composite key resolved LIVE for each ``_CHECKOUT_GRAMMAR_ALLOW_LIST_SEED``
 #: entry (parallel, order-preserving with the seed tuple).
 _CHECKOUT_GRAMMAR_ALLOW_LIST_KEYS: tuple[CompositeKey, ...] = tuple(
-    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor)
-    for descriptor in _CHECKOUT_GRAMMAR_ALLOW_LIST_SEED
+    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor) for descriptor in _CHECKOUT_GRAMMAR_ALLOW_LIST_SEED
 )
 
-_CHECKOUT_GRAMMAR_ALLOW_LIST: frozenset[CompositeKey] = frozenset(
-    _CHECKOUT_GRAMMAR_ALLOW_LIST_KEYS
-)
+_CHECKOUT_GRAMMAR_ALLOW_LIST: frozenset[CompositeKey] = frozenset(_CHECKOUT_GRAMMAR_ALLOW_LIST_KEYS)
 
 
 def test_checkout_grammar_boundary_excludes_sanctioned_modules() -> None:
@@ -869,15 +835,10 @@ def test_checkout_grammar_boundary_excludes_sanctioned_modules() -> None:
     """
     scanned_rel = {_placement_rel_path(p) for p in _whole_tree_scan_scope()}
     for sanctioned in BOUNDARY_SANCTIONED_MODULES:
-        assert sanctioned not in scanned_rel, (
-            f"{sanctioned} is a sanctioned coord primitive and must never enter "
-            "the whole-tree placement-enforcement scan scope"
-        )
+        assert sanctioned not in scanned_rel, f"{sanctioned} is a sanctioned coord primitive and must never enter the whole-tree placement-enforcement scan scope"
     for rel in scanned_rel:
         assert not rel.startswith(BOUNDARY_SANCTIONED_PREFIXES), (
-            f"{rel} falls under a sanctioned-primitive prefix "
-            f"({BOUNDARY_SANCTIONED_PREFIXES}) and must never enter the "
-            "whole-tree placement-enforcement scan scope"
+            f"{rel} falls under a sanctioned-primitive prefix ({BOUNDARY_SANCTIONED_PREFIXES}) and must never enter the whole-tree placement-enforcement scan scope"
         )
     assert BOUNDARY_SANCTIONED_PREFIXES == _PINNED_BOUNDARY_SANCTIONED_PREFIXES, (
         "BOUNDARY_SANCTIONED_PREFIXES drifted from the pinned pre-widening "
@@ -945,9 +906,7 @@ def test_adopted_and_residual_modules_have_no_checkout_derived_commit_target() -
     for module in modules:
         assert module.exists(), f"checkout-grammar module missing: {module}"
 
-    offenders = _checkout_grammar_offenders(
-        (module, module.read_text(encoding="utf-8")) for module in modules
-    )
+    offenders = _checkout_grammar_offenders((module, module.read_text(encoding="utf-8")) for module in modules)
 
     assert not offenders, (
         "Checkout-derived CommitTarget/safe_commit construction found (T033 / "
@@ -968,9 +927,7 @@ def test_checkout_grammar_allow_list_entries_are_still_live() -> None:
     leave a vacuous allow-list rule masking nothing. Exactly-one + key-equal:
     NEVER "≥1 finding matches" (D-1 bite hole).
     """
-    for descriptor, seeded_key in zip(
-        _CHECKOUT_GRAMMAR_ALLOW_LIST_SEED, _CHECKOUT_GRAMMAR_ALLOW_LIST_KEYS, strict=True
-    ):
+    for descriptor, seeded_key in zip(_CHECKOUT_GRAMMAR_ALLOW_LIST_SEED, _CHECKOUT_GRAMMAR_ALLOW_LIST_KEYS, strict=True):
         source = (_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8")
         assert descriptor_still_live(source, descriptor, seeded_key), (
             f"{descriptor.rel_path} ({descriptor.qualname}) no longer resolves "
@@ -1034,14 +991,8 @@ def test_definition_site_discrimination_does_not_mask_a_same_named_bypass_elsewh
         "    return CommitTarget(ref=destination_ref)\n"
     )
     findings = _scan_checkout_grammar(fixture_source, _SRC / "git" / "commit_helpers.py")
-    assert len(findings) == 1, (
-        "the def-site exemption for safe_commit masked a DIFFERENT, "
-        f"non-shim function's bypass in the same fixture: {findings!r}"
-    )
-    assert findings[0].lineno == 2, (
-        "expected the sole finding to be _not_the_shim's bypass (line 2), "
-        f"got lineno {findings[0].lineno}"
-    )
+    assert len(findings) == 1, f"the def-site exemption for safe_commit masked a DIFFERENT, non-shim function's bypass in the same fixture: {findings!r}"
+    assert findings[0].lineno == 2, f"expected the sole finding to be _not_the_shim's bypass (line 2), got lineno {findings[0].lineno}"
 
 
 # ---------------------------------------------------------------------------
@@ -1050,10 +1001,7 @@ def test_definition_site_discrimination_does_not_mask_a_same_named_bypass_elsewh
 # ---------------------------------------------------------------------------
 
 #: Synthetic bypass fixture reused by both T030 tests below.
-_T030_INJECTED_BYPASS_SOURCE = (
-    "def _injected_bypass(current_branch):\n"
-    "    return CommitTarget(ref=current_branch)\n"
-)
+_T030_INJECTED_BYPASS_SOURCE = "def _injected_bypass(current_branch):\n    return CommitTarget(ref=current_branch)\n"
 
 
 @pytest.mark.parametrize(
@@ -1082,14 +1030,8 @@ def test_whole_tree_scan_catches_bypass_in_formerly_out_of_scope_module(rel_path
 
     offenders = _checkout_grammar_offenders([(module, _T030_INJECTED_BYPASS_SOURCE)])
 
-    assert offenders, (
-        "whole-tree gate failed to flag a planted bypass in the formerly "
-        f"out-of-scope module {rel_path} -- the widening is not effective."
-    )
-    assert any(rel_path in offender for offender in offenders), (
-        f"the offending site {rel_path} was not named in the offender "
-        f"message(s): {offenders!r}"
-    )
+    assert offenders, f"whole-tree gate failed to flag a planted bypass in the formerly out-of-scope module {rel_path} -- the widening is not effective."
+    assert any(rel_path in offender for offender in offenders), f"the offending site {rel_path} was not named in the offender message(s): {offenders!r}"
 
 
 def test_whole_tree_scan_control_still_flags_formerly_in_scope_module() -> None:
@@ -1100,17 +1042,13 @@ def test_whole_tree_scan_control_still_flags_formerly_in_scope_module() -> None:
     """
     rel_path = "src/specify_cli/core/mission_creation.py"
     assert rel_path in _RETIRED_CHECKOUT_GRAMMAR_ALLOWLIST, (
-        f"{rel_path} must be a module the retired 17-module allowlist COULD "
-        "see, to serve as the regression-parity control."
+        f"{rel_path} must be a module the retired 17-module allowlist COULD see, to serve as the regression-parity control."
     )
     module = _REPO_ROOT / rel_path
 
     offenders = _checkout_grammar_offenders([(module, _T030_INJECTED_BYPASS_SOURCE)])
 
-    assert offenders, (
-        "regression: a planted bypass in a formerly-in-scope module no "
-        "longer reds under the whole-tree scan."
-    )
+    assert offenders, "regression: a planted bypass in a formerly-in-scope module no longer reds under the whole-tree scan."
 
 
 # ---------------------------------------------------------------------------
@@ -1123,8 +1061,7 @@ def test_whole_tree_scan_control_still_flags_formerly_in_scope_module() -> None:
     [
         ("    return CommitTarget(ref=current_branch)\n", "CommitTarget"),
         (
-            "    return safe_commit(repo_root=r, worktree_root=w, "
-            "destination_ref=current_branch, message=m, paths=p)\n",
+            "    return safe_commit(repo_root=r, worktree_root=w, destination_ref=current_branch, message=m, paths=p)\n",
             "safe_commit",
         ),
     ],
@@ -1138,16 +1075,10 @@ def test_checkout_grammar_bites_on_planted_bypass(planted: str, expected_callee:
     destination_ref=...)`` sibling form — into a fixture source and asserting
     the detector flags it.
     """
-    fixture_source = (
-        "def _adopted_write_site(current_branch, r, w, m, p):\n"
-        f"{planted}"
-    )
+    fixture_source = f"def _adopted_write_site(current_branch, r, w, m, p):\n{planted}"
     findings = _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py")
     kinds = {f.callee for f in findings}
-    assert expected_callee in kinds, (
-        f"checkout-grammar failed to flag a planted {expected_callee}(...) bypass; "
-        f"got {kinds}"
-    )
+    assert expected_callee in kinds, f"checkout-grammar failed to flag a planted {expected_callee}(...) bypass; got {kinds}"
 
 
 def test_checkout_grammar_does_not_flag_seam_derived_construction() -> None:
@@ -1157,9 +1088,7 @@ def test_checkout_grammar_does_not_flag_seam_derived_construction() -> None:
         "    seam_target = placement_seam(repo_root, mission_slug).write_target(KIND)\n"
         "    return safe_commit(target=seam_target)\n"
     )
-    assert (
-        _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py") == []
-    )
+    assert _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py") == []
 
 
 def test_checkout_grammar_does_not_flag_string_literal_placeholder() -> None:
@@ -1168,13 +1097,8 @@ def test_checkout_grammar_does_not_flag_string_literal_placeholder() -> None:
     Pins ``tasks_map_requirements.py``'s ``CommitTarget(ref="")``
     default-factory placeholder pattern.
     """
-    fixture_source = (
-        "def _factory():\n"
-        '    return CommitTarget(ref="")\n'
-    )
-    assert (
-        _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py") == []
-    )
+    fixture_source = 'def _factory():\n    return CommitTarget(ref="")\n'
+    assert _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py") == []
 
 
 def test_checkout_grammar_ignores_prose_quoting_the_pattern() -> None:
@@ -1187,13 +1111,11 @@ def test_checkout_grammar_ignores_prose_quoting_the_pattern() -> None:
     fixture_source = (
         "def _adopted_resolver(repo_root, mission_slug):\n"
         '    """The bypass looked like CommitTarget(ref=current_branch).\n'
-        '    Never do that -- route through write_target(kind) instead.\n'
+        "    Never do that -- route through write_target(kind) instead.\n"
         '    """\n'
         "    return placement_seam(repo_root, mission_slug).write_target(KIND)\n"
     )
-    assert (
-        _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py") == []
-    )
+    assert _scan_checkout_grammar(fixture_source, _SRC / "core" / "mission_creation.py") == []
 
 
 # ===========================================================================
@@ -1226,24 +1148,16 @@ def test_motion_battery_blank_and_comment_insertion_stays_green() -> None:
         occurrence=None,
         rationale="motion-battery fixture",
     )
-    base_source = (
-        "def _adopted_write_site(coord_branch, repo_root):\n"
-        "    return coord_branch or _current_branch(repo_root)\n"
-    )
+    base_source = "def _adopted_write_site(coord_branch, repo_root):\n    return coord_branch or _current_branch(repo_root)\n"
     seeded_key = resolve_descriptor(base_source, descriptor)
 
     motions = (
         "\n",  # a blank line
         "    # a comment line inserted above the site\n",
-        '    """A multi-line docstring inserted above the site.\n\n'
-        '    More prose describing unrelated behavior.\n    """\n',
+        '    """A multi-line docstring inserted above the site.\n\n    More prose describing unrelated behavior.\n    """\n',
     )
     for motion in motions:
-        drifted_source = (
-            "def _adopted_write_site(coord_branch, repo_root):\n"
-            f"{motion}"
-            "    return coord_branch or _current_branch(repo_root)\n"
-        )
+        drifted_source = f"def _adopted_write_site(coord_branch, repo_root):\n{motion}    return coord_branch or _current_branch(repo_root)\n"
         assert descriptor_still_live(drifted_source, descriptor, seeded_key), (
             f"motion battery false-red: benign insertion {motion!r} above the "
             "migrated site flipped the gate -- content descriptors must be "
@@ -1261,13 +1175,8 @@ def test_bite_unallowlisted_rederivation_is_not_absorbed_by_the_allow_list() -> 
     finding the ratchet would reject, never one silently absorbed by an
     existing allow-list entry.
     """
-    fixture_source = (
-        "def _new_unsanctioned_write_site(coord_branch, repo_root):\n"
-        "    return coord_branch or _current_branch(repo_root)\n"
-    )
-    findings = _scan_source(
-        fixture_source, _SRC / "coordination" / "status_transition.py"
-    )
+    fixture_source = "def _new_unsanctioned_write_site(coord_branch, repo_root):\n    return coord_branch or _current_branch(repo_root)\n"
+    findings = _scan_source(fixture_source, _SRC / "coordination" / "status_transition.py")
     offending = [f for f in findings if f.kind == "write_target_head_selector"]
     assert offending, "the bite fixture must actually plant a flagged finding"
     for finding in offending:
@@ -1297,10 +1206,7 @@ def test_same_qualname_sibling_offender_reds_the_twin_guard() -> None:
         occurrence=None,
         rationale="D-1 same-qualname-sibling fixture",
     )
-    sanctioned_source = (
-        "def _resolve_write_target(coord_branch, repo_root):\n"
-        "    return coord_branch or _current_branch(repo_root)\n"
-    )
+    sanctioned_source = "def _resolve_write_target(coord_branch, repo_root):\n    return coord_branch or _current_branch(repo_root)\n"
     seeded_key = resolve_descriptor(sanctioned_source, descriptor)
 
     # A second, un-sanctioned offender lands in the SAME qualname with the

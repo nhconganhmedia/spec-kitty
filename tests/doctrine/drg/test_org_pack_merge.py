@@ -57,9 +57,7 @@ def _authored_fragment_edge(reason: str | None) -> _OrgDRGEdge:
 
 
 def _bridge(edge: _OrgDRGEdge) -> DRGEdge:
-    minted, conflict = bridge_org_edge_to_drg_edge(
-        edge, {}, set(), _SOURCE_MARKER
-    )
+    minted, conflict = bridge_org_edge_to_drg_edge(edge, {}, set(), _SOURCE_MARKER)
     assert conflict is None, f"unexpected endpoint conflict: {conflict}"
     assert minted is not None
     return minted
@@ -91,10 +89,7 @@ def test_the_org_bridge_carries_every_fragment_expressible_edge_field() -> None:
         fragment_value = getattr(fragment_edge, name)
         if fragment_value is None:
             continue
-        assert getattr(minted, name) is not None, (
-            f"org bridge dropped fragment-expressible edge field {name!r} "
-            f"(fragment set it to {fragment_value!r})"
-        )
+        assert getattr(minted, name) is not None, f"org bridge dropped fragment-expressible edge field {name!r} (fragment set it to {fragment_value!r})"
 
 
 def test_the_org_bridge_preserves_the_author_reason() -> None:

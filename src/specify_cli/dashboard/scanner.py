@@ -278,7 +278,6 @@ def _feature_recency_sort_key(feature: dict[str, Any]) -> tuple[int, bool, float
     status = feature.get("mission_status", "draft")
     status_priority = _MISSION_STATUS_PRIORITY.get(status, 0)
 
-
     meta = feature.get("meta")
     if not isinstance(meta, dict):
         meta = {}
@@ -432,11 +431,7 @@ def gather_feature_paths(project_dir: Path) -> dict[str, Path]:
             if not wt_specs.exists():
                 continue
             is_coord_worktree = (
-                registry is not None
-                and classify_worktree_topology(
-                    worktree_dir, repo_root=project_dir, registry=registry
-                )
-                is WorktreeTopology.COORD_WORKTREE
+                registry is not None and classify_worktree_topology(worktree_dir, repo_root=project_dir, registry=registry) is WorktreeTopology.COORD_WORKTREE
             )
             for feature_dir in wt_specs.iterdir():
                 if feature_dir.is_dir():
@@ -477,9 +472,7 @@ def _read_mission_identity(feature_dir: Path) -> tuple[str | None, int | None]:
     return mission_id, mission_number
 
 
-def _resolve_identity_primary_first(
-    project_dir: Path, feature_dir: Path
-) -> tuple[str | None, int | None]:
+def _resolve_identity_primary_first(project_dir: Path, feature_dir: Path) -> tuple[str | None, int | None]:
     """Resolve ``(mission_id, mission_number)`` from the PRIMARY surface (#2331).
 
     Mission identity (``meta.json``) is a PRIMARY-partition artifact: it lives on
@@ -498,9 +491,7 @@ def _resolve_identity_primary_first(
 
     slug = feature_dir.name
     try:
-        primary_dir = resolve_planning_read_dir(
-            project_dir, slug, kind=MissionArtifactKind.PRIMARY_METADATA
-        )
+        primary_dir = resolve_planning_read_dir(project_dir, slug, kind=MissionArtifactKind.PRIMARY_METADATA)
     except (ValueError, MissionSelectorAmbiguous):
         # Unsafe slug segment (traversal guard) or an ambiguous handle — the
         # dashboard scan must never crash, so keep the scanned dir.
@@ -536,9 +527,7 @@ def _resolve_planning_dir_primary_first(project_dir: Path, feature_dir: Path) ->
     from mission_runtime import MissionArtifactKind  # noqa: PLC0415 — late import, cold-start cost
 
     try:
-        candidate = resolve_planning_read_dir(
-            project_dir, feature_dir.name, kind=MissionArtifactKind.TASKS_INDEX
-        )
+        candidate = resolve_planning_read_dir(project_dir, feature_dir.name, kind=MissionArtifactKind.TASKS_INDEX)
     except (ValueError, MissionSelectorAmbiguous):
         return feature_dir
     if candidate.exists():
@@ -595,11 +584,7 @@ def build_mission_registry(project_dir: Path) -> dict[str, dict[str, Any]]:
         # preserves the registry's ``mid8 is None`` contract for pseudo keys and
         # missing identities (resolve_mid8 declines to ``""``, never ``None``).
         is_pseudo = key.startswith(("legacy:", "orphan:"))
-        mid8: str | None = (
-            None
-            if is_pseudo
-            else (resolve_mid8(feature_dir.name, mission_id=mission_id) or None)
-        )
+        mid8: str | None = None if is_pseudo else (resolve_mid8(feature_dir.name, mission_id=mission_id) or None)
 
         registry[key] = {
             "mission_id": key,  # canonical key, may be pseudo
@@ -804,8 +789,7 @@ def read_only_weighted_percentage(feature_dir: Path) -> float | None:
     repo_root = _resolve_checkout_root(feature_dir)
     if repo_root is not None and git_operation_in_progress(repo_root):
         logger.debug(
-            "Git operation in progress at '%s'; serving kanban for '%s' "
-            "read-only (no tracked status write).",
+            "Git operation in progress at '%s'; serving kanban for '%s' read-only (no tracked status write).",
             repo_root,
             feature_dir.name,
         )
@@ -906,11 +890,7 @@ def scan_all_features(project_dir: Path) -> list[dict[str, Any]]:
         # writes — its ``tasks/`` lives on the planning surface, so the
         # existence filter must consult that surface too or a live in-flight
         # mission with a post-083 (non-numeric) slug vanishes (#2430).
-        if not (
-            re.match(r"^\d+", feature_dir.name)
-            or (planning_dir / "tasks").exists()
-            or (feature_dir / "tasks").exists()
-        ):
+        if not (re.match(r"^\d+", feature_dir.name) or (planning_dir / "tasks").exists() or (feature_dir / "tasks").exists()):
             continue
 
         meta_dir = planning_dir if (planning_dir / "meta.json").exists() else feature_dir
@@ -1049,11 +1029,7 @@ def _wp_subtask_progress(view: WPView) -> tuple[int, int]:
     participates in either side of the calculation.
     """
     resolved_subtasks = view.resolved.subtasks
-    done = sum(
-        1
-        for task_id in view.authored.subtasks
-        if resolved_subtasks.get(task_id) == str(Lane.DONE)
-    )
+    done = sum(1 for task_id in view.authored.subtasks if resolved_subtasks.get(task_id) == str(Lane.DONE))
     return done, len(view.authored.subtasks)
 
 

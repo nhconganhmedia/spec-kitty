@@ -68,8 +68,11 @@ class CopilotBundleProjector:
     def entries(self, plan: Sequence[SurfacePlan], project_root: Path) -> tuple[BundleEntry, ...]:
         """Select the canonical members without writing the staging tree."""
         return bundle_entries_for_plans(
-            plan, project_root, layout=self.layout,
-            agent_filename=_agent_filename, bundle_kinds=BUNDLE_SURFACE_KINDS,
+            plan,
+            project_root,
+            layout=self.layout,
+            agent_filename=_agent_filename,
+            bundle_kinds=BUNDLE_SURFACE_KINDS,
         )
 
     def project(
@@ -94,9 +97,5 @@ class CopilotBundleProjector:
         required_surface_kinds: set[ToolSurfaceKind] | None = None,
     ) -> BundleValidationResult:
         """Validate that every required surface kind is present in ``bundle``."""
-        required = (
-            frozenset(required_surface_kinds)
-            if required_surface_kinds is not None
-            else _REQUIRED_KINDS
-        )
+        required = frozenset(required_surface_kinds) if required_surface_kinds is not None else _REQUIRED_KINDS
         return _validate_bundle(bundle, required)

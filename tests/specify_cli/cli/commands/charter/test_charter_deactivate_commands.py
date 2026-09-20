@@ -39,10 +39,7 @@ def project_root_with_directive(tmp_path: Path) -> Path:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    config_data = (
-        "activated_directives:\n  - some-directive\n"
-        "mission_type_activations:\n  - software-dev\n"
-    )
+    config_data = "activated_directives:\n  - some-directive\nmission_type_activations:\n  - software-dev\n"
     (kittify / "config.yaml").write_text(config_data, encoding="utf-8")
     return tmp_path
 
@@ -66,9 +63,7 @@ def project_root(tmp_path: Path) -> Path:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     return tmp_path
 
 
@@ -121,9 +116,7 @@ def _write_artifact(pack_root: Path, plural_dir: str, kind_singular: str, stem: 
     """
     target_dir = pack_root / plural_dir
     target_dir.mkdir(parents=True, exist_ok=True)
-    (target_dir / f"{stem}.{kind_singular}.yaml").write_text(
-        f"id: {declared_id}\ntype: {kind_singular}\ntitle: {stem}\n", encoding="utf-8"
-    )
+    (target_dir / f"{stem}.{kind_singular}.yaml").write_text(f"id: {declared_id}\ntype: {kind_singular}\ntitle: {stem}\n", encoding="utf-8")
 
 
 def _write_graph_fragment(
@@ -137,19 +130,10 @@ def _write_graph_fragment(
     node_lines = "\n".join(f'  - urn: "{urn}"\n    kind: {kind}' for urn, kind in nodes)
     nodes_section = f"nodes:\n{node_lines}" if nodes else "nodes: []"
 
-    edge_lines = "\n".join(
-        f'  - source: "{src}"\n    target: "{tgt}"\n    relation: {rel}'
-        for src, tgt, rel in edges
-    )
+    edge_lines = "\n".join(f'  - source: "{src}"\n    target: "{tgt}"\n    relation: {rel}' for src, tgt, rel in edges)
     edges_section = f"edges:\n{edge_lines}" if edges else "edges: []"
 
-    body = (
-        'schema_version: "1.0"\n'
-        'generated_at: "2026-08-17T00:00:00Z"\n'
-        'generated_by: "test"\n'
-        f"{nodes_section}\n"
-        f"{edges_section}\n"
-    )
+    body = f'schema_version: "1.0"\ngenerated_at: "2026-08-17T00:00:00Z"\ngenerated_by: "test"\n{nodes_section}\n{edges_section}\n'
     (pack_root / filename).write_text(body, encoding="utf-8")
 
 
@@ -369,9 +353,7 @@ class TestDeactivateCascadeOutputAbsence:
 class TestDeactivateKindFilteredNodeRendering:
     """FR-007: `_render_cascade_deactivation` renders kind-filtered nodes too."""
 
-    def test_deactivate_cascade_reports_same_kind_filtered_line_as_activate_with_resolved_id(
-        self, project_root: Path
-    ) -> None:
+    def test_deactivate_cascade_reports_same_kind_filtered_line_as_activate_with_resolved_id(self, project_root: Path) -> None:
         """Activate then deactivate the SAME source; both must render the
         SAME kind-filtered line for the SAME asset.
 
@@ -386,9 +368,7 @@ class TestDeactivateKindFilteredNodeRendering:
         """
         pack_a_root = project_root / "org-packs" / "deact-packA"
         pack_b_root = project_root / "org-packs" / "deact-packB"
-        _write_artifact(
-            pack_a_root, "directives", "directive", "deact-stem-source", "DIRECTIVE_DEACT_STEM_SRC"
-        )
+        _write_artifact(pack_a_root, "directives", "directive", "deact-stem-source", "DIRECTIVE_DEACT_STEM_SRC")
         _write_graph_fragment(
             pack_a_root,
             "fixture.graph.yaml",
@@ -401,9 +381,7 @@ class TestDeactivateKindFilteredNodeRendering:
                 )
             ],
         )
-        _write_artifact(
-            pack_b_root, "assets", "asset", "deact-resolved-asset-stem", "ASSET_DEACT_RAW_BARE_ID"
-        )
+        _write_artifact(pack_b_root, "assets", "asset", "deact-resolved-asset-stem", "ASSET_DEACT_RAW_BARE_ID")
         _write_graph_fragment(
             pack_b_root,
             "fixture.graph.yaml",
@@ -417,26 +395,16 @@ class TestDeactivateKindFilteredNodeRendering:
 
         # Step 1 (precondition -- already-landed WP01/WP02 behavior): activate
         # with --cascade all renders the resolved-id kind-filtered line.
-        activate_result = _invoke_activate(
-            project_root, "--cascade", "all", "directive", "deact-stem-source"
-        )
+        activate_result = _invoke_activate(project_root, "--cascade", "all", "directive", "deact-stem-source")
         assert activate_result.exit_code == 0, activate_result.output
-        assert (
-            "Not cascaded: asset/deact-resolved-asset-stem (kind not charter-activatable)"
-            in activate_result.output
-        )
+        assert "Not cascaded: asset/deact-resolved-asset-stem (kind not charter-activatable)" in activate_result.output
 
         # Step 2 (this WP's new behavior): deactivate with --cascade all
         # renders the EQUIVALENT line -- same helper, same wording, same
         # resolved id.
-        deactivate_result = _invoke_deactivate(
-            project_root, "--cascade", "all", "directive", "deact-stem-source"
-        )
+        deactivate_result = _invoke_deactivate(project_root, "--cascade", "all", "directive", "deact-stem-source")
         assert deactivate_result.exit_code == 0, deactivate_result.output
-        assert (
-            "Not cascaded: asset/deact-resolved-asset-stem (kind not charter-activatable)"
-            in deactivate_result.output
-        )
+        assert "Not cascaded: asset/deact-resolved-asset-stem (kind not charter-activatable)" in deactivate_result.output
         assert "ASSET_DEACT_RAW_BARE_ID" not in deactivate_result.output
         # NFR-004/SC-006: the pre-existing lines are unrelated and unchanged
         # by this fixture -- the asset is kind-filtered, so it was never a
@@ -459,8 +427,7 @@ def test_deactivate_agent_profile_warns_when_mission_step_default(tmp_path: Path
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
     (kittify / "config.yaml").write_text(
-        "activated_agent_profiles:\n  - researcher-robbie\n"
-        "mission_type_activations:\n  - software-dev\n",
+        "activated_agent_profiles:\n  - researcher-robbie\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
 
@@ -479,8 +446,7 @@ def test_deactivate_agent_profile_no_warning_for_ordinary_profile(tmp_path: Path
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
     (kittify / "config.yaml").write_text(
-        "activated_agent_profiles:\n  - scribe-sally\n"
-        "mission_type_activations:\n  - software-dev\n",
+        "activated_agent_profiles:\n  - scribe-sally\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
 

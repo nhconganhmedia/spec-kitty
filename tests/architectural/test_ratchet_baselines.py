@@ -80,6 +80,7 @@ _ROUND_TRIP_CONTRACT_MODULE = "tests.contract.test_example_round_trip"
 # The individual values MUST be non-negative integers or mappings of them.
 # ---------------------------------------------------------------------------
 
+
 class _PerCategorySection(BaseModel):
     """A section with per-category integer baselines."""
 
@@ -90,9 +91,7 @@ class _PerCategorySection(BaseModel):
         if isinstance(obj, dict):
             for k, v in obj.items():
                 if not isinstance(v, int) or v < 0:
-                    raise ValueError(
-                        f"Per-category baseline {k!r} must be a non-negative integer; got {v!r}"
-                    )
+                    raise ValueError(f"Per-category baseline {k!r} must be a non-negative integer; got {v!r}")
         return super().model_validate(obj, **kwargs)
 
 
@@ -201,9 +200,7 @@ def _category_baseline(cat_key: str, yaml_value: int, nd_module: str) -> int:
     return yaml_value
 
 
-def _emit_skip_marker_delta(
-    baseline: int, current: int, record_property: RecordPropertyFn
-) -> None:
+def _emit_skip_marker_delta(baseline: int, current: int, record_property: RecordPropertyFn) -> None:
     """Route a skip-marker-block count delta to ``record_property`` (FR-003).
 
     Growth is REVIEWABLE-not-blocking: a new ``# round-trip: skip: <reason>``
@@ -234,8 +231,7 @@ def _emit_skip_marker_delta(
     elif current < baseline:
         record_property(
             _SKIP_MARKER_SHRINK_PROP,
-            f"Skip-marker blocks shrank {baseline} -> {current}. Lock in the lower "
-            f"bound in `_baselines.yaml`.",
+            f"Skip-marker blocks shrank {baseline} -> {current}. Lock in the lower bound in `_baselines.yaml`.",
         )
 
 
@@ -251,10 +247,7 @@ def _load_baselines() -> dict[str, Any]:
     text = _BASELINES_PATH.read_text(encoding="utf-8")
     data = yaml.safe_load(text)
     if not isinstance(data, dict):
-        raise ValueError(
-            f"`tests/architectural/_baselines.yaml` is malformed: top level must "
-            f"be a mapping, got {type(data).__name__}."
-        )
+        raise ValueError(f"`tests/architectural/_baselines.yaml` is malformed: top level must be a mapping, got {type(data).__name__}.")
     return data
 
 
@@ -310,10 +303,7 @@ def test_baseline_file_exists_with_required_keys() -> None:
 
     # test_no_dead_modules must carry per-category sub-keys (FR-112).
     nd_section = data["test_no_dead_modules"]
-    assert isinstance(nd_section, dict), (
-        "`_baselines.yaml::test_no_dead_modules` must be a mapping of "
-        "per-category integers (FR-112 refactor)."
-    )
+    assert isinstance(nd_section, dict), "`_baselines.yaml::test_no_dead_modules` must be a mapping of per-category integers (FR-112 refactor)."
     missing_cats = _REQUIRED_NO_DEAD_MODULES_CATEGORIES - set(nd_section.keys())
     assert not missing_cats, (
         f"`_baselines.yaml::test_no_dead_modules` is missing per-category "
@@ -468,9 +458,7 @@ def test_growing_an_allowlist_above_baseline_fails() -> None:
 
     assert not growth_failures, (
         "Ratchet baseline GROWTH detected (FR-111 violation). The following "
-        "allowlists exceeded their pinned baselines:\n"
-        + "\n".join(growth_failures)
-        + "\n\nPer the burn-down policy (Slice F C-004), each growth requires "
+        "allowlists exceeded their pinned baselines:\n" + "\n".join(growth_failures) + "\n\nPer the burn-down policy (Slice F C-004), each growth requires "
         "a one-line YAML diff to _baselines.yaml in the same PR plus a "
         "`# justification:` comment naming why the growth is acceptable."
     )
@@ -510,11 +498,7 @@ def test_growth_fails_shrinkage_warns(
         baseline = _category_baseline(cat_key, nd_cats[cat_key], nd_module)
         current = len(_import_module_attr(nd_module, attr_name))
         if current < baseline:
-            shrinkage_messages.append(
-                f"test_no_dead_modules.{cat_key}: baseline={baseline} "
-                f"current={current}. Edit _baselines.yaml to lock in the "
-                f"shrinkage."
-            )
+            shrinkage_messages.append(f"test_no_dead_modules.{cat_key}: baseline={baseline} current={current}. Edit _baselines.yaml to lock in the shrinkage.")
 
     # Single-integer ratchets.
     single_baselines: list[tuple[str, str, str, int]] = [
@@ -614,10 +598,7 @@ def test_growth_fails_shrinkage_warns(
     for label, module_dotted, attr_name, baseline in single_baselines:
         current = len(_import_module_attr(module_dotted, attr_name))
         if current < baseline:
-            shrinkage_messages.append(
-                f"{label}.{attr_name}: baseline={baseline} current={current}. "
-                f"Edit _baselines.yaml to lock in the shrinkage."
-            )
+            shrinkage_messages.append(f"{label}.{attr_name}: baseline={baseline} current={current}. Edit _baselines.yaml to lock in the shrinkage.")
 
     # Record each shrinkage (one property per shrinkage) so pytest surfaces
     # them in the report output without emitting on the warnings channel.
@@ -686,8 +667,7 @@ def test_readding_inert_dead_symbols_key_is_now_rejected() -> None:
     unregistered = set(synthetic) - _REQUIRED_TOP_LEVEL_KEYS
     assert unregistered == {"test_no_dead_symbols"}
     assert not (unregistered <= _GRANDFATHERED_UNREGISTERED_KEYS), (
-        "Re-adding `test_no_dead_symbols` must now be REJECTED by the "
-        "reverse-containment arm (grandfather set is empty)."
+        "Re-adding `test_no_dead_symbols` must now be REJECTED by the reverse-containment arm (grandfather set is empty)."
     )
 
 
@@ -742,12 +722,8 @@ def test_category_1_derived_baseline_absorbs_shrink(
     nd_module = importlib.import_module(_NO_DEAD_MODULES_MODULE)
     monkeypatch.setattr(nd_module, _CATEGORY_1_ATTR, _synthetic_frozenset(80))
     recorded: list[tuple[str, object]] = []
-    test_growth_fails_shrinkage_warns(
-        lambda name, value: recorded.append((name, value))
-    )
-    assert not any(
-        _CATEGORY_1_YAML_KEY in str(value) for _, value in recorded
-    ), recorded
+    test_growth_fails_shrinkage_warns(lambda name, value: recorded.append((name, value)))
+    assert not any(_CATEGORY_1_YAML_KEY in str(value) for _, value in recorded), recorded
 
 
 def test_non_derived_category_growth_still_reds(
@@ -758,12 +734,8 @@ def test_non_derived_category_growth_still_reds(
     count-independent; the harness keeps its teeth for every other category.
     """
     nd_module = importlib.import_module(_NO_DEAD_MODULES_MODULE)
-    monkeypatch.setattr(
-        nd_module, "_CATEGORY_6_FROZEN_RUNTIME_REEXPORTS", _synthetic_frozenset(500)
-    )
-    with pytest.raises(
-        AssertionError, match="category_6_frozen_runtime_reexports"
-    ):
+    monkeypatch.setattr(nd_module, "_CATEGORY_6_FROZEN_RUNTIME_REEXPORTS", _synthetic_frozenset(500))
+    with pytest.raises(AssertionError, match="category_6_frozen_runtime_reexports"):
         test_growing_an_allowlist_above_baseline_fails()
 
 
@@ -775,17 +747,10 @@ def test_non_derived_category_shrink_still_records(
     shrink tracking for anything but category_1.
     """
     nd_module = importlib.import_module(_NO_DEAD_MODULES_MODULE)
-    monkeypatch.setattr(
-        nd_module, "_CATEGORY_6_FROZEN_RUNTIME_REEXPORTS", frozenset()
-    )
+    monkeypatch.setattr(nd_module, "_CATEGORY_6_FROZEN_RUNTIME_REEXPORTS", frozenset())
     recorded: list[tuple[str, object]] = []
-    test_growth_fails_shrinkage_warns(
-        lambda name, value: recorded.append((name, value))
-    )
-    assert any(
-        "category_6_frozen_runtime_reexports" in str(value)
-        for _, value in recorded
-    ), recorded
+    test_growth_fails_shrinkage_warns(lambda name, value: recorded.append((name, value)))
+    assert any("category_6_frozen_runtime_reexports" in str(value) for _, value in recorded), recorded
 
 
 @pytest.mark.parametrize("package", ["runtime", "mission_runtime"])
@@ -852,10 +817,7 @@ def test_doctrine_pair_allowlist_growth_fails_and_shrink_is_reported(
     baseline = _load_baselines()[module_name][key]
     # Pair arity is the contract, not the number of allowed dependency pairs.
     assert all(isinstance(pair, tuple) and len(pair) == 2 for pair in allowed)
-    extra = {
-        (f"src/runtime/baseline_probe_{i}.py", "charter.offering.new_dependency")
-        for i in range(max(1, baseline - len(allowed) + 1))
-    }
+    extra = {(f"src/runtime/baseline_probe_{i}.py", "charter.offering.new_dependency") for i in range(max(1, baseline - len(allowed) + 1))}
     assert not allowed & extra
     monkeypatch.setattr(module, symbol, allowed | extra)
     with pytest.raises(AssertionError, match=symbol):
@@ -911,9 +873,7 @@ def test_skip_marker_live_count_never_blocks(
     accounting cannot block CI."""
     data = _load_baselines()
     baseline = data["test_example_round_trip"]["skip_marker_blocks"]
-    current = len(
-        _import_module_attr(_ROUND_TRIP_CONTRACT_MODULE, "_SKIP_MARKED_BLOCKS")
-    )
+    current = len(_import_module_attr(_ROUND_TRIP_CONTRACT_MODULE, "_SKIP_MARKED_BLOCKS"))
     _emit_skip_marker_delta(baseline, current, record_property)  # must not raise
 
 

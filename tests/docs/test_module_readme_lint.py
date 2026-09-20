@@ -52,11 +52,7 @@ def _bound_modules_match_covered() -> None:
     from diagram_drift.binding_table import BINDINGS  # noqa: PLC0415
 
     # doctrine.<pkg>...; artifact_kinds is a top-level module (no subpackage README).
-    bound_pkgs = {
-        parts[1]
-        for b in BINDINGS
-        if len(parts := b.model.__module__.split(".")) > 2
-    }
+    bound_pkgs = {parts[1] for b in BINDINGS if len(parts := b.model.__module__.split(".")) > 2}
     covered_pkgs = {rel.split("/")[2] for rel, _ in _COVERED}
     # No bound subpackage is silently dropped: each is covered or explicitly excluded.
     unaccounted = bound_pkgs - covered_pkgs - _RELOCATION_EXCLUDED
@@ -79,9 +75,7 @@ def test_required_canonical_links_present_and_resolve() -> None:
         text = readme.read_text(encoding="utf-8")
         links = _links(text)
         # at least one canonical diagram-doc pointer
-        assert any(
-            any(doc in link for doc in _DIAGRAM_DOCS) for link in links
-        ), f"{rel}: no canonical diagram-doc pointer link"
+        assert any(any(doc in link for doc in _DIAGRAM_DOCS) for link in links), f"{rel}: no canonical diagram-doc pointer link"
         # every relative link resolves in-mission (strip anchor + query)
         for link in links:
             if link.startswith(("http://", "https://", "#", "mailto:")):
@@ -98,9 +92,7 @@ def test_pointer_readmes_are_pointer_only() -> None:
         lines = text.splitlines()
         assert len(lines) <= _POINTER_CAP_LINES, f"{rel}: pointer README too long ({len(lines)} lines)"
         # No schema field-table (a pipe-table duplicating a model would be a drift surface).
-        assert not any(
-            line.lstrip().startswith("|") for line in lines
-        ), f"{rel}: pointer README must not contain a field/pipe-table (C-005)"
+        assert not any(line.lstrip().startswith("|") for line in lines), f"{rel}: pointer README must not contain a field/pipe-table (C-005)"
         # No fenced code block (a pointer bridges, it never restates the schema).
         assert "```" not in text, f"{rel}: pointer README must not contain fenced code (C-005)"
 

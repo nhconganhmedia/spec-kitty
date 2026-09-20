@@ -219,10 +219,7 @@ class TestFullCLIWorkflow:
             "--json",
         )
 
-        assert result.returncode == 0, (
-            f"mission create failed (rc={result.returncode}):\n"
-            f"stdout: {result.stdout}\nstderr: {result.stderr}"
-        )
+        assert result.returncode == 0, f"mission create failed (rc={result.returncode}):\nstdout: {result.stdout}\nstderr: {result.stderr}"
         output = json.loads(result.stdout)
         assert output["result"] == "success"
         assert "documentation-template-smoke" in output["mission_slug"]

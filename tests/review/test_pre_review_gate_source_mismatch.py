@@ -262,8 +262,7 @@ def test_console_warning_names_both_identities_for_source_mismatch() -> None:
         outcome=GateOutcome.SOURCE_MISMATCH,
         scope=_NONEMPTY_SCOPE,
         reason=(
-            "baseline captured under GateCoverageScopeSource/junit_xml; head ran under "
-            "DeclaredCommandScopeSource/text — failure identities are not comparable"
+            "baseline captured under GateCoverageScopeSource/junit_xml; head ran under DeclaredCommandScopeSource/text — failure identities are not comparable"
         ),
     )
 

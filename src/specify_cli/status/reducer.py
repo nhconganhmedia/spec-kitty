@@ -146,11 +146,7 @@ def event_sourced_review_result(feature_dir: Path, wp_id: str) -> ReviewResultLo
 
 def _reduce_retrospective(raw_events: list[dict[str, Any]]) -> RetrospectiveSnapshot:
     """Reduce CLI retrospective lifecycle rows from the raw event diary."""
-    retro_events = [
-        event
-        for event in raw_events
-        if str(event.get("event_name", "")).startswith("retrospective.")
-    ]
+    retro_events = [event for event in raw_events if str(event.get("event_name", "")).startswith("retrospective.")]
     if not retro_events:
         return RetrospectiveSnapshot(status="absent")
 
@@ -159,11 +155,7 @@ def _reduce_retrospective(raw_events: list[dict[str, Any]]) -> RetrospectiveSnap
         key=lambda event: (str(event.get("at", "")), str(event.get("event_id", ""))),
     )
 
-    requested_events = [
-        event
-        for event in retro_events_sorted
-        if event.get("event_name") == "retrospective.requested"
-    ]
+    requested_events = [event for event in retro_events_sorted if event.get("event_name") == "retrospective.requested"]
     mode = None
     if requested_events:
         payload = requested_events[-1].get("payload") or {}
@@ -181,11 +173,7 @@ def _reduce_retrospective(raw_events: list[dict[str, Any]]) -> RetrospectiveSnap
         "retrospective.skipped",
         "retrospective.failed",
     }
-    terminal_events = [
-        event
-        for event in retro_events_sorted
-        if event.get("event_name") in terminal_names
-    ]
+    terminal_events = [event for event in retro_events_sorted if event.get("event_name") in terminal_names]
     if terminal_events:
         latest_terminal = terminal_events[-1]
         terminal_name = str(latest_terminal.get("event_name", ""))
@@ -197,28 +185,14 @@ def _reduce_retrospective(raw_events: list[dict[str, Any]]) -> RetrospectiveSnap
             retro_status = "failed"
         payload = latest_terminal.get("payload") or {}
         record_path_value = payload.get("record_path")
-        record_path = (
-            record_path_value if isinstance(record_path_value, str) else None
-        )
+        record_path = record_path_value if isinstance(record_path_value, str) else None
     else:
         retro_status = "pending"
         record_path = None
 
-    proposals_total = sum(
-        1
-        for event in retro_events
-        if event.get("event_name") == "retrospective.proposal.generated"
-    )
-    proposals_applied = sum(
-        1
-        for event in retro_events
-        if event.get("event_name") == "retrospective.proposal.applied"
-    )
-    proposals_rejected = sum(
-        1
-        for event in retro_events
-        if event.get("event_name") == "retrospective.proposal.rejected"
-    )
+    proposals_total = sum(1 for event in retro_events if event.get("event_name") == "retrospective.proposal.generated")
+    proposals_applied = sum(1 for event in retro_events if event.get("event_name") == "retrospective.proposal.applied")
+    proposals_rejected = sum(1 for event in retro_events if event.get("event_name") == "retrospective.proposal.rejected")
     proposals_pending = max(0, proposals_total - proposals_applied - proposals_rejected)
 
     return RetrospectiveSnapshot(
@@ -252,9 +226,7 @@ def materialize_snapshot(feature_dir: Path) -> StatusSnapshot:
     snapshot = _state_to_snapshot(reduce_shared_state(raw_events))
     _project_cancellation_provenance(stream.transitions, snapshot)
     identity = resolve_mission_identity(feature_dir)
-    snapshot.mission_number = (
-        str(identity.mission_number) if identity.mission_number is not None else None
-    )
+    snapshot.mission_number = str(identity.mission_number) if identity.mission_number is not None else None
     snapshot.mission_type = identity.mission_type
 
     retro_snapshot = _reduce_retrospective(raw_events)

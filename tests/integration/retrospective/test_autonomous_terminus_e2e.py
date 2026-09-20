@@ -49,6 +49,7 @@ from tests.integration.retrospective.conftest import (
 
 pytestmark = [pytest.mark.integration]
 
+
 def _make_proposal(mission_id: str, event_id: str) -> Proposal:
     """Build a minimal add_glossary_term proposal."""
     import ulid as _ulid
@@ -138,16 +139,12 @@ def test_autonomous_terminus_emits_correct_event_sequence(
     # --- actor=runtime on retrospective.requested ---
     events = read_events(feature_dir)
     requested = next(e for e in events if e["event_name"] == "retrospective.requested")
-    assert requested["actor"]["kind"] == "runtime", (
-        f"Expected actor.kind='runtime' on requested event, got: {requested['actor']}"
-    )
+    assert requested["actor"]["kind"] == "runtime", f"Expected actor.kind='runtime' on requested event, got: {requested['actor']}"
     assert requested["actor"]["id"] == "next"
 
     # --- retrospective.yaml at canonical path ---
     canonical = feature_dir / "retrospective.yaml"
-    assert canonical.exists(), (
-        f"retrospective.yaml not found at canonical path: {canonical}"
-    )
+    assert canonical.exists(), f"retrospective.yaml not found at canonical path: {canonical}"
 
     loaded = read_record(canonical)
     assert loaded.status == "completed"

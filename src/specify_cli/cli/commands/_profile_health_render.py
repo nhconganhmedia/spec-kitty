@@ -101,9 +101,7 @@ def _render_doctrine_pack(pack_entry: dict[str, object], pack_index: int) -> Non
     name = pack_entry.get("name") or f"pack#{pack_index}"
     local_path = pack_entry.get("local_path")
     if not pack_entry.get("snapshot_present"):
-        console.print(
-            f"[yellow]Pack:[/yellow] {name}  (snapshot missing at {local_path})"
-        )
+        console.print(f"[yellow]Pack:[/yellow] {name}  (snapshot missing at {local_path})")
         return
 
     version = pack_entry.get("pack_version", "unknown")
@@ -127,9 +125,7 @@ def _render_doctrine_pack(pack_entry: dict[str, object], pack_index: int) -> Non
         healthy = bool(pack_health.get("healthy", False))
     color = "green" if healthy else "yellow"
     status_suffix = "" if healthy else "  [yellow](degraded)[/yellow]"
-    console.print(
-        f"[{color}]Pack:[/{color}] {name}  ({', '.join(summary_parts)}){status_suffix}"
-    )
+    console.print(f"[{color}]Pack:[/{color}] {name}  ({', '.join(summary_parts)}){status_suffix}")
     _render_pack_invalid_profiles(pack_health)
     _render_org_charter_line(pack_entry.get("org_charter"))
 
@@ -162,16 +158,12 @@ def _emit_doctrine_human(
     ``pack_entries`` by :func:`_attach_pack_health`, and the org-DRG section is
     re-rendered from the same data path.  No parallel assembly (R-011-C).
     """
-    console.print(
-        f"\n[bold]Org Doctrine[/bold] — {len(pack_entries)} pack(s) configured\n"
-    )
+    console.print(f"\n[bold]Org Doctrine[/bold] — {len(pack_entries)} pack(s) configured\n")
     for idx, entry in enumerate(pack_entries):
         _render_doctrine_pack(entry, idx)
 
     if collision_summaries:
-        console.print(
-            f"\n[bold]Collisions[/bold] — {len(collision_summaries)} override(s) detected\n"
-        )
+        console.print(f"\n[bold]Collisions[/bold] — {len(collision_summaries)} override(s) detected\n")
         for collision in collision_summaries:
             console.print(
                 f"  • [yellow]{collision['kind']}[/yellow] "
@@ -180,9 +172,7 @@ def _emit_doctrine_human(
                 f"({collision['replaced']} replaced, {collision['inherited']} inherited)"
             )
     else:
-        console.print(
-            "\n[dim]Collisions:[/dim] none — every artifact resolves from a single layer."
-        )
+        console.print("\n[dim]Collisions:[/dim] none — every artifact resolves from a single layer.")
 
     # WP07 T037 (FR-007): surface org-layer DRG state in human-readable output.
     _render_org_layer_section(repo_root, console)
@@ -246,9 +236,7 @@ def _emit_doctrine_no_packs(
         )
         return
     console.print("[yellow]No org doctrine configured.[/yellow]")
-    console.print(
-        "Add a 'charter.offering.org' block to .kittify/config.yaml to register a pack."
-    )
+    console.print("Add a 'charter.offering.org' block to .kittify/config.yaml to register a pack.")
     console.print()
     for line in _render_selection_block_lines(selection_block):
         console.print(line)
@@ -270,17 +258,11 @@ def _render_dangling_org_endpoints(console: Console, dangling: list[str]) -> Non
     if not dangling:
         console.print("  dangling endpoints: none")
         return
-    console.print(
-        f"  [red]dangling endpoints:[/red] {len(dangling)} org edge endpoint(s) "
-        "name no node in any merged layer"
-    )
+    console.print(f"  [red]dangling endpoints:[/red] {len(dangling)} org edge endpoint(s) name no node in any merged layer")
     for message in dangling[:_ORG_FINDINGS_SHOWN]:
         console.print(f"    [red]•[/red] {message}")
     if len(dangling) > _ORG_FINDINGS_SHOWN:
-        console.print(
-            f"    … and {len(dangling) - _ORG_FINDINGS_SHOWN} more "
-            "(run spec-kitty doctor doctrine --json for the full list)"
-        )
+        console.print(f"    … and {len(dangling) - _ORG_FINDINGS_SHOWN} more (run spec-kitty doctor doctrine --json for the full list)")
 
 
 def _render_org_layer_section(repo_root: Path, console: Console) -> None:
@@ -323,11 +305,7 @@ def _render_org_layer_section(repo_root: Path, console: Console) -> None:
     for frag in fragments:
         node_count = len(frag.nodes)
         edge_count = len(frag.edges)
-        console.print(
-            f"  - [green]{frag.pack_name}[/green] "
-            f"[{frag.source_kind}: {frag.source_ref}] "
-            f"✓ loaded ({node_count} nodes, {edge_count} edges)"
-        )
+        console.print(f"  - [green]{frag.pack_name}[/green] [{frag.source_kind}: {frag.source_ref}] ✓ loaded ({node_count} nodes, {edge_count} edges)")
 
     # Merge with the built-in layer to surface collision warnings AND graph
     # completeness. Both findings lists are truncated per the WP07 risk table
@@ -337,9 +315,7 @@ def _render_org_layer_section(repo_root: Path, console: Console) -> None:
     merged = None
     try:
         built_in = load_built_in_graph()
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=fragments, project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=fragments, project=None)
         console.print("  collisions: none")
     except OrgDRGConflictError as exc:
         _render_org_conflicts(console, exc)
@@ -354,10 +330,7 @@ def _render_org_layer_section(repo_root: Path, console: Console) -> None:
         # only one of them is true here. Printing ``dangling endpoints: none``
         # would assert a result the command never computed — the merge refused
         # to assemble a graph, so there was nothing to walk.
-        console.print(
-            "  [yellow]dangling endpoints: not checked[/yellow] "
-            "(no merged graph — see the merge findings above)"
-        )
+        console.print("  [yellow]dangling endpoints: not checked[/yellow] (no merged graph — see the merge findings above)")
         return
 
     try:
@@ -389,10 +362,7 @@ def _render_org_conflicts(console: Console, exc: OrgDRGConflictError) -> None:
     advisory = exc.advisory_conflicts
 
     if fatal:
-        console.print(
-            f"  [red]org-DRG REFUSED:[/red] {len(fatal)} fatal conflict(s) — "
-            "the merged graph could not be assembled"
-        )
+        console.print(f"  [red]org-DRG REFUSED:[/red] {len(fatal)} fatal conflict(s) — the merged graph could not be assembled")
         _render_conflict_bullets(console, fatal, style="red")
     if advisory:
         console.print(f"  collisions: {len(advisory)} built-in invariant override(s)")
@@ -401,21 +371,12 @@ def _render_org_conflicts(console: Console, exc: OrgDRGConflictError) -> None:
         console.print("  collisions: none")
 
 
-def _render_conflict_bullets(
-    console: Console, conflicts: list[OrgDRGConflict], *, style: str
-) -> None:
+def _render_conflict_bullets(console: Console, conflicts: list[OrgDRGConflict], *, style: str) -> None:
     """Print up to :data:`_ORG_FINDINGS_SHOWN` conflicts, then a truncation note."""
     for conflict in conflicts[:_ORG_FINDINGS_SHOWN]:
-        console.print(
-            f"    [{style}]•[/{style}] {conflict.kind} "
-            f"target={conflict.target_id} "
-            f"resolution={conflict.resolution_applied}"
-        )
+        console.print(f"    [{style}]•[/{style}] {conflict.kind} target={conflict.target_id} resolution={conflict.resolution_applied}")
     if len(conflicts) > _ORG_FINDINGS_SHOWN:
-        console.print(
-            f"    … and {len(conflicts) - _ORG_FINDINGS_SHOWN} more "
-            "(run charter lint for details)"
-        )
+        console.print(f"    … and {len(conflicts) - _ORG_FINDINGS_SHOWN} more (run charter lint for details)")
 
 
 def _render_selection_block_lines(

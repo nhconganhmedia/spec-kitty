@@ -19,6 +19,7 @@ from specify_cli.git.sparse_checkout import _reset_session_warning_state
 
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
+
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         cmd,
@@ -48,9 +49,7 @@ def _seed_mission(repo: Path, slug: str) -> None:
     (feature_dir / "lanes.json").write_text('{"target_branch":"main","lanes":[]}\n')
     # Minimal spec and WP file so the command has something to reference.
     (feature_dir / "spec.md").write_text("# test\n")
-    (feature_dir / "tasks" / "WP01-test.md").write_text(
-        "---\nwork_package_id: WP01\n---\n# WP01\n"
-    )
+    (feature_dir / "tasks" / "WP01-test.md").write_text("---\nwork_package_id: WP01\n---\n# WP01\n")
 
 
 def _invoke_implement(repo: Path, args: list[str]) -> object:
@@ -86,29 +85,20 @@ class TestImplementPreflightBlocks:
         slug = "test-mission"
         _seed_mission(repo, slug)
 
-        result = _invoke_implement(
-            repo, ["WP01", "--mission", slug, "--agent", "claude"]
-        )
+        result = _invoke_implement(repo, ["WP01", "--mission", slug, "--agent", "claude"])
 
         exit_code = getattr(result, "exit_code", None)
         if exit_code is None:
             exit_code = getattr(result, "code", None)
-        assert exit_code is not None and exit_code != 0, (
-            f"implement must exit non-zero under sparse-checkout; got {exit_code}"
-        )
+        assert exit_code is not None and exit_code != 0, f"implement must exit non-zero under sparse-checkout; got {exit_code}"
 
         output = getattr(result, "output", "") or getattr(result, "stdout", "") or ""
-        assert "sparse-checkout" in output.lower(), (
-            f"Expected sparse-checkout block message; got output:\n{output}"
-        )
+        assert "sparse-checkout" in output.lower(), f"Expected sparse-checkout block message; got output:\n{output}"
 
         worktrees_dir = repo / ".worktrees"
         if worktrees_dir.exists():
             children = list(worktrees_dir.iterdir())
-            assert children == [], (
-                "FR-007: no worktree may be created when the preflight aborts; "
-                f"found {children}"
-            )
+            assert children == [], f"FR-007: no worktree may be created when the preflight aborts; found {children}"
 
     def test_force_flag_does_not_bypass_implement_preflight(self, tmp_path: Path) -> None:
         """FR-009 / T038: ``--force`` does not open a bypass path on implement either.
@@ -123,21 +113,14 @@ class TestImplementPreflightBlocks:
         slug = "test-mission"
         _seed_mission(repo, slug)
 
-        result = _invoke_implement(
-            repo, ["WP01", "--mission", slug, "--agent", "claude", "--force"]
-        )
+        result = _invoke_implement(repo, ["WP01", "--mission", slug, "--agent", "claude", "--force"])
 
         exit_code = getattr(result, "exit_code", None)
         if exit_code is None:
             exit_code = getattr(result, "code", None)
-        assert exit_code is not None and exit_code != 0, (
-            f"--force must not open a bypass; got exit={exit_code}"
-        )
+        assert exit_code is not None and exit_code != 0, f"--force must not open a bypass; got exit={exit_code}"
 
         worktrees_dir = repo / ".worktrees"
         if worktrees_dir.exists():
             children = list(worktrees_dir.iterdir())
-            assert children == [], (
-                "FR-009 / T038: no worktree may be created when --force is passed "
-                f"under sparse-checkout; found {children}"
-            )
+            assert children == [], f"FR-009 / T038: no worktree may be created when --force is passed under sparse-checkout; found {children}"

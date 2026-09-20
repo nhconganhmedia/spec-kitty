@@ -53,9 +53,7 @@ class TestShippedContractsExistAndValidate:
         assert contract is not None
         for step in contract.steps:
             if step.delegates_to is not None:
-                assert step.delegates_to.kind in ArtifactKind, (
-                    f"Step {step.id} in {action} delegates to invalid kind: {step.delegates_to.kind}"
-                )
+                assert step.delegates_to.kind in ArtifactKind, f"Step {step.id} in {action} delegates to invalid kind: {step.delegates_to.kind}"
                 assert len(step.delegates_to.candidates) > 0
 
     def test_all_builtin_bootstrap_inputs_are_preserved(self, repo: MissionStepContractRepository) -> None:
@@ -123,19 +121,13 @@ class TestImplementContractStructure:
         assert workspace.delegates_to.kind == ArtifactKind.PARADIGM
         assert "execution-lanes" in workspace.delegates_to.candidates
 
-    def test_workspace_paradigm_candidates_exist_as_shipped_artifacts(
-        self, contract: MissionStepContract
-    ) -> None:
+    def test_workspace_paradigm_candidates_exist_as_shipped_artifacts(self, contract: MissionStepContract) -> None:
         workspace = next((s for s in contract.steps if s.id == "workspace"), None)
         assert workspace is not None
         assert workspace.delegates_to is not None
 
         paradigms = DoctrineService().paradigms
-        missing = [
-            candidate
-            for candidate in workspace.delegates_to.candidates
-            if paradigms.get(candidate) is None
-        ]
+        missing = [candidate for candidate in workspace.delegates_to.candidates if paradigms.get(candidate) is None]
         assert missing == []
 
     def test_has_quality_gate_step(self, contract: MissionStepContract) -> None:

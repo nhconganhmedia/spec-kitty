@@ -204,9 +204,7 @@ def test_corrupt_jsonl_does_not_crash_engine(tmp_path: Path) -> None:
     _write_meta(mission_dir, _ULID_A)
 
     # Write a valid status.json (minimal) so the drift check would normally run
-    (mission_dir / "status.json").write_text(
-        json.dumps({"wps": {}}) + "\n", encoding="utf-8"
-    )
+    (mission_dir / "status.json").write_text(json.dumps({"wps": {}}) + "\n", encoding="utf-8")
 
     # Write a corrupt status.events.jsonl
     events_path = mission_dir / "status.events.jsonl"
@@ -214,9 +212,7 @@ def test_corrupt_jsonl_does_not_crash_engine(tmp_path: Path) -> None:
 
     report = run_audit(_options(tmp_path))
 
-    assert frozenset(m.mission_slug for m in report.missions) == frozenset(
-        {"bad-events-mission"}
-    )
+    assert frozenset(m.mission_slug for m in report.missions) == frozenset({"bad-events-mission"})
     result = report.missions[0]
     codes = {f.code for f in result.findings}
 
@@ -234,23 +230,13 @@ def test_non_object_meta_and_status_json_do_not_crash_engine(tmp_path: Path) -> 
 
     report = run_audit(_options(tmp_path))
 
-    assert frozenset(m.mission_slug for m in report.missions) == frozenset(
-        {"non-object-json-mission"}
-    )
+    assert frozenset(m.mission_slug for m in report.missions) == frozenset({"non-object-json-mission"})
     result = report.missions[0]
-    findings_by_artifact = {
-        (finding.artifact_path, finding.code): finding for finding in result.findings
-    }
+    findings_by_artifact = {(finding.artifact_path, finding.code): finding for finding in result.findings}
     assert ("meta.json", "CORRUPT_JSON") in findings_by_artifact
     assert ("status.json", "CORRUPT_JSON") in findings_by_artifact
-    assert (
-        findings_by_artifact[("meta.json", "CORRUPT_JSON")].detail
-        == "top-level JSON value must be an object"
-    )
-    assert (
-        findings_by_artifact[("status.json", "CORRUPT_JSON")].detail
-        == "top-level JSON value must be an object"
-    )
+    assert findings_by_artifact[("meta.json", "CORRUPT_JSON")].detail == "top-level JSON value must be an object"
+    assert findings_by_artifact[("status.json", "CORRUPT_JSON")].detail == "top-level JSON value must be an object"
 
 
 # ---------------------------------------------------------------------------
@@ -333,9 +319,7 @@ def test_scan_204_missions(tmp_path: Path) -> None:
 
     report = run_audit(opts)
 
-    assert len(report.missions) == 204, (
-        f"Expected 204 missions, got {len(report.missions)}"
-    )
+    assert len(report.missions) == 204, f"Expected 204 missions, got {len(report.missions)}"
 
 
 @pytest.mark.performance
@@ -412,10 +396,7 @@ def test_unstattable_mission_candidate_does_not_crash_the_audit(tmp_path: Path) 
         os.chmod(vault, 0o700)
 
     slugs = {m.mission_slug for m in report.missions}
-    assert "mission-readable" in slugs, (
-        "the unstattable candidate must not have aborted the scan of the rest "
-        f"of the corpus: {slugs!r}"
-    )
+    assert "mission-readable" in slugs, f"the unstattable candidate must not have aborted the scan of the rest of the corpus: {slugs!r}"
     assert "m-link" not in slugs, "the unstattable candidate itself cannot be audited"
 
 
@@ -424,9 +405,7 @@ def test_unstattable_mission_candidate_does_not_crash_the_audit(tmp_path: Path) 
 # ---------------------------------------------------------------------------
 
 
-def _make_primary_and_lane(
-    tmp_path: Path, slug: str, mission_id: str, *, primary_status: str, lane_status: str
-) -> tuple[Path, Path]:
+def _make_primary_and_lane(tmp_path: Path, slug: str, mission_id: str, *, primary_status: str, lane_status: str) -> tuple[Path, Path]:
     """Fabricate a primary checkout and a linked lane worktree pointing at it.
 
     Mirrors ``tests/specify_cli/migration/test_mission_state_identity.py``'s
@@ -456,40 +435,24 @@ def test_invoking_cwd_disagreement_adds_checkout_disagreement_finding(tmp_path: 
     state has diverged (#251).
     """
     slug = "checkout-disagreement-mission"
-    primary, lane = _make_primary_and_lane(
-        tmp_path, slug, _ULID_D, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, lane = _make_primary_and_lane(tmp_path, slug, _ULID_D, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
-    report = run_audit(
-        AuditOptions(repo_root=primary, scan_root=primary / "kitty-specs", invoking_cwd=lane)
-    )
+    report = run_audit(AuditOptions(repo_root=primary, scan_root=primary / "kitty-specs", invoking_cwd=lane))
 
     result = next(m for m in report.missions if m.mission_slug == slug)
     assert "CHECKOUT_DISAGREEMENT" in {f.code for f in result.findings}
     finding = next(f for f in result.findings if f.code == "CHECKOUT_DISAGREEMENT")
-    invoking_sha256 = hash_content(
-        (lane / "kitty-specs" / slug / "status.json").read_text(encoding="utf-8")
-    ).removeprefix("sha256:")
-    primary_sha256 = hash_content(
-        (primary / "kitty-specs" / slug / "status.json").read_text(encoding="utf-8")
-    ).removeprefix("sha256:")
-    assert finding.detail == (
-        "status.json disagrees with primary "
-        f"(invoking sha256 {invoking_sha256}, "
-        f"primary sha256 {primary_sha256})"
-    )
+    invoking_sha256 = hash_content((lane / "kitty-specs" / slug / "status.json").read_text(encoding="utf-8")).removeprefix("sha256:")
+    primary_sha256 = hash_content((primary / "kitty-specs" / slug / "status.json").read_text(encoding="utf-8")).removeprefix("sha256:")
+    assert finding.detail == (f"status.json disagrees with primary (invoking sha256 {invoking_sha256}, primary sha256 {primary_sha256})")
 
 
 def test_invoking_cwd_owner_reports_no_disagreement(tmp_path: Path) -> None:
     """An owner invocation (``invoking_cwd`` IS the primary) never false-reds."""
     slug = "checkout-agreement-mission"
-    primary, _lane = _make_primary_and_lane(
-        tmp_path, slug, _ULID_E, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, _lane = _make_primary_and_lane(tmp_path, slug, _ULID_E, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
-    report = run_audit(
-        AuditOptions(repo_root=primary, scan_root=primary / "kitty-specs", invoking_cwd=primary)
-    )
+    report = run_audit(AuditOptions(repo_root=primary, scan_root=primary / "kitty-specs", invoking_cwd=primary))
 
     result = next(m for m in report.missions if m.mission_slug == slug)
     assert "CHECKOUT_DISAGREEMENT" not in {f.code for f in result.findings}
@@ -498,9 +461,7 @@ def test_invoking_cwd_owner_reports_no_disagreement(tmp_path: Path) -> None:
 def test_invoking_cwd_omitted_skips_disagreement_check(tmp_path: Path) -> None:
     """Omitting ``invoking_cwd`` (the default) never adds the finding — existing callers unaffected."""
     slug = "checkout-disagreement-mission-no-invoking-cwd"
-    primary, _lane = _make_primary_and_lane(
-        tmp_path, slug, _ULID_A, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, _lane = _make_primary_and_lane(tmp_path, slug, _ULID_A, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
     report = run_audit(AuditOptions(repo_root=primary, scan_root=primary / "kitty-specs"))
 
@@ -520,9 +481,7 @@ def test_invoking_cwd_disagreement_survives_non_slug_mission_filter(tmp_path: Pa
     """
     slug = "checkout-disagreement-by-id"
     mission_id = _ULID_B
-    primary, lane = _make_primary_and_lane(
-        tmp_path, slug, mission_id, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, lane = _make_primary_and_lane(tmp_path, slug, mission_id, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
     report = run_audit(
         AuditOptions(

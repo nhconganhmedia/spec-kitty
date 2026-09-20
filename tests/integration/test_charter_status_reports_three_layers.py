@@ -24,14 +24,7 @@ from typer.testing import CliRunner
 pytestmark = [pytest.mark.integration]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[2]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 runner = CliRunner()
 
@@ -43,8 +36,10 @@ runner = CliRunner()
 
 def _make_sync_result_stub(repo_root: Path) -> object:
     """Return a minimal sync-result stub with canonical_root set."""
+
     class _Stub:
         canonical_root = repo_root
+
     return _Stub()
 
 
@@ -120,34 +115,19 @@ def test_charter_status_reports_built_in_org_and_project(
     ):
         result = runner.invoke(charter_app, ["status", "--json"])
 
-    assert result.exit_code in (0, 1), (
-        f"charter status exited with unexpected code {result.exit_code}: "
-        f"{result.stdout}"
-    )
+    assert result.exit_code in (0, 1), f"charter status exited with unexpected code {result.exit_code}: {result.stdout}"
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"charter status --json did not produce valid JSON: {exc}\n"
-            f"stdout: {result.stdout!r}"
-        )
+        pytest.fail(f"charter status --json did not produce valid JSON: {exc}\nstdout: {result.stdout!r}")
 
-    assert "org_layer" in payload, (
-        f"charter status JSON must include 'org_layer' key when org packs are "
-        f"configured. Got keys: {list(payload.keys())}"
-    )
+    assert "org_layer" in payload, f"charter status JSON must include 'org_layer' key when org packs are configured. Got keys: {list(payload.keys())}"
     org_layer = payload["org_layer"]
-    assert isinstance(org_layer, dict), (
-        f"org_layer must be a dict, got {type(org_layer)}"
-    )
+    assert isinstance(org_layer, dict), f"org_layer must be a dict, got {type(org_layer)}"
     packs = org_layer.get("packs", [])
-    assert len(packs) == 1, (
-        f"expected 1 configured org pack, got {len(packs)}: {packs}"
-    )
+    assert len(packs) == 1, f"expected 1 configured org pack, got {len(packs)}: {packs}"
     pack = packs[0]
-    assert pack.get("name") == "example-org", (
-        f"pack name mismatch: {pack}"
-    )
+    assert pack.get("name") == "example-org", f"pack name mismatch: {pack}"
 
 
 def test_charter_status_reports_only_two_layers_without_org_pack(
@@ -177,24 +157,15 @@ def test_charter_status_reports_only_two_layers_without_org_pack(
     ):
         result = runner.invoke(charter_app, ["status", "--json"])
 
-    assert result.exit_code in (0, 1), (
-        f"charter status exited with unexpected code {result.exit_code}: "
-        f"{result.stdout}"
-    )
+    assert result.exit_code in (0, 1), f"charter status exited with unexpected code {result.exit_code}: {result.stdout}"
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"charter status --json did not produce valid JSON: {exc}\n"
-            f"stdout: {result.stdout!r}"
-        )
+        pytest.fail(f"charter status --json did not produce valid JSON: {exc}\nstdout: {result.stdout!r}")
 
     # When no org packs are configured, either the key is absent entirely OR
     # the packs list is empty — no non-empty fake [org] section.
     if "org_layer" in payload:
         org_layer = payload["org_layer"]
         packs = org_layer.get("packs", [])
-        assert packs == [], (
-            f"NFR-001: when no org packs are configured, org_layer.packs must be "
-            f"empty, got: {packs}"
-        )
+        assert packs == [], f"NFR-001: when no org packs are configured, org_layer.packs must be empty, got: {packs}"

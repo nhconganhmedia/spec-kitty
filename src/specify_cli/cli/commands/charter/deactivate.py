@@ -78,7 +78,6 @@ def _warn_mission_default_binding(profile_id: str) -> None:
         console.print(f"[yellow]Warning[/yellow]: {warning}")
 
 
-
 def _source_urn(
     kind: str,
     artifact_id: str,
@@ -197,10 +196,7 @@ def _render_cascade_deactivation(
                 layer_roots=layer_roots,
             )
         except (ValueError, NoActivationRestrictionsError) as exc:
-            console.print(
-                f"[yellow]Warning[/yellow]: could not cascade-deactivate "
-                f"{kind_token}/{config_id}: {exc}"
-            )
+            console.print(f"[yellow]Warning[/yellow]: could not cascade-deactivate {kind_token}/{config_id}: {exc}")
             continue
         console.print(f"[cyan]Cascade-deactivated[/cyan]: {kind_token}/{config_id}")
         # #4115: a cascade can remove agent profiles bound by built-in
@@ -209,10 +205,7 @@ def _render_cascade_deactivation(
             _warn_mission_default_binding(config_id)
 
     for skip in plan.skipped_shared:
-        console.print(
-            f"[yellow]Skipped (shared artifact)[/yellow]: {skip.urn} "
-            f"(still referenced by {skip.referencing_active_urn})"
-        )
+        console.print(f"[yellow]Skipped (shared artifact)[/yellow]: {skip.urn} (still referenced by {skip.referencing_active_urn})")
 
     # FR-007 (issue #3705): the deactivation-side half of C-002's
     # cross-command symmetry (ADR 2026-08-20-1 Symmetry section) -- render
@@ -231,9 +224,7 @@ def _render_cascade_deactivation(
     for kind_value in sorted(plan.not_cascaded_kind_filtered):
         kind_token = ArtifactKind(kind_value).operator_token
         for filtered_id in plan.not_cascaded_kind_filtered[kind_value]:
-            config_id = drg_urn_to_config_id(
-                f"{kind_value}:{filtered_id}", doctrine_root, layer_roots, org_roots
-            )
+            config_id = drg_urn_to_config_id(f"{kind_value}:{filtered_id}", doctrine_root, layer_roots, org_roots)
             render_kind_filtered_line(kind_token, config_id)
 
 
@@ -322,9 +313,7 @@ def deactivate_cmd(
     # default profile (direct-deactivation half; the cascade path warns per
     # artifact inside ``_render_cascade_deactivation``).
     if result.deactivated and kind == ArtifactKind.AGENT_PROFILE.operator_token:
-        _warn_mission_default_binding(
-            artifact_id.removeprefix(f"{ArtifactKind.AGENT_PROFILE.value}:")
-        )
+        _warn_mission_default_binding(artifact_id.removeprefix(f"{ArtifactKind.AGENT_PROFILE.value}:"))
 
     # FR-015/FR-016: shared-reference-safe cascade deactivation via the WP11 engine.
     # Only runs when a scope was supplied and the direct deactivation actually
@@ -332,9 +321,7 @@ def deactivate_cmd(
     if scope is not None and result.deactivated:
         target_urn = _source_urn(kind, artifact_id, layer_roots, resolve_org_root_chain(repo_root))
         if target_urn is not None:
-            _render_cascade_deactivation(
-                manager, ctx_project, target_urn, scope, repo_root, layer_roots
-            )
+            _render_cascade_deactivation(manager, ctx_project, target_urn, scope, repo_root, layer_roots)
 
     # FR-002/FR-003/FR-007: default catalog recompile keeps deactivation
     # coherent-by-construction too (symmetric with activate_cmd; issue #4785

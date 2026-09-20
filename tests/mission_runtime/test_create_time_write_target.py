@@ -17,9 +17,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 def test_create_time_target_preserves_explicit_short_branch() -> None:
     """The bootstrap seam returns the exact explicit planning branch."""
-    assert resolve_create_time_write_target("owned-mission") == CommitTarget(
-        ref="owned-mission"
-    )
+    assert resolve_create_time_write_target("owned-mission") == CommitTarget(ref="owned-mission")
 
 
 @pytest.mark.parametrize("branch", ["", "   ", "refs/heads/owned-mission"])

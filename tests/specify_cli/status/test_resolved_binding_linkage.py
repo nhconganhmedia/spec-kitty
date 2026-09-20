@@ -158,12 +158,15 @@ def test_resolve_dispatch_binding_is_resolver_sourced_and_never_reads_frontmatte
     )
 
     # No dispatch context at all → explicit absence (no frontmatter fallback).
-    assert _resolve_dispatch_binding(
-        model=None,
-        profile=None,
-        invocation_id=None,
-        repo_root=tmp_path,
-    ) == ResolvedBinding()
+    assert (
+        _resolve_dispatch_binding(
+            model=None,
+            profile=None,
+            invocation_id=None,
+            repo_root=tmp_path,
+        )
+        == ResolvedBinding()
+    )
 
 
 def test_resolve_dispatch_binding_rejects_unresolved_profile_and_model(
@@ -588,7 +591,8 @@ class TestResolveDispatchBindingLocalProfile:
         assert binding.agent_profile_version  # resolved, not fabricated
 
     def test_unresolved_profile_error_names_the_frontmatter_fallback(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """The failure surfaces the working alternative, not a bare ``[]``.
 

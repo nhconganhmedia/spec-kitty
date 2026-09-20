@@ -222,13 +222,9 @@ def describe_leaks(project_path: Path) -> list[str]:
     would actually fix, and vice versa. Never mutates anything.
     """
     charter_path = _charter_yaml_path(project_path)
-    descriptions = [
-        f"charter.yaml catalog[{ref.get('id', '?')}].source_path={ref.get('source_path')!r}"
-        for ref in _healable_catalog_refs(charter_path)
-    ]
+    descriptions = [f"charter.yaml catalog[{ref.get('id', '?')}].source_path={ref.get('source_path')!r}" for ref in _healable_catalog_refs(charter_path)]
     descriptions.extend(
-        f"agent_profiles_manifest.json[{entry.profile_urn}/{entry.tool_key}]"
-        f".source_path={entry.source_path!r}"
+        f"agent_profiles_manifest.json[{entry.profile_urn}/{entry.tool_key}].source_path={entry.source_path!r}"
         for entry in _healable_manifest_entries(project_path)
     )
     return descriptions
@@ -254,18 +250,14 @@ class HealProvenancePathsMigration(BaseMigration):
     runs_on_worktrees = False
 
     def detect(self, project_path: Path) -> bool:
-        return bool(
-            _healable_catalog_refs(_charter_yaml_path(project_path))
-            or _healable_manifest_entries(project_path)
-        )
+        return bool(_healable_catalog_refs(_charter_yaml_path(project_path)) or _healable_manifest_entries(project_path))
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:
         if self.detect(project_path):
             return True, ""
         return (
             False,
-            "no absolute built-in-pack source_path found in charter.yaml's "
-            "catalog or agent_profiles_manifest.json",
+            "no absolute built-in-pack source_path found in charter.yaml's catalog or agent_profiles_manifest.json",
         )
 
     def apply(self, project_path: Path, dry_run: bool = False) -> MigrationResult:

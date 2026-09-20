@@ -32,13 +32,15 @@ pytestmark = [pytest.mark.fast]
 # Runtime + RemediationCommand factories
 # ---------------------------------------------------------------------------
 
-_SAFE_METHODS = frozenset({
-    InstallMethod.UV_TOOL,
-    InstallMethod.PIPX,
-    InstallMethod.BREW,
-    InstallMethod.PIP_USER,
-    InstallMethod.PIP_SYSTEM,
-})
+_SAFE_METHODS = frozenset(
+    {
+        InstallMethod.UV_TOOL,
+        InstallMethod.PIPX,
+        InstallMethod.BREW,
+        InstallMethod.PIP_USER,
+        InstallMethod.PIP_SYSTEM,
+    }
+)
 
 
 def _make_runtime(
@@ -111,6 +113,7 @@ def _completed(returncode: int = 0) -> subprocess.CompletedProcess[bytes]:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _clear_events() -> None:
     _ux_mod._emitted_install_events.clear()
 
@@ -127,9 +130,7 @@ def _emitted() -> list[object]:
 class TestUvToolSuccess:
     """T027-1: UV_TOOL success → HIGH/MEDIUM event + SUCCESS record."""
 
-    def test_uv_tool_success_emits_verified_event_high_confidence(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_success_emits_verified_event_high_confidence(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """EXIT 0 + entrypoint found → HIGH confidence event emitted."""
         _clear_events()
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
@@ -168,18 +169,13 @@ class TestUvToolSuccess:
         store = UpgradeAttemptStore(tmp_path / "history.db")
         assert store.last_success_timestamp(InstallMethod.UV_TOOL) is not None
 
-    def test_uv_tool_success_medium_confidence_when_no_entrypoint(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_success_medium_confidence_when_no_entrypoint(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """EXIT 0 + no entrypoint in receipt → MEDIUM confidence."""
         _clear_events()
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
 
         # Receipt exists but NO entrypoint → bin_dir is None → MEDIUM
-        receipt_toml = (
-            "[tool]\n"
-            'requirements = [{ name = "spec-kitty-cli" }]\n'
-        )
+        receipt_toml = '[tool]\nrequirements = [{ name = "spec-kitty-cli" }]\n'
         fake_exe_dir = tmp_path / "tool-env" / "bin"
         fake_exe_dir.mkdir(parents=True)
         (tmp_path / "tool-env" / "uv-receipt.toml").write_text(receipt_toml)
@@ -210,9 +206,7 @@ class TestUvToolSuccess:
 class TestUvToolFailure:
     """T027-2: UV_TOOL failure → LOW confidence event + FAILURE record."""
 
-    def test_uv_tool_failure_emits_low_confidence_event(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_failure_emits_low_confidence_event(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_events()
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
 
@@ -245,9 +239,7 @@ class TestUvToolFailure:
 class TestPipxSuccess:
     """T027-3: PIPX success → NO UvToolInstallationVerified + SUCCESS record."""
 
-    def test_pipx_success_no_verified_event(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pipx_success_no_verified_event(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_events()
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
 
@@ -274,9 +266,7 @@ class TestPipxSuccess:
 class TestStoreUnreachable:
     """T027-4: Store path is read-only → runner returns normally (best-effort)."""
 
-    def test_runner_returns_normally_when_store_unreachable(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_runner_returns_normally_when_store_unreachable(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # Point SPEC_KITTY_HISTORY_DB_PATH at a file inside a non-writable dir.
         readonly_dir = tmp_path / "readonly"
         readonly_dir.mkdir()
@@ -304,9 +294,7 @@ class TestStoreUnreachable:
 class TestEventEmissionFailure:
     """T027-5: _emit_install_verified_event raises → runner returns normally."""
 
-    def test_runner_continues_when_event_emission_fails(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_runner_continues_when_event_emission_fails(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
 
         with (
@@ -328,9 +316,7 @@ class TestEventEmissionFailure:
 class TestSetBDeletionParity:
     """T027-6: argv/env from RemediationCommand match old argv_by_method output."""
 
-    def test_uv_tool_default_dir_no_python_basic_argv(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_default_dir_no_python_basic_argv(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """UV_TOOL with default tool_dir and no python → simple argv, no env override."""
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         calls: list[dict[str, Any]] = []
@@ -355,9 +341,7 @@ class TestSetBDeletionParity:
         env = calls[0]["env"]
         assert env is None or "UV_TOOL_DIR" not in env
 
-    def test_uv_tool_custom_dir_and_python_argv_env(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_custom_dir_and_python_argv_env(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """UV_TOOL with python='3.12' and custom tool_dir → --python flag + UV_TOOL_DIR."""
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         custom_tool_dir = tmp_path / "my-tools"
@@ -382,16 +366,12 @@ class TestSetBDeletionParity:
             _ux_mod._default_upgrade_runner(cmd, runtime, target_version="1.5.0")
 
         assert len(calls) == 1
-        assert calls[0]["argv"] == [
-            "uv", "tool", "install", "--force", "--python", "3.12", "spec-kitty-cli==1.5.0"
-        ]
+        assert calls[0]["argv"] == ["uv", "tool", "install", "--force", "--python", "3.12", "spec-kitty-cli==1.5.0"]
         env = calls[0]["env"]
         assert env is not None
         assert env.get("UV_TOOL_DIR") == str(custom_tool_dir)
 
-    def test_pipx_upgrade_argv(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pipx_upgrade_argv(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """PIPX upgrade → pipx upgrade spec-kitty-cli (no env override)."""
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         calls: list[dict[str, Any]] = []
@@ -412,9 +392,7 @@ class TestSetBDeletionParity:
         env = calls[0]["env"]
         assert env is None or "UV_TOOL_DIR" not in env
 
-    def test_pip_user_upgrade_argv(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pip_user_upgrade_argv(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """PIP_USER upgrade → pip install --user --upgrade spec-kitty-cli."""
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         calls: list[dict[str, Any]] = []
@@ -433,9 +411,7 @@ class TestSetBDeletionParity:
         assert len(calls) == 1
         assert calls[0]["argv"] == ["pip", "install", "--user", "--upgrade", "spec-kitty-cli"]
 
-    def test_pip_system_upgrade_argv(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pip_system_upgrade_argv(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """PIP_SYSTEM upgrade → pip install --upgrade spec-kitty-cli."""
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         calls: list[dict[str, Any]] = []
@@ -454,9 +430,7 @@ class TestSetBDeletionParity:
         assert len(calls) == 1
         assert calls[0]["argv"] == ["pip", "install", "--upgrade", "spec-kitty-cli"]
 
-    def test_brew_upgrade_argv(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_brew_upgrade_argv(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """BREW upgrade → brew upgrade spec-kitty-cli."""
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         calls: list[dict[str, Any]] = []
@@ -484,9 +458,7 @@ class TestSetBDeletionParity:
 class TestManualGuidanceCommand:
     """MANUAL_GUIDANCE commands (argv=None) → returncode 1, no subprocess call."""
 
-    def test_manual_guidance_cmd_returns_failure_without_subprocess(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_manual_guidance_cmd_returns_failure_without_subprocess(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SPEC_KITTY_HISTORY_DB_PATH", str(tmp_path / "history.db"))
         manual_cmd = RemediationCommand(
             intent=RemediationIntent.MANUAL_GUIDANCE,

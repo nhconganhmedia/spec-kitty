@@ -77,9 +77,7 @@ class TestRooRemovedFromStaticConfig:
     def test_roo_not_in_ai_choices(self) -> None:
         from specify_cli.core.config import AI_CHOICES
 
-        assert "roo" not in AI_CHOICES, (
-            "'roo' must be removed from AI_CHOICES (Roo Code shut down 2026-05-15)"
-        )
+        assert "roo" not in AI_CHOICES, "'roo' must be removed from AI_CHOICES (Roo Code shut down 2026-05-15)"
 
     def test_roo_not_in_agent_command_config(self) -> None:
         from specify_cli.core.config import AGENT_COMMAND_CONFIG
@@ -158,9 +156,7 @@ class TestRooDeprecationNotice:
         _create_roo_dir(tmp_path)
         migration = _get_migration()
 
-        with patch(
-            "specify_cli.upgrade.migrations.m_0_9_4_roo_deprecation._emit_deprecation_notice"
-        ) as mock_emit:
+        with patch("specify_cli.upgrade.migrations.m_0_9_4_roo_deprecation._emit_deprecation_notice") as mock_emit:
             migration.apply(tmp_path, dry_run=False)  # type: ignore[union-attr]
 
         mock_emit.assert_called_once()
@@ -170,9 +166,7 @@ class TestRooDeprecationNotice:
         _write_config_with_roo(tmp_path)
         migration = _get_migration()
 
-        with patch(
-            "specify_cli.upgrade.migrations.m_0_9_4_roo_deprecation._emit_deprecation_notice"
-        ) as mock_emit:
+        with patch("specify_cli.upgrade.migrations.m_0_9_4_roo_deprecation._emit_deprecation_notice") as mock_emit:
             migration.apply(tmp_path, dry_run=False)  # type: ignore[union-attr]
 
         mock_emit.assert_not_called()

@@ -11,6 +11,7 @@ All previously-exported names are re-exported here so existing imports such as
 ``from specify_cli.cli.commands.charter import app`` (or any of the underscore
 helpers tests reach for) keep working.
 """
+
 from __future__ import annotations
 
 # Re-export ``find_repo_root`` and ``_dm_service`` at the package level so

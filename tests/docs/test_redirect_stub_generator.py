@@ -81,9 +81,7 @@ def test_derive_ignores_never_published_internal_moves() -> None:
     # derivation yields no public-URL redirect for them (their source is not docs/).
     arch_move = Move(sources=("docs/adr/2.x",), dest="docs/adr/2.x")
     changelog_move = Move(sources=("CHANGELOG.md",), dest="docs/changelog")
-    mapping = derive_redirect_map(
-        [_DIRECT_URL, _MOVED_URL], [arch_move, changelog_move]
-    )
+    mapping = derive_redirect_map([_DIRECT_URL, _MOVED_URL], [arch_move, changelog_move])
     assert mapping == {}
 
 
@@ -95,12 +93,8 @@ def test_derive_supports_same_directory_rename_via_explicit_file_dest() -> None:
         sources=("docs/guides/your-first-feature.md",),
         dest="docs/guides/your-first-mission.md",
     )
-    mapping = derive_redirect_map(
-        ["guides/your-first-feature.html"], [rename_move]
-    )
-    assert mapping == {
-        "guides/your-first-feature.html": "guides/your-first-mission.html"
-    }
+    mapping = derive_redirect_map(["guides/your-first-feature.html"], [rename_move])
+    assert mapping == {"guides/your-first-feature.html": "guides/your-first-mission.html"}
 
 
 def test_committed_redirect_map_is_diff_stable() -> None:
@@ -158,11 +152,7 @@ def test_committed_map_covers_the_shadow_tree_redirects() -> None:
     is pinned by ``test_committed_redirect_map_is_diff_stable``.
     """
     committed = load_redirect_map(DEFAULT_REDIRECT_MAP)
-    missing = {
-        old: new
-        for old, new in _SHADOW_TREE_REDIRECTS.items()
-        if committed.get(old) != new
-    }
+    missing = {old: new for old, new in _SHADOW_TREE_REDIRECTS.items() if committed.get(old) != new}
     assert missing == {}, f"shadow-tree redirects missing/wrong in committed map: {missing}"
 
 

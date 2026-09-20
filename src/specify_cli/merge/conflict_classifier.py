@@ -123,11 +123,7 @@ def _split_conflict_region(hunk_text: str) -> tuple[str, str] | None:
 
     # The diff3 base header (||||||) may appear between ours and ===.
     base_m = _RE_BASE_HEADER.search(hunk_text, ours_m.end())
-    ours = (
-        hunk_text[ours_m.end() : base_m.start()]
-        if base_m is not None and base_m.start() < sep_m.start()
-        else hunk_text[ours_m.end() : sep_m.start()]
-    )
+    ours = hunk_text[ours_m.end() : base_m.start()] if base_m is not None and base_m.start() < sep_m.start() else hunk_text[ours_m.end() : sep_m.start()]
     theirs = hunk_text[sep_m.end() : theirs_m.start()]
     return ours, theirs
 
@@ -175,9 +171,7 @@ def _is_sorted_alpha(entries: list[tuple[str, str]]) -> bool:
     return names == sorted(names)
 
 
-def r_pyproject_deps_union(
-    file_path: Path, hunk_text: str
-) -> ConflictClassification | None:
+def r_pyproject_deps_union(file_path: Path, hunk_text: str) -> ConflictClassification | None:
     """Match additive merges on ``pyproject.toml`` dependency-array regions.
 
     Returns ``None`` if the rule does not apply (caller should try the next
@@ -207,12 +201,7 @@ def r_pyproject_deps_union(
                 return ConflictClassification(
                     file_path=file_path,
                     hunk_text=hunk_text,
-                    resolution=Manual(
-                        reason=(
-                            f"{RULE_ID_PYPROJECT_DEPS}: same-package version "
-                            f"drift on '{name}' — semantic conflict"
-                        )
-                    ),
+                    resolution=Manual(reason=(f"{RULE_ID_PYPROJECT_DEPS}: same-package version drift on '{name}' — semantic conflict")),
                 )
 
         # Union: dedup by lowercase package name.
@@ -224,11 +213,7 @@ def r_pyproject_deps_union(
 
         # Choose sort convention: if the ours side is alphabetically sorted,
         # sort the union; otherwise insertion order (ours then theirs-new).
-        ordered = (
-            sorted(merged.items(), key=lambda kv: kv[0])
-            if _is_sorted_alpha(ours_entries)
-            else list(merged.items())
-        )
+        ordered = sorted(merged.items(), key=lambda kv: kv[0]) if _is_sorted_alpha(ours_entries) else list(merged.items())
 
         # Preserve leading indentation of the first non-empty ours line.
         leading_indent = ""
@@ -252,9 +237,7 @@ def r_pyproject_deps_union(
         return ConflictClassification(
             file_path=file_path,
             hunk_text=hunk_text,
-            resolution=Manual(
-                reason=f"{RULE_ID_PYPROJECT_DEPS}: rule raised: {exc!r}"
-            ),
+            resolution=Manual(reason=f"{RULE_ID_PYPROJECT_DEPS}: rule raised: {exc!r}"),
         )
 
 
@@ -332,9 +315,7 @@ def _detect_import_rename(
     return None
 
 
-def r_init_imports_union(
-    file_path: Path, hunk_text: str
-) -> ConflictClassification | None:
+def r_init_imports_union(file_path: Path, hunk_text: str) -> ConflictClassification | None:
     """Match additive merges on ``__init__.py`` import blocks."""
     try:
         if file_path.name != "__init__.py":
@@ -354,12 +335,7 @@ def r_init_imports_union(
             return ConflictClassification(
                 file_path=file_path,
                 hunk_text=hunk_text,
-                resolution=Manual(
-                    reason=(
-                        f"{RULE_ID_INIT_IMPORTS}: import statement modified "
-                        f"for module '{renamed_mod}' — semantic conflict"
-                    )
-                ),
+                resolution=Manual(reason=(f"{RULE_ID_INIT_IMPORTS}: import statement modified for module '{renamed_mod}' — semantic conflict")),
             )
 
         merged: dict[str, str] = {}
@@ -379,9 +355,7 @@ def r_init_imports_union(
         return ConflictClassification(
             file_path=file_path,
             hunk_text=hunk_text,
-            resolution=Manual(
-                reason=f"{RULE_ID_INIT_IMPORTS}: rule raised: {exc!r}"
-            ),
+            resolution=Manual(reason=f"{RULE_ID_INIT_IMPORTS}: rule raised: {exc!r}"),
         )
 
 
@@ -462,9 +436,7 @@ def _leading_indent_of(block: str) -> str:
     return ""
 
 
-def r_urls_list_union(
-    file_path: Path, hunk_text: str
-) -> ConflictClassification | None:
+def r_urls_list_union(file_path: Path, hunk_text: str) -> ConflictClassification | None:
     """Match additive merges on URL-list constants."""
     try:
         if not _is_urls_list_eligible(file_path, hunk_text):
@@ -485,12 +457,7 @@ def r_urls_list_union(
             return ConflictClassification(
                 file_path=file_path,
                 hunk_text=hunk_text,
-                resolution=Manual(
-                    reason=(
-                        f"{RULE_ID_URLS_LIST}: same entry '{conflict_key}' modified "
-                        f"on both sides — semantic conflict"
-                    )
-                ),
+                resolution=Manual(reason=(f"{RULE_ID_URLS_LIST}: same entry '{conflict_key}' modified on both sides — semantic conflict")),
             )
 
         merged: dict[str, str] = {}
@@ -499,11 +466,7 @@ def r_urls_list_union(
         for key, line in theirs_entries:
             merged.setdefault(key, line)
 
-        ordered = (
-            sorted(merged.items(), key=lambda kv: kv[0])
-            if _is_sorted_alpha(ours_entries)
-            else list(merged.items())
-        )
+        ordered = sorted(merged.items(), key=lambda kv: kv[0]) if _is_sorted_alpha(ours_entries) else list(merged.items())
 
         leading_indent = _leading_indent_of(ours)
         merged_lines = [leading_indent + line.lstrip() for _, line in ordered]
@@ -518,9 +481,7 @@ def r_urls_list_union(
         return ConflictClassification(
             file_path=file_path,
             hunk_text=hunk_text,
-            resolution=Manual(
-                reason=f"{RULE_ID_URLS_LIST}: rule raised: {exc!r}"
-            ),
+            resolution=Manual(reason=f"{RULE_ID_URLS_LIST}: rule raised: {exc!r}"),
         )
 
 
@@ -532,9 +493,7 @@ def r_urls_list_union(
 # Sentinel rule_id stamped into the Auto.merged_text=""; the orchestrator
 # interprets the special rule_id and runs ``uv lock --no-upgrade`` instead
 # of writing merged_text.
-def r_uvlock_regenerate(
-    file_path: Path, hunk_text: str
-) -> ConflictClassification | None:
+def r_uvlock_regenerate(file_path: Path, hunk_text: str) -> ConflictClassification | None:
     """Match ``uv.lock`` conflicts; emit a special sentinel for the orchestrator."""
     try:
         if file_path.name != "uv.lock":
@@ -557,17 +516,13 @@ def r_uvlock_regenerate(
 # ---------------------------------------------------------------------------
 
 
-def r_default_manual(
-    file_path: Path, hunk_text: str
-) -> ConflictClassification | None:
+def r_default_manual(file_path: Path, hunk_text: str) -> ConflictClassification | None:
     """Fail-safe default. Always returns a Manual classification."""
     try:
         return ConflictClassification(
             file_path=file_path,
             hunk_text=hunk_text,
-            resolution=Manual(
-                reason=f"no classifier rule matched {file_path}"
-            ),
+            resolution=Manual(reason=f"no classifier rule matched {file_path}"),
         )
     except Exception as exc:  # pragma: no cover - defensive
         return ConflictClassification(
@@ -591,9 +546,7 @@ RULES: tuple[ClassifierRule, ...] = (
 # ---------------------------------------------------------------------------
 
 
-def validate_resolution(
-    classification: ConflictClassification, full_file_text: str
-) -> ConflictClassification:
+def validate_resolution(classification: ConflictClassification, full_file_text: str) -> ConflictClassification:
     """Verify an Auto resolution produces syntactically valid output.
 
     ``full_file_text`` is the would-be file body if ``classification.resolution.merged_text``
@@ -617,12 +570,7 @@ def validate_resolution(
         return ConflictClassification(
             file_path=classification.file_path,
             hunk_text=classification.hunk_text,
-            resolution=Manual(
-                reason=(
-                    f"post-merge validation failed for "
-                    f"{classification.file_path}: {exc!r}"
-                )
-            ),
+            resolution=Manual(reason=(f"post-merge validation failed for {classification.file_path}: {exc!r}")),
         )
     return classification
 
@@ -644,9 +592,7 @@ def classify(file_path: Path, hunk_text: str) -> ConflictClassification:
             return ConflictClassification(
                 file_path=file_path,
                 hunk_text=hunk_text,
-                resolution=Manual(
-                    reason=f"classifier dispatcher caught {rule.__name__}: {exc!r}"
-                ),
+                resolution=Manual(reason=f"classifier dispatcher caught {rule.__name__}: {exc!r}"),
             )
         if result is not None:
             return result

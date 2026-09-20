@@ -73,9 +73,7 @@ def _stub_write_artifact_committed(monkeypatch: pytest.MonkeyPatch) -> list[dict
     return calls
 
 
-def test_scaffold_creates_matrix_with_multiple_unique_refs(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scaffold_creates_matrix_with_multiple_unique_refs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """spec.md with several ``#NNN`` refs scaffolds a JSON matrix with each ref exactly once."""
     _stub_flat_topology(monkeypatch)
     calls = _stub_write_artifact_committed(monkeypatch)
@@ -121,9 +119,7 @@ def test_scaffold_creates_matrix_with_multiple_unique_refs(
     assert callable(calls[0]["stage"])
 
 
-def test_scaffold_returns_none_when_no_refs(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scaffold_returns_none_when_no_refs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """spec.md without GH issue refs returns ``None`` and creates no file."""
     _stub_flat_topology(monkeypatch)
     calls = _stub_write_artifact_committed(monkeypatch)
@@ -138,18 +134,14 @@ def test_scaffold_returns_none_when_no_refs(
     )
     feature_dir, spec_md = _write_spec(tmp_path, body)
 
-    out_path = scaffold_issue_matrix(
-        feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy()
-    )
+    out_path = scaffold_issue_matrix(feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy())
 
     assert out_path is None
     assert not (feature_dir / "issue-matrix.json").exists()
     assert not calls  # never even attempted a write
 
 
-def test_scaffold_does_not_overwrite_existing_json(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scaffold_does_not_overwrite_existing_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Existing ``issue-matrix.json`` is preserved (idempotent re-run)."""
     _stub_flat_topology(monkeypatch)
     calls = _stub_write_artifact_committed(monkeypatch)
@@ -162,18 +154,14 @@ def test_scaffold_does_not_overwrite_existing_json(
         encoding="utf-8",
     )
 
-    out_path = scaffold_issue_matrix(
-        feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy()
-    )
+    out_path = scaffold_issue_matrix(feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy())
 
     assert out_path == existing
     assert json.loads(existing.read_text(encoding="utf-8"))["rows"]["#1163"]["verdict"] == "fixed"
     assert not calls  # never re-scaffolded over existing content
 
 
-def test_scaffold_does_not_overwrite_existing_legacy_md(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scaffold_does_not_overwrite_existing_legacy_md(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A legacy ``issue-matrix.md`` (not yet migrated) is respected, not clobbered."""
     _stub_flat_topology(monkeypatch)
     calls = _stub_write_artifact_committed(monkeypatch)
@@ -183,9 +171,7 @@ def test_scaffold_does_not_overwrite_existing_legacy_md(
     legacy = feature_dir / "issue-matrix.md"
     legacy.write_text("# Operator-curated content\n\nDo not overwrite.\n", encoding="utf-8")
 
-    out_path = scaffold_issue_matrix(
-        feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy()
-    )
+    out_path = scaffold_issue_matrix(feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy())
 
     assert out_path == feature_dir / "issue-matrix.json"
     assert not out_path.exists()  # no JSON authored -- legacy content wins
@@ -193,9 +179,7 @@ def test_scaffold_does_not_overwrite_existing_legacy_md(
     assert not calls
 
 
-def test_scaffold_uses_coord_dir_for_idempotency_check(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scaffold_uses_coord_dir_for_idempotency_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A coord-routed mission's idempotency check reads the COORD dir, not the primary residue.
 
     Write-seam residue cleanup (R6) unlinks the primary copy after a coord
@@ -215,17 +199,13 @@ def test_scaffold_uses_coord_dir_for_idempotency_check(
     feature_dir, spec_md = _write_spec(tmp_path, body)
     assert not (feature_dir / "issue-matrix.json").exists()  # primary residue already cleaned up
 
-    out_path = scaffold_issue_matrix(
-        feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy()
-    )
+    out_path = scaffold_issue_matrix(feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy())
 
     assert out_path == coord_dir / "issue-matrix.json"
     assert not calls  # existing coord content -- no re-scaffold
 
 
-def test_scaffold_does_not_match_section_anchor_links(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scaffold_does_not_match_section_anchor_links(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``#section-name`` anchor-style markdown refs are not treated as GH issues."""
     _stub_flat_topology(monkeypatch)
     calls = _stub_write_artifact_committed(monkeypatch)
@@ -241,9 +221,7 @@ def test_scaffold_does_not_match_section_anchor_links(
     refs = detect_issue_references(spec_md)
     assert refs == []
 
-    out_path = scaffold_issue_matrix(
-        feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy()
-    )
+    out_path = scaffold_issue_matrix(feature_dir, spec_md, repo_root=tmp_path, mission_slug="099-demo", policy=_Policy())
     assert out_path is None
     assert not (feature_dir / "issue-matrix.json").exists()
     assert not calls

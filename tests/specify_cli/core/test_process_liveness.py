@@ -287,11 +287,7 @@ def test_module_imports_only_psutil_and_stdlib() -> None:
     tree = ast.parse(source)
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.module:
-            assert not node.module.startswith("specify_cli"), (
-                f"process_liveness.py must not import specify_cli.* (found: {node.module})"
-            )
+            assert not node.module.startswith("specify_cli"), f"process_liveness.py must not import specify_cli.* (found: {node.module})"
         if isinstance(node, ast.Import):
             for alias in node.names:
-                assert not alias.name.startswith("specify_cli"), (
-                    f"process_liveness.py must not import specify_cli.* (found: {alias.name})"
-                )
+                assert not alias.name.startswith("specify_cli"), f"process_liveness.py must not import specify_cli.* (found: {alias.name})"

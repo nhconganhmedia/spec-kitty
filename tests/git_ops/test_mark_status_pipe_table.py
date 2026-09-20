@@ -31,6 +31,7 @@ from specify_cli.cli.commands.agent.tasks import (
 
 pytestmark = [pytest.mark.git_repo]
 
+
 class TestIsPipeTableTaskRow:
     """Unit tests for _is_pipe_table_task_row()."""
 
@@ -146,9 +147,7 @@ class TestUpdatePipeTableStatus:
 # ---------------------------------------------------------------------------
 
 
-def _apply_mark_status_to_content(
-    content: str, task_ids: list[str], status: str
-) -> tuple[str, list[str], list[str]]:
+def _apply_mark_status_to_content(content: str, task_ids: list[str], status: str) -> tuple[str, list[str], list[str]]:
     """Replicate the core mark-status loop from tasks.py in a pure function.
 
     Returns (updated_content, updated_tasks, not_found_tasks).
@@ -197,9 +196,7 @@ class TestMarkStatusPipeTableIntegration:
             "| T001 | rename module | WP01 | [P] |\n"
             "| T002 | update imports | WP01 | |\n"
         )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001"], "done"
-        )
+        result, updated, not_found = _apply_mark_status_to_content(content, ["T001"], "done")
         assert "T001" in updated
         assert not not_found
         # The Parallel [P] for T001 must NOT be touched
@@ -211,24 +208,13 @@ class TestMarkStatusPipeTableIntegration:
     def test_pipe_table_mark_pending(self):
         """A done pipe-table task can be reset to pending."""
         content = (
-            "# Tasks\n\n"
-            "## Subtask Index\n\n"
-            "| ID | Description | WP | Parallel |\n"
-            "|----|-------------|-----|-----------|\n"
-            "| T001 | rename module | WP01 | [D] |\n"
+            "# Tasks\n\n## Subtask Index\n\n| ID | Description | WP | Parallel |\n|----|-------------|-----|-----------|\n| T001 | rename module | WP01 | [D] |\n"
         )
         # Re-run with no header knowledge (no Status column) — the [D] in last cell
         # should be replaced by pending marker because _update_pipe_table_status
         # recognises it as a status-like cell when there is no header map.
-        content_status_col = (
-            "# Tasks\n\n"
-            "| ID | Description | Status |\n"
-            "|----|-------------|--------|\n"
-            "| T001 | rename module | [D] |\n"
-        )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content_status_col, ["T001"], "pending"
-        )
+        content_status_col = "# Tasks\n\n| ID | Description | Status |\n|----|-------------|--------|\n| T001 | rename module | [D] |\n"
+        result, updated, not_found = _apply_mark_status_to_content(content_status_col, ["T001"], "pending")
         assert "T001" in updated
         t001_line = [ln for ln in result.split("\n") if "T001" in ln][0]
         assert "[ ]" in t001_line
@@ -236,15 +222,8 @@ class TestMarkStatusPipeTableIntegration:
 
     def test_pipe_table_with_status_column(self):
         """When a Status column exists, only that column is updated."""
-        content = (
-            "# Tasks\n\n"
-            "| ID | Description | WP | Status |\n"
-            "|----|-------------|-----|--------|\n"
-            "| T001 | do thing | WP01 | [ ] |\n"
-        )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001"], "done"
-        )
+        content = "# Tasks\n\n| ID | Description | WP | Status |\n|----|-------------|-----|--------|\n| T001 | do thing | WP01 | [ ] |\n"
+        result, updated, not_found = _apply_mark_status_to_content(content, ["T001"], "done")
         assert "T001" in updated
         assert not not_found
         t001_line = [ln for ln in result.split("\n") if "T001" in ln][0]
@@ -252,26 +231,15 @@ class TestMarkStatusPipeTableIntegration:
 
     def test_pipe_table_no_status_like_cell_appends(self):
         """Pipe-table row with no recognisable status marker gets one appended."""
-        content = (
-            "# Tasks\n\n"
-            "| ID | Description | WP |\n"
-            "|----|-------------|-----|\n"
-            "| T001 | build feature | WP01 |\n"
-        )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001"], "done"
-        )
+        content = "# Tasks\n\n| ID | Description | WP |\n|----|-------------|-----|\n| T001 | build feature | WP01 |\n"
+        result, updated, not_found = _apply_mark_status_to_content(content, ["T001"], "done")
         assert "T001" in updated
         t001_line = [ln for ln in result.split("\n") if "T001" in ln][0]
         assert "[D]" in t001_line
 
     def test_separator_row_not_matched_as_task(self):
         """Separator rows must never be treated as task rows."""
-        content = (
-            "| ID | Description |\n"
-            "|----|-------------|\n"
-            "| T001 | thing |\n"
-        )
+        content = "| ID | Description |\n|----|-------------|\n| T001 | thing |\n"
         # _is_pipe_table_task_row should return False for the separator line
         separator = "|----|-------------|"
         assert _is_pipe_table_task_row(separator, "T001") is False
@@ -279,14 +247,8 @@ class TestMarkStatusPipeTableIntegration:
 
     def test_checkbox_format_still_works(self):
         """Existing checkbox detection is unaffected (regression)."""
-        content = (
-            "## WP01\n"
-            "- [ ] T001 First task\n"
-            "- [ ] T002 Second task\n"
-        )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001"], "done"
-        )
+        content = "## WP01\n- [ ] T001 First task\n- [ ] T002 Second task\n"
+        result, updated, not_found = _apply_mark_status_to_content(content, ["T001"], "done")
         assert "T001" in updated
         assert not not_found
         assert "- [x] T001" in result
@@ -312,15 +274,11 @@ class TestMarkStatusPipeTableIntegration:
             "- [ ] T002 pipe-table task 2 (WP01)\n"
             "- [ ] T003 checkbox-only task\n"
         )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001", "T003"], "done"
-        )
+        result, updated, not_found = _apply_mark_status_to_content(content, ["T001", "T003"], "done")
         assert set(updated) == {"T001", "T003"}
         assert not not_found
         # T001's pipe-table row gets the done marker
-        t001_pipe_line = next(
-            ln for ln in result.split("\n") if ln.startswith("| T001")
-        )
+        t001_pipe_line = next(ln for ln in result.split("\n") if ln.startswith("| T001"))
         assert "[D]" in t001_pipe_line
         assert "- [x] T001" in result
         # T003 has no pipe-table entry, so the checkbox row is matched
@@ -335,9 +293,7 @@ class TestMarkStatusPipeTableIntegration:
             "| T002 | task b | WP01 | |\n"
             "| T003 | task c | WP01 | [P] |\n"
         )
-        result, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001", "T003"], "done"
-        )
+        result, updated, not_found = _apply_mark_status_to_content(content, ["T001", "T003"], "done")
         assert set(updated) == {"T001", "T003"}
         assert not not_found
         lines = result.split("\n")
@@ -351,14 +307,8 @@ class TestMarkStatusPipeTableIntegration:
 
     def test_not_found_task_reported(self):
         """Tasks that don't match any line are reported in not_found."""
-        content = (
-            "| ID | Description | WP |\n"
-            "|----|-------------|-----|\n"
-            "| T001 | thing | WP01 |\n"
-        )
-        _, updated, not_found = _apply_mark_status_to_content(
-            content, ["T001", "T999"], "done"
-        )
+        content = "| ID | Description | WP |\n|----|-------------|-----|\n| T001 | thing | WP01 |\n"
+        _, updated, not_found = _apply_mark_status_to_content(content, ["T001", "T999"], "done")
         assert "T001" in updated
         assert "T999" in not_found
 
@@ -380,16 +330,7 @@ class TestTasksTemplateCheckboxFormat:
         # (FR-005) relocated mission-steps/ from
         # src/charter/offering/missions/mission-steps to
         # packs/built-in/missions/mission-steps.
-        return (
-            repo_root
-            / "packs"
-            / "built-in"
-            / "missions"
-            / "mission-steps"
-            / "software-dev"
-            / "tasks"
-            / "prompt.md"
-        )
+        return repo_root / "packs" / "built-in" / "missions" / "mission-steps" / "software-dev" / "tasks" / "prompt.md"
 
     def test_template_mentions_checkbox_format(self):
         """tasks.md template must reference checkbox format for task rows."""
@@ -397,9 +338,7 @@ class TestTasksTemplateCheckboxFormat:
         assert template.exists(), f"Template not found: {template}"
         content = template.read_text(encoding="utf-8")
         # The template should mention checkbox style explicitly
-        assert "- [ ]" in content or "checkbox" in content.lower(), (
-            "tasks.md template must mention checkbox format for tracking rows"
-        )
+        assert "- [ ]" in content or "checkbox" in content.lower(), "tasks.md template must mention checkbox format for tracking rows"
 
     def test_template_distinguishes_index_table_from_tracking(self):
         """tasks.md template must note that the index table is a reference, not a tracking surface."""

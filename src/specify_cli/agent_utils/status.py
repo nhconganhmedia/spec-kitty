@@ -67,10 +67,18 @@ def show_kanban_status(mission_slug: str | None = None) -> dict:
     for wp in data["work_packages"]:
         if wp["lane"] in by_lane:
             by_lane[wp["lane"]].append(wp)
-    _display_status_board(data["mission_slug"], data["work_packages"], by_lane,
-                          data["total_wps"], data["done_count"], data["in_progress_count"],
-                          data["planned_count"], data["done_percentage"], data["progress_percentage"],
-                          data["parallelization"])
+    _display_status_board(
+        data["mission_slug"],
+        data["work_packages"],
+        by_lane,
+        data["total_wps"],
+        data["done_count"],
+        data["in_progress_count"],
+        data["planned_count"],
+        data["done_percentage"],
+        data["progress_percentage"],
+        data["parallelization"],
+    )
     return data
 
 
@@ -84,10 +92,7 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
 
     # mission_slug is required; no auto-detection
     if not mission_slug:
-        msg = (
-            "mission_slug is required. "
-            "Pass it explicitly: show_kanban_status('057-my-feature')"
-        )
+        msg = "mission_slug is required. Pass it explicitly: show_kanban_status('057-my-feature')"
         raise ValueError(msg)
 
     # Read-only path: use worktree-aware resolution so detached-worktree
@@ -100,9 +105,7 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
     # read-surface-ssot-closeout WP08 / FR-001 / NFR-001: routed through the
     # kind-aware placement seam instead of the kind-blind
     # resolve_feature_dir_for_mission (same coord-aware STATUS_STATE resolution).
-    feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    feature_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
 
     if not feature_dir.exists():
         raise FileNotFoundError(f"Feature directory not found: {feature_dir}")
@@ -115,9 +118,7 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
     # through the seam authority instead of the kind-blind
     # ``resolve_planning_read_dir`` — behavior-identical here since
     # WORK_PACKAGE_TASK is PRIMARY-partition (no fail-loud arm reachable).
-    primary_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    primary_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
 
     tasks_dir = primary_dir / "tasks"
 
@@ -132,27 +133,23 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
     if config_file.exists():
         try:
             import yaml as _yaml  # noqa: PLC0415
+
             config = _yaml.safe_load(config_file.read_text(encoding="utf-8")) or {}
         except Exception:  # noqa: BLE001
             config = {}
-    threshold_minutes: int = (
-        int(config.get("review", {}).get("stall_threshold_minutes", 30))
-        if isinstance(config, dict)
-        else 30
-    )
+    threshold_minutes: int = int(config.get("review", {}).get("stall_threshold_minutes", 30)) if isinstance(config, dict) else 30
 
     # Build lane map from event log (canonical source of truth)
     from specify_cli.status import reduce, read_events  # noqa: PLC0415
+
     events = read_events(feature_dir)
     snapshot = reduce(events)
     # snapshot.work_packages: {wp_id: {"lane": ..., ...}}
-    event_log_lanes: dict[str, Lane] = {
-        wp_id: Lane(state.get("lane", Lane.GENESIS))
-        for wp_id, state in snapshot.work_packages.items()
-    }
+    event_log_lanes: dict[str, Lane] = {wp_id: Lane(state.get("lane", Lane.GENESIS)) for wp_id, state in snapshot.work_packages.items()}
 
     # Collect all work packages with dependencies (static metadata from frontmatter)
     import re
+
     work_packages = []
     for wp_file in sorted(tasks_dir.glob("WP*.md")):
         front, body, padding = split_frontmatter(wp_file.read_text(encoding="utf-8-sig"))
@@ -174,20 +171,21 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
                 dep_text = dep_match.group(1)
                 dependencies = re.findall(r'"([^"]+)"', dep_text)
 
-        work_packages.append({
-            "id": wp_id,
-            "title": title,
-            "lane": lane,
-            "phase": phase,
-            "file": wp_file.name,
-            "artifact_dir": wp_file.stem,
-            "dependencies": dependencies
-        })
+        work_packages.append(
+            {"id": wp_id, "title": title, "lane": lane, "phase": phase, "file": wp_file.name, "artifact_dir": wp_file.stem, "dependencies": dependencies}
+        )
 
     # Group by lane using Lane enum keys (avoids raw lane-string comparisons)
     by_lane: dict[Lane, list] = {
-        Lane.PLANNED: [], Lane.CLAIMED: [], Lane.IN_PROGRESS: [], Lane.IN_REVIEW: [],
-        Lane.FOR_REVIEW: [], Lane.APPROVED: [], Lane.DONE: [], Lane.BLOCKED: [], Lane.CANCELED: [],
+        Lane.PLANNED: [],
+        Lane.CLAIMED: [],
+        Lane.IN_PROGRESS: [],
+        Lane.IN_REVIEW: [],
+        Lane.FOR_REVIEW: [],
+        Lane.APPROVED: [],
+        Lane.DONE: [],
+        Lane.BLOCKED: [],
+        Lane.CANCELED: [],
     }
     for wp in work_packages:
         lane = wp["lane"]
@@ -215,19 +213,9 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
     # genesis WPs are non-display and would otherwise inflate the total while
     # appearing in no column (review m1).
     total = len(_display_wps)
-    done_count = sum(
-        1 for wp in _display_wps
-        if wp_state_for(wp["lane"]).progress_bucket() == "terminal"
-        and wp["lane"] == Lane.DONE
-    )
-    in_progress = sum(
-        1 for wp in _display_wps
-        if wp_state_for(wp["lane"]).progress_bucket() in ("in_flight", "review")
-    )
-    planned_count = sum(
-        1 for wp in _display_wps
-        if wp_state_for(wp["lane"]).progress_bucket() == "not_started"
-    )
+    done_count = sum(1 for wp in _display_wps if wp_state_for(wp["lane"]).progress_bucket() == "terminal" and wp["lane"] == Lane.DONE)
+    in_progress = sum(1 for wp in _display_wps if wp_state_for(wp["lane"]).progress_bucket() in ("in_flight", "review"))
+    planned_count = sum(1 for wp in _display_wps if wp_state_for(wp["lane"]).progress_bucket() == "not_started")
     progress_result = compute_weighted_progress(snapshot)
     progress_pct = round(progress_result.percentage, 1)
     done_pct = round(compute_done_percentage(done_count, total), 1)
@@ -260,9 +248,7 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
             # a damaged event-log ``review_result`` slot, never silently
             # folded into the same "no verdict" case a genuinely absent
             # slot produces.
-            damaged_verdicts.append(
-                {"wp_id": wp_id, "artifact": "review artifact: unreadable/damaged verdict record"}
-            )
+            damaged_verdicts.append({"wp_id": wp_id, "artifact": "review artifact: unreadable/damaged verdict record"})
             wp["_damaged_verdict"] = True
             continue
         if is_changes_requested(lookup.result.verdict):
@@ -283,11 +269,13 @@ def build_kanban_status(mission_slug: str | None = None) -> dict:
             if age_minutes > threshold_minutes:
                 stall_label = f"STALLED — no move-task in {int(age_minutes)}m"
                 wp["_stall_label"] = stall_label
-                stalled_wps.append({
-                    "wp_id": wp_id,
-                    "age_minutes": int(age_minutes),
-                    "mission_slug": mission_slug,
-                })
+                stalled_wps.append(
+                    {
+                        "wp_id": wp_id,
+                        "age_minutes": int(age_minutes),
+                        "mission_slug": mission_slug,
+                    }
+                )
 
     # Return structured data (by_lane uses Lane.value to produce string keys)
     lane_counts = Counter(wp["lane"].value for wp in work_packages)
@@ -359,36 +347,32 @@ def _analyze_parallelization(work_packages: list, done_wp_ids: set) -> dict:
 
         if independent:
             if len(independent) > 1:
-                parallel_groups.append({
-                    "type": "parallel",
-                    "wps": independent,
-                    "note": f"These {len(independent)} WPs can run in parallel"
-                })
+                parallel_groups.append({"type": "parallel", "wps": independent, "note": f"These {len(independent)} WPs can run in parallel"})
             else:
-                parallel_groups.append({
-                    "type": "single",
-                    "wps": independent,
-                    "note": "Ready to start"
-                })
+                parallel_groups.append({"type": "single", "wps": independent, "note": "Ready to start"})
 
         if dependent:
-            parallel_groups.append({
-                "type": "sequential",
-                "wps": dependent,
-                "note": "Must wait for other ready WPs to complete first"
-            })
+            parallel_groups.append({"type": "sequential", "wps": dependent, "note": "Must wait for other ready WPs to complete first"})
 
     return {
         "ready_wps": ready_wps,
         "parallel_groups": parallel_groups,
-        "can_parallelize": len(ready_wps) > 1 and any(g["type"] == "parallel" for g in parallel_groups)
+        "can_parallelize": len(ready_wps) > 1 and any(g["type"] == "parallel" for g in parallel_groups),
     }
 
 
-def _display_status_board(mission_slug: str, work_packages: list, by_lane: dict[Lane, list],
-                         total: int, done_count: int, in_progress: int,
-                         planned_count: int, done_pct: float, progress_pct: float,
-                         parallel_info: dict) -> None:
+def _display_status_board(
+    mission_slug: str,
+    work_packages: list,
+    by_lane: dict[Lane, list],
+    total: int,
+    done_count: int,
+    in_progress: int,
+    planned_count: int,
+    done_pct: float,
+    progress_pct: float,
+    parallel_info: dict,
+) -> None:
     """Display the rich-formatted status board."""
     # Create title panel
     title_text = Text()
@@ -442,10 +426,7 @@ def _display_status_board(mission_slug: str, work_packages: list, by_lane: dict[
         table.add_column(label, style=style, no_wrap=False, width=16)
 
     # Find max length for rows
-    max_rows = max(
-        (len(display_in_progress) if lk == Lane.IN_PROGRESS else len(by_lane[lk]))
-        for lk, _, _ in kanban_lanes
-    ) if work_packages else 0
+    max_rows = max((len(display_in_progress) if lk == Lane.IN_PROGRESS else len(by_lane[lk])) for lk, _, _ in kanban_lanes) if work_packages else 0
 
     # Add rows
     for i in range(max_rows):
@@ -454,7 +435,7 @@ def _display_status_board(mission_slug: str, work_packages: list, by_lane: dict[
             lane_data = display_in_progress if lane_key == Lane.IN_PROGRESS else by_lane[lane_key]
             if i < len(lane_data):
                 wp = lane_data[i]
-                title_part = f"{wp['title'][:14]}..." if len(wp['title']) > 14 else wp['title']
+                title_part = f"{wp['title'][:14]}..." if len(wp["title"]) > 14 else wp["title"]
                 # in_review WPs folded into "In Progress" get bright_cyan colour
                 if wp.get("_display_in_review"):
                     cell = f"[bright_cyan]{wp['id']} (review)[/bright_cyan]\n{title_part}"
@@ -493,9 +474,7 @@ def _display_status_board(mission_slug: str, work_packages: list, by_lane: dict[
         console.print()
 
     # Show done WPs with stale or damaged verdict warnings (if any)
-    done_stale = [
-        wp for wp in by_lane[Lane.DONE] if wp.get("_stale_verdict") or wp.get("_damaged_verdict")
-    ]
+    done_stale = [wp for wp in by_lane[Lane.DONE] if wp.get("_stale_verdict") or wp.get("_damaged_verdict")]
     if done_stale:
         console.print("[bold green]✅ Done (with stale verdict warnings):[/bold green]")
         for wp in done_stale:
@@ -568,13 +547,19 @@ def _display_status_board(mission_slug: str, work_packages: list, by_lane: dict[
             elif group["type"] == "sequential":
                 console.print("\n  [bold blue]⏭️  Sequential (blocked by other ready WPs):[/bold blue]")
                 for wp in group["wps"]:
-                    deps_in_ready = [d for d in wp.get("dependencies", [])
-                                    if d in {w["id"] for w in parallel_info["ready_wps"]}]
+                    deps_in_ready = [d for d in wp.get("dependencies", []) if d in {w["id"] for w in parallel_info["ready_wps"]}]
                     console.print(f"     • {wp['id']} - {wp['title']}")
                     console.print(f"       [dim]Waiting for: {', '.join(deps_in_ready)}[/dim]")
 
         console.print()
-    elif by_lane[Lane.PLANNED] and not by_lane[Lane.IN_PROGRESS] and not by_lane[Lane.CLAIMED] and not by_lane[Lane.FOR_REVIEW] and not by_lane.get(Lane.IN_REVIEW) and not by_lane[Lane.APPROVED]:
+    elif (
+        by_lane[Lane.PLANNED]
+        and not by_lane[Lane.IN_PROGRESS]
+        and not by_lane[Lane.CLAIMED]
+        and not by_lane[Lane.FOR_REVIEW]
+        and not by_lane.get(Lane.IN_REVIEW)
+        and not by_lane[Lane.APPROVED]
+    ):
         # All planned WPs are blocked
         console.print("[bold red]⚠️  All remaining WPs are blocked[/bold red]")
         console.print("  Check dependency status above\n")

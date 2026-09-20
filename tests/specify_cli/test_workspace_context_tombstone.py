@@ -110,9 +110,7 @@ def _build_coord_repo(tmp_path: Path, *, lane_wp_ids: list[str], with_lanes_json
         encoding="utf-8",
     )
     if with_lanes_json:
-        (feature_dir / "lanes.json").write_text(
-            json.dumps(_lanes_json_dict(lane_wp_ids)) + "\n", encoding="utf-8"
-        )
+        (feature_dir / "lanes.json").write_text(json.dumps(_lanes_json_dict(lane_wp_ids)) + "\n", encoding="utf-8")
     _git(r, "add", "kitty-specs")
     _git(r, "commit", "-q", "-m", "seed mission")
     _git(r, "branch", COORD_BRANCH)
@@ -229,9 +227,7 @@ def test_non_cancel_transition_unaffected_by_tombstone_hook(tmp_path: Path) -> N
     _seed_planned_on_coord(repo, "WP01", "01SEEDWP01TOMBSTONE00000E")
     context_path = _write_orphan_context(repo)
 
-    event = emit_status_transition_transactional(
-        _cancel_request(repo, "WP01", to_lane="claimed")
-    )
+    event = emit_status_transition_transactional(_cancel_request(repo, "WP01", to_lane="claimed"))
 
     assert event.to_lane == Lane.CLAIMED
     # A non-cancel transition must never touch an unrelated lane context.

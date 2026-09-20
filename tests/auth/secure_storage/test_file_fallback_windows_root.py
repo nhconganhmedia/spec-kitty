@@ -13,6 +13,7 @@ from specify_cli.paths import get_runtime_root
 
 pytestmark = [pytest.mark.integration]
 
+
 @pytest.mark.windows_ci
 def test_windows_file_store_round_trip(tmp_path):
     """Round-trip: store → load → delete using a temp directory."""

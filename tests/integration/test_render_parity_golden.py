@@ -97,9 +97,7 @@ def _seed_review(feature_dir: Path) -> None:
     emit_inner_state_changed(
         feature_dir,
         _WP_ID,
-        WPInnerStateDelta(
-            review=ReviewOverride(at=at, actor="reviewer-renata", wp_id=_WP_ID, reason=reason)
-        ),
+        WPInnerStateDelta(review=ReviewOverride(at=at, actor="reviewer-renata", wp_id=_WP_ID, reason=reason)),
         actor="reviewer-renata",
         mission_slug=_MISSION_SLUG,
         at=at,
@@ -149,17 +147,12 @@ def test_activity_and_history_render_matches_legacy_golden(tmp_path: Path) -> No
     _seed_history(feature_dir)
 
     # Event-sourced render (empty body -> snapshot fold only, flag ON).
-    event_rows = _serialize_activity(
-        activity_entries("", feature_dir=feature_dir, wp_id=_WP_ID)
-    )
+    event_rows = _serialize_activity(activity_entries("", feature_dir=feature_dir, wp_id=_WP_ID))
     # Legacy-sourced golden (body-parsed, no feature_dir -> pure legacy path).
     golden_rows = _serialize_activity(activity_entries(_legacy_golden_body()))
 
     assert event_rows, "event-sourced render produced no rows (drive never fired)"
-    assert event_rows == golden_rows, (
-        "event-sourced activity/history render diverged from the legacy golden:\n"
-        f"  event : {event_rows}\n  golden: {golden_rows}"
-    )
+    assert event_rows == golden_rows, f"event-sourced activity/history render diverged from the legacy golden:\n  event : {event_rows}\n  golden: {golden_rows}"
 
 
 def test_dropped_activity_note_turns_parity_red(tmp_path: Path) -> None:
@@ -168,19 +161,12 @@ def test_dropped_activity_note_turns_parity_red(tmp_path: Path) -> None:
     feature_dir = _flag_on_feature_dir(tmp_path)
     _seed_history(feature_dir, skip_note="second activity note")
 
-    event_rows = _serialize_activity(
-        activity_entries("", feature_dir=feature_dir, wp_id=_WP_ID)
-    )
+    event_rows = _serialize_activity(activity_entries("", feature_dir=feature_dir, wp_id=_WP_ID))
     full_golden = _serialize_activity(activity_entries(_legacy_golden_body()))
 
-    assert event_rows != full_golden, (
-        "dropping a note from the event stream did NOT change the render — the "
-        "parity guard is vacuous"
-    )
+    assert event_rows != full_golden, "dropping a note from the event stream did NOT change the render — the parity guard is vacuous"
     # And it matches exactly the golden with the SAME note dropped (precise loss).
-    partial_golden = _serialize_activity(
-        activity_entries(_legacy_golden_body(skip_note="second activity note"))
-    )
+    partial_golden = _serialize_activity(activity_entries(_legacy_golden_body(skip_note="second activity note")))
     assert event_rows == partial_golden
 
 
@@ -199,10 +185,7 @@ def test_review_render_matches_legacy_golden(tmp_path: Path) -> None:
 
     rendered = _review_render(feature_dir)
     assert rendered is not None, "event-sourced review render is empty (review never emitted)"
-    assert rendered == golden, (
-        f"event-sourced review render diverged from the legacy golden:\n"
-        f"  event : {rendered}\n  golden: {golden}"
-    )
+    assert rendered == golden, f"event-sourced review render diverged from the legacy golden:\n  event : {rendered}\n  golden: {golden}"
 
 
 def test_dropped_review_turns_parity_red(tmp_path: Path) -> None:
@@ -215,7 +198,4 @@ def test_dropped_review_turns_parity_red(tmp_path: Path) -> None:
     golden = ReviewOverride(at=at, actor="reviewer-renata", wp_id=_WP_ID, reason=reason).to_dict()
 
     rendered = _review_render(feature_dir)
-    assert rendered != golden, (
-        "review render matched the golden with NO review event seeded — the guard "
-        "is vacuous"
-    )
+    assert rendered != golden, "review render matched the golden with NO review event seeded — the guard is vacuous"

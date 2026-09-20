@@ -91,6 +91,7 @@ _SELF_MISSION = "runtime-state-corpus-cutover-01KXZ0AX"
 #: makes this brittle, while a catastrophic emptying still fails loudly.
 _MIN_BACKFILLED_RUNTIME_MISSIONS = 100
 
+
 def _test_checkout_root() -> Path:
     """Return the checkout containing this guard, including in a CI worktree."""
     return Path(__file__).resolve().parents[3]
@@ -104,9 +105,7 @@ def _kitty_specs() -> Path:
     raise AssertionError(f"no kitty-specs corpus in this test checkout: {corpus}")
 
 
-def test_kitty_specs_is_pinned_to_this_checkout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_kitty_specs_is_pinned_to_this_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The guard never follows an ambient root override to another corpus."""
     (tmp_path / "kitty-specs").mkdir()
     monkeypatch.setenv("SPECIFY_REPO_ROOT", str(tmp_path))
@@ -114,9 +113,7 @@ def test_kitty_specs_is_pinned_to_this_checkout(
     assert _kitty_specs() == _test_checkout_root() / "kitty-specs"
 
 
-def test_kitty_specs_fails_when_corpus_is_missing(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_kitty_specs_fails_when_corpus_is_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A moved test or relocated corpus cannot turn the guard into a vacuous skip."""
     moved_test = tmp_path / "tests" / "specify_cli" / "migration" / "test_guard.py"
     moved_test.parent.mkdir(parents=True)
@@ -132,9 +129,7 @@ def _git(cwd: Path, *args: str) -> None:
 
 
 @pytest.mark.git_repo
-def test_kitty_specs_is_pinned_to_real_worktree_checkout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_kitty_specs_is_pinned_to_real_worktree_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The guard does not follow a linked worktree's ``.git`` pointer to its primary.
 
     This exercises the production resolver's Tier 2 channel that caused #874: CI can
@@ -157,9 +152,7 @@ def test_kitty_specs_is_pinned_to_real_worktree_checkout(
 
     worktree = tmp_path / "detached-ci-worktree"
     _git(primary, "worktree", "add", "-q", "-b", "issue-890-corpus-lane", str(worktree))
-    worktree_test = (
-        worktree / "tests" / "specify_cli" / "migration" / "test_dogfood_corpus_backfilled.py"
-    )
+    worktree_test = worktree / "tests" / "specify_cli" / "migration" / "test_dogfood_corpus_backfilled.py"
     worktree_test.parent.mkdir(parents=True)
     worktree_test.write_text("# detached CI test anchor\n", encoding="utf-8")
 
@@ -306,12 +299,9 @@ def test_reked_lock_reds_on_born_un_reconciled_mission(tmp_path: Path) -> None:
     # (1) Anti-vacuity call-out: the HARD-FORBIDDEN predicate is blind here.
     legacy = read_legacy_runtime(mission_dir)
     anchors = _claim_anchors(mission_dir)
-    forbidden_predicate_would_see_it = any(
-        row.has_evictable_state() and wp_id in anchors for wp_id, row in legacy.items()
-    )
+    forbidden_predicate_would_see_it = any(row.has_evictable_state() and wp_id in anchors for wp_id, row in legacy.items())
     assert forbidden_predicate_would_see_it is False, (
-        "fixture must be invisible to the retired has_evictable_state() "
-        "predicate, or this is not proving the vacuity WP10 closes"
+        "fixture must be invisible to the retired has_evictable_state() predicate, or this is not proving the vacuity WP10 closes"
     )
 
     # (2) The re-keyed predicate sees it...
@@ -340,8 +330,7 @@ def test_sampled_complete_wp_reads_complete_via_public_gate() -> None:
     mission_dir, wp_id = found
 
     assert _emit._infer_subtasks_complete(mission_dir, wp_id) is True, (
-        f"{mission_dir.name}:{wp_id}: public subtask-completeness gate is not True "
-        "despite a fully-done authored roster — the seeded corpus reads incomplete"
+        f"{mission_dir.name}:{wp_id}: public subtask-completeness gate is not True despite a fully-done authored roster — the seeded corpus reads incomplete"
     )
 
 
@@ -353,8 +342,7 @@ def test_no_repo_root_event_file() -> None:
     """
     root = _test_checkout_root()
     assert not (root / "status.events.jsonl").exists(), (
-        "a status.events.jsonl exists at the repository root — a backfill write "
-        "escaped canonicalize_feature_dir (INV-5 / #2815 regression)"
+        "a status.events.jsonl exists at the repository root — a backfill write escaped canonicalize_feature_dir (INV-5 / #2815 regression)"
     )
 
 
@@ -390,7 +378,4 @@ def test_corpus_contains_no_authored_derived_resolved_binding_seed_rows() -> Non
             ):
                 offenders.append(f"{mission_dir.name}:{line_number}:{wp_id}")
 
-    assert offenders == [], (
-        "authored-derived resolved_binding seed rows reappeared in the corpus: "
-        + ", ".join(offenders[:20])
-    )
+    assert offenders == [], "authored-derived resolved_binding seed rows reappeared in the corpus: " + ", ".join(offenders[:20])

@@ -214,9 +214,7 @@ def is_toolchain_generated_churn(
     Returns:
         ``True`` when ``path`` is spec-kitty-generated churn a gate should ignore.
     """
-    return is_self_bookkeeping_churn(path) or is_coord_residue_churn(
-        path, mission_slug=mission_slug
-    )
+    return is_self_bookkeeping_churn(path) or is_coord_residue_churn(path, mission_slug=mission_slug)
 
 
 def coord_incoherent_done_wps(
@@ -278,11 +276,7 @@ def coord_incoherent_done_wps(
     )
     if not events:
         return []
-    return [
-        wp_id
-        for wp_id in candidate_wps
-        if wp_lane_actor_from_events(events, wp_id).lane == Lane.DONE
-    ]
+    return [wp_id for wp_id in candidate_wps if wp_lane_actor_from_events(events, wp_id).lane == Lane.DONE]
 
 
 @dataclass(frozen=True)
@@ -356,15 +350,11 @@ def _head_shape_is_expected(
     )
     if ancestor.returncode != 0:
         return False
-    live_at_head = coord_incoherent_done_wps(
-        head_sha, candidate_wps, repo_root=repo_root, feature_dir=feature_dir
-    )
+    live_at_head = coord_incoherent_done_wps(head_sha, candidate_wps, repo_root=repo_root, feature_dir=feature_dir)
     return bool(live_at_head)
 
 
-def _clean_coord_status_paths_to_head(
-    coord_worktree: Path, feature_dir: Path, env: dict[str, str]
-) -> None:
+def _clean_coord_status_paths_to_head(coord_worktree: Path, feature_dir: Path, env: dict[str, str]) -> None:
     """Scoped clean-to-HEAD of the mission's coordination status paths.
 
     The rollback byte-restore leaves the coord worktree DIRTY — the WORKING
@@ -456,9 +446,7 @@ def repair_coord_strand(
         # caller emits a STUCK diagnostic rather than looping the live-strand error.
         return CoordRepairOutcome(healed=False, worktree_missing=True)
 
-    stranded = coord_incoherent_done_wps(
-        coord_ref, candidate_wps, repo_root=repo_root, feature_dir=feature_dir
-    )
+    stranded = coord_incoherent_done_wps(coord_ref, candidate_wps, repo_root=repo_root, feature_dir=feature_dir)
     if not stranded:
         # Already coherent (or nothing to heal): no-op — never revert the revert.
         return CoordRepairOutcome(healed=False, stranded_wp_ids=[])
@@ -485,9 +473,7 @@ def repair_coord_strand(
         env=env,
     ):
         # HEAD advanced unexpectedly (concurrency TOCTOU) — refuse the wider revert.
-        return CoordRepairOutcome(
-            healed=False, stranded_wp_ids=stranded, head_advanced=True
-        )
+        return CoordRepairOutcome(healed=False, stranded_wp_ids=stranded, head_advanced=True)
 
     # Scoped clean-to-HEAD (after the gate, before the revert) so the forward
     # revert applies over the byte-restored (dirty) coord worktree.

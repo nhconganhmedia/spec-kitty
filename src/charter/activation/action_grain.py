@@ -193,6 +193,7 @@ def scan_builtin_cross_grain_duplicates(built_in_dir: Path | None = None) -> lis
     from charter.activation.mission_type_profile_repository import (  # noqa: PLC0415
         builtin_missions_root,
     )
+
     # Lazy: avoids a charter.activation.action_grain <-> charter.activation.mission_type_profiles import
     # cycle (T006).
     from charter.activation.mission_type_profiles import (  # noqa: PLC0415
@@ -200,6 +201,7 @@ def scan_builtin_cross_grain_duplicates(built_in_dir: Path | None = None) -> lis
         _load_mission_type_profile,
         _profile_type_grain,
     )
+
     # Lazy: the doctrine mission_types/*.yaml roster (post-review hardening —
     # enumerate the derived source, not a hardcoded list, so a new type is
     # auto-covered).

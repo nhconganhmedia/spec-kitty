@@ -4,8 +4,8 @@ import pytest
 from pydantic import ValidationError
 
 from charter.offering.styleguides.models import AntiPattern, Styleguide, StyleguideScope
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 class TestStyleguideScope:
@@ -34,9 +34,7 @@ class TestAntiPattern:
             AntiPattern(name="Bad", description="x", bad_example="y")  # type: ignore[call-arg]
 
     def test_frozen(self) -> None:
-        ap = AntiPattern(
-            name="X", description="x", bad_example="b", good_example="g"
-        )
+        ap = AntiPattern(name="X", description="x", bad_example="b", good_example="g")
         with pytest.raises(ValidationError):
             ap.name = "changed"  # type: ignore[misc]
 
@@ -60,32 +58,24 @@ class TestStyleguide:
         assert sg.quality_test is not None
         assert set(sg.references) == {"docs/testing.md"}
 
-    def test_structural_lint_config_defaults_to_none(
-        self, sample_styleguide_data: dict[str, object]
-    ) -> None:
+    def test_structural_lint_config_defaults_to_none(self, sample_styleguide_data: dict[str, object]) -> None:
         sg = Styleguide.model_validate(sample_styleguide_data)
         assert sg.structural_lint_config is None
 
-    def test_structural_lint_config_round_trips(
-        self, sample_styleguide_data: dict[str, object]
-    ) -> None:
+    def test_structural_lint_config_round_trips(self, sample_styleguide_data: dict[str, object]) -> None:
         data = {
             **sample_styleguide_data,
             "structural_lint_config": {
                 "curated_complete_sections": ["architecture"],
                 "point_in_time_allowlist": ["adr/**", "plans/research/**"],
-                "point_in_time_markers": [
-                    {"frontmatter_field": "doc_status", "frontmatter_value": "closeout"}
-                ],
+                "point_in_time_markers": [{"frontmatter_field": "doc_status", "frontmatter_value": "closeout"}],
             },
         }
         sg = Styleguide.model_validate(data)
         assert sg.structural_lint_config == {
             "curated_complete_sections": ["architecture"],
             "point_in_time_allowlist": ["adr/**", "plans/research/**"],
-            "point_in_time_markers": [
-                {"frontmatter_field": "doc_status", "frontmatter_value": "closeout"}
-            ],
+            "point_in_time_markers": [{"frontmatter_field": "doc_status", "frontmatter_value": "closeout"}],
         }
 
     def test_frozen_model(self, sample_styleguide_data: dict) -> None:

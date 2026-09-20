@@ -304,12 +304,7 @@ def _targets_configured_saas(url: str) -> bool:
         saas = urlsplit(get_saas_base_url())
     except Exception:  # noqa: BLE001 - SaaS URL config failures mean stdlib fallback is not applicable
         return False
-    return (
-        bool(target.hostname)
-        and target.scheme == saas.scheme
-        and target.hostname == saas.hostname
-        and (target.port or 443) == (saas.port or 443)
-    )
+    return bool(target.hostname) and target.scheme == saas.scheme and target.hostname == saas.hostname and (target.port or 443) == (saas.port or 443)
 
 
 def _request_with_stdlib(
@@ -401,9 +396,7 @@ def request_with_fallback_sync(
                 return sync_client.request(method, url, **kwargs)
         except httpx.RequestError as exc:
             last_exc = exc
-            response = request_with_stdlib_fallback_sync(
-                method, url, timeout=timeout, **kwargs
-            )
+            response = request_with_stdlib_fallback_sync(method, url, timeout=timeout, **kwargs)
             if response is not None:
                 return response
     assert last_exc is not None

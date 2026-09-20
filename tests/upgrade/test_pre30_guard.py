@@ -1,4 +1,5 @@
 """Tests for the pre-3.0 layout boundary guard (NFR-004)."""
+
 from pathlib import Path
 
 import pytest

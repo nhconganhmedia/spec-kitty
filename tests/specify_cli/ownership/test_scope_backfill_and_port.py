@@ -81,13 +81,7 @@ class TestBackfillScopeAwareness:
         tasks_dir = feature_dir / "tasks"
         tasks_dir.mkdir(parents=True)
         wp_file = tasks_dir / "WP02-narrow.md"
-        wp_file.write_text(
-            "---\n"
-            "title: WP02 Narrow\n"
-            "dependencies: []\n"
-            "---\n\n"
-            "Implement src/specify_cli/foo.py\n"
-        )
+        wp_file.write_text("---\ntitle: WP02 Narrow\ndependencies: []\n---\n\nImplement src/specify_cli/foo.py\n")
 
         backfill_ownership(feature_dir, "001-alpha")
 

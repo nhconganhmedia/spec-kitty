@@ -124,11 +124,7 @@ def _classify_reference_entry(raw: Any) -> tuple[str, str]:
 
 
 def _iter_doctrine_yaml(root: Path) -> list[Path]:
-    return [
-        p
-        for p in sorted(root.rglob("*.yaml"))
-        if "__pycache__" not in p.parts and not p.name.endswith(".graph.yaml")
-    ]
+    return [p for p in sorted(root.rglob("*.yaml")) if "__pycache__" not in p.parts and not p.name.endswith(".graph.yaml")]
 
 
 def _collect_reference_lists(inv: Inventory, rel: str, data: dict[str, Any]) -> None:
@@ -142,9 +138,7 @@ def _collect_reference_lists(inv: Inventory, rel: str, data: dict[str, Any]) -> 
             continue
         for raw in step.get("references") or []:
             disposition, detail = _classify_reference_entry(raw)
-            inv.add(
-                Entry(rel, "steps[].references", disposition, f"step{index}:{detail}")
-            )
+            inv.add(Entry(rel, "steps[].references", disposition, f"step{index}:{detail}"))
 
 
 def _collect_bare_id_lists(inv: Inventory, rel: str, data: dict[str, Any]) -> None:
@@ -195,25 +189,17 @@ def _render_table(inv: Inventory) -> str:
         per_field.setdefault(entry.field_name, Counter())[entry.disposition] += 1
     for field_name in sorted(per_field):
         counts = per_field[field_name]
-        lines.append(
-            f"{field_name:34s} {counts[MIGRATE]:8d} "
-            f"{counts[GOVERNANCE]:11d} {counts[RAW_MATERIAL]:5d}"
-        )
+        lines.append(f"{field_name:34s} {counts[MIGRATE]:8d} {counts[GOVERNANCE]:11d} {counts[RAW_MATERIAL]:5d}")
     lines.append("")
     totals = inv.by_disposition()
-    lines.append(
-        f"{'TOTAL':34s} {totals[MIGRATE]:8d} "
-        f"{totals[GOVERNANCE]:11d} {totals[RAW_MATERIAL]:5d}"
-    )
+    lines.append(f"{'TOTAL':34s} {totals[MIGRATE]:8d} {totals[GOVERNANCE]:11d} {totals[RAW_MATERIAL]:5d}")
     return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
-    parser.add_argument(
-        "--doctrine-root", type=Path, default=_DOCTRINE_ROOT, help="tree to scan"
-    )
+    parser.add_argument("--doctrine-root", type=Path, default=_DOCTRINE_ROOT, help="tree to scan")
     args = parser.parse_args(argv)
 
     inv = collect(args.doctrine_root)

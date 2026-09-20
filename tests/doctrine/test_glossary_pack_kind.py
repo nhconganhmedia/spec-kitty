@@ -29,16 +29,10 @@ class TestDerivedMachineryFree:
     """FR-010: token/classification/activation-key derive with no special-casing."""
 
     def test_from_operator_token_resolves_hyphenated(self) -> None:
-        assert (
-            ArtifactKind.from_operator_token("glossary-pack")
-            is ArtifactKind.GLOSSARY_PACK
-        )
+        assert ArtifactKind.from_operator_token("glossary-pack") is ArtifactKind.GLOSSARY_PACK
 
     def test_from_operator_token_resolves_underscored(self) -> None:
-        assert (
-            ArtifactKind.from_operator_token("glossary_pack")
-            is ArtifactKind.GLOSSARY_PACK
-        )
+        assert ArtifactKind.from_operator_token("glossary_pack") is ArtifactKind.GLOSSARY_PACK
 
     def test_token_in_charter_kind_tokens(self) -> None:
         assert "glossary-pack" in CHARTER_KIND_TOKENS

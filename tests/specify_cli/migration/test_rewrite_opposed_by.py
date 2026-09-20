@@ -250,12 +250,8 @@ class TestIdempotency:
         first = rewrite_opposed_by_pack(pack_root, dry_run=False)
         assert len(first.rewritten) == 2
 
-        directive_graph_after_first = (pack_root / "directive.graph.yaml").read_text(
-            encoding="utf-8"
-        )
-        paradigm_graph_after_first = (pack_root / "paradigm.graph.yaml").read_text(
-            encoding="utf-8"
-        )
+        directive_graph_after_first = (pack_root / "directive.graph.yaml").read_text(encoding="utf-8")
+        paradigm_graph_after_first = (pack_root / "paradigm.graph.yaml").read_text(encoding="utf-8")
 
         second = rewrite_opposed_by_pack(pack_root, dry_run=False)
 
@@ -263,12 +259,8 @@ class TestIdempotency:
         assert not second.has_errors
 
         # Graph fragments are byte-identical -- no duplicate edges/nodes appended.
-        assert (
-            pack_root / "directive.graph.yaml"
-        ).read_text(encoding="utf-8") == directive_graph_after_first
-        assert (
-            pack_root / "paradigm.graph.yaml"
-        ).read_text(encoding="utf-8") == paradigm_graph_after_first
+        assert (pack_root / "directive.graph.yaml").read_text(encoding="utf-8") == directive_graph_after_first
+        assert (pack_root / "paradigm.graph.yaml").read_text(encoding="utf-8") == paradigm_graph_after_first
 
     def test_dry_run_after_real_run_reports_nothing_pending(self, tmp_path: Path) -> None:
         pack_root = _make_tension_pack(tmp_path)
@@ -306,9 +298,7 @@ class TestUnclassifiable:
         data = yaml.safe_load(directive_a.read_text(encoding="utf-8"))
         assert "opposed_by" in data
 
-    def test_malformed_entry_missing_id_is_unclassifiable_not_a_crash(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_entry_missing_id_is_unclassifiable_not_a_crash(self, tmp_path: Path) -> None:
         pack_root = tmp_path / "pack"
         _write_yaml(
             pack_root / "directives" / "DIRECTIVE_A.directive.yaml",
@@ -329,9 +319,7 @@ class TestUnclassifiable:
 
         pack_root = _make_unclassifiable_pack(tmp_path)
         runner = CliRunner()
-        result = runner.invoke(
-            app, ["migrate", "rewrite-opposed-by", "--pack", str(pack_root)]
-        )
+        result = runner.invoke(app, ["migrate", "rewrite-opposed-by", "--pack", str(pack_root)])
 
         assert result.exit_code == 1
         # No raw Pydantic ValidationError traceback leaks to the operator.

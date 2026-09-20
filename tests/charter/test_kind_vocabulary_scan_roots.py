@@ -44,9 +44,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
     ],
     ids=["pack-root-not-found", "no-content-dir"],
 )
-def test_scan_roots_degrades_when_built_in_dir_unresolvable(
-    monkeypatch: pytest.MonkeyPatch, exc: Exception
-) -> None:
+def test_scan_roots_degrades_when_built_in_dir_unresolvable(monkeypatch: pytest.MonkeyPatch, exc: Exception) -> None:
     """``built_in_dir`` raising must be swallowed, not propagated.
 
     With no org/layer roots supplied, the result is empty -- the built-in dir
@@ -68,9 +66,7 @@ def test_scan_roots_degrades_when_built_in_dir_unresolvable(
     assert result == []
 
 
-def test_scan_roots_still_returns_org_root_when_built_in_unresolvable(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_scan_roots_still_returns_org_root_when_built_in_unresolvable(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Fail-soft on built-in must not discard a legitimate org root."""
 
     def _raise(_kind: ArtifactKind) -> Path:
@@ -98,25 +94,19 @@ def test_scan_roots_still_returns_org_root_when_built_in_unresolvable(
 
 
 class TestBuiltInScanDirHelper:
-    def test_returns_none_when_built_in_dir_raises(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_returns_none_when_built_in_dir_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def _raise(_kind: ArtifactKind) -> Path:
             raise PackRootNotFound("built-in")
 
         monkeypatch.setattr(kind_vocabulary, "built_in_dir", _raise)
         assert _built_in_scan_dir(ArtifactKind.TACTIC) is None
 
-    def test_returns_none_when_resolved_dir_does_not_exist(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_returns_none_when_resolved_dir_does_not_exist(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         missing = tmp_path / "does-not-exist"
         monkeypatch.setattr(kind_vocabulary, "built_in_dir", lambda _kind: missing)
         assert _built_in_scan_dir(ArtifactKind.TACTIC) is None
 
-    def test_returns_recursive_pair_when_dir_exists(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_returns_recursive_pair_when_dir_exists(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         present = tmp_path / "built-in"
         present.mkdir()
         monkeypatch.setattr(kind_vocabulary, "built_in_dir", lambda _kind: present)
@@ -154,9 +144,7 @@ class TestOrgScanDirsHelper:
         flat.mkdir(parents=True)
         assert _org_scan_dirs(ArtifactKind.TACTIC, [tmp_path]) == [(flat, True)]
 
-    def test_flat_only_resolves_via_resolve_artifact_urn_without_raising(
-        self, tmp_path: Path
-    ) -> None:
+    def test_flat_only_resolves_via_resolve_artifact_urn_without_raising(self, tmp_path: Path) -> None:
         """User Story 1 Acceptance Scenario 2: a flat-only fixture (no
         ``built-in/`` directory anywhere under the org root) resolves via
         :func:`resolve_artifact_urn` and does not raise
@@ -166,9 +154,7 @@ class TestOrgScanDirsHelper:
         directives_dir = org_root / ArtifactKind.DIRECTIVE.plural
         directives_dir.mkdir(parents=True)
         stem = "flat-only-fixture-directive"
-        (directives_dir / f"{stem}.directive.yaml").write_text(
-            "id: FLAT_ONLY_FIXTURE_DIRECTIVE\n", encoding="utf-8"
-        )
+        (directives_dir / f"{stem}.directive.yaml").write_text("id: FLAT_ONLY_FIXTURE_DIRECTIVE\n", encoding="utf-8")
         doctrine_root = tmp_path / "doctrine-root-unused"
 
         urn = resolve_artifact_urn(
@@ -228,12 +214,8 @@ class TestOrgScanDirsHelper:
         legacy_dir = flat_dir / "built-in"
         flat_dir.mkdir(parents=True)
         legacy_dir.mkdir(parents=True)
-        (flat_dir / f"{stem}.directive.yaml").write_text(
-            "id: DIRECTIVE_FLAT\n", encoding="utf-8"
-        )
-        (legacy_dir / f"{stem}.directive.yaml").write_text(
-            "id: DIRECTIVE_LEGACY\n", encoding="utf-8"
-        )
+        (flat_dir / f"{stem}.directive.yaml").write_text("id: DIRECTIVE_FLAT\n", encoding="utf-8")
+        (legacy_dir / f"{stem}.directive.yaml").write_text("id: DIRECTIVE_LEGACY\n", encoding="utf-8")
         doctrine_root = tmp_path / "doctrine-root-unused"
 
         urn = resolve_artifact_urn(
@@ -249,9 +231,7 @@ class TestOrgScanDirsHelper:
         "root_order",
         ["flat_root_first", "legacy_root_first"],
     )
-    def test_multi_root_precedence_flat_wins_regardless_of_root_order(
-        self, tmp_path: Path, root_order: str
-    ) -> None:
+    def test_multi_root_precedence_flat_wins_regardless_of_root_order(self, tmp_path: Path, root_order: str) -> None:
         """PR-BOUNDARY-002 regression (pre-merge adversarial squad, severity 3).
 
         FR-001's precedence rule ("flat-layout file wins") is worded *for one
@@ -287,17 +267,9 @@ class TestOrgScanDirsHelper:
         flat_dir = flat_root / ArtifactKind.DIRECTIVE.plural
         legacy_dir.mkdir(parents=True)
         flat_dir.mkdir(parents=True)
-        (legacy_dir / f"{stem}.directive.yaml").write_text(
-            "id: DIRECTIVE_LEGACY_A\n", encoding="utf-8"
-        )
-        (flat_dir / f"{stem}.directive.yaml").write_text(
-            "id: DIRECTIVE_FLAT_B\n", encoding="utf-8"
-        )
-        org_roots = (
-            [flat_root, legacy_root]
-            if root_order == "flat_root_first"
-            else [legacy_root, flat_root]
-        )
+        (legacy_dir / f"{stem}.directive.yaml").write_text("id: DIRECTIVE_LEGACY_A\n", encoding="utf-8")
+        (flat_dir / f"{stem}.directive.yaml").write_text("id: DIRECTIVE_FLAT_B\n", encoding="utf-8")
+        org_roots = [flat_root, legacy_root] if root_order == "flat_root_first" else [legacy_root, flat_root]
         doctrine_root = tmp_path / "doctrine-root-unused"
 
         urn = resolve_artifact_urn(
@@ -312,9 +284,7 @@ class TestOrgScanDirsHelper:
 
 class TestLayerCandidateDirHelper:
     def test_project_layer_uses_project_kind_dirs_mapping(self, tmp_path: Path) -> None:
-        expected = tmp_path / "doctrine" / kind_vocabulary.PROJECT_KIND_DIRS.get(
-            ArtifactKind.TACTIC, ArtifactKind.TACTIC.plural
-        )
+        expected = tmp_path / "doctrine" / kind_vocabulary.PROJECT_KIND_DIRS.get(ArtifactKind.TACTIC, ArtifactKind.TACTIC.plural)
         assert _layer_candidate_dir(ArtifactKind.TACTIC, "project", tmp_path) == expected
 
     def test_non_project_layer_uses_plural_subdir(self, tmp_path: Path) -> None:
@@ -333,6 +303,4 @@ class TestLayerScanDirsHelper:
         """WP02: layer dirs recurse via the shared authority (C-001)."""
         candidate = tmp_path / "doctrine" / ArtifactKind.TACTIC.plural / "org"
         candidate.mkdir(parents=True)
-        assert _layer_scan_dirs(ArtifactKind.TACTIC, {"org": tmp_path}) == [
-            (candidate, True)
-        ]
+        assert _layer_scan_dirs(ArtifactKind.TACTIC, {"org": tmp_path}) == [(candidate, True)]

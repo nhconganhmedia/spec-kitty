@@ -40,6 +40,7 @@ from specify_cli.runtime.resolver import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _create_file(path: Path, content: str = "placeholder") -> Path:
     """Create a file (and any missing parent dirs), return its path."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -63,9 +64,7 @@ def _reset_nudge():
 class TestGlobalTierResolution:
     """Verify GLOBAL (non-mission) tier resolves from ~/.kittify/{subdir}/{name}."""
 
-    def test_global_non_mission_resolves_when_no_mission_specific(
-        self, tmp_path: Path
-    ) -> None:
+    def test_global_non_mission_resolves_when_no_mission_specific(self, tmp_path: Path) -> None:
         """When only ~/.kittify/templates/{name} exists, GLOBAL tier wins."""
         project = tmp_path / "project"
         (project / ".kittify").mkdir(parents=True)
@@ -93,9 +92,7 @@ class TestGlobalTierResolution:
         assert result.path == global_path
         assert result.path.read_text() == "global non-mission template"
 
-    def test_global_mission_takes_precedence_over_global_non_mission(
-        self, tmp_path: Path
-    ) -> None:
+    def test_global_mission_takes_precedence_over_global_non_mission(self, tmp_path: Path) -> None:
         """~/.kittify/missions/{m}/templates/ wins over ~/.kittify/templates/."""
         project = tmp_path / "project"
         (project / ".kittify").mkdir(parents=True)
@@ -127,9 +124,7 @@ class TestGlobalTierResolution:
         assert result.tier == ResolutionTier.GLOBAL_MISSION
         assert result.path == mission_path
 
-    def test_global_non_mission_takes_precedence_over_package(
-        self, tmp_path: Path
-    ) -> None:
+    def test_global_non_mission_takes_precedence_over_package(self, tmp_path: Path) -> None:
         """~/.kittify/templates/ wins over package defaults."""
         project = tmp_path / "project"
         (project / ".kittify").mkdir(parents=True)
@@ -196,9 +191,7 @@ class TestGlobalTierResolution:
 class TestLegacyWarningSuppression:
     """After global runtime is configured, legacy warnings become nudges."""
 
-    def test_no_deprecation_warning_when_global_runtime_configured(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_deprecation_warning_when_global_runtime_configured(self, tmp_path: Path) -> None:
         """When ~/.kittify/cache/version.lock exists, no DeprecationWarning."""
         project = tmp_path / "project"
         kittify = project / ".kittify"
@@ -224,14 +217,10 @@ class TestLegacyWarningSuppression:
 
         assert result.tier == ResolutionTier.LEGACY
         # No DeprecationWarning should have been emitted
-        deprecation_warnings = [
-            x for x in w if issubclass(x.category, DeprecationWarning)
-        ]
+        deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
         assert len(deprecation_warnings) == 0
 
-    def test_deprecation_warning_when_global_runtime_not_configured(
-        self, tmp_path: Path
-    ) -> None:
+    def test_deprecation_warning_when_global_runtime_not_configured(self, tmp_path: Path) -> None:
         """When ~/.kittify/ has no version.lock, DeprecationWarning is emitted."""
         project = tmp_path / "project"
         kittify = project / ".kittify"
@@ -257,9 +246,7 @@ class TestLegacyWarningSuppression:
 
         assert result.tier == ResolutionTier.LEGACY
         # DeprecationWarning SHOULD have been emitted
-        deprecation_warnings = [
-            x for x in w if issubclass(x.category, DeprecationWarning)
-        ]
+        deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
         assert len(deprecation_warnings) >= 1
         assert "spec-kitty migrate" in str(deprecation_warnings[0].message)
 
@@ -272,9 +259,7 @@ class TestLegacyWarningSuppression:
 class TestMigrateNudge:
     """One-time stderr nudge when legacy assets resolve post-migration."""
 
-    def test_nudge_printed_once_to_stderr(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_nudge_printed_once_to_stderr(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         """After migration, legacy resolution prints a single nudge to stderr."""
         project = tmp_path / "project"
         kittify = project / ".kittify"
@@ -303,9 +288,7 @@ class TestMigrateNudge:
         assert captured.err.count("spec-kitty migrate") == 1
         assert "global runtime" in captured.err.lower() or "~/.kittify/" in captured.err
 
-    def test_no_nudge_when_no_legacy_assets(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_no_nudge_when_no_legacy_assets(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         """No nudge when resolution doesn't hit legacy tier."""
         project = tmp_path / "project"
         (project / ".kittify").mkdir(parents=True)
@@ -449,9 +432,7 @@ class TestFullResolutionChainOrder:
         mission = "software-dev"
 
         # Tiers 3-5 (no override or legacy)
-        gm_path = _create_file(
-            global_home / "missions" / mission / "templates" / name, "global-mission"
-        )
+        gm_path = _create_file(global_home / "missions" / mission / "templates" / name, "global-mission")
         _create_file(global_home / "templates" / name, "global")
         _create_file(pkg_root / mission / "templates" / name, "package")
 
@@ -601,9 +582,7 @@ class TestProjectResolverGlobalPaths:
 
         assert result is None
 
-    def test_global_mission_takes_precedence_over_global_generic(
-        self, tmp_path: Path
-    ) -> None:
+    def test_global_mission_takes_precedence_over_global_generic(self, tmp_path: Path) -> None:
         """~/.kittify/missions/{key}/templates/ beats ~/.kittify/templates/."""
         from specify_cli.core.project_resolver import resolve_template_path
 
@@ -658,6 +637,7 @@ class TestMigrateIdempotency:
             patch("specify_cli.runtime.bootstrap._get_cli_version", return_value="99.0.0"),
         ):
             from specify_cli.runtime.bootstrap import ensure_runtime
+
             ensure_runtime()
 
         assert (global_home / "cache" / "version.lock").exists()
@@ -683,29 +663,20 @@ class TestMigrateIdempotency:
             patch("specify_cli.runtime.bootstrap._get_cli_version", return_value="99.0.0"),
         ):
             from specify_cli.runtime.bootstrap import ensure_runtime
+
             ensure_runtime()
 
             # Capture state after first run
-            state_1 = {
-                str(p.relative_to(global_home)): p.read_text()
-                for p in global_home.rglob("*")
-                if p.is_file()
-            }
+            state_1 = {str(p.relative_to(global_home)): p.read_text() for p in global_home.rglob("*") if p.is_file()}
 
             ensure_runtime()
 
             # Capture state after second run
-            state_2 = {
-                str(p.relative_to(global_home)): p.read_text()
-                for p in global_home.rglob("*")
-                if p.is_file()
-            }
+            state_2 = {str(p.relative_to(global_home)): p.read_text() for p in global_home.rglob("*") if p.is_file()}
 
         assert state_1 == state_2
 
-    def test_migrate_then_resolve_no_warnings(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_migrate_then_resolve_no_warnings(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """After migration, template resolution produces zero warnings."""
         global_home = tmp_path / "global_home"
         # Set up global runtime as if ensure_runtime ran
@@ -725,9 +696,7 @@ class TestMigrateIdempotency:
             result = resolve_template("spec-template.md", project, mission="software-dev")
 
         assert result.tier == ResolutionTier.GLOBAL_MISSION
-        deprecation_warnings = [
-            x for x in w if issubclass(x.category, DeprecationWarning)
-        ]
+        deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
         assert len(deprecation_warnings) == 0
 
 
@@ -750,6 +719,4 @@ class TestCredentialPathDecision:
         home = get_kittify_home()
         # The credential path should NOT be under ~/.kittify/
         cred_path = Path.home() / ".spec-kitty" / "credentials"
-        assert not str(cred_path).startswith(str(home)), (
-            "Credentials must NOT be under ~/.kittify/ -- different security model"
-        )
+        assert not str(cred_path).startswith(str(home)), "Credentials must NOT be under ~/.kittify/ -- different security model"

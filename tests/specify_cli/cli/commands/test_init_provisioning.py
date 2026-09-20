@@ -134,9 +134,7 @@ def test_fresh_init_writes_mission_type_activations_from_default_pack(
 # ---------------------------------------------------------------------------
 
 
-def test_provision_raises_when_default_pack_missing(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_provision_raises_when_default_pack_missing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """C-A4/FR-011: a missing default.yaml raises, never an empty/implicit set."""
 
     def _raise_missing(name: str) -> Path:
@@ -148,18 +146,14 @@ def test_provision_raises_when_default_pack_missing(
         provision_default_mission_type_activations(tmp_path / "project")
 
 
-def test_provision_raises_when_pack_lacks_mission_type_key(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_provision_raises_when_pack_lacks_mission_type_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """C-A4/FR-011: a malformed default.yaml (no activation key) also fails closed."""
     fixture_pack = tmp_path / "fixture-default.yaml"
     dump_yaml = YAML()
     with fixture_pack.open("w", encoding="utf-8") as fh:
         dump_yaml.dump({"activated_kinds": []}, fh)
 
-    monkeypatch.setattr(
-        default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack
-    )
+    monkeypatch.setattr(default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack)
 
     with pytest.raises(DefaultCharterPackMissingError):
         provision_default_mission_type_activations(tmp_path / "project")
@@ -196,9 +190,7 @@ def test_fresh_init_fails_closed_when_default_pack_missing(
 # ---------------------------------------------------------------------------
 
 
-def test_provision_copies_fixture_pack_verbatim_not_disk_roster(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_provision_copies_fixture_pack_verbatim_not_disk_roster(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The provisioned config matches the FIXTURE pack, not the disk-scanned roster.
 
     ``default.yaml`` currently authors exactly the disk roster
@@ -213,9 +205,7 @@ def test_provision_copies_fixture_pack_verbatim_not_disk_roster(
     fixture_types = ["software-dev", "totally-custom-fixture-type"]
     _write_pack_fixture(fixture_pack, fixture_types)
 
-    monkeypatch.setattr(
-        default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack
-    )
+    monkeypatch.setattr(default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack)
 
     project = tmp_path / "project"
     project.mkdir()
@@ -243,15 +233,11 @@ def test_provision_copies_fixture_pack_verbatim_not_disk_roster(
 # ---------------------------------------------------------------------------
 
 
-def test_provision_is_idempotent_and_preserves_custom_entry(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_provision_is_idempotent_and_preserves_custom_entry(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Re-running provisioning is byte-identical and keeps a custom entry."""
     fixture_pack = tmp_path / "fixture-default.yaml"
     _write_pack_fixture(fixture_pack, ["software-dev", "documentation"])
-    monkeypatch.setattr(
-        default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack
-    )
+    monkeypatch.setattr(default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack)
 
     project = tmp_path / "project"
     project.mkdir()
@@ -283,15 +269,11 @@ def test_provision_is_idempotent_and_preserves_custom_entry(
     assert "software-dev" in final_data["mission_type_activations"]
 
 
-def test_authored_empty_activations_not_overwritten(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_authored_empty_activations_not_overwritten(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """C-008/C-A2: an authored empty list must not trigger provisioning."""
     fixture_pack = tmp_path / "fixture-default.yaml"
     _write_pack_fixture(fixture_pack, ["software-dev"])
-    monkeypatch.setattr(
-        default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack
-    )
+    monkeypatch.setattr(default_charter, "resolve_builtin_pack_path", lambda name: fixture_pack)
 
     project = tmp_path / "project"
     kittify = project / ".kittify"
@@ -342,9 +324,7 @@ def test_rc35_default_charter_pack_migration_identity_and_idempotence_unchanged(
 
     second = migration.apply(tmp_path)
     assert second.success is True
-    assert second.changes_made == [
-        "All activation keys already present; no changes needed"
-    ]
+    assert second.changes_made == ["All activation keys already present; no changes needed"]
 
 
 def test_rc35_activate_builtin_mission_types_migration_identity_and_idempotence_unchanged(
@@ -373,6 +353,4 @@ def test_rc35_activate_builtin_mission_types_migration_identity_and_idempotence_
 
     second = migration.apply(tmp_path)
     assert second.success is True
-    assert second.changes_made == [
-        "mission_type_activations already present; no changes needed"
-    ]
+    assert second.changes_made == ["mission_type_activations already present; no changes needed"]

@@ -179,14 +179,10 @@ def test_post_condition_no_op_when_manifest_already_consistent(tmp_path: Path) -
 
     _seed_manifest(tmp_path, built_in_only=True)
     apply_post_condition(tmp_path, has_project_graph=False)
-    manifest_before = (
-        tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
-    ).read_text(encoding="utf-8")
+    manifest_before = (tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml").read_text(encoding="utf-8")
 
     apply_post_condition(tmp_path, has_project_graph=False)
-    manifest_after = (
-        tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
-    ).read_text(encoding="utf-8")
+    manifest_after = (tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml").read_text(encoding="utf-8")
     assert manifest_before == manifest_after
 
 
@@ -275,7 +271,5 @@ def test_post_condition_preserves_bundle_content_hash_through_mutation_branch(
 
     manifest_path = tmp_path / ".kittify" / "charter" / "synthesis-manifest.yaml"
     reloaded = load_yaml(manifest_path)
-    assert reloaded.bundle_content_hash == seeded_hash, (
-        "BLOCKER-1: bundle_content_hash did not survive the built_in_only flip"
-    )
+    assert reloaded.bundle_content_hash == seeded_hash, "BLOCKER-1: bundle_content_hash did not survive the built_in_only flip"
     verify_manifest_hash(reloaded)

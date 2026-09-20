@@ -80,9 +80,7 @@ class TestMissionTypeUrnCandidate:
 
     def test_every_shipped_mission_type_id_matches_hyphen_form(self) -> None:
         for mission_type_id in builtin_mission_type_ids():
-            assert mission_type_urn_candidate(mission_type_id) == (
-                f"mission_type:{mission_type_id}"
-            )
+            assert mission_type_urn_candidate(mission_type_id) == (f"mission_type:{mission_type_id}")
 
     def test_underscore_form_matches_the_same_urn(self) -> None:
         """`_normalize_section_selector` treats hyphen/underscore as equivalent."""
@@ -117,9 +115,7 @@ class TestMissionTypeEvidenceProducesAnEdge:
         sections = resolve_sections(interview_snapshot)
         targets = build_targets(interview_snapshot, sections, drg_snapshot)
 
-        mission_type_target = next(
-            t for t in targets if t.source_section == "mission_type"
-        )
+        mission_type_target = next(t for t in targets if t.source_section == "mission_type")
         assert mission_type_target.source_urns == ("mission_type:software-dev",)
 
     def test_underscore_form_also_wires_the_edge(self) -> None:
@@ -136,9 +132,7 @@ class TestMissionTypeEvidenceProducesAnEdge:
         sections = resolve_sections(interview_snapshot)
         targets = build_targets(interview_snapshot, sections, drg_snapshot)
 
-        mission_type_target = next(
-            t for t in targets if t.source_section == "mission_type"
-        )
+        mission_type_target = next(t for t in targets if t.source_section == "mission_type")
         assert mission_type_target.source_urns == ("mission_type:software-dev",)
 
     def test_overlay_contains_the_edge_not_an_empty_list(self) -> None:
@@ -165,16 +159,10 @@ class TestMissionTypeEvidenceProducesAnEdge:
                 )
             ]
         )
-        overlay = emit_project_layer(
-            targets, spec_kitty_version="test", built_in_drg=built_in_drg
-        )
+        overlay = emit_project_layer(targets, spec_kitty_version="test", built_in_drg=built_in_drg)
 
-        mission_type_target = next(
-            t for t in targets if t.source_section == "mission_type"
-        )
-        edges_from_target = [
-            e for e in overlay.edges if e.source == mission_type_target.urn
-        ]
+        mission_type_target = next(t for t in targets if t.source_section == "mission_type")
+        edges_from_target = [e for e in overlay.edges if e.source == mission_type_target.urn]
         assert edges_from_target != []
         edge = edges_from_target[0]
         assert edge.target == "mission_type:research"
@@ -202,9 +190,7 @@ class TestMissionTypeEvidenceProducesAnEdge:
                 )
             ]
         )
-        overlay = emit_project_layer(
-            targets, spec_kitty_version="test", built_in_drg=built_in_drg
-        )
+        overlay = emit_project_layer(targets, spec_kitty_version="test", built_in_drg=built_in_drg)
 
         merged = merge_layers(built_in_drg, overlay)
         assert validate_graph(merged) == []
@@ -230,9 +216,7 @@ class TestNoFabricationForFreeTextSections:
             ("documentation_policy", "all public APIs must be documented"),
         ],
     )
-    def test_free_text_section_never_populates_source_urns(
-        self, section: str, answer: str
-    ) -> None:
+    def test_free_text_section_never_populates_source_urns(self, section: str, answer: str) -> None:
         interview_snapshot = {section: answer}
         drg_snapshot: dict = {"nodes": [], "edges": [], "schema_version": "1.0"}
 
@@ -252,18 +236,14 @@ class TestNoFabricationForFreeTextSections:
             ("risk_appetite", "moderate"),
         ],
     )
-    def test_free_text_section_overlay_edges_stay_empty(
-        self, section: str, answer: str
-    ) -> None:
+    def test_free_text_section_overlay_edges_stay_empty(self, section: str, answer: str) -> None:
         interview_snapshot = {section: answer}
         drg_snapshot: dict = {"nodes": [], "edges": [], "schema_version": "1.0"}
 
         sections = resolve_sections(interview_snapshot)
         targets = build_targets(interview_snapshot, sections, drg_snapshot)
 
-        overlay = emit_project_layer(
-            targets, spec_kitty_version="test", built_in_drg=_empty_built_in_drg()
-        )
+        overlay = emit_project_layer(targets, spec_kitty_version="test", built_in_drg=_empty_built_in_drg())
         assert overlay.edges == []
 
 
@@ -287,14 +267,10 @@ class TestMissionTypeEvidenceWithheldWithoutCorroboration:
         sections = resolve_sections(interview_snapshot)
         targets = build_targets(interview_snapshot, sections, drg_snapshot)  # must not raise
 
-        mission_type_target = next(
-            t for t in targets if t.source_section == "mission_type"
-        )
+        mission_type_target = next(t for t in targets if t.source_section == "mission_type")
         assert mission_type_target.source_urns == ()
 
-        overlay = emit_project_layer(
-            targets, spec_kitty_version="test", built_in_drg=_empty_built_in_drg()
-        )
+        overlay = emit_project_layer(targets, spec_kitty_version="test", built_in_drg=_empty_built_in_drg())
         assert overlay.edges == []
 
     def test_answer_not_naming_a_shipped_id_is_never_evidence(self) -> None:
@@ -310,9 +286,7 @@ class TestMissionTypeEvidenceWithheldWithoutCorroboration:
         sections = resolve_sections(interview_snapshot)
         targets = build_targets(interview_snapshot, sections, drg_snapshot)
 
-        mission_type_target = next(
-            t for t in targets if t.source_section == "mission_type"
-        )
+        mission_type_target = next(t for t in targets if t.source_section == "mission_type")
         assert mission_type_target.source_urns == ()
 
 

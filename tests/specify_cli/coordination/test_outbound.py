@@ -47,7 +47,11 @@ COORD_BRANCH = f"kitty/mission-{MISSION_SLUG}-{MID8}"
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True,
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
@@ -102,9 +106,7 @@ def test_saas_emits_after_commit_success(repo: Path, mock_saas_sink: Any) -> Non
 
     # After the context manager exits successfully, the sink should
     # have received exactly one call.
-    assert mock_saas_sink.call_count == 1, (
-        f"expected 1 SaaS emission; got {mock_saas_sink.call_count}"
-    )
+    assert mock_saas_sink.call_count == 1, f"expected 1 SaaS emission; got {mock_saas_sink.call_count}"
     assert mock_saas_sink.last_kwargs["metadata"].causation_id == event.event_id
     assert mock_saas_sink.last_kwargs["wp_id"] == event.wp_id
     assert mock_saas_sink.last_kwargs["from_lane"] == str(event.from_lane)
@@ -112,7 +114,8 @@ def test_saas_emits_after_commit_success(repo: Path, mock_saas_sink: Any) -> Non
 
 
 def test_saas_emission_preserves_mission_slug_and_repo_root(
-    repo: Path, mock_saas_sink: Any,
+    repo: Path,
+    mock_saas_sink: Any,
 ) -> None:
     """The deferred call routes through the canonical WPStatusChanged kwargs."""
     event = _make_event()
@@ -168,22 +171,22 @@ def test_saas_does_not_emit_on_commit_failure(
 
     event = _make_event()
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="test_outbound_rollback",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="test_outbound_rollback",
+        ) as txn,
+    ):
         txn.append_event(event)
         queue_saas_emission(txn, event)
-            # __exit__'s implicit commit will fail because of the hook;
-            # BookkeepingCommitFailed propagates and the deferred queue
-            # is intentionally SKIPPED.
+        # __exit__'s implicit commit will fail because of the hook;
+        # BookkeepingCommitFailed propagates and the deferred queue
+        # is intentionally SKIPPED.
 
     # Critical assertion: no SaaS emission for a rolled-back commit.
-    assert mock_saas_sink.call_count == 0, (
-        f"NFR-009 violated: SaaS sink received {mock_saas_sink.call_count} "
-        f"emission(s) after a forced commit failure; expected 0"
-    )
+    assert mock_saas_sink.call_count == 0, f"NFR-009 violated: SaaS sink received {mock_saas_sink.call_count} emission(s) after a forced commit failure; expected 0"

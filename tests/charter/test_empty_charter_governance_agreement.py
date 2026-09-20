@@ -113,9 +113,7 @@ def test_empty_charter_dispatch_governance_block_has_no_directive_leak(
     # Contract: empty, or exactly generic-agent's own cited directives --
     # NEVER the project catalog-fallback (currently ~29 built-in ids).
     assert set(directive_lines) <= _GENERIC_AGENT_OWN_DIRECTIVES, (
-        "empty-charter generic-agent dispatch must not leak the project "
-        f"catalog-fallback directive canon; got {len(directive_lines)} ids: "
-        f"{directive_lines}"
+        f"empty-charter generic-agent dispatch must not leak the project catalog-fallback directive canon; got {len(directive_lines)} ids: {directive_lines}"
     )
 
     # No specialist marker: no OTHER agent profile's citation surfaces here.

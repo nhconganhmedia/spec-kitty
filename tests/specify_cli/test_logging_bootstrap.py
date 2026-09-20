@@ -52,6 +52,7 @@ def _isolated_root_logger() -> Generator[None, None, None]:
     original_level = root.level
 
     import logging as _logging
+
     try:
         yield
     finally:
@@ -103,9 +104,7 @@ class TestInstallCliLoggingBootstrap:
                 warnings.simplefilter("always")
                 warnings.warn("test-capturewarnings-check", UserWarning, stacklevel=1)
             output = buf.getvalue()
-            assert "test-capturewarnings-check" in output, (
-                f"captureWarnings should route warn() to py.warnings logger; got: {output!r}"
-            )
+            assert "test-capturewarnings-check" in output, f"captureWarnings should route warn() to py.warnings logger; got: {output!r}"
         finally:
             warn_logger.removeHandler(test_handler)
 
@@ -142,8 +141,7 @@ class TestInstallCliLoggingBootstrap:
         handler_count_after = len(root.handlers)
 
         assert handler_count_after == handler_count_before, (
-            "bootstrap must not add a handler when one already exists; "
-            f"before={handler_count_before}, after={handler_count_after}"
+            f"bootstrap must not add a handler when one already exists; before={handler_count_before}, after={handler_count_after}"
         )
 
     def test_installed_handler_level_is_warning(self) -> None:
@@ -160,10 +158,7 @@ class TestInstallCliLoggingBootstrap:
         assert installed, "expected at least one bootstrap-tagged handler"
 
         handler = installed[0]
-        assert handler.level == logging.WARNING, (
-            f"bootstrap handler level must be WARNING ({logging.WARNING}); "
-            f"got {handler.level}"
-        )
+        assert handler.level == logging.WARNING, f"bootstrap handler level must be WARNING ({logging.WARNING}); got {handler.level}"
 
     def test_root_level_set_to_at_most_warning_when_unset(self) -> None:
         """Root logger level is lowered to WARNING when previously NOTSET.
@@ -180,10 +175,7 @@ class TestInstallCliLoggingBootstrap:
 
         install_cli_logging_bootstrap()
 
-        assert root.level <= logging.WARNING, (
-            f"root logger level should be set to at most WARNING after bootstrap; "
-            f"got {root.level}"
-        )
+        assert root.level <= logging.WARNING, f"root logger level should be set to at most WARNING after bootstrap; got {root.level}"
 
     def test_warning_record_reaches_handler_output(self) -> None:
         """A WARNING-level log record must reach the installed handler.
@@ -208,9 +200,7 @@ class TestInstallCliLoggingBootstrap:
         test_logger.warning("Charter catalog miss for styleguide:probe-id; cause=missing_artifact")
 
         output = buf.getvalue()
-        assert "Charter catalog miss" in output, (
-            f"WARNING record not captured; got: {output!r}"
-        )
+        assert "Charter catalog miss" in output, f"WARNING record not captured; got: {output!r}"
         assert "probe-id" in output
 
     def test_debug_record_does_not_reach_handler(self) -> None:
@@ -246,8 +236,7 @@ class TestInstallCliLoggingBootstrap:
         count_after_second = len(logging.getLogger().handlers)
 
         assert count_after_first == count_after_second, (
-            "second call to install_cli_logging_bootstrap() must not add handlers; "
-            f"first={count_after_first}, second={count_after_second}"
+            f"second call to install_cli_logging_bootstrap() must not add handlers; first={count_after_first}, second={count_after_second}"
         )
 
     def test_json_mode_silences_logs_and_warnings(self) -> None:
@@ -273,9 +262,7 @@ class TestInstallCliLoggingBootstrap:
             warnings.simplefilter("always")
             warnings.warn("warn-must-not-appear", UserWarning, stacklevel=1)
 
-        assert buf.getvalue() == "", (
-            f"json_mode must silence diagnostics on stderr; got: {buf.getvalue()!r}"
-        )
+        assert buf.getvalue() == "", f"json_mode must silence diagnostics on stderr; got: {buf.getvalue()!r}"
 
     def test_json_mode_installs_handler_to_suppress_lastresort(self) -> None:
         """With no pre-existing handler, json_mode installs one so Python's
@@ -288,9 +275,7 @@ class TestInstallCliLoggingBootstrap:
         install_cli_logging_bootstrap(json_mode=True)
 
         assert root.handlers, "json_mode must install a handler to suppress lastResort"
-        assert all(
-            getattr(h, _HANDLER_SENTINEL, False) for h in root.handlers
-        ), "the installed json-mode handler should be bootstrap-tagged"
+        assert all(getattr(h, _HANDLER_SENTINEL, False) for h in root.handlers), "the installed json-mode handler should be bootstrap-tagged"
 
     def test_default_mode_still_emits_warnings(self) -> None:
         """Sanity/non-vacuity: default (non-json) mode still surfaces WARNINGs —

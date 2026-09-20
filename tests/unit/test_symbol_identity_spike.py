@@ -104,9 +104,7 @@ _ARTIFACT_KIND_DIRECTIVES = _SRC_ROOT / "charter" / "offering" / "directives" / 
 _ARTIFACT_KIND_PROCEDURES = _SRC_ROOT / "charter" / "offering" / "procedures" / "__init__.py"
 _ARTIFACT_KIND_TACTICS = _SRC_ROOT / "charter" / "offering" / "tactics" / "__init__.py"
 
-_GATE_DECISION_BRANCH_STRATEGY = (
-    _SRC_ROOT / "specify_cli" / "cli" / "commands" / "_branch_strategy_gate.py"
-)
+_GATE_DECISION_BRANCH_STRATEGY = _SRC_ROOT / "specify_cli" / "cli" / "commands" / "_branch_strategy_gate.py"
 # The original sibling fixture (``specify_cli.delivery.receivers::GateDecision``)
 # died with the sync transport (issue #5); ``retrospective.gate::GateDecision``
 # is the surviving independently-defined same-name definition.
@@ -251,12 +249,8 @@ def test_t004_reblinding_is_reproduced_by_candidate_a_on_artifact_kind() -> None
 def test_hybrid_candidate_b_distinguishes_the_artifact_kind_fanout() -> None:
     """CANDIDATE B (module-path tiebreak) restores correctness for the same
     fixture trio CANDIDATE A collapses."""
-    directives_id = hybrid_identity(
-        _read(_ARTIFACT_KIND_DIRECTIVES), "charter.offering.directives", "ArtifactKind"
-    )
-    procedures_id = hybrid_identity(
-        _read(_ARTIFACT_KIND_PROCEDURES), "charter.offering.procedures", "ArtifactKind"
-    )
+    directives_id = hybrid_identity(_read(_ARTIFACT_KIND_DIRECTIVES), "charter.offering.directives", "ArtifactKind")
+    procedures_id = hybrid_identity(_read(_ARTIFACT_KIND_PROCEDURES), "charter.offering.procedures", "ArtifactKind")
     tactics_id = hybrid_identity(_read(_ARTIFACT_KIND_TACTICS), "charter.offering.tactics", "ArtifactKind")
 
     assert directives_id is not None
@@ -271,12 +265,8 @@ def test_t004_no_reblinding_proof_with_hybrid_key() -> None:
     B against the real ArtifactKind trio, marking one sibling dead while
     another is sanctioned means the dead one is STILL CAUGHT -- no
     re-blinding."""
-    directives_id = hybrid_identity(
-        _read(_ARTIFACT_KIND_DIRECTIVES), "charter.offering.directives", "ArtifactKind"
-    )
-    procedures_id = hybrid_identity(
-        _read(_ARTIFACT_KIND_PROCEDURES), "charter.offering.procedures", "ArtifactKind"
-    )
+    directives_id = hybrid_identity(_read(_ARTIFACT_KIND_DIRECTIVES), "charter.offering.directives", "ArtifactKind")
+    procedures_id = hybrid_identity(_read(_ARTIFACT_KIND_PROCEDURES), "charter.offering.procedures", "ArtifactKind")
     tactics_id = hybrid_identity(_read(_ARTIFACT_KIND_TACTICS), "charter.offering.tactics", "ArtifactKind")
     assert directives_id and procedures_id and tactics_id
 
@@ -333,9 +323,7 @@ def test_body_hash_stable_under_blank_line_insertion() -> None:
 
     field_two: str
 '''
-    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") == body_hash_for_definition(
-        mutated, "Sample"
-    )
+    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") == body_hash_for_definition(mutated, "Sample")
 
 
 def test_body_hash_stable_under_comment_insertion() -> None:
@@ -346,9 +334,7 @@ def test_body_hash_stable_under_comment_insertion() -> None:
     # a comment describing field_two, added later
     field_two: str
 '''
-    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") == body_hash_for_definition(
-        mutated, "Sample"
-    )
+    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") == body_hash_for_definition(mutated, "Sample")
 
 
 def test_body_hash_stable_under_whitespace_reformatting() -> None:
@@ -358,9 +344,7 @@ def test_body_hash_stable_under_whitespace_reformatting() -> None:
     field_one   :    int
     field_two:str
 '''
-    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") == body_hash_for_definition(
-        mutated, "Sample"
-    )
+    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") == body_hash_for_definition(mutated, "Sample")
 
 
 def test_body_hash_changes_on_genuine_field_edit() -> None:
@@ -373,16 +357,14 @@ def test_body_hash_changes_on_genuine_field_edit() -> None:
     field_one: int
     field_two: bool
 '''
-    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") != body_hash_for_definition(
-        mutated, "Sample"
-    )
+    assert body_hash_for_definition(_BASE_SAMPLE_SRC, "Sample") != body_hash_for_definition(mutated, "Sample")
 
 
-_FSTRING_SRC = '''class Sample:
+_FSTRING_SRC = """class Sample:
     def render(self) -> str:
         value = 42
         return f"prefix {value} suffix"
-'''
+"""
 
 
 def test_code_tokens_by_line_strips_fstring_interpolation_content() -> None:
@@ -406,13 +388,9 @@ def test_body_hash_unaffected_by_fstring_interpolation_content_change() -> None:
     ``value = 42`` assignment untouched) is invisible to the body-hash --
     reusing the same interpreter-independence guarantee ``composite_key``
     already relies on elsewhere in this mission (WS1)."""
-    reinterpolated = _FSTRING_SRC.replace(
-        'f"prefix {value} suffix"', 'f"totally different wording {value + 1} here"'
-    )
+    reinterpolated = _FSTRING_SRC.replace('f"prefix {value} suffix"', 'f"totally different wording {value + 1} here"')
     assert reinterpolated != _FSTRING_SRC  # sanity: the mutation actually changed something
-    assert body_hash_for_definition(_FSTRING_SRC, "Sample") == body_hash_for_definition(
-        reinterpolated, "Sample"
-    )
+    assert body_hash_for_definition(_FSTRING_SRC, "Sample") == body_hash_for_definition(reinterpolated, "Sample")
 
 
 # ---------------------------------------------------------------------------

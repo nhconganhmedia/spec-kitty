@@ -36,6 +36,7 @@ from specify_cli.migration.rebuild_state import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _write_metadata(tmp_path: Path) -> None:
     """Create a minimal .kittify/metadata.yaml."""
     kittify = tmp_path / ".kittify"
@@ -66,11 +67,9 @@ def _make_feature(
     tasks_dir.mkdir(parents=True)
 
     meta = {"mission_slug": slug, "title": f"Feature {slug}"}
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    for wp in (wps or []):
+    for wp in wps or []:
         name = wp["name"]
         lane = wp.get("lane", "planned")
         wp_id = wp.get("work_package_id", "")
@@ -85,9 +84,7 @@ def _make_feature(
             "",
             f"# {name} body",
         ]
-        (tasks_dir / f"{name}-some-title.md").write_text(
-            "\n".join(lines), encoding="utf-8"
-        )
+        (tasks_dir / f"{name}-some-title.md").write_text("\n".join(lines), encoding="utf-8")
 
     return feature_dir
 
@@ -102,10 +99,7 @@ def _write_events_file(feature_dir: Path, events: list[dict]) -> None:
 
 def _write_status_json(feature_dir: Path, slug: str, wp_lanes: dict[str, str]) -> None:
     """Write a status.json snapshot."""
-    wps = {
-        wp_code: {"lane": lane, "actor": "test", "last_transition_at": "2026-01-01T00:00:00+00:00"}
-        for wp_code, lane in wp_lanes.items()
-    }
+    wps = {wp_code: {"lane": lane, "actor": "test", "last_transition_at": "2026-01-01T00:00:00+00:00"} for wp_code, lane in wp_lanes.items()}
     snapshot = {
         "mission_slug": slug,
         "materialized_at": "2026-01-01T12:00:00+00:00",
@@ -114,9 +108,7 @@ def _write_status_json(feature_dir: Path, slug: str, wp_lanes: dict[str, str]) -
         "work_packages": wps,
         "summary": {},
     }
-    (feature_dir / "status.json").write_text(
-        json.dumps(snapshot, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "status.json").write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
 
 
 def _make_event(
@@ -151,9 +143,7 @@ class TestExistingEventLogPreserved:
     def test_consistent_event_log_preserved(self, tmp_path: Path) -> None:
         """Existing event log consistent with frontmatter is kept unchanged."""
         slug = "001-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}])
         event = _make_event("WP01", "planned", "in_progress", slug)
         _write_events_file(feature_dir, [event])
 
@@ -172,9 +162,7 @@ class TestExistingEventLogPreserved:
     def test_event_log_identity_enriched(self, tmp_path: Path) -> None:
         """Events missing work_package_id get it backfilled."""
         slug = "001-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}])
         event = _make_event("WP01", "planned", "in_progress", slug)
         # Event has no work_package_id
         assert "work_package_id" not in event
@@ -214,9 +202,7 @@ class TestStatusJsonConvertedToEvents:
                 {"name": "WP02", "lane": "in_progress"},
             ],
         )
-        _write_status_json(
-            feature_dir, slug, {"WP01": "done", "WP02": "in_progress"}
-        )
+        _write_status_json(feature_dir, slug, {"WP01": "done", "WP02": "in_progress"})
         # No event log
 
         result = rebuild_event_log(feature_dir, slug, {"WP01": "ID01", "WP02": "ID02"})
@@ -291,9 +277,7 @@ class TestSourcePrecedence:
         """When event log and status.json agree, no conflict; when they disagree,
         the most-recent-timestamped source wins."""
         slug = "004-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "for_review"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "for_review"}])
         # Event log says in_progress; status.json says for_review
         event = _make_event("WP01", "planned", "in_progress", slug)
         event["at"] = "2026-01-01T08:00:00+00:00"
@@ -311,9 +295,7 @@ class TestSourcePrecedence:
     def test_no_conflict_when_consistent(self, tmp_path: Path) -> None:
         """Consistent sources produce no conflict warnings."""
         slug = "004b-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}])
         event = _make_event("WP01", "planned", "in_progress", slug)
         _write_events_file(feature_dir, [event])
         _write_status_json(feature_dir, slug, {"WP01": "in_progress"})
@@ -332,9 +314,7 @@ class TestConflictingSourcesWarning:
     def test_conflict_produces_warning(self, tmp_path: Path) -> None:
         """Conflicting sources produce a warning message."""
         slug = "005-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "done"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "done"}])
         # event log says in_progress, frontmatter says done
         event = _make_event("WP01", "planned", "in_progress", slug)
         event["at"] = "2025-12-01T00:00:00+00:00"  # Old timestamp
@@ -355,9 +335,7 @@ class TestMidFlightEventChain:
     def test_in_progress_generates_chain(self, tmp_path: Path) -> None:
         """A mid-flight WP in 'in_progress' generates planned→claimed→in_progress."""
         slug = "006-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}])
 
         result = rebuild_event_log(feature_dir, slug, {"WP01": "ID01"})
 
@@ -376,9 +354,7 @@ class TestMidFlightEventChain:
     def test_for_review_generates_chain(self, tmp_path: Path) -> None:
         """WP in 'for_review' gets planned→claimed→in_progress→for_review chain."""
         slug = "006b-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "for_review"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "for_review"}])
 
         result = rebuild_event_log(feature_dir, slug, {})
 
@@ -467,9 +443,7 @@ class TestRebuildResultCounters:
     def test_generated_counter_incremented(self, tmp_path: Path) -> None:
         """events_generated is non-zero when synthetic events are created."""
         slug = "009-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}])
 
         result = rebuild_event_log(feature_dir, slug, {})
 
@@ -478,9 +452,7 @@ class TestRebuildResultCounters:
     def test_kept_counter_set_for_existing_events(self, tmp_path: Path) -> None:
         """events_kept matches the number of pre-existing events."""
         slug = "009b-test"
-        feature_dir = _make_feature(
-            tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}]
-        )
+        feature_dir = _make_feature(tmp_path, slug, wps=[{"name": "WP01", "lane": "in_progress"}])
         event = _make_event("WP01", "planned", "in_progress", slug, event_id="EVT001")
         _write_events_file(feature_dir, [event])
 
@@ -546,10 +518,7 @@ class TestBuildChain:
 
     def test_work_package_id_included(self) -> None:
         """work_package_id from wp_id_map is included in events."""
-        chain = _build_chain(
-            "WP01", "001-test", {"WP01": "WPIDULIDWPIDULIDWPIDULID00"},
-            "in_progress", "2026-01-01T00:00:00+00:00"
-        )
+        chain = _build_chain("WP01", "001-test", {"WP01": "WPIDULIDWPIDULIDWPIDULID00"}, "in_progress", "2026-01-01T00:00:00+00:00")
         for evt in chain:
             assert evt.get("work_package_id") == "WPIDULIDWPIDULIDWPIDULID00"
 
@@ -595,10 +564,7 @@ class TestRebuildIsDeterministic:
 
         bytes_a = (dir_a / "status.events.jsonl").read_bytes()
         bytes_b = (dir_b / "status.events.jsonl").read_bytes()
-        assert bytes_a == bytes_b, (
-            "Two rebuild runs over identical inputs must produce byte-identical "
-            "status.events.jsonl output (Priivacy-ai/spec-kitty#926)."
-        )
+        assert bytes_a == bytes_b, "Two rebuild runs over identical inputs must produce byte-identical status.events.jsonl output (Priivacy-ai/spec-kitty#926)."
 
     def test_synthetic_event_ids_are_seeded(self, tmp_path: Path) -> None:
         """Synthetic chain event_ids must come from _deterministic_id, not a
@@ -636,9 +602,7 @@ class TestRebuildStateIsImplementationBehindCanonicalSeam:
             warnings.simplefilter("always")
             importlib.reload(legacy_mod)
 
-        deprecation_warnings = [
-            w for w in caught if issubclass(w.category, DeprecationWarning)
-        ]
+        deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert not deprecation_warnings, (
             "Importing specify_cli.migration.rebuild_state must not emit a "
             "DeprecationWarning; it is the implementation behind the canonical "

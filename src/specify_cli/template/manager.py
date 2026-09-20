@@ -154,6 +154,7 @@ def get_local_repo_root(override_path: str | None = None) -> Path | None:
     Returns:
         Path to repository root containing doctrine templates and missions, or None
     """
+
     def _is_template_root(path: Path) -> bool:
         # The second conjunct checks packs/built-in/missions (mission
         # doctrine-consumer-surface-missions-extraction-01KZ6G6H, FR-005,
@@ -161,10 +162,7 @@ def get_local_repo_root(override_path: str | None = None) -> Path | None:
         # directory still exists post-relocation, .py-only, so checking it
         # here would silently accept a checkout whose missions data has
         # actually moved elsewhere, with no error signal).
-        return (
-            (path / "src" / "charter" / "offering" / "templates" / "AGENTS.md").is_file()
-            and (path / "packs" / "built-in" / "missions").is_dir()
-        )
+        return (path / "src" / "charter" / "offering" / "templates" / "AGENTS.md").is_file() and (path / "packs" / "built-in" / "missions").is_dir()
 
     # Check override path first (from --template-root flag)
     if override_path:

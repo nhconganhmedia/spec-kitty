@@ -68,9 +68,7 @@ def _seed_mission(repo_root: Path, *, review_status: str = "", reviewed_by: str 
         ),
         encoding="utf-8",
     )
-    return resolve_planning_read_dir(
-        repo_root, _MISSION_SLUG, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    return resolve_planning_read_dir(repo_root, _MISSION_SLUG, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
 
 
 def _seed_review_slot(feature_dir: Path, wp_id: str, *, actor: str, reason: str = "approved") -> None:
@@ -112,9 +110,7 @@ def _isolate_transactional_lane(monkeypatch: Any, emit_mock: Mock, *, lane: Lane
 # ---------------------------------------------------------------------------
 
 
-def test_event_only_mission_reaches_done_with_snapshot_evidence(
-    tmp_path: Path, monkeypatch: Any
-) -> None:
+def test_event_only_mission_reaches_done_with_snapshot_evidence(tmp_path: Path, monkeypatch: Any) -> None:
     """A mission whose approval lives ONLY in the snapshot ``review`` slot (no
     frontmatter review) reaches ``done`` with correct DoneEvidence through the
     merge path — proving T018's event-sourced read BEFORE T020 deletes the
@@ -141,9 +137,7 @@ def test_event_only_mission_reaches_done_with_snapshot_evidence(
     assert request.evidence["review"]["reference"] == "snapshot-review:WP01"
 
 
-def test_event_only_evidence_is_non_vacuous_without_snapshot_slot(
-    tmp_path: Path, monkeypatch: Any
-) -> None:
+def test_event_only_evidence_is_non_vacuous_without_snapshot_slot(tmp_path: Path, monkeypatch: Any) -> None:
     """Guard: with NO snapshot review slot and NO frontmatter review, the merge
     path falls through to the lane-approved fallback (reference != snapshot).
 
@@ -205,9 +199,7 @@ def test_shared_reader_is_the_single_canonical_interpretation() -> None:
     assert status_facade.resolve_event_stream_review is wp_review.resolve_event_stream_review
 
 
-def test_done_evidence_helper_consumes_the_shared_reader(
-    tmp_path: Path, monkeypatch: Any
-) -> None:
+def test_done_evidence_helper_consumes_the_shared_reader(tmp_path: Path, monkeypatch: Any) -> None:
     """``_resolve_snapshot_done_evidence`` routes through ``resolve_snapshot_review``
     (the shared reader), so patching the shared symbol changes the merge helper's
     output — the single interpretation seam, not a re-derived one."""
@@ -226,9 +218,7 @@ def test_done_evidence_helper_consumes_the_shared_reader(
 
     monkeypatch.setattr(status_facade, "resolve_event_stream_review", _tracking)
 
-    evidence = done_bookkeeping._resolve_snapshot_done_evidence(
-        read_event_stream(feature_dir), "WP01"
-    )
+    evidence = done_bookkeeping._resolve_snapshot_done_evidence(read_event_stream(feature_dir), "WP01")
     assert evidence is not None
     assert evidence.review.reviewer == "reviewer-snap"
     assert calls == ["WP01"]

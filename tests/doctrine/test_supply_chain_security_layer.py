@@ -36,25 +36,15 @@ class TestResolvedContextIncludesSecurityLayer:
     """``resolve_context`` surfaces the directive/tactic for every wired action."""
 
     @pytest.mark.parametrize("action", _SOFTWARE_DEV_ACTIONS)
-    def test_resolved_context_includes_directive_and_tactic(
-        self, graph: DRGGraph, action: str
-    ) -> None:
+    def test_resolved_context_includes_directive_and_tactic(self, graph: DRGGraph, action: str) -> None:
         urn = f"action:software-dev/{action}"
         ctx = resolve_context(graph, urn, depth=1)
 
-        assert _DIRECTIVE_URN in ctx.artifact_urns, (
-            f"{action}: resolved context missing {_DIRECTIVE_URN}; "
-            f"got {sorted(ctx.artifact_urns)}"
-        )
-        assert _TACTIC_URN in ctx.artifact_urns, (
-            f"{action}: resolved context missing {_TACTIC_URN}; "
-            f"got {sorted(ctx.artifact_urns)}"
-        )
+        assert _DIRECTIVE_URN in ctx.artifact_urns, f"{action}: resolved context missing {_DIRECTIVE_URN}; got {sorted(ctx.artifact_urns)}"
+        assert _TACTIC_URN in ctx.artifact_urns, f"{action}: resolved context missing {_TACTIC_URN}; got {sorted(ctx.artifact_urns)}"
 
     @pytest.mark.parametrize("action", _SOFTWARE_DEV_ACTIONS)
-    def test_context_resolution_is_stable_across_depths(
-        self, graph: DRGGraph, action: str
-    ) -> None:
+    def test_context_resolution_is_stable_across_depths(self, graph: DRGGraph, action: str) -> None:
         """The security layer is directly scoped, so it must already be
         present at the compact (d=1) depth -- not something that only
         appears once ``suggests`` traversal is widened to d=2. A regression
@@ -79,17 +69,9 @@ class TestWiringIsDirectScopeNotIncidentalReachability:
     """
 
     @pytest.mark.parametrize("action", _SOFTWARE_DEV_ACTIONS)
-    def test_action_has_direct_scope_edge_to_directive_and_tactic(
-        self, graph: DRGGraph, action: str
-    ) -> None:
+    def test_action_has_direct_scope_edge_to_directive_and_tactic(self, graph: DRGGraph, action: str) -> None:
         urn = f"action:software-dev/{action}"
         scoped_targets = {edge.target for edge in graph.edges_from(urn, Relation.SCOPE)}
 
-        assert _DIRECTIVE_URN in scoped_targets, (
-            f"{action}: no direct scope edge to {_DIRECTIVE_URN}; "
-            f"scoped targets were {sorted(scoped_targets)}"
-        )
-        assert _TACTIC_URN in scoped_targets, (
-            f"{action}: no direct scope edge to {_TACTIC_URN}; "
-            f"scoped targets were {sorted(scoped_targets)}"
-        )
+        assert _DIRECTIVE_URN in scoped_targets, f"{action}: no direct scope edge to {_DIRECTIVE_URN}; scoped targets were {sorted(scoped_targets)}"
+        assert _TACTIC_URN in scoped_targets, f"{action}: no direct scope edge to {_TACTIC_URN}; scoped targets were {sorted(scoped_targets)}"

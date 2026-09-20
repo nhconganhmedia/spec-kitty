@@ -51,11 +51,7 @@ def _installable_agents(project_path: Path) -> list[str]:
 
 
 def _spk_skills(registry: SkillRegistry) -> list[CanonicalSkill]:
-    return [
-        skill
-        for skill in registry.discover_skills()
-        if skill.name.startswith("spk-")
-    ]
+    return [skill for skill in registry.discover_skills() if skill.name.startswith("spk-")]
 
 
 def _skill_files_present(
@@ -102,10 +98,7 @@ class SpkSkillPackMigration(BaseMigration):
         if not agents:
             return False
 
-        return any(
-            not _skill_files_present(project_path, agent_key, skills)
-            for agent_key in agents
-        )
+        return any(not _skill_files_present(project_path, agent_key, skills) for agent_key in agents)
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:
         if not (project_path / ".kittify").is_dir():
@@ -136,9 +129,7 @@ class SpkSkillPackMigration(BaseMigration):
             return MigrationResult(success=True, changes_made=changes, warnings=warnings)
 
         if dry_run:
-            changes.append(
-                f"Would install {len(spk_skills)} spk skill(s) for {len(agents)} agent(s)"
-            )
+            changes.append(f"Would install {len(spk_skills)} spk skill(s) for {len(agents)} agent(s)")
             return MigrationResult(success=True, changes_made=changes)
 
         archived_paths: list[Path] = []
@@ -150,8 +141,7 @@ class SpkSkillPackMigration(BaseMigration):
             preserved = [
                 entry
                 for entry in existing.entries
-                if entry.skill_name not in RETIRED_CANONICAL_SKILL_NAMES
-                and (entry.skill_name not in canonical_names or entry.agent_key not in agents)
+                if entry.skill_name not in RETIRED_CANONICAL_SKILL_NAMES and (entry.skill_name not in canonical_names or entry.agent_key not in agents)
             ]
             manifest.entries.extend(preserved)
 
@@ -162,20 +152,11 @@ class SpkSkillPackMigration(BaseMigration):
         manifest.spec_kitty_version = "3.2.0rc35"
         save_manifest(manifest, project_path)
 
-        preserved_paths = sorted(
-            to_posix(path.relative_to(project_path))
-            for path in archived_paths
-        )
+        preserved_paths = sorted(to_posix(path.relative_to(project_path)) for path in archived_paths)
 
-        changes.append(
-            f"Installed {len(spk_skills)} spk skill(s) for {len(agents)} agent(s) "
-            f"({len(manifest.entries)} managed files)"
-        )
+        changes.append(f"Installed {len(spk_skills)} spk skill(s) for {len(agents)} agent(s) ({len(manifest.entries)} managed files)")
         changes.append("Updated .kittify/skills-manifest.json with spk skill entries")
-        changes.extend(
-            f"Archived customized skill file for manual review: {path}"
-            for path in preserved_paths
-        )
+        changes.extend(f"Archived customized skill file for manual review: {path}" for path in preserved_paths)
         return MigrationResult(
             success=True,
             changes_made=changes,

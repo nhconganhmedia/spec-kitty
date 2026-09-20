@@ -39,19 +39,27 @@ def _git_init(repo: Path) -> None:
     """Initialize a minimal git repo with identity configured."""
     subprocess.run(
         ["git", "init", "--initial-branch=main"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test User"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "commit.gpgsign", "false"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -60,11 +68,17 @@ def _git_initial_commit(repo: Path) -> None:
     readme.write_text("# Test Repo\n", encoding="utf-8")
     subprocess.run(
         ["git", "add", "README.md"],
-        cwd=repo, check=True, capture_output=True, text=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "Initial commit"],
-        cwd=repo, check=True, capture_output=True, text=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
@@ -100,16 +114,17 @@ def _write_curated_charter_md(repo: Path) -> None:
     """
     charter_dir = repo / ".kittify" / "charter"
     charter_dir.mkdir(parents=True, exist_ok=True)
-    (charter_dir / "charter.md").write_text(
-        "# Curated Charter\n\nHand-authored governance prose.\n", encoding="utf-8"
-    )
+    (charter_dir / "charter.md").write_text("# Curated Charter\n\nHand-authored governance prose.\n", encoding="utf-8")
 
 
 def _ls_files_stage(repo: Path) -> list[str]:
     """Return repo-relative paths reported by ``git ls-files --stage``."""
     result = subprocess.run(
         ["git", "ls-files", "--stage"],
-        cwd=repo, check=True, capture_output=True, text=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     paths: list[str] = []
     for line in result.stdout.splitlines():
@@ -144,23 +159,19 @@ def test_generate_then_bundle_validate_succeeds_in_fresh_git_repo(
     try:
         os.chdir(tmp_path)
         gen_result = runner.invoke(
-            charter_app, ["generate", "--from-interview", "--json"],
+            charter_app,
+            ["generate", "--from-interview", "--json"],
             catch_exceptions=False,
         )
-        assert gen_result.exit_code == 0, (
-            f"generate failed: stdout={gen_result.stdout!r} "
-            f"stderr={getattr(gen_result, 'stderr', '')!r}"
-        )
+        assert gen_result.exit_code == 0, f"generate failed: stdout={gen_result.stdout!r} stderr={getattr(gen_result, 'stderr', '')!r}"
 
         # NO manual `git add` between generate and validate.
         val_result = runner.invoke(
-            charter_bundle_app, ["validate", "--json"],
+            charter_bundle_app,
+            ["validate", "--json"],
             catch_exceptions=False,
         )
-        assert val_result.exit_code == 0, (
-            f"bundle validate failed after generate: "
-            f"stdout={val_result.stdout!r}"
-        )
+        assert val_result.exit_code == 0, f"bundle validate failed after generate: stdout={val_result.stdout!r}"
     finally:
         os.chdir(old_cwd)
 
@@ -181,23 +192,18 @@ def test_generate_in_non_git_dir_fails_fast(tmp_path: Path) -> None:
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview"],
+            charter_app,
+            ["generate", "--from-interview"],
             catch_exceptions=False,
         )
     finally:
         os.chdir(old_cwd)
 
-    assert result.exit_code != 0, (
-        f"generate must fail in non-git dir; got exit 0. output={result.stdout!r}"
-    )
+    assert result.exit_code != 0, f"generate must fail in non-git dir; got exit 0. output={result.stdout!r}"
     combined = (result.stdout or "") + (result.output or "")
     lowered = combined.lower()
-    assert "git" in lowered, (
-        f"error message must mention 'git'. output={combined!r}"
-    )
-    assert "init" in lowered, (
-        f"error message must mention 'init' (the remediation). output={combined!r}"
-    )
+    assert "git" in lowered, f"error message must mention 'git'. output={combined!r}"
+    assert "init" in lowered, f"error message must mention 'init' (the remediation). output={combined!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -222,12 +228,11 @@ def test_generate_stages_produced_files(tmp_path: Path) -> None:
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview"],
+            charter_app,
+            ["generate", "--from-interview"],
             catch_exceptions=False,
         )
-        assert result.exit_code == 0, (
-            f"generate failed: output={result.stdout!r}"
-        )
+        assert result.exit_code == 0, f"generate failed: output={result.stdout!r}"
         staged = _ls_files_stage(tmp_path)
     finally:
         os.chdir(old_cwd)
@@ -237,17 +242,12 @@ def test_generate_stages_produced_files(tmp_path: Path) -> None:
         ".kittify/charter/charter.yaml",
     }
     assert expected.issubset(set(staged)), (
-        f"generated charter commit inputs must be auto-staged after generate; "
-        f"expected={expected!r}, got staged paths: {staged!r}"
+        f"generated charter commit inputs must be auto-staged after generate; expected={expected!r}, got staged paths: {staged!r}"
     )
-    assert ".kittify/charter/references.yaml" not in staged, (
-        "references.yaml is retired (WP03/T012) and must never be staged"
-    )
+    assert ".kittify/charter/references.yaml" not in staged, "references.yaml is retired (WP03/T012) and must never be staged"
 
 
-def test_generate_from_interview_fails_when_answers_missing(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_generate_from_interview_fails_when_answers_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``--from-interview`` must not silently fall back to defaults."""
     _git_init(tmp_path)
     # Hermetic against a stray ``.kittify`` marker anywhere above ``tmp_path``
@@ -261,7 +261,8 @@ def test_generate_from_interview_fails_when_answers_missing(
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview"],
+            charter_app,
+            ["generate", "--from-interview"],
             catch_exceptions=False,
         )
     finally:
@@ -277,9 +278,7 @@ def test_generate_from_interview_fails_when_answers_missing(
     assert not (tmp_path / ".kittify" / "charter" / "charter.md").exists()
 
 
-def test_generate_from_interview_missing_answers_json_is_parseable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_generate_from_interview_missing_answers_json_is_parseable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``--json`` error output must stay machine-parseable."""
     _git_init(tmp_path)
     # See the hermeticity note in test_generate_from_interview_fails_when_answers_missing.
@@ -289,7 +288,8 @@ def test_generate_from_interview_missing_answers_json_is_parseable(
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview", "--json"],
+            charter_app,
+            ["generate", "--from-interview", "--json"],
             catch_exceptions=False,
         )
     finally:
@@ -321,7 +321,8 @@ def _assert_generate_refuses_symlinked_charter_before_side_effects(tmp_path: Pat
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--no-from-interview", "--force", "--json"],
+            charter_app,
+            ["generate", "--no-from-interview", "--force", "--json"],
             catch_exceptions=False,
         )
     finally:
@@ -364,7 +365,8 @@ def test_status_json_error_is_parseable() -> None:
         side_effect=TaskCliError("repo root unavailable"),
     ):
         result = runner.invoke(
-            charter_app, ["status", "--json"],
+            charter_app,
+            ["status", "--json"],
             catch_exceptions=False,
         )
 
@@ -387,7 +389,8 @@ def test_generate_fails_when_auto_stage_fails(tmp_path: Path) -> None:
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview", "--json"],
+            charter_app,
+            ["generate", "--from-interview", "--json"],
             catch_exceptions=False,
         )
     finally:
@@ -414,26 +417,25 @@ def test_generate_does_not_disturb_unrelated_staged_changes(
     unrelated.write_text("hello\n", encoding="utf-8")
     subprocess.run(
         ["git", "add", "README.md"],
-        cwd=tmp_path, check=True, capture_output=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
     )
 
     old_cwd = os.getcwd()
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview"],
+            charter_app,
+            ["generate", "--from-interview"],
             catch_exceptions=False,
         )
-        assert result.exit_code == 0, (
-            f"generate failed: output={result.stdout!r}"
-        )
+        assert result.exit_code == 0, f"generate failed: output={result.stdout!r}"
         staged = _ls_files_stage(tmp_path)
     finally:
         os.chdir(old_cwd)
 
-    assert "README.md" in staged, (
-        f"pre-staged README.md must remain staged; got {staged!r}"
-    )
+    assert "README.md" in staged, f"pre-staged README.md must remain staged; got {staged!r}"
     assert ".kittify/charter/charter.yaml" in staged
 
 
@@ -444,14 +446,18 @@ def test_generic_safe_commit_commits_generated_charter_files(tmp_path: Path) -> 
     _write_minimal_interview(tmp_path)
     subprocess.run(
         ["git", "switch", "-c", "charter/update"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
     old_cwd = os.getcwd()
     try:
         os.chdir(tmp_path)
         gen = runner.invoke(
-            charter_app, ["generate", "--from-interview"],
+            charter_app,
+            ["generate", "--from-interview"],
             catch_exceptions=False,
         )
         assert gen.exit_code == 0, f"generate failed: {gen.stdout!r}"
@@ -475,12 +481,18 @@ def test_generic_safe_commit_commits_generated_charter_files(tmp_path: Path) -> 
 
     log = subprocess.run(
         ["git", "log", "-1", "--pretty=%s"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
     assert log == "chore: generate project charter"
     stash_list = subprocess.run(
         ["git", "stash", "list"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout
     assert "spec-kitty-safe-commit" not in stash_list
 
@@ -493,21 +505,33 @@ def test_generic_safe_commit_targets_current_git_worktree(tmp_path: Path) -> Non
     (tmp_path / "README.md").write_text("# Test Repo\n", encoding="utf-8")
     subprocess.run(
         ["git", "add", "README.md", ".kittify/config.json"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "Initial commit"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     main_head_before = subprocess.run(
         ["git", "rev-parse", "main"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
 
     worktree = tmp_path.parent / f"{tmp_path.name}-worktree"
     subprocess.run(
         ["git", "worktree", "add", "-b", "charter/update", str(worktree)],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     (worktree / "charter.txt").write_text("worktree charter change\n", encoding="utf-8")
 
@@ -533,15 +557,24 @@ def test_generic_safe_commit_targets_current_git_worktree(tmp_path: Path) -> Non
 
     worktree_subject = subprocess.run(
         ["git", "log", "-1", "--pretty=%s"],
-        cwd=worktree, check=True, capture_output=True, text=True,
+        cwd=worktree,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
     main_head_after = subprocess.run(
         ["git", "rev-parse", "main"],
-        cwd=tmp_path, check=True, capture_output=True, text=True,
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
     worktree_status = subprocess.run(
         ["git", "status", "--short"],
-        cwd=worktree, check=True, capture_output=True, text=True,
+        cwd=worktree,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout
 
     assert worktree_subject == "chore: generate project charter"
@@ -551,9 +584,7 @@ def test_generic_safe_commit_targets_current_git_worktree(tmp_path: Path) -> Non
 
 def test_charter_template_uses_safe_commit_command() -> None:
     """Slash prompt must route commits through Spec Kitty, not raw git commit."""
-    template = Path(
-        "packs/built-in/missions/mission-steps/software-dev/charter/prompt.md"
-    ).read_text(encoding="utf-8")
+    template = Path("packs/built-in/missions/mission-steps/software-dev/charter/prompt.md").read_text(encoding="utf-8")
 
     assert "spec-kitty safe-commit" in template
     assert "git commit" not in template
@@ -567,9 +598,7 @@ def test_charter_template_uses_safe_commit_command() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_interview_then_generate_consumes_answers(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_interview_then_generate_consumes_answers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Close-by-construction (#2940): answers written by ``charter interview``
     are consumed by ``charter generate --from-interview`` in the same repo.
 
@@ -588,8 +617,13 @@ def test_interview_then_generate_consumes_answers(
         interview = runner.invoke(
             charter_app,
             [
-                "interview", "--mission-type", "software-dev",
-                "--profile", "minimal", "--defaults", "--json",
+                "interview",
+                "--mission-type",
+                "software-dev",
+                "--profile",
+                "minimal",
+                "--defaults",
+                "--json",
             ],
             catch_exceptions=False,
         )
@@ -612,9 +646,7 @@ def test_interview_then_generate_consumes_answers(
     assert "No charter interview answers found" not in generate.stdout
 
 
-def test_generate_from_interview_reports_malformed_answers_distinctly(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_generate_from_interview_reports_malformed_answers_distinctly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#2940 honesty: a present-but-malformed ``answers.yaml`` must NOT be
     reported as 'No charter interview answers found'.
 
@@ -629,15 +661,14 @@ def test_generate_from_interview_reports_malformed_answers_distinctly(
     interview_dir.mkdir(parents=True, exist_ok=True)
     # Parses as valid YAML, but the top level is a list, not a mapping —
     # exactly the shape ``read_interview_answers`` degrades to ``None`` on.
-    (interview_dir / "answers.yaml").write_text(
-        "- not\n- a\n- mapping\n", encoding="utf-8"
-    )
+    (interview_dir / "answers.yaml").write_text("- not\n- a\n- mapping\n", encoding="utf-8")
 
     old_cwd = os.getcwd()
     try:
         os.chdir(tmp_path)
         result = runner.invoke(
-            charter_app, ["generate", "--from-interview", "--json"],
+            charter_app,
+            ["generate", "--from-interview", "--json"],
             catch_exceptions=False,
         )
     finally:
@@ -650,7 +681,4 @@ def test_generate_from_interview_reports_malformed_answers_distinctly(
     # Honest: names the file + its malformed shape, NOT the missing-file message.
     assert "No charter interview answers found" not in payload["error"]
     assert "answers.yaml" in payload["error"]
-    assert (
-        "malformed" in payload["error"].lower()
-        or "not a mapping" in payload["error"].lower()
-    )
+    assert "malformed" in payload["error"].lower() or "not a mapping" in payload["error"].lower()

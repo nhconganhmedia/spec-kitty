@@ -108,8 +108,7 @@ def _asserts_clean_exit_naming_file(result: object, offending_filename: str = "b
     """
     assert result.exit_code == 1, result.output
     assert isinstance(result.exception, SystemExit), (
-        f"expected a clean typer.Exit(1) (SystemExit), got a raw "
-        f"{type(result.exception).__name__}: {result.exception!r}"
+        f"expected a clean typer.Exit(1) (SystemExit), got a raw {type(result.exception).__name__}: {result.exception!r}"
     )
     assert offending_filename in result.output, result.output
 
@@ -117,9 +116,7 @@ def _asserts_clean_exit_naming_file(result: object, offending_filename: str = "b
 class TestActivateMissionTypeMalformedYamlBoundary:
     """``charter activate mission-type <id>`` (activate.py, the finding's site 1)."""
 
-    def test_fails_closed_not_raw_traceback(
-        self, project_with_malformed_org_mission_type: Path
-    ) -> None:
+    def test_fails_closed_not_raw_traceback(self, project_with_malformed_org_mission_type: Path) -> None:
         result = runner.invoke(
             charter_app,
             [
@@ -136,9 +133,7 @@ class TestActivateMissionTypeMalformedYamlBoundary:
 class TestCharterMissionTypeListMalformedYamlBoundary:
     """``charter mission-type list`` (charter/mission_type.py, the finding's site 2)."""
 
-    def test_fails_closed_not_raw_traceback(
-        self, project_with_malformed_org_mission_type: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fails_closed_not_raw_traceback(self, project_with_malformed_org_mission_type: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(project_with_malformed_org_mission_type)
         result = runner.invoke(charter_app, ["mission-type", "list", "--json"])
         _asserts_clean_exit_naming_file(result)
@@ -151,9 +146,7 @@ class TestDoctrineMissionTypeListMalformedYamlBoundary:
     own grep for every reachable call site.
     """
 
-    def test_fails_closed_not_raw_traceback(
-        self, project_with_malformed_org_mission_type: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fails_closed_not_raw_traceback(self, project_with_malformed_org_mission_type: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(project_with_malformed_org_mission_type)
         result = runner.invoke(doctrine_app, ["mission-type", "list", "--json"])
         _asserts_clean_exit_naming_file(result)
@@ -162,9 +155,7 @@ class TestDoctrineMissionTypeListMalformedYamlBoundary:
 class TestMissionTypeShowMalformedYamlBoundary:
     """``mission-type show <id>`` (mission_type.py) -- sibling call site."""
 
-    def test_fails_closed_not_raw_traceback(
-        self, project_with_malformed_org_mission_type: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fails_closed_not_raw_traceback(self, project_with_malformed_org_mission_type: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(project_with_malformed_org_mission_type)
         result = runner.invoke(mission_type_app, ["show", "software-dev"])
         _asserts_clean_exit_naming_file(result)
@@ -179,9 +170,7 @@ class TestCharterListAllMalformedYamlBoundary:
     underlying loud-fail primitive, a different direct caller.
     """
 
-    def test_fails_closed_not_raw_traceback(
-        self, project_with_malformed_org_mission_type: Path
-    ) -> None:
+    def test_fails_closed_not_raw_traceback(self, project_with_malformed_org_mission_type: Path) -> None:
         result = runner.invoke(
             charter_app,
             [

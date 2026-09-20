@@ -36,8 +36,7 @@ def test_env_expand_holds_no_doctrine_or_specify_cli_vocabulary() -> None:
 
     assert module_violations == [], (
         "kernel/env_expand.py must hold no doctrine-/specify_cli-identifying "
-        "string or import vocabulary (C-EXP-5).\nViolations:\n"
-        + "\n".join(f"  {rel}:{lineno} — {detail}" for rel, lineno, detail in module_violations)
+        "string or import vocabulary (C-EXP-5).\nViolations:\n" + "\n".join(f"  {rel}:{lineno} — {detail}" for rel, lineno, detail in module_violations)
     )
 
 

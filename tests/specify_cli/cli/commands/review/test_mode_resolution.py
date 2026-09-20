@@ -40,17 +40,13 @@ class TestResolveModeAutoDetect:
 
     def test_flag_lightweight_overrides_bmc(self) -> None:
         """--mode lightweight on already-merged mission → lightweight, explicit."""
-        mode, auto = resolve_mode(
-            cli_flag="lightweight", baseline_merge_commit="abc123def"
-        )
+        mode, auto = resolve_mode(cli_flag="lightweight", baseline_merge_commit="abc123def")
         assert mode is MissionReviewMode.LIGHTWEIGHT
         assert auto is False
 
     def test_flag_post_merge_with_bmc(self) -> None:
         """--mode post-merge with baseline_merge_commit → post-merge, explicit."""
-        mode, auto = resolve_mode(
-            cli_flag="post-merge", baseline_merge_commit="deadbeef"
-        )
+        mode, auto = resolve_mode(cli_flag="post-merge", baseline_merge_commit="deadbeef")
         assert mode is MissionReviewMode.POST_MERGE
         assert auto is False
 
@@ -88,9 +84,7 @@ class TestResolveModeMismatch:
     def test_lightweight_flag_with_bmc_is_not_mismatch(self) -> None:
         """The reverse case is NOT a mismatch — legitimate quick check on merged mission."""
         # Must not raise
-        mode, auto = resolve_mode(
-            cli_flag="lightweight", baseline_merge_commit="abc123"
-        )
+        mode, auto = resolve_mode(cli_flag="lightweight", baseline_merge_commit="abc123")
         assert mode is MissionReviewMode.LIGHTWEIGHT
 
     def test_mismatch_is_value_error_subclass(self) -> None:
@@ -115,8 +109,6 @@ class TestResolveModeAcceptanceFixtures:
         assert auto is True
 
     def test_post_merge_mode_lightweight_explicit(self) -> None:
-        mode, auto = resolve_mode(
-            cli_flag="lightweight", baseline_merge_commit="sha1234"
-        )
+        mode, auto = resolve_mode(cli_flag="lightweight", baseline_merge_commit="sha1234")
         assert mode is MissionReviewMode.LIGHTWEIGHT
         assert auto is False

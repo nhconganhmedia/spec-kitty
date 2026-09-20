@@ -55,15 +55,10 @@ class TestTargetedProfilesReferenceSupplyChainDirective:
     """Every targeted profile resolves with a substantive directive-051 reference."""
 
     @pytest.mark.parametrize("profile_id", _TARGETED_PROFILES)
-    def test_resolves_and_references_directive_051(
-        self, repo: AgentProfileRepository, profile_id: str
-    ) -> None:
+    def test_resolves_and_references_directive_051(self, repo: AgentProfileRepository, profile_id: str) -> None:
         profile = repo.resolve_profile(profile_id)
         codes = [ref.code for ref in profile.directive_references]
-        assert _DIRECTIVE_CODE in codes, (
-            f"{profile_id}: expected directive code '{_DIRECTIVE_CODE}' in "
-            f"directive_references, got {codes}"
-        )
+        assert _DIRECTIVE_CODE in codes, f"{profile_id}: expected directive code '{_DIRECTIVE_CODE}' in directive_references, got {codes}"
 
         matching = next(ref for ref in profile.directive_references if ref.code == _DIRECTIVE_CODE)
         assert matching.rationale.strip(), f"{profile_id}: directive 051 rationale is empty"
@@ -87,13 +82,9 @@ class TestTargetedProfilesReferenceSupplyChainDirective:
         matching = next(ref for ref in profile.directive_references if ref.code == _DIRECTIVE_CODE)
 
         directive = directive_repo.get(matching.code)
-        assert directive is not None, (
-            f"{profile_id}: directive code '{matching.code}' did not resolve "
-            "to a known directive via DirectiveRepository"
-        )
+        assert directive is not None, f"{profile_id}: directive code '{matching.code}' did not resolve to a known directive via DirectiveRepository"
         assert directive.title == _SUPPLY_CHAIN_DIRECTIVE_TITLE, (
-            f"{profile_id}: directive code '{matching.code}' resolved to "
-            f"'{directive.title}', expected '{_SUPPLY_CHAIN_DIRECTIVE_TITLE}'"
+            f"{profile_id}: directive code '{matching.code}' resolved to '{directive.title}', expected '{_SUPPLY_CHAIN_DIRECTIVE_TITLE}'"
         )
 
 
@@ -104,26 +95,13 @@ class TestTargetedProfilesReferenceSupplyChainTactic:
     """
 
     @pytest.mark.parametrize("profile_id", _TARGETED_PROFILES)
-    def test_references_supply_chain_capable_tactic_with_substantive_rationale(
-        self, repo: AgentProfileRepository, profile_id: str
-    ) -> None:
+    def test_references_supply_chain_capable_tactic_with_substantive_rationale(self, repo: AgentProfileRepository, profile_id: str) -> None:
         profile = repo.resolve_profile(profile_id)
-        candidates = [
-            ref for ref in profile.tactic_references if ref.id in _SUPPLY_CHAIN_TACTIC_IDS
-        ]
-        assert candidates, (
-            f"{profile_id}: expected a tactic reference in "
-            f"{sorted(_SUPPLY_CHAIN_TACTIC_IDS)}, got "
-            f"{[ref.id for ref in profile.tactic_references]}"
-        )
+        candidates = [ref for ref in profile.tactic_references if ref.id in _SUPPLY_CHAIN_TACTIC_IDS]
+        assert candidates, f"{profile_id}: expected a tactic reference in {sorted(_SUPPLY_CHAIN_TACTIC_IDS)}, got {[ref.id for ref in profile.tactic_references]}"
 
-        assert any(
-            keyword in ref.rationale.lower()
-            for ref in candidates
-            for keyword in _SUPPLY_CHAIN_KEYWORDS
-        ), (
-            f"{profile_id}: matched tactic reference(s) "
-            f"{[c.id for c in candidates]} do not mention supply-chain content"
+        assert any(keyword in ref.rationale.lower() for ref in candidates for keyword in _SUPPLY_CHAIN_KEYWORDS), (
+            f"{profile_id}: matched tactic reference(s) {[c.id for c in candidates]} do not mention supply-chain content"
         )
 
 
@@ -136,9 +114,7 @@ class TestReviewerRenataCarriesAdversarialEvidenceVocabulary:
     def profile(self, repo: AgentProfileRepository) -> AgentProfile:
         return repo.resolve_profile("reviewer-renata")
 
-    def test_disposition_vocabulary_present_in_resolved_profile(
-        self, profile: AgentProfile
-    ) -> None:
+    def test_disposition_vocabulary_present_in_resolved_profile(self, profile: AgentProfile) -> None:
         haystacks: list[str] = []
         haystacks.extend(mode.description for mode in profile.mode_defaults)
         haystacks.extend(ref.rationale for ref in profile.tactic_references)
@@ -147,14 +123,10 @@ class TestReviewerRenataCarriesAdversarialEvidenceVocabulary:
 
         missing = [term for term in _DISPOSITION_TERMS if term.lower() not in combined]
         assert missing == [], (
-            f"reviewer-renata: missing adversarial-evidence disposition terms "
-            f"{missing} across resolved mode-defaults/tactic-references/"
-            "directive-references"
+            f"reviewer-renata: missing adversarial-evidence disposition terms {missing} across resolved mode-defaults/tactic-references/directive-references"
         )
 
-    def test_adversarial_evidence_disposition_binding_present(
-        self, profile: AgentProfile
-    ) -> None:
+    def test_adversarial_evidence_disposition_binding_present(self, profile: AgentProfile) -> None:
         """The adversarial-evidence-disposition binding is re-homed onto a
         canonical reference rationale.
 

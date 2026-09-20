@@ -64,18 +64,9 @@ from charter.offering.missions.mission_type_repository import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 
-_SHIPPED_MISSION_TYPES_DIR = (
-    Path(__file__).resolve().parents[2] / "packs" / "built-in" / "missions" / "mission_types"
-)
+_SHIPPED_MISSION_TYPES_DIR = Path(__file__).resolve().parents[2] / "packs" / "built-in" / "missions" / "mission_types"
 
-_SYNTHETIC_ANALYSIS_YAML = (
-    "schema_version: 1\n"
-    "id: analysis\n"
-    'display_name: "Analysis"\n'
-    "action_sequence:\n"
-    "  - specify\n"
-    "  - plan\n"
-)
+_SYNTHETIC_ANALYSIS_YAML = 'schema_version: 1\nid: analysis\ndisplay_name: "Analysis"\naction_sequence:\n  - specify\n  - plan\n'
 
 _MINIMAL_CONFIG = """\
 vcs:
@@ -137,9 +128,7 @@ class TestDefaultActivationSetIsSingleSourced:
     There is no "default set" for this accessor-swap contract to single-source.
     """
 
-    def test_synthetic_accessor_type_does_not_create_an_implicit_default(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_synthetic_accessor_type_does_not_create_an_implicit_default(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """An absent ``mission_type_activations`` key resolves to an EMPTY set
         even when the ``MissionTypeRepository`` accessor root carries a
         synthetic type that used to leak into the old hardcoded-default
@@ -155,9 +144,7 @@ class TestDefaultActivationSetIsSingleSourced:
         mission_types_root.mkdir()
         for shipped_yaml in _SHIPPED_MISSION_TYPES_DIR.glob("*.yaml"):
             shutil.copy(shipped_yaml, mission_types_root / shipped_yaml.name)
-        (mission_types_root / "analysis.yaml").write_text(
-            _SYNTHETIC_ANALYSIS_YAML, encoding="utf-8"
-        )
+        (mission_types_root / "analysis.yaml").write_text(_SYNTHETIC_ANALYSIS_YAML, encoding="utf-8")
 
         _patch_default_root(monkeypatch, mission_types_root)
         builtin_mission_type_ids.cache_clear()
@@ -270,9 +257,7 @@ def _subprocess_env_with_src_root() -> dict[str, str]:
     src_root = str(Path(charter.offering.__file__).resolve().parents[0])
     env = dict(os.environ)
     existing_pythonpath = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = (
-        os.pathsep.join([src_root, existing_pythonpath]) if existing_pythonpath else src_root
-    )
+    env["PYTHONPATH"] = os.pathsep.join([src_root, existing_pythonpath]) if existing_pythonpath else src_root
     return env
 
 

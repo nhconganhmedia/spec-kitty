@@ -102,7 +102,13 @@ CHURN_SURFACE_MODULES: tuple[str, ...] = (
 # R-014 filename-collection matcher (the "such mechanism" derivation rule).
 # ---------------------------------------------------------------------------
 _FILENAME_TOKENS: tuple[str, ...] = (
-    ".json", ".jsonl", ".md", ".lock", ".yaml", ".yml", ".txt",
+    ".json",
+    ".jsonl",
+    ".md",
+    ".lock",
+    ".yaml",
+    ".yml",
+    ".txt",
 )
 
 
@@ -131,11 +137,7 @@ def _collection_elements(node: ast.expr) -> list[ast.expr] | None:
     an element-less collection (``frozenset()``) so callers can distinguish
     "collection with no filename signal" from "not a collection".
     """
-    if (
-        isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == "frozenset"
-    ):
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "frozenset":
         if node.args and isinstance(node.args[0], (ast.Set, ast.List, ast.Tuple)):
             return list(node.args[0].elts)
         return []
@@ -161,11 +163,7 @@ def _regex_pattern(node: ast.expr) -> str | None:
 def _has_filename_signal(elements: list[ast.expr]) -> bool:
     """True when any collection element is filename-like (string) or a filename ref."""
     for element in elements:
-        if (
-            isinstance(element, ast.Constant)
-            and isinstance(element.value, str)
-            and _string_looks_like_filename(element.value)
-        ):
+        if isinstance(element, ast.Constant) and isinstance(element.value, str) and _string_looks_like_filename(element.value):
             return True
         if isinstance(element, ast.Name) and _name_is_filename_ref(element.id):
             return True
@@ -174,11 +172,7 @@ def _has_filename_signal(elements: list[ast.expr]) -> bool:
 
 def _assigned_name(node: ast.stmt) -> tuple[str, ast.expr] | None:
     """``(symbol, value)`` for a module-level ``Assign`` / ``AnnAssign`` to a Name."""
-    if (
-        isinstance(node, ast.Assign)
-        and len(node.targets) == 1
-        and isinstance(node.targets[0], ast.Name)
-    ):
+    if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
         return node.targets[0].id, node.value
     if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None:
         return node.target.id, node.value
@@ -248,7 +242,7 @@ def _parse_row_field(text: str, key: str) -> str:
     for raw in text.splitlines():
         line = raw.strip()
         if line.startswith(prefix):
-            return line[len(prefix):].strip().strip("`").strip()
+            return line[len(prefix) :].strip().strip("`").strip()
     return ""
 
 
@@ -380,17 +374,13 @@ def test_registry_is_non_empty_and_enumerated() -> None:
     # One file per mechanism (no shared file): file stem == mechanism name.
     for row in rows:
         assert row.row_path.stem == row.mechanism, (
-            f"registry row {row.row_path.name} must be named <mechanism>.md so a "
-            f"retirement WP deletes only its own file (got mechanism={row.mechanism!r})."
+            f"registry row {row.row_path.name} must be named <mechanism>.md so a retirement WP deletes only its own file (got mechanism={row.mechanism!r})."
         )
     # Every row is either still-to-retire (``expected-present``, the WP10-landing
     # default) or an explicit, justified permanent survivor (``justified-survivor``,
     # IC-07d/WP14, IC-07e/WP15, IC-07g/WP17) — never an unrecognised status.
     for row in rows:
-        assert row.status in _ROW_STATUSES, (
-            f"row {row.mechanism!r} status must be one of {sorted(_ROW_STATUSES)} "
-            f"(got {row.status!r})."
-        )
+        assert row.status in _ROW_STATUSES, f"row {row.mechanism!r} status must be one of {sorted(_ROW_STATUSES)} (got {row.status!r})."
 
 
 def test_registry_covers_every_known_mechanism() -> None:
@@ -434,9 +424,8 @@ def test_registry_covers_every_known_mechanism() -> None:
         "_is_review_handoff_survivor_path",
     }
     missing = required - rows
-    assert not missing, (
-        "exemption-registry rows missing for known mechanisms (a row file was dropped "
-        "without retiring the mechanism):\n" + "\n".join(f"  - {m}" for m in sorted(missing))
+    assert not missing, "exemption-registry rows missing for known mechanisms (a row file was dropped without retiring the mechanism):\n" + "\n".join(
+        f"  - {m}" for m in sorted(missing)
     )
 
 
@@ -462,9 +451,7 @@ def test_registry_only_shrinks_no_ghost_rows() -> None:
     discovered = discover_literals()
     registry = registry_literal_map(load_registry())
     errors = check_overcount(discovered, registry)
-    assert not errors, "ghost registry row(s) — delete the retired mechanism's file:\n" + "\n".join(
-        f"  {e}" for e in errors
-    )
+    assert not errors, "ghost registry row(s) — delete the retired mechanism's file:\n" + "\n".join(f"  {e}" for e in errors)
 
 
 def test_every_registry_symbol_is_present_in_its_module() -> None:
@@ -508,17 +495,10 @@ def test_ninth_filename_exemption_is_refused_naming_the_owner() -> None:
     source-line scan — a benign refactor of the gate modules cannot false-red it.
     """
     registry = registry_literal_map(load_registry())
-    synthetic_ninth = {
-        ("src/specify_cli/merge/some_new_gate.py", "_NEW_BENIGN_FILENAMES"): (
-            "src/specify_cli/merge/some_new_gate.py:42"
-        )
-    }
+    synthetic_ninth = {("src/specify_cli/merge/some_new_gate.py", "_NEW_BENIGN_FILENAMES"): ("src/specify_cli/merge/some_new_gate.py:42")}
     errors = check_undercount(synthetic_ninth, registry)
     assert errors, "a new filename-based exemption absent from the registry MUST be refused."
-    assert OWNER_ROUTE in errors[0], (
-        f"the refusal must name the owner {OWNER_ROUTE!r} as the supported route "
-        f"(got: {errors[0]!r})."
-    )
+    assert OWNER_ROUTE in errors[0], f"the refusal must name the owner {OWNER_ROUTE!r} as the supported route (got: {errors[0]!r})."
 
 
 def test_ratchet_does_not_false_red_on_a_registered_mechanism() -> None:
@@ -562,18 +542,14 @@ def test_c8a_classification_is_a_pure_function_of_declared_kind() -> None:
     kind_b = kind_for_mission_file(path_b, mission_slug="m")
 
     assert kind_a is not None and kind_a == kind_b, (
-        "the two WP task files must resolve to the same declared kind (different "
-        "basenames, same kind) for the rename-invariance property to be meaningful."
+        "the two WP task files must resolve to the same declared kind (different basenames, same kind) for the rename-invariance property to be meaningful."
     )
     # Kind-based authority: identical classification for the identical kind.
     assert is_primary_artifact_kind(kind_a) == is_primary_artifact_kind(kind_b)
 
     # The mutant a filename-based classifier would be: it disagrees across the rename.
     mutant = _basename_only_mutant("WP01-alpha.md")
-    assert mutant(path_a) != mutant(path_b), (
-        "a filename-based classifier cannot pass C8a — it flips across the rename, "
-        "which is exactly the mutant this arm kills."
-    )
+    assert mutant(path_a) != mutant(path_b), "a filename-based classifier cannot pass C8a — it flips across the rename, which is exactly the mutant this arm kills."
 
 
 def test_c8b_basename_collision_is_not_classified_generated() -> None:
@@ -585,22 +561,16 @@ def test_c8b_basename_collision_is_not_classified_generated() -> None:
     treat it as generated residue — while a pure-basename mutant misfires.
     """
     operator_path = "docs/notes/status.events.jsonl"  # basename collides; not a mission artifact
-    assert kind_for_mission_file(operator_path) is None, (
-        "a file outside kitty-specs/<slug>/ must resolve to no mission-artifact kind."
-    )
+    assert kind_for_mission_file(operator_path) is None, "a file outside kitty-specs/<slug>/ must resolve to no mission-artifact kind."
     assert is_coord_residue_churn(operator_path) is False, (
-        "a basename collision outside the mission artifact structure must NOT be "
-        "classified as generated residue (C8b)."
+        "a basename collision outside the mission artifact structure must NOT be classified as generated residue (C8b)."
     )
     # And the canonical owner agrees it is not toolchain churn.
     assert is_toolchain_generated_churn(operator_path) is False
 
     # The mutant a filename-based classifier would be: it wrongly flags the collision.
     mutant = _basename_only_mutant("status.events.jsonl")
-    assert mutant(operator_path) is True, (
-        "a filename-based classifier cannot pass C8b — it flags the operator file by "
-        "basename alone, the mutant this arm kills."
-    )
+    assert mutant(operator_path) is True, "a filename-based classifier cannot pass C8b — it flags the operator file by basename alone, the mutant this arm kills."
 
 
 def test_c8_generated_kind_is_classified_generated_and_rename_invariant() -> None:

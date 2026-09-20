@@ -52,6 +52,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 # Synthetic git repo fixture helpers (mirrors test_stale_assertions.py)
 # ---------------------------------------------------------------------------
 
+
 def _git(args: list[str], cwd: Path) -> str:
     """Run a git command in cwd and return stdout."""
     result = subprocess.run(
@@ -92,9 +93,8 @@ def _write(repo: Path, rel_path: str, content: str) -> Path:
 # Shared fixture builder: the WP05 extraction shape (#2031)
 # ---------------------------------------------------------------------------
 
-def _build_extraction_storm_fixture(
-    tmp_path: Path, helper_count: int = 10
-) -> tuple[Path, str, str]:
+
+def _build_extraction_storm_fixture(tmp_path: Path, helper_count: int = 10) -> tuple[Path, str, str]:
     """Build a WP05-shaped extraction fixture, sized to genuinely storm.
 
     Base: ``src/pkg/core.py`` defines ``helper_count`` functions, each
@@ -111,9 +111,7 @@ def _build_extraction_storm_fixture(
     base_core_src = "".join(f"def helper_{i:02d}():\n    return {i}\n\n" for i in range(helper_count))
     _write(repo, "src/pkg/core.py", base_core_src)
 
-    test_src = "".join(
-        f"def test_helper_{i:02d}():\n    assert helper_{i:02d}() == {i}\n\n" for i in range(helper_count)
-    )
+    test_src = "".join(f"def test_helper_{i:02d}():\n    assert helper_{i:02d}() == {i}\n\n" for i in range(helper_count))
     _write(repo, "tests/test_helpers.py", test_src)
     base_sha = _commit(repo, "base: helpers defined directly in core.py")
 
@@ -130,6 +128,7 @@ def _build_extraction_storm_fixture(
 # (a) FR-001/SC-001 — extraction suppression, PAIRED before/after
 # ---------------------------------------------------------------------------
 
+
 class TestExtractionSuppressionPaired:
     """SC-001: WP05-shaped extraction — disabled storms, enabled ~0."""
 
@@ -145,12 +144,10 @@ class TestExtractionSuppressionPaired:
         enabled_helper_findings = [f for f in enabled_report.findings if f.changed_symbol.startswith("helper_")]
 
         assert len(disabled_helper_findings) >= 8, (
-            "suppression disabled must reproduce the WP05 storm shape "
-            f"(expected >= 8 relocated-helper findings, got {len(disabled_helper_findings)})"
+            f"suppression disabled must reproduce the WP05 storm shape (expected >= 8 relocated-helper findings, got {len(disabled_helper_findings)})"
         )
         assert len(enabled_helper_findings) == 0, (
-            "suppression enabled must suppress ALL relocated/re-exported helper findings, "
-            f"got: {[f.changed_symbol for f in enabled_helper_findings]}"
+            f"suppression enabled must suppress ALL relocated/re-exported helper findings, got: {[f.changed_symbol for f in enabled_helper_findings]}"
         )
 
 
@@ -158,18 +155,26 @@ class TestExtractionSuppressionPaired:
 # (b) FR-004/SC-002 — generic-literal suppression, PAIRED before/after
 # ---------------------------------------------------------------------------
 
+
 class TestGenericLiteralSuppressionPaired:
     """SC-002: generic-literal removals — disabled noisy, enabled ~0."""
 
     def test_generic_literal_paired_disabled_noisy_enabled_near_zero(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/messages.py", """\
+        _write(
+            repo,
+            "src/pkg/messages.py",
+            """\
             STATUS = "ok"
             MSG = "error"
             KIND = "unknown"
-        """)
-        _write(repo, "tests/test_messages.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_messages.py",
+            """\
             def test_status():
                 assert result == "ok"
 
@@ -178,14 +183,19 @@ class TestGenericLiteralSuppressionPaired:
 
             def test_kind():
                 assert category == "unknown"
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
-        _write(repo, "src/pkg/messages.py", """\
+        _write(
+            repo,
+            "src/pkg/messages.py",
+            """\
             STATUS = "ready"
             MSG = "failure"
             KIND = "known"
-        """)
+        """,
+        )
         head_sha = _commit(repo, "reformat: remove generic literals")
 
         with mock.patch.object(stale_assertions, "_is_noise_literal", return_value=False):
@@ -197,17 +207,14 @@ class TestGenericLiteralSuppressionPaired:
         disabled_generic = {f.changed_symbol for f in disabled_report.findings} & generic_values
         enabled_generic = {f.changed_symbol for f in enabled_report.findings} & generic_values
 
-        assert disabled_generic == generic_values, (
-            f"suppression disabled must surface all 3 generic-literal removals, got {disabled_generic}"
-        )
-        assert enabled_generic == set(), (
-            f"suppression enabled must suppress all generic-literal removals, got {enabled_generic}"
-        )
+        assert disabled_generic == generic_values, f"suppression disabled must surface all 3 generic-literal removals, got {disabled_generic}"
+        assert enabled_generic == set(), f"suppression enabled must suppress all generic-literal removals, got {enabled_generic}"
 
 
 # ---------------------------------------------------------------------------
 # (b2) #3957 — structural noise literals (F-60/F-79), PAIRED on the same fixture
 # ---------------------------------------------------------------------------
+
 
 class TestNoiseLiteralSuppressionPaired:
     """#3957: one-char/file-mode/single-lowercase-word removals — disabled
@@ -218,7 +225,10 @@ class TestNoiseLiteralSuppressionPaired:
 
         # Base: the F-60 shape (raw open() mode strings) and the F-79 shape
         # (generic schema words removed en masse), beside genuine signal.
-        _write(repo, "src/pkg/schema.py", """\
+        _write(
+            repo,
+            "src/pkg/schema.py",
+            """\
             MODE_APPEND = "a"
             MODE_READ_BINARY = "rb"
             MODE_WRITE_PLUS = "w+"
@@ -227,8 +237,12 @@ class TestNoiseLiteralSuppressionPaired:
             BODY_KEY = "payload"
             ERROR_CODE = "E001"
             LEGACY_MSG = "bad request"
-        """)
-        _write(repo, "tests/test_schema.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_schema.py",
+            """\
             def test_modes():
                 assert mode == "a"
                 assert binary == "rb"
@@ -244,12 +258,17 @@ class TestNoiseLiteralSuppressionPaired:
 
             def test_message():
                 assert msg == "bad request"
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
-        _write(repo, "src/pkg/schema.py", """\
+        _write(
+            repo,
+            "src/pkg/schema.py",
+            """\
             ERROR_CODE = "E002"
-        """)
+        """,
+        )
         head_sha = _commit(repo, "remove raw open() calls and schema keys")
 
         with mock.patch.object(stale_assertions, "_is_noise_literal", return_value=False):
@@ -264,20 +283,15 @@ class TestNoiseLiteralSuppressionPaired:
         enabled_noise = {f.changed_symbol for f in enabled_report.findings} & noise_values
         enabled_signal = {f.changed_symbol for f in enabled_report.findings} & signal_values
 
-        assert disabled_noise == noise_values, (
-            f"suppression disabled must surface all 6 noise-literal removals, got {disabled_noise}"
-        )
-        assert enabled_noise == set(), (
-            f"suppression enabled must suppress all noise-literal removals, got {enabled_noise}"
-        )
-        assert enabled_signal == signal_values, (
-            f"symbol-shaped and multi-word literals must remain signal, got {enabled_signal}"
-        )
+        assert disabled_noise == noise_values, f"suppression disabled must surface all 6 noise-literal removals, got {disabled_noise}"
+        assert enabled_noise == set(), f"suppression enabled must suppress all noise-literal removals, got {enabled_noise}"
+        assert enabled_signal == signal_values, f"symbol-shaped and multi-word literals must remain signal, got {enabled_signal}"
 
 
 # ---------------------------------------------------------------------------
 # (c) FR-005/SC-003 — genuine deletion (no re-export) still flagged
 # ---------------------------------------------------------------------------
+
 
 class TestGenuineDeletionStillFlagged:
     """SC-003: a truly-removed symbol (not relocated) is still caught."""
@@ -285,38 +299,47 @@ class TestGenuineDeletionStillFlagged:
     def test_genuine_deletion_not_reexported_still_flagged(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/util.py", """\
+        _write(
+            repo,
+            "src/pkg/util.py",
+            """\
             def compute_total():
                 return 42
-        """)
-        _write(repo, "tests/test_util.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_util.py",
+            """\
             def test_total():
                 assert compute_total() == 42
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
         # Genuine deletion: util.py's head neither redefines compute_total
         # nor imports/re-exports it from anywhere.
-        _write(repo, "src/pkg/util.py", """\
+        _write(
+            repo,
+            "src/pkg/util.py",
+            """\
             def unrelated_thing():
                 return 1
-        """)
+        """,
+        )
         head_sha = _commit(repo, "delete compute_total (no relocation)")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
 
         flagged = {f.changed_symbol: f.confidence for f in report.findings}
-        assert "compute_total" in flagged, (
-            f"genuine deletion must still be flagged, findings: {report.findings}"
-        )
-        assert flagged["compute_total"] in ("high", "medium"), (
-            f"genuine deletion must be high/medium confidence, got {flagged['compute_total']}"
-        )
+        assert "compute_total" in flagged, f"genuine deletion must still be flagged, findings: {report.findings}"
+        assert flagged["compute_total"] in ("high", "medium"), f"genuine deletion must be high/medium confidence, got {flagged['compute_total']}"
 
 
 # ---------------------------------------------------------------------------
 # (d) FR-001/FR-005/SC-003 — the NAME-COLLISION key guard
 # ---------------------------------------------------------------------------
+
 
 class TestNameCollisionGuard:
     """SC-003: a genuine deletion of a common name must NOT be blinded by an
@@ -324,37 +347,55 @@ class TestNameCollisionGuard:
     is keyed on head-importability of the ORIGIN file, not bare-name-anywhere.
     """
 
-    def test_genuine_deletion_still_flagged_despite_unrelated_same_name_elsewhere(
-        self, tmp_path: Path
-    ) -> None:
+    def test_genuine_deletion_still_flagged_despite_unrelated_same_name_elsewhere(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/service_c.py", """\
+        _write(
+            repo,
+            "src/pkg/service_c.py",
+            """\
             def run():
                 return "c"
-        """)
-        _write(repo, "src/pkg/service_b.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "src/pkg/service_b.py",
+            """\
             def run():
                 return "b_old"
-        """)
-        _write(repo, "tests/test_service_c.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_service_c.py",
+            """\
             def test_run():
                 assert run() == "c"
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
         # C: genuine deletion of `run` — no import/re-export of the old name.
-        _write(repo, "src/pkg/service_c.py", """\
+        _write(
+            repo,
+            "src/pkg/service_c.py",
+            """\
             def teardown():
                 return "c2"
-        """)
+        """,
+        )
         # B: an UNRELATED function also named `run`, edited but not removed —
         # the trap. A bare-name-anywhere heuristic would see "run" survive in
         # the diff (via B) and wrongly suppress C's genuine deletion.
-        _write(repo, "src/pkg/service_b.py", """\
+        _write(
+            repo,
+            "src/pkg/service_b.py",
+            """\
             def run():
                 return "b_new"
-        """)
+        """,
+        )
         head_sha = _commit(repo, "delete run in service_c.py; unrelated edit to run in service_b.py")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
@@ -370,6 +411,7 @@ class TestNameCollisionGuard:
 # (e) FR-002 edge case — relocate-AND-rename still flagged
 # ---------------------------------------------------------------------------
 
+
 class TestRelocateAndRenameStillFlagged:
     """FR-002: a relocate-and-rename is a real change, not a suppression —
     the origin file's head no longer imports the OLD name under any form."""
@@ -378,39 +420,53 @@ class TestRelocateAndRenameStillFlagged:
         repo = _setup_repo(tmp_path)
         _write(repo, "src/pkg/__init__.py", "")
 
-        _write(repo, "src/pkg/core.py", """\
+        _write(
+            repo,
+            "src/pkg/core.py",
+            """\
             def old_name():
                 return 1
-        """)
-        _write(repo, "tests/test_core.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_core.py",
+            """\
             def test_it():
                 assert old_name() == 1
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
         # Relocated to util.py AND renamed to new_name — core.py's head
         # imports "new_name", never "old_name".
-        _write(repo, "src/pkg/core.py", """\
+        _write(
+            repo,
+            "src/pkg/core.py",
+            """\
             from .util import new_name
-        """)
-        _write(repo, "src/pkg/util.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "src/pkg/util.py",
+            """\
             def new_name():
                 return 1
-        """)
+        """,
+        )
         head_sha = _commit(repo, "relocate old_name -> util.new_name")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
 
         flagged = {f.changed_symbol for f in report.findings}
-        assert "old_name" in flagged, (
-            f"relocate-and-rename must still be flagged (origin head no longer imports "
-            f"the OLD name), got: {report.findings}"
-        )
+        assert "old_name" in flagged, f"relocate-and-rename must still be flagged (origin head no longer imports the OLD name), got: {report.findings}"
 
 
 # ---------------------------------------------------------------------------
 # (f) FR-004 edge case — genuinely SHORT assert-critical literal still emitted
 # ---------------------------------------------------------------------------
+
 
 class TestShortAssertCriticalLiteralStillEmitted:
     """FR-004: genericness, not length, is the discriminator — a short but
@@ -419,32 +475,42 @@ class TestShortAssertCriticalLiteralStillEmitted:
     def test_short_assert_critical_literal_still_emitted(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/errors.py", """\
+        _write(
+            repo,
+            "src/pkg/errors.py",
+            """\
             ERROR_CODE = "E001"
-        """)
-        _write(repo, "tests/test_errors.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_errors.py",
+            """\
             def test_code():
                 assert code == "E001"
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
-        _write(repo, "src/pkg/errors.py", """\
+        _write(
+            repo,
+            "src/pkg/errors.py",
+            """\
             ERROR_CODE = "E002"
-        """)
+        """,
+        )
         head_sha = _commit(repo, "change error code")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
 
         flagged = {f.changed_symbol for f in report.findings}
-        assert "E001" in flagged, (
-            f"a short but non-generic literal must still be emitted (genuineness, not "
-            f"length, is the rule), got: {report.findings}"
-        )
+        assert "E001" in flagged, f"a short but non-generic literal must still be emitted (genuineness, not length, is the rule), got: {report.findings}"
 
 
 # ---------------------------------------------------------------------------
 # (g) FR-006/SC-004 — FP-ceiling PAIRED on the SAME storming fixture
 # ---------------------------------------------------------------------------
+
 
 class TestFPCeilingPairedOnExtractionFixture:
     """SC-004: the ceiling proof must be a paired before/after on the SAME
@@ -478,6 +544,7 @@ class TestFPCeilingPairedOnExtractionFixture:
 # suppress a genuine deletion (guards the `ast.walk` regression).
 # ---------------------------------------------------------------------------
 
+
 class TestNestedImportDoesNotSuppressGenuineDeletion:
     """SC-003 (#2031 finding 2): `_head_still_exports_name` scans MODULE-LEVEL
     statements only. An unrelated ``from x import parse`` / bare
@@ -489,78 +556,88 @@ class TestNestedImportDoesNotSuppressGenuineDeletion:
     own namespace.
     """
 
-    def test_genuine_deletion_still_flagged_despite_nested_from_import(
-        self, tmp_path: Path
-    ) -> None:
+    def test_genuine_deletion_still_flagged_despite_nested_from_import(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/parser.py", """\
+        _write(
+            repo,
+            "src/pkg/parser.py",
+            """\
             def parse():
                 return 1
-        """)
-        _write(repo, "tests/test_parser.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_parser.py",
+            """\
             def test_parse():
                 assert parse() == 1
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
         # Genuine deletion of `parse` — the only `import parse` in the head
         # is NESTED inside an unrelated function, not a module-level
         # re-export. A pre-fix `ast.walk` scan would wrongly find it and
         # suppress this genuine deletion.
-        _write(repo, "src/pkg/parser.py", """\
+        _write(
+            repo,
+            "src/pkg/parser.py",
+            """\
             def unrelated_helper():
                 def _lazy():
                     from other_module import parse
                     return parse
                 return _lazy()
-        """)
-        head_sha = _commit(
-            repo, "delete parse(); unrelated nested from-import of an unrelated 'parse'"
+        """,
         )
+        head_sha = _commit(repo, "delete parse(); unrelated nested from-import of an unrelated 'parse'")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
 
         flagged = {f.changed_symbol for f in report.findings}
-        assert "parse" in flagged, (
-            "a nested (non-module-level) from-import must NOT suppress a genuine "
-            f"deletion of 'parse', got: {report.findings}"
-        )
+        assert "parse" in flagged, f"a nested (non-module-level) from-import must NOT suppress a genuine deletion of 'parse', got: {report.findings}"
 
-    def test_genuine_deletion_still_flagged_despite_nested_bare_import(
-        self, tmp_path: Path
-    ) -> None:
+    def test_genuine_deletion_still_flagged_despite_nested_bare_import(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/parser.py", """\
+        _write(
+            repo,
+            "src/pkg/parser.py",
+            """\
             def parse():
                 return 1
-        """)
-        _write(repo, "tests/test_parser.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_parser.py",
+            """\
             def test_parse():
                 assert parse() == 1
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
         # Genuine deletion of `parse` — the only `import parse` in the head
         # is NESTED inside an unrelated method, not module-level.
-        _write(repo, "src/pkg/parser.py", """\
+        _write(
+            repo,
+            "src/pkg/parser.py",
+            """\
             class Unrelated:
                 def method(self):
                     import parse
                     return parse
-        """)
-        head_sha = _commit(
-            repo, "delete parse(); unrelated nested bare import inside a method"
+        """,
         )
+        head_sha = _commit(repo, "delete parse(); unrelated nested bare import inside a method")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
 
         flagged = {f.changed_symbol for f in report.findings}
-        assert "parse" in flagged, (
-            "a nested bare 'import parse' inside a method must NOT suppress a "
-            f"genuine deletion of 'parse', got: {report.findings}"
-        )
+        assert "parse" in flagged, f"a nested bare 'import parse' inside a method must NOT suppress a genuine deletion of 'parse', got: {report.findings}"
 
 
 class TestModuleLevelBareImportSuppressesPerDesign:
@@ -577,30 +654,37 @@ class TestModuleLevelBareImportSuppressesPerDesign:
     def test_module_level_bare_import_suppresses(self, tmp_path: Path) -> None:
         repo = _setup_repo(tmp_path)
 
-        _write(repo, "src/pkg/parser.py", """\
+        _write(
+            repo,
+            "src/pkg/parser.py",
+            """\
             def parse():
                 return 1
-        """)
-        _write(repo, "tests/test_parser.py", """\
+        """,
+        )
+        _write(
+            repo,
+            "tests/test_parser.py",
+            """\
             def test_parse():
                 assert parse() == 1
-        """)
+        """,
+        )
         base_sha = _commit(repo, "base")
 
-        _write(repo, "src/pkg/parser.py", """\
+        _write(
+            repo,
+            "src/pkg/parser.py",
+            """\
             import parse
-        """)
-        head_sha = _commit(
-            repo, "delete parse(); add unrelated module-level 'import parse'"
+        """,
         )
+        head_sha = _commit(repo, "delete parse(); add unrelated module-level 'import parse'")
 
         report = run_check(base_ref=base_sha, head_ref=head_sha, repo_root=repo)
 
         flagged = {f.changed_symbol for f in report.findings}
-        assert "parse" not in flagged, (
-            "a module-level bare 'import parse' is documented to suppress per "
-            f"the head-importability rule, got: {report.findings}"
-        )
+        assert "parse" not in flagged, f"a module-level bare 'import parse' is documented to suppress per the head-importability rule, got: {report.findings}"
 
 
 # ---------------------------------------------------------------------------
@@ -608,6 +692,7 @@ class TestModuleLevelBareImportSuppressesPerDesign:
 # (#2031 finding 1: the acceptance matrix claimed "verified all forms" while
 # the __all__/import-as/__init__-re-export branches were 0% tested).
 # ---------------------------------------------------------------------------
+
 
 class TestHeadStillExportsNameAllForms:
     """Direct unit tests proving each documented re-export FORM suppresses,

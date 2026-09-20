@@ -21,10 +21,7 @@ class CharterManifestDefaultsRepair(BaseMigration):
 
     migration_id = "3.2.0rc35_charter_manifest_defaults_repair"
     target_version = "3.2.0rc35"
-    description = (
-        "Repair current v2 charter synthesis manifests that predate verifier-visible "
-        "manifest defaults."
-    )
+    description = "Repair current v2 charter synthesis manifests that predate verifier-visible manifest defaults."
 
     def detect(self, project_path: Path) -> bool:
         charter_dir = project_path / ".kittify" / "charter"

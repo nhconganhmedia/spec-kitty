@@ -58,10 +58,7 @@ def test_builtin_pack_resolves_as_loaded_drg_node(
 ) -> None:
     """The shipped ``spec-kitty-core`` pack is a real, loaded DRG node."""
     node = _pack_node(built_in_graph)
-    assert node is not None, (
-        f"{_PACK_URN} did not resolve in the built-in DRG -- the pack loads "
-        "from disk but never becomes a reachable node (NFR-003 trap)."
-    )
+    assert node is not None, f"{_PACK_URN} did not resolve in the built-in DRG -- the pack loads from disk but never becomes a reachable node (NFR-003 trap)."
     assert node.kind == NodeKind.GLOSSARY_PACK
 
 
@@ -83,9 +80,7 @@ def _copy_shipped_fragments(dest: Path, *, omit: str | None) -> None:
 class TestFragmentPresenceControlsResolution:
     """B1 negative control: the fragment's presence is what makes it resolve."""
 
-    def test_control_arm_with_fragment_present_resolves(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_control_arm_with_fragment_present_resolves(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Sanity control: the copy-based harness itself finds the node
         when the fragment IS present -- proves the negative arm below fails
         because the fragment is missing, not because the harness is broken.
@@ -94,15 +89,11 @@ class TestFragmentPresenceControlsResolution:
         _copy_shipped_fragments(fragments_dir, omit=None)
         assert (fragments_dir / _FRAGMENT_NAME).is_file()
 
-        monkeypatch.setattr(
-            "charter.offering.drg.loader.built_in_graph_source", lambda: fragments_dir
-        )
+        monkeypatch.setattr("charter.offering.drg.loader.built_in_graph_source", lambda: fragments_dir)
         graph = load_built_in_graph()
         assert _pack_node(graph) is not None
 
-    def test_negative_control_arm_without_fragment_does_not_resolve(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_negative_control_arm_without_fragment_does_not_resolve(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """The actual non-vacuity proof: delete the root fragment and the
         built-in pack node must NOT resolve, even though every other shipped
         fragment (directives, tactics, ...) is still present and loads fine.
@@ -113,18 +104,12 @@ class TestFragmentPresenceControlsResolution:
         _copy_shipped_fragments(fragments_dir, omit=_FRAGMENT_NAME)
         assert not (fragments_dir / _FRAGMENT_NAME).exists()
         assert sorted(fragments_dir.glob("*.graph.yaml")), (
-            "the negative control must still have OTHER fragments present, "
-            "otherwise it would prove nothing about this pack specifically"
+            "the negative control must still have OTHER fragments present, otherwise it would prove nothing about this pack specifically"
         )
 
-        monkeypatch.setattr(
-            "charter.offering.drg.loader.built_in_graph_source", lambda: fragments_dir
-        )
+        monkeypatch.setattr("charter.offering.drg.loader.built_in_graph_source", lambda: fragments_dir)
         graph = load_built_in_graph()
-        assert _pack_node(graph) is None, (
-            "the pack node resolved even with its root fragment removed -- "
-            "this guard would not have caught the B1 mislocation defect"
-        )
+        assert _pack_node(graph) is None, "the pack node resolved even with its root fragment removed -- this guard would not have caught the B1 mislocation defect"
 
 
 # ---------------------------------------------------------------------------
@@ -172,42 +157,30 @@ def _build_partial_doctrine_root(dest: Path, *, include_glossary_packs: bool) ->
 class TestExtractorEmissionControlsResolution:
     """B2 negative control: the emission block is what mints the node."""
 
-    def test_control_arm_extraction_emits_the_node_from_real_root(
-        self, tmp_path: Path
-    ) -> None:
+    def test_control_arm_extraction_emits_the_node_from_real_root(self, tmp_path: Path) -> None:
         """Sanity control: extraction over a root that DOES include
         ``glossary_packs/`` emits the glossary_pack node (proves the emission
         block is wired at all, using the same harness as the negative arm).
         """
-        root = _build_partial_doctrine_root(
-            tmp_path / "with-glossary-packs", include_glossary_packs=True
-        )
+        root = _build_partial_doctrine_root(tmp_path / "with-glossary-packs", include_glossary_packs=True)
         nodes, _edges = extract_artifact_edges(root)
         urns = {n.urn for n in nodes}
         assert _PACK_URN in urns
 
-    def test_negative_control_arm_without_builtin_pack_dir_emits_nothing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_negative_control_arm_without_builtin_pack_dir_emits_nothing(self, tmp_path: Path) -> None:
         """The actual non-vacuity proof: a doctrine root with every OTHER
         built-in kind present but ``glossary_packs/`` absent must emit no
         glossary_pack node -- this is what a deleted/never-added emission
         block (the B2 defect) would look like.
         """
-        root = _build_partial_doctrine_root(
-            tmp_path / "without-glossary-packs", include_glossary_packs=False
-        )
+        root = _build_partial_doctrine_root(tmp_path / "without-glossary-packs", include_glossary_packs=False)
         assert not (root / "glossary_packs").exists()
 
         nodes, _edges = extract_artifact_edges(root)
         urns = {n.urn for n in nodes}
         assert _PACK_URN not in urns, (
-            "the glossary_pack node was emitted even with the built-in pack "
-            "directory removed -- this guard would not have caught the B2 "
-            "missing-emission defect"
+            "the glossary_pack node was emitted even with the built-in pack directory removed -- this guard would not have caught the B2 missing-emission defect"
         )
         assert any(u.startswith("directive:") for u in urns), (
-            "the negative control must still emit OTHER kinds' nodes, "
-            "otherwise it would prove nothing about this emission block "
-            "specifically"
+            "the negative control must still emit OTHER kinds' nodes, otherwise it would prove nothing about this emission block specifically"
         )

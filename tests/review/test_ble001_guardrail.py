@@ -12,13 +12,11 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def test_scoped_ble001_with_specific_safety_reason_passes(tmp_path: Path) -> None:
     repo_root = tmp_path / "repo"
     path = repo_root / "src/specify_cli/auth/flows/revoke.py"
-    line = (
-        "except Exception as exc:  # noqa: BLE001 - "
-        "storage cleanup failure is logged and local deletion continues"
-    )
+    line = "except Exception as exc:  # noqa: BLE001 - storage cleanup failure is logged and local deletion continues"
 
     finding = audit_auth_storage_ble001_line(path, 12, line, repo_root=repo_root)
 

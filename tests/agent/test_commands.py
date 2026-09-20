@@ -285,9 +285,7 @@ def test_accept_requires_explicit_feature_flag(monkeypatch, tmp_path: Path) -> N
     # Must fail because --mission is required (exit 2 = typer error for missing param)
     assert result.exit_code != 0
     output = result.stdout
-    assert "error" in output.lower() or "mission" in output.lower(), (
-        f"Expected error about missing mission, got: {output}"
-    )
+    assert "error" in output.lower() or "mission" in output.lower(), f"Expected error about missing mission, got: {output}"
 
 
 def test_merge_dry_run_outputs_lane_payload(monkeypatch, tmp_path: Path) -> None:

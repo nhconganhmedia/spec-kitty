@@ -29,6 +29,7 @@ from specify_cli.validators.paths import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 @pytest.fixture
 def valid_evidence_log(tmp_path: Path) -> Path:
     csv_file = tmp_path / "evidence-log.csv"
@@ -219,9 +220,7 @@ def test_override_remaps_workspace_to_apps(tmp_path: Path) -> None:
     (tmp_path / "apps").mkdir()
     mission = _MissionStub("Software Dev Kitty", {"workspace": "src/", "tests": "apps/"})
 
-    result = validate_mission_paths(
-        mission, tmp_path, strict=False, path_overrides={"workspace": "apps/", "tests": "apps/"}
-    )
+    result = validate_mission_paths(mission, tmp_path, strict=False, path_overrides={"workspace": "apps/", "tests": "apps/"})
 
     assert result.is_valid
     assert "apps/" in result.existing_paths
@@ -244,9 +243,7 @@ def test_override_only_remaps_declared_keys(tmp_path: Path) -> None:
     (tmp_path / "src").mkdir()
     mission = _MissionStub("Software Dev Kitty", {"workspace": "src/"})
 
-    result = validate_mission_paths(
-        mission, tmp_path, strict=False, path_overrides={"workspace": "src/", "data": "datadir/"}
-    )
+    result = validate_mission_paths(mission, tmp_path, strict=False, path_overrides={"workspace": "src/", "data": "datadir/"})
 
     assert result.is_valid
     assert result.missing_paths == []
@@ -269,9 +266,7 @@ def test_mission_artifact_path_resolves_against_feature_dir(tmp_path: Path) -> N
         optional_artifacts=("contracts/",),
     )
 
-    result = validate_mission_paths(
-        mission, repo_root, strict=False, feature_dir=feature_dir
-    )
+    result = validate_mission_paths(mission, repo_root, strict=False, feature_dir=feature_dir)
 
     assert result.is_valid, result.warnings
     assert set(result.existing_paths) == {"src/", "contracts/"}
@@ -325,9 +320,7 @@ def test_non_artifact_path_stays_repo_root_even_with_feature_dir(tmp_path: Path)
 
     mission = _MissionStub("Software Dev Kitty", {"tests": "tests/"})
 
-    result = validate_mission_paths(
-        mission, repo_root, strict=False, feature_dir=feature_dir
-    )
+    result = validate_mission_paths(mission, repo_root, strict=False, feature_dir=feature_dir)
 
     # tests/ is not a mission artifact → repo-root resolution; present there → valid.
     assert result.is_valid
@@ -356,9 +349,7 @@ def test_missing_artifact_tagged_path_reports_resolved_feature_relative_location
         optional_artifacts=("contracts/",),
     )
 
-    result = validate_mission_paths(
-        mission, project_root, strict=False, feature_dir=feature_dir
-    )
+    result = validate_mission_paths(mission, project_root, strict=False, feature_dir=feature_dir)
 
     resolved = "kitty-specs/some-slug/contracts/"
     bare_token = "contracts/"
@@ -396,9 +387,7 @@ def test_missing_build_path_stays_project_root_relative_unchanged(
 
     mission = _MissionStub("Software Dev Kitty", {"tests": "tests/"})
 
-    result = validate_mission_paths(
-        mission, project_root, strict=False, feature_dir=feature_dir
-    )
+    result = validate_mission_paths(mission, project_root, strict=False, feature_dir=feature_dir)
 
     expected = "tests/"  # unchanged pre-WP1 value for this branch/fixture
 

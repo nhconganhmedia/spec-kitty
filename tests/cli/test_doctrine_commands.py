@@ -72,9 +72,7 @@ def test_mission_type_list_returns_built_in_types() -> None:
     # All four canonical mission types must appear.
     expected_ids = ["software-dev", "documentation", "research", "plan"]
     for mt_id in expected_ids:
-        assert mt_id in result.output, (
-            f"Expected mission type id {mt_id!r} not found in output:\n{result.output}"
-        )
+        assert mt_id in result.output, f"Expected mission type id {mt_id!r} not found in output:\n{result.output}"
 
 
 def test_mission_type_list_shows_built_in_source_layer() -> None:
@@ -154,9 +152,7 @@ def test_mission_type_list_json_all_built_in_types() -> None:
     data = json.loads(result.stdout.strip())
     ids = {item["id"] for item in data}
     expected = {"software-dev", "documentation", "research", "plan"}
-    assert expected <= ids, (
-        f"Expected canonical ids {expected!r} to be a subset of {ids!r}"
-    )
+    assert expected <= ids, f"Expected canonical ids {expected!r} to be a subset of {ids!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -191,9 +187,7 @@ def test_mission_type_list_json_source_layers_canonical() -> None:
     data = json.loads(result.stdout.strip())
     canonical_layers = {"built-in", "org", "project"}
     for item in data:
-        assert item["source_layer"] in canonical_layers, (
-            f"Non-canonical source_layer {item['source_layer']!r} in item {item!r}"
-        )
+        assert item["source_layer"] in canonical_layers, f"Non-canonical source_layer {item['source_layer']!r} in item {item!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -203,9 +197,7 @@ def test_mission_type_list_json_source_layers_canonical() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_mission_type_list_includes_registered_org_type_regardless_of_activation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_list_includes_registered_org_type_regardless_of_activation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-008: an org-layer type appears with its real layer even when it is
     merely *registered* (not activated) -- a true all-layers roster listing,
     not an activation-scoped one (this command's own docstring already

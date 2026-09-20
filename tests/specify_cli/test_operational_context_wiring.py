@@ -190,16 +190,12 @@ def _count_status_events(feature_dir: Path) -> int:
 class TestPreconditionFailureNoSideEffects:
     """NFR-004 — a context precondition failure mutates no runtime state."""
 
-    def test_guard_failure_creates_no_worktree_or_status_event(
-        self, tmp_path: Path
-    ) -> None:
+    def test_guard_failure_creates_no_worktree_or_status_event(self, tmp_path: Path) -> None:
         feature_dir = tmp_path / "kitty-specs" / "feat"
         feature_dir.mkdir(parents=True)
         # Pre-seed an existing status event so we can prove none are *added*.
         existing = (
-            '{"actor":"claude","at":"2026-01-01T00:00:00+00:00",'
-            '"event_id":"01HXYZ","from_lane":null,"to_lane":"planned",'
-            '"wp_id":"WP01","feature_slug":"feat"}'
+            '{"actor":"claude","at":"2026-01-01T00:00:00+00:00","event_id":"01HXYZ","from_lane":null,"to_lane":"planned","wp_id":"WP01","feature_slug":"feat"}'
         )
         (feature_dir / "status.events.jsonl").write_text(existing + "\n")
 
@@ -285,16 +281,12 @@ class TestWiringIsLive:
         # body moved into the runtime_bridge_io seam; runtime_bridge keeps a thin delegate.
         # Two-hop check (mirrors test_decide_next_calls_decision_helper above): delegate ->
         # io seam -> the pure assembler. Preserves the original single-hop guarantee.
-        assert "_build_operational_context_for_decision" in _calls_in(
-            _build_operational_context_for_decision
-        )
+        assert "_build_operational_context_for_decision" in _calls_in(_build_operational_context_for_decision)
         called = _calls_in(runtime_bridge_io._build_operational_context_for_decision)
         assert "build_operational_context" in called
 
     def test_claim_helper_calls_pure_assembler(self) -> None:
         # #2531 WP09: build_operational_context_for_claim's body moved into the io seam.
-        assert "build_operational_context_for_claim" in _calls_in(
-            build_operational_context_for_claim
-        )
+        assert "build_operational_context_for_claim" in _calls_in(build_operational_context_for_claim)
         called = _calls_in(runtime_bridge_io.build_operational_context_for_claim)
         assert "build_operational_context" in called

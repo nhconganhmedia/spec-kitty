@@ -36,9 +36,7 @@ _PLANNING_BRANCH = "mission/2650-wp04-ref-unification-demo"
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
 
 def _init_repo(repo: Path, *, branch: str) -> None:
@@ -196,12 +194,10 @@ class TestWriteSideDerivesFromTheSharedExpression:
         # ``planning_branch`` variable directly any more -- both route
         # through ``_commit_target_ref_for(planning_branch)``.
         assert "destination_ref=planning_branch," not in body, (
-            "a write-side call site still assigns destination_ref=planning_branch "
-            "directly instead of _commit_target_ref_for(planning_branch)"
+            "a write-side call site still assigns destination_ref=planning_branch directly instead of _commit_target_ref_for(planning_branch)"
         )
         assert source.count("_commit_target_ref_for(planning_branch)") >= 2, (
-            "expected BOTH the flat/legacy (755) and partition-split (790) "
-            "PRIMARY-group call sites to route through _commit_target_ref_for"
+            "expected BOTH the flat/legacy (755) and partition-split (790) PRIMARY-group call sites to route through _commit_target_ref_for"
         )
 
     def test_flat_legacy_commit_still_lands_on_planning_branch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -254,9 +250,7 @@ class TestDetachedHeadRegression:
     shared expression, which prioritises it over the ``"HEAD"`` default.
     """
 
-    def test_write_side_targets_the_named_branch_even_when_head_is_detached(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_write_side_targets_the_named_branch_even_when_head_is_detached(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.implement import (
             _commit_planning_artifacts_transaction,
         )
@@ -273,9 +267,7 @@ class TestDetachedHeadRegression:
         _git(repo, "commit", "-q", "-m", "advance planning_branch")
         _git(repo, "checkout", "-q", "--detach", first_commit)
         # Sanity: the checkout really is detached, not "on" planning_branch.
-        head_branch = subprocess.run(
-            ["git", "symbolic-ref", "-q", "--short", "HEAD"], cwd=repo, capture_output=True, text=True
-        )
+        head_branch = subprocess.run(["git", "symbolic-ref", "-q", "--short", "HEAD"], cwd=repo, capture_output=True, text=True)
         assert head_branch.returncode != 0, "expected a detached HEAD (no symbolic ref)"
 
         mission_slug = "wp04-detached-demo"

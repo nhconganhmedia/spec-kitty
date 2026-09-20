@@ -72,15 +72,7 @@ def _create_minimal_feature(tmp_path: Path) -> tuple[Path, Path]:
 
     # WP file with all required frontmatter fields
     wp_content = (
-        "---\n"
-        'work_package_id: "WP01"\n'
-        'title: "Test WP"\n'
-        'lane: "done"\n'
-        'assignee: "test-agent"\n'
-        'agent: "test-agent"\n'
-        'shell_pid: "12345"\n'
-        "---\n"
-        "# WP01\nDone.\n"
+        '---\nwork_package_id: "WP01"\ntitle: "Test WP"\nlane: "done"\nassignee: "test-agent"\nagent: "test-agent"\nshell_pid: "12345"\n---\n# WP01\nDone.\n'
     )
     (tasks_dir / "WP01-test.md").write_text(wp_content)
 
@@ -193,15 +185,8 @@ def test_accept_gate_second_run_no_unexpected_dirty_files(tmp_path: Path) -> Non
     # import of production exemption state.
     accept_owned_basenames = ("acceptance-matrix.json", "status.json")
 
-    unexpected_dirty = [
-        line
-        for line in dirty_after
-        if line not in dirty_before
-        and not any(line.endswith(owned) for owned in accept_owned_basenames)
-    ]
-    assert unexpected_dirty == [], (
-        f"Unexpected dirty files after two accept runs: {unexpected_dirty}"
-    )
+    unexpected_dirty = [line for line in dirty_after if line not in dirty_before and not any(line.endswith(owned) for owned in accept_owned_basenames)]
+    assert unexpected_dirty == [], f"Unexpected dirty files after two accept runs: {unexpected_dirty}"
 
 
 def test_accept_dirty_gate_keeps_unrelated_status_json_dirty(tmp_path: Path) -> None:

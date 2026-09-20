@@ -99,9 +99,7 @@ agent: codex
         encoding="utf-8",
     )
     # The snapshot — not the (all-unchecked) body checkboxes — drives the badge.
-    _set_wp_subtasks(
-        feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.PLANNED, "T003": Lane.DONE}
-    )
+    _set_wp_subtasks(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.PLANNED, "T003": Lane.DONE})
 
     lanes = scanner.scan_feature_kanban(tmp_path, feature_dir.name)
     task = next(t for lane in lanes.values() for t in lane)
@@ -137,9 +135,7 @@ agent: codex
         encoding="utf-8",
     )
     # The snapshot records only 2 of 3 done; the fully-checked tasks.md is ignored.
-    _set_wp_subtasks(
-        feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.DONE, "T003": Lane.PLANNED}
-    )
+    _set_wp_subtasks(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.DONE, "T003": Lane.PLANNED})
 
     lanes = scanner.scan_feature_kanban(tmp_path, feature_dir.name)
     task = next(t for lane in lanes.values() for t in lane)
@@ -599,11 +595,7 @@ def test_process_wp_file_uses_frontmatter_title_without_prompt_header(tmp_path):
     tasks_dir.mkdir(parents=True)
     prompt_file = tasks_dir / "WP01-demo.md"
     prompt_file.write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Frontmatter Demo Title\n"
-        "---\n\n"
-        "Body without a Work Package Prompt header.\n",
+        "---\nwork_package_id: WP01\ntitle: Frontmatter Demo Title\n---\n\nBody without a Work Package Prompt header.\n",
         encoding="utf-8",
     )
     _set_wp_lane(feature_dir, "WP01", "planned")
@@ -706,9 +698,7 @@ def test_resolve_active_feature_requires_explicit_selection(tmp_path):
     resolve_active_feature always returns None.
     """
     resolved = scanner.resolve_active_feature(tmp_path)
-    assert resolved is None, (
-        "resolve_active_feature must return None after removal of auto-detection"
-    )
+    assert resolved is None, "resolve_active_feature must return None after removal of auto-detection"
 
 
 def test_get_feature_artifacts_charter_present_when_only_yaml_exists(tmp_path):
@@ -1074,9 +1064,7 @@ def test_registry_resolves_canonical_id_for_inflight_coord_mission(tmp_path):
 
     # PRIMARY checkout: feature + canonical meta.json (the identity source).
     primary_dir = _create_feature(tmp_path, slug, lane="in_progress")
-    (primary_dir / "meta.json").write_text(
-        json.dumps({"mission_id": ulid, "mission_slug": slug}), encoding="utf-8"
-    )
+    (primary_dir / "meta.json").write_text(json.dumps({"mission_id": ulid, "mission_slug": slug}), encoding="utf-8")
 
     # COORD worktree: live feature artifacts but NO meta.json (mid-orchestration).
     coord_feature_dir = coord_worktree / "kitty-specs" / slug
@@ -1178,9 +1166,7 @@ def test_dashboard_scan_degrades_when_registry_unreadable_in_non_git_project(
 # ── scan_feature_kanban error-handling paths ───────────────────────────────
 
 
-def test_scan_feature_kanban_canonical_status_not_found_returns_empty_lanes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scan_feature_kanban_canonical_status_not_found_returns_empty_lanes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """CanonicalStatusNotFoundError aborts WP iteration and returns empty lanes.
 
     Covers scanner.py lines 872-877: the except-branch warning log and the
@@ -1204,15 +1190,10 @@ def test_scan_feature_kanban_canonical_status_not_found_returns_empty_lanes(
 
     lanes = scanner.scan_feature_kanban(tmp_path, "001-no-event-log")
 
-    assert all(len(v) == 0 for v in lanes.values()), (
-        "all lanes must be empty when CanonicalStatusNotFoundError is raised "
-        "during WP processing"
-    )
+    assert all(len(v) == 0 for v in lanes.values()), "all lanes must be empty when CanonicalStatusNotFoundError is raised during WP processing"
 
 
-def test_scan_feature_kanban_generic_exception_is_logged_and_skipped(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_scan_feature_kanban_generic_exception_is_logged_and_skipped(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A generic Exception from _process_wp_file is logged and the WP is skipped.
 
     Covers scanner.py lines 878-880: the broad except-branch logger.error call
@@ -1234,19 +1215,14 @@ def test_scan_feature_kanban_generic_exception_is_logged_and_skipped(
     # Must not propagate — the broad except catches it and continues.
     lanes = scanner.scan_feature_kanban(tmp_path, "001-bad-wp")
 
-    assert all(len(v) == 0 for v in lanes.values()), (
-        "all lanes must be empty after a broken WP is skipped via the generic "
-        "exception handler"
-    )
+    assert all(len(v) == 0 for v in lanes.values()), "all lanes must be empty after a broken WP is skipped via the generic exception handler"
 
 
 # ── _resolve_planning_dir_primary_first fallback paths (#2430) ─────────────
 
 
 @pytest.mark.fast
-def test_resolve_planning_dir_primary_first_falls_back_on_value_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_planning_dir_primary_first_falls_back_on_value_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """ValueError from resolve_planning_read_dir returns the scanned dir (#2430).
 
     Covers scanner.py lines 463-464: the except branch when the resolver
@@ -1266,9 +1242,7 @@ def test_resolve_planning_dir_primary_first_falls_back_on_value_error(
 
 
 @pytest.mark.fast
-def test_resolve_planning_dir_primary_first_falls_back_on_ambiguous_handle(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_planning_dir_primary_first_falls_back_on_ambiguous_handle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """MissionSelectorAmbiguous from the resolver returns the scanned dir (#2430).
 
     Covers scanner.py lines 463-464: the except branch when multiple missions
@@ -1290,9 +1264,7 @@ def test_resolve_planning_dir_primary_first_falls_back_on_ambiguous_handle(
 
 
 @pytest.mark.fast
-def test_resolve_planning_dir_primary_first_falls_back_when_candidate_absent(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_planning_dir_primary_first_falls_back_when_candidate_absent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A resolved primary path that does not exist on disk returns the scanned dir.
 
     Covers scanner.py line 467: the fallback when the resolver returns a
@@ -1313,9 +1285,7 @@ def test_resolve_planning_dir_primary_first_falls_back_when_candidate_absent(
 
 
 @pytest.mark.fast
-def test_resolve_planning_dir_primary_first_returns_candidate_when_present(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_planning_dir_primary_first_returns_candidate_when_present(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Resolver returns an existing primary dir → the candidate wins over feature_dir.
 
     Covers scanner.py lines 465-466: the happy-path branch where the resolved
@@ -1326,9 +1296,7 @@ def test_resolve_planning_dir_primary_first_returns_candidate_when_present(
     """
     feature_dir = tmp_path / "kitty-specs" / "001-has-primary"
     feature_dir.mkdir(parents=True)
-    primary_dir = (
-        tmp_path / ".worktrees" / "001-has-primary-lane-1" / "kitty-specs" / "001-has-primary"
-    )
+    primary_dir = tmp_path / ".worktrees" / "001-has-primary-lane-1" / "kitty-specs" / "001-has-primary"
     primary_dir.mkdir(parents=True)  # exists — resolver found a live primary checkout
 
     monkeypatch.setattr(scanner, "resolve_planning_read_dir", lambda *_a, **_kw: primary_dir)
@@ -1365,9 +1333,7 @@ def test_display_category_matches_kanban_columns():
     }
     for lane, expected_label in expected_mapping.items():
         state = wp_state_for(lane)
-        assert state.display_category() == expected_label, (
-            f"Lane {lane}: expected {expected_label!r}, got {state.display_category()!r}"
-        )
+        assert state.display_category() == expected_label, f"Lane {lane}: expected {expected_label!r}, got {state.display_category()!r}"
 
 
 @pytest.mark.fast
@@ -1382,13 +1348,9 @@ def test_kanban_column_map_covers_all_lanes():
 
     for member in Lane:
         if member in NON_DISPLAY_LANES:
-            assert member not in _KANBAN_COLUMN_FOR_LANE, (
-                f"{member.value} is non-display and must not have a kanban column"
-            )
+            assert member not in _KANBAN_COLUMN_FOR_LANE, f"{member.value} is non-display and must not have a kanban column"
             continue
-        assert member in _KANBAN_COLUMN_FOR_LANE, (
-            f"Lane.{member.name} missing from _KANBAN_COLUMN_FOR_LANE"
-        )
+        assert member in _KANBAN_COLUMN_FOR_LANE, f"Lane.{member.name} missing from _KANBAN_COLUMN_FOR_LANE"
 
 
 # ---------------------------------------------------------------------------
@@ -1416,9 +1378,7 @@ def test_dashboard_read_does_not_write_status_json(tmp_path):
     stats = scanner._build_event_log_kanban_stats(feature_dir, feature_dir / "tasks")
 
     assert "weighted_percentage" in stats, "payload unchanged: progress still computed"
-    assert not status_json.exists(), (
-        "dashboard read wrote tracked status.json (FR-014a clobber)"
-    )
+    assert not status_json.exists(), "dashboard read wrote tracked status.json (FR-014a clobber)"
 
 
 @pytest.mark.fast
@@ -1437,9 +1397,7 @@ def test_read_only_weighted_percentage_matches_materialize_payload(tmp_path):
 
     read_only_pct = scanner.read_only_weighted_percentage(feature_dir)
 
-    assert read_only_pct == writer_pct, (
-        "read-only snapshot diverged from the writing materialize() payload"
-    )
+    assert read_only_pct == writer_pct, "read-only snapshot diverged from the writing materialize() payload"
 
 
 def _git(args, cwd) -> None:
@@ -1479,7 +1437,7 @@ def test_sc6a_dashboard_no_status_clobber_during_real_rebase(tmp_path):
     feature_dir = repo_root / "kitty-specs" / slug
     (feature_dir / "tasks").mkdir(parents=True)
     (feature_dir / "tasks" / "WP01-demo.md").write_text(
-        "---\nwork_package_id: WP01\nsubtasks: [\"T1\"]\n---\n# Work Package Prompt: Demo\n",
+        '---\nwork_package_id: WP01\nsubtasks: ["T1"]\n---\n# Work Package Prompt: Demo\n',
         encoding="utf-8",
     )
     append_event(
@@ -1538,10 +1496,7 @@ def test_sc6a_dashboard_no_status_clobber_during_real_rebase(tmp_path):
     stats = scanner._build_event_log_kanban_stats(feature_dir, feature_dir / "tasks")
 
     assert "weighted_percentage" in stats, "payload unchanged: progress still served"
-    assert not status_json.exists(), (
-        "dashboard clobbered tracked status.json during an active rebase "
-        "(FR-014a / SC-6a violation)"
-    )
+    assert not status_json.exists(), "dashboard clobbered tracked status.json during an active rebase (FR-014a / SC-6a violation)"
 
     # Clean up the rebase so the worktree is not left mid-operation.
     subprocess.run(

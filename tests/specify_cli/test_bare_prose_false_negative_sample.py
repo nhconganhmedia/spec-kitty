@@ -146,9 +146,6 @@ def test_false_negative_sample_and_broadened_predicate_fp_rate() -> None:
 
     print(f"\n[WP07 false-negative sample] corpus size: {finding.corpus_size}")
     print(f"[WP07 false-negative sample] production (narrow-heading) flagged specs: {finding.narrow_flagged_specs}")
-    print(
-        "[WP07 false-negative sample] broadened-predicate newly-flagged specs: "
-        f"{len(finding.newly_flagged_specs)}"
-    )
+    print(f"[WP07 false-negative sample] broadened-predicate newly-flagged specs: {len(finding.newly_flagged_specs)}")
     for spec_name, tokens in finding.newly_flagged_specs:
         print(f"  - {spec_name}: {tokens}")

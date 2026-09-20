@@ -28,6 +28,7 @@ from specify_cli.dossier.models import ArtifactRef, MissionDossier, MissionDossi
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 @pytest.fixture
 def repo_root(tmp_path):
     """Create a temporary repo root."""
@@ -150,9 +151,7 @@ class TestDossierOverviewEndpoint:
 
     def test_overview_returns_valid_response(self, handler, sample_snapshot):
         """Test that overview returns DossierOverviewResponse with all fields."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
             response = handler.handle_dossier_overview("042-local-mission-dossier")
 
             assert isinstance(response, DossierOverviewResponse)
@@ -163,9 +162,7 @@ class TestDossierOverviewEndpoint:
 
     def test_overview_artifact_counts_correct(self, handler, sample_snapshot):
         """Test that artifact counts are correctly reported."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
             response = handler.handle_dossier_overview("042-local-mission-dossier")
 
             assert response.artifact_counts["total"] == 4
@@ -186,9 +183,7 @@ class TestDossierOverviewEndpoint:
 
     def test_overview_last_scanned_at_present(self, handler, sample_snapshot):
         """Test that last_scanned_at timestamp is included."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
             response = handler.handle_dossier_overview("042-local-mission-dossier")
 
             assert response.last_scanned_at is not None
@@ -196,9 +191,7 @@ class TestDossierOverviewEndpoint:
 
     def test_overview_serializable_to_json(self, handler, sample_snapshot):
         """Test that overview response is JSON-serializable."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
             response = handler.handle_dossier_overview("042-local-mission-dossier")
 
             # Should be serializable
@@ -220,9 +213,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_returns_all_if_no_filters(self, handler, sample_dossier):
         """Test that all artifacts returned if no filters applied."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier"
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier")
 
             assert isinstance(response, ArtifactListResponse)
             assert response.total_count == 4
@@ -232,9 +223,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_filters_by_class(self, handler, sample_dossier):
         """Test that class filter works."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier", **{"class": "output"}
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier", **{"class": "output"})
 
             assert response.filtered_count == 1
             assert len(response.artifacts) == 1
@@ -243,9 +232,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_filters_by_wp_id(self, handler, sample_dossier):
         """Test that wp_id filter works."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier", wp_id="WP01"
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier", wp_id="WP01")
 
             assert response.filtered_count == 2
             for artifact in response.artifacts:
@@ -254,9 +241,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_filters_by_step_id(self, handler, sample_dossier):
         """Test that step_id filter works."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier", step_id="planning"
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier", step_id="planning")
 
             assert response.filtered_count == 2
             for artifact in response.artifacts:
@@ -265,9 +250,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_filters_by_required_only(self, handler, sample_dossier):
         """Test that required_only filter works."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier", required_only="true"
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier", required_only="true")
 
             assert response.filtered_count == 3
             for artifact in response.artifacts:
@@ -290,9 +273,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_stable_ordering(self, handler, sample_dossier):
         """Test that artifacts ordered by artifact_key (stable)."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier"
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier")
 
             keys = [a.artifact_key for a in response.artifacts]
             assert keys == sorted(keys)  # Lexicographic order
@@ -300,9 +281,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_returns_404_if_dossier_not_found(self, handler):
         """Test that 404 returned if dossier not found."""
         with patch.object(handler, "_load_dossier", return_value=None):
-            response = handler.handle_dossier_artifacts(
-                "nonexistent-feature"
-            )
+            response = handler.handle_dossier_artifacts("nonexistent-feature")
 
             assert isinstance(response, dict)
             assert response["status_code"] == 404
@@ -310,10 +289,7 @@ class TestDossierArtifactsEndpoint:
     def test_artifacts_filters_applied_in_response(self, handler, sample_dossier):
         """Test that filters_applied field populated."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifacts(
-                "042-local-mission-dossier",
-                **{"class": "input", "wp_id": "WP01"}
-            )
+            response = handler.handle_dossier_artifacts("042-local-mission-dossier", **{"class": "input", "wp_id": "WP01"})
 
             assert "class" in response.filters_applied
             assert response.filters_applied["class"] == "input"
@@ -328,9 +304,7 @@ class TestDossierArtifactsEndpoint:
 class TestDossierArtifactDetailEndpoint:
     """Tests for GET /api/dossier/artifacts/{artifact_key} (T030)."""
 
-    def test_detail_returns_artifact_with_small_content(
-        self, handler, sample_dossier, tmp_path
-    ):
+    def test_detail_returns_artifact_with_small_content(self, handler, sample_dossier, tmp_path):
         """Test that detail returns content if <5MB."""
         # Set feature_dir to tmp_path
         sample_dossier.feature_dir = str(tmp_path)
@@ -344,9 +318,7 @@ class TestDossierArtifactDetailEndpoint:
         sample_dossier.artifacts[0].size_bytes = len(artifact_file.read_bytes())
 
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "input.spec.main"
-            )
+            response = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "input.spec.main")
 
             assert isinstance(response, ArtifactDetailResponse)
             assert response.artifact_key == "input.spec.main"
@@ -359,9 +331,7 @@ class TestDossierArtifactDetailEndpoint:
         sample_dossier.artifacts[0].size_bytes = 10 * 1024 * 1024  # 10MB
 
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "input.spec.main"
-            )
+            response = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "input.spec.main")
 
             assert response.content_truncated is True
             assert response.truncation_notice is not None
@@ -370,9 +340,7 @@ class TestDossierArtifactDetailEndpoint:
     def test_detail_returns_404_if_artifact_not_found(self, handler, sample_dossier):
         """Test that 404 returned if artifact not found."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "nonexistent.artifact"
-            )
+            response = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "nonexistent.artifact")
 
             assert isinstance(response, dict)
             assert response["status_code"] == 404
@@ -380,18 +348,14 @@ class TestDossierArtifactDetailEndpoint:
     def test_detail_infers_media_type(self, handler, sample_dossier):
         """Test that media_type_hint correctly inferred."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "input.spec.main"
-            )
+            response = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "input.spec.main")
 
             assert response.media_type_hint == "markdown"  # spec.md
 
     def test_detail_missing_artifact_has_no_content(self, handler, sample_dossier):
         """Test that missing artifacts have no content."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "policy.manifest"
-            )
+            response = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "policy.manifest")
 
             assert response.is_present is False
             assert response.content is None
@@ -400,9 +364,7 @@ class TestDossierArtifactDetailEndpoint:
     def test_detail_all_fields_present(self, handler, sample_dossier):
         """Test that all required fields present in response."""
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            response = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "input.spec.main"
-            )
+            response = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "input.spec.main")
 
             assert response.artifact_key is not None
             assert response.artifact_class is not None
@@ -425,12 +387,8 @@ class TestDossierSnapshotExportEndpoint:
 
     def test_export_returns_valid_snapshot(self, handler, sample_snapshot):
         """Test that export returns SnapshotExportResponse."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
-            response = handler.handle_dossier_snapshot_export(
-                "042-local-mission-dossier"
-            )
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
+            response = handler.handle_dossier_snapshot_export("042-local-mission-dossier")
 
             assert isinstance(response, SnapshotExportResponse)
             assert response.mission_slug == "042-local-mission-dossier"
@@ -438,12 +396,8 @@ class TestDossierSnapshotExportEndpoint:
 
     def test_export_all_fields_present(self, handler, sample_snapshot):
         """Test that all fields present for SaaS import."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
-            response = handler.handle_dossier_snapshot_export(
-                "042-local-mission-dossier"
-            )
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
+            response = handler.handle_dossier_snapshot_export("042-local-mission-dossier")
 
             assert response.mission_slug is not None
             assert response.snapshot_id is not None
@@ -460,12 +414,8 @@ class TestDossierSnapshotExportEndpoint:
 
     def test_export_timestamp_iso_format(self, handler, sample_snapshot):
         """Test that computed_at is ISO format string."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
-            response = handler.handle_dossier_snapshot_export(
-                "042-local-mission-dossier"
-            )
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
+            response = handler.handle_dossier_snapshot_export("042-local-mission-dossier")
 
             # Should be ISO string
             assert isinstance(response.computed_at, str)
@@ -474,21 +424,15 @@ class TestDossierSnapshotExportEndpoint:
     def test_export_returns_404_if_not_found(self, handler):
         """Test that 404 returned if snapshot not found."""
         with patch("specify_cli.dossier.api.load_snapshot", return_value=None):
-            response = handler.handle_dossier_snapshot_export(
-                "nonexistent-feature"
-            )
+            response = handler.handle_dossier_snapshot_export("nonexistent-feature")
 
             assert isinstance(response, dict)
             assert response["status_code"] == 404
 
     def test_export_serializable_to_json(self, handler, sample_snapshot):
         """Test that export response is JSON-serializable."""
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
-            response = handler.handle_dossier_snapshot_export(
-                "042-local-mission-dossier"
-            )
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
+            response = handler.handle_dossier_snapshot_export("042-local-mission-dossier")
 
             # Should be serializable
             json_str = response.model_dump_json()
@@ -546,14 +490,10 @@ class TestUtilityFunctions:
 class TestAdapterProtocol:
     """Tests for adapter protocol (T033)."""
 
-    def test_methods_return_models_or_error_dicts(
-        self, handler, sample_snapshot, sample_dossier
-    ):
+    def test_methods_return_models_or_error_dicts(self, handler, sample_snapshot, sample_dossier):
         """Test that all methods return models or error dicts."""
         # Overview
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
             result = handler.handle_dossier_overview("042-local-mission-dossier")
             assert isinstance(result, (DossierOverviewResponse, dict))
 
@@ -564,16 +504,10 @@ class TestAdapterProtocol:
 
         # Artifact detail
         with patch.object(handler, "_load_dossier", return_value=sample_dossier):
-            result = handler.handle_dossier_artifact_detail(
-                "042-local-mission-dossier", "input.spec.main"
-            )
+            result = handler.handle_dossier_artifact_detail("042-local-mission-dossier", "input.spec.main")
             assert isinstance(result, (ArtifactDetailResponse, dict))
 
         # Snapshot export
-        with patch(
-            "specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot
-        ):
-            result = handler.handle_dossier_snapshot_export(
-                "042-local-mission-dossier"
-            )
+        with patch("specify_cli.dossier.api.load_snapshot", return_value=sample_snapshot):
+            result = handler.handle_dossier_snapshot_export("042-local-mission-dossier")
             assert isinstance(result, (SnapshotExportResponse, dict))

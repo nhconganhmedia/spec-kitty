@@ -120,10 +120,13 @@ def test_guard_fires_before_resolve_existing_for_slug(real_git_repo: Path) -> No
     the guard is truly at the front of ``resolve_mission_read_path``.
     """
     mock_spy = MagicMock(return_value=None)
-    with patch(
-        "specify_cli.missions._read_path_resolver._resolve_existing_for_slug",
-        mock_spy,
-    ), pytest.raises(ValueError, match="safe path segment"):
+    with (
+        patch(
+            "specify_cli.missions._read_path_resolver._resolve_existing_for_slug",
+            mock_spy,
+        ),
+        pytest.raises(ValueError, match="safe path segment"),
+    ):
         resolve_mission_read_path(real_git_repo, "../escape", "")
 
     # The critical assertion: _resolve_existing_for_slug must NOT have been called
@@ -145,10 +148,7 @@ def test_guard_fires_before_resolve_existing_for_various_traversal(
             pytest.raises(ValueError, match="safe path segment"),
         ):
             resolve_mission_read_path(real_git_repo, bad_slug, "")
-        assert not mock_spy.called, (
-            f"_resolve_existing_for_slug was called with malformed slug {bad_slug!r} — "
-            f"the guard must fire BEFORE composition"
-        )
+        assert not mock_spy.called, f"_resolve_existing_for_slug was called with malformed slug {bad_slug!r} — the guard must fire BEFORE composition"
 
 
 # ---------------------------------------------------------------------------
@@ -161,28 +161,18 @@ def test_valid_slug_returns_composed_path(real_git_repo: Path) -> None:
     directly; no coord worktree materialized so it falls through to the primary
     candidate path.
     """
-    result = resolve_mission_read_path(
-        real_git_repo, _REAL_SLUG, _REAL_MID8, require_exists=False
-    )
+    result = resolve_mission_read_path(real_git_repo, _REAL_SLUG, _REAL_MID8, require_exists=False)
     # The path should be the kitty-specs/ candidate for this slug
-    assert "kitty-specs" in str(result), (
-        f"Expected kitty-specs in path, got {result}"
-    )
+    assert "kitty-specs" in str(result), f"Expected kitty-specs in path, got {result}"
     # Must contain the slug (or a slug-mid8 composite)
-    assert _REAL_SLUG in str(result) or _REAL_MID8 in str(result), (
-        f"Expected slug {_REAL_SLUG!r} or mid8 {_REAL_MID8!r} in path, got {result}"
-    )
+    assert _REAL_SLUG in str(result) or _REAL_MID8 in str(result), f"Expected slug {_REAL_SLUG!r} or mid8 {_REAL_MID8!r} in path, got {result}"
 
 
 def test_primary_valid_slug_returns_composed_path(real_git_repo: Path) -> None:
     """_compose_primary_feature_dir returns kitty-specs/<slug> for valid slug."""
     result = _compose_primary_feature_dir(real_git_repo, _REAL_SLUG)
-    assert result.name == _REAL_SLUG, (
-        f"Expected directory name {_REAL_SLUG!r}, got {result.name!r}"
-    )
-    assert "kitty-specs" in str(result), (
-        f"Expected kitty-specs in path, got {result}"
-    )
+    assert result.name == _REAL_SLUG, f"Expected directory name {_REAL_SLUG!r}, got {result.name!r}"
+    assert "kitty-specs" in str(result), f"Expected kitty-specs in path, got {result}"
 
 
 def test_primary_full_ulid_returns_composed_path(real_git_repo: Path) -> None:
@@ -394,13 +384,9 @@ def test_delegator_returns_surface_parent_when_meta_present(
         resolve_surface_dir_or_typed_error,
     )
 
-    feature_dir = _write_primary_meta(
-        real_git_repo, _REAL_SLUG, mission_id=_REAL_MISSION_ID
-    )
+    feature_dir = _write_primary_meta(real_git_repo, _REAL_SLUG, mission_id=_REAL_MISSION_ID)
     sentinel = real_git_repo / "kitty-specs" / "SENTINEL-NOT-USED"
-    result = resolve_surface_dir_or_typed_error(
-        real_git_repo, _REAL_SLUG, on_missing_meta=sentinel
-    )
+    result = resolve_surface_dir_or_typed_error(real_git_repo, _REAL_SLUG, on_missing_meta=sentinel)
     assert result.resolve() == feature_dir.resolve()
 
 
@@ -418,9 +404,7 @@ def test_delegator_returns_on_missing_meta_in_first_write_window(
     )
 
     fallback = real_git_repo / "kitty-specs" / _REAL_SLUG
-    result = resolve_surface_dir_or_typed_error(
-        real_git_repo, _REAL_SLUG, on_missing_meta=fallback
-    )
+    result = resolve_surface_dir_or_typed_error(real_git_repo, _REAL_SLUG, on_missing_meta=fallback)
     assert result == fallback
 
 
@@ -438,9 +422,7 @@ def test_delegator_returns_on_missing_meta_for_malformed_slug(
     )
 
     fallback = real_git_repo / "kitty-specs" / "fallback-marker"
-    result = resolve_surface_dir_or_typed_error(
-        real_git_repo, "../escape", on_missing_meta=fallback
-    )
+    result = resolve_surface_dir_or_typed_error(real_git_repo, "../escape", on_missing_meta=fallback)
     assert result == fallback
 
 
@@ -473,13 +455,14 @@ def test_delegator_propagates_status_read_path_not_found(
     def _raise(_repo: Path, _slug: str) -> Path:
         raise exc
 
-    with patch(
-        "specify_cli.coordination.surface_resolver.resolve_status_surface",
-        _raise,
-    ), pytest.raises(StatusReadPathNotFound) as caught:
-        resolve_surface_dir_or_typed_error(
-            real_git_repo, _REAL_SLUG, on_missing_meta=real_git_repo
-        )
+    with (
+        patch(
+            "specify_cli.coordination.surface_resolver.resolve_status_surface",
+            _raise,
+        ),
+        pytest.raises(StatusReadPathNotFound) as caught,
+    ):
+        resolve_surface_dir_or_typed_error(real_git_repo, _REAL_SLUG, on_missing_meta=real_git_repo)
     assert caught.value.error_code == rpr.STATUS_READ_PATH_NOT_FOUND_CODE
 
 
@@ -497,10 +480,11 @@ def test_delegator_propagates_ambiguous_selector(real_git_repo: Path) -> None:
     def _raise(_repo: Path, _slug: str) -> Path:
         raise exc
 
-    with patch(
-        "specify_cli.coordination.surface_resolver.resolve_status_surface",
-        _raise,
-    ), pytest.raises(MissionSelectorAmbiguous):
-        resolve_surface_dir_or_typed_error(
-            real_git_repo, "01KTAMBG", on_missing_meta=real_git_repo
-        )
+    with (
+        patch(
+            "specify_cli.coordination.surface_resolver.resolve_status_surface",
+            _raise,
+        ),
+        pytest.raises(MissionSelectorAmbiguous),
+    ):
+        resolve_surface_dir_or_typed_error(real_git_repo, "01KTAMBG", on_missing_meta=real_git_repo)

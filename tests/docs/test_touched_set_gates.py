@@ -41,9 +41,7 @@ def _load_lint_module() -> ModuleType:
     from charter.offering.service import DoctrineService
 
     asset_path = DoctrineService().assets.resolve_path("common-docs-structural-lint")
-    spec = importlib.util.spec_from_file_location(
-        "docs_structural_lint_asset_wp04", asset_path
-    )
+    spec = importlib.util.spec_from_file_location("docs_structural_lint_asset_wp04", asset_path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -201,9 +199,7 @@ def test_audience_presence_red_first_and_clean(tmp_path: Path) -> None:
     missing = repo / "docs" / "guides" / "missing.md"
     missing.write_text(_page({"title": "no audience"}), encoding="utf-8")
     dangling = repo / "docs" / "guides" / "dangling.md"
-    dangling.write_text(
-        _page({"audience": "../context/audience/internal/ghost.md"}), encoding="utf-8"
-    )
+    dangling.write_text(_page({"audience": "../context/audience/internal/ghost.md"}), encoding="utf-8")
     catalog_root = repo / "docs" / "context" / "audience"
 
     assert tsg.check_audience_presence([good], repo, catalog_root) == []
@@ -279,9 +275,7 @@ def test_audience_placement_skips_when_homes_unresolvable(tmp_path: Path) -> Non
     page = docs / "guides" / "howto.md"
     page.parent.mkdir(parents=True, exist_ok=True)
     page.write_text(
-        _page(
-            {"type": "how_to", "audience": "../context/audience/internal/m.md"}
-        ),
+        _page({"type": "how_to", "audience": "../context/audience/internal/m.md"}),
         encoding="utf-8",
     )
     # Baseline (pre-WP01) routing has no how_to_internal/how_to_external split.
@@ -334,9 +328,7 @@ def test_run_gates_end_to_end_advisory_vs_strict(tmp_path: Path) -> None:
     repo = _init_repo(tmp_path)
     styleguide = repo / "sg.yaml"
     styleguide.write_text(
-        "structural_lint_config:\n"
-        "  root_allowlist: [README.md]\n"
-        "  concern_bucket_to_section: {}\n",
+        "structural_lint_config:\n  root_allowlist: [README.md]\n  concern_bucket_to_section: {}\n",
         encoding="utf-8",
     )
     base = _git(repo, "rev-parse", "HEAD").strip()
@@ -353,12 +345,7 @@ def test_run_gates_end_to_end_advisory_vs_strict(tmp_path: Path) -> None:
     assert {"audience_presence", "description_band", "root_allowlist"} <= rule_ids
     # advisory exit 0, strict exit 1
     assert tsg.main(["--base", base, "--repo-root", str(repo), "--styleguide", str(styleguide)]) == 0
-    assert (
-        tsg.main(
-            ["--base", base, "--repo-root", str(repo), "--styleguide", str(styleguide), "--strict"]
-        )
-        == 1
-    )
+    assert tsg.main(["--base", base, "--repo-root", str(repo), "--styleguide", str(styleguide), "--strict"]) == 1
 
 
 # --------------------------------------------------------------------------- #
@@ -444,15 +431,11 @@ def test_run_reconcile_end_to_end_with_fixtures(tmp_path: Path) -> None:
     _commit_all(repo, "delete off-spine page")
 
     occ = repo / "occ.yaml"
-    occ.write_text(
-        "moves:\n  - {from: ['docs/reference/'], to: 'docs/api'}\n", encoding="utf-8"
-    )
+    occ.write_text("moves:\n  - {from: ['docs/reference/'], to: 'docs/api'}\n", encoding="utf-8")
     red = repo / "red.yaml"
     red.write_text("{}\n", encoding="utf-8")
 
-    report = rr.run_reconcile(
-        base=base, repo_root=repo, occurrence_map_path=occ, redirect_map_path=red
-    )
+    report = rr.run_reconcile(base=base, repo_root=repo, occurrence_map_path=occ, redirect_map_path=red)
 
     assert report.renames_examined == 1  # non-vacuous
     assert report.moves_examined == 1

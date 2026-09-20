@@ -131,9 +131,7 @@ def _render_templates(refs: list[TemplateRef]) -> str:
     """Render discovered templates with mission-qualified IDs and source tier."""
     if not refs:
         return "[dim]—[/dim]"
-    return ", ".join(
-        f"{ref.template_id} [dim]({ref.tier.value})[/dim]" for ref in refs
-    )
+    return ", ".join(f"{ref.template_id} [dim]({ref.tier.value})[/dim]" for ref in refs)
 
 
 @charter_list_app.callback()
@@ -245,31 +243,20 @@ def list_cmd(
                     # ``Raises`` type, see its docstring) since it subclasses
                     # ``ValueError`` in the pinned pydantic version.
                     try:
-                        entries = manager.list_available_detailed(
-                            ctx, kind, layer_roots=layer_roots
-                        )
+                        entries = manager.list_available_detailed(ctx, kind, layer_roots=layer_roots)
                     except ValueError as exc:
                         _emit_error(console, json_output=json_output, message=str(exc))
                         raise typer.Exit(1) from exc
                     available_str = _render_available(entries, activated_set)
                     not_activated_entries = sorted(
-                        (
-                            (e.artifact_id, e.layer)
-                            for e in entries
-                            if e.artifact_id not in activated_set
-                        ),
+                        ((e.artifact_id, e.layer) for e in entries if e.artifact_id not in activated_set),
                         key=lambda pair: (pair[0], pair[1]),
                     )
-                    json_row["available"] = [
-                        {"artifact_id": aid, "layer": layer}
-                        for aid, layer in not_activated_entries
-                    ]
+                    json_row["available"] = [{"artifact_id": aid, "layer": layer} for aid, layer in not_activated_entries]
                 else:
                     available = manager.list_available(ctx, kind)
                     not_activated = sorted(available - activated_set) if available else []
-                    available_str = (
-                        ", ".join(not_activated) if not_activated else "[dim]—[/dim]"
-                    )
+                    available_str = ", ".join(not_activated) if not_activated else "[dim]—[/dim]"
                     json_row["available"] = not_activated
                 table.add_row(kind, activated_str, available_str)
             else:

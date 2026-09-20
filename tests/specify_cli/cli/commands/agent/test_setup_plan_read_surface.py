@@ -64,9 +64,7 @@ PRIMARY_SPEC = """\
 
 
 def _git(repo_root: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "-C", str(repo_root), *args], check=True, capture_output=True, text=True)
 
 
 def _init_repo(repo_root: Path) -> None:
@@ -110,9 +108,7 @@ def _seed_coord_topology(repo_root: Path) -> tuple[Path, Path]:
     _git(repo_root, "add", "-A")
     _git(repo_root, "commit", "-qm", "author primary spec")
 
-    coord_husk_dir = (
-        repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord" / "kitty-specs" / SLUG_WITH_MID8
-    )
+    coord_husk_dir = repo_root / ".worktrees" / f"{SLUG_WITH_MID8}-coord" / "kitty-specs" / SLUG_WITH_MID8
     # Husk carries meta.json but NO spec.md — reading spec off the husk fails.
     _write_meta(coord_husk_dir, meta)
     return primary_dir, coord_husk_dir
@@ -130,9 +126,7 @@ def _run_setup_plan(repo_root: Path, coord_husk_dir: Path) -> dict[str, object]:
     """
     runner = CliRunner()
 
-    def _fake_show_branch_context(
-        _repo_root: Path, _slug: str, _json: bool
-    ) -> tuple[str, str]:
+    def _fake_show_branch_context(_repo_root: Path, _slug: str, _json: bool) -> tuple[str, str]:
         return ("main", "main")
 
     _prev_allow = os.environ.get("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS")
@@ -147,18 +141,14 @@ def _run_setup_plan(repo_root: Path, coord_husk_dir: Path) -> dict[str, object]:
         with (
             patch.object(mission_mod, "locate_project_root", return_value=repo_root),
             patch.object(mission_mod, "_enforce_git_preflight"),
-            patch.object(
-                mission_mod, "_find_feature_directory", return_value=coord_husk_dir
-            ),
+            patch.object(mission_mod, "_find_feature_directory", return_value=coord_husk_dir),
             patch.object(
                 mission_mod,
                 "_show_branch_context",
                 side_effect=_fake_show_branch_context,
             ),
             patch.object(mission_mod, "get_current_branch", return_value="main"),
-            patch.object(
-                mission_mod, "_resolve_feature_target_branch", return_value="main"
-            ),
+            patch.object(mission_mod, "_resolve_feature_target_branch", return_value="main"),
         ):
             result = runner.invoke(
                 mission_mod.app,
@@ -202,9 +192,7 @@ def test_setup_plan_reads_primary_spec_for_coord_topology(tmp_path: Path) -> Non
     assert payload.get("error_code") != "SPEC_NOT_SUBSTANTIVE_OR_UNCOMMITTED", payload
 
 
-def test_setup_plan_red_when_planning_read_reverts_to_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_setup_plan_red_when_planning_read_reverts_to_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Non-vacuous RED: revert the PLANNING read to the coord-aware resolver and the
     real ``setup-plan`` command blocks with ``SPEC_FILE_MISSING`` (reads the husk).
 
@@ -216,9 +204,7 @@ def test_setup_plan_red_when_planning_read_reverts_to_coord(
     """
     _primary_dir, coord_husk_dir = _seed_coord_topology(tmp_path)
 
-    def _coord_routed(
-        _repo_root: Path, mission_slug: str, *, artifact_type: str
-    ) -> Path:
+    def _coord_routed(_repo_root: Path, mission_slug: str, *, artifact_type: str) -> Path:
         # The pre-WP02 behaviour: the PLANNING read resolves the coord-aware dir
         # (the materialized husk), NOT the primary surface.
         husk: Path = candidate_feature_dir_for_mission(_repo_root, mission_slug)
@@ -246,9 +232,7 @@ def test_setup_plan_planning_read_resolves_primary_target_branch(
     """
     primary_dir, coord_husk_dir = _seed_coord_topology(tmp_path)
 
-    resolved = mission_mod._planning_read_dir(
-        tmp_path, SLUG_WITH_MID8, artifact_type="spec"
-    )
+    resolved = mission_mod._planning_read_dir(tmp_path, SLUG_WITH_MID8, artifact_type="spec")
 
     assert resolved.resolve() == primary_dir.resolve()
     assert resolved.resolve() != coord_husk_dir.resolve()

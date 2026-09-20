@@ -234,9 +234,7 @@ def test_self_referential_feedback_source_is_rejected(tmp_path: Path) -> None:
     # both contain the word "feedback", so that loose an alternation lets an
     # unrelated failure satisfy this assertion for the wrong reason. Only a
     # message that names the self-reference explicitly can match here.
-    with pytest.raises(
-        ReviewCycleError, match=r"own review-cycle|self-referential feedback"
-    ) as exc_info:
+    with pytest.raises(ReviewCycleError, match=r"own review-cycle|self-referential feedback") as exc_info:
         create_rejected_review_cycle(
             main_repo_root=repo,
             mission_slug=MISSION_SLUG,
@@ -252,15 +250,9 @@ def test_self_referential_feedback_source_is_rejected(tmp_path: Path) -> None:
     # do instead (pass the underlying reviewer feedback, not a prior cycle
     # artifact).
     message = str(exc_info.value)
-    assert created.artifact_path.name in message, (
-        "error message must name the offending review-cycle artifact so the "
-        f"caller can identify it -- got: {message!r}"
-    )
-    assert any(
-        word in message.lower() for word in ("instead", "use ", "pass ", "provide ")
-    ), (
-        "error message must be actionable -- it must tell the caller what to "
-        f"do instead of the self-referential feedback_source -- got: {message!r}"
+    assert created.artifact_path.name in message, f"error message must name the offending review-cycle artifact so the caller can identify it -- got: {message!r}"
+    assert any(word in message.lower() for word in ("instead", "use ", "pass ", "provide ")), (
+        f"error message must be actionable -- it must tell the caller what to do instead of the self-referential feedback_source -- got: {message!r}"
     )
 
     # These hold once the guard exists: no fabricated cycle-2, and the real
@@ -319,9 +311,7 @@ def test_review_prompt_feedback_path_is_accepted_as_a_feedback_source(
 
     # The next cycle's advertised path does not collide with the artifact just
     # written either.
-    assert review_feedback_source_path(wp_dir, 2).name not in {
-        path.name for path in wp_dir.glob("review-cycle-*.md")
-    }
+    assert review_feedback_source_path(wp_dir, 2).name not in {path.name for path in wp_dir.glob("review-cycle-*.md")}
 
 
 def test_next_review_feedback_source_path_matches_writer_allocation(
@@ -418,18 +408,14 @@ def test_guard_feedback_source_provenance_refuses_by_parse_alone_no_verdict_read
     resubmitted.write_text(prior_cycle_path.read_text(encoding="utf-8"), encoding="utf-8")
 
     with pytest.raises(ReviewCycleError, match="parses as a review-cycle artifact"):
-        _guard_feedback_source_provenance(
-            feedback_source=resubmitted, sub_artifact_dir=sub_artifact_dir
-        )
+        _guard_feedback_source_provenance(feedback_source=resubmitted, sub_artifact_dir=sub_artifact_dir)
 
     # Non-vacuity control: genuine reviewer PROSE (no frontmatter at all, so
     # ``from_file`` cannot parse it) is admitted -- proving the guard
     # actually discriminates on parseability, not a blanket refusal.
     genuine_feedback = tmp_path / "genuine-feedback.md"
     genuine_feedback.write_text("**Issue**: a distinct, new finding.\n", encoding="utf-8")
-    _guard_feedback_source_provenance(
-        feedback_source=genuine_feedback, sub_artifact_dir=sub_artifact_dir
-    )  # must not raise
+    _guard_feedback_source_provenance(feedback_source=genuine_feedback, sub_artifact_dir=sub_artifact_dir)  # must not raise
 
 
 def test_duplicate_prose_in_an_ordinary_feedback_file_is_admitted(
@@ -696,9 +682,7 @@ def test_unreadable_prior_cycle_does_not_crash_the_provenance_scan(
     (wp_dir / "review-cycle-1.md").write_bytes(b"---\nverdict: rejected\n---\n\n\xff\xfe\x00bad")
 
     real_feedback = tmp_path / "feedback.md"
-    real_feedback.write_text(
-        "**Issue**: New, unrelated feedback.\n", encoding="utf-8"
-    )
+    real_feedback.write_text("**Issue**: New, unrelated feedback.\n", encoding="utf-8")
 
     created = create_rejected_review_cycle(
         main_repo_root=repo,
@@ -758,9 +742,7 @@ def test_frontmatter_shaped_feedback_prose_resubmitted_verbatim_is_admitted(
     # not valid YAML frontmatter -- an ORDINARY feedback file, not a stored
     # artifact.
     feedback = tmp_path / "feedback.md"
-    feedback.write_text(
-        "---\nBlocking issues\n---\nFix the null check.\n", encoding="utf-8"
-    )
+    feedback.write_text("---\nBlocking issues\n---\nFix the null check.\n", encoding="utf-8")
 
     created = create_rejected_review_cycle(
         main_repo_root=repo,
@@ -858,8 +840,7 @@ def test_concurrent_verdict_writes_do_not_clobber_each_other(tmp_path: Path) -> 
 
     on_disk = sorted(wp_dir.glob("review-cycle-*.md"))
     assert {p.name for p in on_disk} == {"review-cycle-1.md", "review-cycle-2.md"}, (
-        "expected exactly the two distinct, stably-named review-cycle "
-        f"artifacts, found {[p.name for p in on_disk]}"
+        f"expected exactly the two distinct, stably-named review-cycle artifacts, found {[p.name for p in on_disk]}"
     )
     bodies = {p.name: validate_review_artifact_file(p).body for p in on_disk}
     assert set(bodies.values()) == {
@@ -983,9 +964,7 @@ def test_create_rejected_review_cycle_with_approved_verdict(tmp_path: Path) -> N
     assert rejected_cycle.review_result.verdict == "changes_requested"
 
     approval_feedback = tmp_path / "approval-feedback.md"
-    approval_feedback.write_text(
-        "Approved by reviewer-renata: the missing test was added.\n", encoding="utf-8"
-    )
+    approval_feedback.write_text("Approved by reviewer-renata: the missing test was added.\n", encoding="utf-8")
     approved_cycle = create_rejected_review_cycle(
         main_repo_root=repo,
         mission_slug="001-mission",
@@ -1013,9 +992,7 @@ def _unprotect_main(repo: Path) -> None:
     """
     kittify_dir = repo / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "protection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("protection:\n  protected_branches: []\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "test: unprotect main"],
@@ -1043,9 +1020,7 @@ def test_create_rejected_review_cycle_commits_the_written_artifact(tmp_path: Pat
     tasks_dir.mkdir(parents=True)
     (tasks_dir / "WP01-core.md").write_text("# WP01\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
 
     feedback = tmp_path / "feedback.md"
@@ -1072,10 +1047,7 @@ def test_create_rejected_review_cycle_commits_the_written_artifact(tmp_path: Pat
     # which never match git's forward-slash porcelain output — the assert would
     # be vacuously true there instead of proving the artifact was committed (#3834).
     rel = created.artifact_path.relative_to(repo).as_posix()
-    assert rel not in status.stdout, (
-        f"the written artifact is NOT committed -- git status still shows it:\n"
-        f"{status.stdout}"
-    )
+    assert rel not in status.stdout, f"the written artifact is NOT committed -- git status still shows it:\n{status.stdout}"
 
     log = subprocess.run(
         ["git", "log", "-1", "--name-only", "--pretty=format:"],
@@ -1128,9 +1100,7 @@ class _FailingCommitRouter:
         )
 
 
-def test_create_rejected_review_cycle_raises_when_commit_fails(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_create_rejected_review_cycle_raises_when_commit_fails(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Cycle 2 fix (#2697) + M2 (adversarial squad, PR #3156) established a
     non-``"committed"`` ``CommitArtifactResult`` as a hard failure that also
     rolled back the orphaned write.
@@ -1157,9 +1127,7 @@ def test_create_rejected_review_cycle_raises_when_commit_fails(
     tasks_dir.mkdir(parents=True)
     (tasks_dir / "WP01-core.md").write_text("# WP01\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
     feedback = tmp_path / "feedback.md"
     feedback.write_text("**Issue**: Needs another pass.\n", encoding="utf-8")
@@ -1178,14 +1146,10 @@ def test_create_rejected_review_cycle_raises_when_commit_fails(
         )
 
     assert created.artifact_path.exists(), (
-        "T026 demote: a best-effort commit failure no longer rolls back the "
-        "already-written artifact -- only a genuine infra exception does"
+        "T026 demote: a best-effort commit failure no longer rolls back the already-written artifact -- only a genuine infra exception does"
     )
-    assert any(
-        "Failed to commit review-cycle" in record.message for record in caplog.records
-    ), (
-        "a best-effort commit failure must still be logged as a WARNING, "
-        f"never silently dropped; records={caplog.records}"
+    assert any("Failed to commit review-cycle" in record.message for record in caplog.records), (
+        f"a best-effort commit failure must still be logged as a WARNING, never silently dropped; records={caplog.records}"
     )
 
     # The router WAS invoked once, with the written artifact path -- the
@@ -1280,9 +1244,7 @@ def test_raise_based_commit_failure_retains_artifact_and_returns_failure(
     tasks_dir.mkdir(parents=True)
     (tasks_dir / "WP01-core.md").write_text("# WP01\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
     feedback = tmp_path / "feedback.md"
     feedback.write_text("**Issue**: Needs another pass.\n", encoding="utf-8")
@@ -1306,9 +1268,7 @@ def test_raise_based_commit_failure_retains_artifact_and_returns_failure(
     assert artifact_path.exists()
     assert created.persistence.classification == "persistence_failed"
     assert created.persistence.reason == "commit_exception"
-    assert created.persistence.evidence_ref == (
-        "kitty-specs/001-mission/tasks/WP01-core/review-cycle-1.md"
-    )
+    assert created.persistence.evidence_ref == ("kitty-specs/001-mission/tasks/WP01-core/review-cycle-1.md")
     assert not created.persistence.verdict_durably_persisted
 
 
@@ -1356,9 +1316,7 @@ def test_validation_failure_after_write_leaves_no_orphaned_artifact(
         )
 
     assert not (tasks_dir / "WP01-core" / "review-cycle-1.md").exists(), (
-        "a validate_review_artifact_file failure must leave no orphaned "
-        "artifact on disk -- the widened T043 compensator must have "
-        "unlinked it"
+        "a validate_review_artifact_file failure must leave no orphaned artifact on disk -- the widened T043 compensator must have unlinked it"
     )
     assert not list((tasks_dir / "WP01-core").glob("review-cycle-*.md"))
 
@@ -1404,9 +1362,7 @@ class _ContendingThenSucceedingCommitRouter:
                 diagnostic="simulated transient index.lock contention",
             )
         self.lock_marker.unlink(missing_ok=True)
-        return CommitArtifactResult(
-            status="committed", placement_ref=placement_ref, commit_hash="deadbeef"
-        )
+        return CommitArtifactResult(status="committed", placement_ref=placement_ref, commit_hash="deadbeef")
 
 
 def test_commit_retries_on_index_lock_contention_and_then_succeeds(
@@ -1444,10 +1400,7 @@ def test_commit_retries_on_index_lock_contention_and_then_succeeds(
         commit_router=router,
     )
 
-    assert router.attempts == 2, (
-        "expected exactly one retry after the first index.lock-contending "
-        f"error, observed {router.attempts} attempt(s)"
-    )
+    assert router.attempts == 2, f"expected exactly one retry after the first index.lock-contending error, observed {router.attempts} attempt(s)"
     assert created.artifact_path.exists()
     assert not lock_marker.exists()
 
@@ -1488,9 +1441,7 @@ class _AlwaysContendingCommitRouter:
         )
 
 
-def test_commit_retries_are_bounded_and_report_exhausted_contention(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_commit_retries_are_bounded_and_report_exhausted_contention(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """T042: when the probe keeps firing across every bounded retry attempt,
     the retry loop still bails out at the same bound and still distinguishes
     "exhausted contention retries" from a plain commit failure in its
@@ -1532,16 +1483,10 @@ def test_commit_retries_are_bounded_and_report_exhausted_contention(
         # changes without an accompanying review of this expectation.
         assert router.attempts == 3
         assert (tasks_dir / "WP01-core" / "review-cycle-1.md").exists(), (
-            "T026 demote: an exhausted-contention commit failure no longer "
-            "rolls back the already-written artifact"
+            "T026 demote: an exhausted-contention commit failure no longer rolls back the already-written artifact"
         )
-        assert any(
-            "Exhausted contention retries" in record.message
-            for record in caplog.records
-        ), (
-            "an exhausted-contention failure must still be distinguished "
-            f"from a plain commit failure in the logged WARNING; "
-            f"records={caplog.records}"
+        assert any("Exhausted contention retries" in record.message for record in caplog.records), (
+            f"an exhausted-contention failure must still be distinguished from a plain commit failure in the logged WARNING; records={caplog.records}"
         )
     finally:
         lock_marker.unlink(missing_ok=True)
@@ -1585,9 +1530,7 @@ def test_create_rejected_review_cycle_without_commit_router_is_unchanged(
         capture_output=True,
         text=True,
     )
-    assert "kitty-specs" in status.stdout, (
-        "an uncommitted write should still show as untracked in git status"
-    )
+    assert "kitty-specs" in status.stdout, "an uncommitted write should still show as untracked in git status"
 
 
 @pytest.mark.performance
@@ -1612,9 +1555,7 @@ def test_create_rejected_review_cycle_completes_within_a_fixed_time_budget(
     tasks_dir.mkdir(parents=True)
     (tasks_dir / "WP01-core.md").write_text("# WP01\n", encoding="utf-8")
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
 
     feedback = tmp_path / "feedback.md"
@@ -1632,10 +1573,7 @@ def test_create_rejected_review_cycle_completes_within_a_fixed_time_budget(
     )
     elapsed = time.perf_counter() - started
 
-    assert elapsed < 2.0, (
-        f"create_rejected_review_cycle (write + commit) took {elapsed:.3f}s, "
-        "expected under a generous 2s fixed budget on CI hardware"
-    )
+    assert elapsed < 2.0, f"create_rejected_review_cycle (write + commit) took {elapsed:.3f}s, expected under a generous 2s fixed budget on CI hardware"
 
 
 @dataclass
@@ -1658,10 +1596,7 @@ class _CountingCommitRouter:
         *,
         capability: GuardCapability,
     ) -> CommitStatusResult:
-        raise AssertionError(
-            "commit_status belongs to a different call site (_mt_execute), "
-            "outside this WP's owned surface"
-        )
+        raise AssertionError("commit_status belongs to a different call site (_mt_execute), outside this WP's owned surface")
 
     def commit_artifact(
         self,
@@ -1727,10 +1662,7 @@ def test_create_rejected_review_cycle_invokes_commit_artifact_at_most_once(
         commit_router=router,
     )
 
-    assert router.invocation_count == 1, (
-        "recording one verdict must invoke commit_artifact at most once "
-        f"(observed {router.invocation_count} invocations)"
-    )
+    assert router.invocation_count == 1, f"recording one verdict must invoke commit_artifact at most once (observed {router.invocation_count} invocations)"
 
 
 def test_persistence_outcome_rejects_contradictory_states() -> None:
@@ -1996,9 +1928,7 @@ class _FixedStatusCommitRouter:
     def feature_write_dir(self, mission: MissionHandle) -> Path:
         raise AssertionError("feature_write_dir is not used")
 
-    def commit_status(
-        self, request: TransitionRequest, *, capability: GuardCapability
-    ) -> CommitStatusResult:
+    def commit_status(self, request: TransitionRequest, *, capability: GuardCapability) -> CommitStatusResult:
         raise AssertionError("commit_status is not used")
 
     def commit_artifact(
@@ -2025,9 +1955,7 @@ class _FixedStatusCommitRouter:
         ("no_op_wrong_surface", "wrong_surface"),
     ],
 )
-def test_unverified_router_noops_are_failures_with_retained_evidence(
-    tmp_path: Path, status: str, reason: str
-) -> None:
+def test_unverified_router_noops_are_failures_with_retained_evidence(tmp_path: Path, status: str, reason: str) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
     _init_repo(repo)
@@ -2167,18 +2095,24 @@ def test_real_commit_preserves_unrelated_partially_staged_state(tmp_path: Path) 
     assert created.persistence.classification == "persistence_failed"
     assert created.persistence.reason == "commit_error"
     assert created.artifact_path.exists()
-    assert subprocess.run(
-        ["git", "diff", "--cached", "--", "unrelated.txt"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    ).stdout == before_cached
-    assert subprocess.run(
-        ["git", "diff", "--", "unrelated.txt"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    ).stdout == before_worktree
+    assert (
+        subprocess.run(
+            ["git", "diff", "--cached", "--", "unrelated.txt"],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+        ).stdout
+        == before_cached
+    )
+    assert (
+        subprocess.run(
+            ["git", "diff", "--", "unrelated.txt"],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+        ).stdout
+        == before_worktree
+    )
     assert untracked.read_bytes() == b"leave me alone\n"
 
 
@@ -2229,9 +2163,7 @@ def test_automatic_adoption_never_runs_git_while_feature_lock_is_held(
 
 
 @pytest.mark.parametrize("artifact_state", ["untracked", "staged", "partially_staged"])
-def test_retained_artifact_retry_preserves_unrelated_state(
-    tmp_path: Path, artifact_state: str
-) -> None:
+def test_retained_artifact_retry_preserves_unrelated_state(tmp_path: Path, artifact_state: str) -> None:
     from specify_cli.agent_tasks_ports import RealCoordCommitRouter
 
     repo = tmp_path / "repo"
@@ -2268,12 +2200,7 @@ def test_retained_artifact_retry_preserves_unrelated_state(
         # then store LF — making the exact-bytes durability readback mismatch by
         # construction (#3834).
         retained.artifact_path.write_text(
-            "".join(
-                "reviewed_at: '2099-01-01T00:00:00+00:00'\n"
-                if line.startswith("reviewed_at:")
-                else line
-                for line in artifact_text.splitlines(keepends=True)
-            ),
+            "".join("reviewed_at: '2099-01-01T00:00:00+00:00'\n" if line.startswith("reviewed_at:") else line for line in artifact_text.splitlines(keepends=True)),
             encoding="utf-8",
             newline="\n",
         )
@@ -2329,19 +2256,20 @@ def test_retained_artifact_retry_preserves_unrelated_state(
         capture_output=True,
     ).stdout
     assert shown == before_artifact
-    assert subprocess.run(
-        ["git", "diff", "--", "unrelated.txt"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    ).stdout == before_unrelated_diff
+    assert (
+        subprocess.run(
+            ["git", "diff", "--", "unrelated.txt"],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+        ).stdout
+        == before_unrelated_diff
+    )
     assert untracked.read_bytes() == b"leave untouched\n"
 
 
 @pytest.mark.parametrize("artifact_state", ["staged", "partially_staged"])
-def test_retained_artifact_retry_preserves_unrelated_staged_index_on_refusal(
-    tmp_path: Path, artifact_state: str
-) -> None:
+def test_retained_artifact_retry_preserves_unrelated_staged_index_on_refusal(tmp_path: Path, artifact_state: str) -> None:
     from specify_cli.agent_tasks_ports import RealCoordCommitRouter
 
     repo = tmp_path / "repo"
@@ -2371,12 +2299,7 @@ def test_retained_artifact_retry_preserves_unrelated_staged_index_on_refusal(
         # ``newline="\n"``: same canonical-LF rationale as the sibling test
         # above — a default text-mode write re-encodes CRLF on Windows (#3834).
         retained.artifact_path.write_text(
-            "".join(
-                "reviewed_at: '2099-01-01T00:00:00+00:00'\n"
-                if line.startswith("reviewed_at:")
-                else line
-                for line in artifact_text.splitlines(keepends=True)
-            ),
+            "".join("reviewed_at: '2099-01-01T00:00:00+00:00'\n" if line.startswith("reviewed_at:") else line for line in artifact_text.splitlines(keepends=True)),
             encoding="utf-8",
             newline="\n",
         )
@@ -2421,21 +2344,30 @@ def test_retained_artifact_retry_preserves_unrelated_staged_index_on_refusal(
     assert retried.persistence.classification == "persistence_failed"
     assert retried.persistence.reason == "commit_error"
     assert not (retained.artifact_path.parent / "review-cycle-2.md").exists()
-    assert subprocess.run(
-        ["git", "diff", "--cached", "--", "unrelated.txt", artifact_rel],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    ).stdout == before_cached
-    assert subprocess.run(
-        ["git", "diff", "--", "unrelated.txt", artifact_rel],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    ).stdout == before_worktree
-    assert subprocess.run(
-        ["git", "status", "--porcelain=v1", "--", "unrelated.txt", artifact_rel, "notes.tmp"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    ).stdout == before_status
+    assert (
+        subprocess.run(
+            ["git", "diff", "--cached", "--", "unrelated.txt", artifact_rel],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+        ).stdout
+        == before_cached
+    )
+    assert (
+        subprocess.run(
+            ["git", "diff", "--", "unrelated.txt", artifact_rel],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+        ).stdout
+        == before_worktree
+    )
+    assert (
+        subprocess.run(
+            ["git", "status", "--porcelain=v1", "--", "unrelated.txt", artifact_rel, "notes.tmp"],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+        ).stdout
+        == before_status
+    )

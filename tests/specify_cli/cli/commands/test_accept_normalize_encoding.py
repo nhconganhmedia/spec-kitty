@@ -111,15 +111,7 @@ def _create_accept_ready_feature(repo_root: Path) -> Path:
         (feature_dir / fname).write_text(f"# {fname}\nDone.\n")
 
     (tasks_dir / "WP01-test.md").write_text(
-        "---\n"
-        'work_package_id: "WP01"\n'
-        'title: "Test WP"\n'
-        'lane: "done"\n'
-        'assignee: "test-agent"\n'
-        'agent: "test-agent"\n'
-        'shell_pid: "12345"\n'
-        "---\n"
-        "# WP01\nDone.\n"
+        '---\nwork_package_id: "WP01"\ntitle: "Test WP"\nlane: "done"\nassignee: "test-agent"\nagent: "test-agent"\nshell_pid: "12345"\n---\n# WP01\nDone.\n'
     )
 
     append_event(
@@ -199,9 +191,7 @@ def test_malformed_path_conventions_renders_as_acceptance_error(
     """
 
     def _raise_malformed(*_args: object, **_kwargs: object) -> object:
-        raise PathConventionsConfigError(
-            "project.path_conventions.workspace must not be empty or blank."
-        )
+        raise PathConventionsConfigError("project.path_conventions.workspace must not be empty or blank.")
 
     monkeypatch.setattr(accept_cmd, "collect_feature_summary", _raise_malformed)
     with pytest.raises(AcceptanceError, match="path_conventions"):
@@ -235,9 +225,7 @@ def _run_accept(*, normalize_encoding: bool, monkeypatch: pytest.MonkeyPatch) ->
     )
 
 
-def test_normalize_encoding_repairs_artifact_with_flag(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_normalize_encoding_repairs_artifact_with_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T006 (red-first wiring): the flag repairs the artifact and proceeds.
 
     Non-vacuous: reverting the T005 wiring (the repair branch) makes the
@@ -269,9 +257,7 @@ def test_normalize_encoding_repairs_artifact_with_flag(
     assert "Normalized" in output
 
 
-def test_default_off_leaves_bytes_untouched(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_default_off_leaves_bytes_untouched(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T007 (regression pin): without the flag the artifact bytes are untouched.
 
     Pins the pre-existing default: ``accept`` performs no encoding rewrite. Reds
@@ -293,9 +279,7 @@ def test_default_off_leaves_bytes_untouched(
     assert _CP1252_SMART_QUOTE in plan_path.read_bytes()
 
 
-def test_without_flag_clean_exit_referencing_flag(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_without_flag_clean_exit_referencing_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T008 (regression pin): without the flag, exit 1 referencing the flag.
 
     Pins the pre-existing ``ArtifactEncodingError`` surface so a later change

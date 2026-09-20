@@ -95,15 +95,9 @@ def test_create_loopback_server_does_not_bind_non_loopback_host() -> None:
 
     assert isinstance(server, _RecordingServer)
     bound_host = server.bound_address[0]
-    assert bound_host != "0.0.0.0", (
-        "Server must not bind to 0.0.0.0 (would expose beyond loopback)"
-    )
-    assert bound_host != "::", (
-        "Server must not bind to :: (IPv6 wildcard would expose beyond loopback)"
-    )
-    assert bound_host == "127.0.0.1", (
-        f"Server must bind strictly to 127.0.0.1, got {bound_host!r}"
-    )
+    assert bound_host != "0.0.0.0", "Server must not bind to 0.0.0.0 (would expose beyond loopback)"
+    assert bound_host != "::", "Server must not bind to :: (IPv6 wildcard would expose beyond loopback)"
+    assert bound_host == "127.0.0.1", f"Server must bind strictly to 127.0.0.1, got {bound_host!r}"
 
 
 def test_serve_loopback_server_does_not_bind_non_loopback_host() -> None:
@@ -112,9 +106,5 @@ def test_serve_loopback_server_does_not_bind_non_loopback_host() -> None:
 
     assert len(_RecordingServer.instances) == 1
     bound_host = _RecordingServer.instances[0].bound_address[0]
-    assert bound_host != "0.0.0.0", (
-        "serve_loopback_server must not bind to 0.0.0.0"
-    )
-    assert bound_host == "127.0.0.1", (
-        f"serve_loopback_server must bind strictly to 127.0.0.1, got {bound_host!r}"
-    )
+    assert bound_host != "0.0.0.0", "serve_loopback_server must not bind to 0.0.0.0"
+    assert bound_host == "127.0.0.1", f"serve_loopback_server must bind strictly to 127.0.0.1, got {bound_host!r}"

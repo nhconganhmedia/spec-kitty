@@ -136,8 +136,7 @@ _REFUSAL_DIAGNOSTIC_TEMPLATE = (
 # own exception text, which already names the branch-derived recovery
 # instruction (see module docstring) -- never recomputed here.
 _OFF_CHECKOUT_REFUSAL_DIAGNOSTIC_TEMPLATE = (
-    "write_seam: refusing a zero-write for mission {mission_slug!r} "
-    "(kind={kind_value!r}) -- FR-006 off-checkout refusal (#3033): {cause}"
+    "write_seam: refusing a zero-write for mission {mission_slug!r} (kind={kind_value!r}) -- FR-006 off-checkout refusal (#3033): {cause}"
 )
 
 # Mirrors resolution.py's private ``_CONSOLIDATED_CONTENT_ABSENT_CODE`` value
@@ -155,14 +154,8 @@ _STATUS_COMMITTED: Literal["committed"] = "committed"
 _STATUS_UNCHANGED: Literal["unchanged"] = "unchanged"
 
 # T014 (renata m4): write_artifact accepts EXACTLY ONE of files=/stage=.
-_MATERIALIZATION_USAGE_ERROR_NEITHER = (
-    "write_artifact requires exactly one of files= or stage= (materialization "
-    "source); neither was supplied."
-)
-_MATERIALIZATION_USAGE_ERROR_BOTH = (
-    "write_artifact requires exactly one of files= or stage= (materialization "
-    "source); both were supplied."
-)
+_MATERIALIZATION_USAGE_ERROR_NEITHER = "write_artifact requires exactly one of files= or stage= (materialization source); neither was supplied."
+_MATERIALIZATION_USAGE_ERROR_BOTH = "write_artifact requires exactly one of files= or stage= (materialization source); both were supplied."
 
 # T017: git-level "nothing to commit" signal, shared verbatim with
 # ``coordination.commit_router._is_empty_changeset_error`` -- ``safe_commit``
@@ -222,7 +215,11 @@ class WriteSeamResult:
 
 
 def _probe_write_target(
-    repo_root: Path, mission_slug: str, kind: MissionArtifactKind, *, effective_root: Path | None = None,
+    repo_root: Path,
+    mission_slug: str,
+    kind: MissionArtifactKind,
+    *,
+    effective_root: Path | None = None,
 ) -> CommitTarget | Exception:
     """Probe routability via the seam; return the resolved target, or the
     caught exception on an unroutable target.
@@ -241,7 +238,9 @@ def _probe_write_target(
     """
     try:
         return placement_seam(
-            repo_root, mission_slug, **effective_root_kwargs(effective_root),
+            repo_root,
+            mission_slug,
+            **effective_root_kwargs(effective_root),
         ).write_target(kind)
     except _UNROUTABLE_EXCEPTIONS as exc:
         return exc
@@ -252,15 +251,9 @@ def _is_off_checkout_refusal(exc: Exception) -> bool:
     return isinstance(exc, ActionContextError) and exc.code == _CONSOLIDATED_CONTENT_ABSENT_CODE
 
 
-def _refused_result(
-    *, mission_slug: str, kind: MissionArtifactKind, entry_id: str, cause: Exception
-) -> WriteSeamResult:
+def _refused_result(*, mission_slug: str, kind: MissionArtifactKind, entry_id: str, cause: Exception) -> WriteSeamResult:
     """Build the FR-011/FR-006 zero-write refusal (T016 -- ONE locus, two templates)."""
-    template = (
-        _OFF_CHECKOUT_REFUSAL_DIAGNOSTIC_TEMPLATE
-        if _is_off_checkout_refusal(cause)
-        else _REFUSAL_DIAGNOSTIC_TEMPLATE
-    )
+    template = _OFF_CHECKOUT_REFUSAL_DIAGNOSTIC_TEMPLATE if _is_off_checkout_refusal(cause) else _REFUSAL_DIAGNOSTIC_TEMPLATE
     return WriteSeamResult(
         status=_STATUS_REFUSED,
         entry_id=entry_id,
@@ -295,9 +288,7 @@ def _materialize_files(
 # silently authorize an elevated capability here too (belt-and-braces, not a
 # second resolver -- it never CHANGES where the write routes, only whether
 # THIS module may assert an elevated capability for it).
-_NEVER_POST_CONSOLIDATION_KINDS: frozenset[MissionArtifactKind] = frozenset(
-    {MissionArtifactKind.STATUS_STATE, MissionArtifactKind.DECISION_LOG}
-)
+_NEVER_POST_CONSOLIDATION_KINDS: frozenset[MissionArtifactKind] = frozenset({MissionArtifactKind.STATUS_STATE, MissionArtifactKind.DECISION_LOG})
 
 
 def is_post_consolidation_write_target(
@@ -374,18 +365,14 @@ def _commit_post_consolidation_write(
     from specify_cli.git import safe_commit
 
     if not files:
-        return WriteSeamResult(
-            status=_STATUS_UNCHANGED, entry_id=entry_id, destination_surface=resolved.ref
-        )
+        return WriteSeamResult(status=_STATUS_UNCHANGED, entry_id=entry_id, destination_surface=resolved.ref)
     if any(not path.exists() for path in files):
         return WriteSeamResult(
             status="no_op_wrong_surface",
             entry_id=entry_id,
             destination_surface=resolved.ref,
             diagnostic=(
-                f"Artifact(s) not present at resolved CONSOLIDATED placement "
-                f"({resolved.ref}); commit would no-op against the wrong "
-                f"surface and was not created."
+                f"Artifact(s) not present at resolved CONSOLIDATED placement ({resolved.ref}); commit would no-op against the wrong surface and was not created."
             ),
         )
 
@@ -400,12 +387,8 @@ def _commit_post_consolidation_write(
         )
     except RuntimeError as exc:
         if str(exc).startswith(_EMPTY_CHANGESET_PREFIX):
-            return WriteSeamResult(
-                status=_STATUS_UNCHANGED, entry_id=entry_id, destination_surface=resolved.ref
-            )
-        return WriteSeamResult(
-            status="error", entry_id=entry_id, destination_surface=resolved.ref, diagnostic=str(exc)
-        )
+            return WriteSeamResult(status=_STATUS_UNCHANGED, entry_id=entry_id, destination_surface=resolved.ref)
+        return WriteSeamResult(status="error", entry_id=entry_id, destination_surface=resolved.ref, diagnostic=str(exc))
 
     return WriteSeamResult(
         status=_STATUS_COMMITTED,
@@ -474,7 +457,10 @@ def write_artifact(
         raise WriteSeamUsageError(_MATERIALIZATION_USAGE_ERROR_BOTH)
 
     probed = _probe_write_target(
-        repo_root, mission_slug, kind, **effective_root_kwargs(effective_root),
+        repo_root,
+        mission_slug,
+        kind,
+        **effective_root_kwargs(effective_root),
     )
     if isinstance(probed, Exception):
         return _refused_result(mission_slug=mission_slug, kind=kind, entry_id=entry_id, cause=probed)

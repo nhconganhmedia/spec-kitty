@@ -273,9 +273,7 @@ def _collect_profile_health(repo_root: Path) -> DoctrineHealthReport:
         else:  # pragma: no cover — _collect_org_layer_data always returns a dict
             org_drg = {"errors": [load_error]}
     glossary_pack_health = _collect_glossary_pack_health(repo_root)
-    return DoctrineHealthReport(
-        packs=packs, org_drg=org_drg, glossary_packs=glossary_pack_health
-    )
+    return DoctrineHealthReport(packs=packs, org_drg=org_drg, glossary_packs=glossary_pack_health)
 
 
 def _parse_skipped_glossary_pack_warning(message: object) -> SkippedGlossaryPack:
@@ -347,18 +345,12 @@ def _collect_glossary_pack_health(repo_root: Path) -> GlossaryPackHealth:
         org_roots = resolve_org_roots(repo_root)
         project_doctrine = repo_root / ".kittify" / "doctrine"
         project_root = project_doctrine if project_doctrine.exists() else None
-        inner = RawDoctrineService(
-            org_roots=list(org_roots), project_root=project_root
-        )
+        inner = RawDoctrineService(org_roots=list(org_roots), project_root=project_root)
         service = ActivationAwareDoctrineService(inner, pack_context=None)
         with warnings.catch_warnings(record=True) as captured:
             warnings.simplefilter("always")
             packs = service.raw_repository("glossary_packs").list_all()
-        invalid = [
-            _parse_skipped_glossary_pack_warning(w.message)
-            for w in captured
-            if issubclass(w.category, UserWarning)
-        ]
+        invalid = [_parse_skipped_glossary_pack_warning(w.message) for w in captured if issubclass(w.category, UserWarning)]
     except Exception as exc:  # noqa: BLE001 — diagnostics must never crash
         invalid = [
             SkippedGlossaryPack(
@@ -369,9 +361,7 @@ def _collect_glossary_pack_health(repo_root: Path) -> GlossaryPackHealth:
         ]
 
     term_count = sum(len(pack.terms) for pack in packs)
-    return GlossaryPackHealth(
-        pack_count=len(packs), term_count=term_count, invalid_packs=invalid
-    )
+    return GlossaryPackHealth(pack_count=len(packs), term_count=term_count, invalid_packs=invalid)
 
 
 def _run_cross_grain_check(report: DoctrineHealthReport) -> None:
@@ -419,9 +409,7 @@ def _run_cross_grain_check(report: DoctrineHealthReport) -> None:
         errors = list(existing_errors) if isinstance(existing_errors, list) else []
         errors.append(message)
         org_drg["errors"] = errors
-        org_drg["cross_grain_collisions"] = [
-            {"kind": exc.kind, "artifact": exc.artifact}
-        ]
+        org_drg["cross_grain_collisions"] = [{"kind": exc.kind, "artifact": exc.artifact}]
 
 
 def _run_operating_procedures_check(report: DoctrineHealthReport) -> None:
@@ -453,12 +441,8 @@ def _run_operating_procedures_check(report: DoctrineHealthReport) -> None:
         return
     try:
         procedure_urns, urns_by_kind = node_universe(load_built_in_graph().nodes)
-        entries = collect_operating_procedure_entries(
-            built_in_dir(ArtifactKind.AGENT_PROFILE)
-        )
-        unresolved = resolve_operating_procedure_entries(
-            entries, procedure_urns, urns_by_kind
-        )
+        entries = collect_operating_procedure_entries(built_in_dir(ArtifactKind.AGENT_PROFILE))
+        unresolved = resolve_operating_procedure_entries(entries, procedure_urns, urns_by_kind)
     except Exception as exc:  # noqa: BLE001 — diagnostics must never crash
         existing = org_drg.get("errors")
         errors = list(existing) if isinstance(existing, list) else []
@@ -477,19 +461,14 @@ def _run_operating_procedures_check(report: DoctrineHealthReport) -> None:
     ]
     if unresolved:
         noun = "entry" if len(unresolved) == 1 else "entries"
-        message = (
-            f"{len(unresolved)} built-in operating-procedures {noun} resolve to "
-            "no procedure node (fictional or wrong-kind)"
-        )
+        message = f"{len(unresolved)} built-in operating-procedures {noun} resolve to no procedure node (fictional or wrong-kind)"
         existing = org_drg.get("errors")
         errors = list(existing) if isinstance(existing, list) else []
         errors.append(message)
         org_drg["errors"] = errors
 
 
-def _attach_pack_health(
-    pack_entries: list[dict[str, object]], report: DoctrineHealthReport
-) -> None:
+def _attach_pack_health(pack_entries: list[dict[str, object]], report: DoctrineHealthReport) -> None:
     """Attach per-layer ``PackHealth`` to registry pack entries for FR-010 rendering.
 
     Org-pack registry entries are org-layer snapshots, so each present pack is
@@ -689,9 +668,7 @@ def _collect_org_layer_data(repo_root: Path) -> dict[str, object]:
         # WP08 (FR-010): reuse the SAME merge the org-layer section already runs
         # (C-006 — no new DRG plumbing). The merged graph is now captured, not
         # discarded, so the promoted predicates can adjudicate built-in overrides.
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=fragments, project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=fragments, project=None)
     except OrgDRGConflictError as exc:
         _record_org_conflicts(result, exc)
     except Exception as exc:  # noqa: BLE001 — doctor must not crash on a bad pack
@@ -787,10 +764,7 @@ def _run_post_merge_org_checks(
         result["unsanctioned_overrides"] = unsanctioned
         _append_org_errors(
             result,
-            [
-                f"unsanctioned built-in override: {f['urn']} ({f['kind']}) — {f['why']}"
-                for f in unsanctioned
-            ],
+            [f"unsanctioned built-in override: {f['urn']} ({f['kind']}) — {f['why']}" for f in unsanctioned],
         )
 
 
@@ -1042,11 +1016,11 @@ def _build_selection_block(repo_root: Path) -> dict[str, list[dict[str, str]]]:
         project_set = set(project_selections[kind])
         entries: list[dict[str, str]] = []
         for item_id in ordered:
-            entries.append({
-                "id": item_id,
-                "source": _resolve_artifact_source(
-                    item_id, kind, service, org_required, project_set
-                ),
-            })
+            entries.append(
+                {
+                    "id": item_id,
+                    "source": _resolve_artifact_source(item_id, kind, service, org_required, project_set),
+                }
+            )
         result[kind] = entries
     return result

@@ -139,9 +139,7 @@ def _invariant(inv_id: str, result: str) -> NegativeInvariant:
 
 
 def test_non_terminal_mission_is_refused(tmp_path: Path) -> None:
-    project_root, feature_dir = _seed_mission(
-        tmp_path, wp_chains={"WP01": _IN_PROGRESS_CHAIN}
-    )
+    project_root, feature_dir = _seed_mission(tmp_path, wp_chains={"WP01": _IN_PROGRESS_CHAIN})
     # Real resolver confirms the mission is NOT terminal.
     assert resolve_terminal_state(feature_dir) is None
 
@@ -254,17 +252,12 @@ def test_no_migration_or_lifecycle_module_imports_archive() -> None:
         if "missions._archive" in text or "archive_mission" in text:
             offenders.append(str(path.relative_to(src_root)))
 
-    assert offenders == [], (
-        "AM-4 violated — a migration/lifecycle module references the archive "
-        f"surface: {offenders}"
-    )
+    assert offenders == [], f"AM-4 violated — a migration/lifecycle module references the archive surface: {offenders}"
 
 
 def test_archive_requires_operator_identity(tmp_path: Path) -> None:
     """AM-4 backstop: an anonymous (empty) operator identity is refused."""
-    project_root, feature_dir = _seed_mission(
-        tmp_path, wp_chains={"WP01": _DONE_CHAIN}
-    )
+    project_root, feature_dir = _seed_mission(tmp_path, wp_chains={"WP01": _DONE_CHAIN})
     with pytest.raises(MissionArchiveRefused) as excinfo:
         archive_mission(
             project_root=project_root,
@@ -304,9 +297,7 @@ def test_canceled_mission_with_dangling_deferral_is_archivable(tmp_path: Path) -
 
 def test_merged_mission_does_not_clear_deferrals() -> None:
     """Only cancellation clears deferrals — a merged mission leaves them alone."""
-    dispositions = resolve_deferrals_for_cancellation(
-        [("NI-1", "deferred_to_consolidation")], terminal_state="merged"
-    )
+    dispositions = resolve_deferrals_for_cancellation([("NI-1", "deferred_to_consolidation")], terminal_state="merged")
     assert dispositions == []
 
 
@@ -316,9 +307,7 @@ def test_merged_mission_does_not_clear_deferrals() -> None:
 
 
 def test_eligibility_requires_stated_reason() -> None:
-    verdict = evaluate_archive_eligibility(
-        terminal_state="merged", invariant_results=[], reason="   "
-    )
+    verdict = evaluate_archive_eligibility(terminal_state="merged", invariant_results=[], reason="   ")
     assert not verdict.eligible
     assert verdict.refusal_code == "AM-1"
 

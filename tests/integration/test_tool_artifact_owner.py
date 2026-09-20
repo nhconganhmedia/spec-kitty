@@ -56,9 +56,7 @@ FEATURE_DIRNAME = f"{MISSION_SLUG}-{MID8}"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 @pytest.fixture
@@ -77,12 +75,7 @@ def coord_repo(tmp_path: Path) -> Path:
     feature_dir = r / "kitty-specs" / FEATURE_DIRNAME
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        "{\n"
-        f'  "mission_id": "{MISSION_ID}",\n'
-        f'  "mission_slug": "{FEATURE_DIRNAME}",\n'
-        '  "target_branch": "main",\n'
-        f'  "coordination_branch": "{COORD_BRANCH}"\n'
-        "}\n",
+        f'{{\n  "mission_id": "{MISSION_ID}",\n  "mission_slug": "{FEATURE_DIRNAME}",\n  "target_branch": "main",\n  "coordination_branch": "{COORD_BRANCH}"\n}}\n',
         encoding="utf-8",
     )
     return r
@@ -115,9 +108,7 @@ def test_non_coord_destination_round_trip(tmp_path: Path) -> None:
     artifact = primary / "kitty-specs" / "m" / "status.events.jsonl"
     artifact.write_bytes(b"ORIGINAL\n")
 
-    snapshots = capture_generated_artifact_snapshots(
-        artifact, trusted_roots=[primary / "kitty-specs"]
-    )
+    snapshots = capture_generated_artifact_snapshots(artifact, trusted_roots=[primary / "kitty-specs"])
     artifact.write_bytes(b"MUTATED-BY-TOOL\n")
     restore_generated_artifact_snapshots(snapshots)
 
@@ -130,9 +121,7 @@ def test_non_coord_destination_created_file_is_unlinked_on_restore(tmp_path: Pat
     (primary / ".kittify" / "runtime" / "merge").mkdir(parents=True)
     lock = primary / ".kittify" / "runtime" / "merge" / "vcs.lock"
 
-    snapshots = capture_generated_artifact_snapshots(
-        lock, trusted_roots=[primary / ".kittify" / "runtime" / "merge"]
-    )
+    snapshots = capture_generated_artifact_snapshots(lock, trusted_roots=[primary / ".kittify" / "runtime" / "merge"])
     lock.write_bytes(b"acquired\n")
     restore_generated_artifact_snapshots(snapshots)
 
@@ -146,9 +135,7 @@ def test_non_coord_destination_rejects_untrusted_surface(tmp_path: Path) -> None
     outside = tmp_path / "elsewhere" / "evil.json"
 
     with pytest.raises(ValueError):
-        capture_generated_artifact_snapshots(
-            outside, trusted_roots=[primary / "kitty-specs"]
-        )
+        capture_generated_artifact_snapshots(outside, trusted_roots=[primary / "kitty-specs"])
 
 
 # ---------------------------------------------------------------------------
@@ -281,9 +268,7 @@ def test_canonical_churn_classifier_unifies_bookkeeping_and_residue() -> None:
     # self-bookkeeping (meta.json is spec-kitty's own metadata)
     assert is_toolchain_generated_churn("kitty-specs/m/meta.json")
     # coord-partition residue (the append-only status log)
-    assert is_toolchain_generated_churn(
-        "kitty-specs/m/status.events.jsonl", mission_slug="m"
-    )
+    assert is_toolchain_generated_churn("kitty-specs/m/status.events.jsonl", mission_slug="m")
     # operator-authored planning artifact is NOT toolchain churn
     assert not is_toolchain_generated_churn("kitty-specs/m/spec.md", mission_slug="m")
 
@@ -338,9 +323,7 @@ def test_nfr002_enrolled_path_never_observes_a_third_state(
     assert reached_replace == b"1", "child never reached the atomic replace seam"
     assert os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGKILL
     assert target.read_bytes() == pre
-    assert list(worktree.glob(".spec-kitty-*.tmp")), (
-        "kill at the reached replace seam must leave proof of the completed temp write"
-    )
+    assert list(worktree.glob(".spec-kitty-*.tmp")), "kill at the reached replace seam must leave proof of the completed temp write"
 
     aw._write_confined_artifact_bytes(worktree, target, post, resolve=resolve)
     assert target.read_bytes() == post

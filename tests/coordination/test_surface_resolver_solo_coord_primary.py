@@ -98,9 +98,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "user.name", "Solo Coord Primary")
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
-    (r / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (r / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return r
 
 
@@ -156,13 +154,10 @@ def test_read_surface_resolves_primary(repo: Path) -> None:
     resolved = resolve_status_surface_with_anchor(repo, _SLUG)
 
     assert resolved.read_dir.resolve() == primary_dir.resolve(), (
-        "solo-empty coord must resolve READ to the PRIMARY checkout, not the "
-        f"coord dir. Got: {resolved.read_dir}"
+        f"solo-empty coord must resolve READ to the PRIMARY checkout, not the coord dir. Got: {resolved.read_dir}"
     )
     assert resolved.primary_anchor.resolve() == primary_dir.resolve()
-    assert resolve_status_surface(repo, _SLUG).resolve() == (
-        primary_dir / "status.events.jsonl"
-    ).resolve()
+    assert resolve_status_surface(repo, _SLUG).resolve() == (primary_dir / "status.events.jsonl").resolve()
 
 
 def test_write_placement_ref_is_read_openly_not_masked(repo: Path) -> None:
@@ -178,8 +173,7 @@ def test_write_placement_ref_is_read_openly_not_masked(repo: Path) -> None:
     # topology regardless of on-disk materialization state — WP08 does not
     # touch this, and this test does not pretend otherwise.
     assert target.ref == _COORD_BRANCH, (
-        "write placement must keep resolving the coordination branch for "
-        f"COORD topology (frozen WP07-adjacent behaviour); got {target.ref!r}"
+        f"write placement must keep resolving the coordination branch for COORD topology (frozen WP07-adjacent behaviour); got {target.ref!r}"
     )
 
 
@@ -221,17 +215,12 @@ def test_read_tracks_write_once_coord_worktree_is_populated(repo: Path) -> None:
 
     # Simulate the first real coordination-branch write materializing the
     # mission dir under the (already-rooted) coord worktree.
-    coord_mission_dir = (
-        CoordinationWorkspace.worktree_path(repo, _SLUG, _MID8)
-        / "kitty-specs"
-        / _SLUG
-    )
+    coord_mission_dir = CoordinationWorkspace.worktree_path(repo, _SLUG, _MID8) / "kitty-specs" / _SLUG
     coord_mission_dir.mkdir(parents=True)
     (coord_mission_dir / "status.events.jsonl").write_text("", encoding="utf-8")
 
     post_write = resolve_status_surface_with_anchor(repo, _SLUG)
 
     assert post_write.read_dir.resolve() == coord_mission_dir.resolve(), (
-        "once the coord worktree is populated, reads must track it "
-        f"immediately (CoordState.MATERIALIZED) — got {post_write.read_dir}"
+        f"once the coord worktree is populated, reads must track it immediately (CoordState.MATERIALIZED) — got {post_write.read_dir}"
     )

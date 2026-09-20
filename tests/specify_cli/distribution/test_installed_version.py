@@ -33,9 +33,7 @@ def test_alias_fall_through(monkeypatch: pytest.MonkeyPatch) -> None:
         raise importlib.metadata.PackageNotFoundError(name)
 
     monkeypatch.setattr("specify_cli.distribution.installed_version.version", _version)
-    assert (
-        resolve_installed_distribution_version("acme-kitty-cli", ("acme-alias",)) == "9.9.9"
-    )
+    assert resolve_installed_distribution_version("acme-kitty-cli", ("acme-alias",)) == "9.9.9"
 
 
 def test_empty_names_are_skipped(monkeypatch: pytest.MonkeyPatch) -> None:

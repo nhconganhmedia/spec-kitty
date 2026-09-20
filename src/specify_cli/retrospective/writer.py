@@ -217,9 +217,7 @@ def _atomic_write_yaml(data: dict[str, Any], canonical: Path, target_dir: Path) 
             unlinked on failure so no partial file remains.
     """
     if target_dir != canonical.parent:
-        raise WriterError(
-            f"target_dir {target_dir} must equal canonical.parent {canonical.parent}"
-        )
+        raise WriterError(f"target_dir {target_dir} must equal canonical.parent {canonical.parent}")
 
     try:
         write_mapping_atomic(data, canonical, width=120)
@@ -246,10 +244,7 @@ def write_record(record: RetrospectiveRecord, *, repo_root: Path) -> Path:
     """
     # Refuse pending records before doing any I/O.
     if record.status == "pending":
-        raise WriterError(
-            "Cannot persist a retrospective record with status='pending'. "
-            "Transition to completed/skipped/failed first."
-        )
+        raise WriterError("Cannot persist a retrospective record with status='pending'. Transition to completed/skipped/failed first.")
 
     # Pydantic round-trip validation to catch any remaining issues.
     try:
@@ -280,6 +275,7 @@ def write_record(record: RetrospectiveRecord, *, repo_root: Path) -> Path:
 
 def _gen_record_to_dict(record: GenRetrospectiveRecord) -> dict[str, Any]:
     """Serialize a GenRetrospectiveRecord to a plain Python dict for YAML."""
+
     def _actor_to_dict(a: GenActor) -> dict[str, Any]:
         d: dict[str, Any] = {"kind": a.kind, "id": a.id}
         if a.display is not None:
@@ -371,6 +367,7 @@ def _dict_to_gen_record(data: dict[str, Any]) -> GenRetrospectiveRecord:
     record, never `existing`). Different contract by design; not routed
     through read_target_branch_from_meta.
     """
+
     def _dict_to_actor(d: dict[str, Any]) -> GenActor:
         return GenActor(kind=d["kind"], id=d["id"], display=d.get("display"))
 
@@ -446,6 +443,7 @@ def _merge_gen_records(existing: GenRetrospectiveRecord, new: GenRetrospectiveRe
     - provenance: new becomes active; prior prepended to provenance_history.
     - findings_status: recomputed from final lists.
     """
+
     # Deduplicate findings by (category, summary.lower())
     def _merge_findings(old: list[GenFinding], new_items: list[GenFinding]) -> list[GenFinding]:
         seen: set[tuple[str, str]] = {(f.category, f.summary.lower()) for f in old}
@@ -541,8 +539,7 @@ def write_gen_record(
     # bypass the schema-level check.  Mark it no-cover so coverage tooling
     # does not demand a redundant test.
     if (  # pragma: no cover
-        record.provenance.kind == "synthesize_fabricate"
-        and record.findings_status != "ran_no_findings"
+        record.provenance.kind == "synthesize_fabricate" and record.findings_status != "ran_no_findings"
     ):
         raise RecordValidationError(  # pragma: no cover
             violation="synthesize_fabricate_findings_status_mismatch",
@@ -586,22 +583,16 @@ def write_gen_record(
                 raw_text = prior.read_text(encoding="utf-8")
                 existing_data = yaml_safe.load(raw_text)
             except Exception as exc:
-                raise WriterError(
-                    f"Cannot load existing record at {prior} for merge: {exc}"
-                ) from exc
+                raise WriterError(f"Cannot load existing record at {prior} for merge: {exc}") from exc
 
             if not isinstance(existing_data, dict):
-                raise WriterError(
-                    f"Existing record at {prior} is not a YAML mapping"
-                )
+                raise WriterError(f"Existing record at {prior} is not a YAML mapping")
 
             try:
                 existing = _dict_to_gen_record(existing_data)
                 validate_record(existing)
             except RecordValidationError as exc:
-                raise WriterError(
-                    f"Existing record at {prior} fails validation: {exc}"
-                ) from exc
+                raise WriterError(f"Existing record at {prior} fails validation: {exc}") from exc
 
             final_record = _merge_gen_records(existing, record)
             # Re-validate merged record.

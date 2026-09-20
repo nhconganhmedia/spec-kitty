@@ -53,9 +53,7 @@ def _write_gitignore(project_root: Path, *entries: str) -> None:
 
 
 def _write_metadata(project_root: Path, version: str) -> None:
-    ProjectMetadata(version=version, initialized_at=now_utc()).save(
-        project_root / ".kittify"
-    )
+    ProjectMetadata(version=version, initialized_at=now_utc()).save(project_root / ".kittify")
 
 
 def _is_ignored(project_root: Path, path: str) -> bool:
@@ -142,11 +140,7 @@ def test_detect_accepts_wholesale_agents_variant(tmp_path: Path) -> None:
     migration = AgentsSkillsGitignoreBackfillMigration()
     assert migration.detect(tmp_path) is False
     migration.apply(tmp_path)
-    entries = [
-        line.strip()
-        for line in tmp_path.joinpath(".gitignore").read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    entries = [line.strip() for line in tmp_path.joinpath(".gitignore").read_text(encoding="utf-8").splitlines() if line.strip()]
     assert _SKILLS_ROOT_ENTRY not in entries
 
 
@@ -219,10 +213,7 @@ def test_backfill_fires_on_already_current_project(tmp_path: Path) -> None:
     result = MigrationRunner(tmp_path).upgrade("3.2.5", include_worktrees=False)
 
     assert result.success
-    assert (
-        AgentsSkillsGitignoreBackfillMigration.migration_id
-        in result.migrations_applied
-    )
+    assert AgentsSkillsGitignoreBackfillMigration.migration_id in result.migrations_applied
     assert _is_ignored(tmp_path, _SKILL_FILE_PATH)
     assert _is_ignored(tmp_path, _MANIFEST_ENTRY)
 

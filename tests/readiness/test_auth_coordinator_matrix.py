@@ -55,12 +55,7 @@ def _stderr_contains_panel(text: str) -> bool:
 
 def _stderr_is_canonical_line(text: str) -> bool:
     """Non-interactive case must emit exactly the canonical single line."""
-    expected = (
-        "spec-kitty: logged_out_on_connected_teamspace "
-        f"teamspace={_TEAMSPACE} "
-        "command=spec-kitty "
-        "action=run-spec-kitty-auth-login\n"
-    )
+    expected = f"spec-kitty: logged_out_on_connected_teamspace teamspace={_TEAMSPACE} command=spec-kitty action=run-spec-kitty-auth-login\n"
     return text == expected
 
 
@@ -268,12 +263,8 @@ def test_auth_matrix(
 
     # Assert structural fields.
     assert isinstance(result, ReadinessResult)
-    assert result.auth_status == row.expected_status, (
-        f"row={row.name}: got auth_status={result.auth_status!r}, expected {row.expected_status!r}"
-    )
-    assert result.output_policy == row.expected_policy, (
-        f"row={row.name}: got policy={result.output_policy!r}, expected {row.expected_policy!r}"
-    )
+    assert result.auth_status == row.expected_status, f"row={row.name}: got auth_status={result.auth_status!r}, expected {row.expected_status!r}"
+    assert result.output_policy == row.expected_policy, f"row={row.name}: got policy={result.output_policy!r}, expected {row.expected_policy!r}"
     if row.hosted_enabled:
         assert result.enabled is True
         assert result.ran is True
@@ -285,12 +276,8 @@ def test_auth_matrix(
 
     # Assert output contract.
     captured = capsys.readouterr()
-    assert row.stdout_assert(captured.out), (
-        f"row={row.name}: stdout failed predicate; got {captured.out!r}"
-    )
-    assert row.stderr_assert(captured.err), (
-        f"row={row.name}: stderr failed predicate; got {captured.err!r}"
-    )
+    assert row.stdout_assert(captured.out), f"row={row.name}: stdout failed predicate; got {captured.out!r}"
+    assert row.stderr_assert(captured.err), f"row={row.name}: stderr failed predicate; got {captured.err!r}"
 
 
 def test_coordinator_swallows_probe_exception(

@@ -60,23 +60,13 @@ class CollectionEquivalenceError(AssertionError):
         self.only_serial = only_serial
         self.only_parallel = only_parallel
         parts = [
-            "Collection equivalence failed (C-EQUIV / FR-004): serial and "
-            "parallel collection collected different nodeid sets.",
+            "Collection equivalence failed (C-EQUIV / FR-004): serial and parallel collection collected different nodeid sets.",
         ]
         if only_serial:
-            parts.append(
-                "  Missing under parallel (collected serially only):\n"
-                + "\n".join(f"    - {nid}" for nid in sorted(only_serial))
-            )
+            parts.append("  Missing under parallel (collected serially only):\n" + "\n".join(f"    - {nid}" for nid in sorted(only_serial)))
         if only_parallel:
-            parts.append(
-                "  Extra under parallel (collected in parallel only):\n"
-                + "\n".join(f"    + {nid}" for nid in sorted(only_parallel))
-            )
-        parts.append(
-            "  Any intended count change must be asserted explicitly with a "
-            "reviewed delta (NFR-007 / E3 I2), never left silent."
-        )
+            parts.append("  Extra under parallel (collected in parallel only):\n" + "\n".join(f"    + {nid}" for nid in sorted(only_parallel)))
+        parts.append("  Any intended count change must be asserted explicitly with a reviewed delta (NFR-007 / E3 I2), never left silent.")
         super().__init__("\n".join(parts))
 
 
@@ -117,15 +107,9 @@ def collect_nodeids(args: Sequence[str]) -> set[str]:
     # collect-only), 5 = no tests collected, >=2 = usage/collection error.
     if completed.returncode not in (0, 5):
         raise RuntimeError(
-            "pytest --collect-only failed for "
-            f"args={list(args)!r} (exit {completed.returncode}).\n"
-            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+            f"pytest --collect-only failed for args={list(args)!r} (exit {completed.returncode}).\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
         )
-    return {
-        line.strip()
-        for line in completed.stdout.splitlines()
-        if _looks_like_nodeid(line)
-    }
+    return {line.strip() for line in completed.stdout.splitlines() if _looks_like_nodeid(line)}
 
 
 def assert_equivalent(

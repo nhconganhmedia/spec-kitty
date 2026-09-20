@@ -123,9 +123,7 @@ class TestAssetHandlerKindInertRoundTrip:
 
     def test_asset_binding_is_inert_data_only(self) -> None:
         """No executor exists in half A: the model is inert data, never dispatched."""
-        binding = GateBinding.model_validate(
-            {**_VALID_BINDING, "handler_kind": "asset"}
-        )
+        binding = GateBinding.model_validate({**_VALID_BINDING, "handler_kind": "asset"})
         # The model exposes no callable/execution surface -- it is a pure
         # data record. There is no `run`/`execute`/`__call__` to invoke.
         assert not hasattr(binding, "run")
@@ -149,9 +147,7 @@ class TestMissionStepContractGates:
         assert len(contract.gates) == 1
         assert contract.gates[0].handler == "spec-kitty-pre-review"
 
-    def test_contract_still_rejects_unknown_top_level_keys(
-        self, minimal_step_contract_data: dict[str, object]
-    ) -> None:
+    def test_contract_still_rejects_unknown_top_level_keys(self, minimal_step_contract_data: dict[str, object]) -> None:
         data = {**minimal_step_contract_data, "unexpected_field": True}
         with pytest.raises(ValidationError):
             MissionStepContract.model_validate(data)
@@ -187,13 +183,9 @@ class TestReviewContractGateBinding:
 
 
 class TestSaveByteStability:
-    def test_clean_contract_re_saves_without_gates_key(
-        self, tmp_path: Path, minimal_step_contract_data: dict[str, object]
-    ) -> None:
+    def test_clean_contract_re_saves_without_gates_key(self, tmp_path: Path, minimal_step_contract_data: dict[str, object]) -> None:
         project_dir = tmp_path / "project"
-        repo = MissionStepContractRepository(
-            built_in_dir=tmp_path / "empty", project_dir=project_dir
-        )
+        repo = MissionStepContractRepository(built_in_dir=tmp_path / "empty", project_dir=project_dir)
         contract = MissionStepContract.model_validate(minimal_step_contract_data)
 
         path = repo.save(contract)
@@ -206,23 +198,17 @@ class TestSaveByteStability:
         path_again = repo.save(reloaded)
         assert path_again.read_bytes() == golden
 
-    def test_non_default_gates_survive_save(
-        self, tmp_path: Path, minimal_step_contract_data: dict[str, object]
-    ) -> None:
+    def test_non_default_gates_survive_save(self, tmp_path: Path, minimal_step_contract_data: dict[str, object]) -> None:
         """A contract that DOES declare gates keeps them on save."""
         project_dir = tmp_path / "project"
-        repo = MissionStepContractRepository(
-            built_in_dir=tmp_path / "empty", project_dir=project_dir
-        )
+        repo = MissionStepContractRepository(built_in_dir=tmp_path / "empty", project_dir=project_dir)
         data = {**minimal_step_contract_data, "gates": [_VALID_BINDING]}
         contract = MissionStepContract.model_validate(data)
 
         path = repo.save(contract)
         assert b"gates:" in path.read_bytes()
 
-    def test_all_built_in_contracts_except_review_re_save_without_gates(
-        self, tmp_path: Path
-    ) -> None:
+    def test_all_built_in_contracts_except_review_re_save_without_gates(self, tmp_path: Path) -> None:
         """Byte-golden across every shipped built-in contract (T024/T025).
 
         ``review.step-contract.yaml`` legitimately declares one binding; every
@@ -239,9 +225,7 @@ class TestSaveByteStability:
             if contract.id == "review":
                 assert b"gates:" in contents
             else:
-                assert b"gates:" not in contents, (
-                    f"{contract.id} re-saved with a spurious `gates:` key"
-                )
+                assert b"gates:" not in contents, f"{contract.id} re-saved with a spurious `gates:` key"
 
 
 # ---------------------------------------------------------------------------
@@ -260,9 +244,7 @@ class TestBackCompat:
             if contract.id == "review":
                 assert len(contract.gates) == 1
             else:
-                assert contract.gates == [], (
-                    f"{contract.id} unexpectedly declares gates"
-                )
+                assert contract.gates == [], f"{contract.id} unexpectedly declares gates"
 
     def test_no_top_level_key_allowlist_blocks_the_review_contract(self) -> None:
         """Guard against a hidden C-009-style allowlist silently dropping `gates`.
@@ -278,7 +260,4 @@ class TestBackCompat:
         repo = MissionStepContractRepository()
         contract = repo.get_by_action("software-dev", "review")
         assert contract is not None
-        assert contract.gates != [], (
-            "the review contract's `gates` key was dropped somewhere in the "
-            "load path -- check for a hidden top-level-key allowlist"
-        )
+        assert contract.gates != [], "the review contract's `gates` key was dropped somewhere in the load path -- check for a hidden top-level-key allowlist"

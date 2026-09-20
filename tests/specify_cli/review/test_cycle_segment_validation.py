@@ -10,6 +10,7 @@ Exception-type rule: use ``type(exc) is ReviewCycleError`` not isinstance — Re
 subclasses ValueError, so isinstance(ValueError) would wrongly pass on a leaked raw ValueError;
 the exact-type check catches that regression.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -38,10 +39,7 @@ def test_validate_segment_raises_review_cycle_error(label: str, bad_value: str) 
     with pytest.raises(ReviewCycleError) as exc_info:
         _validate_segment("test_field", bad_value)
     # Exact-type check: must not leak a raw ValueError even if the delegate raises one.
-    assert type(exc_info.value) is ReviewCycleError, (
-        f"Expected exact type ReviewCycleError for input {bad_value!r}, "
-        f"got {type(exc_info.value).__name__}"
-    )
+    assert type(exc_info.value) is ReviewCycleError, f"Expected exact type ReviewCycleError for input {bad_value!r}, got {type(exc_info.value).__name__}"
 
 
 # ---------------------------------------------------------------------------

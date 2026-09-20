@@ -18,9 +18,7 @@ from specify_cli.auth.transport import (
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 
-LOCK_MESSAGE = (
-    "Another spec-kitty process is refreshing the auth session; retry in a moment."
-)
+LOCK_MESSAGE = "Another spec-kitty process is refreshing the auth session; retry in a moment."
 
 
 class _LockingTokenManager:
@@ -40,9 +38,7 @@ class _LockingTokenManager:
         self.session = SimpleNamespace(access_token_expires_at=None)
 
     async def get_access_token(self) -> str:
-        if self.lock_on_refresh and not (
-            self.lock_after_refresh and self.refresh_calls
-        ):
+        if self.lock_on_refresh and not (self.lock_after_refresh and self.refresh_calls):
             return "access-v1"
         raise RefreshLockTimeoutError(LOCK_MESSAGE)
 
@@ -78,9 +74,7 @@ def test_sync_transport_maps_initial_refresh_lock_timeout(
     def _should_not_send(request: httpx.Request) -> httpx.Response:
         raise AssertionError("request should not be sent without an access token")
 
-    client = AuthenticatedClient(
-        client=httpx.Client(transport=httpx.MockTransport(_should_not_send))
-    )
+    client = AuthenticatedClient(client=httpx.Client(transport=httpx.MockTransport(_should_not_send)))
 
     with pytest.raises(AuthRefreshFailed) as exc_info:
         client.get("https://api.example.test/v1/resource")
@@ -110,9 +104,7 @@ def test_sync_transport_maps_401_forced_refresh_lock_timeout(
         attempts += 1
         return httpx.Response(401, request=request)
 
-    client = AuthenticatedClient(
-        client=httpx.Client(transport=httpx.MockTransport(_unauthorized))
-    )
+    client = AuthenticatedClient(client=httpx.Client(transport=httpx.MockTransport(_unauthorized)))
 
     with pytest.raises(AuthRefreshFailed) as exc_info:
         client.get("https://api.example.test/v1/resource")
@@ -148,9 +140,7 @@ def test_sync_transport_maps_post_refresh_token_fetch_lock_timeout(
         attempts += 1
         return httpx.Response(401, request=request)
 
-    client = AuthenticatedClient(
-        client=httpx.Client(transport=httpx.MockTransport(_unauthorized))
-    )
+    client = AuthenticatedClient(client=httpx.Client(transport=httpx.MockTransport(_unauthorized)))
 
     with pytest.raises(AuthRefreshFailed) as exc_info:
         client.get("https://api.example.test/v1/resource")
@@ -206,9 +196,7 @@ async def test_async_authenticated_client_preserves_refresh_lock_hint(
     async def _should_not_send(request: httpx.Request) -> httpx.Response:
         raise AssertionError("request should not be sent without an access token")
 
-    async with httpx.AsyncClient(
-        transport=httpx.MockTransport(_should_not_send)
-    ) as raw_client:
+    async with httpx.AsyncClient(transport=httpx.MockTransport(_should_not_send)) as raw_client:
         client = AsyncAuthenticatedClient(client=raw_client)
         with pytest.raises(AuthRefreshFailed) as exc_info:
             await client.get("https://api.example.test/v1/resource")

@@ -59,9 +59,7 @@ def test_canonical_record_path_is_not_gitignored(tmp_path: Path) -> None:
 
     assert "kitty-specs" in record_path.parts
     assert ".kittify" not in record_path.parts
-    assert not _is_git_ignored(tmp_path, record_path), (
-        f"Retrospective record path {record_path} is git-ignored — #1771 regression"
-    )
+    assert not _is_git_ignored(tmp_path, record_path), f"Retrospective record path {record_path} is git-ignored — #1771 regression"
 
 
 # Production-shaped identity for the coord-divergence re-pin (real ULID + mid8).
@@ -120,8 +118,7 @@ def test_canonical_record_path_does_not_leak_into_coord_worktree(tmp_path: Path)
     # The strengthened guard: ``kitty-specs in parts`` ALONE is insufficient.
     assert "kitty-specs" in record_path.parts
     assert ".worktrees" not in record_path.parts, (
-        f"Retrospective record path {record_path} re-homed into the coord "
-        "worktree — the #1771 coord-leak the durable-home authority must cure."
+        f"Retrospective record path {record_path} re-homed into the coord worktree — the #1771 coord-leak the durable-home authority must cure."
     )
     assert ".kittify" not in record_path.parts
     assert not _is_git_ignored(tmp_path, record_path)
@@ -136,8 +133,7 @@ def test_legacy_path_was_gitignored_control(tmp_path: Path) -> None:
     legacy = _legacy_record_path(tmp_path, "01KQ6YEGT4YBZ3GZF7X680KQ3V")
 
     assert _is_git_ignored(tmp_path, legacy), (
-        "The legacy .kittify/missions/ path should be git-ignored — proves the "
-        "relocation actually moves the record off an ignored path."
+        "The legacy .kittify/missions/ path should be git-ignored — proves the relocation actually moves the record off an ignored path."
     )
 
 
@@ -164,6 +160,4 @@ def test_written_record_is_committable_end_to_end(tmp_path: Path) -> None:
         text=True,
         check=True,
     ).stdout
-    assert "retrospective.yaml" in staged, (
-        "Record was not staged — it is uncommittable (#1771 regression)"
-    )
+    assert "retrospective.yaml" in staged, "Record was not staged — it is uncommittable (#1771 regression)"

@@ -64,6 +64,6 @@ def test_delete_does_not_leave_blank_line() -> None:
 
 
 def test_delete_preserves_exact_surrounding_text() -> None:
-    before = "work_package_id: WP01\nagent: \"x\"\ntitle: \"Y\"\n"
+    before = 'work_package_id: WP01\nagent: "x"\ntitle: "Y"\n'
     after = delete_scalar(before, "agent")
-    assert after == "work_package_id: WP01\ntitle: \"Y\"\n"
+    assert after == 'work_package_id: WP01\ntitle: "Y"\n'

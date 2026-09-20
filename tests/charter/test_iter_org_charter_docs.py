@@ -104,9 +104,7 @@ def _load_mock_graph() -> object:
 class TestRequiredKindUnionCharacterization:
     """Safety net for T005: pins the pre-refactor ``required_<kind>`` org union."""
 
-    def test_org_required_directives_reach_selected_directives_stanza(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_required_directives_reach_selected_directives_stanza(self, tmp_path: Path) -> None:
         """Golden-master: an org pack's ``required_directives:`` entry
         already surfaces in the ``Selected directives:`` stanza via the
         ``_read_org_required_selections`` -> ``_load_doctrine_selection``

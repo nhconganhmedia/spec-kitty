@@ -17,6 +17,7 @@ from specify_cli.status.transition_context import TransitionContext
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestTransitionContextConstruction:
     """TransitionContext construction and defaults."""
 

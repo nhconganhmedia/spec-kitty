@@ -179,8 +179,6 @@ def _build_coord_protected_tree(root: Path) -> CoordTopologyContext:
     return ctx
 
 
-
-
 # ---------------------------------------------------------------------------
 # Shared drive helpers for the simple (non-coord) move_task guard branches.
 # ---------------------------------------------------------------------------
@@ -200,13 +198,7 @@ def _simple_mission(root: Path, slug: str, *, execution_mode: str = "code_change
     (feature_dir / "tasks").mkdir(parents=True)
     (root / ".kittify").mkdir(exist_ok=True)
     (feature_dir / "tasks" / "WP01-fixture.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Fixture WP01\n"
-        f"execution_mode: {execution_mode}\n"
-        "agent: testbot\n"
-        "subtasks: []\n"
-        "---\n\n# WP01\n\n## Activity Log\n",
+        f"---\nwork_package_id: WP01\ntitle: Fixture WP01\nexecution_mode: {execution_mode}\nagent: testbot\nsubtasks: []\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
     (feature_dir / "tasks.md").write_text("# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8")
@@ -312,9 +304,7 @@ def _invoke(argv: list[str]) -> tuple[int, str, dict[str, Any] | None]:
 
 
 def _git_head(repo: Path) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-    ).stdout.strip()
+    return subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
 
 
 def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
@@ -334,7 +324,9 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     with setup_mocked_env(ctx.repo, mission_slug=ctx.slug, workspace_resolution=None, auto_commit_default=True):
         code, text, payload = _invoke(["move-task", "WP01", "--to", "for_review", "--mission", ctx.slug, "--force", "--json"])
     out["skip_arm"] = Scenario(
-        code, text, payload,
+        code,
+        text,
+        payload,
         {
             "head_before": head_before,
             "head_after": _git_head(ctx.repo),
@@ -347,9 +339,7 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
 
     # --- T005: protected-tree contracts on the SAME coord topology ---
     ctx_ms = _build_coord_protected_tree(mkdir())
-    (ctx_ms.primary_feature_dir / "tasks.md").write_text(
-        "# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8"
-    )
+    (ctx_ms.primary_feature_dir / "tasks.md").write_text("# Work Packages\n\n## WP01 - fixture\n- [ ] T001 do a thing\n", encoding="utf-8")
     with setup_mocked_env(ctx_ms.repo, mission_slug=ctx_ms.slug, workspace_resolution=None, auto_commit_default=True):
         code, text, _ = _invoke(["mark-status", "T001", "--status", "done", "--mission", ctx_ms.slug, "--json"])
     out["refuse_mark_status"] = Scenario(code, text)
@@ -361,11 +351,22 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
 
     fd = _simple_mission(mkdir(), f"protectedself-{_MID8}")
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name, auto_commit_default=True):
-        code, text, payload = _invoke([
-            "move-task", "WP01", "--to", "for_review", "--mission", fd.name,
-            "--self-review-fallback", "--intended-reviewer", "reviewer-renata",
-            "--reviewer-failure-reason", "unavailable", "--json",
-        ])
+        code, text, payload = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "for_review",
+                "--mission",
+                fd.name,
+                "--self-review-fallback",
+                "--intended-reviewer",
+                "reviewer-renata",
+                "--reviewer-failure-reason",
+                "unavailable",
+                "--json",
+            ]
+        )
     out["protected_self_review_precedence"] = Scenario(code, text, payload)
 
     # --- T006: every other named move_task decision branch ---
@@ -375,10 +376,20 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     _seed_chain(fd, [("planned", "claimed"), ("claimed", "in_progress"), ("in_progress", "for_review")])
     _seed_event(fd, "for_review", "planned", 4, review_ref="feedback://arbiter/WP01/review-cycle-1.md")
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS):
-        code, text, _ = _invoke([
-            "move-task", "WP01", "--to", "for_review", "--mission", fd.name, "--force",
-            "--note", "correctness: override the stale rejection", "--no-auto-commit",
-        ])
+        code, text, _ = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "for_review",
+                "--mission",
+                fd.name,
+                "--force",
+                "--note",
+                "correctness: override the stale rejection",
+                "--no-auto-commit",
+            ]
+        )
     # WP12 (FR-009, T051/T052/T056): the arbiter-override persist retires the
     # ``arbiter-override-N.json`` sidecar / ``arbiter_override`` frontmatter
     # representations into the SAME event-sourced ``ReviewOverride`` slot the
@@ -388,9 +399,7 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     from specify_cli.status import materialize as _materialize
 
     _arbiter_review_slot = _materialize(fd).work_packages.get("WP01", {}).get("review") or {}
-    out["arbiter_override"] = Scenario(
-        code, text, evidence={"review_override": _arbiter_review_slot}
-    )
+    out["arbiter_override"] = Scenario(code, text, evidence={"review_override": _arbiter_review_slot})
 
     # arbiter-override TARGETING approved (T055, FR-011, I-4): an arbiter
     # override that ALSO lands in an APPROVAL_LANES target must not ALSO
@@ -411,10 +420,20 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
         setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS),
     ):
         mock_commit.return_value.status = "committed"
-        code, text, _ = _invoke([
-            "move-task", "WP01", "--to", "approved", "--mission", fd.name, "--force",
-            "--note", "correctness: override the stale rejection", "--no-auto-commit",
-        ])
+        code, text, _ = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "approved",
+                "--mission",
+                fd.name,
+                "--force",
+                "--note",
+                "correctness: override the stale rejection",
+                "--no-auto-commit",
+            ]
+        )
     _arbiter_approved_review_slot = _materialize(fd).work_packages.get("WP01", {}).get("review") or {}
     # T055 step 4: confirm the merge gate END-TO-END (by running it, not by
     # inspection) -- FR-010's own claim ("a complete override already clears
@@ -432,9 +451,7 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
         text,
         evidence={
             "review_override": _arbiter_approved_review_slot,
-            "cycle_artifacts": sorted(
-                p.name for p in (fd / "tasks" / "WP01-fixture").glob("review-cycle-*.md")
-            ),
+            "cycle_artifacts": sorted(p.name for p in (fd / "tasks" / "WP01-fixture").glob("review-cycle-*.md")),
             "merge_gate_findings": _merge_gate_findings,
         },
     )
@@ -452,7 +469,10 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     # append, no FSM check) keeps this the LAST/current event without
     # perturbing ``_seed_chain``'s own lane sequence.
     _seed_event(
-        fd, "for_review", "for_review", 4,
+        fd,
+        "for_review",
+        "for_review",
+        4,
         review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     # Cycle 2 fix (review-verdict-write-integrity-01KZ1CGF WP01):
@@ -475,9 +495,7 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
         code,
         text,
         evidence={
-            "cycle_artifacts": sorted(
-                p.name for p in (fd / "tasks" / "WP01-fixture").glob("review-cycle-*.md")
-            ),
+            "cycle_artifacts": sorted(p.name for p in (fd / "tasks" / "WP01-fixture").glob("review-cycle-*.md")),
         },
     )
 
@@ -490,7 +508,10 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     # override-authorize guard also requires a non-None event-sourced
     # ``review_artifact_name``.
     _seed_event(
-        fd, "for_review", "for_review", 4,
+        fd,
+        "for_review",
+        "for_review",
+        4,
         review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     # Cycle 2 fix (review-verdict-write-integrity-01KZ1CGF WP01): same
@@ -501,11 +522,21 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
         setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS),
     ):
         mock_commit.return_value.status = "committed"
-        code, text, _ = _invoke([
-            "move-task", "WP01", "--to", "approved", "--mission", fd.name, "--force",
-            "--skip-review-artifact-check", "--note", "arbiter release: rejection superseded",
-            "--no-auto-commit",
-        ])
+        code, text, _ = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "approved",
+                "--mission",
+                fd.name,
+                "--force",
+                "--skip-review-artifact-check",
+                "--note",
+                "arbiter release: rejection superseded",
+                "--no-auto-commit",
+            ]
+        )
     # FR-009 (WP09): the override is event-sourced into the ``review`` snapshot
     # slot, not stamped onto the artifact frontmatter. Capture the reduced slot as
     # the durable override evidence.
@@ -538,10 +569,20 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     out["code_change_done_blocked"] = Scenario(code, text)
     # ... and proceeds once an override reason is supplied.
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name, workspace_resolution=ws_code, extra_patches=_REVIEW_GATE_BYPASS):
-        code, text, _ = _invoke([
-            "move-task", "WP01", "--to", "done", "--mission", fd.name, "--force",
-            "--done-override-reason", "branch deleted after hotfix merge", "--no-auto-commit",
-        ])
+        code, text, _ = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "done",
+                "--mission",
+                fd.name,
+                "--force",
+                "--done-override-reason",
+                "branch deleted after hotfix merge",
+                "--no-auto-commit",
+            ]
+        )
     out["code_change_done_override"] = Scenario(code, text)
 
     # review-currency refusal: _validate_ready_for_review returns not-ready.
@@ -582,15 +623,25 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     _seed_chain(fd, [("planned", "claimed"), ("claimed", "in_progress")])
     wp_file = fd / "tasks" / "WP01-fixture.md"
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS):
-        code, text, _ = _invoke([
-            "move-task", "WP01", "--to", "for_review", "--mission", fd.name,
-            "--tracker-ref", "#1298", "--tracker-ref", "JIRA-7", "--no-auto-commit", "--json",
-        ])
+        code, text, _ = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "for_review",
+                "--mission",
+                fd.name,
+                "--tracker-ref",
+                "#1298",
+                "--tracker-ref",
+                "JIRA-7",
+                "--no-auto-commit",
+                "--json",
+            ]
+        )
     from specify_cli.status import materialize as _materialize
 
-    _tracker_slot = list(
-        _materialize(fd).work_packages.get("WP01", {}).get("tracker_refs") or []
-    )
+    _tracker_slot = list(_materialize(fd).work_packages.get("WP01", {}).get("tracker_refs") or [])
     out["tracker_ref"] = Scenario(
         code,
         text,
@@ -605,12 +656,27 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     fd = _simple_mission(mkdir(), f"selfreview-{_MID8}")
     _seed_chain(fd, [("planned", "claimed"), ("claimed", "in_progress"), ("in_progress", "for_review")])
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS):
-        _invoke([
-            "move-task", "WP01", "--to", "approved", "--mission", fd.name, "--force",
-            "--self-review-fallback", "--intended-reviewer", "reviewer-renata",
-            "--reviewer-failure-reason", "reviewer offline", "--reviewer", "operator",
-            "--approval-ref", "PR#42", "--no-auto-commit",
-        ])
+        _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "approved",
+                "--mission",
+                fd.name,
+                "--force",
+                "--self-review-fallback",
+                "--intended-reviewer",
+                "reviewer-renata",
+                "--reviewer-failure-reason",
+                "reviewer offline",
+                "--reviewer",
+                "operator",
+                "--approval-ref",
+                "PR#42",
+                "--no-auto-commit",
+            ]
+        )
     # self-review-fallback option error (enabled without intended reviewer, not force).
     fd = _simple_mission(mkdir(), f"selfreviewerr-{_MID8}")
     _seed_chain(fd, [("planned", "claimed"), ("claimed", "in_progress"), ("in_progress", "for_review")])
@@ -676,10 +742,22 @@ def _run_all_scenarios(mkdir: Any) -> dict[str, Scenario]:
     _seed_event(fd, "planned", "claimed", 1)
     with setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS):
         _invoke(["map-requirements", "--wp", "WP01", "--refs", "FR-001", "--mission", fd.name, "--no-auto-commit", "--json"])
-        _invoke([
-            "map-requirements", "--wp", "WP01", "--refs", "FR-001,FR-002", "--replace",
-            "--tracker-ref", "#77", "--mission", fd.name, "--no-auto-commit", "--json",
-        ])
+        _invoke(
+            [
+                "map-requirements",
+                "--wp",
+                "WP01",
+                "--refs",
+                "FR-001,FR-002",
+                "--replace",
+                "--tracker-ref",
+                "#77",
+                "--mission",
+                fd.name,
+                "--no-auto-commit",
+                "--json",
+            ]
+        )
         _invoke(["map-requirements", "--batch", '{"WP01": ["FR-002"]}', "--mission", fd.name, "--no-auto-commit", "--json"])
         _invoke(["map-requirements", "--wp", "WP01", "--refs", "FR-001", "--batch", "{}", "--mission", fd.name])
         _invoke(["map-requirements", "--batch", "not valid json", "--mission", fd.name])
@@ -734,19 +812,13 @@ def test_move_task_coord_skip_arm_distinguishing_evidence(scenarios: dict[str, S
     assert sc.payload is not None
 
     # Distinguishing evidence 1: primary HEAD unchanged (no primary commit).
-    assert sc.evidence["head_before"] == sc.evidence["head_after"], (
-        "skip arm must NOT commit the WP file to the protected primary — HEAD moved"
-    )
+    assert sc.evidence["head_before"] == sc.evidence["head_after"], "skip arm must NOT commit the WP file to the protected primary — HEAD moved"
     # Distinguishing evidence 2: a coord event was emitted.
-    assert sc.evidence["coord_events_after"] == sc.evidence["coord_events_before"] + 1, (
-        "skip arm must still emit the transition to the coordination branch"
-    )
+    assert sc.evidence["coord_events_after"] == sc.evidence["coord_events_before"] + 1, "skip arm must still emit the transition to the coordination branch"
     # Distinguishing evidence 3: the conditional skip-arm --json keys.
     assert sc.payload["wp_file_update"] == "skipped"
     assert "wp_file_update_reason" in sc.payload
-    assert sc.evidence["coord_worktree_segment"] in sc.payload["status_events_path"], (
-        "status_events_path must resolve under the coord worktree in the skip arm"
-    )
+    assert sc.evidence["coord_worktree_segment"] in sc.payload["status_events_path"], "status_events_path must resolve under the coord worktree in the skip arm"
     assert sc.payload["new_lane"] == "for_review"
     assert sc.payload["old_lane"] == "in_progress"
 
@@ -809,14 +881,10 @@ class TestMoveTaskDecisionBranchesFrozen:
         override = sc.evidence["review_override"]
         assert override.get("wp_id") == "WP01"
         assert override.get("actor"), "override must carry a non-empty actor"
-        assert "correctness: override the stale rejection" in override.get("reason", ""), (
-            f"override reason must fold the supplied --note text; got {override!r}"
-        )
+        assert "correctness: override the stale rejection" in override.get("reason", ""), f"override reason must fold the supplied --note text; got {override!r}"
         assert override.get("at"), "override must carry a non-empty timestamp"
 
-    def test_arbiter_override_to_approved_suppresses_fabricated_approval(
-        self, scenarios: dict[str, Scenario]
-    ) -> None:
+    def test_arbiter_override_to_approved_suppresses_fabricated_approval(self, scenarios: dict[str, Scenario]) -> None:
         """T055 (FR-011, I-4): an arbiter override targeting ``approved`` must
         NOT ALSO fabricate an approval record -- BOTH halves, in one test, so
         a suppression-only half-measure (which would pass a bare "no new
@@ -830,8 +898,7 @@ class TestMoveTaskDecisionBranchesFrozen:
         # `_persist_approved_review_cycle` would otherwise write for ANY
         # ordinary approve-over-rejection move) was created.
         assert sc.evidence["cycle_artifacts"] == ["review-cycle-1.md"], (
-            "an arbiter override must not ALSO write a fresh approved "
-            f"review-cycle artifact; got {sc.evidence['cycle_artifacts']}"
+            f"an arbiter override must not ALSO write a fresh approved review-cycle artifact; got {sc.evidence['cycle_artifacts']}"
         )
         # Half 2: the override IS durably recorded, event-sourced, complete.
         override = sc.evidence["review_override"]
@@ -843,8 +910,7 @@ class TestMoveTaskDecisionBranchesFrozen:
         # once the override is recorded via ReviewOverride alone, with no
         # approval artifact -- FR-010's own claim.
         assert sc.evidence["merge_gate_findings"] == [], (
-            f"merge gate must clear a complete arbiter override with no "
-            f"approval artifact; got {sc.evidence['merge_gate_findings']}"
+            f"merge gate must clear a complete arbiter override with no approval artifact; got {sc.evidence['merge_gate_findings']}"
         )
 
     def test_rejected_verdict_blocks_approval(self, scenarios: dict[str, Scenario]) -> None:
@@ -861,8 +927,7 @@ class TestMoveTaskDecisionBranchesFrozen:
         sc = scenarios["rejected_verdict_block"]
         assert sc.exit_code == 0, sc.output
         assert sc.evidence["cycle_artifacts"] == ["review-cycle-1.md", "review-cycle-2.md"], (
-            "expected the ordinary approve to write a fresh review-cycle-2.md "
-            f"artifact alongside the untouched rejected cycle 1; got {sc.evidence}"
+            f"expected the ordinary approve to write a fresh review-cycle-2.md artifact alongside the untouched rejected cycle 1; got {sc.evidence}"
         )
 
     def test_rejected_verdict_override_reopens_path(self, scenarios: dict[str, Scenario]) -> None:
@@ -873,9 +938,9 @@ class TestMoveTaskDecisionBranchesFrozen:
         """
         sc = scenarios["rejected_verdict_override"]
         assert sc.exit_code == 0, sc.output
-        assert sc.evidence["review_override"].get("reason") == (
-            "arbiter release: rejection superseded"
-        ), "override evidence must be event-sourced into the review snapshot slot"
+        assert sc.evidence["review_override"].get("reason") == ("arbiter release: rejection superseded"), (
+            "override evidence must be event-sourced into the review snapshot slot"
+        )
         # The artifact frontmatter must carry no override evidence anymore.
         assert "review_artifact_override" not in sc.evidence["artifact_text"]
 
@@ -933,9 +998,7 @@ class TestMoveTaskDecisionBranchesFrozen:
 
 
 def _arbiter_decision(explanation: str = "flaky in CI") -> ArbiterDecision:
-    return create_arbiter_decision(
-        arbiter_name="claude", category="infra_environmental", explanation=explanation
-    )
+    return create_arbiter_decision(arbiter_name="claude", category="infra_environmental", explanation=explanation)
 
 
 def test_persist_arbiter_decision_resolves_via_slug_not_bare_wp_id(tmp_path: Path) -> None:
@@ -949,9 +1012,7 @@ def test_persist_arbiter_decision_resolves_via_slug_not_bare_wp_id(tmp_path: Pat
     feature_dir = tmp_path / "kitty-specs" / "arbiter-slug-fixture"
     wp_dir = feature_dir / "tasks" / "WP01-arbiter-slug-fixture"
     wp_dir.mkdir(parents=True)
-    (feature_dir / "tasks" / "WP01-arbiter-slug-fixture.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: Fixture\n---\n\n# WP01\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks" / "WP01-arbiter-slug-fixture.md").write_text("---\nwork_package_id: WP01\ntitle: Fixture\n---\n\n# WP01\n", encoding="utf-8")
     _write_review_cycle_at(wp_dir, 1, "rejected")
     assert not (feature_dir / "tasks" / "WP01").exists(), "bare wp_id dir must NOT exist for this fixture"
 
@@ -963,9 +1024,7 @@ def test_persist_arbiter_decision_resolves_via_slug_not_bare_wp_id(tmp_path: Pat
         repo_root=tmp_path,
     )
 
-    assert result_path.parent == wp_dir, (
-        f"expected resolution under the SLUG directory {wp_dir}, got {result_path.parent}"
-    )
+    assert result_path.parent == wp_dir, f"expected resolution under the SLUG directory {wp_dir}, got {result_path.parent}"
     from specify_cli.status import materialize as _materialize
 
     override = _materialize(feature_dir).work_packages.get("WP01", {}).get("review") or {}
@@ -985,9 +1044,7 @@ def test_persist_arbiter_decision_picks_numerically_highest_cycle(tmp_path: Path
     feature_dir = tmp_path / "kitty-specs" / "arbiter-numeric-fixture"
     wp_dir = feature_dir / "tasks" / "WP01-arbiter-numeric-fixture"
     wp_dir.mkdir(parents=True)
-    (feature_dir / "tasks" / "WP01-arbiter-numeric-fixture.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: Fixture\n---\n\n# WP01\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks" / "WP01-arbiter-numeric-fixture.md").write_text("---\nwork_package_id: WP01\ntitle: Fixture\n---\n\n# WP01\n", encoding="utf-8")
     for n in range(1, 12):
         _write_review_cycle_at(wp_dir, n, "rejected" if n < 11 else "rejected")
 
@@ -999,9 +1056,7 @@ def test_persist_arbiter_decision_picks_numerically_highest_cycle(tmp_path: Path
         repo_root=tmp_path,
     )
 
-    assert result_path.name == "review-cycle-11.md", (
-        f"expected the NUMERICALLY highest cycle (11), got {result_path.name}"
-    )
+    assert result_path.name == "review-cycle-11.md", f"expected the NUMERICALLY highest cycle (11), got {result_path.name}"
 
 
 # ---------------------------------------------------------------------------
@@ -1032,15 +1087,23 @@ def test_arbiter_persist_failure_surfaces_under_plain_output(tmp_path_factory: p
         patch("specify_cli.review.arbiter.persist_arbiter_decision", side_effect=OSError("disk full")),
         setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS),
     ):
-        code, text, _ = _invoke([
-            "move-task", "WP01", "--to", "for_review", "--mission", fd.name, "--force",
-            "--note", "correctness: override the stale rejection", "--no-auto-commit",
-        ])
+        code, text, _ = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "for_review",
+                "--mission",
+                fd.name,
+                "--force",
+                "--note",
+                "correctness: override the stale rejection",
+                "--no-auto-commit",
+            ]
+        )
     assert code != 0, f"an arbiter-persist failure must exit non-zero; got 0 with output: {text}"
     assert "disk full" in text, f"the underlying failure must be visible in plain output; got: {text}"
-    assert "Arbiter override recorded" not in text, (
-        "a FAILED persist must never ALSO print the success banner"
-    )
+    assert "Arbiter override recorded" not in text, "a FAILED persist must never ALSO print the success banner"
 
 
 def test_arbiter_persist_failure_surfaces_under_json_output(tmp_path_factory: pytest.TempPathFactory) -> None:
@@ -1057,10 +1120,21 @@ def test_arbiter_persist_failure_surfaces_under_json_output(tmp_path_factory: py
         patch("specify_cli.review.arbiter.persist_arbiter_decision", side_effect=OSError("disk full")),
         setup_mocked_env(fd.parent.parent, mission_slug=fd.name, extra_patches=_REVIEW_GATE_BYPASS),
     ):
-        code, text, payload = _invoke([
-            "move-task", "WP01", "--to", "for_review", "--mission", fd.name, "--force",
-            "--note", "correctness: override the stale rejection", "--no-auto-commit", "--json",
-        ])
+        code, text, payload = _invoke(
+            [
+                "move-task",
+                "WP01",
+                "--to",
+                "for_review",
+                "--mission",
+                fd.name,
+                "--force",
+                "--note",
+                "correctness: override the stale rejection",
+                "--no-auto-commit",
+                "--json",
+            ]
+        )
     assert code != 0, f"an arbiter-persist failure must exit non-zero under --json too; got: {text}"
     assert text.strip(), "a --json invocation must not produce EMPTY output on a persist failure"
     assert payload is not None, f"expected a parseable JSON error envelope, got: {text!r}"
@@ -1094,8 +1168,7 @@ class TestMoveTaskSideEffects:
         body = sc.evidence["wp_body"]
         activity_lines = [line for line in body.splitlines() if line.startswith("- ")]
         assert not activity_lines, (
-            "move_task must NOT append an activity-log row to the WP file body "
-            f"(WP-file god-write retired — attribution is event-sourced); found: {activity_lines}"
+            f"move_task must NOT append an activity-log row to the WP file body (WP-file god-write retired — attribution is event-sourced); found: {activity_lines}"
         )
 
     def test_tracker_ref_event_sourced_union_delta(self, scenarios: dict[str, Scenario]) -> None:
@@ -1109,13 +1182,9 @@ class TestMoveTaskSideEffects:
         sc = scenarios["tracker_ref"]
         assert sc.exit_code == 0, sc.output
         refs = sc.evidence["tracker_refs"]
-        assert "#1298" in refs and "JIRA-7" in refs, (
-            f"tracker refs must union into the event-sourced slot; got {refs!r}"
-        )
+        assert "#1298" in refs and "JIRA-7" in refs, f"tracker refs must union into the event-sourced slot; got {refs!r}"
         # Two-sided: the god-write cut means they are NOT stamped onto the WP body.
-        assert "#1298" not in sc.evidence["wp_body"], (
-            "tracker refs must NOT be written to WP frontmatter (god-write cut)"
-        )
+        assert "#1298" not in sc.evidence["wp_body"], "tracker refs must NOT be written to WP frontmatter (god-write cut)"
 
 
 # Per-function branch-coverage floors, MEASURED from this harness's drives on the
@@ -1208,9 +1277,7 @@ def _module_source_path(module: ModuleType) -> str:
     return str(Path(module_file).resolve())
 
 
-def _same_module_closure(
-    funcs: dict[str, ast.FunctionDef], entry: str
-) -> list[ast.FunctionDef]:
+def _same_module_closure(funcs: dict[str, ast.FunctionDef], entry: str) -> list[ast.FunctionDef]:
     """Module-level ``FunctionDef``s reachable from *entry* by bare-``Name`` reference.
 
     The floors were calibrated on the SINGLE-BODY commands (wave-1 WP01); the
@@ -1228,11 +1295,7 @@ def _same_module_closure(
         if fn_name in seen or fn_name not in funcs:
             continue
         seen.add(fn_name)
-        stack.extend(
-            n.id
-            for n in ast.walk(funcs[fn_name])
-            if isinstance(n, ast.Name) and n.id in funcs and n.id not in seen
-        )
+        stack.extend(n.id for n in ast.walk(funcs[fn_name]) if isinstance(n, ast.Name) and n.id in funcs and n.id not in seen)
     return [funcs[fn_name] for fn_name in seen]
 
 
@@ -1252,16 +1315,9 @@ def _mutating_function_line_ranges() -> dict[str, list[tuple[str, tuple[int, int
         for module, qualname in homes:
             source_path = _module_source_path(module)
             tree = ast.parse(Path(source_path).read_text(encoding="utf-8"))
-            funcs = {
-                node.name: node
-                for node in tree.body
-                if isinstance(node, ast.FunctionDef)
-            }
+            funcs = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
             if qualname not in funcs:
-                pytest.fail(
-                    f"{name}: floored function {qualname!r} not found in "
-                    f"{source_path} — the ratchet re-point is broken"
-                )
+                pytest.fail(f"{name}: floored function {qualname!r} not found in {source_path} — the ratchet re-point is broken")
             for node in _same_module_closure(funcs, qualname):
                 assert node.end_lineno is not None
                 spans.append((source_path, (node.lineno, node.end_lineno)))
@@ -1269,9 +1325,7 @@ def _mutating_function_line_ranges() -> dict[str, list[tuple[str, tuple[int, int
     return ranges
 
 
-def _analyze_branch_arcs(
-    cov: Any, source_path: str
-) -> tuple[list[tuple[int, int]], set[tuple[int, int]], set[int]]:
+def _analyze_branch_arcs(cov: Any, source_path: str) -> tuple[list[tuple[int, int]], set[tuple[int, int]], set[int]]:
     """Arc-analyze ONE source file: (possible, executed, branch_sources).
 
     A *branch arc* is a possible ``(source_line, target)`` transition whose source
@@ -1289,9 +1343,7 @@ def _analyze_branch_arcs(
     return possible, executed, branch_sources
 
 
-def _branch_coverage_by_function(
-    cov: Any, ranges: dict[str, list[tuple[str, tuple[int, int]]]]
-) -> dict[str, float]:
+def _branch_coverage_by_function(cov: Any, ranges: dict[str, list[tuple[str, tuple[int, int]]]]) -> dict[str, float]:
     """Compute per-command branch-coverage % from a stopped coverage session.
 
     Multi-file (WP05 / FR-012): each floored command is analyzed against the
@@ -1318,9 +1370,6 @@ def _branch_coverage_by_function(
                     if (src, dst) in executed:
                         covered += 1
         if not total:
-            pytest.fail(
-                f"{name}: 0 branch arcs measured — the ratchet re-point is "
-                f"vacuous (nothing of the mapped spans {spans} was analyzed)"
-            )
+            pytest.fail(f"{name}: 0 branch arcs measured — the ratchet re-point is vacuous (nothing of the mapped spans {spans} was analyzed)")
         result[name] = covered / total * 100.0
     return result

@@ -248,11 +248,7 @@ def _extract_subcommand_path(argv: Sequence[str]) -> tuple[str, ...]:
     if index >= len(tokens):
         return ()
     path = [tokens[index]]
-    if (
-        tokens[index] in _COMPOUND_SUBCOMMAND_PARENTS
-        and index + 1 < len(tokens)
-        and not tokens[index + 1].startswith("-")
-    ):
+    if tokens[index] in _COMPOUND_SUBCOMMAND_PARENTS and index + 1 < len(tokens) and not tokens[index + 1].startswith("-"):
         path.append(tokens[index + 1])
     return tuple(path)
 
@@ -283,9 +279,7 @@ def _forbidden_operation_reason(command: Sequence[str]) -> str | None:
         for arg in argv:
             if arg in forbidden_flags:
                 joined = " ".join(path)
-                return (
-                    f"forbidden lifecycle flag {arg!r} on allow-listed subcommand {joined!r}"
-                )
+                return f"forbidden lifecycle flag {arg!r} on allow-listed subcommand {joined!r}"
     return None
 
 
@@ -439,14 +433,11 @@ class GatewayCommandRunner:
         now = self._clock()
         if not self._token.is_fresh(now=now):
             raise GatewayAuthorizationError(
-                f"tracker gateway token for actor={self._token.actor!r} "
-                f"repository={self._token.repository!r} expired at "
-                f"{self._token.expires_at!r} (now={now!r})"
+                f"tracker gateway token for actor={self._token.actor!r} repository={self._token.repository!r} expired at {self._token.expires_at!r} (now={now!r})"
             )
         if context is None:
             raise GatewayAuthorizationError(
-                "GatewayCommandRunner requires a LocalExecutionContext on every call; "
-                "a scoped program gateway must never run a command with unknown scope."
+                "GatewayCommandRunner requires a LocalExecutionContext on every call; a scoped program gateway must never run a command with unknown scope."
             )
         if not self._token.covers(context):
             self._raise_scope_violation(context)
@@ -473,10 +464,7 @@ class GatewayCommandRunner:
             expected += f" mission_id={self._token.mission_id!r}"
         if self._token.task_id is not None:
             expected += f" task_id={self._token.task_id!r}"
-        actual = (
-            f"actor={context.actor!r} repository={context.repository!r} "
-            f"mission_id={context.mission_id!r} task_id={context.task_id!r}"
-        )
+        actual = f"actor={context.actor!r} repository={context.repository!r} mission_id={context.mission_id!r} task_id={context.task_id!r}"
         message = f"tracker program gateway scope violation: token covers {expected}, call is {actual}"
 
         error_type = _try_import_scope_violation_error()
@@ -493,9 +481,7 @@ class GatewayCommandRunner:
         """
         self._conflicts = tuple(str(item) for item in conflicts)
 
-    def authority_report(
-        self, context: LocalExecutionContext | None = None
-    ) -> GatewayAuthorityReport:
+    def authority_report(self, context: LocalExecutionContext | None = None) -> GatewayAuthorityReport:
         """The combined authority/freshness/conflicts view the node criterion names.
 
         ``authorized`` is freshness AND (no context given, or the token

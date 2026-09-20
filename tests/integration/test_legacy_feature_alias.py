@@ -56,10 +56,7 @@ def test_no_unhidden_feature_typer_options_in_commands_tree() -> None:
                 continue
             offenders.append(f"{path.relative_to(REPO_ROOT)}: {block[:120]}")
 
-    assert offenders == [], (
-        "These typer.Option blocks declare --feature without hidden=True:\n"
-        + "\n".join(offenders)
-    )
+    assert offenders == [], "These typer.Option blocks declare --feature without hidden=True:\n" + "\n".join(offenders)
 
 
 def test_charter_lint_offers_canonical_mission_option() -> None:
@@ -68,7 +65,4 @@ def test_charter_lint_offers_canonical_mission_option() -> None:
     text = charter_py.read_text(encoding="utf-8")
     # We do not require a specific format, only that `--mission` is
     # declared somewhere within charter_lint's option declarations.
-    assert '"--mission"' in text, (
-        "charter/lint.py is expected to expose --mission as the canonical "
-        "alternative to the hidden --feature alias."
-    )
+    assert '"--mission"' in text, "charter/lint.py is expected to expose --mission as the canonical alternative to the hidden --feature alias."

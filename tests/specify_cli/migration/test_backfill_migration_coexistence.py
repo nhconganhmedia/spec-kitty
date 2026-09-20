@@ -202,9 +202,7 @@ def test_migration_over_mixed_corpus_leaves_born_mission_untouched(tmp_path: Pat
     mission: the corpus-wide migration cuts over the legacy one and leaves
     the birthed one byte-identical — the two flows coexist on one spine with
     zero cross-mission interference."""
-    legacy_dir = build_mission(
-        tmp_path, slug="legacy-042-demo", mission_id="01KZQ7MFLEGACY0000000001A"
-    )
+    legacy_dir = build_mission(tmp_path, slug="legacy-042-demo", mission_id="01KZQ7MFLEGACY0000000001A")
     legacy_meta_before = json.loads((legacy_dir / "meta.json").read_text(encoding="utf-8"))
     assert _STATUS_PHASE not in legacy_meta_before, "legacy fixture must start un-flipped"
     born_dir = _build_born_mission(tmp_path)

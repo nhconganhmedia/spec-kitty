@@ -40,6 +40,7 @@ from specify_cli.dossier.snapshot import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def create_test_feature(
     tmp_path: Path,
     num_artifacts: int = 10,
@@ -67,9 +68,7 @@ def create_test_feature(
     return feature_dir
 
 
-def create_dossier_from_feature(
-    feature_dir: Path, mission_slug: str = "software-dev"
-) -> MissionDossier:
+def create_dossier_from_feature(feature_dir: Path, mission_slug: str = "software-dev") -> MissionDossier:
     """Create a MissionDossier by indexing files in a feature directory.
 
     Args:
@@ -154,8 +153,9 @@ class TestHashReproducibility:
         snapshot2 = compute_snapshot(dossier2)
 
         # Verify hashes identical
-        assert snapshot1.parity_hash_sha256 == snapshot2.parity_hash_sha256, \
+        assert snapshot1.parity_hash_sha256 == snapshot2.parity_hash_sha256, (
             f"Parity hash mismatch: {snapshot1.parity_hash_sha256} vs {snapshot2.parity_hash_sha256}"
+        )
         assert snapshot1.completeness_status == snapshot2.completeness_status
         assert snapshot1.total_artifacts == snapshot2.total_artifacts
 
@@ -173,15 +173,13 @@ class TestHashReproducibility:
 
         # Verify all identical
         unique_hashes = set(hashes)
-        assert len(unique_hashes) == 1, (
-            f"Hash mismatch across {run_count} runs: {unique_hashes}"
-        )
+        assert len(unique_hashes) == 1, f"Hash mismatch across {run_count} runs: {unique_hashes}"
 
     def test_hash_deterministic_with_binary_content(self, tmp_path):
         """Test hash reproducibility with binary-like content."""
         test_file = tmp_path / "binary-like.dat"
         # Write bytes that look binary but are valid UTF-8 when interpreted
-        content = bytes([0x00, 0x01, 0x02, 0x48, 0x65, 0x6c, 0x6c, 0x6f])  # Hello with binary prefix
+        content = bytes([0x00, 0x01, 0x02, 0x48, 0x65, 0x6C, 0x6C, 0x6F])  # Hello with binary prefix
         # Only test with valid UTF-8
         content_utf8 = "Hello\n"
         test_file.write_text(content_utf8, encoding="utf-8")
@@ -223,8 +221,7 @@ class TestOrderIndependence:
 
         # Components should be identical (they're sorted)
         components2 = get_parity_hash_components(dossier2)
-        assert components1 == components2, \
-            f"Components differ by order: {components1} vs {components2}"
+        assert components1 == components2, f"Components differ by order: {components1} vs {components2}"
 
     def test_parity_hash_order_independence_multiple_shuffles(self, tmp_path):
         """Test order independence with 10 different random shuffles."""
@@ -235,9 +232,7 @@ class TestOrderIndependence:
         # Compute parity hash with 10 different random orderings
         parity_hashes = []
         for _ in range(10):
-            shuffled_artifacts = random.sample(
-                dossier_original.artifacts, len(dossier_original.artifacts)
-            )
+            shuffled_artifacts = random.sample(dossier_original.artifacts, len(dossier_original.artifacts))
             dossier_shuffled = MissionDossier(
                 mission_type=dossier_original.mission_slug,
                 mission_run_id=dossier_original.mission_run_id,
@@ -251,8 +246,7 @@ class TestOrderIndependence:
 
         # All should match original
         for i, parity_hash in enumerate(parity_hashes):
-            assert parity_hash == original_hash, \
-                f"Parity hash mismatch at shuffle {i}: {parity_hash} vs {original_hash}"
+            assert parity_hash == original_hash, f"Parity hash mismatch at shuffle {i}: {parity_hash} vs {original_hash}"
 
     def test_order_independence_snapshot_equality(self, tmp_path):
         """Snapshots with same artifacts in different order should be equal."""
@@ -273,8 +267,7 @@ class TestOrderIndependence:
         snapshot2 = compute_snapshot(dossier2)
 
         # Snapshots should be equal (based on parity hash)
-        assert snapshot1 == snapshot2, \
-            f"Snapshots not equal despite same artifacts: {snapshot1.parity_hash_sha256} vs {snapshot2.parity_hash_sha256}"
+        assert snapshot1 == snapshot2, f"Snapshots not equal despite same artifacts: {snapshot1.parity_hash_sha256} vs {snapshot2.parity_hash_sha256}"
 
     def test_order_independence_across_multiple_dossiers(self, tmp_path):
         """Create 5 independent dossiers with same artifacts in different orders."""
@@ -295,8 +288,7 @@ class TestOrderIndependence:
                 manifest=base_dossier.manifest,
             )
             parity_hash = compute_parity_hash_from_dossier(dossier)
-            assert parity_hash == base_hash, \
-                f"Parity hash differs with different ordering: {parity_hash} vs {base_hash}"
+            assert parity_hash == base_hash, f"Parity hash differs with different ordering: {parity_hash} vs {base_hash}"
 
 
 # =============================================================================
@@ -367,8 +359,7 @@ class TestUTF8Handling:
 
         # Should return error_reason
         hash_val, error = hash_file_with_validation(file_invalid)
-        assert error == "invalid_utf8", \
-            f"Expected invalid_utf8 error, got {error}"
+        assert error == "invalid_utf8", f"Expected invalid_utf8 error, got {error}"
         assert hash_val is None, f"Expected None hash for invalid UTF-8, got {hash_val}"
 
     def test_utf8_emoji(self, tmp_path):
@@ -454,8 +445,7 @@ class TestLineEndingHandling:
 
         # Hashes will differ (bytes differ), and this is intentional
         # Line endings ARE part of content
-        assert hash_lf != hash_crlf, \
-            "LF and CRLF hashes should differ (they're different bytes)"
+        assert hash_lf != hash_crlf, "LF and CRLF hashes should differ (they're different bytes)"
 
     def test_lf_only_reproducibility(self, tmp_path):
         """LF-only files reproducible across multiple reads."""
@@ -508,8 +498,7 @@ class TestLineEndingHandling:
 
         # All should hash successfully and produce different hashes
         hashes = [hash_file(f) for f in files]
-        assert len(set(hashes)) == len(files), \
-            "Different line endings should produce different hashes"
+        assert len(set(hashes)) == len(files), "Different line endings should produce different hashes"
 
 
 # =============================================================================
@@ -540,11 +529,9 @@ class TestParityHashStability:
 
         # Parity hashes should be identical (content unchanged)
         # Note: computed_at will differ, but parity hash should not
-        assert hash_1 == hash_2, \
-            "Parity hash should be timezone/time independent"
+        assert hash_1 == hash_2, "Parity hash should be timezone/time independent"
         # Verify computed_at times differ (proving they're independent)
-        assert snapshot1.computed_at != snapshot2.computed_at, \
-            "computed_at should differ (proving parity hash ignores timestamp)"
+        assert snapshot1.computed_at != snapshot2.computed_at, "computed_at should differ (proving parity hash ignores timestamp)"
 
     def test_parity_hash_stable_across_python_runs(self, tmp_path):
         """SHA256 deterministic across Python runtime instances."""
@@ -558,8 +545,7 @@ class TestParityHashStability:
         # Expected hash (pre-computed with reference SHA256)
         expected = hashlib.sha256(b"# Test Content\n").hexdigest()  # noqa: TID251 — file-integrity checksum verifying hash_file_with_validation() output (standard SHA-256), not charter freshness hashing
 
-        assert hash_val == expected, \
-            f"Hash mismatch: {hash_val} vs {expected}"
+        assert hash_val == expected, f"Hash mismatch: {hash_val} vs {expected}"
 
     def test_parity_hash_excludes_computed_at(self, tmp_path):
         """Verify computed_at is not part of parity hash calculation."""
@@ -574,15 +560,13 @@ class TestParityHashStability:
         components1 = get_parity_hash_components(dossier1)
         components2 = get_parity_hash_components(dossier2)
 
-        assert components1 == components2, \
-            "Parity hash components should be identical (computed_at not included)"
+        assert components1 == components2, "Parity hash components should be identical (computed_at not included)"
 
         # Compute hashes
         hash1 = compute_parity_hash_from_dossier(dossier1)
         hash2 = compute_parity_hash_from_dossier(dossier2)
 
-        assert hash1 == hash2, \
-            "Parity hashes should match (computed_at not included)"
+        assert hash1 == hash2, "Parity hashes should match (computed_at not included)"
 
     def test_parity_hash_algorithm_deterministic(self, tmp_path):
         """Verify parity hash algorithm is deterministic."""
@@ -606,9 +590,7 @@ class TestParityHashStability:
             parity_hashes.append(parity)
 
         # All should be identical (order-independent)
-        assert len(set(parity_hashes)) == 1, (
-            f"Parity hashes should all be identical: {set(parity_hashes)}"
-        )
+        assert len(set(parity_hashes)) == 1, f"Parity hashes should all be identical: {set(parity_hashes)}"
 
     def test_parity_hash_stable_with_large_dossier(self, tmp_path):
         """Verify parity hash stable with large number of artifacts."""
@@ -623,9 +605,7 @@ class TestParityHashStability:
             hashes.append(snapshot.parity_hash_sha256)
 
         # All should be identical
-        assert len(set(hashes)) == 1, (
-            f"Parity hash should be stable with 100 artifacts: {set(hashes)}"
-        )
+        assert len(set(hashes)) == 1, f"Parity hash should be stable with 100 artifacts: {set(hashes)}"
 
     def test_parity_hash_consistent_with_modified_artifact_content(self, tmp_path):
         """Verify parity hash changes when artifact content changes."""
@@ -646,8 +626,7 @@ class TestParityHashStability:
         hash2 = snapshot2.parity_hash_sha256
 
         # Hashes should differ (content changed)
-        assert hash1 != hash2, \
-            "Parity hash should differ when artifact content changes"
+        assert hash1 != hash2, "Parity hash should differ when artifact content changes"
 
     def test_snapshot_reproducibility_end_to_end(self, tmp_path):
         """End-to-end reproducibility: create dossier, take snapshot, verify."""
@@ -711,8 +690,7 @@ class TestDeterminismIntegration:
         snapshot2 = compute_snapshot(dossier2)
 
         # Should be equal despite UTF-8 content and different ordering
-        assert snapshot1 == snapshot2, \
-            "Complex UTF-8 content should be deterministic and order-independent"
+        assert snapshot1 == snapshot2, "Complex UTF-8 content should be deterministic and order-independent"
 
     def test_determinism_with_all_line_ending_variants(self, tmp_path):
         """Test determinism with mixed line endings across artifacts."""
@@ -733,14 +711,16 @@ class TestDeterminismIntegration:
         snapshot2 = compute_snapshot(dossier2)
 
         # Should be identical (parity hash reproduces)
-        assert snapshot1.parity_hash_sha256 == snapshot2.parity_hash_sha256, \
-            "Parity hash should reproduce with mixed line endings"
+        assert snapshot1.parity_hash_sha256 == snapshot2.parity_hash_sha256, "Parity hash should reproduce with mixed line endings"
 
-    @pytest.mark.parametrize("num_artifacts,num_runs", [
-        (5, 10),
-        (20, 5),
-        (50, 3),
-    ])
+    @pytest.mark.parametrize(
+        "num_artifacts,num_runs",
+        [
+            (5, 10),
+            (20, 5),
+            (50, 3),
+        ],
+    )
     def test_determinism_at_scale(self, tmp_path, num_artifacts, num_runs):
         """Test determinism at various scales."""
         feature_dir = create_test_feature(tmp_path, num_artifacts=num_artifacts)
@@ -754,6 +734,4 @@ class TestDeterminismIntegration:
 
         # All should be identical
         unique = set(hashes)
-        assert len(unique) == 1, (
-            f"Parity hash should be deterministic at scale ({num_artifacts} artifacts, {num_runs} runs)"
-        )
+        assert len(unique) == 1, f"Parity hash should be deterministic at scale ({num_artifacts} artifacts, {num_runs} runs)"

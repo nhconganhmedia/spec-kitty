@@ -86,9 +86,7 @@ def _seed_wp01_done(feature_dir: Path, mission_slug: str) -> None:
         "to_lane": "done",
         "wp_id": "WP01",
     }
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(event, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(event, sort_keys=True) + "\n", encoding="utf-8")
     from specify_cli.status.reducer import materialize
 
     materialize(feature_dir)
@@ -195,9 +193,7 @@ class TestPostMergeIndexRefresh:
         )
 
         # The exact command shape we expect.
-        assert any(
-            "update-index" in c and "--refresh" in c for c in call_log
-        ), f"Did not see `git update-index --refresh`: {call_log!r}"
+        assert any("update-index" in c and "--refresh" in c for c in call_log), f"Did not see `git update-index --refresh`: {call_log!r}"
 
     def test_refresh_runs_after_hard_reset_before_status_check(self, tmp_path: Path) -> None:
         """Order matters: the refresh must run AFTER `reset --hard HEAD` and
@@ -217,13 +213,9 @@ class TestPostMergeIndexRefresh:
         refresh_idx = _idx(lambda cmd: "update-index" in cmd and "--refresh" in cmd)
         status_idx = _idx(lambda cmd: "status" in cmd and "--porcelain" in cmd)
 
-        assert hard_reset_idx >= 0 and refresh_idx >= 0 and status_idx >= 0, (
-            f"Missing one of hard-reset/refresh/status in call log: {call_log!r}"
-        )
+        assert hard_reset_idx >= 0 and refresh_idx >= 0 and status_idx >= 0, f"Missing one of hard-reset/refresh/status in call log: {call_log!r}"
         assert hard_reset_idx < refresh_idx < status_idx, (
-            f"Wrong order: hard_reset={hard_reset_idx}, refresh={refresh_idx}, "
-            f"status={status_idx}. Expected hard reset < refresh < status. "
-            f"Full log: {call_log!r}"
+            f"Wrong order: hard_reset={hard_reset_idx}, refresh={refresh_idx}, status={status_idx}. Expected hard reset < refresh < status. Full log: {call_log!r}"
         )
 
     def test_nonzero_refresh_does_not_abort_merge(self, tmp_path: Path) -> None:

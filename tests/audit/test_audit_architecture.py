@@ -253,11 +253,7 @@ def test_duplicate_mission_id_both_missions_flagged() -> None:
         scan_root=repo_root / "kitty-specs",
     )
     report = run_audit(options)
-    flagged_slugs = {
-        r.mission_slug
-        for r in report.missions
-        if any(f.code == "DUPLICATE_MISSION_ID" for f in r.findings)
-    }
+    flagged_slugs = {r.mission_slug for r in report.missions if any(f.code == "DUPLICATE_MISSION_ID" for f in r.findings)}
     assert "mission-alpha" in flagged_slugs
     assert "mission-beta" in flagged_slugs
 

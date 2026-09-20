@@ -49,9 +49,7 @@ def _write_gitignore(project_root: Path, *entries: str) -> None:
 
 
 def _write_metadata(project_root: Path, version: str) -> None:
-    ProjectMetadata(version=version, initialized_at=now_utc()).save(
-        project_root / ".kittify"
-    )
+    ProjectMetadata(version=version, initialized_at=now_utc()).save(project_root / ".kittify")
 
 
 def _is_ignored(project_root: Path, path: str) -> bool:
@@ -89,9 +87,7 @@ def test_detect_true_when_only_provenance_entry_missing(tmp_path: Path) -> None:
 
 def test_detect_false_when_all_entries_present(tmp_path: Path) -> None:
     _init_git_repo(tmp_path)
-    _write_gitignore(
-        tmp_path, _SYNC_STATE_ENTRY, _PROVENANCE_GITIGNORE_ENTRY, _OPS_INDEX_ENTRY
-    )
+    _write_gitignore(tmp_path, _SYNC_STATE_ENTRY, _PROVENANCE_GITIGNORE_ENTRY, _OPS_INDEX_ENTRY)
 
     assert KittifyRuntimeGitHygieneMigration().detect(tmp_path) is False
 
@@ -109,16 +105,12 @@ def test_apply_reports_only_missing_gitignore_entries(tmp_path: Path) -> None:
 
     result = KittifyRuntimeGitHygieneMigration().apply(tmp_path)
 
-    assert result.changes_made[0] == (
-        f"Added gitignore entries: {_PROVENANCE_GITIGNORE_ENTRY}"
-    )
+    assert result.changes_made[0] == (f"Added gitignore entries: {_PROVENANCE_GITIGNORE_ENTRY}")
 
 
 def test_apply_is_idempotent(tmp_path: Path) -> None:
     _init_git_repo(tmp_path)
-    _write_gitignore(
-        tmp_path, _SYNC_STATE_ENTRY, _PROVENANCE_GITIGNORE_ENTRY, _OPS_INDEX_ENTRY
-    )
+    _write_gitignore(tmp_path, _SYNC_STATE_ENTRY, _PROVENANCE_GITIGNORE_ENTRY, _OPS_INDEX_ENTRY)
 
     first = KittifyRuntimeGitHygieneMigration().apply(tmp_path)
     second = KittifyRuntimeGitHygieneMigration().apply(tmp_path)
@@ -171,18 +163,14 @@ def test_apply_untracks_committed_ops_index(tmp_path: Path) -> None:
         ["git", "-C", str(tmp_path), "config", "user.email", "t@example.com"],
         check=True,
     )
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "config", "user.name", "t"], check=True
-    )
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "t"], check=True)
     ops_dir = tmp_path / "kitty-ops"
     ops_dir.mkdir()
     (ops_dir / "ops-index.jsonl").write_text("{}\n", encoding="utf-8")
     durable = ops_dir / "01HXYZ.jsonl"
     durable.write_text("{}\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "commit", "-q", "-m", "seed"], check=True
-    )
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m", "seed"], check=True)
 
     KittifyRuntimeGitHygieneMigration().apply(tmp_path)
 
@@ -211,10 +199,7 @@ def test_backfill_migration_repairs_already_current_3_2_x_project(
     result = MigrationRunner(tmp_path).upgrade("3.2.3", include_worktrees=False)
 
     assert result.success
-    assert (
-        EncodingProvenanceGitignoreBackfillMigration.migration_id
-        in result.migrations_applied
-    )
+    assert EncodingProvenanceGitignoreBackfillMigration.migration_id in result.migrations_applied
     assert _is_ignored(tmp_path, _PROVENANCE_LOG_PATH)
     # The backfill path (re-running rc35 hygiene) also repairs the Op-index.
     assert _is_ignored(tmp_path, _OPS_INDEX_ENTRY)

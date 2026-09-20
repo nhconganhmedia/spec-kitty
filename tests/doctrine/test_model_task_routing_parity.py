@@ -15,14 +15,7 @@ from charter.offering.model_task_routing.models import ModelToTaskType
 
 pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
-SCHEMA_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "src"
-    / "charter"
-    / "offering"
-    / "schemas"
-    / "model-to-task_type.schema.yaml"
-)
+SCHEMA_PATH = Path(__file__).resolve().parents[2] / "src" / "charter" / "offering" / "schemas" / "model-to-task_type.schema.yaml"
 
 
 def _valid_catalog() -> dict[str, Any]:
@@ -132,9 +125,7 @@ def test_required_string_emptiness_is_rejected_by_model_and_schema(
 
     with pytest.raises(ValidationError) as exc_info:
         ModelToTaskType.model_validate(catalog)
-    assert "string_too_short" in {
-        str(error["type"]) for error in exc_info.value.errors()
-    }
+    assert "string_too_short" in {str(error["type"]) for error in exc_info.value.errors()}
 
     schema_errors = list(_schema_validator().iter_errors(catalog))
     assert "minLength" in {error.validator for error in schema_errors}

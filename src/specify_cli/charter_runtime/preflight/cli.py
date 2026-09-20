@@ -41,8 +41,7 @@ def charter_preflight(
     json_output: bool = typer.Option(
         False,
         "--json",
-        help="Emit the result as JSON (binding shape, see "
-        "contracts/charter-preflight-json.md).",
+        help="Emit the result as JSON (binding shape, see contracts/charter-preflight-json.md).",
     ),
     auto_refresh: bool = typer.Option(
         False,
@@ -54,8 +53,7 @@ def charter_preflight(
     strict: bool = typer.Option(
         False,
         "--strict",
-        help="Exit non-zero on any non-fresh state (default: exit zero "
-        "unless a hard error occurs).",
+        help="Exit non-zero on any non-fresh state (default: exit zero unless a hard error occurs).",
     ),
 ) -> None:
     """Verify charter-derived state before a governed session begins.

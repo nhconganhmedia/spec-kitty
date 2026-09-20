@@ -10,12 +10,7 @@ from scripts.generate_schemas import generate_schema
 
 pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
-BUILT_IN_DIR = (
-    Path(__file__).parent.parent.parent.parent
-    / "packs"
-    / "built-in"
-    / "agent_profiles"
-)
+BUILT_IN_DIR = Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "agent_profiles"
 
 
 def test_generated_agent_profile_schema_retires_relationship_fields() -> None:

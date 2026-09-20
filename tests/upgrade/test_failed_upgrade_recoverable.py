@@ -88,12 +88,7 @@ assert _STALE_SCHEMA_VERSION >= 0
 _FROM_VERSION = "3.2.0"
 _TARGET_VERSION = "3.2.1"
 
-_HISTORY_RECORD = (
-    "  - id: m_3_0_0_canonical_context\n"
-    "    applied_at: '2026-01-01T00:00:00+00:00'\n"
-    "    result: success\n"
-    "    notes: null\n"
-)
+_HISTORY_RECORD = "  - id: m_3_0_0_canonical_context\n    applied_at: '2026-01-01T00:00:00+00:00'\n    result: success\n    notes: null\n"
 
 
 def _write_metadata(kittify_dir: Path, *, schema_version: int) -> None:
@@ -186,18 +181,14 @@ def test_failed_migration_preserves_stale_schema_version(tmp_path: Path) -> None
     # Control project is already at its target version -- no migration runs,
     # so it represents "STALE, never touched by a failure".
     (control_root / ".kittify" / "metadata.yaml").write_text(
-        (control_root / ".kittify" / "metadata.yaml")
-        .read_text(encoding="utf-8")
-        .replace(_FROM_VERSION, _TARGET_VERSION),
+        (control_root / ".kittify" / "metadata.yaml").read_text(encoding="utf-8").replace(_FROM_VERSION, _TARGET_VERSION),
         encoding="utf-8",
     )
 
     try:
         _register_stub_failing_migration("test_3334_stub_failing_stale")
 
-        result = MigrationRunner(project_root).upgrade(
-            _TARGET_VERSION, dry_run=False, include_worktrees=False
-        )
+        result = MigrationRunner(project_root).upgrade(_TARGET_VERSION, dry_run=False, include_worktrees=False)
         assert result.success is False, "the stub migration must have run and failed"
 
         # --- Non-fakeable assert (1): preserved at the STALE pre-value, not
@@ -235,9 +226,7 @@ def test_failed_migration_on_compatible_project_keeps_gate_passable(tmp_path: Pa
     try:
         _register_stub_failing_migration("test_3334_stub_failing_compatible")
 
-        result = MigrationRunner(project_root).upgrade(
-            _TARGET_VERSION, dry_run=False, include_worktrees=False
-        )
+        result = MigrationRunner(project_root).upgrade(_TARGET_VERSION, dry_run=False, include_worktrees=False)
         assert result.success is False, "the stub migration must have run and failed"
 
         assert get_project_schema_version(project_root) == REQUIRED_SCHEMA_VERSION
@@ -284,9 +273,7 @@ def test_successful_migration_advances_schema_version_to_required(tmp_path: Path
     try:
         MigrationRegistry.register(_StubSucceedingMigration)
 
-        result = MigrationRunner(project_root).upgrade(
-            _TARGET_VERSION, dry_run=False, include_worktrees=False
-        )
+        result = MigrationRunner(project_root).upgrade(_TARGET_VERSION, dry_run=False, include_worktrees=False)
         assert result.success is True, result.errors
 
         assert get_project_schema_version(project_root) == REQUIRED_SCHEMA_VERSION
@@ -304,9 +291,7 @@ def test_dry_run_leaves_metadata_byte_identical(tmp_path: Path) -> None:
     try:
         _register_stub_failing_migration("test_3334_stub_failing_dry_run")
 
-        result = MigrationRunner(project_root).upgrade(
-            _TARGET_VERSION, dry_run=True, include_worktrees=False
-        )
+        result = MigrationRunner(project_root).upgrade(_TARGET_VERSION, dry_run=True, include_worktrees=False)
         assert result.success is False
 
         after = metadata_path.read_bytes()

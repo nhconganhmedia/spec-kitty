@@ -78,9 +78,7 @@ def acceptably_canceled_wp_ids(repo_root: Path, mission_slug: str) -> set[str]:
         lane = str(wp_snapshot.get("lane", "")) if isinstance(wp_snapshot, dict) else ""
         if lane != _CANCELED_LANE_VALUE:
             continue
-        provenance = has_operator_provenance(
-            wp_snapshot if isinstance(wp_snapshot, dict) else None
-        )
+        provenance = has_operator_provenance(wp_snapshot if isinstance(wp_snapshot, dict) else None)
         if is_acceptable_ending(lane, has_provenance=provenance):
             excluded.add(wp_id)
     return excluded
@@ -107,12 +105,7 @@ def _resolve_merge_actor(repo_root: Path) -> str:
         pass
     # Final-tier fallback: environment username. Comment preserved deliberately
     # because reviewers ask why this exists — see Fix 2 / FR-008 post-merge follow-up.
-    return (
-        os.environ.get("GIT_AUTHOR_NAME")
-        or os.environ.get("USER")
-        or os.environ.get("USERNAME")
-        or "<unknown>"
-    )
+    return os.environ.get("GIT_AUTHOR_NAME") or os.environ.get("USER") or os.environ.get("USERNAME") or "<unknown>"
 
 
 def _has_transition_to(
@@ -254,9 +247,7 @@ def _emit_approved_replay_if_needed(
     from specify_cli.coordination.status_transition import emit_status_transition_transactional
     from specify_cli.status import TransitionError, TransitionRequest
 
-    needs_approved_replay = (
-        coord_lane == _Lane.PLANNED and lane == _Lane.APPROVED and force_done
-    )
+    needs_approved_replay = coord_lane == _Lane.PLANNED and lane == _Lane.APPROVED and force_done
     in_pre_approved = lane.value in _PRE_APPROVED_LANE_VALUES
     if not ((in_pre_approved or needs_approved_replay) and evidence is not None):
         return lane, force_done
@@ -312,9 +303,7 @@ def _mark_wp_merged_done(
     # predated the kind-aware split and was self-contradicting. The status-transactional
     # legs below keep this same meta-bearing PRIMARY dir (they resolve/commit to the
     # coordination branch internally — they must NOT be handed the coord worktree dir).
-    primary_feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    primary_feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     wp_path = _resolve_wp_path(primary_feature_dir, wp_id)
     if wp_path is None:
         console.print(f"[yellow]Warning:[/yellow] Could not locate WP file for {wp_id}; skipping merge-complete status update.")
@@ -488,17 +477,11 @@ def _assert_merged_wps_reached_done(
         )
         raise typer.Exit(1) from exc
     except StoreError as exc:
-        console.print(
-            "[red]Error:[/red] Post-merge status validation failed: "
-            f"could not read {surface_path} ({exc})"
-        )
+        console.print(f"[red]Error:[/red] Post-merge status validation failed: could not read {surface_path} ({exc})")
         raise typer.Exit(1) from exc
 
     if incomplete:
-        console.print(
-            "[red]Error:[/red] Post-merge status validation failed: "
-            "merged WPs did not reach done in the canonical event log."
-        )
+        console.print("[red]Error:[/red] Post-merge status validation failed: merged WPs did not reach done in the canonical event log.")
         console.print(f"  Offending WPs: {', '.join(incomplete)}")
         raise typer.Exit(1)
 
@@ -578,16 +561,9 @@ def _assert_merged_wps_done_on_target(
 
     lanes_by_wp = _parse_target_lanes_by_wp(out_show or "")
 
-    incomplete = [
-        f"{wp_id}={lanes_by_wp.get(wp_id, 'missing')}"
-        for wp_id in wp_ids
-        if lanes_by_wp.get(wp_id) != "done"
-    ]
+    incomplete = [f"{wp_id}={lanes_by_wp.get(wp_id, 'missing')}" for wp_id in wp_ids if lanes_by_wp.get(wp_id) != "done"]
     if incomplete:
-        console.print(
-            "[red]Error:[/red] Post-merge target validation failed: "
-            "merged WPs did not reach done in target branch history."
-        )
+        console.print("[red]Error:[/red] Post-merge target validation failed: merged WPs did not reach done in target branch history.")
         console.print(f"  Offending WPs: {', '.join(incomplete)}")
         raise typer.Exit(1)
 
@@ -615,9 +591,7 @@ def _durable_done_wps_on_coordination_ref(
     from specify_cli.status import Lane
 
     try:
-        coord_ref = resolve_placement_only(
-            repo_root, mission_slug, kind=MissionArtifactKind.STATUS_STATE
-        ).ref
+        coord_ref = resolve_placement_only(repo_root, mission_slug, kind=MissionArtifactKind.STATUS_STATE).ref
     except Exception:  # noqa: BLE001 — unresolvable placement: fall back to on-disk check
         return set()
 
@@ -628,9 +602,7 @@ def _durable_done_wps_on_coordination_ref(
     # onto the topology-blind ``primary_feature_dir_for_mission`` (name == slug),
     # so no raw ``KITTY_SPECS_DIR/<slug>`` bypass — and a stale ``-coord`` husk can
     # never shadow the anchor.
-    read_feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    read_feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     events = read_event_log(
         EventLogReadContract.coordination_branch_ref(
             repo_root=repo_root,
@@ -676,12 +648,7 @@ def _reconcile_completed_wps_for_resume(
         mission_slug=mission_slug,
         candidate_wps=merge_state.completed_wps,
     )
-    confirmed = [
-        wp_id
-        for wp_id in merge_state.completed_wps
-        if wp_id in durable_done
-        or _has_transition_to(feature_dir, mission_slug, wp_id, "done", repo_root)
-    ]
+    confirmed = [wp_id for wp_id in merge_state.completed_wps if wp_id in durable_done or _has_transition_to(feature_dir, mission_slug, wp_id, "done", repo_root)]
     if len(confirmed) != len(merge_state.completed_wps):
         dropped = sorted(set(merge_state.completed_wps) - set(confirmed))
         logger.info(
@@ -722,10 +689,7 @@ def _record_merged_wps_done_for_merge(
     for lane in lanes_manifest.lanes:  # type: ignore[attr-defined]
         for wp_id in lane.wp_ids:
             if wp_id in excluded_canceled:
-                console.print(
-                    f"  [dim]Skipping {wp_id} (canceled with provenance — "
-                    "acceptable ending, excluded from done)[/dim]"
-                )
+                console.print(f"  [dim]Skipping {wp_id} (canceled with provenance — acceptable ending, excluded from done)[/dim]")
                 continue
             if wp_id in completed_set:
                 console.print(f"  [dim]Skipping {wp_id} (already recorded as done)[/dim]")

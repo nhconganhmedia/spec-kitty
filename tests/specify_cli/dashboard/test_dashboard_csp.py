@@ -104,10 +104,7 @@ def test_d5_every_send_response_site_is_paired_with_send_csp_header() -> None:
         n_responses = len(_SEND_RESPONSE_PATTERN.findall(source))
         n_paired = len(_PAIRED_PATTERN.findall(source))
         if n_paired != n_responses:
-            failures.append(
-                f"{filename}: {n_responses} send_response() call(s) but only "
-                f"{n_paired} immediately followed by send_csp_header(self)"
-            )
+            failures.append(f"{filename}: {n_responses} send_response() call(s) but only {n_paired} immediately followed by send_csp_header(self)")
     assert not failures, "Unwired dashboard response(s) missing the CSP header:\n  - " + "\n  - ".join(failures)
 
 

@@ -107,10 +107,7 @@ def test_latest_rejected_review_artifact_conflicts_with_approved_wp(
     )
     assert diagnostic["diagnostic_code"] == "REJECTED_REVIEW_ARTIFACT_CONFLICT"
     assert diagnostic["branch_or_work_package"] == "WP01"
-    assert (
-        diagnostic["violated_invariant"]
-        == "terminal_wp_latest_review_artifact_must_not_be_rejected"
-    )
+    assert diagnostic["violated_invariant"] == "terminal_wp_latest_review_artifact_must_not_be_rejected"
     assert diagnostic["latest_review_cycle_path"] is None
     assert diagnostic["latest_review_cycle_verdict"] == "changes_requested"
     assert diagnostic["remediation"]
@@ -147,8 +144,7 @@ def test_find_conflicts_does_not_materialize_status_json(
     assert findings == []
     # The gate reads; it does not persist. No orphan status.json.
     assert not mission.status_snapshot_path.exists(), (
-        "find_rejected_review_artifact_conflicts must not materialize "
-        "status.json — a merge-readiness check reads, it does not persist (#2934)."
+        "find_rejected_review_artifact_conflicts must not materialize status.json — a merge-readiness check reads, it does not persist (#2934)."
     )
 
 
@@ -166,9 +162,7 @@ def test_find_conflicts_does_not_orphan_snapshot_when_event_log_absent(
 
     assert findings == []
     assert not mission.status_events_path.exists()
-    assert not mission.status_snapshot_path.exists(), (
-        "an absent event log must not gain an orphan status.json during readiness checks"
-    )
+    assert not mission.status_snapshot_path.exists(), "an absent event log must not gain an orphan status.json during readiness checks"
 
 
 def test_latest_rejected_review_artifact_conflicts_with_done_wp(
@@ -253,9 +247,7 @@ def test_shipped_writer_approval_after_rejection_clears_merge_gate(
     assert rejected.review_result.verdict == "changes_requested"
 
     approval_feedback = tmp_path / "approval-feedback.md"
-    approval_feedback.write_text(
-        "Approved by reviewer-renata: the missing test was added.\n", encoding="utf-8"
-    )
+    approval_feedback.write_text("Approved by reviewer-renata: the missing test was added.\n", encoding="utf-8")
     approved = create_rejected_review_cycle(
         main_repo_root=mission.repo_root,
         mission_slug=mission.mission_slug,
@@ -300,9 +292,7 @@ def test_shipped_writer_genuine_rejection_still_blocks_merge_gate(
         from_lane=Lane.APPROVED,
         to_lane=Lane.DONE,
         event_id="01KQKV85DONE00000000001",
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference=rejected.pointer
-        ),
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference=rejected.pointer),
     )
 
     findings = find_rejected_review_artifact_conflicts(mission.mission_dir)
@@ -340,10 +330,7 @@ def test_merge_review_artifact_consistency_gate_blocks_done_signoff(
     output = capsys.readouterr().out
     assert "diagnostic_code: REJECTED_REVIEW_ARTIFACT_CONFLICT" in output
     assert "branch_or_work_package: WP01" in output
-    assert (
-        "violated_invariant: "
-        "terminal_wp_latest_review_artifact_must_not_be_rejected"
-    ) in output
+    assert ("violated_invariant: terminal_wp_latest_review_artifact_must_not_be_rejected") in output
     assert "latest_review_cycle_verdict: changes_requested" in output
     assert "remediation:" in output
 
@@ -374,10 +361,7 @@ def test_malformed_review_artifact_frontmatter_becomes_schema_diagnostic(
         wp_ids=["WP01"],
     )
 
-    assert findings == [], (
-        "a malformed on-disk review-cycle artifact must not produce any "
-        "finding post-repoint -- this gate no longer reads it at all"
-    )
+    assert findings == [], "a malformed on-disk review-cycle artifact must not produce any finding post-repoint -- this gate no longer reads it at all"
 
 
 def test_invalid_top_level_review_artifact_field_becomes_schema_diagnostic(
@@ -418,10 +402,7 @@ def test_invalid_top_level_review_artifact_field_becomes_schema_diagnostic(
             wp_ids=["WP01"],
         )
 
-    assert findings == [], (
-        "a damaged event-sourced review_result record must not fabricate a "
-        "blocking finding (G2 fail-closed, never a crash either)"
-    )
+    assert findings == [], "a damaged event-sourced review_result record must not fabricate a blocking finding (G2 fail-closed, never a crash either)"
 
 
 def test_merge_review_artifact_consistency_gate_blocks_malformed_artifact(
@@ -495,16 +476,11 @@ def test_terminal_wp_event_sourced_changes_requested_blocks_without_artifact(
         ),
     )
     artifact_dir = mission.tasks_dir / "WP01-regression-harness"
-    assert not artifact_dir.exists() or not list(
-        artifact_dir.glob("review-cycle-*.md")
-    ), "precondition: no on-disk review artifact must exist for this WP"
+    assert not artifact_dir.exists() or not list(artifact_dir.glob("review-cycle-*.md")), "precondition: no on-disk review artifact must exist for this WP"
 
     findings = find_rejected_review_artifact_conflicts(mission.mission_dir)
 
-    assert len(findings) == 1, (
-        "a terminal WP with an event-sourced changes_requested verdict must "
-        f"block merge even with no on-disk artifact, got: {findings}"
-    )
+    assert len(findings) == 1, f"a terminal WP with an event-sourced changes_requested verdict must block merge even with no on-disk artifact, got: {findings}"
     assert findings[0].wp_id == "WP01"
     assert findings[0].lane == "approved"
     assert findings[0].verdict == "changes_requested"
@@ -514,9 +490,7 @@ def test_terminal_wp_event_sourced_changes_requested_blocks_without_artifact(
     assert "WP01" in message
     assert "changes_requested" in message
 
-    diagnostic = review_artifact_conflict_diagnostic(
-        findings[0], repo_root=mission.repo_root
-    )
+    diagnostic = review_artifact_conflict_diagnostic(findings[0], repo_root=mission.repo_root)
     assert diagnostic["diagnostic_code"] == "REJECTED_REVIEW_ARTIFACT_CONFLICT"
     assert diagnostic["latest_review_cycle_verdict"] == "changes_requested"
     assert diagnostic["latest_review_cycle_path"] is None
@@ -540,16 +514,11 @@ def test_terminal_wp_no_artifact_no_event_opinion_is_not_blocked(
         event_id="01KQKV85APPROVEDNOOPINION01",
     )
     artifact_dir = mission.tasks_dir / "WP01-regression-harness"
-    assert not artifact_dir.exists() or not list(
-        artifact_dir.glob("review-cycle-*.md")
-    ), "precondition: no on-disk review artifact must exist for this WP"
+    assert not artifact_dir.exists() or not list(artifact_dir.glob("review-cycle-*.md")), "precondition: no on-disk review artifact must exist for this WP"
 
     findings = find_rejected_review_artifact_conflicts(mission.mission_dir)
 
-    assert findings == [], (
-        "no on-disk artifact and no event-sourced opinion must not block merge, "
-        f"got: {findings}"
-    )
+    assert findings == [], f"no on-disk artifact and no event-sourced opinion must not block merge, got: {findings}"
 
 
 # ---------------------------------------------------------------------------

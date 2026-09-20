@@ -65,9 +65,7 @@ def ref_exists(repo_root: Path, ref: str, *, env: dict[str, str] | None = None) 
     return _verify(repo_root, f"{ref}^{{commit}}", env=env)
 
 
-def lane_has_commit_beyond_base(
-    worktree_path: Path, base_ref: str, *, env: dict[str, str] | None = None
-) -> bool:
+def lane_has_commit_beyond_base(worktree_path: Path, base_ref: str, *, env: dict[str, str] | None = None) -> bool:
     """Return True iff the lane worktree has at least one commit beyond ``base_ref``.
 
     Counts ``git rev-list --count <base_ref>..HEAD`` inside ``worktree_path``.

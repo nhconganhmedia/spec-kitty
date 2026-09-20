@@ -77,9 +77,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo, pytest.mark.non_san
 
 def _committed_status_events_blob(repo: Path) -> str:
     """Raw committed ``status.events.jsonl`` on the coordination branch."""
-    return _git(
-        repo, "show", f"{COORD_BRANCH}:kitty-specs/{MISSION_SLUG}/status.events.jsonl"
-    ).stdout
+    return _git(repo, "show", f"{COORD_BRANCH}:kitty-specs/{MISSION_SLUG}/status.events.jsonl").stdout
 
 
 def _marker(repo: Path, mission_id: str) -> dict[str, object] | None:
@@ -173,15 +171,12 @@ def test_write_set_excludes_pre_existing_done_wp(tmp_path: Path) -> None:
     ex._capture_pre_target_done_write_set(run)
 
     assert STRANDED_WP not in run.pre_target_done_write_set, (
-        "a genuinely-pre-existing-done WP must be excluded from the write-set — "
-        f"got {run.pre_target_done_write_set}"
+        f"a genuinely-pre-existing-done WP must be excluded from the write-set — got {run.pre_target_done_write_set}"
     )
     assert run.pre_target_done_write_set == ["WPZZ"], run.pre_target_done_write_set
 
 
-def _make_min_run(
-    repo: Path, *, all_wp_ids: list[str], state: MergeState
-) -> ex._MergeRunState:
+def _make_min_run(repo: Path, *, all_wp_ids: list[str], state: MergeState) -> ex._MergeRunState:
     from types import SimpleNamespace
 
     lanes_manifest = SimpleNamespace(
@@ -229,9 +224,7 @@ def test_bake_strand_resume_heals_and_clears(tmp_path: Path) -> None:
     feature_dir = repo / "kitty-specs" / MISSION_SLUG
     committed = _lane_on(_committed_coord_events(repo, feature_dir), STRANDED_WP)
     working = _lane_on(_working_coord_events(repo), STRANDED_WP)
-    assert committed == working == Lane.APPROVED, (
-        f"heal must reconcile committed=={working}; got committed={committed}"
-    )
+    assert committed == working == Lane.APPROVED, f"heal must reconcile committed=={working}; got committed={committed}"
     assert _marker(repo, MISSION_ID) is None, "the marker must be cleared after the heal"
 
 
@@ -254,8 +247,7 @@ def test_resume_twice_is_byte_stable(tmp_path: Path) -> None:
     blob_after_second_resume = _committed_status_events_blob(repo)
 
     assert blob_after_second_resume == blob_after_first_resume, (
-        "a second resume must leave the committed coord status.events.jsonl "
-        "byte-identical (idempotent heal, NFR-002)"
+        "a second resume must leave the committed coord status.events.jsonl byte-identical (idempotent heal, NFR-002)"
     )
 
 
@@ -292,14 +284,11 @@ def test_revert_failure_strand_marks_and_resume_reconciles(tmp_path: Path) -> No
     _run_merge_with_target_and_revert_failing(repo)  # pass 2: resume heal
     committed_lane, working_lane = _reduce_coord_lanes(repo, feature_dir)
     assert committed_lane == working_lane, (
-        "resume must reconcile the revert-failure strand to a coherent "
-        f"committed==working; got committed={committed_lane} working={working_lane}"
+        f"resume must reconcile the revert-failure strand to a coherent committed==working; got committed={committed_lane} working={working_lane}"
     )
     # A permanently-failing revert cannot clear the strand: the marker persists so
     # a later resume / doctor can still repair it (atomic-clear only on heal).
-    assert _marker(repo, REVERT_MISSION_ID) is not None, (
-        "a revert that could not apply must leave the marker for the next pass"
-    )
+    assert _marker(repo, REVERT_MISSION_ID) is not None, "a revert that could not apply must leave the marker for the next pass"
 
 
 def test_resume_preserves_marker_when_coord_worktree_pruned(tmp_path: Path) -> None:
@@ -336,6 +325,5 @@ def test_resume_preserves_marker_when_coord_worktree_pruned(tmp_path: Path) -> N
     ex._heal_pending_coord_reconcile(run)
 
     assert run.state.pending_coord_reconcile is not None, (
-        "a pruned coord worktree must PRESERVE the marker (worktree_missing is NOT "
-        "coherence) — clearing it erases an unresolved committed split-brain"
+        "a pruned coord worktree must PRESERVE the marker (worktree_missing is NOT coherence) — clearing it erases an unresolved committed split-brain"
     )

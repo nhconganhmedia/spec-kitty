@@ -59,9 +59,7 @@ def _init_git_repo(repo: Path) -> None:
     # WP04 fail-closed (C-A1): create_mission_core requires a non-empty
     # activated mission-type set for the default software-dev resolution
     # exercised throughout this file.
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     _git(repo, "init", "-q", "-b", _CHECKOUT_BRANCH)
     _git(repo, "config", "user.email", "test@test.com")
     _git(repo, "config", "user.name", "Test")
@@ -77,10 +75,7 @@ def _mission_summary(slug: str) -> dict[str, str]:
     return {
         "friendly_name": title.title(),
         "purpose_tldr": f"Deliver {title} cleanly for the team.",
-        "purpose_context": (
-            f"This mission delivers {title} so product and engineering can move "
-            "forward with a clear outcome and shared understanding."
-        ),
+        "purpose_context": (f"This mission delivers {title} so product and engineering can move forward with a clear outcome and shared understanding."),
     }
 
 
@@ -165,10 +160,7 @@ def test_non_coord_single_branch_meta_commit_still_targets_target_branch(tmp_pat
 
     assert captured_targets, "expected _commit_feature_file to call safe_commit for meta.json"
     meta_commit_target = captured_targets[0]
-    assert meta_commit_target.ref == _TARGET_BRANCH, (
-        f"got {meta_commit_target.ref!r}, expected {_TARGET_BRANCH!r} "
-        "(SINGLE_BRANCH parity with COORD)"
-    )
+    assert meta_commit_target.ref == _TARGET_BRANCH, f"got {meta_commit_target.ref!r}, expected {_TARGET_BRANCH!r} (SINGLE_BRANCH parity with COORD)"
 
 
 def test_meta_commit_matches_seam_write_target_when_checkout_equals_target(tmp_path: Path) -> None:

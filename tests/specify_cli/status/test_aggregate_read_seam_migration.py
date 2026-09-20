@@ -164,19 +164,14 @@ def test_find_meta_path_backfilled_mission_resolves_existing_bare_dir(
     # than vacuously matching by construction.
     blind = _compose_primary_feature_dir(repo, _COMPOSED)
     assert blind == composed_dir
-    assert not blind.exists(), (
-        "sanity check failed: the blind composition was expected to resolve "
-        "a non-existent composed dir for a backfilled mission"
-    )
+    assert not blind.exists(), "sanity check failed: the blind composition was expected to resolve a non-existent composed dir for a backfilled mission"
 
     # The routed ``:543`` call shape, exercised directly: candidate_dir.name
     # is the COMPOSED form (mirroring a coord-worktree candidate whose dir
     # name already carries the mid8 suffix).
     from mission_runtime import MissionArtifactKind, placement_seam
 
-    resolved = placement_seam(repo, _COMPOSED).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    resolved = placement_seam(repo, _COMPOSED).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     assert resolved == bare_dir
     assert resolved.exists(), (
         "the seam must recover the EXISTING bare-slug primary dir for a "
@@ -194,7 +189,8 @@ def test_find_meta_path_backfilled_mission_resolves_existing_bare_dir(
     ["husk", "branch_deleted", "worktree_empty"],
 )
 def test_find_meta_path_never_raises_coordination_branch_deleted(
-    tmp_path: Path, coord_shape: str,
+    tmp_path: Path,
+    coord_shape: str,
 ) -> None:
     """A PRIMARY-partition read must never raise ``CoordinationBranchDeleted``
     regardless of the coord side's shape (NFR-002) -- ``_find_meta_path``'s
@@ -214,17 +210,11 @@ def test_find_meta_path_never_raises_coordination_branch_deleted(
 
     coord_root = coord_worktree_root(repo, _COMPOSED)
     if coord_shape == "husk":
-        primary_dir = build_coord_husk(
-            repo, _COMPOSED, branch, coord_root, write_primary_meta=_write
-        )
+        primary_dir = build_coord_husk(repo, _COMPOSED, branch, coord_root, write_primary_meta=_write)
     elif coord_shape == "worktree_empty":
-        primary_dir = build_coord_worktree_empty(
-            repo, _COMPOSED, branch, coord_root, write_primary_meta=_write
-        )
+        primary_dir = build_coord_worktree_empty(repo, _COMPOSED, branch, coord_root, write_primary_meta=_write)
     else:
-        primary_dir = build_coord_branch_deleted(
-            repo, _COMPOSED, branch, write_primary_meta=_write
-        )
+        primary_dir = build_coord_branch_deleted(repo, _COMPOSED, branch, write_primary_meta=_write)
 
     meta_path, resolved_primary_dir = MissionStatus._find_meta_path(repo, _COMPOSED)
 
@@ -307,13 +297,10 @@ def test_find_meta_path_lane_worktree_local_copy_never_shadows_primary(
     # no trace of this mission yet.
     main_repo_dir = repo / "kitty-specs" / _LANE_COMPOSED
     assert not main_repo_dir.exists(), (
-        "fixture invariant: the mission must not have merged to the primary "
-        "checkout yet -- this is what forces :541's recovery attempt to miss"
+        "fixture invariant: the mission must not have merged to the primary checkout yet -- this is what forces :541's recovery attempt to miss"
     )
 
-    meta_path, resolved_primary_dir = MissionStatus._find_meta_path(
-        worktree, _LANE_HUMAN_SLUG
-    )
+    meta_path, resolved_primary_dir = MissionStatus._find_meta_path(worktree, _LANE_HUMAN_SLUG)
 
     # The lane's OWN local copy is never returned as-is -- `_find_meta_path`
     # anchors on the primary checkout even when the worktree-local glob is

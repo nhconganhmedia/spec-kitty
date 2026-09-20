@@ -8,6 +8,7 @@ detection, caching) plus the two cross-site behaviors the consolidation MUST
 NOT regress: the charter resolver's caching/classification and the
 checkout-ownership NESTED refusal.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -50,13 +51,12 @@ def repo_with_worktree(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, 
         subprocess.run(["git", "-C", str(root), "config", key, val], check=True, capture_output=True)
     (root / "README.md").write_text("seed\n")
     subprocess.run(["git", "-C", str(root), "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "-C", str(root), "commit", "-m", "seed", "--quiet"], check=True, capture_output=True
-    )
+    subprocess.run(["git", "-C", str(root), "commit", "-m", "seed", "--quiet"], check=True, capture_output=True)
     worktree = root.parent / (root.name + "-wt")
     subprocess.run(
         ["git", "-C", str(root), "worktree", "add", "-B", "wt", str(worktree)],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     clear_caches()
     return root, worktree

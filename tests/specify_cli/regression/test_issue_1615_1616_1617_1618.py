@@ -14,6 +14,7 @@ Each test documents a specific bug and proves the fix:
   #1618 — move_task emitted a second safe_commit to the protected target branch
            even when coord topology was active (coord branch already owns it).
 """
+
 from __future__ import annotations
 
 import ast
@@ -36,61 +37,50 @@ def _read(rel_path: str) -> str:
 
 # --- #1616: stale prompt strings must not reappear ---
 
+
 def test_no_stale_status_in_main_repo_string() -> None:
     """workflow.py must not say status lives in main repo."""
     src = _read("src/specify_cli/cli/commands/agent/workflow.py")
-    assert "Spec, plan, tasks, and status live in main repo" not in src, (
-        "Stale prompt string from #1616 re-introduced in workflow.py"
-    )
+    assert "Spec, plan, tasks, and status live in main repo" not in src, "Stale prompt string from #1616 re-introduced in workflow.py"
 
 
 def test_no_stale_auto_commit_to_target_branch() -> None:
     """workflow.py must not say status auto-commits to target_branch."""
     src = _read("src/specify_cli/cli/commands/agent/workflow.py")
-    assert "auto-commit to {target_branch} branch" not in src, (
-        "Stale prompt string from #1616 re-introduced in workflow.py"
-    )
+    assert "auto-commit to {target_branch} branch" not in src, "Stale prompt string from #1616 re-introduced in workflow.py"
 
 
 def test_no_stale_for_review_to_in_progress() -> None:
     """workflow.py review docstring must not say for_review to in_progress."""
     src = _read("src/specify_cli/cli/commands/agent/workflow.py")
-    assert "for_review to in_progress" not in src, (
-        "Stale docstring from #1616 re-introduced in workflow.py"
-    )
+    assert "for_review to in_progress" not in src, "Stale docstring from #1616 re-introduced in workflow.py"
 
 
 def test_no_stale_done_only_dependency() -> None:
     """Doctrine implement prompt must not require only 'done' status."""
-    src = _read(
-        "packs/built-in/missions/mission-steps/software-dev/implement/prompt.md"
-    )
-    assert "in `done` status before proceeding" not in src, (
-        "Stale dependency condition from #1616 re-introduced in implement/prompt.md"
-    )
+    src = _read("packs/built-in/missions/mission-steps/software-dev/implement/prompt.md")
+    assert "in `done` status before proceeding" not in src, "Stale dependency condition from #1616 re-introduced in implement/prompt.md"
 
 
 # --- #1615: coord-aware resolver must be present ---
 
+
 def test_resolve_mission_read_path_used_in_implement() -> None:
     """implement.py must import or reference resolve_mission_read_path."""
     src = _read("src/specify_cli/cli/commands/implement.py")
-    assert "resolve_mission_read_path" in src, (
-        "coord-aware resolver not present in implement.py (#1615 regression)"
-    )
+    assert "resolve_mission_read_path" in src, "coord-aware resolver not present in implement.py (#1615 regression)"
 
 
 def test_resolve_mission_read_path_used_in_orchestrator_api() -> None:
     """orchestrator_api/commands.py must use resolve_mission_read_path."""
     src = _read("src/specify_cli/orchestrator_api/commands.py")
-    assert "resolve_mission_read_path" in src, (
-        "coord-aware resolver not present in orchestrator_api/commands.py (#1615 regression)"
-    )
+    assert "resolve_mission_read_path" in src, "coord-aware resolver not present in orchestrator_api/commands.py (#1615 regression)"
 
 
 # ---------------------------------------------------------------------------
 # #1615: implement.py reads status from coord worktree when present
 # ---------------------------------------------------------------------------
+
 
 class TestIssue1615ImplementCoordRead:
     """#1615: dependency gate must read from coord worktree, not primary checkout."""
@@ -104,10 +94,7 @@ class TestIssue1615ImplementCoordRead:
         slug = "my-feature"
         mid8 = "01KT3YBD"
         # Create coord mission dir
-        coord_dir = (
-            tmp_path / ".worktrees" / f"{slug}-{mid8}-coord"
-            / "kitty-specs" / f"{slug}-{mid8}"
-        )
+        coord_dir = tmp_path / ".worktrees" / f"{slug}-{mid8}-coord" / "kitty-specs" / f"{slug}-{mid8}"
         coord_dir.mkdir(parents=True)
         # Also create primary (should NOT be selected)
         primary_dir = tmp_path / "kitty-specs" / f"{slug}-{mid8}"
@@ -116,8 +103,7 @@ class TestIssue1615ImplementCoordRead:
         result = resolve_mission_read_path(tmp_path, slug, mid8)
 
         assert result == coord_dir, (
-            f"Expected coord path {coord_dir}, got {result}. "
-            "Regression: implement.py was reading from primary checkout instead of coord worktree."
+            f"Expected coord path {coord_dir}, got {result}. Regression: implement.py was reading from primary checkout instead of coord worktree."
         )
 
     def test_primary_checkout_returned_when_coord_absent(self, tmp_path: Path) -> None:
@@ -142,14 +128,13 @@ class TestIssue1615ImplementCoordRead:
             tail = slug.rsplit("-", 1)[-1]
             if len(tail) == 8 and tail.isalnum() and tail.isupper():
                 mid8 = tail
-        assert mid8 == "01KT3YBD", (
-            "Regression: implement.py failed to extract mid8 from mission slug."
-        )
+        assert mid8 == "01KT3YBD", "Regression: implement.py failed to extract mid8 from mission slug."
 
 
 # ---------------------------------------------------------------------------
 # #1616: orchestrator_api._resolve_mission_dir checks coord topology
 # ---------------------------------------------------------------------------
+
 
 class TestIssue1616OrchestratorApiCoordRead:
     """#1616 / #2016: _resolve_mission_dir must return coord path, not always primary."""
@@ -175,10 +160,7 @@ class TestIssue1616OrchestratorApiCoordRead:
 
         slug = "governed-coord-only-mission"
         handle = f"{slug}-{self.MID8}"
-        coord_dir = (
-            tmp_path / ".worktrees" / f"{handle}-coord"
-            / "kitty-specs" / handle
-        )
+        coord_dir = tmp_path / ".worktrees" / f"{handle}-coord" / "kitty-specs" / handle
         coord_dir.mkdir(parents=True)
         # Intentionally NO primary meta.json — coord-only topology (C-001).
 
@@ -204,23 +186,17 @@ class TestIssue1616OrchestratorApiCoordRead:
         handle = f"governed-coord-only-mission-{self.MID8}"
         # Pre-fix derivation (primary meta absent → mission_id None):
         assert resolve_mid8(handle, mission_id=None) == "", (
-            "Pre-fix cause: resolve_mid8 keyed on absent primary meta must "
-            "decline (empty mid8) for a coord-only mission."
+            "Pre-fix cause: resolve_mid8 keyed on absent primary meta must decline (empty mid8) for a coord-only mission."
         )
         # The shared cascade's tier-3 recovers the real mid8 from the tail:
-        assert mid8_from_slug(handle) == self.MID8, (
-            "tier-3 mid8_from_slug must recover the real mid8 from the "
-            "canonical <slug>-<mid8> tail."
-        )
+        assert mid8_from_slug(handle) == self.MID8, "tier-3 mid8_from_slug must recover the real mid8 from the canonical <slug>-<mid8> tail."
 
     def test_none_returned_when_mission_not_found(self, tmp_path: Path) -> None:
         """_resolve_mission_dir returns None (not raises) when mission absent."""
         from specify_cli.orchestrator_api.commands import _resolve_mission_dir
 
         result = _resolve_mission_dir(tmp_path, "nonexistent-01KT3YBD")
-        assert result is None, (
-            "Regression: _resolve_mission_dir should return None when mission not found."
-        )
+        assert result is None, "Regression: _resolve_mission_dir should return None when mission not found."
 
     def test_legacy_no_tail_no_id_returns_primary_not_raise(self, tmp_path: Path) -> None:
         """T012b: a legacy non-coord mission (no tail, no id) returns primary/None.
@@ -240,16 +216,11 @@ class TestIssue1616OrchestratorApiCoordRead:
         # Primary meta with NO mission_id and NO coordination_branch (legacy).
         primary_dir = tmp_path / "kitty-specs" / slug
         primary_dir.mkdir(parents=True)
-        (primary_dir / "meta.json").write_text(
-            json.dumps({"mission_slug": slug}), encoding="utf-8"
-        )
+        (primary_dir / "meta.json").write_text(json.dumps({"mission_slug": slug}), encoding="utf-8")
 
         # Must NOT raise; must return the primary dir (it exists on disk).
         result = _resolve_mission_dir(tmp_path, slug)
-        assert result == primary_dir, (
-            "Legacy non-coord mission (no tail, no id) must keep the "
-            f"primary-read path; expected {primary_dir}, got {result}."
-        )
+        assert result == primary_dir, f"Legacy non-coord mission (no tail, no id) must keep the primary-read path; expected {primary_dir}, got {result}."
 
     def test_legacy_no_tail_no_id_absent_returns_none(self, tmp_path: Path) -> None:
         """T012b sibling: legacy no-tail/no-id, primary absent → None (not raise)."""
@@ -257,9 +228,7 @@ class TestIssue1616OrchestratorApiCoordRead:
 
         # No meta, no dir at all — pure absence on a legacy-style handle.
         result = _resolve_mission_dir(tmp_path, "099-absent-mission")
-        assert result is None, (
-            "Legacy non-coord absent mission must return None, not raise."
-        )
+        assert result is None, "Legacy non-coord absent mission must return None, not raise."
 
     def test_exactly_one_mid8_cascade_in_orchestrator(self) -> None:
         """#2016 / NFR-005 / WP01 (binding, AST — not a skippable grep): the
@@ -273,20 +242,12 @@ class TestIssue1616OrchestratorApiCoordRead:
         """
         src = _read("src/specify_cli/orchestrator_api/commands.py")
         tree = ast.parse(src)
-        called = {
-            node.func.id
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-        }
+        called = {node.func.id for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)}
         assert "resolve_handle_to_read_path" in called, (
-            "WP01: the orchestrator must consume the shared "
-            "resolve_handle_to_read_path seam (the single guarded read-side path)."
+            "WP01: the orchestrator must consume the shared resolve_handle_to_read_path seam (the single guarded read-side path)."
         )
         assert "resolve_declared_mid8" not in called, (
-            "WP01 / NFR-004: the mid8 cascade was lifted into the seam — the "
-            "orchestrator must NOT re-derive resolve_declared_mid8 locally "
-            "(no parallel cascade)."
+            "WP01 / NFR-004: the mid8 cascade was lifted into the seam — the orchestrator must NOT re-derive resolve_declared_mid8 locally (no parallel cascade)."
         )
         assert "resolve_mid8" not in called, (
             "NFR-005: a second mid8-derivation path (direct resolve_mid8 keyed "
@@ -298,6 +259,7 @@ class TestIssue1616OrchestratorApiCoordRead:
 # ---------------------------------------------------------------------------
 # #1617: DecisionGitLog writes to coord worktree, not repo_root
 # ---------------------------------------------------------------------------
+
 
 class TestIssue1617DecisionLogCoordRouting:
     """#1617: decisions.events.jsonl must be written under coord worktree."""
@@ -349,15 +311,13 @@ class TestIssue1617DecisionLogCoordRouting:
         )
 
         wrong_path = repo_root / "kitty-specs" / slug / "decisions.events.jsonl"
-        assert log._decisions_file != wrong_path, (
-            "Regression: DecisionGitLog._decisions_file must not point to repo_root "
-            "when a coord worktree is in use."
-        )
+        assert log._decisions_file != wrong_path, "Regression: DecisionGitLog._decisions_file must not point to repo_root when a coord worktree is in use."
 
 
 # ---------------------------------------------------------------------------
 # #1618: move_task guard skips safe_commit when coord+protected
 # ---------------------------------------------------------------------------
+
 
 class TestIssue1618MoveTaskGuard:
     """#1618: second safe_commit skipped when coord topology active + protected branch."""
@@ -375,8 +335,7 @@ class TestIssue1618MoveTaskGuard:
 
         result = _coord_topology_active(tmp_path, slug)
         assert result is True, (
-            "Regression: _coord_topology_active must return True when coord worktree exists. "
-            "move_task guard was not detecting coord topology correctly."
+            "Regression: _coord_topology_active must return True when coord worktree exists. move_task guard was not detecting coord topology correctly."
         )
 
     def test_coord_topology_active_false_when_coord_absent(self, tmp_path: Path) -> None:
@@ -393,10 +352,7 @@ class TestIssue1618MoveTaskGuard:
         protected = ["main"]
 
         skip = coord_active and target_branch in protected
-        assert skip is True, (
-            "Regression: move_task guard must set _skip_target_commit=True "
-            "when coord topology active and target branch is protected."
-        )
+        assert skip is True, "Regression: move_task guard must set _skip_target_commit=True when coord topology active and target branch is protected."
 
     def test_guard_condition_does_not_skip_on_legacy_missions(self) -> None:
         """Guard: legacy mission (coord_active=False) → safe_commit proceeds normally."""
@@ -405,9 +361,7 @@ class TestIssue1618MoveTaskGuard:
         protected = ["main"]
 
         skip = coord_active and target_branch in protected
-        assert skip is False, (
-            "Regression: safe_commit must proceed for legacy missions (no coord topology)."
-        )
+        assert skip is False, "Regression: safe_commit must proceed for legacy missions (no coord topology)."
 
     def test_guard_condition_does_not_skip_on_unprotected_branch(self) -> None:
         """Guard: coord active but target not protected → safe_commit still runs."""
@@ -416,7 +370,4 @@ class TestIssue1618MoveTaskGuard:
         protected = ["main"]
 
         skip = coord_active and target_branch in protected
-        assert skip is False, (
-            "Regression: safe_commit must run when target branch is not protected, "
-            "even with coord topology active."
-        )
+        assert skip is False, "Regression: safe_commit must run when target branch is not protected, even with coord topology active."

@@ -12,6 +12,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def test_roots_resolved(tmp_path):
     """check_state_roots resolves three roots with correct names."""
     (tmp_path / ".kittify").mkdir()
@@ -65,9 +66,7 @@ def test_absent_runtime_no_warning(tmp_path):
     """Absent runtime surfaces are not warnings (lazily created)."""
     (tmp_path / ".kittify").mkdir()
     report = check_state_roots(tmp_path)
-    runtime_checks = [
-        s for s in report.surfaces if s.surface.name == "runtime_feature_index"
-    ]
+    runtime_checks = [s for s in report.surfaces if s.surface.name == "runtime_feature_index"]
     for check in runtime_checks:
         assert check.warning is None  # Absent = no warning
 

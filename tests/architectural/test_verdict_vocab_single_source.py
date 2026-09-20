@@ -153,11 +153,7 @@ def _string_constants(tree: ast.AST) -> set[str]:
     f-string non-constant parts are never AST ``Constant`` string nodes, so
     this naturally ignores prose/comments and only sees genuine code-level
     literals."""
-    return {
-        node.value
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Constant) and isinstance(node.value, str)
-    }
+    return {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str)}
 
 
 def _write_module(root: Path, relpath: str, source: str) -> Path:
@@ -258,11 +254,7 @@ def _imports_and_calls_verdict_vocab(path: Path) -> bool:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
-        if (
-            isinstance(node.func, ast.Attribute)
-            and isinstance(node.func.value, ast.Name)
-            and node.func.value.id in module_bound_names
-        ):
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name) and node.func.value.id in module_bound_names:
             return True
         if isinstance(node.func, ast.Name) and node.func.id in facade_bound_names:
             return True
@@ -280,14 +272,7 @@ def test_no_module_other_than_bridge_spells_the_inline_equivalence() -> None:
     root = _repo_root()
     offenders = _co_occurring_equivalence_modules(root)
     unexpected = set(offenders) - _UNSWEPT_ALLOWLIST
-    assert not unexpected, (
-        "inline rejected<->changes_requested equivalence found outside "
-        f"status/verdict_vocab.py and the WP05 allowlist: {sorted(unexpected)}"
-    )
-
-
-
-
+    assert not unexpected, f"inline rejected<->changes_requested equivalence found outside status/verdict_vocab.py and the WP05 allowlist: {sorted(unexpected)}"
 
 
 def test_synthetic_module_splitting_the_literals_across_lines_still_reds(
@@ -301,11 +286,7 @@ def test_synthetic_module_splitting_the_literals_across_lines_still_reds(
     _write_module(
         tmp_path,
         relpath,
-        "def a() -> str:\n"
-        "    return 'rejected'\n"
-        "\n\n"
-        "def b() -> str:\n"
-        "    return 'changes_requested'\n",
+        "def a() -> str:\n    return 'rejected'\n\n\ndef b() -> str:\n    return 'changes_requested'\n",
     )
     offenders = _co_occurring_equivalence_modules(tmp_path)
     assert relpath in offenders
@@ -318,8 +299,7 @@ def test_synthetic_module_with_only_one_literal_does_not_red(tmp_path: Path) -> 
     _write_module(
         tmp_path,
         relpath,
-        "def only_checks_one() -> bool:\n"
-        "    return 'changes_requested' == 'changes_requested'\n",
+        "def only_checks_one() -> bool:\n    return 'changes_requested' == 'changes_requested'\n",
     )
     offenders = _co_occurring_equivalence_modules(tmp_path)
     assert relpath not in offenders
@@ -328,8 +308,6 @@ def test_synthetic_module_with_only_one_literal_does_not_red(tmp_path: Path) -> 
 # ---------------------------------------------------------------------------
 # T017 -- positive check (import + call), and its own anti-evasion proofs
 # ---------------------------------------------------------------------------
-
-
 
 
 def test_synthetic_module_with_fake_verdict_vocab_object_reds_positive_check(
@@ -343,11 +321,7 @@ def test_synthetic_module_with_fake_verdict_vocab_object_reds_positive_check(
     _write_module(
         tmp_path,
         relpath,
-        "class _Fake:\n"
-        "    def to_event_verdict(self, v: str) -> str:\n"
-        "        return v\n\n\n"
-        "verdict_vocab = _Fake()\n"
-        "verdict_vocab.to_event_verdict('rejected')\n",
+        "class _Fake:\n    def to_event_verdict(self, v: str) -> str:\n        return v\n\n\nverdict_vocab = _Fake()\nverdict_vocab.to_event_verdict('rejected')\n",
     )
     assert not _imports_and_calls_verdict_vocab(tmp_path / relpath)
 
@@ -362,8 +336,7 @@ def test_synthetic_module_importing_but_never_calling_reds_positive_check(
     _write_module(
         tmp_path,
         relpath,
-        "from specify_cli.status import verdict_vocab\n\n\n"
-        "_NOTE = 'see verdict_vocab for details'\n",
+        "from specify_cli.status import verdict_vocab\n\n\n_NOTE = 'see verdict_vocab for details'\n",
     )
     assert not _imports_and_calls_verdict_vocab(tmp_path / relpath)
 
@@ -381,9 +354,7 @@ def test_synthetic_module_importing_and_calling_the_bridge_greens_positive_check
     _write_module(
         tmp_path,
         relpath,
-        "from specify_cli.status import verdict_vocab\n\n\n"
-        "def f(v: str) -> str:\n"
-        "    return verdict_vocab.to_event_verdict(v)\n",
+        "from specify_cli.status import verdict_vocab\n\n\ndef f(v: str) -> str:\n    return verdict_vocab.to_event_verdict(v)\n",
     )
     assert _imports_and_calls_verdict_vocab(tmp_path / relpath)
 
@@ -406,9 +377,7 @@ def test_synthetic_module_with_fake_facade_symbol_reds_positive_check(
     _write_module(
         tmp_path,
         relpath,
-        "def to_event_verdict(v: str) -> str:\n"
-        "    return v\n\n\n"
-        "to_event_verdict('rejected')\n",
+        "def to_event_verdict(v: str) -> str:\n    return v\n\n\nto_event_verdict('rejected')\n",
     )
     assert not _imports_and_calls_verdict_vocab(tmp_path / relpath)
 
@@ -424,8 +393,7 @@ def test_synthetic_module_importing_facade_symbol_but_never_calling_reds_positiv
     _write_module(
         tmp_path,
         relpath,
-        "from specify_cli.status import to_event_verdict\n\n\n"
-        "_NOTE = 'see to_event_verdict for details'\n",
+        "from specify_cli.status import to_event_verdict\n\n\n_NOTE = 'see to_event_verdict for details'\n",
     )
     assert not _imports_and_calls_verdict_vocab(tmp_path / relpath)
 
@@ -442,9 +410,7 @@ def test_synthetic_module_importing_and_calling_facade_symbol_greens_positive_ch
     _write_module(
         tmp_path,
         relpath,
-        "from specify_cli.status import to_event_verdict\n\n\n"
-        "def f(v: str) -> str:\n"
-        "    return to_event_verdict(v)\n",
+        "from specify_cli.status import to_event_verdict\n\n\ndef f(v: str) -> str:\n    return to_event_verdict(v)\n",
     )
     assert _imports_and_calls_verdict_vocab(tmp_path / relpath)
 
@@ -463,9 +429,7 @@ def test_synthetic_module_importing_and_calling_facade_symbol_greens_positive_ch
         ("approved_after_orchestrator_fix", "approved"),
     ],
 )
-def test_to_event_verdict_is_total_over_all_four_inbound_values(
-    artifact_verdict: str, expected_event_verdict: str
-) -> None:
+def test_to_event_verdict_is_total_over_all_four_inbound_values(artifact_verdict: str, expected_event_verdict: str) -> None:
     """G1: the mapping is total over all four inbound artifact values."""
     assert verdict_vocab.to_event_verdict(artifact_verdict) == expected_event_verdict
 
@@ -482,9 +446,7 @@ def test_to_event_verdict_rejects_unknown_input() -> None:
         ("changes_requested", "rejected"),
     ],
 )
-def test_to_artifact_verdict_inverse_for_prose_render(
-    event_verdict: str, expected_artifact_verdict: str
-) -> None:
+def test_to_artifact_verdict_inverse_for_prose_render(event_verdict: str, expected_artifact_verdict: str) -> None:
     assert verdict_vocab.to_artifact_verdict(event_verdict) == expected_artifact_verdict
 
 
@@ -517,9 +479,7 @@ def test_is_changes_requested_and_is_approved_predicates() -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "override_verdict", ["arbiter_override", "approved_after_orchestrator_fix"]
-)
+@pytest.mark.parametrize("override_verdict", ["arbiter_override", "approved_after_orchestrator_fix"])
 def test_emission_event_verdict_refuses_override_values(override_verdict: str) -> None:
     """D-PLAN-14: an override/orchestrator-fix artifact verdict must NEVER be
     accepted by the emission-scoped helper -- it is not a valid input to an
@@ -533,9 +493,7 @@ def test_emission_event_verdict_refuses_override_values(override_verdict: str) -
     ("artifact_verdict", "expected_event_verdict"),
     [("approved", "approved"), ("rejected", "changes_requested")],
 )
-def test_emission_event_verdict_accepts_the_two_scoped_values(
-    artifact_verdict: str, expected_event_verdict: str
-) -> None:
+def test_emission_event_verdict_accepts_the_two_scoped_values(artifact_verdict: str, expected_event_verdict: str) -> None:
     assert verdict_vocab.emission_event_verdict(artifact_verdict) == expected_event_verdict
 
 

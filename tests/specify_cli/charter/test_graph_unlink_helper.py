@@ -132,9 +132,7 @@ def test_apply_post_condition_unlinks_present_graph(tmp_path: Path) -> None:
     manifest_path = _seed_manifest(tmp_path, built_in_only=False)
     graph_path = tmp_path / ".kittify" / "doctrine" / _GRAPH_FILENAME
     graph_path.parent.mkdir(parents=True, exist_ok=True)
-    graph_path.write_text(
-        "schema_version: '1.0'\nnodes: []\nedges: []\n", encoding="utf-8"
-    )
+    graph_path.write_text("schema_version: '1.0'\nnodes: []\nedges: []\n", encoding="utf-8")
 
     apply_post_condition(tmp_path, has_project_graph=False)
 

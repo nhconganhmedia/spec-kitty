@@ -206,8 +206,7 @@ def _warn_process_override(
     """
     if override_mode is OverrideMode.PROCESS_OVERRIDE and configured_server_url is not None:
         _LOG.warning(
-            "%s=%r overrides configured [sync].server_url=%r for this process; "
-            "bearer-token-bearing traffic now targets %r instead of the configured host.",
+            "%s=%r overrides configured [sync].server_url=%r for this process; bearer-token-bearing traffic now targets %r instead of the configured host.",
             SAAS_URL_ENV_VAR,
             resolved_server_url,
             configured_server_url,

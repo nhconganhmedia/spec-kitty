@@ -66,11 +66,7 @@ def parse_startyaml_blocks(md_text: str) -> list[object]:
     yaml = YAML(typ="safe")
     trees: list[object] = []
     for raw in _PLANTUML_BLOCK.findall(md_text):
-        lines = [
-            line
-            for line in raw.splitlines()
-            if not _START_END.search(line) and not _DIRECTIVE_LINE.match(line)
-        ]
+        lines = [line for line in raw.splitlines() if not _START_END.search(line) and not _DIRECTIVE_LINE.match(line)]
         body = "\n".join(lines).strip()
         if not body:
             continue
@@ -133,15 +129,9 @@ def _check_disposition_completeness() -> list[str]:
     for value in artifact_kind_values():
         disposition = ARTIFACT_KIND_DISPOSITIONS.get(value)
         if disposition is None:
-            findings.append(
-                f"ArtifactKind member {value!r} has NO disposition in the binding table "
-                f"(add {value!r}: 'diagrammed' | 'consciously-omitted')"
-            )
+            findings.append(f"ArtifactKind member {value!r} has NO disposition in the binding table (add {value!r}: 'diagrammed' | 'consciously-omitted')")
         elif disposition not in _VALID_DISPOSITIONS:
-            findings.append(
-                f"ArtifactKind {value!r} has invalid disposition {disposition!r} "
-                f"(must be one of {sorted(_VALID_DISPOSITIONS)})"
-            )
+            findings.append(f"ArtifactKind {value!r} has invalid disposition {disposition!r} (must be one of {sorted(_VALID_DISPOSITIONS)})")
     return findings
 
 
@@ -162,10 +152,7 @@ def _check_binding(binding: DiagramBinding, doc_texts: dict[str, str]) -> list[s
     if diagram_fields != model_fields:
         missing = sorted(model_fields - diagram_fields)
         extra = sorted(diagram_fields - model_fields)
-        return [
-            f"{binding.doc}:{binding.anchor} drift vs {binding.model.__name__}: "
-            f"missing-in-diagram={missing} extra-in-diagram={extra}"
-        ]
+        return [f"{binding.doc}:{binding.anchor} drift vs {binding.model.__name__}: missing-in-diagram={missing} extra-in-diagram={extra}"]
     return []
 
 

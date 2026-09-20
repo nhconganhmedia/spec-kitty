@@ -153,15 +153,7 @@ def _create_acceptready_feature(repo_root: Path) -> Path:
         (feature_dir / fname).write_text(f"# {fname}\nDone.\n")
 
     (tasks_dir / "WP01-test.md").write_text(
-        "---\n"
-        'work_package_id: "WP01"\n'
-        'title: "Test WP"\n'
-        'lane: "done"\n'
-        'assignee: "test-agent"\n'
-        'agent: "test-agent"\n'
-        'shell_pid: "12345"\n'
-        "---\n"
-        "# WP01\nDone.\n"
+        '---\nwork_package_id: "WP01"\ntitle: "Test WP"\nlane: "done"\nassignee: "test-agent"\nagent: "test-agent"\nshell_pid: "12345"\n---\n# WP01\nDone.\n'
     )
 
     append_event(
@@ -280,15 +272,7 @@ def test_accept_no_commit_converges_without_project_config_filter(
     _run_readiness(repo_root)
     status_after_second = _porcelain_status(repo_root)
 
-    assert config_path.read_bytes() == bytes_before, (
-        "accept readiness mutated .kittify/config.yaml (identity write on readiness path)"
-    )
-    assert status_after_first == status_after_second, (
-        "two readiness runs diverged in working-tree dirt"
-    )
-    dirty_paths = [
-        line[3:].strip() for line in status_after_second.splitlines() if line.strip()
-    ]
-    assert _CONFIG_RELPATH not in dirty_paths, (
-        ".kittify/config.yaml left dirty by readiness — readiness must not write it"
-    )
+    assert config_path.read_bytes() == bytes_before, "accept readiness mutated .kittify/config.yaml (identity write on readiness path)"
+    assert status_after_first == status_after_second, "two readiness runs diverged in working-tree dirt"
+    dirty_paths = [line[3:].strip() for line in status_after_second.splitlines() if line.strip()]
+    assert _CONFIG_RELPATH not in dirty_paths, ".kittify/config.yaml left dirty by readiness — readiness must not write it"

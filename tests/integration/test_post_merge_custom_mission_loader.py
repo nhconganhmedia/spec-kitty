@@ -28,6 +28,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 @pytest.fixture(autouse=True)
 def _reset_registry() -> Any:
     """Ensure each test starts with an empty shadow.
@@ -103,10 +104,7 @@ def test_context_manager_restores_snapshot_on_exception() -> None:
     except RuntimeError:
         pass
 
-    assert registry.snapshot() == {}, (
-        "RuntimeContractRegistry leaked contracts past an exception path; "
-        "issue #801 regression."
-    )
+    assert registry.snapshot() == {}, "RuntimeContractRegistry leaked contracts past an exception path; issue #801 regression."
 
 
 def test_nested_blocks_compose_via_stack_of_snapshots() -> None:

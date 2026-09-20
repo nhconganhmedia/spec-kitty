@@ -108,15 +108,9 @@ class OrphanChecker:
                         type=f"orphaned_{type_label}",
                         id=urn,
                         severity="medium",
-                        message=(
-                            f"Node '{label}' ({urn}) has no incoming edges "
-                            f"with relation {sorted(expected_relations)}."
-                        ),
+                        message=(f"Node '{label}' ({urn}) has no incoming edges with relation {sorted(expected_relations)}."),
                         feature_id=feature_scope,
-                        remediation_hint=(
-                            f"Link another node to this {kind_val} node via one of: "
-                            + ", ".join(f"'{r}'" for r in sorted(expected_relations))
-                        ),
+                        remediation_hint=(f"Link another node to this {kind_val} node via one of: " + ", ".join(f"'{r}'" for r in sorted(expected_relations))),
                     )
                 )
 

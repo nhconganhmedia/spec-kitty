@@ -55,11 +55,7 @@ class RemoveClarifyCommandMigration(BaseMigration):
                 errors.append(f"Failed to remove {rel}: {exc}")
 
         if not errors:
-            summary = (
-                f"Would remove {len(targets)} clarify command artifacts"
-                if dry_run
-                else f"Removed {len(targets)} clarify command artifacts"
-            )
+            summary = f"Would remove {len(targets)} clarify command artifacts" if dry_run else f"Removed {len(targets)} clarify command artifacts"
             changes.append(summary)
 
         return MigrationResult(

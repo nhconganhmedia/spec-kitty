@@ -144,9 +144,7 @@ def _coord_husk(tmp_path: Path) -> _Fixture:
         _COMPOSED,
         branch,
         coord_worktree_root(repo, _COMPOSED),
-        write_primary_meta=lambda feature_dir: _write_meta(
-            feature_dir, slug=_COMPOSED, coordination_branch=branch
-        ),
+        write_primary_meta=lambda feature_dir: _write_meta(feature_dir, slug=_COMPOSED, coordination_branch=branch),
     )
     return _Fixture(repo=repo, handle=_COMPOSED, primary_dir=primary_dir)
 
@@ -160,9 +158,7 @@ def _coord_worktree_empty(tmp_path: Path) -> _Fixture:
         _COMPOSED,
         branch,
         coord_worktree_root(repo, _COMPOSED),
-        write_primary_meta=lambda feature_dir: _write_meta(
-            feature_dir, slug=_COMPOSED, coordination_branch=branch
-        ),
+        write_primary_meta=lambda feature_dir: _write_meta(feature_dir, slug=_COMPOSED, coordination_branch=branch),
     )
     return _Fixture(repo=repo, handle=_COMPOSED, primary_dir=primary_dir)
 
@@ -175,9 +171,7 @@ def _coord_branch_deleted(tmp_path: Path) -> _Fixture:
         repo,
         _COMPOSED,
         branch,
-        write_primary_meta=lambda feature_dir: _write_meta(
-            feature_dir, slug=_COMPOSED, coordination_branch=branch
-        ),
+        write_primary_meta=lambda feature_dir: _write_meta(feature_dir, slug=_COMPOSED, coordination_branch=branch),
     )
     return _Fixture(repo=repo, handle=_COMPOSED, primary_dir=primary_dir)
 
@@ -188,29 +182,21 @@ def _coord_branch_deleted(tmp_path: Path) -> _Fixture:
 #    THREE kinds this WP's cluster actually passes).
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("kind", _ROUTED_KINDS, ids=lambda k: k.value)
-def test_every_routed_kind_resolves_the_same_primary_anchor(
-    tmp_path: Path, kind: MissionArtifactKind
-) -> None:
+def test_every_routed_kind_resolves_the_same_primary_anchor(tmp_path: Path, kind: MissionArtifactKind) -> None:
     fixture = _materialized(tmp_path)
     resolved = placement_seam(fixture.repo, fixture.handle).read_dir(kind)
     assert resolved.resolve() == fixture.primary_dir.resolve()
     # Same answer the pre-migration blind composer gave — the wrapper's own
     # WP03 delegation proof, re-derived here for this cluster's kinds.
-    assert resolved.resolve() == _compose_primary_feature_dir(
-        fixture.repo, fixture.handle
-    ).resolve()
+    assert resolved.resolve() == _compose_primary_feature_dir(fixture.repo, fixture.handle).resolve()
 
 
 # --------------------------------------------------------------------------- #
 # 2. Per-file production-function wiring + NFR-002 (no raise on husk / empty /
 #    deleted-coord).
 # --------------------------------------------------------------------------- #
-@pytest.mark.parametrize(
-    "builder", [_materialized, _coord_husk, _coord_worktree_empty, _coord_branch_deleted]
-)
-def test_safe_load_meta_reads_primary_meta_regardless_of_coord_state(
-    tmp_path: Path, builder
-) -> None:
+@pytest.mark.parametrize("builder", [_materialized, _coord_husk, _coord_worktree_empty, _coord_branch_deleted])
+def test_safe_load_meta_reads_primary_meta_regardless_of_coord_state(tmp_path: Path, builder) -> None:
     """``mission_feature_resolution._safe_load_meta`` — PRIMARY_METADATA site."""
     fixture = builder(tmp_path)
     meta = mission_feature_resolution._safe_load_meta(fixture.repo, fixture.handle)
@@ -218,12 +204,8 @@ def test_safe_load_meta_reads_primary_meta_regardless_of_coord_state(
     assert meta["mission_id"] == _MISSION_ID
 
 
-@pytest.mark.parametrize(
-    "builder", [_materialized, _coord_husk, _coord_worktree_empty, _coord_branch_deleted]
-)
-def test_issue_matrix_facts_reads_spec_dir_regardless_of_coord_state(
-    tmp_path: Path, builder
-) -> None:
+@pytest.mark.parametrize("builder", [_materialized, _coord_husk, _coord_worktree_empty, _coord_branch_deleted])
+def test_issue_matrix_facts_reads_spec_dir_regardless_of_coord_state(tmp_path: Path, builder) -> None:
     """``tasks_move_task._mt_issue_matrix_facts`` — SPEC site.
 
     No ``spec.md`` exists in the fixture, so ``_issue_matrix_approval_blocker``
@@ -261,9 +243,7 @@ def test_issue_matrix_facts_reads_spec_dir_regardless_of_coord_state(
 
 
 @pytest.mark.parametrize("builder", [_materialized, _coord_husk, _coord_worktree_empty])
-def test_stamp_birth_cutover_resolves_primary_dir_regardless_of_coord_state(
-    tmp_path: Path, builder
-) -> None:
+def test_stamp_birth_cutover_resolves_primary_dir_regardless_of_coord_state(tmp_path: Path, builder) -> None:
     """``accept._stamp_birth_cutover_for_accept`` — PRIMARY_METADATA site.
 
     ``_coord_branch_deleted`` is deliberately excluded from this
@@ -286,20 +266,14 @@ def test_stamp_birth_cutover_resolves_primary_dir_regardless_of_coord_state(
 
         return _Result()
 
-    with patch(
-        "specify_cli.migration.runtime_state_cutover.stamp_accept_cutover", _fake_stamp
-    ):
+    with patch("specify_cli.migration.runtime_state_cutover.stamp_accept_cutover", _fake_stamp):
         accept._stamp_birth_cutover_for_accept(fixture.repo, fixture.handle)
 
     assert captured["feature_dir"] == fixture.primary_dir
 
 
-@pytest.mark.parametrize(
-    "builder", [_materialized, _coord_husk, _coord_worktree_empty, _coord_branch_deleted]
-)
-def test_pair_previous_lifecycle_record_does_not_raise_regardless_of_coord_state(
-    tmp_path: Path, builder
-) -> None:
+@pytest.mark.parametrize("builder", [_materialized, _coord_husk, _coord_worktree_empty, _coord_branch_deleted])
+def test_pair_previous_lifecycle_record_does_not_raise_regardless_of_coord_state(tmp_path: Path, builder) -> None:
     """``next_cmd._pair_previous_lifecycle_record`` — PRIMARY_METADATA site.
 
     No lifecycle store exists in the fixture, so ``find_latest_unpaired_started``
@@ -309,9 +283,7 @@ def test_pair_previous_lifecycle_record_does_not_raise_regardless_of_coord_state
     """
     fixture = builder(tmp_path)
     # Must not raise for any of the four coord states.
-    next_cmd._pair_previous_lifecycle_record(
-        "claude", fixture.handle, "success", fixture.repo
-    )
+    next_cmd._pair_previous_lifecycle_record("claude", fixture.handle, "success", fixture.repo)
 
 
 # --------------------------------------------------------------------------- #
@@ -338,7 +310,5 @@ def test_every_routed_kind_pin_is_falsifiable(tmp_path: Path) -> None:
     """
     fixture = _materialized(tmp_path)
     coord_dir = fixture.repo / ".worktrees" / f"{_COMPOSED}-coord" / "kitty-specs" / _COMPOSED
-    resolved = placement_seam(fixture.repo, fixture.handle).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    resolved = placement_seam(fixture.repo, fixture.handle).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     assert resolved.resolve() != coord_dir.resolve()

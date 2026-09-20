@@ -23,6 +23,7 @@ from specify_cli.charter_runtime.lint.checks.reference_integrity import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_node(urn: str, kind: str, label: str | None = None) -> SimpleNamespace:
     return SimpleNamespace(urn=urn, kind=kind, label=label)
 
@@ -165,9 +166,7 @@ class TestEdgeRelationValueHelper:
         assert _edge_relation_value(edge) == "replaces"
 
     def test_enum_like_relation_uses_value_attribute(self):
-        edge = SimpleNamespace(
-            source="wp:WP01", target="adr:ADR-001", relation=SimpleNamespace(value="replaces")
-        )
+        edge = SimpleNamespace(source="wp:WP01", target="adr:ADR-001", relation=SimpleNamespace(value="replaces"))
         assert _edge_relation_value(edge) == "replaces"
 
     def test_none_relation_returns_empty_string(self):
@@ -198,25 +197,19 @@ class TestSupersededHelpers:
     def test_iter_wp_to_superseded_edges_filters_non_wp_sources(self):
         edge = _make_edge("directive:DIR-001", "adr:ADR-001", "governs")
         drg = _make_drg(nodes=[], edges=[edge])
-        result = ReferenceIntegrityChecker._iter_wp_to_superseded_edges(
-            drg, {"adr:ADR-001"}
-        )
+        result = ReferenceIntegrityChecker._iter_wp_to_superseded_edges(drg, {"adr:ADR-001"})
         assert result == []
 
     def test_iter_wp_to_superseded_edges_filters_non_superseded_targets(self):
         edge = _make_edge("wp:WP01", "adr:ADR-002", "references")
         drg = _make_drg(nodes=[], edges=[edge])
-        result = ReferenceIntegrityChecker._iter_wp_to_superseded_edges(
-            drg, {"adr:ADR-001"}
-        )
+        result = ReferenceIntegrityChecker._iter_wp_to_superseded_edges(drg, {"adr:ADR-001"})
         assert result == []
 
     def test_iter_wp_to_superseded_edges_yields_matching_pair(self):
         edge = _make_edge("wp:WP01", "adr:ADR-001", "references")
         drg = _make_drg(nodes=[], edges=[edge])
-        result = ReferenceIntegrityChecker._iter_wp_to_superseded_edges(
-            drg, {"adr:ADR-001"}
-        )
+        result = ReferenceIntegrityChecker._iter_wp_to_superseded_edges(drg, {"adr:ADR-001"})
         assert result == [("wp:WP01", "adr:ADR-001")]
 
 

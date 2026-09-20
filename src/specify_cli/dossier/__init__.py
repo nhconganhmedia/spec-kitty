@@ -9,6 +9,7 @@ from .hasher import (
     hash_wp_static_projection,
     wp_static_projection,
 )
+
 # C-001 relocation (WP04 / #3599): the manifest schema types now live in
 # charter.offering.missions.expected_artifact_manifest -- re-exported from their new
 # home (specify_cli -> doctrine is a legal direction). ManifestRegistry

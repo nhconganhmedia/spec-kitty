@@ -122,7 +122,5 @@ def test_tier_to_origin_reports_org_prefix_not_unknown() -> None:
     ``_tier_to_origin``'s ``tier_prefix`` dict, this renders
     ``"unknown/..."`` -- the exact silent-degradation defect FR-012 fixes.
     """
-    origin = CharterTemplateResolver._tier_to_origin(
-        ResolutionTier.ORG, "software-dev", "templates", "spec-template.md"
-    )
+    origin = CharterTemplateResolver._tier_to_origin(ResolutionTier.ORG, "software-dev", "templates", "spec-template.md")
     assert origin == "org/software-dev/templates/spec-template.md"

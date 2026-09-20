@@ -69,9 +69,7 @@ def _build_coord_deleted(repo_root: Path) -> None:
     feature_dir = repo_root / "kitty-specs" / SLUG_WITH_MID8
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps(
-            {"mission_id": MISSION_ID, "coordination_branch": COORD_BRANCH}
-        ),
+        json.dumps({"mission_id": MISSION_ID, "coordination_branch": COORD_BRANCH}),
         encoding="utf-8",
     )
 

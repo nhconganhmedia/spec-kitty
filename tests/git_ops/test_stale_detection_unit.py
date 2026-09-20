@@ -340,9 +340,7 @@ def _make_old_commit(repo: Path, branch: str = "kitty/mission-feature-lane-a") -
     )
 
 
-def test_check_wp_staleness_live_shell_pid_suppresses_stale(
-    git_repo_with_main: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_wp_staleness_live_shell_pid_suppresses_stale(git_repo_with_main: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-007: a WP whose claiming shell_pid is a live process is never stale,
 
     even with a commit well past the threshold (Scenario 3 — an agent reading
@@ -356,9 +354,7 @@ def test_check_wp_staleness_live_shell_pid_suppresses_stale(
         lambda pid: True,
     )
 
-    result = check_wp_staleness(
-        "WP01", git_repo_with_main, threshold_minutes=10, shell_pid="4242"
-    )
+    result = check_wp_staleness("WP01", git_repo_with_main, threshold_minutes=10, shell_pid="4242")
 
     assert result.wp_id == "WP01"
     assert result.is_stale is False
@@ -366,9 +362,7 @@ def test_check_wp_staleness_live_shell_pid_suppresses_stale(
     assert result.worktree_exists is True
 
 
-def test_check_wp_staleness_dead_shell_pid_falls_back_to_timestamp(
-    git_repo_with_main: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_wp_staleness_dead_shell_pid_falls_back_to_timestamp(git_repo_with_main: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Regression guard: a dead/no shell_pid must NOT make everything "always fresh" —
 
     the timestamp heuristic still governs when liveness cannot vouch for the
@@ -381,19 +375,13 @@ def test_check_wp_staleness_dead_shell_pid_falls_back_to_timestamp(
         lambda pid: False,
     )
 
-    dead_result = check_wp_staleness(
-        "WP01", git_repo_with_main, threshold_minutes=10, shell_pid="99999"
-    )
+    dead_result = check_wp_staleness("WP01", git_repo_with_main, threshold_minutes=10, shell_pid="99999")
     assert dead_result.is_stale is True
 
-    no_pid_result = check_wp_staleness(
-        "WP01", git_repo_with_main, threshold_minutes=10, shell_pid=None
-    )
+    no_pid_result = check_wp_staleness("WP01", git_repo_with_main, threshold_minutes=10, shell_pid=None)
     assert no_pid_result.is_stale is True
 
-    unparseable_result = check_wp_staleness(
-        "WP01", git_repo_with_main, threshold_minutes=10, shell_pid="not-a-pid"
-    )
+    unparseable_result = check_wp_staleness("WP01", git_repo_with_main, threshold_minutes=10, shell_pid="not-a-pid")
     assert unparseable_result.is_stale is True
 
 

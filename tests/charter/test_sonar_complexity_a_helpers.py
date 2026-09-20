@@ -82,9 +82,7 @@ class TestCodeReaderHelpers:
     def test_detect_frameworks_matches_indicator_files(self) -> None:
         from charter.activation.evidence.code_reader import CodeReadingCollector
 
-        frameworks = CodeReadingCollector._detect_frameworks(
-            {"manage.py", "next.config.ts", "unrelated.txt"}
-        )
+        frameworks = CodeReadingCollector._detect_frameworks({"manage.py", "next.config.ts", "unrelated.txt"})
 
         assert set(frameworks) == {"django", "nextjs"}
 
@@ -96,44 +94,33 @@ class TestCodeReaderHelpers:
     def test_detect_test_frameworks_from_indicator(self) -> None:
         from charter.activation.evidence.code_reader import CodeReadingCollector
 
-        test_fws = CodeReadingCollector._detect_test_frameworks(
-            {"jest.config.js"}, [], "javascript"
-        )
+        test_fws = CodeReadingCollector._detect_test_frameworks({"jest.config.js"}, [], "javascript")
 
         assert test_fws == ["jest"]
 
     def test_detect_test_frameworks_python_pytest_fallback(self) -> None:
         from charter.activation.evidence.code_reader import CodeReadingCollector
 
-        test_fws = CodeReadingCollector._detect_test_frameworks(
-            set(), ["tests/test_thing.py"], "python"
-        )
+        test_fws = CodeReadingCollector._detect_test_frameworks(set(), ["tests/test_thing.py"], "python")
 
         assert test_fws == ["pytest"]
 
     def test_detect_test_frameworks_no_fallback_for_non_python(self) -> None:
         from charter.activation.evidence.code_reader import CodeReadingCollector
 
-        test_fws = CodeReadingCollector._detect_test_frameworks(
-            set(), ["tests/thing.test.ts"], "typescript"
-        )
+        test_fws = CodeReadingCollector._detect_test_frameworks(set(), ["tests/thing.test.ts"], "typescript")
 
         assert test_fws == []
 
     def test_build_stack_id_unknown_language_short_circuits(self) -> None:
         from charter.activation.evidence.code_reader import CodeReadingCollector
 
-        assert (
-            CodeReadingCollector._build_stack_id("unknown", ["django"], ["pytest"])
-            == "unknown"
-        )
+        assert CodeReadingCollector._build_stack_id("unknown", ["django"], ["pytest"]) == "unknown"
 
     def test_build_stack_id_composes_language_framework_test(self) -> None:
         from charter.activation.evidence.code_reader import CodeReadingCollector
 
-        stack_id = CodeReadingCollector._build_stack_id(
-            "python", ["django"], ["pytest"]
-        )
+        stack_id = CodeReadingCollector._build_stack_id("python", ["django"], ["pytest"])
 
         assert stack_id == "python+django+pytest"
 
@@ -178,9 +165,7 @@ class TestOrgLayerHelpers:
         org_repo = _StubOverrideRepo({"DIRECTIVE_001": "org"})
         built_in_repo = _StubBuiltinRepo({"DIRECTIVE_001"})
 
-        finding = _check_item_overrides_builtin(
-            "directives", _StubArtifact("DIRECTIVE_001"), org_repo, built_in_repo
-        )
+        finding = _check_item_overrides_builtin("directives", _StubArtifact("DIRECTIVE_001"), org_repo, built_in_repo)
 
         assert finding is not None
         assert finding.type == "org_overrides_builtin"
@@ -195,9 +180,7 @@ class TestOrgLayerHelpers:
         org_repo = _StubOverrideRepo({"DIRECTIVE_001": "built_in"})
         built_in_repo = _StubBuiltinRepo({"DIRECTIVE_001"})
 
-        finding = _check_item_overrides_builtin(
-            "directives", _StubArtifact("DIRECTIVE_001"), org_repo, built_in_repo
-        )
+        finding = _check_item_overrides_builtin("directives", _StubArtifact("DIRECTIVE_001"), org_repo, built_in_repo)
 
         assert finding is None
 
@@ -209,9 +192,7 @@ class TestOrgLayerHelpers:
         org_repo = _StubOverrideRepo({"ORG_ONLY": "org"})
         built_in_repo = _StubBuiltinRepo(set())
 
-        finding = _check_item_overrides_builtin(
-            "directives", _StubArtifact("ORG_ONLY"), org_repo, built_in_repo
-        )
+        finding = _check_item_overrides_builtin("directives", _StubArtifact("ORG_ONLY"), org_repo, built_in_repo)
 
         assert finding is None
 
@@ -223,9 +204,7 @@ class TestOrgLayerHelpers:
         class _NoId:
             id = None
 
-        finding = _check_item_overrides_builtin(
-            "directives", _NoId(), _StubOverrideRepo({}), _StubBuiltinRepo(set())
-        )
+        finding = _check_item_overrides_builtin("directives", _NoId(), _StubOverrideRepo({}), _StubBuiltinRepo(set()))
 
         assert finding is None
 
@@ -246,17 +225,13 @@ class TestOrgLayerHelpers:
             def list_all(self) -> list[_StubArtifact]:
                 return [_StubArtifact("DIRECTIVE_001"), _StubArtifact("DIRECTIVE_002")]
 
-        org_repo = _StubListingRepo(
-            {"DIRECTIVE_001": "org", "DIRECTIVE_002": "builtin"}
-        )
+        org_repo = _StubListingRepo({"DIRECTIVE_001": "org", "DIRECTIVE_002": "builtin"})
         built_in_repo = _StubBuiltinRepo({"DIRECTIVE_001", "DIRECTIVE_002"})
 
         service = _StubService(org_repo, org_repo)
         built_in_only = _StubService(built_in_repo, built_in_repo)
 
-        findings = _scan_artifact_type_for_overrides(
-            "directives", service, built_in_only
-        )
+        findings = _scan_artifact_type_for_overrides("directives", service, built_in_only)
 
         assert len(findings) == 1
         assert findings[0].id == "directives:DIRECTIVE_001"
@@ -270,9 +245,7 @@ class TestOrgLayerHelpers:
             def raw_repository(self, _artifact_type: str) -> object | None:
                 return None
 
-        findings = _scan_artifact_type_for_overrides(
-            "directives", _NoRepoService(), _NoRepoService()
-        )
+        findings = _scan_artifact_type_for_overrides("directives", _NoRepoService(), _NoRepoService())
 
         assert findings == []
 
@@ -294,9 +267,7 @@ class TestContextResultBuilders:
             effective_depth=2,
         )
 
-        result = build_missing_charter_context_result(
-            "specify", state_bundle, augment=lambda text: text
-        )
+        result = build_missing_charter_context_result("specify", state_bundle, augment=lambda text: text)
 
         assert result.mode == "missing"
         assert result.action == "specify"
@@ -415,16 +386,12 @@ class TestLocalSupportHelpers:
         from charter.activation.compiler import _detect_local_support_overlap
         from charter.activation.interview import LocalSupportDeclaration
 
-        decl = LocalSupportDeclaration(
-            path="docs/x.md", target_kind="directive", target_id="DIRECTIVE_001"
-        )
+        decl = LocalSupportDeclaration(path="docs/x.md", target_kind="directive", target_id="DIRECTIVE_001")
         diagnostics: list[str] = []
 
         # built_in_ids carries "<KIND>:<ID>" keys (see
         # charter.activation.compiler._build_built_in_concept_ids), not bare artifact ids.
-        warning = _detect_local_support_overlap(
-            decl, frozenset({"DIRECTIVE:DIRECTIVE_001"}), diagnostics
-        )
+        warning = _detect_local_support_overlap(decl, frozenset({"DIRECTIVE:DIRECTIVE_001"}), diagnostics)
 
         assert warning is not None
         assert "overlaps built-in" in warning
@@ -444,17 +411,10 @@ class TestLocalSupportHelpers:
         from charter.activation.compiler import _detect_local_support_overlap
         from charter.activation.interview import LocalSupportDeclaration
 
-        decl = LocalSupportDeclaration(
-            path="docs/x.md", target_kind="directive", target_id="DIRECTIVE_999"
-        )
+        decl = LocalSupportDeclaration(path="docs/x.md", target_kind="directive", target_id="DIRECTIVE_999")
         diagnostics: list[str] = []
 
-        assert (
-            _detect_local_support_overlap(
-                decl, frozenset({"DIRECTIVE:DIRECTIVE_001"}), diagnostics
-            )
-            is None
-        )
+        assert _detect_local_support_overlap(decl, frozenset({"DIRECTIVE:DIRECTIVE_001"}), diagnostics) is None
         assert diagnostics == []
 
     def test_local_support_summary_includes_target_and_action(self) -> None:
@@ -546,9 +506,7 @@ class TestKindViolationHelpers:
         all_ids = {"directives": frozenset(), "tactics": frozenset({"X"})}
         kind_violations: list[str] = []
 
-        _check_kind_violation_for_artifact(
-            "directives", "X", frozenset(), all_ids, [], kind_violations
-        )
+        _check_kind_violation_for_artifact("directives", "X", frozenset(), all_ids, [], kind_violations)
 
         assert len(kind_violations) == 1
         assert "belongs to kind 'tactics', not 'directives'" in kind_violations[0]
@@ -576,8 +534,6 @@ class TestKindViolationHelpers:
         all_ids = {"directives": frozenset({"X"})}
         kind_violations: list[str] = []
 
-        _check_kind_violation_for_artifact(
-            "directives", "X", frozenset({"X"}), all_ids, [], kind_violations
-        )
+        _check_kind_violation_for_artifact("directives", "X", frozenset({"X"}), all_ids, [], kind_violations)
 
         assert kind_violations == []

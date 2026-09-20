@@ -66,9 +66,7 @@ def _param_declares_feature_flag(param: click.Parameter) -> bool:
     that bind it exclusively to ``--mission`` — those are not what FR-006
     is policing.
     """
-    declared = list(getattr(param, "opts", []) or []) + list(
-        getattr(param, "secondary_opts", []) or []
-    )
+    declared = list(getattr(param, "opts", []) or []) + list(getattr(param, "secondary_opts", []) or [])
     return "--feature" in declared
 
 
@@ -88,14 +86,9 @@ def test_every_feature_flag_is_hidden() -> None:
     offenders: list[str] = []
     for path, cmd in _walk_leaf_commands(cli):
         for param in cmd.params:
-            if _param_declares_feature_flag(param) and not getattr(
-                param, "hidden", False
-            ):
+            if _param_declares_feature_flag(param) and not getattr(param, "hidden", False):
                 offenders.append(" ".join(path))
-    assert not offenders, (
-        "FR-006 regression: --feature flag is visible on these commands "
-        "(must be hidden=True):\n  " + "\n  ".join(offenders)
-    )
+    assert not offenders, "FR-006 regression: --feature flag is visible on these commands (must be hidden=True):\n  " + "\n  ".join(offenders)
 
 
 def test_zero_feature_flags_exist_cli_wide() -> None:
@@ -159,13 +152,7 @@ def test_help_output_never_mentions_feature_alias() -> None:
         result = runner.invoke(cmd, ["--help"], catch_exceptions=False)
         # A leaf whose --help fails to render cannot be checked — fail
         # loudly instead of silently skipping its surface invariant.
-        assert result.exit_code == 0, (
-            f"--help did not render cleanly for leaf {' '.join(path)} "
-            f"(exit {result.exit_code}): {result.output}"
-        )
+        assert result.exit_code == 0, f"--help did not render cleanly for leaf {' '.join(path)} (exit {result.exit_code}): {result.output}"
         if FEATURE_TOKEN_RE.search(result.output):
             offenders.append((" ".join(path), result.output))
-    assert not offenders, (
-        "FR-006 regression: '--feature' token appears in --help output of:\n  "
-        + "\n  ".join(name for name, _ in offenders)
-    )
+    assert not offenders, "FR-006 regression: '--feature' token appears in --help output of:\n  " + "\n  ".join(name for name, _ in offenders)

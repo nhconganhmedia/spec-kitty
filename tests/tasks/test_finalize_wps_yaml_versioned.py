@@ -60,9 +60,7 @@ def test_wps_yaml_classifies_to_tasks_index_primary_partition() -> None:
 
     kind = kind_for_mission_file(path)
 
-    assert kind is MissionArtifactKind.TASKS_INDEX, (
-        f"wps.yaml must classify to TASKS_INDEX, got {kind!r}"
-    )
+    assert kind is MissionArtifactKind.TASKS_INDEX, f"wps.yaml must classify to TASKS_INDEX, got {kind!r}"
     assert is_primary_artifact_kind(kind), "TASKS_INDEX must be a PRIMARY-partition kind"
 
 
@@ -119,9 +117,7 @@ def _disable_branch_protection(repo: Path) -> None:
     """
     kittify = repo / ".kittify"
     kittify.mkdir(exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "protection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("protection:\n  protected_branches: []\n", encoding="utf-8")
 
 
 def _assert_wps_yaml_versioned(repo: Path, feature_dir: Path) -> None:
@@ -155,9 +151,7 @@ def test_finalize_versions_wps_yaml_coord_topology(
     wps_yaml.write_text("work_packages: []\n", encoding="utf-8")
 
     # Precondition: wps.yaml is untracked before finalize.
-    assert _git_out(ctx.repo, "status", "--porcelain", "--", str(wps_yaml.relative_to(ctx.repo))), (
-        "fixture precondition: wps.yaml must start untracked/dirty"
-    )
+    assert _git_out(ctx.repo, "status", "--porcelain", "--", str(wps_yaml.relative_to(ctx.repo))), "fixture precondition: wps.yaml must start untracked/dirty"
 
     _commit_finalize_artifacts(
         ctx.primary_feature_dir,

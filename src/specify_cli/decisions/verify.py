@@ -36,9 +36,7 @@ __all__ = [
 # Sentinel regex
 # ---------------------------------------------------------------------------
 
-SENTINEL_RE = re.compile(
-    r"\[NEEDS CLARIFICATION: [^\]]*\]\s*<!--\s*decision_id:\s*(?P<did>[0-9A-HJKMNP-TV-Z]{26})\s*-->"
-)
+SENTINEL_RE = re.compile(r"\[NEEDS CLARIFICATION: [^\]]*\]\s*<!--\s*decision_id:\s*(?P<did>[0-9A-HJKMNP-TV-Z]{26})\s*-->")
 
 # ---------------------------------------------------------------------------
 # Data types
@@ -172,20 +170,14 @@ def verify(mission_dir: Path, mission_slug: str) -> VerifyResponse:  # noqa: ARG
     # Rule 3 — STALE_MARKER
     marker_allowed_statuses = {DecisionStatus.DEFERRED, DecisionStatus.RESOLVED}
     for marker_did, loc in sorted(marker_ids.items()):
-        if (
-            marker_did in known_ids
-            and known_ids[marker_did].status not in marker_allowed_statuses
-        ):
+        if marker_did in known_ids and known_ids[marker_did].status not in marker_allowed_statuses:
             entry = known_ids[marker_did]
             findings.append(
                 VerifyFinding(
                     kind="STALE_MARKER",
                     decision_id_or_ref=marker_did,
                     location=loc,
-                    detail=(
-                        f"Decision is in status '{entry.status.value}', not "
-                        "'deferred' or 'resolved'"
-                    ),
+                    detail=(f"Decision is in status '{entry.status.value}', not 'deferred' or 'resolved'"),
                 )
             )
 

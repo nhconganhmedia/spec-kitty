@@ -146,9 +146,7 @@ def _write_meta(feature_dir: Path) -> None:
         "purpose_tldr": "coord-worktree resync regression (#1826)",
         "purpose_context": "unattended merge must survive >1 ref advance",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _write_manifest(feature_dir: Path) -> LanesManifest:
@@ -188,14 +186,7 @@ def _write_manifest(feature_dir: Path) -> LanesManifest:
 
 def _write_wp_file(feature_dir: Path, wp_id: str) -> None:
     (feature_dir / "tasks" / f"{wp_id}-work.md").write_text(
-        "---\n"
-        f"work_package_id: {wp_id}\n"
-        f"title: {wp_id} work\n"
-        "agent: implementer-bot\n"
-        "review_status: approved\n"
-        "reviewed_by: reviewer-bot\n"
-        "---\n"
-        f"# {wp_id}\n",
+        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} work\nagent: implementer-bot\nreview_status: approved\nreviewed_by: reviewer-bot\n---\n# {wp_id}\n",
         encoding="utf-8",
     )
 
@@ -232,10 +223,7 @@ def _bootstrap_coord_mission(repo: Path) -> Path:
     # Pre-record per-WP APPROVED events (not done) so the real bookkeeping pass
     # has real done transitions to emit through the coordination worktree.
     (feature_dir / "status.events.jsonl").write_text(
-        "".join(
-            json.dumps(_approved_event(wp_id, str(idx + 1)), sort_keys=True) + "\n"
-            for idx, wp_id in enumerate(_WP_IDS)
-        ),
+        "".join(json.dumps(_approved_event(wp_id, str(idx + 1)), sort_keys=True) + "\n" for idx, wp_id in enumerate(_WP_IDS)),
         encoding="utf-8",
     )
 
@@ -289,26 +277,16 @@ def _merge_external_mocks():
         "run_check": patch("specify_cli.merge.executor.run_check"),
         "sparse": patch("specify_cli.merge.executor.require_no_sparse_checkout"),
         "preflight": patch("specify_cli.cli.commands.merge._enforce_git_preflight"),
-        "review_consistency": patch(
-            "specify_cli.merge.executor._enforce_review_artifact_consistency"
-        ),
-        "status_history": patch(
-            "specify_cli.merge.executor._enforce_canonical_status_history"
-        ),
+        "review_consistency": patch("specify_cli.merge.executor._enforce_review_artifact_consistency"),
+        "status_history": patch("specify_cli.merge.executor._enforce_canonical_status_history"),
         "hollow": patch("specify_cli.merge.executor._warn_or_confirm_hollow_reviews"),
         "baseline_record": patch(
             "specify_cli.merge.executor._record_baseline_merge_commit",
         ),
-        "baseline_assert": patch(
-            "specify_cli.merge.executor._assert_baseline_merge_commit_on_target"
-        ),
-        "done_on_target": patch(
-            "specify_cli.merge.executor._assert_merged_wps_done_on_target"
-        ),
+        "baseline_assert": patch("specify_cli.merge.executor._assert_baseline_merge_commit_on_target"),
+        "done_on_target": patch("specify_cli.merge.executor._assert_merged_wps_done_on_target"),
         "safe_commit": patch("specify_cli.merge.executor.commit_merge_bookkeeping"),
-        "refresh_primary": patch(
-            "specify_cli.merge.executor._refresh_primary_checkout_after_merge"
-        ),
+        "refresh_primary": patch("specify_cli.merge.executor._refresh_primary_checkout_after_merge"),
         # Post-merge working-tree invariant fires on test-only files; the merge
         # has already run through real git by the time this would raise.
         "porcelain": patch(
@@ -343,10 +321,7 @@ def _merge_external_mocks():
             paths = kwargs.get("paths", ())
             assert isinstance(paths, tuple)
             offending = [str(path) for path in paths if ".worktrees" in Path(path).parts]
-            assert offending == [], (
-                "final target bookkeeping safe_commit must not stage "
-                f"coordination-worktree paths: {offending!r}"
-            )
+            assert offending == [], f"final target bookkeeping safe_commit must not stage coordination-worktree paths: {offending!r}"
             result = MagicMock()
             result.sha = "0" * 40
             return result
@@ -402,29 +377,19 @@ def test_merge_with_coord_worktree_completes_unattended(tmp_path: Path) -> None:
 
     # Both lanes' code reached the target branch.
     for relpath in _LANE_FILES.values():
-        assert _file_on_branch(tmp_path, "main", relpath), (
-            f"lane code {relpath} did not reach the target branch"
-        )
+        assert _file_on_branch(tmp_path, "main", relpath), f"lane code {relpath} did not reach the target branch"
 
     # AC-B2 (end state): the coordination worktree is CONSISTENT — HEAD equals
     # the branch tip and the working tree is clean.
     coord_wt = _coord_worktree(tmp_path)
     assert coord_wt.exists(), "fixture invariant: coord worktree retained"
     assert _rev_parse(coord_wt, "HEAD") == _rev_parse(tmp_path, COORD_BRANCH), (
-        "#1826 regression: coordination worktree HEAD is behind its own "
-        "checked-out branch after the merge pipeline's ref advances"
+        "#1826 regression: coordination worktree HEAD is behind its own checked-out branch after the merge pipeline's ref advances"
     )
-    assert _porcelain(coord_wt) == "", (
-        "#1826 regression: coordination worktree is not clean after merge — "
-        f"phantom divergence remains:\n{_porcelain(coord_wt)}"
-    )
+    assert _porcelain(coord_wt) == "", f"#1826 regression: coordination worktree is not clean after merge — phantom divergence remains:\n{_porcelain(coord_wt)}"
 
     # The bake (third update-ref site) really ran: mission_number landed.
-    baked = json.loads(
-        _git(
-            tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json"
-        ).stdout
-    )
+    baked = json.loads(_git(tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json").stdout)
     assert baked["mission_number"] == 1, "mission-number baking did not land on target"
 
 
@@ -447,15 +412,9 @@ def test_final_bookkeeping_commit_failure_restores_uncommitted_surfaces(
         with pytest.raises(RuntimeError, match="final bookkeeping refused"):
             _run_merge(tmp_path)
 
-    committed_events = _git(
-        tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.events.jsonl"
-    ).stdout.encode()
-    committed_status = _git(
-        tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.json"
-    ).stdout.encode()
-    committed_meta = json.loads(
-        _git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/meta.json").stdout
-    )
+    committed_events = _git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.events.jsonl").stdout.encode()
+    committed_status = _git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.json").stdout.encode()
+    committed_meta = json.loads(_git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/meta.json").stdout)
 
     assert primary_events.read_bytes() == committed_events
     assert primary_status.read_bytes() == committed_status
@@ -470,9 +429,7 @@ def test_final_bookkeeping_commit_failure_restores_uncommitted_surfaces(
     state = load_state(tmp_path, MISSION_ID)
     assert state is not None
     assert state.completed_wps == list(_WP_IDS)
-    assert _git(
-        tmp_path, "status", "--porcelain", "--", f"kitty-specs/{MISSION_SLUG}"
-    ).stdout == ""
+    assert _git(tmp_path, "status", "--porcelain", "--", f"kitty-specs/{MISSION_SLUG}").stdout == ""
 
 
 def test_post_target_invariant_failure_keeps_coord_resume_state_truthful(
@@ -495,15 +452,9 @@ def test_post_target_invariant_failure_keeps_coord_resume_state_truthful(
             _run_merge(tmp_path)
         mocks["safe_commit"].assert_not_called()
 
-    committed_events = _git(
-        tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.events.jsonl"
-    ).stdout.encode()
-    committed_status = _git(
-        tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.json"
-    ).stdout.encode()
-    committed_meta = json.loads(
-        _git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/meta.json").stdout
-    )
+    committed_events = _git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.events.jsonl").stdout.encode()
+    committed_status = _git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/status.json").stdout.encode()
+    committed_meta = json.loads(_git(tmp_path, "show", f"HEAD:kitty-specs/{MISSION_SLUG}/meta.json").stdout)
 
     assert primary_events.read_bytes() == committed_events
     assert primary_status.read_bytes() == committed_status
@@ -549,18 +500,14 @@ def test_dirty_coord_worktree_refuses_loudly_and_preserves_data(tmp_path: Path) 
     from specify_cli.merge.state import load_state
 
     resumable = load_state(tmp_path)
-    assert resumable is not None and resumable.mission_slug == MISSION_SLUG, (
-        "dirty-worktree refusal must leave the merge state resumable"
-    )
+    assert resumable is not None and resumable.mission_slug == MISSION_SLUG, "dirty-worktree refusal must leave the merge state resumable"
 
     # Operator cleans the worktree; the resumed merge completes.
     _git(coord_wt, "checkout", "--", f"kitty-specs/{MISSION_SLUG}/notes.md")
     with _merge_external_mocks():
         _run_merge(tmp_path)
     for relpath in _LANE_FILES.values():
-        assert _file_on_branch(tmp_path, "main", relpath), (
-            f"resumed merge did not integrate lane code {relpath}"
-        )
+        assert _file_on_branch(tmp_path, "main", relpath), f"resumed merge did not integrate lane code {relpath}"
 
 
 # ---------------------------------------------------------------------------
@@ -629,12 +576,8 @@ def test_advance_branch_ref_dirty_worktree_refuses_with_structured_error(
 
     # NFR-002: nothing was reset — the ref did not advance and the dirty
     # bytes are untouched.
-    assert _rev_parse(tmp_path, branch) == old_sha, (
-        "refusal must leave the ref un-advanced (atomic refusal)"
-    )
-    assert (wt / "README.md").read_text(encoding="utf-8") == (
-        "local uncommitted evidence\n"
-    )
+    assert _rev_parse(tmp_path, branch) == old_sha, "refusal must leave the ref un-advanced (atomic refusal)"
+    assert (wt / "README.md").read_text(encoding="utf-8") == ("local uncommitted evidence\n")
 
 
 def test_advance_branch_ref_untracked_files_do_not_block_or_vanish(
@@ -649,9 +592,7 @@ def test_advance_branch_ref_untracked_files_do_not_block_or_vanish(
     advance_branch_ref(tmp_path, branch, new_sha)
 
     assert _rev_parse(wt, "HEAD") == new_sha
-    assert untracked.read_text(encoding="utf-8") == "scratch\n", (
-        "untracked content must survive the resync"
-    )
+    assert untracked.read_text(encoding="utf-8") == "scratch\n", "untracked content must survive the resync"
 
 
 def test_advance_branch_ref_obstructing_untracked_file_refuses_before_reset(
@@ -668,12 +609,8 @@ def test_advance_branch_ref_obstructing_untracked_file_refuses_before_reset(
     with pytest.raises(RefAdvanceDirtyWorktreeError) as excinfo:
         advance_branch_ref(tmp_path, branch, new_sha)
 
-    assert _rev_parse(tmp_path, branch) == old_sha, (
-        "refusal must leave the ref un-advanced"
-    )
-    assert obstruction.read_text(encoding="utf-8") == (
-        "operator evidence must survive\n"
-    )
+    assert _rev_parse(tmp_path, branch) == old_sha, "refusal must leave the ref un-advanced"
+    assert obstruction.read_text(encoding="utf-8") == ("operator evidence must survive\n")
     assert any("advanced.txt" in entry for entry in excinfo.value.dirty_entries)
     assert "would be overwritten" in str(excinfo.value)
 
@@ -700,9 +637,7 @@ def _setup_branch_with_dossier_snapshot_drift(
     wt.parent.mkdir(parents=True, exist_ok=True)
     _git(repo, "worktree", "add", str(wt), branch)
 
-    snapshot_rel = Path(
-        "kitty-specs/some-mission/.kittify/dossiers/some-mission/snapshot-latest.json"
-    )
+    snapshot_rel = Path("kitty-specs/some-mission/.kittify/dossiers/some-mission/snapshot-latest.json")
     (wt / snapshot_rel).parent.mkdir(parents=True, exist_ok=True)
     (wt / snapshot_rel).write_text('{"v": 1}\n', encoding="utf-8")
     _git(wt, "add", str(snapshot_rel))
@@ -732,16 +667,12 @@ def test_advance_branch_ref_dossier_snapshot_drift_blocks_without_residue_exempt
     production callers omit it (they all inject
     ``is_toolchain_generated_churn`` -- see the GREEN test below)."""
     _init_git_repo(tmp_path)
-    branch, wt, new_sha, snapshot_rel = _setup_branch_with_dossier_snapshot_drift(
-        tmp_path
-    )
+    branch, wt, new_sha, snapshot_rel = _setup_branch_with_dossier_snapshot_drift(tmp_path)
 
     with pytest.raises(RefAdvanceDirtyWorktreeError) as excinfo:
         advance_branch_ref(tmp_path, branch, new_sha)
 
-    assert any(
-        snapshot_rel.name in entry for entry in excinfo.value.dirty_entries
-    )
+    assert any(snapshot_rel.name in entry for entry in excinfo.value.dirty_entries)
 
 
 def test_advance_branch_ref_dossier_snapshot_drift_does_not_block_with_residue_exemption(
@@ -758,9 +689,7 @@ def test_advance_branch_ref_dossier_snapshot_drift_does_not_block_with_residue_e
     from specify_cli.coordination.coherence import is_toolchain_generated_churn
 
     _init_git_repo(tmp_path)
-    branch, wt, new_sha, snapshot_rel = _setup_branch_with_dossier_snapshot_drift(
-        tmp_path
-    )
+    branch, wt, new_sha, snapshot_rel = _setup_branch_with_dossier_snapshot_drift(tmp_path)
 
     advance_branch_ref(tmp_path, branch, new_sha, is_residue=is_toolchain_generated_churn)
 
@@ -802,9 +731,7 @@ def test_backstop_message_names_diverged_worktree_and_ref(tmp_path: Path) -> Non
     assert str(wt) in message, "message must name WHICH worktree diverged"
     assert branch in message, "message must name WHICH ref diverged"
     assert "BEHIND" in message, "message must name the behind/ahead state"
-    assert "update-ref" in message and "#1826" in message, (
-        "message must name the most likely cause"
-    )
+    assert "update-ref" in message and "#1826" in message, "message must name the most likely cause"
     # Semantics unchanged: same type, same error_code, structured fields intact.
     assert err.error_code == "SAFE_COMMIT_BACKSTOP"
     assert any(u.path == "advanced.txt" for u in err.unexpected)

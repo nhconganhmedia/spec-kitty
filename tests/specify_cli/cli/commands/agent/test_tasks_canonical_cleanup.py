@@ -148,9 +148,7 @@ class TestFinalizeTasksBootstrap:
         # typeless/absent meta.json to "software-dev" -- give the fixture an
         # explicit canonical mission_type (mission_number is deliberately still
         # omitted, see the assertion note below).
-        (feature_dir / "meta.json").write_text(
-            json.dumps({"mission_type": "software-dev"}), encoding="utf-8"
-        )
+        (feature_dir / "meta.json").write_text(json.dumps({"mission_type": "software-dev"}), encoding="utf-8")
 
         mock_root.return_value = tmp_path
         mock_slug.return_value = mission_slug
@@ -206,9 +204,7 @@ class TestFinalizeTasksBootstrap:
         # typeless/absent meta.json to "software-dev" -- give the fixture an
         # explicit canonical mission_type (mission_number is deliberately still
         # omitted, see the assertion note below).
-        (feature_dir / "meta.json").write_text(
-            json.dumps({"mission_type": "software-dev"}), encoding="utf-8"
-        )
+        (feature_dir / "meta.json").write_text(json.dumps({"mission_type": "software-dev"}), encoding="utf-8")
 
         mock_root.return_value = tmp_path
         mock_slug.return_value = mission_slug
@@ -299,9 +295,7 @@ class TestBodyNotesNoLane:
         _seed_wp_lane(feature_dir, "WP01", "claimed")
 
         # Build a proper mock event for read_events that returns real events
-        mock_read_events_transactional.return_value = list(
-            __import__("specify_cli.status.store", fromlist=["read_events"]).read_events(feature_dir)
-        )
+        mock_read_events_transactional.return_value = list(__import__("specify_cli.status.store", fromlist=["read_events"]).read_events(feature_dir))
 
         mock_emit.return_value = MagicMock(to_lane=Lane.IN_PROGRESS)
         mock_safe_commit.return_value = True

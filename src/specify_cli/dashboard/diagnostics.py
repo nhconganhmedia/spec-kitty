@@ -91,9 +91,7 @@ def _build_observations(
     current_feature = diagnostics.get("current_feature") or {}
     if current_feature.get("detected") and current_feature.get("state") == "in_development":
         if not current_feature.get("worktree_exists"):
-            observations.append(
-                f"Feature {current_feature.get('name')} has no worktree but has development artifacts"
-            )
+            observations.append(f"Feature {current_feature.get('name')} has no worktree but has development artifacts")
     if total_missing > 0:
         observations.append(f"Mission integrity: {total_missing} expected files not found")
     if worktree_summary.get("active_worktrees", 0) > 5:
@@ -113,6 +111,7 @@ def _collect_dashboard_health(
     if not dashboard_file.exists():
         try:
             from ..dashboard.lifecycle import ensure_dashboard_running, stop_dashboard
+
             url, port, _ = ensure_dashboard_running(project_dir, background_process=False)
             health.update({"can_start": True, "startup_test": "SUCCESS", "test_url": url, "test_port": port})
             try:
@@ -126,6 +125,7 @@ def _collect_dashboard_health(
 
     try:
         from ..dashboard.lifecycle import _check_dashboard_health, _is_process_alive, _parse_dashboard_file
+
         url, port, token, pid = _parse_dashboard_file(dashboard_file)
         health.update({"url": url, "port": port, "pid": pid, "has_pid": pid is not None})
         if port:
@@ -216,6 +216,7 @@ def run_diagnostics(project_dir: Path, *, feature_dir: Path | None = None) -> di
     _collect_current_feature(feature_dir, worktree_status, diagnostics, AcceptanceError)
 
     from specify_cli.core.git_ops import resolve_primary_branch
+
     primary = resolve_primary_branch(project_dir)
     diagnostics["observations"] = _build_observations(diagnostics, primary, worktree_summary, total_missing)
     diagnostics["dashboard_health"] = _collect_dashboard_health(kittify_dir, project_dir, diagnostics)

@@ -20,9 +20,7 @@ def require_me_field(me: dict[str, Any], field: str) -> Any:
     try:
         return me[field]
     except KeyError as exc:
-        raise AuthenticationError(
-            f"User info response missing required field '{field}'."
-        ) from exc
+        raise AuthenticationError(f"User info response missing required field '{field}'.") from exc
 
 
 def parse_me_teams(me: dict[str, Any]) -> list[Team]:
@@ -41,13 +39,9 @@ def parse_me_teams(me: dict[str, Any]) -> list[Team]:
                     id=raw_team["id"],
                     name=raw_team["name"],
                     role=raw_team["role"],
-                    is_private_teamspace=bool(
-                        raw_team.get("is_private_teamspace", False)
-                    ),
+                    is_private_teamspace=bool(raw_team.get("is_private_teamspace", False)),
                 )
             )
         except KeyError as exc:
-            raise AuthenticationError(
-                f"User info response missing required team field '{exc.args[0]}'."
-            ) from exc
+            raise AuthenticationError(f"User info response missing required team field '{exc.args[0]}'.") from exc
     return teams

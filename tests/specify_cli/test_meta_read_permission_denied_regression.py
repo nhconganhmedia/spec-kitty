@@ -46,9 +46,7 @@ def _make_unreadable_mission_dir(tmp_path: Path, name: str = "mission") -> Path:
     """
     mission_dir = tmp_path / name
     mission_dir.mkdir()
-    (mission_dir / "meta.json").write_text(
-        json.dumps({"mission_id": "01JPROBEUNREADABLEDIRXXXX"}), encoding="utf-8"
-    )
+    (mission_dir / "meta.json").write_text(json.dumps({"mission_id": "01JPROBEUNREADABLEDIRXXXX"}), encoding="utf-8")
     os.chmod(mission_dir, 0)
     return mission_dir
 
@@ -67,9 +65,7 @@ def unreadable_mission_dir(tmp_path: Path) -> Iterator[Path]:
 class TestMetaReadPermissionDeniedRegression:
     """One case per remediated call site (PR #3155 landing fold)."""
 
-    def test_load_meta_fail_closed_itself_raises_raw_permission_error(
-        self, unreadable_mission_dir: Path
-    ) -> None:
+    def test_load_meta_fail_closed_itself_raises_raw_permission_error(self, unreadable_mission_dir: Path) -> None:
         """Sanity check that the underlying defect is real: the public
         fail-closed reader raises a RAW ``PermissionError``, not the typed
         ``MissionMetaReadError`` its docstring promises for "unreadable".
@@ -82,25 +78,19 @@ class TestMetaReadPermissionDeniedRegression:
         with pytest.raises(PermissionError):
             load_meta_fail_closed(unreadable_mission_dir)
 
-    def test_workflow_load_coord_branch_meta_never_raises(
-        self, unreadable_mission_dir: Path
-    ) -> None:
+    def test_workflow_load_coord_branch_meta_never_raises(self, unreadable_mission_dir: Path) -> None:
         """``agent/workflow.py::_load_coord_branch_meta`` docstring: "Never raises."."""
         from specify_cli.cli.commands.agent.workflow import _load_coord_branch_meta
 
         assert _load_coord_branch_meta(unreadable_mission_dir) == (None, None, None)
 
-    def test_mission_type_safe_load_meta_tolerates_unreadable_dir(
-        self, unreadable_mission_dir: Path
-    ) -> None:
+    def test_mission_type_safe_load_meta_tolerates_unreadable_dir(self, unreadable_mission_dir: Path) -> None:
         """``mission_type.py::_safe_load_meta`` docstring: tolerates absence/corruption."""
         from specify_cli.cli.commands.mission_type import _safe_load_meta
 
         assert _safe_load_meta(unreadable_mission_dir) is None
 
-    def test_implement_load_fallback_mission_meta_tolerates_unreadable_dir(
-        self, unreadable_mission_dir: Path
-    ) -> None:
+    def test_implement_load_fallback_mission_meta_tolerates_unreadable_dir(self, unreadable_mission_dir: Path) -> None:
         """``implement.py::_load_fallback_mission_meta`` -- FR-003 cascade layer 2.
 
         Previously carried ``except Exception  # meta missing/corrupt is
@@ -110,9 +100,7 @@ class TestMetaReadPermissionDeniedRegression:
 
         assert _load_fallback_mission_meta(unreadable_mission_dir) is None
 
-    def test_normalize_mission_lifecycle_records_error_without_raising(
-        self, unreadable_mission_dir: Path
-    ) -> None:
+    def test_normalize_mission_lifecycle_records_error_without_raising(self, unreadable_mission_dir: Path) -> None:
         """``normalize_mission_lifecycle.py::_load_meta_for_normalization``.
 
         Previous comment: "keep one broken mission from aborting the run" --

@@ -10,6 +10,7 @@ Test cases:
 - Test B: primary checkout lacks kitty-specs; coord-aware resolver finds it
 - Test C: neither path exists → "Mission directory not found" error
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -64,9 +65,7 @@ class TestMapRequirementsCoordPrimary:
         # Patch CoordinationWorkspace so no coord worktree root is found on disk.
         # The late import inside _resolve_existing_for_slug uses the real module,
         # so we patch at the canonical module path.
-        with patch(
-            "specify_cli.coordination.workspace.CoordinationWorkspace"
-        ) as mock_ws:
+        with patch("specify_cli.coordination.workspace.CoordinationWorkspace") as mock_ws:
             # coord_root.exists() → False so resolver falls back to primary
             mock_ws.worktree_path.return_value = tmp_path / ".worktrees" / "nonexistent"
 
@@ -85,9 +84,7 @@ class TestMapRequirementsCoordPrimary:
 class TestMapRequirementsCoordWorktree:
     """Test B: coord worktree contains kitty-specs; resolver must find it."""
 
-    def test_resolve_feature_dir_for_slug_finds_coord_worktree(
-        self, tmp_path: Path
-    ) -> None:
+    def test_resolve_feature_dir_for_slug_finds_coord_worktree(self, tmp_path: Path) -> None:
         """When coord worktree is materialised and holds the mission dir, it wins."""
         # Primary checkout has NO kitty-specs for this mission
         primary_root = tmp_path / "primary"
@@ -101,9 +98,7 @@ class TestMapRequirementsCoordWorktree:
         coord_mission_dir = coord_root / "kitty-specs" / MISSION_SLUG
         assert coord_mission_dir.exists()
 
-        with patch(
-            "specify_cli.coordination.workspace.CoordinationWorkspace"
-        ) as mock_ws:
+        with patch("specify_cli.coordination.workspace.CoordinationWorkspace") as mock_ws:
             mock_ws.worktree_path.return_value = coord_root
 
             result = resolve_feature_dir_for_slug(primary_root, MISSION_SLUG)
@@ -120,9 +115,7 @@ class TestMapRequirementsCoordWorktree:
 class TestMapRequirementsCoordMissing:
     """Test C: neither primary nor coord path holds the mission dir."""
 
-    def test_resolve_feature_dir_for_slug_returns_primary_candidate_when_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_resolve_feature_dir_for_slug_returns_primary_candidate_when_missing(self, tmp_path: Path) -> None:
         """When no directory exists, resolver returns the primary candidate path.
 
         map_requirements checks ``feature_dir.exists()`` after calling
@@ -133,9 +126,7 @@ class TestMapRequirementsCoordMissing:
         primary_root = tmp_path / "primary"
         primary_root.mkdir()
 
-        with patch(
-            "specify_cli.coordination.workspace.CoordinationWorkspace"
-        ) as mock_ws:
+        with patch("specify_cli.coordination.workspace.CoordinationWorkspace") as mock_ws:
             # No coord worktree on disk
             mock_ws.worktree_path.return_value = tmp_path / ".worktrees" / "nonexistent"
 

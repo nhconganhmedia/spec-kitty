@@ -36,9 +36,7 @@ def _pre30_feature(tmp_path: Path) -> Path:
     """Return a pre-3.0 mission dir: tasks/planned/WP01.md exists."""
     fd = tmp_path / "kitty-specs" / _SLUG
     (fd / "tasks" / "planned").mkdir(parents=True)
-    (fd / "tasks" / "planned" / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\n---\n", encoding="utf-8"
-    )
+    (fd / "tasks" / "planned" / "WP01.md").write_text("---\nwork_package_id: WP01\n---\n", encoding="utf-8")
     return fd
 
 
@@ -50,9 +48,7 @@ def _post30_feature(tmp_path: Path) -> Path:
         "---\nwork_package_id: WP01\ntitle: Test\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
-    (fd / "meta.json").write_text(
-        json.dumps({"mission_id": "01KW0MJE000000000000000000"}), encoding="utf-8"
-    )
+    (fd / "meta.json").write_text(json.dumps({"mission_id": "01KW0MJE000000000000000000"}), encoding="utf-8")
     return fd
 
 
@@ -128,9 +124,7 @@ class TestMoveTaskGuard:
         """Pre-3.0 layout causes move-task to exit 1 with guard message (IC-02)."""
         fd = _pre30_feature(tmp_path)
         with _base_patches(tmp_path, fd):
-            result = runner.invoke(
-                app, ["move-task", "WP01", "--to", "doing", "--json"]
-            )
+            result = runner.invoke(app, ["move-task", "WP01", "--to", "doing", "--json"])
         assert result.exit_code == 1
         assert "Pre-3.0 layout detected" in result.stdout + result.stderr
 
@@ -140,9 +134,7 @@ class TestMoveTaskGuard:
         with _base_patches(tmp_path, fd):
             # The command may fail for other reasons (no events, etc.) but guard
             # must not fire.
-            result = runner.invoke(
-                app, ["move-task", "WP01", "--to", "doing", "--json"]
-            )
+            result = runner.invoke(app, ["move-task", "WP01", "--to", "doing", "--json"])
         assert "Pre-3.0 layout detected" not in result.stdout + result.stderr
 
 
@@ -155,9 +147,12 @@ class TestMarkStatusGuard:
     def test_rejects_pre30_project(self, tmp_path: Path) -> None:
         """Pre-3.0 layout causes mark-status to exit 1 with guard message (IC-02)."""
         fd = _pre30_feature(tmp_path)
-        with _base_patches(tmp_path, fd), patch(
-            "specify_cli.cli.commands.agent.tasks.feature_status_lock",
-            side_effect=AssertionError("guard should fire before lock"),
+        with (
+            _base_patches(tmp_path, fd),
+            patch(
+                "specify_cli.cli.commands.agent.tasks.feature_status_lock",
+                side_effect=AssertionError("guard should fire before lock"),
+            ),
         ):
             result = runner.invoke(
                 app,
@@ -171,10 +166,13 @@ class TestMarkStatusGuard:
         fd = _post30_feature(tmp_path)
         # Write a minimal tasks.md so mark-status can try to proceed
         (fd / "tasks.md").write_text("# Tasks\n\n## WP01\n- [ ] T001\n", encoding="utf-8")
-        with _base_patches(tmp_path, fd), patch(
-            "specify_cli.cli.commands.agent.tasks.feature_status_lock",
-            new_callable=MagicMock,
-        ) as mock_lock:
+        with (
+            _base_patches(tmp_path, fd),
+            patch(
+                "specify_cli.cli.commands.agent.tasks.feature_status_lock",
+                new_callable=MagicMock,
+            ) as mock_lock,
+        ):
             mock_lock.return_value.__enter__ = MagicMock(return_value=None)
             mock_lock.return_value.__exit__ = MagicMock(return_value=False)
             result = runner.invoke(
@@ -204,9 +202,7 @@ class TestAddHistoryGuard:
     def test_passes_post30_project(self, tmp_path: Path) -> None:
         """Post-3.0 layout does not trigger the guard."""
         fd = _post30_feature(tmp_path)
-        with _base_patches(tmp_path, fd), patch(
-            "specify_cli.cli.commands.agent.tasks.locate_work_package"
-        ) as mock_lwp:
+        with _base_patches(tmp_path, fd), patch("specify_cli.cli.commands.agent.tasks.locate_work_package") as mock_lwp:
             mock_lwp.return_value = MagicMock(
                 frontmatter={"work_package_id": "WP01"},
                 body="## Activity Log\n",
@@ -230,9 +226,7 @@ class TestFinalizeTasksGuard:
         """Pre-3.0 layout causes finalize-tasks to exit 1 with guard message (IC-02)."""
         fd = _pre30_feature(tmp_path)
         with _base_patches(tmp_path, fd):
-            result = runner.invoke(
-                app, ["finalize-tasks", "--mission", _SLUG, "--json"]
-            )
+            result = runner.invoke(app, ["finalize-tasks", "--mission", _SLUG, "--json"])
         assert result.exit_code == 1
         assert "Pre-3.0 layout detected" in result.stdout + result.stderr
 
@@ -242,9 +236,7 @@ class TestFinalizeTasksGuard:
         # Provide a minimal tasks.md so finalize-tasks can proceed past the guard
         (fd / "tasks.md").write_text("# Tasks\n\n## WP01\n\nNo explicit dependencies.\n", encoding="utf-8")
         with _base_patches(tmp_path, fd):
-            result = runner.invoke(
-                app, ["finalize-tasks", "--mission", _SLUG, "--json"]
-            )
+            result = runner.invoke(app, ["finalize-tasks", "--mission", _SLUG, "--json"])
         assert "Pre-3.0 layout detected" not in result.stdout + result.stderr
 
 
@@ -258,26 +250,20 @@ class TestValidateWorkflowGuard:
         """Pre-3.0 layout causes validate-workflow to exit 1 with guard message (IC-02)."""
         fd = _pre30_feature(tmp_path)
         with _base_patches(tmp_path, fd):
-            result = runner.invoke(
-                app, ["validate-workflow", "WP01", "--json"]
-            )
+            result = runner.invoke(app, ["validate-workflow", "WP01", "--json"])
         assert result.exit_code == 1
         assert "Pre-3.0 layout detected" in result.stdout + result.stderr
 
     def test_passes_post30_project(self, tmp_path: Path) -> None:
         """Post-3.0 layout does not trigger the guard."""
         fd = _post30_feature(tmp_path)
-        with _base_patches(tmp_path, fd), patch(
-            "specify_cli.cli.commands.agent.tasks.locate_work_package"
-        ) as mock_lwp:
+        with _base_patches(tmp_path, fd), patch("specify_cli.cli.commands.agent.tasks.locate_work_package") as mock_lwp:
             mock_lwp.return_value = MagicMock(
                 frontmatter={"work_package_id": "WP01", "title": "Test"},
                 body="## Activity Log\n",
                 path=fd / "tasks" / "WP01.md",
             )
-            result = runner.invoke(
-                app, ["validate-workflow", "WP01", "--json"]
-            )
+            result = runner.invoke(app, ["validate-workflow", "WP01", "--json"])
         assert "Pre-3.0 layout detected" not in result.stdout + result.stderr
 
 
@@ -291,28 +277,29 @@ class TestListDependentsGuard:
         """Pre-3.0 layout causes list-dependents to exit 1 with guard message (IC-02)."""
         fd = _pre30_feature(tmp_path)
         with _base_patches(tmp_path, fd):
-            result = runner.invoke(
-                app, ["list-dependents", "WP01", "--json"]
-            )
+            result = runner.invoke(app, ["list-dependents", "WP01", "--json"])
         assert result.exit_code == 1
         assert "Pre-3.0 layout detected" in result.stdout + result.stderr
 
     def test_passes_post30_project(self, tmp_path: Path) -> None:
         """Post-3.0 layout does not trigger the guard."""
         fd = _post30_feature(tmp_path)
-        with _base_patches(tmp_path, fd), patch(
-            "specify_cli.cli.commands.agent.tasks.build_dependency_graph",
-            return_value={},
-        ), patch(
-            "specify_cli.cli.commands.agent.tasks.get_dependents",
-            return_value=[],
-        ), patch(
-            "specify_cli.cli.commands.agent.tasks.locate_work_package",
-            side_effect=FileNotFoundError,
+        with (
+            _base_patches(tmp_path, fd),
+            patch(
+                "specify_cli.cli.commands.agent.tasks.build_dependency_graph",
+                return_value={},
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.tasks.get_dependents",
+                return_value=[],
+            ),
+            patch(
+                "specify_cli.cli.commands.agent.tasks.locate_work_package",
+                side_effect=FileNotFoundError,
+            ),
         ):
-            result = runner.invoke(
-                app, ["list-dependents", "WP01", "--json"]
-            )
+            result = runner.invoke(app, ["list-dependents", "WP01", "--json"])
         assert "Pre-3.0 layout detected" not in result.stdout + result.stderr
 
 

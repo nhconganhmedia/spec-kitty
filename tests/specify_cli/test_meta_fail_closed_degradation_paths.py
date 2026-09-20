@@ -50,9 +50,7 @@ def test_mission_status_read_meta_fails_closed_on_corrupt_meta(tmp_path: Path) -
         MissionStatus._read_meta(tmp_path, slug)
 
 
-def test_mission_status_read_meta_race_window_none_raises_not_found(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_status_read_meta_race_window_none_raises_not_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """TOCTOU race: meta.json exists() at the precondition check but
     ``load_meta_fail_closed`` legitimately returns ``None`` (deleted between
     the two reads) -- covers the race-window branch alongside the corrupt

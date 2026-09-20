@@ -22,9 +22,7 @@ def _write_config(tmp_path: Path, agents: list[str]) -> None:
 
 
 @pytest.mark.parametrize("agent_key", ["pi", "letta"])
-def test_add_pi_letta_updates_config_and_installs_skills(
-    tmp_path: Path, agent_key: str
-) -> None:
+def test_add_pi_letta_updates_config_and_installs_skills(tmp_path: Path, agent_key: str) -> None:
     _write_config(tmp_path, [])
 
     with patch("specify_cli.cli.commands.agent.config.find_repo_root", return_value=tmp_path):

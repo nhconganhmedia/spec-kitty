@@ -68,10 +68,7 @@ def _read_events_text(feature_dir: Path) -> str:
 def test_canonical_entry_exists_and_returns_counts(tmp_path: Path) -> None:
     from specify_cli.migration import mission_state
 
-    assert hasattr(mission_state, "rebuild_mission_event_log"), (
-        "FR-032: mission_state must expose a canonical per-mission "
-        "event-rebuild entry."
-    )
+    assert hasattr(mission_state, "rebuild_mission_event_log"), "FR-032: mission_state must expose a canonical per-mission event-rebuild entry."
 
     feature_dir = _make_feature(
         tmp_path,
@@ -95,9 +92,7 @@ def test_canonical_entry_accepts_wp_id_map(tmp_path: Path) -> None:
     from specify_cli.migration import mission_state
 
     feature_dir = _make_feature(tmp_path, "058-legacy", [{"name": "WP01", "lane": "claimed"}])
-    result = mission_state.rebuild_mission_event_log(
-        feature_dir, "058-legacy", wp_id_map={"WP01": "WP01-ULID"}
-    )
+    result = mission_state.rebuild_mission_event_log(feature_dir, "058-legacy", wp_id_map={"WP01": "WP01-ULID"})
     assert result.events_generated >= 0
     assert not result.errors
 

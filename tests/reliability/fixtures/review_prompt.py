@@ -46,15 +46,7 @@ def _prompt_path(
     work_package_id: str,
     invocation_id: str,
 ) -> Path:
-    return (
-        repo_root
-        / ".spec-kitty"
-        / "review-prompts"
-        / _safe_repo_identifier(repo_root)
-        / mission_slug
-        / work_package_id
-        / f"{invocation_id}.md"
-    )
+    return repo_root / ".spec-kitty" / "review-prompts" / _safe_repo_identifier(repo_root) / mission_slug / work_package_id / f"{invocation_id}.md"
 
 
 def concurrent_review_prompt_identities(

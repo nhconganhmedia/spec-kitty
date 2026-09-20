@@ -32,6 +32,7 @@ from tests._perf_helpers import assert_timing_budget
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_drg_fixture(
     *,
     term_urns: list[str],
@@ -57,9 +58,7 @@ def _make_drg_fixture(
         term_definitions = [f"Definition of {u}" for u in term_urns]
 
     term_labels = list(term_labels) + [None] * (n - len(term_labels))
-    term_definitions = list(term_definitions) + [
-        f"Definition of {u}" for u in term_urns[len(term_definitions) :]
-    ]
+    term_definitions = list(term_definitions) + [f"Definition of {u}" for u in term_urns[len(term_definitions) :]]
 
     node_map: dict[str, Any] = {}
     for urn, lbl, defn in zip(term_urns, term_labels, term_definitions, strict=False):

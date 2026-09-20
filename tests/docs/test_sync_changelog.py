@@ -47,9 +47,7 @@ def test_live_root_is_canonical_symlink() -> None:
         "Fix: python scripts/docs/sync_changelog.py --write"
     )
     assert _ROOT_PATH.resolve() == _CANONICAL_PATH.resolve(), (
-        f"Root CHANGELOG.md symlink resolves to {_ROOT_PATH.resolve()}, "
-        f"expected {_CANONICAL_PATH.resolve()}.\n"
-        "Fix: python scripts/docs/sync_changelog.py --write"
+        f"Root CHANGELOG.md symlink resolves to {_ROOT_PATH.resolve()}, expected {_CANONICAL_PATH.resolve()}.\nFix: python scripts/docs/sync_changelog.py --write"
     )
 
 
@@ -119,14 +117,10 @@ def test_canonical_with_frontmatter_parseable_by_extract_changelog() -> None:
     """
     canonical = _CANONICAL_PATH.read_text(encoding="utf-8")
     assert canonical.startswith("---"), (
-        "Precondition: canonical changelog carries YAML frontmatter — if this "
-        "changed, re-examine whether the symlink model still needs this pin."
+        "Precondition: canonical changelog carries YAML frontmatter — if this changed, re-examine whether the symlink model still needs this pin."
     )
     section = extract_changelog_section(canonical, "3.2.3")
-    assert section, (
-        "extract_changelog_section returned empty string for version 3.2.3 — "
-        "the canonical CHANGELOG.md does not have a 3.2.3 entry (C-002 violation)."
-    )
+    assert section, "extract_changelog_section returned empty string for version 3.2.3 — the canonical CHANGELOG.md does not have a 3.2.3 entry (C-002 violation)."
     fallback_prefix = "Release 3.2.3\n\nNo changelog entry"
     assert not section.startswith(fallback_prefix), (
         "extract_changelog_section returned the fallback message for 3.2.3 — "

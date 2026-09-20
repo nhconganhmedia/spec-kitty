@@ -292,9 +292,7 @@ _FRONTMATTER_RE: re.Pattern[str] = re.compile(
     r"# expect: (?P<expect>valid|invalid)",
     re.MULTILINE,
 )
-_EXPECT_MESSAGE_RE: re.Pattern[str] = re.compile(
-    r"^# expect_message: (?P<msg>.+)$", re.MULTILINE
-)
+_EXPECT_MESSAGE_RE: re.Pattern[str] = re.compile(r"^# expect_message: (?P<msg>.+)$", re.MULTILINE)
 
 # Explicit per-block "this YAML block is intentionally non-executable" marker.
 # In a NON-legacy contract every YAML codeblock must be either tagged with
@@ -308,7 +306,8 @@ _EXPECT_MESSAGE_RE: re.Pattern[str] = re.compile(
 _SKIP_MARKER_RE: re.Pattern[str] = re.compile(
     # ``[ \t]*`` (not ``\s*``) so the reason cannot run onto the next line and a
     # bare ``# round-trip: skip:`` with no reason fails to match (forcing a reason).
-    r"^# round-trip: skip:[ \t]*(?P<reason>\S.*)$", re.MULTILINE
+    r"^# round-trip: skip:[ \t]*(?P<reason>\S.*)$",
+    re.MULTILINE,
 )
 
 # Fenced yaml codeblock (triple backtick, NOT preceded on the same line by a
@@ -331,17 +330,14 @@ _QUAD_FENCE_RE: re.Pattern[str] = re.compile(
 # Discovery helpers
 # ---------------------------------------------------------------------------
 
+
 def _strip_frontmatter_comments(block_body: str) -> str:
     """Remove leading ``# pydantic_model:``, ``# expect:``, ``# expect_message:`` lines."""
     lines = block_body.splitlines(keepends=True)
     stripped: list[str] = []
     for line in lines:
         stripped_line = line.lstrip()
-        if (
-            stripped_line.startswith("# pydantic_model:")
-            or stripped_line.startswith("# expect:")
-            or stripped_line.startswith("# expect_message:")
-        ):
+        if stripped_line.startswith("# pydantic_model:") or stripped_line.startswith("# expect:") or stripped_line.startswith("# expect_message:"):
             continue
         stripped.append(line)
     return "".join(stripped)
@@ -407,9 +403,7 @@ def _classify_yaml_block(block_body: str) -> tuple[str, dict[str, Any]]:
         return "execute", {
             "model": fm.group("model"),
             "expect": fm.group("expect"),
-            "expect_message": (
-                _parse_expect_message(msg_match.group("msg")) if msg_match else None
-            ),
+            "expect_message": (_parse_expect_message(msg_match.group("msg")) if msg_match else None),
             "payload": _strip_frontmatter_comments(block_body),
         }
     skip = _SKIP_MARKER_RE.search(block_body)
@@ -591,6 +585,7 @@ _SKIP_MARKED_BLOCKS: frozenset[str] = _discover_skip_marked_blocks()
 # The parametrised gate (AC-10)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize(
     "contract_label,model_path,expect,payload,expect_message",
     _ALL_CASES,
@@ -630,10 +625,7 @@ def test_contract_example_round_trip(
     # --- Import the model ---
     module_dotted, _, class_name = model_path.rpartition(".")
     if not module_dotted:
-        pytest.fail(
-            f"'{contract_label}': ``pydantic_model: {model_path}`` is not a valid "
-            f"dotted import path (expected ``module.ClassName``)."
-        )
+        pytest.fail(f"'{contract_label}': ``pydantic_model: {model_path}`` is not a valid dotted import path (expected ``module.ClassName``).")
 
     try:
         module = importlib.import_module(module_dotted)
@@ -656,9 +648,7 @@ def test_contract_example_round_trip(
         # Same pattern as ImportError above: the module exists but the
         # specific class doesn't yet. Skip pending the owning WP.
         pytest.skip(
-            f"'{contract_label}': ``{module_dotted}`` has no attribute "
-            f"``{class_name}`` yet. The owning WP defines this class "
-            f"per its acceptance criterion."
+            f"'{contract_label}': ``{module_dotted}`` has no attribute ``{class_name}`` yet. The owning WP defines this class per its acceptance criterion."
         )
 
     model_cls = getattr(module, class_name)
@@ -667,28 +657,21 @@ def test_contract_example_round_trip(
     try:
         parsed: Any = yaml.safe_load(payload)
     except yaml.YAMLError as exc:
-        pytest.fail(
-            f"'{contract_label}' YAML payload failed to parse: {exc}"
-        )
+        pytest.fail(f"'{contract_label}' YAML payload failed to parse: {exc}")
 
     # --- Assert expected outcome ---
     if expect == "valid":
         try:
             model_cls.model_validate(parsed)
         except pydantic.ValidationError as exc:
-            pytest.fail(
-                f"'{contract_label}' declared ``pydantic_model: {model_path}, "
-                f"expect: valid`` but ``model_validate`` raised:\n{exc}"
-            )
+            pytest.fail(f"'{contract_label}' declared ``pydantic_model: {model_path}, expect: valid`` but ``model_validate`` raised:\n{exc}")
     else:  # expect == "invalid"
         with pytest.raises(pydantic.ValidationError) as exc_info:
             model_cls.model_validate(parsed)
         if expect_message is not None:
             error_text = str(exc_info.value)
             assert expect_message in error_text, (
-                f"'{contract_label}' declared ``expect_message: {expect_message!r}`` "
-                f"but the ValidationError text does not contain it.\n"
-                f"Actual error:\n{error_text}"
+                f"'{contract_label}' declared ``expect_message: {expect_message!r}`` but the ValidationError text does not contain it.\nActual error:\n{error_text}"
             )
 
 
@@ -698,10 +681,7 @@ def test_contract_example_round_trip(
 
 
 def test_classify_block_executes_on_frontmatter() -> None:
-    kind, info = _classify_yaml_block(
-        "# pydantic_model: a.b.C\n# expect: invalid\n"
-        "# expect_message: boom\nkey: value\n"
-    )
+    kind, info = _classify_yaml_block("# pydantic_model: a.b.C\n# expect: invalid\n# expect_message: boom\nkey: value\n")
     assert kind == "execute"
     assert info["model"] == "a.b.C"
     assert info["expect"] == "invalid"
@@ -711,9 +691,7 @@ def test_classify_block_executes_on_frontmatter() -> None:
 
 
 def test_classify_block_skips_on_marker_with_reason() -> None:
-    kind, info = _classify_yaml_block(
-        "# round-trip: skip: illustration only\nkey: value\n"
-    )
+    kind, info = _classify_yaml_block("# round-trip: skip: illustration only\nkey: value\n")
     assert kind == "skip"
     assert info["reason"] == "illustration only"
 
@@ -733,9 +711,7 @@ def test_classify_block_skip_marker_requires_a_reason() -> None:
 
 def test_classify_block_frontmatter_wins_over_skip_marker() -> None:
     # A real example can never be silently disabled by a stray skip marker.
-    kind, info = _classify_yaml_block(
-        "# pydantic_model: a.b.C\n# expect: valid\n# round-trip: skip: nope\nk: v\n"
-    )
+    kind, info = _classify_yaml_block("# pydantic_model: a.b.C\n# expect: valid\n# round-trip: skip: nope\nk: v\n")
     assert kind == "execute"
     assert info["model"] == "a.b.C"
 
@@ -751,17 +727,13 @@ def test_strict_collection_fails_untagged_block_per_block() -> None:
 
 def test_strict_collection_skips_marked_block() -> None:
     out: list[tuple[str, str, str, str, str | None]] = []
-    _collect_strict_blocks(
-        "x/contracts/y.md", ["# round-trip: skip: shape sketch\na: 1\n"], out
-    )
+    _collect_strict_blocks("x/contracts/y.md", ["# round-trip: skip: shape sketch\na: 1\n"], out)
     assert out == []
 
 
 def test_strict_collection_executes_tagged_block() -> None:
     out: list[tuple[str, str, str, str, str | None]] = []
-    _collect_strict_blocks(
-        "x/contracts/y.md", ["# pydantic_model: a.b.C\n# expect: valid\nk: v\n"], out
-    )
+    _collect_strict_blocks("x/contracts/y.md", ["# pydantic_model: a.b.C\n# expect: valid\nk: v\n"], out)
     assert len(out) == 1
     assert out[0][0] == "x/contracts/y.md::block-1"
     assert out[0][1] == "a.b.C"
@@ -809,9 +781,7 @@ def test_skip_marked_blocks_invariants() -> None:
         rel, _, suffix = label.partition("::block-")
         assert suffix, f"malformed skip label: {label!r}"
         # Invariant 1: skip markers are only ratcheted for NON-legacy contracts.
-        assert rel not in _LEGACY_CONTRACT_ALLOWLIST, (
-            f"{rel} is legacy-allowlisted; its blocks must not be counted as skips"
-        )
+        assert rel not in _LEGACY_CONTRACT_ALLOWLIST, f"{rel} is legacy-allowlisted; its blocks must not be counted as skips"
         # Invariant 2: the referenced block actually classifies as a skip.
         block_idx = int(suffix)
         blocks = _extract_yaml_blocks((_REPO_ROOT / rel).read_text(encoding="utf-8"))

@@ -117,9 +117,7 @@ def _write_meta(feature_dir: Path) -> None:
         "purpose_tldr": "coord-topology merge regression (#1772)",
         "purpose_context": "merge must integrate lane diffs or fail loudly",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _write_manifest(feature_dir: Path) -> LanesManifest:
@@ -177,14 +175,11 @@ def _bootstrap_coord_mission(
         "to_lane": "done",
         "wp_id": "WP01",
     }
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(done_event) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(done_event) + "\n", encoding="utf-8")
     # Derived status snapshot (tracked alongside the event log in real
     # missions; the bookkeeping safe_commit stages it, so it must exist).
     (feature_dir / "status.json").write_text(
-        json.dumps({"event_count": 1, "work_packages": {"WP01": {"lane": "done"}}})
-        + "\n",
+        json.dumps({"event_count": 1, "work_packages": {"WP01": {"lane": "done"}}}) + "\n",
         encoding="utf-8",
     )
 
@@ -308,9 +303,7 @@ def test_retry_after_abort_integrates_lane_code_or_fails_loudly(tmp_path: Path) 
     )
     save_state(state, tmp_path)
 
-    assert not _file_on_branch(tmp_path, "main", lane_code), (
-        "fixture precondition: lane code must NOT be on main before merge"
-    )
+    assert not _file_on_branch(tmp_path, "main", lane_code), "fixture precondition: lane code must NOT be on main before merge"
 
     integrated = False
     failed_loudly = False
@@ -361,10 +354,7 @@ def test_fresh_merge_integrates_lane_code(tmp_path: Path) -> None:
             allow_sparse_checkout=True,
         )
 
-    assert _file_on_branch(tmp_path, "main", lane_code), (
-        "healthy-merge regression: fresh merge did not integrate the lane code "
-        "onto the target branch."
-    )
+    assert _file_on_branch(tmp_path, "main", lane_code), "healthy-merge regression: fresh merge did not integrate the lane code onto the target branch."
 
 
 # ---------------------------------------------------------------------------
@@ -415,9 +405,7 @@ def test_merge_records_baseline_merge_commit_on_target(tmp_path: Path) -> None:
             allow_sparse_checkout=True,
         )
 
-    committed = _git(
-        tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json"
-    ).stdout
+    committed = _git(tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json").stdout
     committed_meta = json.loads(committed)
     recorded = committed_meta.get("baseline_merge_commit")
     assert recorded, (
@@ -480,19 +468,10 @@ def test_doctor_flags_tracked_worktrees_content(tmp_path: Path) -> None:
     ):
         result = runner.invoke(doctor_app, ["coordination", "--json"])
 
-    assert result.exit_code == 1, (
-        "doctor must exit 1 when tracked .worktrees/ content is present"
-    )
+    assert result.exit_code == 1, "doctor must exit 1 when tracked .worktrees/ content is present"
     payload = json.loads(result.stdout)
-    worktree_findings = [
-        f
-        for f in payload
-        if f.get("error_code") == "TRACKED_WORKTREES_CONTENT"
-    ]
-    assert worktree_findings, (
-        "#1772 FR-035 regression: doctor did not flag tracked .worktrees/ "
-        f"content. Findings: {payload!r}"
-    )
+    worktree_findings = [f for f in payload if f.get("error_code") == "TRACKED_WORKTREES_CONTENT"]
+    assert worktree_findings, f"#1772 FR-035 regression: doctor did not flag tracked .worktrees/ content. Findings: {payload!r}"
     assert worktree_findings[0]["severity"] == "error"
     assert worktree_findings[0]["next_step"], "must carry a remediation hint"
 
@@ -538,10 +517,5 @@ def test_post_merge_validation_reads_in_branch_status_path(tmp_path: Path) -> No
 
     assert captured_refs, "expected a git show invocation for in-branch validation"
     for ref in captured_refs:
-        assert ".worktrees" not in ref, (
-            "#1772 FR-038 regression: post-merge validation read a .worktrees/ "
-            f"path that is never tracked in a branch tree: {ref!r}"
-        )
-        assert "kitty-specs/" in ref, (
-            f"post-merge validation must read the in-branch kitty-specs path: {ref!r}"
-        )
+        assert ".worktrees" not in ref, f"#1772 FR-038 regression: post-merge validation read a .worktrees/ path that is never tracked in a branch tree: {ref!r}"
+        assert "kitty-specs/" in ref, f"post-merge validation must read the in-branch kitty-specs path: {ref!r}"

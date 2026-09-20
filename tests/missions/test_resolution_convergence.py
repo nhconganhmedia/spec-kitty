@@ -176,10 +176,7 @@ class FakeResolver:
         """
         outputs = {str(self._resolve(h)) for h in _FIVE_HANDLES.values()}
         if len(outputs) <= 1:
-            raise ValueError(
-                f"Stub is constant-returning: all five forms resolve to {outputs}. "
-                "A constant stub cannot satisfy the convergence test (T032)."
-            )
+            raise ValueError(f"Stub is constant-returning: all five forms resolve to {outputs}. A constant stub cannot satisfy the convergence test (T032).")
 
 
 # ---------------------------------------------------------------------------
@@ -262,14 +259,10 @@ def test_read_seam_equals_write_seam(form: str, handle: str) -> None:
 
     # Structural: the resolved directory must be the one assigned to this form.
     assert read_dir == FORM_TO_DIR[form], (
-        f"read-seam for {form!r} (handle={handle!r}) resolved "
-        f"{read_dir}, expected {FORM_TO_DIR[form]} (distinguishable per-form output)"
+        f"read-seam for {form!r} (handle={handle!r}) resolved {read_dir}, expected {FORM_TO_DIR[form]} (distinguishable per-form output)"
     )
     # Convergence (FR-006 / SC-005): read == write for this handle form.
-    assert read_dir == write_dir, (
-        f"read-seam ≠ write-seam for {form!r} (handle={handle!r}): "
-        f"read={read_dir}, write={write_dir} — DIVERGENCE (FR-006 violation)"
-    )
+    assert read_dir == write_dir, f"read-seam ≠ write-seam for {form!r} (handle={handle!r}): read={read_dir}, write={write_dir} — DIVERGENCE (FR-006 violation)"
 
 
 # ---------------------------------------------------------------------------
@@ -332,14 +325,10 @@ def test_cold_miss_raises_fail_closed_no_verbatim_path() -> None:
     # diagnostic text, never JUST the raw path).
     msg = str(exc)
     # The message MUST include mission identity context (the slug or mid8) ...
-    assert handle in msg or exc.mission_slug in msg, (
-        "cold-miss message must mention the mission slug for debuggability"
-    )
+    assert handle in msg or exc.mission_slug in msg, "cold-miss message must mention the mission slug for debuggability"
     # ... but must NOT be a bare verbatim path (the production message always
     # includes the surrounding "Status read path not found for '...'" frame).
-    assert msg.startswith("Status read path not found for"), (
-        f"cold-miss message must start with the canonical framing, got: {msg!r}"
-    )
+    assert msg.startswith("Status read path not found for"), f"cold-miss message must start with the canonical framing, got: {msg!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -372,17 +361,10 @@ def test_convergence_pre_fix_stub_diverges() -> None:
 
     # Pre-fix the two legs return DIFFERENT directories.
     # Hardcoded expected values (not derived from the stubs — a tautology guard).
-    assert old_read_dir == Path("/fake/resolved/by-full-slug"), (
-        f"expected pre-fix read to be /fake/resolved/by-full-slug, got {old_read_dir}"
-    )
-    assert old_write_dir == Path("/fake/old-coord-write/by-full-slug"), (
-        f"expected pre-fix write to be /fake/old-coord-write/by-full-slug, got {old_write_dir}"
-    )
+    assert old_read_dir == Path("/fake/resolved/by-full-slug"), f"expected pre-fix read to be /fake/resolved/by-full-slug, got {old_read_dir}"
+    assert old_write_dir == Path("/fake/old-coord-write/by-full-slug"), f"expected pre-fix write to be /fake/old-coord-write/by-full-slug, got {old_write_dir}"
     # The divergence: they must NOT be equal (this is the RED state before WP02).
-    assert old_read_dir != old_write_dir, (
-        "pre-fix stub pair must diverge for full_slug — "
-        "if they agree the negative control is invalid"
-    )
+    assert old_read_dir != old_write_dir, "pre-fix stub pair must diverge for full_slug — if they agree the negative control is invalid"
 
 
 def test_convergence_negative_control_pre_fix_divergence() -> None:
@@ -405,13 +387,11 @@ def test_convergence_negative_control_pre_fix_divergence() -> None:
 
     # Post-fix: both legs resolve to the SAME directory.
     assert fixed_read_dir == fixed_write_dir, (
-        f"post-fix full_slug must converge: read={fixed_read_dir}, "
-        f"write={fixed_write_dir} — DIVERGENCE after WP02 is a regression"
+        f"post-fix full_slug must converge: read={fixed_read_dir}, write={fixed_write_dir} — DIVERGENCE after WP02 is a regression"
     )
     # Absolute anchor (not pure leg-equality — both-wrong mutant guard):
     assert fixed_read_dir == FORM_TO_DIR["full_slug"], (
-        f"post-fix full_slug must resolve to FORM_TO_DIR['full_slug'] "
-        f"({FORM_TO_DIR['full_slug']}), got {fixed_read_dir}"
+        f"post-fix full_slug must resolve to FORM_TO_DIR['full_slug'] ({FORM_TO_DIR['full_slug']}), got {fixed_read_dir}"
     )
 
 
@@ -453,15 +433,11 @@ def test_constant_stub_is_rejected() -> None:
 
     # Step 1–3: collect outputs for all five forms; assert they are all equal.
     bad_outputs = [bad_stub.read_dir(h) for h in _FIVE_HANDLES.values()]
-    assert all(p == _CONSTANT_PATH for p in bad_outputs), (
-        "bad stub must return the constant for every form"
-    )
+    assert all(p == _CONSTANT_PATH for p in bad_outputs), "bad stub must return the constant for every form"
 
     # Step 4: the set of outputs has exactly one member — the stub is constant.
     unique_outputs = {str(p) for p in bad_outputs}  # set comprehension (ruff C401)
-    assert len(unique_outputs) == 1, (
-        f"bad stub outputs must all be identical; got {unique_outputs}"
-    )
+    assert len(unique_outputs) == 1, f"bad stub outputs must all be identical; got {unique_outputs}"
 
     # Step 5: the FakeResolver's assert_distinguishable() method detects a
     # constant stub and raises ValueError. We simulate this by building a
@@ -492,13 +468,12 @@ def test_form_to_dir_all_unique() -> None:
     the convergence test to pass vacuously (two forms colliding on the same path
     while diverging on different forms would go undetected).
     """
-    assert frozenset(FORM_TO_DIR.keys()) == frozenset(
-        {"full_slug", "slug_mid8", "bare_mid8", "ulid", "numeric"}
-    ), f"FORM_TO_DIR must have exactly these 5 handle-form keys, got {FORM_TO_DIR.keys()}"
+    assert frozenset(FORM_TO_DIR.keys()) == frozenset({"full_slug", "slug_mid8", "bare_mid8", "ulid", "numeric"}), (
+        f"FORM_TO_DIR must have exactly these 5 handle-form keys, got {FORM_TO_DIR.keys()}"
+    )
     unique_paths = {str(p) for p in FORM_TO_DIR.values()}
     assert len(unique_paths) == 5, (  # (distinctness check, not nameable)
-        f"FORM_TO_DIR must contain 5 DISTINCT paths; "
-        f"duplicates found: {FORM_TO_DIR}"
+        f"FORM_TO_DIR must contain 5 DISTINCT paths; duplicates found: {FORM_TO_DIR}"
     )
 
 
@@ -518,6 +493,4 @@ def test_classifier_covers_all_five_forms() -> None:
     }
     for handle, expected_form in expected.items():
         actual = _classify_handle_form(handle)
-        assert actual == expected_form, (
-            f"handle {handle!r}: classified as {actual!r}, expected {expected_form!r}"
-        )
+        assert actual == expected_form, f"handle {handle!r}: classified as {actual!r}, expected {expected_form!r}"

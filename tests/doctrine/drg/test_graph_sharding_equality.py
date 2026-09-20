@@ -201,50 +201,34 @@ def test_reference_is_generated_in_memory_not_a_self_compare(
     assert sharded_graph.edges, "sharded graph must carry edges"
 
 
-def test_node_sets_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_node_sets_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     ref = _node_set(reference_graph)
     shd = _node_set(sharded_graph)
-    assert shd == ref, (
-        f"node set drift — missing={ref - shd} extra={shd - ref}"
-    )
+    assert shd == ref, f"node set drift — missing={ref - shd} extra={shd - ref}"
 
 
-def test_node_counts_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_node_counts_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """Counts guard against a duplicated node the set comparison would hide."""
     assert len(sharded_graph.nodes) == len(reference_graph.nodes)
 
 
-def test_edge_sets_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_edge_sets_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     ref = _edge_set(reference_graph)
     shd = _edge_set(sharded_graph)
-    assert shd == ref, (
-        f"edge set drift — missing={ref - shd} extra={shd - ref}"
-    )
+    assert shd == ref, f"edge set drift — missing={ref - shd} extra={shd - ref}"
 
 
-def test_edge_counts_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_edge_counts_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """Counts guard against a duplicated edge the set comparison would hide."""
     assert len(sharded_graph.edges) == len(reference_graph.edges)
 
 
-def test_canonical_sorted_nodes_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_canonical_sorted_nodes_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """Re-sort both graphs canonically, then compare as ordered lists."""
     assert _sorted_nodes(sharded_graph) == _sorted_nodes(reference_graph)
 
 
-def test_canonical_sorted_edges_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_canonical_sorted_edges_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """Re-sort both graphs canonically, then compare as ordered lists.
 
     This closes the ``merge_layers`` concat-order trap (DD-9): the sharded graph
@@ -254,17 +238,13 @@ def test_canonical_sorted_edges_equal(
     assert _sorted_edges(sharded_graph) == _sorted_edges(reference_graph)
 
 
-def test_both_graphs_pass_assert_valid(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_both_graphs_pass_assert_valid(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """``assert_valid`` agrees on both — no dangling edge, duplicate, or cycle."""
     assert_valid(reference_graph)
     assert_valid(sharded_graph)
 
 
-def test_equality_assertions_are_sensitive_to_perturbation(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_equality_assertions_are_sensitive_to_perturbation(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """Prove the equality checks discriminate (anti-vacuity self-test).
 
     Drop a single node from the sharded set and confirm the comparison detects
@@ -276,9 +256,7 @@ def test_equality_assertions_are_sensitive_to_perturbation(
     assert perturbed != _node_set(reference_graph)
 
 
-def test_sharded_reload_equals_monolith_reload_raw(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_sharded_reload_equals_monolith_reload_raw(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """The delete-safety certification: shards reload == monolith reload, raw.
 
     Writes the *same* in-memory reference to a single ``graph.yaml`` monolith
@@ -295,9 +273,7 @@ def test_sharded_reload_equals_monolith_reload_raw(
         monolith_reload = load_graph(monolith_path)
 
     assert _node_set(monolith_reload) == _node_set(sharded_graph)
-    assert {_raw_edge_key(e) for e in monolith_reload.edges} == {
-        _raw_edge_key(e) for e in sharded_graph.edges
-    }
+    assert {_raw_edge_key(e) for e in monolith_reload.edges} == {_raw_edge_key(e) for e in sharded_graph.edges}
     assert len(monolith_reload.nodes) == len(sharded_graph.nodes)
     assert len(monolith_reload.edges) == len(sharded_graph.edges)
 
@@ -310,33 +286,23 @@ def test_sharded_reload_equals_monolith_reload_raw(
 def test_every_populated_kind_has_a_fragment(sharded_graph: DRGGraph) -> None:
     """Every node-kind present in the merged graph owns exactly one fragment."""
     populated = {n.kind.value for n in sharded_graph.nodes}
-    fragment_kinds = {
-        p.name[: -len(_FRAGMENT_SUFFIX)]
-        for p in built_in_graph_source().glob(f"*{_FRAGMENT_SUFFIX}")
-    }
+    fragment_kinds = {p.name[: -len(_FRAGMENT_SUFFIX)] for p in built_in_graph_source().glob(f"*{_FRAGMENT_SUFFIX}")}
     assert fragment_kinds == populated, (
-        "fragment set must equal populated node-kinds exactly; "
-        f"missing={populated - fragment_kinds} extra={fragment_kinds - populated}"
+        f"fragment set must equal populated node-kinds exactly; missing={populated - fragment_kinds} extra={fragment_kinds - populated}"
     )
 
 
-def test_per_kind_node_counts_equal(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_per_kind_node_counts_equal(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """No kind loses (or gains) nodes across the shard/merge round trip."""
     assert _counts_by_kind(sharded_graph) == _counts_by_kind(reference_graph)
 
 
-def test_no_node_urn_lost(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_no_node_urn_lost(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """The reloaded URN set equals the reference URN set exactly."""
     assert sharded_graph.node_urns() == reference_graph.node_urns()
 
 
-def test_target_only_kinds_survive_round_trip(
-    reference_graph: DRGGraph, sharded_graph: DRGGraph
-) -> None:
+def test_target_only_kinds_survive_round_trip(reference_graph: DRGGraph, sharded_graph: DRGGraph) -> None:
     """Target-only kinds (never an edge source) still round-trip.
 
     ``template`` is the canonical example: it owns nodes but emits no outgoing
@@ -345,13 +311,11 @@ def test_target_only_kinds_survive_round_trip(
     """
     target_only = _target_only_kinds(reference_graph)
     assert "template" in target_only, (
-        "expected 'template' to be a populated target-only kind (the trap the "
-        "partition must not drop); doctrine layout changed — revisit this proof"
+        "expected 'template' to be a populated target-only kind (the trap the partition must not drop); doctrine layout changed — revisit this proof"
     )
     ref_counts = _counts_by_kind(reference_graph)
     shd_counts = _counts_by_kind(sharded_graph)
     for kind in sorted(target_only):
         assert shd_counts.get(kind, 0) == ref_counts[kind] > 0, (
-            f"target-only kind {kind!r} lost nodes on reload: "
-            f"reference={ref_counts[kind]} sharded={shd_counts.get(kind, 0)}"
+            f"target-only kind {kind!r} lost nodes on reload: reference={ref_counts[kind]} sharded={shd_counts.get(kind, 0)}"
         )

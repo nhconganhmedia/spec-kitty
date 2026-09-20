@@ -92,9 +92,7 @@ def test_evaluate_readiness_without_host_resolves_packaged_default(unconfigured_
     assert DEFAULT_HOSTED_SAAS_URL in result.message or DEFAULT_HOSTED_SAAS_URL in (result.next_action or "")
 
 
-def test_evaluate_readiness_yields_missing_host_config_only_when_resolver_degrades(
-    unconfigured_host: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_evaluate_readiness_yields_missing_host_config_only_when_resolver_degrades(unconfigured_host: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``MISSING_HOST_CONFIG`` survives only for a resolver that itself
     degrades (its no-raise representation of an unresolvable target)."""
     _refuse_network(monkeypatch)
@@ -171,7 +169,5 @@ def test_evaluate_readiness_with_split_brain_target_yields_ambiguous_host_config
         "`https://env-override.example.com`."
     )
     assert result.next_action == (
-        "Reconcile the two: update `config.toml`'s `[sync].server_url` to "
-        "match, or change/unset `SPEC_KITTY_SAAS_URL`, so both name the "
-        "same host."
+        "Reconcile the two: update `config.toml`'s `[sync].server_url` to match, or change/unset `SPEC_KITTY_SAAS_URL`, so both name the same host."
     )

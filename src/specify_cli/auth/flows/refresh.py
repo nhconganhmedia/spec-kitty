@@ -77,10 +77,7 @@ class TokenRefreshFlow:
             NetworkError: Transport-level failure (DNS, connect, timeout).
         """
         if not isinstance(session.refresh_token, str) or not session.refresh_token.strip():
-            raise TokenRefreshError(
-                "No usable refresh credential is stored. "
-                "Run `spec-kitty auth login` again."
-            )
+            raise TokenRefreshError("No usable refresh credential is stored. Run `spec-kitty auth login` again.")
 
         saas_url = get_saas_base_url()
         url = f"{saas_url}/oauth/token"
@@ -100,9 +97,7 @@ class TokenRefreshFlow:
             try:
                 tokens = response.json()
             except ValueError as exc:
-                raise TokenRefreshError(
-                    f"Refresh response was not JSON: {exc}"
-                ) from exc
+                raise TokenRefreshError(f"Refresh response was not JSON: {exc}") from exc
             return self._update_session(session, tokens)
 
         if response.status_code == 409:
@@ -111,21 +106,14 @@ class TokenRefreshFlow:
             except ValueError:
                 body = {}
             if isinstance(body, dict) and body.get("error") == "refresh_replay_benign_retry":
-                raise RefreshReplayError(
-                    retry_after=_parse_retry_after(body.get("retry_after"))
-                )
+                raise RefreshReplayError(retry_after=_parse_retry_after(body.get("retry_after")))
             # Non-replay 409 (unexpected) — fall through to generic TokenRefreshError below
 
         self._raise_known_auth_error(response)
 
-        raise TokenRefreshError(
-            f"Token refresh failed: HTTP {response.status_code}. "
-            "Retry later; if this persists, contact your Team Kitty administrator."
-        )
+        raise TokenRefreshError(f"Token refresh failed: HTTP {response.status_code}. Retry later; if this persists, contact your Team Kitty administrator.")
 
-    def _update_session(
-        self, session: StoredSession, tokens: dict[str, Any]
-    ) -> StoredSession:
+    def _update_session(self, session: StoredSession, tokens: dict[str, Any]) -> StoredSession:
         """Build an updated session from a refresh response.
 
         Per C-012 (LANDED 2026-04-09), ``refresh_token_expires_at`` is read
@@ -143,9 +131,7 @@ class TokenRefreshFlow:
         try:
             new_access = tokens["access_token"]
         except KeyError as exc:
-            raise TokenRefreshError(
-                "Refresh response missing 'access_token'"
-            ) from exc
+            raise TokenRefreshError("Refresh response missing 'access_token'") from exc
 
         # Refresh token may rotate; keep the old one if the server doesn't rotate.
         new_refresh = tokens.get("refresh_token", session.refresh_token)
@@ -153,9 +139,7 @@ class TokenRefreshFlow:
         try:
             expires_in = int(tokens.get("expires_in", 3600))
         except (TypeError, ValueError) as exc:
-            raise TokenRefreshError(
-                f"Refresh response has invalid 'expires_in': {exc}"
-            ) from exc
+            raise TokenRefreshError(f"Refresh response has invalid 'expires_in': {exc}") from exc
 
         refresh_token_expires_at = self._resolve_refresh_expiry(tokens, now, session)
 
@@ -202,9 +186,7 @@ class TokenRefreshFlow:
             try:
                 return now + timedelta(seconds=int(relative))
             except (TypeError, ValueError):
-                log.warning(
-                    "refresh_token_expires_in was not an int: %r", relative
-                )
+                log.warning("refresh_token_expires_in was not an int: %r", relative)
 
         # Last-resort fallback: preserve the previous session's expiry so
         # we never produce a session with an indeterminate refresh expiry
@@ -234,15 +216,9 @@ class TokenRefreshFlow:
                 "contact your administrator to verify the CLI client configuration."
             )
         if error == "invalid_grant":
-            raise RefreshTokenExpiredError(
-                "Refresh token is invalid or expired. "
-                "Run `spec-kitty auth login` again."
-            )
+            raise RefreshTokenExpiredError("Refresh token is invalid or expired. Run `spec-kitty auth login` again.")
         if error == "session_invalid":
-            raise SessionInvalidError(
-                "Session has been invalidated server-side. "
-                "Run `spec-kitty auth login` again."
-            )
+            raise SessionInvalidError("Session has been invalidated server-side. Run `spec-kitty auth login` again.")
 
 
 def _parse_retry_after(value: Any) -> int:
@@ -266,9 +242,7 @@ def _parse_retry_after(value: Any) -> int:
     try:
         return max(0, int(value))
     except (TypeError, ValueError, OverflowError):
-        log.warning(
-            "refresh_replay_benign_retry carried a non-int retry_after: %r", value
-        )
+        log.warning("refresh_replay_benign_retry carried a non-int retry_after: %r", value)
         return 0
 
 

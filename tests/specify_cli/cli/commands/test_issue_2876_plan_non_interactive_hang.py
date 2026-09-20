@@ -184,7 +184,5 @@ def test_plan_non_interactive_never_prompts_or_hangs_2876(
     forbidden_markers = ["[enter]=accept default", first_question_text]
     leaked = [marker for marker in forbidden_markers if marker in result.output]
     assert not leaked, (
-        "spec-kitty plan emitted an interactive prompt under "
-        f"SPEC_KITTY_NON_INTERACTIVE=1 (#2876): {leaked!r} found in captured "
-        f"output:\n{result.output}"
+        f"spec-kitty plan emitted an interactive prompt under SPEC_KITTY_NON_INTERACTIVE=1 (#2876): {leaked!r} found in captured output:\n{result.output}"
     )

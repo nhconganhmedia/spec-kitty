@@ -60,7 +60,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 # Realistic test constants (NFR-005 / test-data policy)
 # ---------------------------------------------------------------------------
 _FULL_ULID: str = "01KVMBD6HTBP3A9Y5T4EQ80RA9"
-_MID8: str = _FULL_ULID[:8]   # "01KVMBD6"
+_MID8: str = _FULL_ULID[:8]  # "01KVMBD6"
 _MISSION_SLUG: str = "spec-commit-e2e"
 _COORD_BRANCH: str = f"kitty/mission-{_MISSION_SLUG}-{_MID8}"
 
@@ -68,6 +68,7 @@ _COORD_BRANCH: str = f"kitty/mission-{_MISSION_SLUG}-{_MID8}"
 # ---------------------------------------------------------------------------
 # Fixture: seed a mission with meta.json + spec.md on the protected primary
 # ---------------------------------------------------------------------------
+
 
 def _seed_mission_on_protected_repo(repo: ProtectedTargetRepo) -> tuple[Path, Path]:
     """Write meta.json + spec.md into kitty-specs/<slug>/ on the protected primary.
@@ -107,15 +108,11 @@ def _seed_mission_on_protected_repo(repo: ProtectedTargetRepo) -> tuple[Path, Pa
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 def _git_nocheck(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
 
 
 # ---------------------------------------------------------------------------
@@ -130,9 +127,7 @@ class TestSpecCommitE2EOnProtectedPrimary:
     the positive assertions cannot pass on a materialiser no-op.
     """
 
-    def test_spec_commit_primary_kind_does_not_route_to_coordination(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_spec_commit_primary_kind_does_not_route_to_coordination(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """write-surface-coherence WP02 (FR-003 / C-005): SPEC does NOT route to coord.
 
         This row was RETIRED-AND-FLIPPED. Pre-WP02 ``spec-commit`` materialised the
@@ -160,9 +155,7 @@ class TestSpecCommitE2EOnProtectedPrimary:
         _feature_dir, spec_path = _seed_mission_on_protected_repo(repo)
 
         coord_worktree = repo.repo_root / ".worktrees" / f"{_MISSION_SLUG}-{_MID8}-coord"
-        assert not coord_worktree.exists(), (
-            "Precondition violated: coord worktree must NOT exist before spec-commit."
-        )
+        assert not coord_worktree.exists(), "Precondition violated: coord worktree must NOT exist before spec-commit."
 
         spec_path.write_text("# Spec\n\nFR-001 must hold.\nFR-002 too.\n", encoding="utf-8")
 
@@ -180,24 +173,15 @@ class TestSpecCommitE2EOnProtectedPrimary:
 
         # The planning→coord route is GONE: no coord worktree materialised.
         assert not coord_worktree.exists(), (
-            "SPEC (primary kind) materialised the coordination worktree — the "
-            "planning→coord route was not removed (write-surface-coherence WP02)."
+            "SPEC (primary kind) materialised the coordination worktree — the planning→coord route was not removed (write-surface-coherence WP02)."
         )
         # On the protected-main fixture the primary target is refused (FR-008/WP03
         # makes this land deadlock-free); the key WP02 assertion is that it is NOT
         # a coord commit.
-        assert result.status == "no_op_wrong_surface", (
-            f"Expected a protected-ref refusal, got {result.status!r} "
-            f"(diagnostic={result.diagnostic!r})."
-        )
-        assert result.placement_ref != _COORD_BRANCH, (
-            f"SPEC commit resolved to the coord branch {result.placement_ref!r} — "
-            "the planning→coord route survived."
-        )
+        assert result.status == "no_op_wrong_surface", f"Expected a protected-ref refusal, got {result.status!r} (diagnostic={result.diagnostic!r})."
+        assert result.placement_ref != _COORD_BRANCH, f"SPEC commit resolved to the coord branch {result.placement_ref!r} — the planning→coord route survived."
 
-    def test_negative_materialiser_is_load_bearing_for_coord_kind(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_negative_materialiser_is_load_bearing_for_coord_kind(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NEGATIVE: bypass the materialiser on a COORD kind → coord placement FAILS.
 
         write-surface-coherence WP02 re-targets this anti-fakeable proof onto the
@@ -233,9 +217,7 @@ class TestSpecCommitE2EOnProtectedPrimary:
             # Return the primary checkout directly — no coord worktree created.
             return repo_root, files
 
-        monkeypatch.setattr(
-            commit_router_mod, "_materialise_coord_worktree", _bypass_materialiser
-        )
+        monkeypatch.setattr(commit_router_mod, "_materialise_coord_worktree", _bypass_materialiser)
         # The kind-aware resolver returns the coord ref for a coord kind under
         # coord topology; the router compares it against the primary target ("main"),
         # so use_coord is True and the (bypassed) materialiser is engaged.
@@ -261,11 +243,7 @@ class TestSpecCommitE2EOnProtectedPrimary:
         # NEGATIVE assertion: with the materialiser bypassed, the coord commit
         # cannot succeed-on-coord — the positive coord-placement assertion fails.
         coord_worktree = repo.repo_root / ".worktrees" / f"{_MISSION_SLUG}-{_MID8}-coord"
-        positive_would_pass = (
-            result.status == "committed"
-            and result.placement_ref == _COORD_BRANCH
-            and coord_worktree.exists()
-        )
+        positive_would_pass = result.status == "committed" and result.placement_ref == _COORD_BRANCH and coord_worktree.exists()
         assert not positive_would_pass, (
             "NEGATIVE test failed: bypassing the materialiser still produced a "
             "committed coord-branch result with a materialised worktree — the "
@@ -286,9 +264,7 @@ class TestSpecCommitE2EOnProtectedPrimary:
 _SIBLING_SITES = ["spec_commit", "record_analysis", "accept", "acceptance"]
 
 
-def _make_minimal_mission_on_repo(
-    repo_root: Path, slug: str, mission_id: str, mid8: str, coord_branch: str
-) -> tuple[Path, Path]:
+def _make_minimal_mission_on_repo(repo_root: Path, slug: str, mission_id: str, mid8: str, coord_branch: str) -> tuple[Path, Path]:
     """Create a mission directory with meta.json + spec/plan/tasks.md artifacts.
 
     Also creates the coordination branch so CoordinationWorkspace.resolve() can
@@ -342,9 +318,7 @@ def test_sibling_site_commit_for_mission_called_on_protected_primary(
     mission_id = f"01KVMBD6SIBLING{site.upper()[:6]:<6}"[:26]
     mid8 = mission_id[:8]
     coord_branch = f"kitty/mission-{slug}-{mid8}"
-    feature_dir, spec_path = _make_minimal_mission_on_repo(
-        repo.repo_root, slug, mission_id, mid8, coord_branch
-    )
+    feature_dir, spec_path = _make_minimal_mission_on_repo(repo.repo_root, slug, mission_id, mid8, coord_branch)
 
     calls: list[dict[str, Any]] = []
 
@@ -389,9 +363,7 @@ def test_sibling_site_commit_for_mission_called_on_protected_primary(
             ) -> tuple[Path, tuple[Path, ...]]:
                 return repo_root, files
 
-            monkeypatch.setattr(
-                commit_router_mod, "_materialise_coord_worktree", _bypass_materialiser
-            )
+            monkeypatch.setattr(commit_router_mod, "_materialise_coord_worktree", _bypass_materialiser)
 
             # Stub the terminal ``safe_commit`` so the coord-routing arm completes
             # deterministically without needing a real coord-branch checkout — the
@@ -400,9 +372,7 @@ def test_sibling_site_commit_for_mission_called_on_protected_primary(
             class _FakeCommit:
                 sha = "abcdef1234567"
 
-            monkeypatch.setattr(
-                commit_router_mod, "safe_commit", lambda **_kw: _FakeCommit()
-            )
+            monkeypatch.setattr(commit_router_mod, "safe_commit", lambda **_kw: _FakeCommit())
             with patch(
                 "specify_cli.coordination.commit_router.resolve_placement_only",
                 return_value=CommitTarget(ref=coord_branch),
@@ -460,13 +430,9 @@ def test_sibling_site_commit_for_mission_called_on_protected_primary(
                 ["record-analysis", "--mission", slug, "--input-file", str(input_file), "--json"],
             )
             # Exit 0 expected (router is stubbed to return committed).
-            assert result.exit_code == 0, (
-                f"record-analysis exited {result.exit_code} on site={site!r}. "
-                f"Output: {result.output!r}"
-            )
+            assert result.exit_code == 0, f"record-analysis exited {result.exit_code} on site={site!r}. Output: {result.output!r}"
             assert len(calls) >= 1, (
-                "commit_for_mission was NOT called from record-analysis on a protected primary. "
-                "Materialise-then-retry path not wired at this sibling site."
+                "commit_for_mission was NOT called from record-analysis on a protected primary. Materialise-then-retry path not wired at this sibling site."
             )
 
         elif site in ("accept", "acceptance"):
@@ -485,13 +451,9 @@ def test_sibling_site_commit_for_mission_called_on_protected_primary(
             )
             parent, accept_commit, created = result_tuple
             assert len(calls) >= 1, (
-                f"commit_for_mission NOT called from {site!r} router on protected primary. "
-                f"Materialise-then-retry path not wired at this sibling site."
+                f"commit_for_mission NOT called from {site!r} router on protected primary. Materialise-then-retry path not wired at this sibling site."
             )
-            assert created is True, (
-                f"{site!r}: _commit_acceptance_meta_via_router returned created=False "
-                f"even though the stub returned status='committed'."
-            )
+            assert created is True, f"{site!r}: _commit_acceptance_meta_via_router returned created=False even though the stub returned status='committed'."
 
 
 @pytest.mark.parametrize("site", _SIBLING_SITES)
@@ -513,9 +475,7 @@ def test_sibling_site_negative_no_op_materialiser_breaks_positive(
     mission_id = f"01KVMBD6NEGAT{site.upper()[:6]:<6}"[:26]
     mid8 = mission_id[:8]
     coord_branch = f"kitty/mission-{slug}-{mid8}"
-    feature_dir, spec_path = _make_minimal_mission_on_repo(
-        repo.repo_root, slug, mission_id, mid8, coord_branch
-    )
+    feature_dir, spec_path = _make_minimal_mission_on_repo(repo.repo_root, slug, mission_id, mid8, coord_branch)
 
     def _no_committed_stub(**kwargs: Any) -> CommitRouterResult:
         return CommitRouterResult(
@@ -561,15 +521,8 @@ def test_sibling_site_negative_no_op_materialiser_breaks_positive(
                     kind=MissionArtifactKind.SPEC,
                 )
             coord_worktree = repo.repo_root / ".worktrees" / f"{slug}-{mid8}-coord"
-            positive_would_pass = (
-                result.status == "committed"
-                and result.placement_ref == coord_branch
-                and coord_worktree.exists()
-            )
-            assert not positive_would_pass, (
-                f"NEGATIVE {site}: bypassing materialiser still satisfies all positive assertions. "
-                "Positive test is fakeable."
-            )
+            positive_would_pass = result.status == "committed" and result.placement_ref == coord_branch and coord_worktree.exists()
+            assert not positive_would_pass, f"NEGATIVE {site}: bypassing materialiser still satisfies all positive assertions. Positive test is fakeable."
 
         elif site == "record_analysis":
             from specify_cli.cli.commands.agent.mission import app as mission_app
@@ -578,9 +531,7 @@ def test_sibling_site_negative_no_op_materialiser_breaks_positive(
 
             input_file = tmp_path / "neg-analysis.md"
             input_file.write_text(
-                "---\nschema: analysis-findings/v1\nfindings: []\ncounts: "
-                "{critical: 0, high: 0, medium: 0, low: 0, info: 0}\n---\n\n"
-                "No blocking findings.\n",
+                "---\nschema: analysis-findings/v1\nfindings: []\ncounts: {critical: 0, high: 0, medium: 0, low: 0, info: 0}\n---\n\nNo blocking findings.\n",
                 encoding="utf-8",
             )
             monkeypatch.setattr(
@@ -604,17 +555,12 @@ def test_sibling_site_negative_no_op_materialiser_breaks_positive(
             # If exit 0 + success: this reveals a fakeable positive test.
             try:
                 output_data = json.loads(result.output)
-                committed_successfully = (
-                    result.exit_code == 0
-                    and output_data.get("success") is True
-                    and output_data.get("committed") is True
-                )
+                committed_successfully = result.exit_code == 0 and output_data.get("success") is True and output_data.get("committed") is True
             except (json.JSONDecodeError, AttributeError):
                 committed_successfully = False
 
             assert not committed_successfully, (
-                f"NEGATIVE {site}: record-analysis reported success+committed with a no-op stub. "
-                "The positive test is fakeable — the commit result is not asserted."
+                f"NEGATIVE {site}: record-analysis reported success+committed with a no-op stub. The positive test is fakeable — the commit result is not asserted."
             )
 
         elif site in ("accept", "acceptance"):
@@ -638,8 +584,7 @@ def test_sibling_site_negative_no_op_materialiser_breaks_positive(
                 raised = True
 
             assert raised or not created, (
-                f"NEGATIVE {site}: _commit_acceptance_meta_via_router did not raise and "
-                f"returned created=True with a no-op stub. Positive test is fakeable."
+                f"NEGATIVE {site}: _commit_acceptance_meta_via_router did not raise and returned created=True with a no-op stub. Positive test is fakeable."
             )
 
 
@@ -655,9 +600,7 @@ class TestNFR003BoundaryReadSpyAcceptSibling:
     sibling path so a per-call re-read at commit_helpers.py:527 cannot hide green.
     """
 
-    def test_protection_policy_resolve_called_once_at_accept_boundary(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_protection_policy_resolve_called_once_at_accept_boundary(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-003: _commit_acceptance_meta_via_router reads config exactly once."""
         monkeypatch.delenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", raising=False)
 
@@ -666,9 +609,7 @@ class TestNFR003BoundaryReadSpyAcceptSibling:
         mission_id = "01KVMBD6NFR003ACCEPT0000001"[:26]
         mid8 = mission_id[:8]
         coord_branch = f"kitty/mission-{slug}-{mid8}"
-        feature_dir, _spec = _make_minimal_mission_on_repo(
-            repo.repo_root, slug, mission_id, mid8, coord_branch
-        )
+        feature_dir, _spec = _make_minimal_mission_on_repo(repo.repo_root, slug, mission_id, mid8, coord_branch)
         meta_path = feature_dir / "meta.json"
 
         # Spy on _load_kittify_config reads — NFR-003: must read exactly once at boundary.

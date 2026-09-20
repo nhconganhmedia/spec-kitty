@@ -53,9 +53,7 @@ def _make_git_repo(root: Path) -> Path:
     return repo
 
 
-def _build_coord_mission_with_primary_tasks(
-    tmp_path: Path, slug: str, tasks_md_body: str
-) -> tuple[Path, str, Path]:
+def _build_coord_mission_with_primary_tasks(tmp_path: Path, slug: str, tasks_md_body: str) -> tuple[Path, str, Path]:
     """Build a coord-topology mission whose PRIMARY carries ``tasks.md``.
 
     The materialized coord worktree never gets a ``tasks.md`` of its own --
@@ -128,9 +126,7 @@ def test_prepare_transition_recovers_primary_when_repo_root_none(tmp_path: Path)
 
     slug = "coord-gate-seam"
     tasks_md = "# Tasks\n\n## WP01\n- [x] T001 implement thing\n"
-    _repo, _mid8, coord_husk_feature_dir = _build_coord_mission_with_primary_tasks(
-        tmp_path, slug, tasks_md
-    )
+    _repo, _mid8, coord_husk_feature_dir = _build_coord_mission_with_primary_tasks(tmp_path, slug, tasks_md)
 
     request = TransitionRequest(
         feature_dir=coord_husk_feature_dir,
@@ -169,9 +165,7 @@ def test_resolve_subtasks_gate_dir_direct_three_branches(tmp_path: Path) -> None
     """
     slug = "coord-three-branch"
     tasks_md = "# Tasks\n\n## WP01\n- [x] T001 done\n"
-    repo, _mid8, coord_husk_feature_dir = _build_coord_mission_with_primary_tasks(
-        tmp_path, slug, tasks_md
-    )
+    repo, _mid8, coord_husk_feature_dir = _build_coord_mission_with_primary_tasks(tmp_path, slug, tasks_md)
     primary_dir = repo / "kitty-specs" / slug
 
     # (a) explicit repo_root passthrough.
@@ -204,9 +198,7 @@ def test_strong_sites_match_pre_existing_resolve_planning_read_dir(tmp_path: Pat
 
     slug = "coord-strong-sites"
     tasks_md = "# Tasks\n\n## WP01\n- [x] T001 done\n"
-    repo, _mid8, coord_husk_feature_dir = _build_coord_mission_with_primary_tasks(
-        tmp_path, slug, tasks_md
-    )
+    repo, _mid8, coord_husk_feature_dir = _build_coord_mission_with_primary_tasks(tmp_path, slug, tasks_md)
 
     pre_existing = resolve_planning_read_dir(repo, slug, kind=MissionArtifactKind.TASKS_INDEX)
     seam_result = resolve_subtasks_gate_dir(coord_husk_feature_dir, repo, slug)

@@ -89,9 +89,7 @@ def retained_pin_home(canonical_home: None, monkeypatch: pytest.MonkeyPatch, tmp
     return str(home)
 
 
-def test_the_retained_pin_probe_observes_its_own_value(
-    retained_pin_home: str, tmp_path: Path
-) -> None:
+def test_the_retained_pin_probe_observes_its_own_value(retained_pin_home: str, tmp_path: Path) -> None:
     """SC-012 limb 2, as literally specified — **and it cannot fail. See the module docstring.**
 
     The owner pins ``str(tmp_path / "home")`` and this probe pins ``str(tmp_path / "home")`` from
@@ -123,9 +121,7 @@ def probe_home_pin(canonical_home: None, monkeypatch: pytest.MonkeyPatch, tmp_pa
     return str(home)
 
 
-def test_the_negative_control_probe_observes_its_own_differing_value(
-    probe_home_pin: str, tmp_path: Path
-) -> None:
+def test_the_negative_control_probe_observes_its_own_differing_value(probe_home_pin: str, tmp_path: Path) -> None:
     """**The only assertion in the pair that can be falsified.**
 
     An owner that overwrote every requesting module's pin — the ``setattr(Path, "home", ...)``
@@ -153,18 +149,14 @@ def test_both_probes_request_the_owner_before_pinning() -> None:
     enclosing = {
         node.name: node
         for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and any(node.lineno <= line <= (node.end_lineno or node.lineno) for line in pin_lines)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(node.lineno <= line <= (node.end_lineno or node.lineno) for line in pin_lines)
     }
     assert set(enclosing) == {"retained_pin_home", "probe_home_pin"}, (
         "a SPEC_KITTY_HOME pin appeared outside the two declared probe fixtures — a pin in a test "
         "BODY wins by ordering unconditionally and proves nothing about fixture-vs-fixture "
         "precedence, and any third pinning fixture is a third class member with no E slot to hold it"
     )
-    first_params = {
-        name: (node.args.args[0].arg if node.args.args else None)
-        for name, node in enclosing.items()
-    }
+    first_params = {name: (node.args.args[0].arg if node.args.args else None) for name, node in enclosing.items()}
     assert first_params == {"retained_pin_home": OWNER_NAME, "probe_home_pin": OWNER_NAME}
 
 
@@ -180,14 +172,9 @@ def test_only_probe_a_is_a_class_member_so_probe_b_costs_no_slot() -> None:
     ``mypy --strict`` error and C-007 forbids widening. This is where that reds, in the package
     that wrote it, rather than in WP05's ``discovered == census u E`` accounting.
     """
-    mine = {
-        member.resolved_value
-        for member in scan.discover(TESTS_ROOT)
-        if member.relpath == SELF_RELPATH
-    }
+    mine = {member.resolved_value for member in scan.discover(TESTS_ROOT) if member.relpath == SELF_RELPATH}
     assert mine == {scan.TMP_PATH_HOME}, (
-        "exactly one member is expected in this module — probe (a). Probe (b) resolves to "
-        f"{scan.TMP_PATH}/{PROBE_LEAF} and must never be classified"
+        f"exactly one member is expected in this module — probe (a). Probe (b) resolves to {scan.TMP_PATH}/{PROBE_LEAF} and must never be classified"
     )
 
 
@@ -224,13 +211,9 @@ def test_every_exempt_key_is_recomputable_from_the_file_at_a_runtime_lineno() ->
     for entry in exempt.E:
         relpath = entry.key[0]
         path = TESTS_ROOT / relpath
-        recomputed = {
-            (member.relpath, *composite_key_from_file(path, member.lineno))
-            for member in _members_in(relpath)
-        }
+        recomputed = {(member.relpath, *composite_key_from_file(path, member.lineno)) for member in _members_in(relpath)}
         assert entry.key in recomputed, (
-            f"exempt key {entry.key} is not recomputable from {relpath} at any lineno "
-            f"discover() reports there; live keys: {sorted(recomputed)}"
+            f"exempt key {entry.key} is not recomputable from {relpath} at any lineno discover() reports there; live keys: {sorted(recomputed)}"
         )
 
 
@@ -243,10 +226,7 @@ def test_the_recomputation_can_tell_a_wrong_key_apart() -> None:
     entry = exempt.E[0]
     relpath = entry.key[0]
     path = TESTS_ROOT / relpath
-    recomputed = {
-        (member.relpath, *composite_key_from_file(path, member.lineno))
-        for member in _members_in(relpath)
-    }
+    recomputed = {(member.relpath, *composite_key_from_file(path, member.lineno)) for member in _members_in(relpath)}
     assert recomputed, "the recomputation produced nothing — it cannot see, so it cannot bite"
     forged = (entry.key[0], f"{entry.key[1]}_not_a_real_qualname", entry.key[2])
     assert forged not in recomputed
@@ -260,9 +240,7 @@ def test_the_exempt_set_is_a_subset_of_the_discovered_class() -> None:
     """
     declared = {entry.key for entry in exempt.E}
     discovered = {member.key for member in scan.discover(TESTS_ROOT)}
-    assert declared <= discovered, (
-        f"exempt entries naming no discovered member: {sorted(declared - discovered)}"
-    )
+    assert declared <= discovered, f"exempt entries naming no discovered member: {sorted(declared - discovered)}"
 
 
 def test_the_owner_and_the_probe_are_the_only_members_of_their_two_files() -> None:
@@ -273,9 +251,5 @@ def test_the_owner_and_the_probe_are_the_only_members_of_their_two_files() -> No
     still be fixed cheaply.
     """
     declared = {entry.key for entry in exempt.E}
-    live = {
-        member.key
-        for member in scan.discover(TESTS_ROOT)
-        if member.relpath in {CONFTEST_RELPATH, SELF_RELPATH}
-    }
+    live = {member.key for member in scan.discover(TESTS_ROOT) if member.relpath in {CONFTEST_RELPATH, SELF_RELPATH}}
     assert live == declared

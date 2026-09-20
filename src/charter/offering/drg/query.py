@@ -150,9 +150,7 @@ def _tension_annotations(
     tension_pairs: set[tuple[str, str]] = {
         (edge.source, edge.target)
         for edge in graph.edges
-        if edge.relation is Relation.IN_TENSION_WITH
-        and edge.source in all_artifacts
-        and edge.target in all_artifacts
+        if edge.relation is Relation.IN_TENSION_WITH and edge.source in all_artifacts and edge.target in all_artifacts
     }
     if not tension_pairs:
         return (), ()
@@ -165,18 +163,14 @@ def _tension_annotations(
     arbiters: dict[str, set[str]] = {}
     unarbitrated: set[tuple[str, str]] = set()
     for source, target in tension_pairs:
-        common_arbiters = reconcilers_by_target.get(source, set()) & reconcilers_by_target.get(
-            target, set()
-        )
+        common_arbiters = reconcilers_by_target.get(source, set()) & reconcilers_by_target.get(target, set())
         if not common_arbiters:
             unarbitrated.add((source, target))
             continue
         for arbiter in common_arbiters:
             arbiters.setdefault(arbiter, set()).update((source, target))
 
-    tension_arbiters = tuple(
-        (arbiter, tuple(sorted(arbitrated))) for arbiter, arbitrated in sorted(arbiters.items())
-    )
+    tension_arbiters = tuple((arbiter, tuple(sorted(arbitrated))) for arbiter, arbitrated in sorted(arbiters.items()))
     unarbitrated_tensions = tuple(sorted(unarbitrated))
     return tension_arbiters, unarbitrated_tensions
 
@@ -312,10 +306,7 @@ class ResolveTransitiveRefsResult:
             named: list[str] = getattr(self, field_name)
             bucketed = buckets[kind]
             if named and bucketed and named != bucketed:
-                raise ValueError(
-                    f"ResolveTransitiveRefsResult.{field_name} and "
-                    f"by_kind[{kind.value}] disagree: {named!r} vs {bucketed!r}"
-                )
+                raise ValueError(f"ResolveTransitiveRefsResult.{field_name} and by_kind[{kind.value}] disagree: {named!r} vs {bucketed!r}")
             reconciled = bucketed or list(named)
             buckets[kind] = reconciled
             object.__setattr__(self, field_name, reconciled)

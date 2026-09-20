@@ -284,8 +284,7 @@ def test_resolve_config_activated_roots_raises_on_unresolvable_stem(tmp_path: Pa
     config_path = tmp_path / ".kittify" / "config.yaml"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(
-        "activated_directives:\n  - not-a-real-directive-stem\n"
-        "mission_type_activations:\n  - software-dev\n",
+        "activated_directives:\n  - not-a-real-directive-stem\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
 
@@ -322,9 +321,7 @@ def test_build_synthesis_request_sources_selections_from_config_not_answers(tmp_
     assert request.interview_snapshot["selected_paradigms"] == ["domain-driven-design"]
     assert "DIRECTIVE_003" not in request.interview_snapshot["selected_directives"]
     assert "deep-module-design" not in request.interview_snapshot["selected_paradigms"]
-    assert request.drg_snapshot["nodes"] == [
-        {"urn": "directive:DIRECTIVE_010", "kind": "directive"}
-    ]
+    assert request.drg_snapshot["nodes"] == [{"urn": "directive:DIRECTIVE_010", "kind": "directive"}]
 
 
 def test_build_synthesis_request_first_run_empty_config_selects_zero_directives(tmp_path: Path) -> None:
@@ -412,11 +409,7 @@ def test_build_synthesis_request_explicit_activation_still_demands_companion_tac
     config_path = tmp_path / ".kittify" / "config.yaml"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(
-        "activated_directives:\n"
-        "  - 010-specification-fidelity-requirement\n"
-        "  - 024-locality-of-change\n"
-        "mission_type_activations:\n"
-        "  - software-dev\n",
+        "activated_directives:\n  - 010-specification-fidelity-requirement\n  - 024-locality-of-change\nmission_type_activations:\n  - software-dev\n",
         encoding="utf-8",
     )
 
@@ -426,9 +419,7 @@ def test_build_synthesis_request_explicit_activation_still_demands_companion_tac
 
     snapshot = normalize_interview_snapshot(dict(request.interview_snapshot))
     sections = resolve_sections(snapshot)
-    demanded_directive_ids = sorted(
-        ctx["directive_id"] for label, ctx in sections if label == "selected_directives"
-    )
+    demanded_directive_ids = sorted(ctx["directive_id"] for label, ctx in sections if label == "selected_directives")
     assert demanded_directive_ids == ["DIRECTIVE_010", "DIRECTIVE_024"]
 
 
@@ -526,9 +517,7 @@ def test_lynn_cole_free_text_intent_activates_end_to_end_via_config_promotion(tm
     # "absent-key parity" promotion warnings asserted below are unaffected.
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
     warnings = _promote_interview_selections(tmp_path, interview)
     # No promotion FAILURE (e.g. an unresolvable id) -- the "absent-key

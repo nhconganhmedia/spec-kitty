@@ -102,8 +102,7 @@ def repair_skills(
     recorded = manifest.entries if manifest is not None else []
     agents = tuple(sorted({entry.agent_key for entry in (*requested, *recorded)}))
     inputs = AssessmentInputs(OperationRoot("project", "project", project_path.absolute()), consent=consent)
-    assessment = assess_project_skills(inputs, registry, agents,
-                                       selected_paths=tuple(entry.installed_path for entry in requested))
+    assessment = assess_project_skills(inputs, registry, agents, selected_paths=tuple(entry.installed_path for entry in requested))
     if not assessment.complete:
         for diagnostic in assessment.diagnostics:
             logger.warning("Cannot repair skills: %s", diagnostic.message)
@@ -112,18 +111,20 @@ def repair_skills(
         if diagnostics:
             return 0, max(1, len(requested))
         result = apply_project_skills(assessment, consent)
-    file_effects = {effect.id: effect for effect in assessment.effects if
-                    effect.path != ".kittify/skills-manifest.json" and
-                    not effect.path.startswith(".kittify/.migration-backup/") and
-                    effect.before.kind != "directory" and effect.after.kind != "directory"}
+    file_effects = {
+        effect.id: effect
+        for effect in assessment.effects
+        if effect.path != ".kittify/skills-manifest.json"
+        and not effect.path.startswith(".kittify/.migration-backup/")
+        and effect.before.kind != "directory"
+        and effect.after.kind != "directory"
+    }
     repaired = sum(effect_id in file_effects for effect_id in result.succeeded)
     failed_paths = {item.path for item in assessment.dispositions if item.state in {"preserve", "consent_required"}}
     failed = len(failed_paths) + len(result.failed) + sum(effect_id in file_effects for effect_id in result.skipped)
     if result.outcome in {"skipped", "precondition_changed"}:
         failed = max(1, len(requested))
-    unresolved = {entry.installed_path for entry in requested} - {
-        effect.path for effect in file_effects.values()
-    } - {item.path for item in assessment.dispositions}
+    unresolved = {entry.installed_path for entry in requested} - {effect.path for effect in file_effects.values()} - {item.path for item in assessment.dispositions}
     return repaired, failed + len(unresolved)
 
 

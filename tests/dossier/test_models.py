@@ -16,6 +16,7 @@ from specify_cli.dossier.models import ArtifactRef, MissionDossier
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestArtifactRefValidation:
     """Test ArtifactRef field validation."""
 

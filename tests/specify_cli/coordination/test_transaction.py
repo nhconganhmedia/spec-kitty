@@ -52,7 +52,11 @@ FEATURE_DIRNAME = f"{MISSION_SLUG}-{MID8}"
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True,
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
@@ -103,13 +107,7 @@ def _write_legacy_meta(repo: Path) -> None:
     feature_dir = repo / "kitty-specs" / FEATURE_DIRNAME
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        (
-            "{\n"
-            f'  "mission_id": "{MISSION_ID}",\n'
-            f'  "mission_slug": "{FEATURE_DIRNAME}",\n'
-            '  "target_branch": "main"\n'
-            "}\n"
-        ),
+        (f'{{\n  "mission_id": "{MISSION_ID}",\n  "mission_slug": "{FEATURE_DIRNAME}",\n  "target_branch": "main"\n}}\n'),
         encoding="utf-8",
     )
 
@@ -156,9 +154,7 @@ def test_concurrent_first_acquire_serializes_coord_worktree_creation(repo: Path)
                 timeout=10.0,
             ) as txn:
                 if txn.worktree_root != worktree_path:
-                    raise AssertionError(
-                        f"expected worktree_root={worktree_path}, got {txn.worktree_root}"
-                    )
+                    raise AssertionError(f"expected worktree_root={worktree_path}, got {txn.worktree_root}")
         except Exception as exc:  # noqa: BLE001 - test records all failures
             outcome = f"{type(exc).__name__}: {exc}"
         else:
@@ -193,10 +189,7 @@ def test_append_event_then_commit_returns_receipt(repo: Path) -> None:
         assert receipt.destination_ref == COORD_BRANCH
 
     # After exit: lock released, event readable from disk.
-    feature_dir = (
-        repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord"
-        / "kitty-specs" / FEATURE_DIRNAME
-    )
+    feature_dir = repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord" / "kitty-specs" / FEATURE_DIRNAME
     events = _store.read_events(feature_dir)
     assert len(events) == 1
     assert events[0].event_id == event.event_id
@@ -228,9 +221,7 @@ def test_legacy_transaction_appends_to_primary_checkout(
 
     events = _store.read_events(repo / "kitty-specs" / FEATURE_DIRNAME)
     assert [existing.event_id for existing in events] == [event.event_id]
-    assert not (
-        repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord" / "kitty-specs" / FEATURE_DIRNAME
-    ).exists()
+    assert not (repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord" / "kitty-specs" / FEATURE_DIRNAME).exists()
 
 
 # ---------------------------------------------------------------------------
@@ -240,10 +231,7 @@ def test_legacy_transaction_appends_to_primary_checkout(
 
 def test_policy_refusal_short_circuits_before_any_write(repo: Path) -> None:
     """Refusing on ``main`` happens BEFORE the lock is acquired or any file written."""
-    feature_dir = (
-        repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord"
-        / "kitty-specs" / FEATURE_DIRNAME
-    )
+    feature_dir = repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord" / "kitty-specs" / FEATURE_DIRNAME
     events_path = feature_dir / "status.events.jsonl"
     assert not events_path.exists()
 
@@ -332,7 +320,10 @@ def test_mission_slug_path_traversal_is_rejected(repo: Path) -> None:
     ],
 )
 def test_whitespace_bearing_selectors_are_rejected(
-    repo: Path, field_name: str, mission_slug: str, mid8: str,
+    repo: Path,
+    field_name: str,
+    mission_slug: str,
+    mid8: str,
 ) -> None:
     with pytest.raises(
         BookkeepingError,
@@ -392,36 +383,32 @@ def test_commit_failure_rolls_back_event_log_byte_identical(repo: Path) -> None:
         txn.append_event(_make_event("WP01", "claimed"))
         txn.commit("status: seed")
 
-    feature_dir = (
-        repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord"
-        / "kitty-specs" / FEATURE_DIRNAME
-    )
+    feature_dir = repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord" / "kitty-specs" / FEATURE_DIRNAME
     events_path = feature_dir / "status.events.jsonl"
     pre_rollback_sha = _sha256(events_path)
     assert pre_rollback_sha is not None
 
     # Now: open a second txn, append an event, then trigger commit
     # failure by injecting a pre-commit hook that rejects.
-    worktree_root = (
-        repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord"
-    )
+    worktree_root = repo / ".worktrees" / f"{FEATURE_DIRNAME}-coord"
     _install_rejecting_pre_commit_hook(worktree_root)
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="rollback_test",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="rollback_test",
+        ) as txn,
+    ):
         txn.append_event(_make_event("WP02", "claimed"))
         txn.commit("status: should reject")
 
     post_rollback_sha = _sha256(events_path)
-    assert post_rollback_sha == pre_rollback_sha, (
-        "rollback must restore status.events.jsonl byte-identical"
-    )
+    assert post_rollback_sha == pre_rollback_sha, "rollback must restore status.events.jsonl byte-identical"
 
 
 def test_commit_failure_removes_event_log_created_by_transaction(repo: Path) -> None:
@@ -435,14 +422,17 @@ def test_commit_failure_removes_event_log_created_by_transaction(repo: Path) -> 
 
     _install_rejecting_pre_commit_hook(worktree_root)
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="rollback_missing_event_log",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="rollback_missing_event_log",
+        ) as txn,
+    ):
         txn.append_event(_make_event("WP02", "claimed"))
         txn.commit("status: should reject")
 
@@ -456,13 +446,13 @@ def test_write_artifact_refuses_paths_outside_worktree(repo: Path, tmp_path: Pat
 
     with (
         BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="artifact_path_confined",
-    ) as txn,
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="artifact_path_confined",
+        ) as txn,
         pytest.raises(ValueError, match="outside worktree"),
     ):
         txn.write_artifact(outside, b"blocked")
@@ -477,13 +467,13 @@ def test_stage_path_refuses_paths_outside_worktree(repo: Path, tmp_path: Path) -
 
     with (
         BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="stage_path_confined",
-    ) as txn,
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="stage_path_confined",
+        ) as txn,
         pytest.raises(ValueError, match="outside worktree"),
     ):
         txn.stage_path(outside)
@@ -499,14 +489,17 @@ def test_commit_failure_restores_empty_status_json(repo: Path) -> None:
 
     _install_rejecting_pre_commit_hook(worktree_root)
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="rollback_empty_status",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="rollback_empty_status",
+        ) as txn,
+    ):
         txn.append_event(_make_event("WP02", "claimed"))
         txn.commit("status: should reject")
 
@@ -534,14 +527,17 @@ def test_post_commit_recovery_failure_does_not_roll_back_committed_artifacts(
 
     monkeypatch.setattr(transaction_module, "safe_commit", fail_after_commit)
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="post_commit_recovery",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="post_commit_recovery",
+        ) as txn,
+    ):
         txn.append_event(_make_event("WP02", "claimed"))
         emitted_bytes = events_path.read_bytes()
         txn.commit("status: committed then recovery failed")
@@ -567,14 +563,17 @@ def test_rollback_skips_deferred_outbound(repo: Path) -> None:
     hook.chmod(0o755)
 
     ran: list[str] = []
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="rollback_outbound",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="rollback_outbound",
+        ) as txn,
+    ):
         txn.append_event(_make_event("WP03", "claimed"))
         txn.defer_outbound(lambda: ran.append("a"))
         txn.commit("status: reject")
@@ -623,11 +622,7 @@ def test_rollback_artifact_restore_refuses_parent_symlink_escape(
         txn.commit("status: should reject")
 
     assert not (outside_dir / "artifact.txt").exists()
-    assert any(
-        "rollback: restore of" in record.getMessage()
-        and "resolves outside worktree" in record.getMessage()
-        for record in caplog.records
-    )
+    assert any("rollback: restore of" in record.getMessage() and "resolves outside worktree" in record.getMessage() for record in caplog.records)
 
 
 # ---------------------------------------------------------------------------
@@ -666,14 +661,17 @@ def test_rollback_restores_artifact_bytes_exactly_through_windows_fallback(
 
     monkeypatch.setattr(transaction_module, "safe_commit", fail_commit)
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="rollback_fallback_bytes",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="rollback_fallback_bytes",
+        ) as txn,
+    ):
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_bytes(original)
         txn.write_artifact(artifact, b"replaced\r\ncontent\n")
@@ -697,14 +695,17 @@ def test_rollback_removes_newly_created_artifact_through_windows_fallback(
 
     monkeypatch.setattr(transaction_module, "safe_commit", fail_commit)
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="rollback_fallback_unlink",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="rollback_fallback_unlink",
+        ) as txn,
+    ):
         txn.write_artifact(artifact, b"created\n")
         txn.commit("status: should reject")
 
@@ -731,6 +732,7 @@ def test_double_event_id_raises(repo: Path) -> None:
             txn.append_event(ev)
         # Ensure we still commit/rollback cleanly.
         import contextlib
+
         with contextlib.suppress(Exception):
             txn.commit("status: WP01")
 
@@ -759,7 +761,8 @@ def test_deferred_outbound_runs_in_order_on_success(repo: Path) -> None:
 
 
 def test_deferred_outbound_individual_failure_logged(
-    repo: Path, caplog: pytest.LogCaptureFixture,
+    repo: Path,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """One callable failing does NOT abort the rest."""
     ran: list[str] = []
@@ -767,14 +770,17 @@ def test_deferred_outbound_individual_failure_logged(
     def boom() -> None:
         raise RuntimeError("kaboom")
 
-    with caplog.at_level(logging.WARNING), BookkeepingTransaction.acquire(
-        repo_root=repo,
-        mission_id=MISSION_ID,
-        mission_slug=MISSION_SLUG,
-        mid8=MID8,
-        destination_ref=COORD_BRANCH,
-        operation="outbound_logged",
-    ) as txn:
+    with (
+        caplog.at_level(logging.WARNING),
+        BookkeepingTransaction.acquire(
+            repo_root=repo,
+            mission_id=MISSION_ID,
+            mission_slug=MISSION_SLUG,
+            mid8=MID8,
+            destination_ref=COORD_BRANCH,
+            operation="outbound_logged",
+        ) as txn,
+    ):
         txn.append_event(_make_event())
         txn.defer_outbound(lambda: ran.append("a"))
         txn.defer_outbound(boom)
@@ -929,7 +935,8 @@ def test_write_artifact_preserves_existing_file_mode(repo: Path) -> None:
 
 
 def test_worktree_has_pending_changes_fails_open_when_git_unreadable(
-    repo: Path, monkeypatch: pytest.MonkeyPatch,
+    repo: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """F-1: an unreadable ``git status`` must fail OPEN (return ``True``).
 
@@ -951,11 +958,12 @@ def test_worktree_has_pending_changes_fails_open_when_git_unreadable(
         txn.append_event(_make_event("WP01", "claimed"))
         assert txn._staged_paths
 
-        def _unreadable_status(
-            *_args: Any, **_kwargs: Any
-        ) -> subprocess.CompletedProcess[str]:
+        def _unreadable_status(*_args: Any, **_kwargs: Any) -> subprocess.CompletedProcess[str]:
             return subprocess.CompletedProcess(
-                args=[], returncode=128, stdout="", stderr="fatal: not a git repository",
+                args=[],
+                returncode=128,
+                stdout="",
+                stderr="fatal: not a git repository",
             )
 
         with monkeypatch.context() as m:
@@ -966,7 +974,8 @@ def test_worktree_has_pending_changes_fails_open_when_git_unreadable(
 
 
 def test_noop_commit_receipt_raises_when_head_unreadable(
-    repo: Path, monkeypatch: pytest.MonkeyPatch,
+    repo: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """F-2: ``_noop_commit_receipt`` must raise when HEAD cannot be resolved.
 
@@ -985,11 +994,12 @@ def test_noop_commit_receipt_raises_when_head_unreadable(
         operation="noop_receipt_head_unreadable",
     ) as txn:
 
-        def _unreadable_head(
-            *_args: Any, **_kwargs: Any
-        ) -> subprocess.CompletedProcess[str]:
+        def _unreadable_head(*_args: Any, **_kwargs: Any) -> subprocess.CompletedProcess[str]:
             return subprocess.CompletedProcess(
-                args=[], returncode=1, stdout="", stderr="fatal: bad HEAD",
+                args=[],
+                returncode=1,
+                stdout="",
+                stderr="fatal: bad HEAD",
             )
 
         with monkeypatch.context() as m:
@@ -1057,9 +1067,7 @@ def test_nested_lock_attempt_times_out_from_other_thread(repo: Path) -> None:
         worker.start()
         worker.join(timeout=5.0)
         assert not worker.is_alive(), "worker hung — lock not contended?"
-        assert "exc" in error_container, (
-            f"expected BookkeepingLockTimeout, got: {error_container}"
-        )
+        assert "exc" in error_container, f"expected BookkeepingLockTimeout, got: {error_container}"
     finally:
         txn.__exit__(None, None, None)
 

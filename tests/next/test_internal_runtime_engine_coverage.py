@@ -421,9 +421,7 @@ def test_transition_gate_ready_when_no_required() -> None:
 
 
 def test_transition_gate_ready_with_resolved_required() -> None:
-    contract = StepContextContract(
-        requires=[ContextType(type="feature_binding")]
-    )
+    contract = StepContextContract(requires=[ContextType(type="feature_binding")])
     gate = TransitionGate(
         contract,
         available_bindings={
@@ -434,9 +432,7 @@ def test_transition_gate_ready_with_resolved_required() -> None:
 
 
 def test_transition_gate_returns_remediation_when_missing() -> None:
-    contract = StepContextContract(
-        requires=[ContextType(type="feature_binding")]
-    )
+    contract = StepContextContract(requires=[ContextType(type="feature_binding")])
     gate = TransitionGate(contract, available_bindings={})
     result = gate.evaluate()
     assert isinstance(result, RemediationPayload)
@@ -444,9 +440,7 @@ def test_transition_gate_returns_remediation_when_missing() -> None:
 
 
 def test_transition_gate_optional_failure_does_not_block() -> None:
-    contract = StepContextContract(
-        optional=[ContextType(type="feature_binding")]
-    )
+    contract = StepContextContract(optional=[ContextType(type="feature_binding")])
     gate = TransitionGate(contract, available_bindings={})
     # Optional missing -> still ready.
     assert gate.evaluate() == "ready"
@@ -519,9 +513,7 @@ def test_resolve_context_local_discovery_hint() -> None:
 def test_resolve_context_ledger_dict_with_value() -> None:
     ctx = ContextType(type="feature_binding")
     available = {
-        "ledger": {
-            "feature_binding": {"value": "from-ledger", "validation_status": "valid"}
-        },
+        "ledger": {"feature_binding": {"value": "from-ledger", "validation_status": "valid"}},
     }
     result = resolve_context(
         "feature_binding",

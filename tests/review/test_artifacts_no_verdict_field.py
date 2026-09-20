@@ -66,14 +66,9 @@ def test_written_artifact_frontmatter_has_no_verdict_key(tmp_path: Path) -> None
 
     text = dest.read_text(encoding="utf-8")
     frontmatter = text.split("---", 2)[1]
-    frontmatter_keys = {
-        line.split(":", 1)[0].strip()
-        for line in frontmatter.splitlines()
-        if line and not line.startswith((" ", "\t", "-"))
-    }
+    frontmatter_keys = {line.split(":", 1)[0].strip() for line in frontmatter.splitlines() if line and not line.startswith((" ", "\t", "-"))}
     assert "verdict" not in frontmatter_keys, (
-        f"written review-cycle artifact frontmatter must carry no verdict key, "
-        f"found keys {sorted(frontmatter_keys)} in:\n{frontmatter}"
+        f"written review-cycle artifact frontmatter must carry no verdict key, found keys {sorted(frontmatter_keys)} in:\n{frontmatter}"
     )
 
 

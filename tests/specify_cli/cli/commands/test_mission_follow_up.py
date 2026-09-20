@@ -87,9 +87,7 @@ def _make_mission(
     if completed:
         meta["merged_at"] = "2026-02-01T00:00:00+00:00"
         meta["merged_into"] = "main"
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return feature_dir
 
 
@@ -194,9 +192,7 @@ def test_follow_up_ambiguous_handle_emits_structured_error(tmp_path: Path, monke
         "mission_id": _MID8 + "BBBBBBBBBBBBBBBBBB",
         "mid8": _MID8,
     }
-    (second / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (second / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     monkeypatch.chdir(repo)
 
     result = _invoke(repo, "follow-up", _MID8, "--commit", _SHA)
@@ -219,9 +215,7 @@ def test_follow_up_ambiguous_handle_emits_json_envelope(tmp_path: Path, monkeypa
         "mission_id": _MID8 + "BBBBBBBBBBBBBBBBBB",
         "mid8": _MID8,
     }
-    (second / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (second / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     monkeypatch.chdir(repo)
 
     result = _invoke(repo, "follow-up", _MID8, "--commit", _SHA, "--json")

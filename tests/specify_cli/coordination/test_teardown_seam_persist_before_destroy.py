@@ -112,10 +112,7 @@ def test_seam_persists_retrospective_before_destroy_fault(tmp_path: Path) -> Non
         ok = teardown_coordination_topology(tmp_path, MISSION_SLUG, MID8)
 
     assert ok is False, "destroy fault must be swallowed (non-fatal), seam returns False"
-    assert retro.exists(), (
-        "retrospective.yaml must already exist at the durable home — persist runs "
-        "BEFORE destroy, outside the swallow (FR-005)"
-    )
+    assert retro.exists(), "retrospective.yaml must already exist at the durable home — persist runs BEFORE destroy, outside the swallow (FR-005)"
 
 
 def test_seam_persist_failure_surfaces_outside_swallow(tmp_path: Path) -> None:
@@ -156,10 +153,7 @@ def test_merge_cleanup_path_persists_before_destroy_fault(tmp_path: Path) -> Non
     with _capture_writes_record(home), _teardown_raises():
         teardown_coordination_topology(tmp_path, MISSION_SLUG, MID8)
 
-    assert retro.exists(), (
-        "merge cleanup must persist the retrospective to the durable home before "
-        "destroying the coordination worktree (FR-005)"
-    )
+    assert retro.exists(), "merge cleanup must persist the retrospective to the durable home before destroying the coordination worktree (FR-005)"
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +180,4 @@ def test_close_discard_path_persists_before_destroy_fault(tmp_path: Path) -> Non
         # Must NOT raise — destroy is best-effort inside the seam.
         _teardown_coordination_worktree(tmp_path, MISSION_SLUG, MID8)
 
-    assert retro.exists(), (
-        "mission close/--discard must persist the retrospective to the durable "
-        "home before destroying the coordination worktree (FR-005)"
-    )
+    assert retro.exists(), "mission close/--discard must persist the retrospective to the durable home before destroying the coordination worktree (FR-005)"

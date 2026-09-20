@@ -96,9 +96,7 @@ def test_resolve_audit_root_locate_raises(monkeypatch: pytest.MonkeyPatch) -> No
     assert exc.value.exit_code == 1
 
 
-def test_resolve_audit_root_fixture_fallback(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_audit_root_fixture_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     # No project root, but a fixture_dir supplied → repo_root = fixture_dir.parent.
     fixture = tmp_path / "fx"
     fixture.mkdir()
@@ -108,9 +106,7 @@ def test_resolve_audit_root_fixture_fallback(
     assert resolved == fixture
 
 
-def test_resolve_audit_root_happy(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_resolve_audit_root_happy(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(ms, "locate_project_root", lambda: tmp_path)
     repo_root, resolved = ms._resolve_audit_root(None, include_fixtures=False)
     assert repo_root == tmp_path
@@ -201,9 +197,7 @@ def test_run_mission_state_no_mode_exits_0() -> None:
     assert exc.value.exit_code == 0
 
 
-def test_run_mission_state_dispatches_audit(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_mission_state_dispatches_audit(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(ms, "locate_project_root", lambda: tmp_path)
     called: dict[str, Any] = {}
     monkeypatch.setattr(
@@ -226,9 +220,7 @@ def test_run_mission_state_dispatches_audit(
     assert "audit" in called
 
 
-def test_run_mission_state_dispatches_fix(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_mission_state_dispatches_fix(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(ms, "locate_project_root", lambda: tmp_path)
     called: dict[str, Any] = {}
     monkeypatch.setattr(ms, "_run_mission_repair", lambda *a: called.setdefault("fix", a))
@@ -247,14 +239,10 @@ def test_run_mission_state_dispatches_fix(
     assert "fix" in called
 
 
-def test_run_mission_state_dispatches_dry_run(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_mission_state_dispatches_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(ms, "locate_project_root", lambda: tmp_path)
     called: dict[str, Any] = {}
-    monkeypatch.setattr(
-        ms, "_run_teamspace_dry_run_mode", lambda *a: called.setdefault("dry", a)
-    )
+    monkeypatch.setattr(ms, "_run_teamspace_dry_run_mode", lambda *a: called.setdefault("dry", a))
     ms.run_mission_state(
         audit=False,
         fix=False,
@@ -302,9 +290,7 @@ def test_audit_fixture_root_returns_path() -> None:
     assert root.name == "fixtures"
 
 
-def test_run_audit_mode_mission_not_found(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_audit_mode_mission_not_found(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import specify_cli.audit as audit_mod
     from specify_cli.context.mission_resolver import MissionNotFoundError
 
@@ -317,9 +303,7 @@ def test_run_audit_mode_mission_not_found(
     assert exc.value.exit_code == 1
 
 
-def test_run_audit_mode_mission_not_found_human(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_run_audit_mode_mission_not_found_human(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import specify_cli.audit as audit_mod
     from specify_cli.context.mission_resolver import MissionNotFoundError
 

@@ -183,13 +183,9 @@ def test_coord_topology_ignores_recognized_coordination_residue(tmp_path: Path) 
     PRIMARY partition (its stale primary copy is now REAL dirt, not residue), to a
     still-COORD residue member.
     """
-    repo_root, feature_dir = _create_mission(
-        tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE}
-    )
+    repo_root, feature_dir = _create_mission(tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE})
 
-    (feature_dir / "issue-matrix.md").write_text(
-        "# issues\nEdited primary copy (coord residue).\n"
-    )
+    (feature_dir / "issue-matrix.md").write_text("# issues\nEdited primary copy (coord residue).\n")
 
     summary = _summary(repo_root)
 
@@ -207,13 +203,9 @@ def test_coord_topology_blocks_primary_planning_residue(tmp_path: Path) -> None:
     the narrowing the partition introduced — it proves the residue filter no
     longer over-allows planning artifacts.
     """
-    repo_root, feature_dir = _create_mission(
-        tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE}
-    )
+    repo_root, feature_dir = _create_mission(tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE})
 
-    (feature_dir / "plan.md").write_text(
-        "# plan\nEdited primary copy (now a real dirty blocker — primary kind).\n"
-    )
+    (feature_dir / "plan.md").write_text("# plan\nEdited primary copy (now a real dirty blocker — primary kind).\n")
 
     summary = _summary(repo_root)
 
@@ -230,13 +222,9 @@ def test_flat_topology_still_blocks_same_residue_paths(tmp_path: Path) -> None:
     Exercises WP04's ``is_coordination_artifact_residue_path`` flat→False
     behaviour at the gate.
     """
-    repo_root, feature_dir = _create_mission(
-        tmp_path, topology="single_branch", wp_lanes={"WP01": Lane.DONE}
-    )
+    repo_root, feature_dir = _create_mission(tmp_path, topology="single_branch", wp_lanes={"WP01": Lane.DONE})
 
-    (feature_dir / "analysis-report.md").write_text(
-        "# analysis\nEdited primary copy (flat — real dirt).\n"
-    )
+    (feature_dir / "analysis-report.md").write_text("# analysis\nEdited primary copy (flat — real dirt).\n")
 
     summary = _summary(repo_root)
 
@@ -250,9 +238,7 @@ def test_coord_topology_still_blocks_genuine_source_edit(tmp_path: Path) -> None
     artifact set) is not recognized residue, so it blocks even under coord
     topology — the topology filter does not widen into author-owned dirt.
     """
-    repo_root, _feature_dir = _create_mission(
-        tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE}
-    )
+    repo_root, _feature_dir = _create_mission(tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE})
 
     source = repo_root / "src_module.py"
     source.write_text("x = 1\n")
@@ -271,9 +257,7 @@ def test_coord_topology_still_blocks_unknown_mission_file(tmp_path: Path) -> Non
     A scratch file inside the mission dir that is NOT in the residue authority is
     not recognized coordination residue, so it blocks even under coord topology.
     """
-    repo_root, feature_dir = _create_mission(
-        tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE}
-    )
+    repo_root, feature_dir = _create_mission(tmp_path, topology="coord", wp_lanes={"WP01": Lane.DONE})
 
     scratch = feature_dir / "notes-scratch.md"
     scratch.write_text("scratch\n")

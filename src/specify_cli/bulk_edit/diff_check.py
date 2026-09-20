@@ -111,9 +111,7 @@ _PATH_RULES: list[tuple[str, list[str]]] = [
 ]
 
 
-_COMPILED_RULES: list[tuple[str, list[re.Pattern[str]]]] = [
-    (category, [re.compile(p) for p in patterns]) for category, patterns in _PATH_RULES
-]
+_COMPILED_RULES: list[tuple[str, list[re.Pattern[str]]]] = [(category, [re.compile(p) for p in patterns]) for category, patterns in _PATH_RULES]
 
 
 def classify_path(path: str) -> str | None:
@@ -265,11 +263,7 @@ def _field_path_pins_for(path: str, omap: OccurrenceMap) -> tuple[str, ...]:
     each declared as its own ``exceptions[]`` entry).
     """
     posix = Path(path).as_posix()
-    pins = {
-        fpe.field_path
-        for fpe in omap.field_path_exceptions
-        if _glob_match(posix, fpe.path)
-    }
+    pins = {fpe.field_path for fpe in omap.field_path_exceptions if _glob_match(posix, fpe.path)}
     return tuple(sorted(pins))
 
 
@@ -280,13 +274,7 @@ def _fnmatch_recursive(path: str, pattern: str) -> bool:
     #   ``*``  -> ``[^/]*``
     #   ``?``  -> ``[^/]``
     placeholder = "\x00DOUBLESTAR\x00"
-    regex = (
-        pattern.replace("**", placeholder)
-        .replace(".", r"\.")
-        .replace("*", "[^/]*")
-        .replace("?", "[^/]")
-        .replace(placeholder, ".*")
-    )
+    regex = pattern.replace("**", placeholder).replace(".", r"\.").replace("*", "[^/]*").replace("?", "[^/]").replace(placeholder, ".*")
     return re.fullmatch(regex, path) is not None
 
 
@@ -358,9 +346,7 @@ def _own_bookkeeping_exemption(path: str, feature_dir_rel: str | None) -> FileAs
         return None
     basename = Path(posix).name
     mission_slug = Path(feature_dir_rel).name or None
-    if not is_toolchain_generated_churn(
-        path, mission_slug=mission_slug
-    ) and not _is_review_lifecycle_basename(basename):
+    if not is_toolchain_generated_churn(path, mission_slug=mission_slug) and not _is_review_lifecycle_basename(basename):
         return None
     return FileAssessment(
         path=path,
@@ -368,10 +354,7 @@ def _own_bookkeeping_exemption(path: str, feature_dir_rel: str | None) -> FileAs
         source="runtime-state",
         action=None,
         violation=False,
-        reason=(
-            f"'{basename}' is the mission's own runtime-state bookkeeping file "
-            "(FR-007 allowlist) — exempt from occurrence classification."
-        ),
+        reason=(f"'{basename}' is the mission's own runtime-state bookkeeping file (FR-007 allowlist) — exempt from occurrence classification."),
     )
 
 
@@ -385,11 +368,11 @@ class FileAssessment:
     """Per-file classification and verdict."""
 
     path: str
-    category: str | None           # None => unclassified
-    source: str                    # "path-heuristic" | "exception" | "move" | "structural-target" | "runtime-state"
-    action: str | None             # None => no action defined in map
-    violation: bool                # True when this file blocks approval
-    reason: str                    # Human-readable rationale
+    category: str | None  # None => unclassified
+    source: str  # "path-heuristic" | "exception" | "move" | "structural-target" | "runtime-state"
+    action: str | None  # None => no action defined in map
+    violation: bool  # True when this file blocks approval
+    reason: str  # Human-readable rationale
     field_path_pins: tuple[str, ...] = ()  # WP02: fields pinned do_not_change
 
 
@@ -520,10 +503,7 @@ def _classify_file(
             source="path-heuristic",
             action=None,
             violation=True,
-            reason=(
-                f"File classified as '{category}' but that category is not "
-                "present in the occurrence map (FR-008)."
-            ),
+            reason=(f"File classified as '{category}' but that category is not present in the occurrence map (FR-008)."),
         )
 
     action = category_entry.get("action")
@@ -547,9 +527,7 @@ def _classify_file(
         source="path-heuristic",
         action=action,
         violation=False,
-        reason=(
-            f"Category '{category}' action '{action}' permits modification."
-        ),
+        reason=(f"Category '{category}' action '{action}' permits modification."),
     )
 
 
@@ -570,13 +548,8 @@ def check_diff_compliance(
     violations = [a for a in assessments if a.violation]
     errors = [f"{a.path}: {a.reason}" for a in violations]
 
-    manual_review_files = [
-        a for a in assessments if a.action == "manual_review"
-    ]
-    warnings = [
-        f"{a.path}: category '{a.category}' requires manual_review — document justification"
-        for a in manual_review_files
-    ]
+    manual_review_files = [a for a in assessments if a.action == "manual_review"]
+    warnings = [f"{a.path}: category '{a.category}' requires manual_review — document justification" for a in manual_review_files]
     warnings.extend(_field_path_pin_warnings(assessments))
     warnings.extend(_structural_target_warnings(assessments))
 
@@ -599,8 +572,7 @@ def _field_path_pin_warnings(assessments: list[FileAssessment]) -> list[str]:
     unchanged, so the warning names them too.
     """
     return [
-        f"{a.path}: field-path exception pins {', '.join(a.field_path_pins)} "
-        "as do_not_change — verify only those fields were left untouched"
+        f"{a.path}: field-path exception pins {', '.join(a.field_path_pins)} as do_not_change — verify only those fields were left untouched"
         for a in assessments
         if a.field_path_pins
     ]
@@ -617,9 +589,7 @@ def _structural_target_warnings(assessments: list[FileAssessment]) -> list[str]:
     same warnings list a human actually reads.
     """
     return [
-        f"{a.path}: structural-target exemption applied ({a.reason}) — "
-        "do_not_change bypass; verify this is a genuine structural edit, "
-        "not a bulk-occurrence change"
+        f"{a.path}: structural-target exemption applied ({a.reason}) — do_not_change bypass; verify this is a genuine structural edit, not a bulk-occurrence change"
         for a in assessments
         if a.source == "structural-target"
     ]

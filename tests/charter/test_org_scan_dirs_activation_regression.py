@@ -113,11 +113,7 @@ def _activate_stem(
     call by itself would prove nothing about the defect under test here; only
     the ``filter_graph_by_activation`` assertion below does.
     """
-    config_data = (
-        yaml.load(config_path.read_text(encoding="utf-8"))
-        if config_path.exists()
-        else {}
-    ) or {}
+    config_data = (yaml.load(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}) or {}
     plan = plan_activation(
         kind="directive",
         artifact_id=stem,
@@ -163,9 +159,7 @@ def _pack_context(
 class TestOrgScanDirsActivationRegression:
     """FR-002: activation-filter-level round trip for a flat-layout org pack."""
 
-    def test_flat_layout_org_directive_survives_activation_filter(
-        self, tmp_path: Path
-    ) -> None:
+    def test_flat_layout_org_directive_survives_activation_filter(self, tmp_path: Path) -> None:
         """Acceptance Scenario 1.
 
         Given a flat-layout org root and a root-level ``*.graph.yaml``
@@ -201,8 +195,7 @@ class TestOrgScanDirsActivationRegression:
 
         surviving_urns = {n.urn for n in filtered.nodes}
         assert _ORG_DIRECTIVE_URN in surviving_urns, (
-            f"org directive node {_ORG_DIRECTIVE_URN!r} missing from "
-            f"filter_graph_by_activation output: {sorted(surviving_urns)}"
+            f"org directive node {_ORG_DIRECTIVE_URN!r} missing from filter_graph_by_activation output: {sorted(surviving_urns)}"
         )
 
     def test_order_independence_and_selectivity(self, tmp_path: Path) -> None:

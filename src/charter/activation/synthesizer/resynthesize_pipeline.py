@@ -171,11 +171,7 @@ def _run_bounded(
     all_results = run_all(request, adapter=adapter)
 
     # Filter to only the slugs in the resolved target set
-    return [
-        (body, prov)
-        for body, prov in all_results
-        if prov.artifact_slug in target_slugs
-    ]
+    return [(body, prov) for body, prov in all_results if prov.artifact_slug in target_slugs]
 
 
 # ---------------------------------------------------------------------------
@@ -306,10 +302,7 @@ def run(
             manifest=existing_manifest,
             resolved_topic=resolved,
             is_noop=True,
-            diagnostic=(
-                f"Topic '{topic}' resolved to a DRG URN but no project-local "
-                "artifacts reference it. No writes performed (EC-4)."
-            ),
+            diagnostic=(f"Topic '{topic}' resolved to a DRG URN but no project-local artifacts reference it. No writes performed (EC-4)."),
         )
 
     # ------------------------------------------------------------------
@@ -457,11 +450,7 @@ def _load_project_graph_labels(repo_root: Path) -> dict[str, str]:
         graph = load_graph_or_dir(project_graph_dir)
     except Exception:  # noqa: BLE001
         return {}
-    return {
-        node.urn: node.label
-        for node in graph.nodes
-        if node.label is not None
-    }
+    return {node.urn: node.label for node in graph.nodes if node.label is not None}
 
 
 def _load_merged_drg(

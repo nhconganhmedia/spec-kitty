@@ -95,9 +95,7 @@ def _reason_for(result: CutoverResult) -> str:
 
 
 def _entry_for(result: CutoverResult) -> CutoverAuditEntry:
-    return CutoverAuditEntry(
-        slug=result.slug, cut_over=result.would_flip, reason=_reason_for(result)
-    )
+    return CutoverAuditEntry(slug=result.slug, cut_over=result.would_flip, reason=_reason_for(result))
 
 
 def collect_cutover_audit(repo_root: Path) -> list[CutoverAuditEntry]:
@@ -112,9 +110,7 @@ def collect_cutover_audit(repo_root: Path) -> list[CutoverAuditEntry]:
 
 def _emit_json(entries: list[CutoverAuditEntry], cut_over_count: int, total: int) -> None:
     payload = {
-        "missions": [
-            {"slug": e.slug, "cut_over": e.cut_over, "reason": e.reason} for e in entries
-        ],
+        "missions": [{"slug": e.slug, "cut_over": e.cut_over, "reason": e.reason} for e in entries],
         "cut_over_count": cut_over_count,
         "total": total,
     }
@@ -126,9 +122,7 @@ def _emit_human(entries: list[CutoverAuditEntry], cut_over_count: int, total: in
         console.print("[green]Cutover[/green]: no missions found under kitty-specs/.")
         return
 
-    console.print(
-        f"\n[bold]Cutover Audit[/bold] -- {cut_over_count}/{total} mission(s) cut over\n"
-    )
+    console.print(f"\n[bold]Cutover Audit[/bold] -- {cut_over_count}/{total} mission(s) cut over\n")
     table = Table(box=None, padding=(0, 2), show_edge=False)
     table.add_column("Mission", style="cyan", min_width=24)
     table.add_column("Cut Over", min_width=10)

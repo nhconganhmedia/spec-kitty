@@ -79,9 +79,7 @@ def _build_e2e_project(tmp_path: Path) -> Path:
         check=True,
         capture_output=True,
     )
-    subprocess.run(
-        ["git", "add", "."], cwd=project, check=True, capture_output=True
-    )
+    subprocess.run(["git", "add", "."], cwd=project, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "Initial project"],
         cwd=project,
@@ -137,12 +135,10 @@ def test_feature_alias_rejected_by_agent_tasks_status(tmp_path: Path) -> None:
 
         # Typer raises exit code 2 for unknown options.
         assert feature_result.exit_code == 2, (
-            "Expected exit 2 (unknown option) for --feature after alias removal, "
-            f"got {feature_result.exit_code}.\nOutput:\n{feature_result.output}"
+            f"Expected exit 2 (unknown option) for --feature after alias removal, got {feature_result.exit_code}.\nOutput:\n{feature_result.output}"
         )
         assert "no such option" in (feature_result.output or "").lower(), (
-            "Expected 'No such option' error message for --feature.\n"
-            f"Output:\n{feature_result.output}"
+            f"Expected 'No such option' error message for --feature.\nOutput:\n{feature_result.output}"
         )
     finally:
         os.chdir(old_cwd)

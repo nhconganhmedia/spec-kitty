@@ -179,20 +179,16 @@ def test_guard_is_green_with_the_real_mark(tmp_path: Path) -> None:
 
     # Precondition: the strand genuinely exists (else the guard would be vacuously
     # green — nothing to reconcile). The real mark then names it.
-    assert coord_incoherent_done_wps(
-        COORD_BRANCH, _WRITE_SET, repo_root=repo, feature_dir=_feature_dir(repo)
-    ) == [STRANDED_WP], "precondition: the bake path must strand exactly STRANDED_WP"
-    assert _marker_stranded_wps(repo) == {STRANDED_WP}, (
-        "the real mark must record the stranded WP in pending_coord_reconcile"
+    assert coord_incoherent_done_wps(COORD_BRANCH, _WRITE_SET, repo_root=repo, feature_dir=_feature_dir(repo)) == [STRANDED_WP], (
+        "precondition: the bake path must strand exactly STRANDED_WP"
     )
+    assert _marker_stranded_wps(repo) == {STRANDED_WP}, "the real mark must record the stranded WP in pending_coord_reconcile"
 
     # The behavioral guard is GREEN: strand present, but marked → recoverable.
     _assert_coord_rollback_invariant(repo)
 
 
-def test_guard_reds_when_persist_marker_is_stubbed_to_noop(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_guard_reds_when_persist_marker_is_stubbed_to_noop(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Non-vacuity (FR-008 / SC-005): stub the marker-persist → the guard REDS.
 
     ``_persist_coord_reconcile_marker`` is monkeypatched to a runtime no-op and the
@@ -206,20 +202,16 @@ def test_guard_reds_when_persist_marker_is_stubbed_to_noop(
     _init_git_repo(repo)
     _bootstrap_two_wp_coord_mission(repo)
 
-    monkeypatch.setattr(
-        ex, "_persist_coord_reconcile_marker", lambda run, error: None
-    )
+    monkeypatch.setattr(ex, "_persist_coord_reconcile_marker", lambda run, error: None)
     exc, _calls = _run_bake_failing_merge(repo)
     assert isinstance(exc, RuntimeError), f"expected the injected bake fault; got {exc!r}"
 
     # The strand is real (leg-b restore ran; committed ``done`` survives) …
-    assert coord_incoherent_done_wps(
-        COORD_BRANCH, _WRITE_SET, repo_root=repo, feature_dir=_feature_dir(repo)
-    ) == [STRANDED_WP], "precondition: the strand must exist even with the mark stubbed"
-    # … and, with the mark stubbed, unrecorded.
-    assert _marker_stranded_wps(repo) == set(), (
-        "precondition: the stubbed mark must leave pending_coord_reconcile absent"
+    assert coord_incoherent_done_wps(COORD_BRANCH, _WRITE_SET, repo_root=repo, feature_dir=_feature_dir(repo)) == [STRANDED_WP], (
+        "precondition: the strand must exist even with the mark stubbed"
     )
+    # … and, with the mark stubbed, unrecorded.
+    assert _marker_stranded_wps(repo) == set(), "precondition: the stubbed mark must leave pending_coord_reconcile absent"
 
     # The falsifier: the SAME guard that was green above now REDS.
     with pytest.raises(AssertionError, match="INV-COORD-ROLLBACK"):
@@ -227,9 +219,7 @@ def test_guard_reds_when_persist_marker_is_stubbed_to_noop(
     assert _coord_rollback_violation(repo) == {STRANDED_WP}
 
 
-def test_guard_reds_when_strand_authority_is_stubbed_to_noop(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_guard_reds_when_strand_authority_is_stubbed_to_noop(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Non-vacuity (second seam): stub the strand-derivation authority → guard REDS.
 
     ``executor.coord_incoherent_done_wps`` is monkeypatched to always return ``[]``.
@@ -243,15 +233,11 @@ def test_guard_reds_when_strand_authority_is_stubbed_to_noop(
     _init_git_repo(repo)
     _bootstrap_two_wp_coord_mission(repo)
 
-    monkeypatch.setattr(
-        ex, "coord_incoherent_done_wps", lambda *args, **kwargs: []
-    )
+    monkeypatch.setattr(ex, "coord_incoherent_done_wps", lambda *args, **kwargs: [])
     exc, _calls = _run_bake_failing_merge(repo)
     assert isinstance(exc, RuntimeError), f"expected the injected bake fault; got {exc!r}"
 
-    assert _marker_stranded_wps(repo) == set(), (
-        "precondition: a no-op strand authority must leave the marker absent"
-    )
+    assert _marker_stranded_wps(repo) == set(), "precondition: a no-op strand authority must leave the marker absent"
     with pytest.raises(AssertionError, match="INV-COORD-ROLLBACK"):
         _assert_coord_rollback_invariant(repo)
     assert _coord_rollback_violation(repo) == {STRANDED_WP}
@@ -329,17 +315,10 @@ def _enclosing_if_tests(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> list[
     return tests
 
 
-def _enclosing_except_try_body_callees(
-    node: ast.AST, parents: dict[ast.AST, ast.AST]
-) -> set[str]:
+def _enclosing_except_try_body_callees(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> set[str]:
     """Callee names in the *try body* of the nearest ``Try`` whose handler holds node."""
     path = _path_to_root(node, parents)
     for lower, upper in zip(path, path[1:], strict=False):
         if isinstance(upper, ast.Try) and lower in upper.handlers:
-            return {
-                _call_name(n)
-                for stmt in upper.body
-                for n in ast.walk(stmt)
-                if isinstance(n, ast.Call)
-            }
+            return {_call_name(n) for stmt in upper.body for n in ast.walk(stmt) if isinstance(n, ast.Call)}
     return set()

@@ -329,13 +329,8 @@ def test_generate_force_preserves_curated_charter_prose_2772(tmp_path: Path) -> 
     _git_init(repo_root)
     charter_dir = repo_root / ".kittify" / "charter"
     charter_dir.mkdir(parents=True)
-    curated_sentinel = (
-        "CURATED-PROSE-SENTINEL-2772: hand-authored governance narrative "
-        "that charter refresh must never destroy."
-    )
-    (charter_dir / "charter.md").write_text(
-        f"# Curated Charter (v1.3.0)\n\n{curated_sentinel}\n", encoding="utf-8"
-    )
+    curated_sentinel = "CURATED-PROSE-SENTINEL-2772: hand-authored governance narrative that charter refresh must never destroy."
+    (charter_dir / "charter.md").write_text(f"# Curated Charter (v1.3.0)\n\n{curated_sentinel}\n", encoding="utf-8")
 
     with patch("specify_cli.cli.commands.charter.find_repo_root") as mock_find_root:
         mock_find_root.return_value = repo_root

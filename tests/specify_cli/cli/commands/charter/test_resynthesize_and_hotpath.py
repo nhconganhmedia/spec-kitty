@@ -105,9 +105,7 @@ def _minimal_project(tmp_path: Path) -> Path:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     init_git_repo(tmp_path)
     write_interview_answers(tmp_path / ".kittify/charter/interview/answers.yaml", default_interview(mission="software-dev"))
     return tmp_path
@@ -227,9 +225,7 @@ def _seed_synthesized_repo(
     _seed_project_graph(repo)
     # Migrated-project shape: config.yaml points at charter.yaml so activation
     # writes land in charter.yaml (the hash input), not the legacy config keys.
-    (repo / ".kittify" / "config.yaml").write_text(
-        "charter: .kittify/charter/charter.yaml\n", encoding="utf-8"
-    )
+    (repo / ".kittify" / "config.yaml").write_text("charter: .kittify/charter/charter.yaml\n", encoding="utf-8")
     return charter_dir
 
 
@@ -292,9 +288,7 @@ def _reconcile_via_fakes(monkeypatch: pytest.MonkeyPatch, repo: Path, charter_di
 # ---------------------------------------------------------------------------
 
 
-def test_default_activate_triggers_zero_synthesis_calls(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_default_activate_triggers_zero_synthesis_calls(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``charter activate`` without ``--resynthesize`` never calls generate/synthesize."""
     project_root = _minimal_project(tmp_path)
     mock_generate, mock_synthesize = _patch_synthesis_spies(monkeypatch)
@@ -306,15 +300,12 @@ def test_default_activate_triggers_zero_synthesis_calls(
     assert mock_synthesize.call_count == 0
 
 
-def test_default_deactivate_triggers_zero_synthesis_calls(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_default_deactivate_triggers_zero_synthesis_calls(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``charter deactivate`` without ``--resynthesize`` never calls generate/synthesize."""
     project_root = _minimal_project(tmp_path)
     _write_config(
         project_root,
-        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-        "mission_type_activations:\n  - software-dev\n",
+        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\nmission_type_activations:\n  - software-dev\n",
     )
     mock_generate, mock_synthesize = _patch_synthesis_spies(monkeypatch)
 
@@ -330,16 +321,12 @@ def test_default_deactivate_triggers_zero_synthesis_calls(
 # ---------------------------------------------------------------------------
 
 
-def test_activate_resynthesize_invokes_existing_pipeline_exactly_once(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_activate_resynthesize_invokes_existing_pipeline_exactly_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``--resynthesize`` calls the REAL ``generate``/``charter_synthesize`` objects once each."""
     project_root = _minimal_project(tmp_path)
     mock_generate, mock_synthesize = _patch_synthesis_spies(monkeypatch)
 
-    result = _invoke(
-        "activate", project_root, "directive", _REAL_DIRECTIVE_STEM, "--resynthesize"
-    )
+    result = _invoke("activate", project_root, "directive", _REAL_DIRECTIVE_STEM, "--resynthesize")
 
     assert result.exit_code == 0, result.output
     assert mock_generate.call_count == 1
@@ -352,21 +339,16 @@ def test_activate_resynthesize_invokes_existing_pipeline_exactly_once(
     assert mock_synthesize.call_args.kwargs["adapter"] == "generated"
 
 
-def test_deactivate_resynthesize_invokes_existing_pipeline_exactly_once(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_deactivate_resynthesize_invokes_existing_pipeline_exactly_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``deactivate --resynthesize`` is symmetric with ``activate --resynthesize``."""
     project_root = _minimal_project(tmp_path)
     _write_config(
         project_root,
-        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-        "mission_type_activations:\n  - software-dev\n",
+        f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\nmission_type_activations:\n  - software-dev\n",
     )
     mock_generate, mock_synthesize = _patch_synthesis_spies(monkeypatch)
 
-    result = _invoke(
-        "deactivate", project_root, "directive", _REAL_DIRECTIVE_STEM, "--resynthesize"
-    )
+    result = _invoke("deactivate", project_root, "directive", _REAL_DIRECTIVE_STEM, "--resynthesize")
 
     assert result.exit_code == 0, result.output
     assert mock_generate.call_count == 1
@@ -394,9 +376,7 @@ def test_no_resynthesize_flag_is_off_by_default_and_documented(tmp_path: Path) -
 # ---------------------------------------------------------------------------
 
 
-def test_activate_resynthesize_reconciles_signal_to_fresh(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_activate_resynthesize_reconciles_signal_to_fresh(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """CT-04: ``charter activate <kind> <id> --resynthesize`` leaves the signal FRESH."""
     charter_dir = _seed_synthesized_repo(tmp_path, ref_entries=[])
     assert _synthesized_drg_state(tmp_path) == "fresh"  # baseline precondition
@@ -408,17 +388,13 @@ def test_activate_resynthesize_reconciles_signal_to_fresh(
         [_reference_entry(f"DIRECTIVE:{_REAL_DIRECTIVE_CANONICAL}", "directive")],
     )
 
-    result = _invoke(
-        "activate", tmp_path, "directive", _REAL_DIRECTIVE_STEM, "--resynthesize"
-    )
+    result = _invoke("activate", tmp_path, "directive", _REAL_DIRECTIVE_STEM, "--resynthesize")
 
     assert result.exit_code == 0, result.output
     assert _synthesized_drg_state(tmp_path) == "fresh"
 
 
-def test_activate_without_resynthesize_stays_stale_and_spawns_no_synthesis(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_activate_without_resynthesize_stays_stale_and_spawns_no_synthesis(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """CT-04: default ``charter activate`` leaves the signal STALE, zero synthesis calls."""
     _seed_synthesized_repo(tmp_path, ref_entries=[])
     assert _synthesized_drg_state(tmp_path) == "fresh"  # baseline precondition
@@ -432,9 +408,7 @@ def test_activate_without_resynthesize_stays_stale_and_spawns_no_synthesis(
     assert mock_synthesize.call_count == 0
 
 
-def test_deactivate_resynthesize_reconciles_signal_to_fresh(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_deactivate_resynthesize_reconciles_signal_to_fresh(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Deactivate symmetric: ``--resynthesize`` reconciles an orphaned paradigm back to fresh."""
     charter_dir = _seed_synthesized_repo(
         tmp_path,
@@ -455,17 +429,13 @@ def test_deactivate_resynthesize_reconciles_signal_to_fresh(
         [_reference_entry(f"PARADIGM:{_REAL_PARADIGM_STEM_A}", "paradigm")],
     )
 
-    result = _invoke(
-        "deactivate", tmp_path, "paradigm", _REAL_PARADIGM_STEM_B, "--resynthesize"
-    )
+    result = _invoke("deactivate", tmp_path, "paradigm", _REAL_PARADIGM_STEM_B, "--resynthesize")
 
     assert result.exit_code == 0, result.output
     assert _synthesized_drg_state(tmp_path) == "fresh"
 
 
-def test_deactivate_without_resynthesize_stays_stale_and_spawns_no_synthesis(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_deactivate_without_resynthesize_stays_stale_and_spawns_no_synthesis(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Deactivate symmetric: default leaves the signal STALE, zero synthesis calls."""
     _seed_synthesized_repo(
         tmp_path,
@@ -493,9 +463,7 @@ def test_deactivate_without_resynthesize_stays_stale_and_spawns_no_synthesis(
 # ---------------------------------------------------------------------------
 
 
-def test_promote_activations_migration_path_triggers_no_synthesis(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_promote_activations_migration_path_triggers_no_synthesis(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``promote_activations`` (upgrade migration + ``org_charter`` union) never synthesizes.
 
     Structural by construction (``charter.activation.activation_engine`` never imports

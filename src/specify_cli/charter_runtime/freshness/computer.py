@@ -306,16 +306,8 @@ def _missing_charter_source_detail(repo_root: Path) -> str:
     if present:
         file_list = "/".join(present)
         if len(present) == 1:
-            return (
-                f"no charter.yaml, but a legacy charter bundle file ({file_list}) "
-                "is present; this project has a charter, just not in the "
-                "required form"
-            )
-        return (
-            f"no charter.yaml, but legacy charter bundle files ({file_list}) "
-            "are present; this project has a charter, just not in the "
-            "required form"
-        )
+            return f"no charter.yaml, but a legacy charter bundle file ({file_list}) is present; this project has a charter, just not in the required form"
+        return f"no charter.yaml, but legacy charter bundle files ({file_list}) are present; this project has a charter, just not in the required form"
     return "no charter.yaml and no legacy charter bundle files; this project has no charter at all"
 
 
@@ -439,6 +431,7 @@ def _load_synthesis_manifest_via_chokepoint(repo_root: Path) -> SynthesisManifes
     # NFR-003: defer the chokepoint import until first call so module-import
     # of ``charter_freshness`` stays off the ``spec-kitty next`` hot path.
     from charter.activation.synthesizer.manifest import load_yaml as _chokepoint_load_manifest  # noqa: PLC0415
+
     try:
         return _chokepoint_load_manifest(manifest_path)
     except Exception:  # noqa: BLE001 — manifest validation/parse errors are non-fatal here
@@ -779,11 +772,7 @@ def _looks_like_legacy_fresh_seed(path: Path) -> bool:
     except OSError:
         return False
     lowered = text.lower()
-    return (
-        "fresh project seed" in lowered
-        and "llm-authored yaml" in lowered
-        and "built-in doctrine" in lowered
-    )
+    return "fresh project seed" in lowered and "llm-authored yaml" in lowered and "built-in doctrine" in lowered
 
 
 # ---------------------------------------------------------------------------

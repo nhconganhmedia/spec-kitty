@@ -102,9 +102,7 @@ class _CharterScopeEntry(BaseModel):
     @classmethod
     def _root_must_be_non_empty(cls, value: str) -> str:
         if not value or not value.strip():
-            raise ValueError(
-                "charter_scopes[].root must be a non-empty repo-relative path"
-            )
+            raise ValueError("charter_scopes[].root must be a non-empty repo-relative path")
         return value
 
     @field_validator("root")
@@ -118,14 +116,9 @@ class _CharterScopeEntry(BaseModel):
         """
         p = Path(value)
         if p.is_absolute():
-            raise ValueError(
-                f"charter_scopes[].root must be a relative path, "
-                f"got absolute: {value!r}"
-            )
+            raise ValueError(f"charter_scopes[].root must be a relative path, got absolute: {value!r}")
         if ".." in p.parts:
-            raise ValueError(
-                f"charter_scopes[].root must not contain '..' segments: {value!r}"
-            )
+            raise ValueError(f"charter_scopes[].root must not contain '..' segments: {value!r}")
         return value
 
 
@@ -208,26 +201,17 @@ class CharterScope:
         for entry in config_payload.charter_scopes:
             resolved = (repo_root / entry.root).resolve()
             if not resolved.is_relative_to(repo_root_abs):
-                raise CharterScopeConflict(
-                    f"charter_scopes[].root {entry.root!r} resolves outside "
-                    f"repo_root {repo_root} — refusing traversal."
-                )
+                raise CharterScopeConflict(f"charter_scopes[].root {entry.root!r} resolves outside repo_root {repo_root} — refusing traversal.")
             scope_roots.append((resolved, entry.name, entry.root))
 
         # Normalise feature_dir to an absolute path.
-        feature_dir_abs = (
-            feature_dir if feature_dir.is_absolute() else (repo_root / feature_dir)
-        ).resolve()
+        feature_dir_abs = (feature_dir if feature_dir.is_absolute() else (repo_root / feature_dir)).resolve()
 
         # Detect incompatible nesting that would render feature_dir ambiguous.
         _validate_no_incompatible_nesting(scope_roots, feature_dir_abs)
 
         # Collect candidate scopes that enclose feature_dir.
-        candidates = [
-            (scope_root, name)
-            for scope_root, name, _raw in scope_roots
-            if scope_root == feature_dir_abs or scope_root in feature_dir_abs.parents
-        ]
+        candidates = [(scope_root, name) for scope_root, name, _raw in scope_roots if scope_root == feature_dir_abs or scope_root in feature_dir_abs.parents]
         if not candidates:
             available = [raw for _abs, _name, raw in scope_roots]
             raise CharterScopeNotFound(
@@ -240,9 +224,7 @@ class CharterScope:
         # Nearest enclosing = deepest path (most path parts).
         candidates.sort(key=lambda match: len(match[0].parts), reverse=True)
         winning_root, winning_name = candidates[0]
-        return cls(
-            root=winning_root, name=winning_name, config_source="monorepo_config"
-        )
+        return cls(root=winning_root, name=winning_name, config_source="monorepo_config")
 
 
 # ---------------------------------------------------------------------------
@@ -286,10 +268,7 @@ def _validate_no_incompatible_nesting(
                 continue
             # outer is an ancestor of inner AND feature_dir is under inner
             # (or at inner): both scopes legitimately claim the path.
-            if outer_path in inner_path.parents and (
-                inner_path == feature_dir_abs
-                or inner_path in feature_dir_abs.parents
-            ):
+            if outer_path in inner_path.parents and (inner_path == feature_dir_abs or inner_path in feature_dir_abs.parents):
                 raise CharterScopeConflict(
                     f"Charter scope configuration is malformed: "
                     f"{outer_raw} and {inner_raw} both claim {feature_dir_abs}. "

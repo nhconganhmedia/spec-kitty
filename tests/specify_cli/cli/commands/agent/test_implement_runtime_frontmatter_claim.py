@@ -270,11 +270,7 @@ class TestReviewClaimPolicyMetadata:
         assert review_events[-1].policy_metadata["agent"] == "test-reviewer"
 
         stream = read_event_stream(feature_dir)
-        claim_annotations = [
-            event
-            for event in stream.annotations
-            if event.wp_id == "WP01" and event.delta.agent == "test-reviewer"
-        ]
+        claim_annotations = [event for event in stream.annotations if event.wp_id == "WP01" and event.delta.agent == "test-reviewer"]
         assert len(claim_annotations) == 1
 
         # The reducer's transition fold only special-cases planned->claimed
@@ -365,15 +361,9 @@ class TestResumeShellPidRefresh:
         assert second.exit_code == 0, second.stdout
 
         stream_after_resume = read_event_stream(feature_dir)
-        assert len(stream_after_resume.annotations) > len(annotations_after_claim), (
-            "expected the resume to persist a NEW InnerStateChanged annotation"
-        )
-        assert len(commit_calls) == 1, (
-            "resume refresh must enter the status-artifact commit/rollback boundary"
-        )
-        assert "Refresh WP01 implementation liveness" in str(
-            commit_calls[0]["message"]
-        )
+        assert len(stream_after_resume.annotations) > len(annotations_after_claim), "expected the resume to persist a NEW InnerStateChanged annotation"
+        assert len(commit_calls) == 1, "resume refresh must enter the status-artifact commit/rollback boundary"
+        assert "Refresh WP01 implementation liveness" in str(commit_calls[0]["message"])
 
         # No fresh planned -> claimed transition was driven by the resume.
         claimed_transitions = [e for e in stream_after_resume.transitions if e.wp_id == "WP01" and str(e.to_lane) == "claimed"]

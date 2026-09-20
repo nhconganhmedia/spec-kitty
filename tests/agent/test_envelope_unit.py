@@ -18,6 +18,7 @@ from specify_cli.orchestrator_api.envelope import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestMakeEnvelope:
     def test_make_envelope_shape(self):
         """All 7 required keys present with correct types."""
@@ -113,9 +114,7 @@ class TestParsePolicyValid:
 
     def test_parse_policy_rejects_secret_in_dangerous_flags_entry(self):
         """Secret-like dangerous_flags entries are rejected before persistence."""
-        policy_dict = self._valid_policy(
-            dangerous_flags=["AWS_SECRET_ACCESS_KEY=abc123"]
-        )
+        policy_dict = self._valid_policy(dangerous_flags=["AWS_SECRET_ACCESS_KEY=abc123"])
         raw = json.dumps(policy_dict)
         with pytest.raises(ValueError, match="appears to contain a secret"):
             parse_and_validate_policy(raw)

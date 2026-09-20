@@ -69,9 +69,7 @@ def _apply(project_root: Path, name: str, *extra: str) -> object:
 def _git_init(repo_root: Path) -> None:
     """Minimal git init -- `_is_inside_git_worktree` only needs a worktree,
     no identity/config, since the compile bridge never commits or stages."""
-    subprocess.run(
-        ["git", "init", "--quiet"], cwd=repo_root, check=True, capture_output=True
-    )
+    subprocess.run(["git", "init", "--quiet"], cwd=repo_root, check=True, capture_output=True)
 
 
 def _load_yaml(path: Path) -> dict[str, object]:
@@ -163,9 +161,7 @@ def test_apply_compile_without_git_fails_closed_naming_the_requirement(
     assert result.exit_code == 1
     lowered = result.output.lower()
     assert "git" in lowered
-    assert (tmp_path / ".kittify" / "config.yaml").is_file(), (
-        "the config merge must still have run before the compile step failed"
-    )
+    assert (tmp_path / ".kittify" / "config.yaml").is_file(), "the config merge must still have run before the compile step failed"
     assert not (tmp_path / ".kittify" / "charter" / "charter.yaml").exists()
 
 
@@ -231,17 +227,11 @@ def test_apply_compile_converges_with_finalize_migration_producer(
 
     for section in ("governance", "directives", "catalog", "metadata"):
         assert section in produced, f"apply --compile document missing {section!r}"
-        assert section in migration_document, (
-            f"finalize migration document missing {section!r}"
-        )
+        assert section in migration_document, f"finalize migration document missing {section!r}"
 
     for key in activation_present:
-        assert produced.get(key) == config_data[key], (
-            f"apply --compile did not copy activation key {key!r} verbatim"
-        )
-        assert migration_document.get(key) == config_data[key], (
-            f"finalize migration did not copy activation key {key!r} verbatim"
-        )
+        assert produced.get(key) == config_data[key], f"apply --compile did not copy activation key {key!r} verbatim"
+        assert migration_document.get(key) == config_data[key], f"finalize migration did not copy activation key {key!r} verbatim"
         assert produced.get(key) == migration_document.get(key), (
             f"activation key {key!r} diverged between the two producers "
             "for the SAME config-activation input -- the config->bundle "

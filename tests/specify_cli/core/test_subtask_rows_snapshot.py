@@ -120,9 +120,7 @@ def _check(tmp_path: Path, wp_id: str, *, force: bool = False) -> list[str]:
 def _assert_no_checkbox_rows(tasks_md: str) -> None:
     """Precondition: the fixture carries zero canonical checkbox rows, so any
     block/unblock verdict must come from the snapshot, never a checkbox."""
-    rows = [
-        line for line in tasks_md.splitlines() if UNCHECKED_SUBTASK_ROW.match(line.strip())
-    ]
+    rows = [line for line in tasks_md.splitlines() if UNCHECKED_SUBTASK_ROW.match(line.strip())]
     assert rows == [], f"fixture must be checkbox-free; found {rows!r}"
 
 
@@ -140,10 +138,7 @@ def test_guard_blocks_off_snapshot_when_incomplete(tmp_path: Path) -> None:
 
     result = _check(tmp_path, "WP01")
 
-    assert result == ["T002"], (
-        "the incomplete id must come from the snapshot slot, not any checkbox "
-        f"(the fixture has none); got {result!r}"
-    )
+    assert result == ["T002"], f"the incomplete id must come from the snapshot slot, not any checkbox (the fixture has none); got {result!r}"
 
 
 def test_guard_unblocks_off_snapshot_when_all_done(tmp_path: Path) -> None:
@@ -239,8 +234,7 @@ def test_fail_closed_on_silent_snapshot_blocks(tmp_path: Path) -> None:
     result = _check(tmp_path, "WP01")
 
     assert result == ["T001", "T002", "T003"], (
-        "an authored roster with no snapshot completion must fail-closed (block "
-        f"every id), not fall open to complete; got {result!r}"
+        f"an authored roster with no snapshot completion must fail-closed (block every id), not fall open to complete; got {result!r}"
     )
 
 
@@ -255,9 +249,7 @@ def test_dashboard_progress_reads_snapshot_not_checkboxes(tmp_path: Path) -> Non
     _write_wp_file(feature_dir, "WP01", ["T001", "T002", "T003"])
     # The snapshot ``subtasks`` slot is a per-subtask merge; the badge total is
     # the emitted-subtask count (WP11 semantics). Seed the full roster.
-    _emit_subtasks(
-        feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.IN_PROGRESS, "T003": Lane.PLANNED}
-    )
+    _emit_subtasks(feature_dir, "WP01", {"T001": Lane.DONE, "T002": Lane.IN_PROGRESS, "T003": Lane.PLANNED})
 
     view = reconstruct_wp_view(feature_dir, "WP01")
     assert _wp_subtask_progress(view) == (1, 3)
@@ -269,9 +261,7 @@ def test_dashboard_progress_reads_snapshot_not_checkboxes(tmp_path: Path) -> Non
 
     # ...but a raw checkbox edit to tasks.md does NOT (snapshot is the sole
     # authority — the D-13 incoherence is gone).
-    (feature_dir / "tasks.md").write_text(
-        "## WP01 - repro\n- [x] T003 gamma\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("## WP01 - repro\n- [x] T003 gamma\n", encoding="utf-8")
     view = reconstruct_wp_view(feature_dir, "WP01")
     assert _wp_subtask_progress(view) == (2, 3)
 
@@ -298,12 +288,9 @@ _EDITED_TASKS_TEMPLATES = (
 def test_source_tasks_templates_have_no_checkbox_rows(rel_path: str) -> None:
     template = _REPO_ROOT / rel_path
     text = template.read_text(encoding="utf-8")
-    offenders = [
-        line for line in text.splitlines() if UNCHECKED_SUBTASK_ROW.match(line.strip())
-    ]
+    offenders = [line for line in text.splitlines() if UNCHECKED_SUBTASK_ROW.match(line.strip())]
     assert offenders == [], (
-        f"{rel_path} still emits canonical checkbox tracking rows: {offenders!r} — "
-        "SC-010 requires reference rows tracked by mark-status, no checkbox glyph"
+        f"{rel_path} still emits canonical checkbox tracking rows: {offenders!r} — SC-010 requires reference rows tracked by mark-status, no checkbox glyph"
     )
 
 
@@ -319,10 +306,7 @@ def test_source_tasks_prompt_directs_mark_status() -> None:
 # ---------------------------------------------------------------------------
 
 _TASKS_MD_LEGACY_CHECKBOXES = (
-    "# Tasks\n\n## WP01 - legacy\n"
-    "- [x] T001 alpha done the legacy way\n"
-    "- [ ] T002 beta still pending\n"
-    "- [x] T003 gamma done the legacy way\n"
+    "# Tasks\n\n## WP01 - legacy\n- [x] T001 alpha done the legacy way\n- [ ] T002 beta still pending\n- [x] T003 gamma done the legacy way\n"
 )
 
 

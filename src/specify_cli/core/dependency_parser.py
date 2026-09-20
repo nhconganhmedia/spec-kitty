@@ -126,7 +126,7 @@ def _split_wp_sections(tasks_content: str) -> dict[str, str]:
                 # Skip WP ID headings — those would start the next WP section
                 # (shouldn't happen in the final-WP branch, but be safe).
                 line_end = tasks_content.find("\n", h2_match.start())
-                heading_line = tasks_content[h2_match.start():line_end if line_end != -1 else None]
+                heading_line = tasks_content[h2_match.start() : line_end if line_end != -1 else None]
                 if _match_wp_section_id(heading_line[3:].strip()) is not None:
                     continue
                 # Skip "## Dependencies" headings — those are Pattern 3
@@ -187,13 +187,7 @@ def _parse_colon_dependency_value(value: str) -> list[str]:
     """Parse the right side of a ``Dependencies:`` declaration line."""
     stripped = value.strip()
     normalized = stripped.lower()
-    if (
-        not stripped
-        or normalized == "[]"
-        or normalized.startswith("none")
-        or normalized.startswith("no deps")
-        or normalized.startswith("no dependencies")
-    ):
+    if not stripped or normalized == "[]" or normalized.startswith("none") or normalized.startswith("no deps") or normalized.startswith("no dependencies"):
         return []
 
     if depends_match := _DEPENDS_ON.match(stripped):
@@ -230,11 +224,7 @@ def _parse_section_deps(section_content: str) -> list[str]:
     # Pattern 2 — "**Dependencies**: WP01, WP02"
     # Skip lines that are *only* a heading (those are Pattern 3 territory).
     colon_matches = sorted(
-        (
-            match
-            for pattern in _DEPS_COLON_PATTERNS
-            for match in pattern.finditer(section_content)
-        ),
+        (match for pattern in _DEPS_COLON_PATTERNS for match in pattern.finditer(section_content)),
         key=lambda match: match.start(),
     )
     for match in colon_matches:
@@ -247,7 +237,7 @@ def _parse_section_deps(section_content: str) -> list[str]:
 
     # Pattern 3 — bullet list under a "### Dependencies" heading
     for heading_match in _DEPS_HEADING.finditer(section_content):
-        after_heading = section_content[heading_match.end():]
+        after_heading = section_content[heading_match.end() :]
         for line in after_heading.split("\n"):
             stripped = line.strip()
             if not stripped:

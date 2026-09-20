@@ -302,11 +302,7 @@ def docstring_nodes(tree: ast.Module) -> frozenset[int]:
         if not isinstance(node, holders) or not node.body:
             continue
         first = node.body[0]
-        if (
-            isinstance(first, ast.Expr)
-            and isinstance(first.value, ast.Constant)
-            and isinstance(first.value.value, str)
-        ):
+        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):
             found.add(id(first.value))
     return frozenset(found)
 
@@ -314,11 +310,7 @@ def docstring_nodes(tree: ast.Module) -> frozenset[int]:
 def _references_an_artefact(node: ast.expr, prose: frozenset[int]) -> bool:
     """One node: a census/baseline path literal, or the seam's own constant for one."""
     if isinstance(node, ast.Constant):
-        return (
-            isinstance(node.value, str)
-            and id(node) not in prose
-            and _ARTEFACT_RE.search(node.value) is not None
-        )
+        return isinstance(node.value, str) and id(node) not in prose and _ARTEFACT_RE.search(node.value) is not None
     if isinstance(node, ast.Attribute):
         return node.attr in _ARTEFACT_NAMES
     return isinstance(node, ast.Name) and node.id in _ARTEFACT_NAMES
@@ -330,11 +322,7 @@ def artefact_reads(tree: ast.Module) -> frozenset[int]:
     Docstrings are excluded — see :func:`docstring_nodes`.
     """
     prose = docstring_nodes(tree)
-    return frozenset(
-        node.lineno
-        for node in ast.walk(tree)
-        if isinstance(node, ast.expr) and _references_an_artefact(node, prose)
-    )
+    return frozenset(node.lineno for node in ast.walk(tree) if isinstance(node, ast.expr) and _references_an_artefact(node, prose))
 
 
 def _is_digest_call(node: ast.expr) -> bool:
@@ -349,9 +337,7 @@ def _is_digest_call(node: ast.expr) -> bool:
 
 def hand_rolled_hashes(tree: ast.Module) -> frozenset[int]:
     """Lines calling a digest constructor — a hand-rolled ``hash_of_key_set``."""
-    return frozenset(
-        node.lineno for node in ast.walk(tree) if isinstance(node, ast.expr) and _is_digest_call(node)
-    )
+    return frozenset(node.lineno for node in ast.walk(tree) if isinstance(node, ast.expr) and _is_digest_call(node))
 
 
 def _verdict_vocabulary(*parts: ast.AST) -> frozenset[str]:
@@ -370,9 +356,7 @@ def verdict_comparisons(tree: ast.Module) -> frozenset[int]:
     hits: set[int] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Compare):
-            if any(isinstance(op, _COMPARISON_OPS) for op in node.ops) and len(
-                _verdict_vocabulary(node.left, *node.comparators)
-            ) >= 2:
+            if any(isinstance(op, _COMPARISON_OPS) for op in node.ops) and len(_verdict_vocabulary(node.left, *node.comparators)) >= 2:
                 hits.add(node.lineno)
         elif (
             isinstance(node, ast.Call)
@@ -458,8 +442,7 @@ def test_the_verdict_work_population_is_non_empty() -> None:
         "nothing. A hard-coded list would have greened here, which is why the set is discovered."
     )
     assert f"architectural/{VERDICT_MODULE}.py" in doing, (
-        f"the seam itself must register as verdict work; if it does not, the signals no longer "
-        f"describe the thing they are meant to detect. Found: {sorted(doing)}"
+        f"the seam itself must register as verdict work; if it does not, the signals no longer describe the thing they are meant to detect. Found: {sorted(doing)}"
     )
 
 
@@ -477,7 +460,7 @@ def _materialise(root: Path, relpath: str, source: str) -> Path:
 
 
 #: The copy WP05 would most plausibly write: read the checked-in census, compare it to the walk.
-_HAND_ROLLED_COMPARISON = '''
+_HAND_ROLLED_COMPARISON = """
 from pathlib import Path
 
 import yaml
@@ -492,10 +475,10 @@ def test_the_real_tree_matches_the_frozen_census():
     census = {tuple(row["key"]) for row in document["rows"]}
     discovered = {member.key for member in discover(Path("tests"))}
     assert discovered == census
-'''
+"""
 
 #: The other plausible copy: re-derive the key-set checksum instead of calling `hash_of_key_set`.
-_HAND_ROLLED_HASH = '''
+_HAND_ROLLED_HASH = """
 import hashlib
 
 from tests.architectural._home_pin_scan import discover
@@ -504,11 +487,11 @@ from tests.architectural._home_pin_scan import discover
 def recompute(keys, pinned):
     payload = "\\n".join("\\t".join(key) for key in sorted(keys))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest() == pinned
-'''
+"""
 
 #: The SUBSET-ONLY copy — the second copy already known to be wrong. It names three of the four
 #: operand words and, under an ``Eq``-only matcher, escaped on one character.
-_SUBSET_ONLY_COPY = '''
+_SUBSET_ONLY_COPY = """
 from pathlib import Path
 
 from tests.architectural._home_pin_scan import discover
@@ -517,19 +500,19 @@ from tests.architectural._home_pin_scan import discover
 def test_no_new_members(census, exempt):
     discovered = {member.key for member in discover(Path("tests"))}
     assert discovered <= census | exempt
-'''
+"""
 
 #: The same relation spelled as a method call.
-_ISSUBSET_COPY = '''
+_ISSUBSET_COPY = """
 from tests.architectural._home_pin_scan import discover
 
 
 def check(discovered, census, exempt):
     return discovered.issubset(census | exempt)
-'''
+"""
 
 #: A scanner consumer doing NO verdict work — the negative control.
-_ORDINARY_CONSUMER = '''
+_ORDINARY_CONSUMER = """
 from pathlib import Path
 
 from tests.architectural._home_pin_scan import discover, enumerate_py_files
@@ -539,7 +522,7 @@ def test_every_member_lives_in_a_walked_file():
     root = Path("tests")
     walked = {path.relative_to(root).as_posix() for path in enumerate_py_files(root)}
     assert {member.relpath for member in discover(root)} <= walked
-'''
+"""
 
 
 def test_the_guard_bites_on_a_hand_rolled_comparison(tmp_path: Path) -> None:
@@ -615,13 +598,13 @@ _COMPARISON_SPELLINGS: dict[str, str] = {
     "issuperset": "census.issuperset(discovered | exempt)",
 }
 
-_SPELLING_MODULE = '''
+_SPELLING_MODULE = """
 from tests.architectural._home_pin_scan import discover
 
 
 def check(discovered, census, exempt):
     return {expression}
-'''
+"""
 
 
 @pytest.mark.parametrize("spelling", sorted(_COMPARISON_SPELLINGS))
@@ -640,8 +623,7 @@ def test_every_comparison_spelling_fires_the_signal(tmp_path: Path, spelling: st
     )
     found = offenders(root)
     assert set(found) == {"architectural/test_spelling.py"}, (
-        f"the {spelling!r} spelling ({_COMPARISON_SPELLINGS[spelling]}) is INVISIBLE to the "
-        f"comparison signal — a second copy written this way would ship unnoticed"
+        f"the {spelling!r} spelling ({_COMPARISON_SPELLINGS[spelling]}) is INVISIBLE to the comparison signal — a second copy written this way would ship unnoticed"
     )
     assert set(found["architectural/test_spelling.py"]) == {"verdict-comparison"}
 
@@ -653,9 +635,7 @@ def test_the_spelling_cases_cover_every_configured_operator() -> None:
     be an untested branch again; this asserts the two stay in step, by **set** comparison over the
     operator names rather than by counting them.
     """
-    configured = {op.__name__.lower() for op in _COMPARISON_OPS} | {
-        method.lower() for method in _SUBSET_METHODS
-    }
+    configured = {op.__name__.lower() for op in _COMPARISON_OPS} | {method.lower() for method in _SUBSET_METHODS}
     assert configured == set(_COMPARISON_SPELLINGS), (
         f"comparison configuration and spelling cases drifted. Configured but unexercised: "
         f"{sorted(configured - set(_COMPARISON_SPELLINGS))}; exercised but not configured: "
@@ -714,8 +694,7 @@ def test_importing_the_verdict_seam_clears_an_otherwise_offending_module(tmp_pat
     root = tmp_path / "repaired"
     repaired = _HAND_ROLLED_COMPARISON.replace(
         "from tests.architectural._home_pin_scan import discover",
-        "from tests.architectural._home_pin_scan import discover\n"
-        "from tests.architectural._home_pin_verdict import census_keys",
+        "from tests.architectural._home_pin_scan import discover\nfrom tests.architectural._home_pin_verdict import census_keys",
     )
     _materialise(root, "architectural/test_hand_rolled.py", repaired)
     assert modules_doing_verdict_work(root), "the module must still REGISTER as verdict work"
@@ -776,9 +755,7 @@ def test_the_exemption_key_set_is_pinned_OUTSIDE_this_module() -> None:
 
         python -m tests.architectural.test_home_pin_verdict_seam --freeze-exempt-pin
     """
-    assert EXEMPT_PIN_PATH.is_file(), (
-        f"{EXEMPT_PIN_PATH.name} is missing — regenerate with `{EXEMPT_PIN_COMMAND}`"
-    )
+    assert EXEMPT_PIN_PATH.is_file(), f"{EXEMPT_PIN_PATH.name} is missing — regenerate with `{EXEMPT_PIN_COMMAND}`"
     document = yaml.safe_load(EXEMPT_PIN_PATH.read_text(encoding="utf-8"))
     assert exempt_pin_digest() == document[EXEMPT_PIN_FIELD], (
         f"EXEMPT no longer hashes to the pin held in {EXEMPT_PIN_PATH.name}. Adding, removing or "
@@ -803,9 +780,7 @@ def test_the_external_pin_is_sensitive_to_a_forged_exemption() -> None:
     set that is **not** the live one.
     """
     forged = frozenset(EXEMPT) | {"architectural/test_hand_rolled.py"}
-    assert exempt_pin_digest(forged) != exempt_pin_digest(), (
-        "the digest does not move when the exemption set does — the external pin is inert"
-    )
+    assert exempt_pin_digest(forged) != exempt_pin_digest(), "the digest does not move when the exemption set does — the external pin is inert"
 
 
 def test_every_exemption_states_a_reason() -> None:

@@ -103,9 +103,7 @@ def _materialise_coord_empty(repo_root: Path, slug: str) -> Path:
 
 
 @pytest.mark.parametrize("slug", [BARE_SLUG, SLUG_WITH_MID8], ids=["bare", "slug-mid8"])
-def test_coord_empty_resolves_primary_with_warning_for_both_handle_forms(
-    tmp_path: Path, slug: str, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_coord_empty_resolves_primary_with_warning_for_both_handle_forms(tmp_path: Path, slug: str, caplog: pytest.LogCaptureFixture) -> None:
     """A materialized-but-empty coord worktree → PRIMARY surface + loud warning.
 
     Mutation-killing: a regression that re-raised the old
@@ -123,12 +121,8 @@ def test_coord_empty_resolves_primary_with_warning_for_both_handle_forms(
 
     # The fallback is LOUD, not silent (NFR-003): at least one WARNING-level
     # record from the resolver's named logger.
-    assert any(
-        r.name == _LOGGER_NAME and r.levelno == logging.WARNING
-        for r in caplog.records
-    ), (
-        "coord-empty Option B must emit a logging.WARNING (no silent fallback). "
-        f"Records seen: {[(r.name, r.levelname) for r in caplog.records]}"
+    assert any(r.name == _LOGGER_NAME and r.levelno == logging.WARNING for r in caplog.records), (
+        f"coord-empty Option B must emit a logging.WARNING (no silent fallback). Records seen: {[(r.name, r.levelname) for r in caplog.records]}"
     )
 
 
@@ -189,6 +183,5 @@ def test_create_window_unmaterialized_coord_resolves_primary(tmp_path: Path) -> 
 
     expected_primary = (tmp_path / "kitty-specs" / SLUG_WITH_MID8).resolve()
     assert resolved.primary_anchor.resolve() == expected_primary, (
-        "create→first-write window must keep the PRIMARY checkout as the "
-        "anchor — coord-empty fallback must not over-reach here"
+        "create→first-write window must keep the PRIMARY checkout as the anchor — coord-empty fallback must not over-reach here"
     )

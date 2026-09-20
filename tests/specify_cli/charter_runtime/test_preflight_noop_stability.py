@@ -127,9 +127,7 @@ def _git_status_porcelain(repo: Path) -> str:
 # ---------------------------------------------------------------------------
 
 
-def test_repeated_preflight_on_fresh_repo_never_shells_out_and_stays_clean(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_repeated_preflight_on_fresh_repo_never_shells_out_and_stays_clean(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Two consecutive ``auto_refresh=True`` runs on a real-synthesized,
     committed-clean repo are both true no-ops: passing, git-clean, and
     they never shell out to ANY ``spec-kitty`` subcommand -- in particular
@@ -162,19 +160,14 @@ def test_repeated_preflight_on_fresh_repo_never_shells_out_and_stays_clean(
         result = run_charter_preflight(repo, auto_refresh=True)
 
         assert result.passed is True, f"iteration {iteration}: blocked_reason={result.blocked_reason!r}"
-        assert result.auto_refresh_applied is False, (
-            f"iteration {iteration}: a genuine no-op must never even attempt a refresh"
-        )
+        assert result.auto_refresh_applied is False, f"iteration {iteration}: a genuine no-op must never even attempt a refresh"
         drg = next(c for c in result.checks if c.name == "synthesized_drg")
         assert drg.state == "fresh", f"iteration {iteration}: synthesized_drg={drg.state!r}"
 
         dirty = _git_status_porcelain(repo)
         assert dirty == "", f"iteration {iteration}: worktree is dirty after a no-op run:\n{dirty}"
 
-    assert seen_calls == [], (
-        "charter preflight shelled out on a genuine no-op (#2373 regression); "
-        f"calls seen: {seen_calls}"
-    )
+    assert seen_calls == [], f"charter preflight shelled out on a genuine no-op (#2373 regression); calls seen: {seen_calls}"
 
 
 # ---------------------------------------------------------------------------
@@ -182,9 +175,7 @@ def test_repeated_preflight_on_fresh_repo_never_shells_out_and_stays_clean(
 # ---------------------------------------------------------------------------
 
 
-def test_substantive_charter_yaml_edit_still_triggers_synthesize(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_substantive_charter_yaml_edit_still_triggers_synthesize(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A genuine, committed ``charter.yaml`` content edit is read as
     ``synthesized_drg = stale`` and ``auto_refresh=True`` actually invokes
     ``spec-kitty charter synthesize`` -- guarding against a future no-op
@@ -230,6 +221,5 @@ def test_substantive_charter_yaml_edit_still_triggers_synthesize(
     assert result.auto_refresh_applied is True
     cmds_as_strs = [" ".join(c) for c in seen_calls]
     assert "spec-kitty charter synthesize" in cmds_as_strs, (
-        "a genuine charter.yaml content edit must still drive `charter synthesize` "
-        f"through auto_refresh (INV-2/LM-5); calls seen: {cmds_as_strs}"
+        f"a genuine charter.yaml content edit must still drive `charter synthesize` through auto_refresh (INV-2/LM-5); calls seen: {cmds_as_strs}"
     )

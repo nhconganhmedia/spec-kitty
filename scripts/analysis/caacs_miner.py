@@ -13,6 +13,7 @@ Metrics per test file:
 
 Read-only; no repo mutation.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -25,7 +26,9 @@ TEST_PREFIX = "tests/"
 def commits():
     out = subprocess.run(
         ["git", "log", "--no-merges", "--name-only", "--pretty=format:@@@%H"],
-        capture_output=True, text=True, check=True,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     cur: list[str] = []
     for line in out.splitlines():
@@ -69,30 +72,36 @@ def main() -> None:
         print("| test file | changes | co-src | ratio | top src partners |")
         print("|---|--:|--:|--:|---|")
         for t, ch, co, ratio, part in sorted(subset, key=key, reverse=True)[:top]:
-            pstr = ", ".join(f"{m.replace('src/specify_cli/','')}×{c}" for m, c in part)
-            print(f"| {t.replace('tests/','')} | {ch} | {co} | {ratio:.2f} | {pstr} |")
+            pstr = ", ".join(f"{m.replace('src/specify_cli/', '')}×{c}" for m, c in part)
+            print(f"| {t.replace('tests/', '')} | {ch} | {co} | {ratio:.2f} | {pstr} |")
 
     arch = [r for r in rows if r[0].startswith("tests/architectural/")]
     charz = [r for r in rows if r[0].startswith("tests/characterization/")]
     # "core test packages": the trio + status + core domains
-    core = [r for r in rows if r[0].startswith((
-        "tests/specify_cli/cli/commands", "tests/status/", "tests/specify_cli/status",
-        "tests/unit/status", "tests/specify_cli/acceptance", "tests/agent/",
-    ))]
+    core = [
+        r
+        for r in rows
+        if r[0].startswith(
+            (
+                "tests/specify_cli/cli/commands",
+                "tests/status/",
+                "tests/specify_cli/status",
+                "tests/unit/status",
+                "tests/specify_cli/acceptance",
+                "tests/agent/",
+            )
+        )
+    ]
 
     print("# CaaCS test change-coupling report\n")
     print(f"History mined: {sum(1 for _ in commits())} non-merge commits.")
     print(f"Test files seen: {len(test_changes)} · arch: {len(arch)} · core-pkg: {len(core)}")
 
     # Rank arch tests by VOLUME of co-src change (maintenance burden) and by ratio.
-    section("Architectural tests — by co-change VOLUME with src (maintenance burden)",
-            arch, key=lambda r: r[2])
-    section("Architectural tests — by coupling RATIO (>=4 changes)",
-            [r for r in arch if r[1] >= 4], key=lambda r: (r[3], r[2]))
-    section("Core test packages — by co-change VOLUME with src",
-            core, key=lambda r: r[2])
-    section("Characterization tests — by co-change VOLUME",
-            charz, key=lambda r: r[2], top=15)
+    section("Architectural tests — by co-change VOLUME with src (maintenance burden)", arch, key=lambda r: r[2])
+    section("Architectural tests — by coupling RATIO (>=4 changes)", [r for r in arch if r[1] >= 4], key=lambda r: (r[3], r[2]))
+    section("Core test packages — by co-change VOLUME with src", core, key=lambda r: r[2])
+    section("Characterization tests — by co-change VOLUME", charz, key=lambda r: r[2], top=15)
 
 
 if __name__ == "__main__":

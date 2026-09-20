@@ -89,6 +89,7 @@ def _wide_help_console(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     force_wide_help_console(monkeypatch)
 
+
 # The 10 frozen commands (CONTRACT-1). ``check-terminability`` (#3590, WP05)
 # joined the surface as the advisory post-integration authoring-warning scan.
 COMMANDS = (
@@ -211,8 +212,7 @@ def test_help_fixtures_avoid_dependabot_requirements_trap() -> None:
     """
     stray_txt = sorted(p.name for p in HELP_FIXTURES.glob("*.txt"))
     assert not stray_txt, (
-        f"help fixtures must use the '.help' extension, not '.txt': {stray_txt}. "
-        "A '*requirements*.txt' fixture breaks Dependabot's Python evaluation."
+        f"help fixtures must use the '.help' extension, not '.txt': {stray_txt}. A '*requirements*.txt' fixture breaks Dependabot's Python evaluation."
     )
 
 
@@ -230,9 +230,7 @@ def test_command_exposes_contract_flags(command: str) -> None:
 
 
 def _envelopes() -> dict[str, dict[str, Any]]:
-    data: dict[str, dict[str, Any]] = json.loads(
-        (JSON_FIXTURES / "envelopes.json").read_text(encoding="utf-8")
-    )
+    data: dict[str, dict[str, Any]] = json.loads((JSON_FIXTURES / "envelopes.json").read_text(encoding="utf-8"))
     return data
 
 
@@ -295,9 +293,7 @@ def _build_demo_mission(tmp_path: Path) -> str:
         ),
         encoding="utf-8",
     )
-    (feature_dir / "tasks.md").write_text(
-        "# Tasks\n## WP01 First\n- [ ] T001 do thing\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("# Tasks\n## WP01 First\n- [ ] T001 do thing\n", encoding="utf-8")
     (tasks_dir / "WP01-test.md").write_text(
         textwrap.dedent(
             """\
@@ -345,10 +341,7 @@ def test_error_envelope_shape(case: str) -> None:
     streams = {"stdout": out, "stderr": err}
     blob = streams[spec["stream"]]
     other_stream = "stderr" if spec["stream"] == "stdout" else "stdout"
-    assert streams[other_stream].strip() == "", (
-        f"expected the envelope only on {spec['stream']!r}, "
-        f"but {other_stream!r} was not empty: {streams[other_stream]!r}"
-    )
+    assert streams[other_stream].strip() == "", f"expected the envelope only on {spec['stream']!r}, but {other_stream!r} was not empty: {streams[other_stream]!r}"
     payload = json.loads(blob)
     assert _shape(payload) == spec["json_shape"]
 

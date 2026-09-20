@@ -42,9 +42,7 @@ COLUMN_ALIASES: dict[str, str] = {
     "theme": "scope",
 }
 
-_ALL_VALID_COLUMNS: frozenset[str] = frozenset(MANDATORY_COLUMNS) | frozenset(
-    NAMED_OPTIONAL_COLUMNS
-)
+_ALL_VALID_COLUMNS: frozenset[str] = frozenset(MANDATORY_COLUMNS) | frozenset(NAMED_OPTIONAL_COLUMNS)
 
 
 class IssueMatrixVerdict(StrEnum):
@@ -238,7 +236,7 @@ def validate_issue_matrix(path: Path) -> IssueMatrixValidationResult:  # noqa: C
         result.add_diagnostic(
             MissionReviewDiagnostic.ISSUE_MATRIX_MULTI_TABLE,
             f"issue-matrix.md contains {len(tables)} Markdown tables; exactly one is allowed.",
-            detail=f"Table spans found at lines: {[(s+1, e) for s, e in tables]}",
+            detail=f"Table spans found at lines: {[(s + 1, e) for s, e in tables]}",
         )
         return result
 
@@ -288,12 +286,8 @@ def validate_issue_matrix(path: Path) -> IssueMatrixValidationResult:  # noqa: C
     if unknown_columns:
         result.add_diagnostic(
             MissionReviewDiagnostic.ISSUE_MATRIX_SCHEMA_DRIFT,
-            f"Unknown column(s) not in mandatory or named-optional vocabulary: "
-            f"{', '.join(unknown_columns)}",
-            detail=(
-                f"Valid columns: {list(MANDATORY_COLUMNS)} (mandatory) + "
-                f"{list(NAMED_OPTIONAL_COLUMNS)} (optional)"
-            ),
+            f"Unknown column(s) not in mandatory or named-optional vocabulary: {', '.join(unknown_columns)}",
+            detail=(f"Valid columns: {list(MANDATORY_COLUMNS)} (mandatory) + {list(NAMED_OPTIONAL_COLUMNS)} (optional)"),
         )
 
     # If structural problems prevent further parsing, return early
@@ -340,16 +334,13 @@ def validate_issue_matrix(path: Path) -> IssueMatrixValidationResult:  # noqa: C
         except ValueError:
             result.add_diagnostic(
                 MissionReviewDiagnostic.ISSUE_MATRIX_VERDICT_UNKNOWN,
-                f"Row for issue '{issue}': verdict '{raw_verdict}' is not in the "
-                f"allowed set: {[v.value for v in IssueMatrixVerdict]}",
+                f"Row for issue '{issue}': verdict '{raw_verdict}' is not in the allowed set: {[v.value for v in IssueMatrixVerdict]}",
             )
             verdict = None
 
         # Rule: deferred-with-followup must contain follow-up handle
         if verdict is IssueMatrixVerdict.DEFERRED_WITH_FOLLOWUP:
-            has_handle = bool(re.search(r"#\d+", evidence_ref)) or (
-                "Follow-up:" in evidence_ref
-            )
+            has_handle = bool(re.search(r"#\d+", evidence_ref)) or ("Follow-up:" in evidence_ref)
             if not has_handle:
                 result.add_diagnostic(
                     MissionReviewDiagnostic.ISSUE_MATRIX_DEFERRED_WITHOUT_HANDLE,
@@ -359,9 +350,7 @@ def validate_issue_matrix(path: Path) -> IssueMatrixValidationResult:  # noqa: C
                     f"got: '{evidence_ref}'",
                 )
 
-        if verdict is not None and result.passed or (
-            verdict is not None and not missing_mandatory and not unknown_columns
-        ):
+        if verdict is not None and result.passed or (verdict is not None and not missing_mandatory and not unknown_columns):
             row = IssueMatrixRow(
                 issue=issue,
                 verdict=verdict,
@@ -379,9 +368,7 @@ def validate_issue_matrix(path: Path) -> IssueMatrixValidationResult:  # noqa: C
     return result
 
 
-def _validate_structured_issue_matrix(
-    json_path: Path, result: IssueMatrixValidationResult
-) -> IssueMatrixValidationResult:
+def _validate_structured_issue_matrix(json_path: Path, result: IssueMatrixValidationResult) -> IssueMatrixValidationResult:
     """Validate ``issue-matrix.json`` business rules (M7 / T023).
 
     Re-points onto the ONE canonical dir-based reader

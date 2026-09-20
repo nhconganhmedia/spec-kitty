@@ -60,7 +60,11 @@ def _git(repo: Path, *args: str) -> None:
 
 def _git_out(repo: Path, *args: str) -> str:
     result = subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True,
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     return result.stdout.strip()
 
@@ -68,7 +72,8 @@ def _git_out(repo: Path, *args: str) -> str:
 def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
     result = subprocess.run(
         ["git", "merge-base", "--is-ancestor", ancestor, descendant],
-        cwd=repo, capture_output=True,
+        cwd=repo,
+        capture_output=True,
     )
     return result.returncode == 0
 
@@ -108,14 +113,16 @@ def _make_manifest(
         mission_id=MISSION_ID,
         mission_branch=mission_branch,
         target_branch="main",
-        lanes=[ExecutionLane(
-            lane_id=lane_id,
-            wp_ids=(WP_ID,),
-            write_scope=(),
-            predicted_surfaces=(),
-            depends_on_lanes=depends_on_lanes,
-            parallel_group=0,
-        )],
+        lanes=[
+            ExecutionLane(
+                lane_id=lane_id,
+                wp_ids=(WP_ID,),
+                write_scope=(),
+                predicted_surfaces=(),
+                depends_on_lanes=depends_on_lanes,
+                parallel_group=0,
+            )
+        ],
         computed_at=now_utc_iso(),
         computed_from="test",
         planning_commit_sha=planning_commit_sha,
@@ -149,9 +156,7 @@ def coord_repo_with_divergent_base(tmp_path: Path) -> Path:
     _write_meta(feature_dir, mission_slug=MISSION_SLUG, coordination_branch=COORD_BRANCH)
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir()
-    (tasks_dir / f"{WP_ID}-task.md").write_text(
-        f"---\nwork_package_id: {WP_ID}\ndependencies: []\n---\n# {WP_ID}\n"
-    )
+    (tasks_dir / f"{WP_ID}-task.md").write_text(f"---\nwork_package_id: {WP_ID}\ndependencies: []\n---\n# {WP_ID}\n")
     seed_event = {
         "actor": "finalize-tasks",
         "at": "2026-08-21T10:00:00.000000+00:00",
@@ -169,7 +174,8 @@ def coord_repo_with_divergent_base(tmp_path: Path) -> Path:
         "wp_id": WP_ID,
     }
     (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(seed_event, sort_keys=True) + "\n", encoding="utf-8",
+        json.dumps(seed_event, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
     (repo / "README.md").write_text("seed\n")
 
@@ -248,20 +254,18 @@ def _run_implement_via_seam(
 
     ctx_managers: list[AbstractContextManager[object]] = [
         patch("specify_cli.cli.commands.implement.find_repo_root", return_value=repo),
-        patch("specify_cli.cli.commands.implement.detect_feature_context",
-              return_value=("1", mission_slug)),
-        patch("specify_cli.cli.commands.implement.find_wp_file",
-              return_value=feature_dir / "tasks" / f"{wp_id}-task.md"),
+        patch("specify_cli.cli.commands.implement.detect_feature_context", return_value=("1", mission_slug)),
+        patch("specify_cli.cli.commands.implement.find_wp_file", return_value=feature_dir / "tasks" / f"{wp_id}-task.md"),
         patch("specify_cli.core.dependency_graph.parse_wp_dependencies", return_value=[]),
-        patch("specify_cli.cli.commands.implement.resolve_feature_target_branch",
-              return_value="main"),
+        patch("specify_cli.cli.commands.implement.resolve_feature_target_branch", return_value="main"),
         patch("specify_cli.cli.commands.implement._ensure_planning_artifacts_committed_git"),
         patch("specify_cli.cli.commands.implement._ensure_vcs_in_meta", return_value=VCSBackend.GIT),
         patch("specify_cli.cli.commands.implement._resolve_placement_ref", return_value=None),
         patch(
             "specify_cli.coordination.surface_resolver.resolve_status_surface_with_anchor",
             return_value=ResolvedStatusSurface(
-                surface_path=feature_dir / "status.events.jsonl", primary_anchor=feature_dir,
+                surface_path=feature_dir / "status.events.jsonl",
+                primary_anchor=feature_dir,
             ),
         ),
         patch(
@@ -280,8 +284,12 @@ def _run_implement_via_seam(
         patch(
             "specify_cli.cli.commands.implement.start_implementation_status",
             return_value=WorkPackageStartResult(
-                wp_id=wp_id, from_lane=Lane.IN_PROGRESS, to_lane=Lane.IN_PROGRESS,
-                actor="test", events=(), no_op=True,
+                wp_id=wp_id,
+                from_lane=Lane.IN_PROGRESS,
+                to_lane=Lane.IN_PROGRESS,
+                actor="test",
+                events=(),
+                no_op=True,
             ),
         ),
         patch("specify_cli.status.emit._saas_fan_out"),
@@ -296,9 +304,7 @@ def _run_implement_via_seam(
             capture_console.append(str(args[0]) if args else "")
             original_print(*args, **kwargs)
 
-        ctx_managers.append(
-            patch.object(impl_mod.console, "print", side_effect=_capturing_print)
-        )
+        ctx_managers.append(patch.object(impl_mod.console, "print", side_effect=_capturing_print))
 
     import contextlib
     from contextlib import ExitStack
@@ -321,7 +327,8 @@ class TestAC1SeamLevelRedFirst:
     """AC-1 / FR-001 / FR-002 / C-003: base threads through the real seam."""
 
     def test_explicit_base_replaces_coord_parent_on_no_dep_lane(
-        self, coord_repo_with_divergent_base: Path,
+        self,
+        coord_repo_with_divergent_base: Path,
     ) -> None:
         repo = coord_repo_with_divergent_base
         feature_dir = repo / "kitty-specs" / MISSION_SLUG
@@ -332,20 +339,14 @@ class TestAC1SeamLevelRedFirst:
         # degraded-to-legacy fixture.
         assert json.loads((feature_dir / "meta.json").read_text())["coordination_branch"] == COORD_BRANCH
         u_sha = _git_out(repo, "rev-parse", COORD_BRANCH)
-        assert not _is_ancestor(repo, EXPLICIT_BASE_BRANCH, "main"), (
-            "sanity: explicit-base must not already be reachable from main"
-        )
+        assert not _is_ancestor(repo, EXPLICIT_BASE_BRANCH, "main"), "sanity: explicit-base must not already be reachable from main"
 
         _run_implement_via_seam(repo, feature_dir, base=EXPLICIT_BASE_BRANCH)
 
         lane_branch = f"kitty/mission-{MISSION_SLUG}-lane-a"
-        assert _is_ancestor(repo, EXPLICIT_BASE_BRANCH, lane_branch), (
-            f"lane {lane_branch} must descend from the supplied --base "
-            f"{EXPLICIT_BASE_BRANCH!r} (FR-001)"
-        )
+        assert _is_ancestor(repo, EXPLICIT_BASE_BRANCH, lane_branch), f"lane {lane_branch} must descend from the supplied --base {EXPLICIT_BASE_BRANCH!r} (FR-001)"
         assert not _is_ancestor(repo, u_sha, lane_branch), (
-            "lane must NOT inherit ancestry reachable only through "
-            "coordination_branch (FR-002) -- the #3571 unrelated-work leak"
+            "lane must NOT inherit ancestry reachable only through coordination_branch (FR-002) -- the #3571 unrelated-work leak"
         )
 
 
@@ -385,11 +386,15 @@ def test_nfr003_base_composes_with_recorded_planning_commit(tmp_path: Path) -> N
     _git(repo, "branch", "-D", "planning-tmp")
 
     manifest = _make_manifest(
-        mission_branch=f"kitty/mission-{MISSION_SLUG}", planning_commit_sha=planning_sha,
+        mission_branch=f"kitty/mission-{MISSION_SLUG}",
+        planning_commit_sha=planning_sha,
     )
     worktree_path, branch = allocate_lane_worktree(
-        repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-        lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+        repo_root=repo,
+        mission_slug=MISSION_SLUG,
+        wp_id=WP_ID,
+        lanes_manifest=manifest,
+        base=EXPLICIT_BASE_BRANCH,
     )
 
     assert worktree_path.exists()
@@ -442,15 +447,14 @@ def test_fr011_fresh_divergent_base_lane_with_planning_commit_is_not_reuse(
     _git(repo, "branch", "-D", "planning-tmp")
 
     manifest = _make_manifest(
-        mission_branch=f"kitty/mission-{MISSION_SLUG}", planning_commit_sha=planning_sha,
+        mission_branch=f"kitty/mission-{MISSION_SLUG}",
+        planning_commit_sha=planning_sha,
     )
 
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir()
     wp_file = tasks_dir / f"{WP_ID}-task.md"
-    wp_file.write_text(
-        f"---\nwork_package_id: {WP_ID}\ndependencies: []\n---\n# {WP_ID}\n"
-    )
+    wp_file.write_text(f"---\nwork_package_id: {WP_ID}\ndependencies: []\n---\n# {WP_ID}\n")
 
     resolved = ResolvedWorkspace(
         mission_slug=MISSION_SLUG,
@@ -527,13 +531,17 @@ def test_fr010_detached_base_fails_loud_pre_create_no_residual(tmp_path: Path) -
     _git(repo, "branch", "-D", "planning-tmp")
 
     manifest = _make_manifest(
-        mission_branch=f"kitty/mission-{MISSION_SLUG}", planning_commit_sha=planning_sha,
+        mission_branch=f"kitty/mission-{MISSION_SLUG}",
+        planning_commit_sha=planning_sha,
     )
 
     with pytest.raises(UnhonorableBaseError) as exc_info:
         allocate_lane_worktree(
-            repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-            lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+            repo_root=repo,
+            mission_slug=MISSION_SLUG,
+            wp_id=WP_ID,
+            lanes_manifest=manifest,
+            base=EXPLICIT_BASE_BRANCH,
         )
     assert exc_info.value.route == "detached_base"
     assert exc_info.value.base == EXPLICIT_BASE_BRANCH
@@ -543,7 +551,8 @@ def test_fr010_detached_base_fails_loud_pre_create_no_residual(tmp_path: Path) -
     assert not worktree_path.exists(), "no residual worktree after a pre-create fail-loud"
     result = subprocess.run(
         ["git", "rev-parse", "--verify", lane_branch],
-        cwd=repo, capture_output=True,
+        cwd=repo,
+        capture_output=True,
     )
     assert result.returncode != 0, "no residual branch after a pre-create fail-loud"
 
@@ -551,8 +560,11 @@ def test_fr010_detached_base_fails_loud_pre_create_no_residual(tmp_path: Path) -
     # proves nothing was half-created that would wedge a retry.
     with pytest.raises(UnhonorableBaseError) as retry_exc_info:
         allocate_lane_worktree(
-            repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-            lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+            repo_root=repo,
+            mission_slug=MISSION_SLUG,
+            wp_id=WP_ID,
+            lanes_manifest=manifest,
+            base=EXPLICIT_BASE_BRANCH,
         )
     assert retry_exc_info.value.route == "detached_base"
 
@@ -569,8 +581,11 @@ def test_ac2_legacy_base_threads_through_allocator(legacy_repo: Path) -> None:
         mission_branch=LEGACY_MISSION_BRANCH,
     )
     worktree_path, branch = allocate_lane_worktree(
-        repo_root=repo, mission_slug=LEGACY_MISSION_SLUG, wp_id=WP_ID,
-        lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+        repo_root=repo,
+        mission_slug=LEGACY_MISSION_SLUG,
+        wp_id=WP_ID,
+        lanes_manifest=manifest,
+        base=EXPLICIT_BASE_BRANCH,
     )
     assert worktree_path.exists()
     assert _is_ancestor(repo, EXPLICIT_BASE_BRANCH, branch)
@@ -584,14 +599,17 @@ def test_ac2_legacy_base_none_reproduces_prior_behavior(legacy_repo: Path) -> No
         mission_branch=LEGACY_MISSION_BRANCH,
     )
     worktree_path, branch = allocate_lane_worktree(
-        repo_root=repo, mission_slug=LEGACY_MISSION_SLUG, wp_id=WP_ID,
+        repo_root=repo,
+        mission_slug=LEGACY_MISSION_SLUG,
+        wp_id=WP_ID,
         lanes_manifest=manifest,
     )
     assert worktree_path.exists()
     # No base supplied -> parents on the mission_branch field, as before.
     result = subprocess.run(
         ["git", "rev-parse", "--verify", LEGACY_MISSION_BRANCH],
-        cwd=repo, capture_output=True,
+        cwd=repo,
+        capture_output=True,
     )
     assert result.returncode == 0
     assert _is_ancestor(repo, LEGACY_MISSION_BRANCH, branch)
@@ -611,13 +629,19 @@ class TestAC3FailLoud:
 
         # First allocation succeeds (no base) -- creates the lane worktree.
         allocate_lane_worktree(
-            repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID, lanes_manifest=manifest,
+            repo_root=repo,
+            mission_slug=MISSION_SLUG,
+            wp_id=WP_ID,
+            lanes_manifest=manifest,
         )
 
         with pytest.raises(UnhonorableBaseError) as exc_info:
             allocate_lane_worktree(
-                repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-                lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+                repo_root=repo,
+                mission_slug=MISSION_SLUG,
+                wp_id=WP_ID,
+                lanes_manifest=manifest,
+                base=EXPLICIT_BASE_BRANCH,
             )
         assert exc_info.value.route == "reuse"
         assert exc_info.value.wp_id == WP_ID
@@ -630,7 +654,10 @@ class TestAC3FailLoud:
         manifest = _make_manifest(mission_branch=f"kitty/mission-{MISSION_SLUG}")
 
         worktree_path, _branch = allocate_lane_worktree(
-            repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID, lanes_manifest=manifest,
+            repo_root=repo,
+            mission_slug=MISSION_SLUG,
+            wp_id=WP_ID,
+            lanes_manifest=manifest,
         )
         # Simulate a crash: worktree directory gone, branch survives.
         import shutil
@@ -640,8 +667,11 @@ class TestAC3FailLoud:
 
         with pytest.raises(UnhonorableBaseError) as exc_info:
             allocate_lane_worktree(
-                repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-                lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+                repo_root=repo,
+                mission_slug=MISSION_SLUG,
+                wp_id=WP_ID,
+                lanes_manifest=manifest,
+                base=EXPLICIT_BASE_BRANCH,
             )
         assert exc_info.value.route == "crash_recovery"
 
@@ -655,8 +685,11 @@ class TestAC3FailLoud:
         )
         with pytest.raises(UnhonorableBaseError) as exc_info:
             allocate_lane_worktree(
-                repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-                lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+                repo_root=repo,
+                mission_slug=MISSION_SLUG,
+                wp_id=WP_ID,
+                lanes_manifest=manifest,
+                base=EXPLICIT_BASE_BRANCH,
             )
         assert exc_info.value.route == "dependency_lane"
 
@@ -666,8 +699,11 @@ class TestAC3FailLoud:
         repo = coord_repo_with_divergent_base
         manifest = _make_manifest(mission_branch=f"kitty/mission-{MISSION_SLUG}")
         worktree_path, branch = allocate_lane_worktree(
-            repo_root=repo, mission_slug=MISSION_SLUG, wp_id=WP_ID,
-            lanes_manifest=manifest, base=EXPLICIT_BASE_BRANCH,
+            repo_root=repo,
+            mission_slug=MISSION_SLUG,
+            wp_id=WP_ID,
+            lanes_manifest=manifest,
+            base=EXPLICIT_BASE_BRANCH,
         )
         assert worktree_path.exists()
         assert _is_ancestor(repo, EXPLICIT_BASE_BRANCH, branch)
@@ -705,7 +741,10 @@ class TestAC4SuccessLineBothDirections:
         captured: list[str] = []
 
         _run_implement_via_seam(
-            repo, feature_dir, base=EXPLICIT_BASE_BRANCH, capture_console=captured,
+            repo,
+            feature_dir,
+            base=EXPLICIT_BASE_BRANCH,
+            capture_console=captured,
         )
 
         assert any(self._SUCCESS_PREFIX in line and EXPLICIT_BASE_BRANCH in line for line in captured), (
@@ -723,9 +762,7 @@ class TestAC4SuccessLineBothDirections:
         # captured, or an empty capture would vacuously pass the ABSENT
         # assertion below.
         assert captured, "positive control failed: nothing was captured at all"
-        assert not any(self._SUCCESS_PREFIX in line for line in captured), (
-            f"success line must not print when base=None: {captured!r}"
-        )
+        assert not any(self._SUCCESS_PREFIX in line for line in captured), f"success line must not print when base=None: {captured!r}"
 
     def test_absent_on_error_path(self, coord_repo_with_divergent_base: Path) -> None:
         repo = coord_repo_with_divergent_base
@@ -737,13 +774,14 @@ class TestAC4SuccessLineBothDirections:
 
         captured: list[str] = []
         _run_implement_via_seam(
-            repo, feature_dir, base=EXPLICIT_BASE_BRANCH, capture_console=captured,
+            repo,
+            feature_dir,
+            base=EXPLICIT_BASE_BRANCH,
+            capture_console=captured,
         )
 
         assert captured, "positive control failed: nothing was captured at all"
-        assert not any(self._SUCCESS_PREFIX in line for line in captured), (
-            f"success line must not print on a fail-loud error path: {captured!r}"
-        )
+        assert not any(self._SUCCESS_PREFIX in line for line in captured), f"success line must not print on a fail-loud error path: {captured!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -762,43 +800,62 @@ def test_fr007_planning_lane_base_ignored_with_warning(tmp_path: Path) -> None:
     from specify_cli.lanes.compute import PLANNING_LANE_ID
 
     manifest = LanesManifest(
-        version=1, mission_slug=mission_slug, mission_id=MISSION_ID,
-        mission_branch=f"kitty/mission-{mission_slug}", target_branch="main",
-        lanes=[ExecutionLane(
-            lane_id=PLANNING_LANE_ID, wp_ids=("WP01",), write_scope=(),
-            predicted_surfaces=(), depends_on_lanes=(), parallel_group=0,
-        )],
-        computed_at=now_utc_iso(), computed_from="test",
+        version=1,
+        mission_slug=mission_slug,
+        mission_id=MISSION_ID,
+        mission_branch=f"kitty/mission-{mission_slug}",
+        target_branch="main",
+        lanes=[
+            ExecutionLane(
+                lane_id=PLANNING_LANE_ID,
+                wp_ids=("WP01",),
+                write_scope=(),
+                predicted_surfaces=(),
+                depends_on_lanes=(),
+                parallel_group=0,
+            )
+        ],
+        computed_at=now_utc_iso(),
+        computed_from="test",
     )
     write_lanes_json(feature_dir, manifest)
     wp_file = feature_dir / "tasks" / "WP01-task.md"
     wp_file.parent.mkdir(exist_ok=True)
-    wp_file.write_text(
-        "---\nwork_package_id: WP01\ndependencies: []\nexecution_mode: planning_artifact\n---\n# WP01\n"
-    )
+    wp_file.write_text("---\nwork_package_id: WP01\ndependencies: []\nexecution_mode: planning_artifact\n---\n# WP01\n")
     seed_event = {
-        "actor": "finalize-tasks", "at": "2026-08-21T10:00:00.000000+00:00",
-        "event_id": "01JT00000000000000000WP01", "evidence": None,
-        "execution_mode": "direct_repo", "force": False, "from_lane": "genesis",
-        "mission_id": MISSION_ID, "mission_slug": mission_slug,
-        "policy_metadata": None, "reason": "canonical bootstrap", "review_ref": None,
-        "to_lane": "planned", "wp_id": "WP01",
+        "actor": "finalize-tasks",
+        "at": "2026-08-21T10:00:00.000000+00:00",
+        "event_id": "01JT00000000000000000WP01",
+        "evidence": None,
+        "execution_mode": "direct_repo",
+        "force": False,
+        "from_lane": "genesis",
+        "mission_id": MISSION_ID,
+        "mission_slug": mission_slug,
+        "policy_metadata": None,
+        "reason": "canonical bootstrap",
+        "review_ref": None,
+        "to_lane": "planned",
+        "wp_id": "WP01",
     }
     (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(seed_event, sort_keys=True) + "\n", encoding="utf-8",
+        json.dumps(seed_event, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
     _git(repo, "add", ".")
     _git(repo, "commit", "-q", "-m", "seed")
 
     captured: list[str] = []
     _run_implement_via_seam(
-        repo, feature_dir, base="main", wp_id="WP01", mission_slug=mission_slug,
+        repo,
+        feature_dir,
+        base="main",
+        wp_id="WP01",
+        mission_slug=mission_slug,
         capture_console=captured,
     )
 
-    assert any("ignored" in line and "--base" in line for line in captured), (
-        f"expected the FR-007 'ignored' warning: {captured!r}"
-    )
+    assert any("ignored" in line and "--base" in line for line in captured), f"expected the FR-007 'ignored' warning: {captured!r}"
     assert not any("Using explicit base ref:" in line for line in captured)
     # No lane worktree was allocated for the planning lane.
     assert not (repo / ".worktrees" / f"{mission_slug}-{PLANNING_LANE_ID}").exists()
@@ -824,7 +881,8 @@ def test_nfr004_orchestrator_envelope_carries_unhonorable_base_error_code(tmp_pa
         patch("specify_cli.lanes.worktree_allocator.allocate_lane_worktree", side_effect=_fake_allocate),
         patch.object(orch_commands, "_emit", side_effect=lambda env: captured_envelopes.append(env)),
         patch.object(
-            orch_commands, "_lane_assignment_or_legacy",
+            orch_commands,
+            "_lane_assignment_or_legacy",
             return_value=(
                 _make_manifest(mission_branch=f"kitty/mission-{MISSION_SLUG}"),
                 _make_manifest(mission_branch=f"kitty/mission-{MISSION_SLUG}").lanes[0],
@@ -833,7 +891,11 @@ def test_nfr004_orchestrator_envelope_carries_unhonorable_base_error_code(tmp_pa
         pytest.raises(typer.Exit),
     ):
         orch_commands._resolve_start_workspace(
-            "implement-start", tmp_path, MISSION_SLUG, tmp_path / "kitty-specs" / MISSION_SLUG, WP_ID,
+            "implement-start",
+            tmp_path,
+            MISSION_SLUG,
+            tmp_path / "kitty-specs" / MISSION_SLUG,
+            WP_ID,
         )
 
     assert captured_envelopes, "expected the failure envelope to be emitted"

@@ -75,10 +75,7 @@ def validate_staged_files(
     effective_owned_files = list(ownership_scope.owned_files) if ownership_scope else owned_files
 
     if policy.enforce_ownership and ownership_scope and ownership_scope.diagnostic_code:
-        violations.append(
-            ownership_scope.diagnostic_message
-            or _format_context_diagnostic(ownership_scope)
-        )
+        violations.append(ownership_scope.diagnostic_message or _format_context_diagnostic(ownership_scope))
 
     # Check kitty-specs/ protection.
     # #2980: a bulk-edit mission's own occurrence map is the single permitted
@@ -88,18 +85,10 @@ def validate_staged_files(
     if policy.block_mission_specs:
         for f in staged_files:
             if f.startswith(f"{KITTY_SPECS_DIR}/") and not is_occurrence_map_path(f):
-                violations.append(
-                    f"Protected path: {f} — implementation branches must not modify kitty-specs/"
-                )
+                violations.append(f"Protected path: {f} — implementation branches must not modify kitty-specs/")
 
     # Check ownership enforcement.
-    if (
-        policy.enforce_ownership
-        and ownership_scope
-        and ownership_scope.active_wp_id
-        and not effective_owned_files
-        and not ownership_scope.diagnostic_code
-    ):
+    if policy.enforce_ownership and ownership_scope and ownership_scope.active_wp_id and not effective_owned_files and not ownership_scope.diagnostic_code:
         violations.append(
             "ACTIVE_WP_OWNERSHIP_MISSING: "
             f"active_wp={ownership_scope.active_wp_id} has no owned_files; "

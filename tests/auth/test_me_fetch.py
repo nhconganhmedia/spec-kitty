@@ -17,6 +17,7 @@ from specify_cli.auth.http.me_fetch import fetch_me_payload
 
 pytestmark = [pytest.mark.integration]
 
+
 @respx.mock
 def test_fetch_me_payload_success() -> None:
     """Happy path: 200 + parsed teams payload returned verbatim to the caller."""
@@ -39,9 +40,7 @@ def test_fetch_me_payload_success() -> None:
 @respx.mock
 def test_fetch_me_payload_raises_on_401() -> None:
     """Non-2xx surfaces as ``HTTPStatusError`` — the caller decides recovery."""
-    respx.get("https://saas.example/api/v1/me").mock(
-        return_value=httpx.Response(401)
-    )
+    respx.get("https://saas.example/api/v1/me").mock(return_value=httpx.Response(401))
 
     with pytest.raises(httpx.HTTPStatusError):
         fetch_me_payload("https://saas.example", "tok")
@@ -50,9 +49,7 @@ def test_fetch_me_payload_raises_on_401() -> None:
 @respx.mock
 def test_fetch_me_payload_passes_bearer_header() -> None:
     """The Bearer token must be sent verbatim in the ``Authorization`` header."""
-    route = respx.get("https://saas.example/api/v1/me").mock(
-        return_value=httpx.Response(200, json={"teams": []})
-    )
+    route = respx.get("https://saas.example/api/v1/me").mock(return_value=httpx.Response(200, json={"teams": []}))
 
     fetch_me_payload("https://saas.example", "my-tok")
 
@@ -62,9 +59,7 @@ def test_fetch_me_payload_passes_bearer_header() -> None:
 @respx.mock
 def test_fetch_me_payload_strips_trailing_slash_from_base_url() -> None:
     """Defensive: callers may pass a base URL with a trailing slash."""
-    route = respx.get("https://saas.example/api/v1/me").mock(
-        return_value=httpx.Response(200, json={"teams": []})
-    )
+    route = respx.get("https://saas.example/api/v1/me").mock(return_value=httpx.Response(200, json={"teams": []}))
 
     fetch_me_payload("https://saas.example/", "tok")
 

@@ -57,9 +57,7 @@ class TestCatalogSourceBecomesToken:
 class TestReBakeGate:
     """C-PRV-2: SPEC_KITTY_PACKS_ROOT set at emit time never leaks into the token."""
 
-    def test_source_path_byte_identical_with_packs_root_exported(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_source_path_byte_identical_with_packs_root_exported(self, monkeypatch: pytest.MonkeyPatch) -> None:
         baseline = _compile_default()
         baseline_ref = _paradigm_reference(baseline, "PARADIGM:atomic-design")
 

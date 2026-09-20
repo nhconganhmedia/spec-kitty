@@ -152,15 +152,9 @@ class TestMissionStepContractRepository:
             contract = repo.get(contract_id)
             assert contract is not None
             bootstrap_step = contract.steps[0]
-            assert [input.flag for input in bootstrap_step.inputs] == [
-                input_data["flag"] for input_data in expected_inputs
-            ]
-            assert [input.source for input in bootstrap_step.inputs] == [
-                input_data["source"] for input_data in expected_inputs
-            ]
-            assert [input.optional for input in bootstrap_step.inputs] == [
-                input_data.get("optional", False) for input_data in expected_inputs
-            ]
+            assert [input.flag for input in bootstrap_step.inputs] == [input_data["flag"] for input_data in expected_inputs]
+            assert [input.source for input in bootstrap_step.inputs] == [input_data["source"] for input_data in expected_inputs]
+            assert [input.optional for input in bootstrap_step.inputs] == [input_data.get("optional", False) for input_data in expected_inputs]
 
 
 class TestMissionStepContractRepositoryLookup:

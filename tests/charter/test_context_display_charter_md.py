@@ -138,9 +138,7 @@ def _write_fixture_repo(tmp_path: Path, *, charter_md: str | None) -> None:
     # ``mission_type_activations`` is provisioned so ``PackContext.from_config``
     # (WP04, C-A1: the provisioned charter is the sole activation authority)
     # does not hard-fail on a genuinely absent key.
-    (tmp_path / ".kittify" / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 def _mock_graph() -> DRGGraph:
@@ -220,16 +218,12 @@ class TestGovernanceResolutionIndependentOfProse:
         other = _build_bootstrap_context(other_root, charter_md=_CHARTER_MD_WITH_DIFFERENT_PROSE)
         assert "DIRECTIVE_001" in other.text
 
-    def test_display_blocks_change_with_prose_while_directive_is_stable(
-        self, tmp_path: Path
-    ) -> None:
+    def test_display_blocks_change_with_prose_while_directive_is_stable(self, tmp_path: Path) -> None:
         with_prose = _build_bootstrap_context(tmp_path, charter_md=_CHARTER_MD_WITH_PROSE)
 
         other_root = tmp_path / "other-repo"
         other_root.mkdir()
-        without_sections = _build_bootstrap_context(
-            other_root, charter_md=_CHARTER_MD_WITH_DIFFERENT_PROSE
-        )
+        without_sections = _build_bootstrap_context(other_root, charter_md=_CHARTER_MD_WITH_DIFFERENT_PROSE)
 
         # Display content genuinely differs (proves the assertions above
         # are not vacuous): the second charter.md carries no critical
@@ -354,20 +348,12 @@ class TestNoGovernanceDecisionReadsCharterMdProse:
         for func in self._DECISION_FUNCTIONS:
             source = inspect.getsource(func)
             tree = ast.parse(textwrap.dedent(source))
-            referenced = {
-                node.id
-                for node in ast.walk(tree)
-                if isinstance(node, ast.Name)
-            } | {
-                node.attr
-                for node in ast.walk(tree)
-                if isinstance(node, ast.Attribute)
+            referenced = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)} | {
+                node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
             }
             leaked = referenced & self._PROSE_SEAM_NAMES
             assert not leaked, (
-                f"{func.__qualname__} references the charter.md prose seam "
-                f"({sorted(leaked)}); governance decisions must resolve from "
-                "charter.yaml only (INV-3)."
+                f"{func.__qualname__} references the charter.md prose seam ({sorted(leaked)}); governance decisions must resolve from charter.yaml only (INV-3)."
             )
 
     def test_load_action_doctrine_bundle_signature_excludes_prose(self) -> None:
@@ -379,9 +365,7 @@ class TestNoGovernanceDecisionReadsCharterMdProse:
     def test_compact_governance_summary_resolver_does_not_reference_prose_seam(self) -> None:
         source = inspect.getsource(compact_module._resolve_governance_summary)
         tree = ast.parse(textwrap.dedent(source))
-        referenced = {
-            node.id for node in ast.walk(tree) if isinstance(node, ast.Name)
-        } | {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
+        referenced = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)} | {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
         assert not referenced & self._PROSE_SEAM_NAMES
 
     def test_sync_governance_loader_docstring_declares_inv3(self) -> None:

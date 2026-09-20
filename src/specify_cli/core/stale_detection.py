@@ -448,9 +448,7 @@ def _resolve_feature_dir_for_staleness(main_repo_root: Path, mission_slug: str) 
         # of the seam's own fail-loud behavior.
         from mission_runtime import MissionArtifactKind, placement_seam
 
-        return placement_seam(main_repo_root, mission_slug).read_dir(
-            MissionArtifactKind.WORK_PACKAGE_TASK
-        )
+        return placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     except Exception:
         return None
 

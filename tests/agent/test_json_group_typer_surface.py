@@ -38,17 +38,11 @@ def test_no_subcommand_returns_json_envelope_via_typer_surface():
     try:
         envelope = json.loads(result.output.strip())
     except json.JSONDecodeError as exc:
-        raise AssertionError(
-            f"Output is not valid JSON.\nOutput:\n{result.output!r}"
-        ) from exc
+        raise AssertionError(f"Output is not valid JSON.\nOutput:\n{result.output!r}") from exc
 
     # Envelope must signal failure.
-    assert envelope.get("ok") is False or envelope.get("success") is False, (
-        f"Expected ok/success=false in envelope, got: {envelope}"
-    )
+    assert envelope.get("ok") is False or envelope.get("success") is False, f"Expected ok/success=false in envelope, got: {envelope}"
 
     # Envelope must carry a non-empty error description.
     error_value = envelope.get("error") or envelope.get("error_code") or envelope.get("data", {}).get("message")
-    assert error_value, (
-        f"Expected a non-empty error field in envelope, got: {envelope}"
-    )
+    assert error_value, f"Expected a non-empty error field in envelope, got: {envelope}"

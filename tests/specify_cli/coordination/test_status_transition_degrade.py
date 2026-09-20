@@ -68,9 +68,7 @@ class TestPreGateHonorsCoordBranchInBootstrapWindow:
     directly.
     """
 
-    def test_no_meta_json_with_coord_branch_now_returns_coord_branch(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_meta_json_with_coord_branch_now_returns_coord_branch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo = tmp_path / "bare-repo"
         _bare_repo(repo)
         monkeypatch.chdir(repo)
@@ -88,9 +86,7 @@ class TestPreGateHonorsCoordBranchInBootstrapWindow:
         # so the assertion above is a real discriminator, not a coincidence.
         assert coord_branch != get_feature_target_branch(repo, mission_slug)
 
-    def test_no_meta_json_without_coord_branch_degrades_to_target_branch(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_meta_json_without_coord_branch_degrades_to_target_branch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Companion case: no ``coord_branch`` supplied -- the pre-gate's
         ``degrade_ref`` falls through to ``get_feature_target_branch``,
         matching the pre-existing (non-regressing) fallback behavior pinned
@@ -131,9 +127,7 @@ class TestDegradeRefStaysLazyOnTheHappyPath:
     for a resolvable coord mission with ``coord_branch=None``.
     """
 
-    def test_no_coord_branch_resolvable_mission_calls_target_branch_lookup_once(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_coord_branch_resolvable_mission_calls_target_branch_lookup_once(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         coord = build_coord(tmp_path)
         monkeypatch.chdir(coord.coord_worktree)
 
@@ -179,9 +173,7 @@ class TestDegradeRefStaysLazyOnTheHappyPath:
             ).ref
         )
 
-    def test_degrade_path_still_returns_feature_target_branch_when_port_fails(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_degrade_path_still_returns_feature_target_branch_when_port_fails(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Companion case: when the port genuinely fails to resolve (no
         ``meta.json``) and no ``coord_branch`` is supplied, the lazy
         ``except`` arm still degrades to ``get_feature_target_branch`` --
@@ -207,15 +199,11 @@ class TestStatusStateStaysCoordAfterPreGateAdoption:
     ``resolve_placement_only`` is consulted exactly as before.
     """
 
-    def test_bootstrapped_coord_mission_resolves_status_state_to_coord_ref(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_bootstrapped_coord_mission_resolves_status_state_to_coord_ref(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         coord = build_coord(tmp_path)
         monkeypatch.chdir(coord.coord_worktree)
 
-        resolved = _resolve_write_target(
-            coord.main_root, coord.mission_slug, coord.coord_branch
-        )
+        resolved = _resolve_write_target(coord.main_root, coord.mission_slug, coord.coord_branch)
 
         assert resolved == coord.coord_branch
         assert resolved != TARGET_BRANCH

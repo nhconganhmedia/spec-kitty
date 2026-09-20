@@ -166,18 +166,13 @@ def evaluate_archive_eligibility(
         return ArchiveEligibility(
             eligible=False,
             refusal_code="AM-1",
-            reason=(
-                "mission is not terminal (must be merged or canceled); "
-                f"resolved terminal state: {terminal_state!r}"
-            ),
+            reason=(f"mission is not terminal (must be merged or canceled); resolved terminal state: {terminal_state!r}"),
         )
     if any(result == STILL_PRESENT for result in invariant_results):
         return ArchiveEligibility(
             eligible=False,
             refusal_code="AM-2",
-            reason=(
-                "a still_present invariant must be resolved, not archived past"
-            ),
+            reason=("a still_present invariant must be resolved, not archived past"),
         )
     return ArchiveEligibility(eligible=True)
 
@@ -195,11 +190,7 @@ def resolve_deferrals_for_cancellation(
     """
     if terminal_state != CANCELED:
         return []
-    return [
-        DeferralDisposition(invariant_id=inv_id, disposition=CANCELED_DISPOSITION)
-        for inv_id, result in invariants
-        if result == DEFERRED_TO_CONSOLIDATION
-    ]
+    return [DeferralDisposition(invariant_id=inv_id, disposition=CANCELED_DISPOSITION) for inv_id, result in invariants if result == DEFERRED_TO_CONSOLIDATION]
 
 
 # ---------------------------------------------------------------------------
@@ -221,9 +212,7 @@ def resolve_terminal_state(feature_dir: Path) -> str | None:
         return None
     if all(lane == "done" for lane in lanes):
         return MERGED
-    if all(lane in {"done", "canceled"} for lane in lanes) and any(
-        lane == "canceled" for lane in lanes
-    ):
+    if all(lane in {"done", "canceled"} for lane in lanes) and any(lane == "canceled" for lane in lanes):
         return CANCELED
     return None
 
@@ -278,10 +267,7 @@ def list_archived_missions(project_root: Path) -> list[ArchivedMission]:
 
 def is_mission_archived(project_root: Path, mission_id: str) -> bool:
     """True when ``mission_id`` has an archive record (excluded from live validation)."""
-    return any(
-        record.mission_id == mission_id
-        for record in list_archived_missions(project_root)
-    )
+    return any(record.mission_id == mission_id for record in list_archived_missions(project_root))
 
 
 # ---------------------------------------------------------------------------
@@ -319,9 +305,7 @@ def archive_mission(
     """
     if not archived_by or not archived_by.strip():
         # AM-4 backstop: an archive must name a human operator.
-        raise MissionArchiveRefused(
-            "AM-4", "archiving requires an operator identity (--by)"
-        )
+        raise MissionArchiveRefused("AM-4", "archiving requires an operator identity (--by)")
 
     terminal_state = terminal_state_resolver(feature_dir)
     invariants = invariants_reader(feature_dir)
@@ -339,9 +323,7 @@ def archive_mission(
             eligibility.reason or "archive refused",
         )
 
-    cleared = resolve_deferrals_for_cancellation(
-        invariants, terminal_state=terminal_state
-    )
+    cleared = resolve_deferrals_for_cancellation(invariants, terminal_state=terminal_state)
 
     identity = resolve_mission_identity(feature_dir)
     mission_id = identity.mission_id or identity.mission_slug

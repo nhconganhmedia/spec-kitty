@@ -107,9 +107,7 @@ class TestFailClosedPreservesCause:
     re-raise defeats that discrimination for this call path.
     """
 
-    def test_coordination_branch_deleted_cause_and_error_code_survive(
-        self, tmp_path: Path
-    ) -> None:
+    def test_coordination_branch_deleted_cause_and_error_code_survive(self, tmp_path: Path) -> None:
         from specify_cli.coordination.surface_resolver import (
             CoordinationBranchDeleted,
         )
@@ -118,9 +116,7 @@ class TestFailClosedPreservesCause:
         feature_dir = tmp_path / "kitty-specs" / mission_slug
         feature_dir.mkdir(parents=True)
         (feature_dir / "meta.json").write_text(
-            json.dumps(
-                {"mission_id": "01HXYZ0000000000000000000C", "mission_slug": mission_slug}
-            ),
+            json.dumps({"mission_id": "01HXYZ0000000000000000000C", "mission_slug": mission_slug}),
             encoding="utf-8",
         )
         concrete_exc = CoordinationBranchDeleted(
@@ -157,9 +153,7 @@ class TestFailClosedPreservesCause:
         assert raised.__cause__ is concrete_exc
         assert isinstance(raised.__cause__, CoordinationBranchDeleted)
 
-    def test_plain_action_context_error_cause_and_code_survive(
-        self, tmp_path: Path
-    ) -> None:
+    def test_plain_action_context_error_cause_and_code_survive(self, tmp_path: Path) -> None:
         """Companion case: when ``resolve_placement_only`` itself raises a
         plain ``ActionContextError`` (NOT a ``StatusReadPathNotFound``/
         ``CoordinationBranchDeleted`` subclass -- e.g. an ambiguous or
@@ -176,14 +170,10 @@ class TestFailClosedPreservesCause:
         feature_dir = tmp_path / "kitty-specs" / mission_slug
         feature_dir.mkdir(parents=True)
         (feature_dir / "meta.json").write_text(
-            json.dumps(
-                {"mission_id": "01HXYZ0000000000000000000D", "mission_slug": mission_slug}
-            ),
+            json.dumps({"mission_id": "01HXYZ0000000000000000000D", "mission_slug": mission_slug}),
             encoding="utf-8",
         )
-        concrete_exc = ActionContextError(
-            "AMBIGUOUS_MISSION_HANDLE", "mission slug resolves to more than one candidate"
-        )
+        concrete_exc = ActionContextError("AMBIGUOUS_MISSION_HANDLE", "mission slug resolves to more than one candidate")
 
         with (
             mock.patch(
@@ -219,9 +209,7 @@ class TestFailClosedPreservesCause:
 class TestDecisionLogFailOpen:
     """Test decision_log preserves fail-open behavior through the helper."""
 
-    def test_decision_log_returns_degrade_ref_on_missing_meta(
-        self, tmp_path: Path
-    ) -> None:
+    def test_decision_log_returns_degrade_ref_on_missing_meta(self, tmp_path: Path) -> None:
         """decision_log._resolve_default_target returns degrade_ref when mission missing."""
         destination_ref = "coord-branch"
         target = DecisionGitLog._resolve_default_target(
@@ -237,9 +225,7 @@ class TestDecisionLogFailOpen:
 class TestBookkeepingCommitFailClosed:
     """Test bookkeeping_commit preserves fail-closed behavior through the helper."""
 
-    def test_bookkeeping_raises_when_branch_none_and_mission_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bookkeeping_raises_when_branch_none_and_mission_missing(self, tmp_path: Path) -> None:
         """bookkeeping_commit raises ActionContextError when branch=None + mission missing."""
         with pytest.raises(ActionContextError) as exc_info:
             commit_merge_bookkeeping(
@@ -253,9 +239,7 @@ class TestBookkeepingCommitFailClosed:
         # Verify the error mentions the fail-closed reason
         assert "requires" in str(exc_info.value).lower() or "branch" in str(exc_info.value).lower()
 
-    def test_bookkeeping_uses_branch_as_degrade_when_supplied(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bookkeeping_uses_branch_as_degrade_when_supplied(self, tmp_path: Path) -> None:
         """bookkeeping_commit uses branch as degrade_ref when supplied (no metadata)."""
         # Create a dummy file to commit
         dummy_file = tmp_path / "dummy.txt"
@@ -289,16 +273,12 @@ class TestBookkeepingCommitResolvesFirstOnBranchNone:
     must return the placement-port target and commit -- not raise.
     """
 
-    def test_branch_none_with_resolvable_mission_returns_placement_target(
-        self, tmp_path: Path
-    ) -> None:
+    def test_branch_none_with_resolvable_mission_returns_placement_target(self, tmp_path: Path) -> None:
         mission_slug = "017-my-test-mission"
         feature_dir = tmp_path / "kitty-specs" / mission_slug
         feature_dir.mkdir(parents=True)
         (feature_dir / "meta.json").write_text(
-            json.dumps(
-                {"mission_id": "01HXYZ0000000000000000000A", "mission_slug": mission_slug}
-            ),
+            json.dumps({"mission_id": "01HXYZ0000000000000000000A", "mission_slug": mission_slug}),
             encoding="utf-8",
         )
         dummy_file = tmp_path / "dummy.txt"

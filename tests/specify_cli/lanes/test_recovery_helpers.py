@@ -58,7 +58,11 @@ pytestmark = [pytest.mark.fast]
     ],
 )
 def test_compute_recovery_action(
-    worktree: bool, context: bool, commits: bool, status_lane: str, expected: str,
+    worktree: bool,
+    context: bool,
+    commits: bool,
+    status_lane: str,
+    expected: str,
 ) -> None:
     assert (
         _compute_recovery_action(
@@ -215,7 +219,9 @@ def test_compute_ready_to_start_unblocks_when_deps_done(tmp_path: Path) -> None:
 def test_append_ready_to_start_adds_synthetic_state() -> None:
     states: list[RecoveryState] = []
     _append_ready_to_start(
-        states, ready_to_start=["WP02"], all_wp_lanes={"WP02": "planned"},
+        states,
+        ready_to_start=["WP02"],
+        all_wp_lanes={"WP02": "planned"},
     )
     assert len(states) == 1
     assert states[0].wp_id == "WP02"
@@ -226,6 +232,8 @@ def test_append_ready_to_start_dedupes_existing() -> None:
     existing = _state("WP02", note="ready_to_start_from_target")
     states = [existing]
     _append_ready_to_start(
-        states, ready_to_start=["WP02"], all_wp_lanes={},
+        states,
+        ready_to_start=["WP02"],
+        all_wp_lanes={},
     )
     assert len(states) == 1  # no duplicate appended

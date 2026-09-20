@@ -43,12 +43,8 @@ _HEAD_SHA = "aaaa1111bbbb2222cccc3333dddd4444eeee5555"
 _RunFn = Callable[..., "subprocess.CompletedProcess[str]"]
 
 
-def _completed(
-    returncode: int, stdout: str = "", stderr: str = ""
-) -> subprocess.CompletedProcess[str]:
-    return subprocess.CompletedProcess(
-        ["git"], returncode=returncode, stdout=stdout, stderr=stderr
-    )
+def _completed(returncode: int, stdout: str = "", stderr: str = "") -> subprocess.CompletedProcess[str]:
+    return subprocess.CompletedProcess(["git"], returncode=returncode, stdout=stdout, stderr=stderr)
 
 
 def _recording_run(calls: list[list[str]]) -> _RunFn:
@@ -125,16 +121,12 @@ def test_revert_noop_without_coord_worktree(monkeypatch: pytest.MonkeyPatch) -> 
     assert calls == []
 
 
-def test_revert_noop_when_head_at_captured(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_revert_noop_when_head_at_captured(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """HEAD unchanged since capture — nothing to revert, no revert issued."""
     worktree = tmp_path / ".worktrees" / "slug-01ab"
     events = worktree / "kitty-specs" / "slug-01ab" / "status.events.jsonl"
     calls: list[list[str]] = []
-    monkeypatch.setattr(
-        executor.subprocess, "run", _staged_run(calls, head_sha=_CAPTURED_SHA, revert_rc=0)
-    )
+    monkeypatch.setattr(executor.subprocess, "run", _staged_run(calls, head_sha=_CAPTURED_SHA, revert_rc=0))
     run = SimpleNamespace(
         pre_target_coord_ref="kitty/mission-x",
         pre_target_coord_sha=_CAPTURED_SHA,
@@ -144,17 +136,13 @@ def test_revert_noop_when_head_at_captured(
     assert all("revert" not in cmd for cmd in calls)  # only rev-parse ran
 
 
-def test_revert_success_issues_forward_revert(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_revert_success_issues_forward_revert(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """HEAD advanced past capture and the revert succeeds — forward revert issued,
     no abort, no warning."""
     worktree = tmp_path / ".worktrees" / "slug-01ab"
     events = worktree / "kitty-specs" / "slug-01ab" / "status.events.jsonl"
     calls: list[list[str]] = []
-    monkeypatch.setattr(
-        executor.subprocess, "run", _staged_run(calls, head_sha=_HEAD_SHA, revert_rc=0)
-    )
+    monkeypatch.setattr(executor.subprocess, "run", _staged_run(calls, head_sha=_HEAD_SHA, revert_rc=0))
     run = SimpleNamespace(
         pre_target_coord_ref="kitty/mission-x",
         pre_target_coord_sha=_CAPTURED_SHA,
@@ -165,17 +153,13 @@ def test_revert_success_issues_forward_revert(
     assert reverts and all("--abort" not in cmd for cmd in reverts)  # forward revert, no abort
 
 
-def test_revert_failure_aborts_and_warns(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_revert_failure_aborts_and_warns(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
     """A failing forward revert triggers ``git revert --abort`` + a warning (#2786
     proves this same swallowed path re-opens the split-brain end-to-end)."""
     worktree = tmp_path / ".worktrees" / "slug-01ab"
     events = worktree / "kitty-specs" / "slug-01ab" / "status.events.jsonl"
     calls: list[list[str]] = []
-    monkeypatch.setattr(
-        executor.subprocess, "run", _staged_run(calls, head_sha=_HEAD_SHA, revert_rc=1)
-    )
+    monkeypatch.setattr(executor.subprocess, "run", _staged_run(calls, head_sha=_HEAD_SHA, revert_rc=1))
     run = SimpleNamespace(
         pre_target_coord_ref="kitty/mission-x",
         pre_target_coord_sha=_CAPTURED_SHA,
@@ -217,9 +201,7 @@ def test_capture_records_ref_and_sha(monkeypatch: pytest.MonkeyPatch) -> None:
         "resolve_placement_only",
         lambda *_a, **_k: SimpleNamespace(ref="kitty/mission-x"),
     )
-    monkeypatch.setattr(
-        executor, "run_command", lambda *_a, **_k: (0, _CAPTURED_SHA + "\n", "")
-    )
+    monkeypatch.setattr(executor, "run_command", lambda *_a, **_k: (0, _CAPTURED_SHA + "\n", ""))
     run = SimpleNamespace(
         main_repo=Path("/repo"),
         mission_slug="slug-01ab",

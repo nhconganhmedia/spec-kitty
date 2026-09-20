@@ -706,9 +706,7 @@ def _migration_step_from(migration: Any) -> MigrationStep:
     )
 
 
-def _pending_migrations_for(
-    project: ProjectStatus, target_version: str | None = None
-) -> tuple[MigrationStep, ...]:
+def _pending_migrations_for(project: ProjectStatus, target_version: str | None = None) -> tuple[MigrationStep, ...]:
     """Return the pending migration steps a real upgrade run would apply.
 
     Drives the preview through the *same* selector the real run uses
@@ -900,9 +898,7 @@ def _call_provider_get_latest(provider: Any, package: str, *, prerelease: bool) 
         params = inspect.signature(provider.get_latest).parameters
     except (TypeError, ValueError):  # pragma: no cover - defensive
         params = {}
-    accepts_prerelease = "prerelease" in params or any(
-        p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
-    )
+    accepts_prerelease = "prerelease" in params or any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
     if accepts_prerelease:
         return provider.get_latest(package, prerelease=prerelease)
     return provider.get_latest(package)
@@ -947,15 +943,11 @@ def _resolve_latest_version(
     if cache_data_fresh:
         # Cache data is fresh — trust it; no network call.
         latest_version = cache_record.latest_version if cache_record is not None else None
-        cli_source: Literal["pypi", "simple_index", "none"] = (
-            cache_record.latest_source if cache_record is not None else "none"
-        )
+        cli_source: Literal["pypi", "simple_index", "none"] = cache_record.latest_source if cache_record is not None else "none"
         return latest_version, cli_source, None
 
     # Cache stale or missing — fetch from provider.
-    latest_result = _call_provider_get_latest(
-        latest_version_provider, profile.package_name, prerelease=prerelease
-    )
+    latest_result = _call_provider_get_latest(latest_version_provider, profile.package_name, prerelease=prerelease)
     source = latest_result.source
     latest_version = latest_result.version
 
@@ -1094,11 +1086,7 @@ def _plan_impl(
     if cache_record is not None and cache_record.cli_version_key != cache_version_key:
         cache_record = None
 
-    data_throttle_seconds = (
-        profile.data_freshness_seconds
-        if profile.data_freshness_seconds is not None
-        else config.throttle_seconds
-    )
+    data_throttle_seconds = profile.data_freshness_seconds if profile.data_freshness_seconds is not None else config.throttle_seconds
 
     # Check whether the cached VERSION DATA is fresh enough to trust (skip provider).
     cache_data_fresh = NagCache.has_fresh_data(

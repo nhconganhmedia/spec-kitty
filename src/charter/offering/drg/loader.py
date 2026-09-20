@@ -73,9 +73,7 @@ def load_graph(path: Path) -> DRGGraph:
     try:
         return load_graph_document(data, source=str(path))
     except ValidationError as exc:
-        raise DRGLoadError(
-            f"Validation error in {path}: {exc}"
-        ) from exc
+        raise DRGLoadError(f"Validation error in {path}: {exc}") from exc
 
 
 def load_graph_or_dir(path: Path) -> DRGGraph:
@@ -179,9 +177,7 @@ def merge_layers(
         if pn.urn in node_index:
             # Override label only -- keep built-in kind
             existing = node_index[pn.urn]
-            node_index[pn.urn] = existing.model_copy(
-                update={"label": pn.label} if pn.label is not None else {}
-            )
+            node_index[pn.urn] = existing.model_copy(update={"label": pn.label} if pn.label is not None else {})
         else:
             node_index[pn.urn] = pn
 

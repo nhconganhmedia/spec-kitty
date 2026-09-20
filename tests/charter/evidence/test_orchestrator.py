@@ -1,4 +1,5 @@
 """Tests for EvidenceOrchestrator and load_url_list_from_config."""
+
 from __future__ import annotations
 
 import re
@@ -124,15 +125,11 @@ def test_load_url_list_non_mapping_config_raises_config_shape_error(
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "just-a-plain-string-not-a-mapping\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("just-a-plain-string-not-a-mapping\n", encoding="utf-8")
     with pytest.raises(ConfigShapeError) as excinfo:
         load_url_list_from_config(tmp_path)
     message = str(excinfo.value)
-    assert "has no attribute" not in message, (
-        f"leaked a raw AttributeError instead of a controlled diagnostic: {message}"
-    )
+    assert "has no attribute" not in message, f"leaked a raw AttributeError instead of a controlled diagnostic: {message}"
     assert "config.yaml" in message
     assert "str" in message
 
@@ -222,20 +219,14 @@ def test_dry_run_evidence_on_spec_kitty_repo(
     # than red the suite. Detection mirrors the canonical banner check used elsewhere
     # (e.g. tests/specify_cli/invocation/cli/test_profiles.py).
     if "logged_out_on_connected_teamspace" in result.stderr:
-        pytest.skip(
-            "charter synthesize requires connected-teamspace auth; skipping in a "
-            "logged-out environment (e.g. CI without credentials)."
-        )
+        pytest.skip("charter synthesize requires connected-teamspace auth; skipping in a logged-out environment (e.g. CI without credentials).")
 
     # Structural guard (#2672 mode b): the real repo manifest must never be mutated by
     # this --dry-run-evidence invocation. Checked eagerly here (in addition to the
     # fixture's unconditional restore) so a regression fails LOUDLY with a clear message
     # rather than silently self-healing via teardown.
     manifest_after = manifest_path.read_bytes() if manifest_path.exists() else None
-    assert manifest_after == manifest_before, (
-        "charter synthesize --dry-run-evidence must never mutate the real repo manifest "
-        f"at {manifest_path}"
-    )
+    assert manifest_after == manifest_before, f"charter synthesize --dry-run-evidence must never mutate the real repo manifest at {manifest_path}"
 
     assert result.returncode == 0, f"stderr: {result.stderr}\nstdout: {result.stdout}"
     # ANSI-insensitive (#2672 mode a): strip SGR escapes before every substring match so
@@ -245,6 +236,4 @@ def test_dry_run_evidence_on_spec_kitty_repo(
     assert "Code signals:" in stdout_plain
     # spec-kitty has both pyproject.toml (Python) and package.json (JavaScript tooling),
     # so either language is a valid detection outcome — but "unknown" is not acceptable.
-    assert "lang=python" in stdout_plain or "lang=javascript" in stdout_plain, (
-        f"Expected lang=python or lang=javascript in output, got:\n{result.stdout}"
-    )
+    assert "lang=python" in stdout_plain or "lang=javascript" in stdout_plain, f"Expected lang=python or lang=javascript in output, got:\n{result.stdout}"

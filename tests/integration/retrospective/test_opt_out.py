@@ -25,11 +25,13 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir = tmp_path / "kitty-specs" / mission_slug
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text("# Spec\n", encoding="utf-8")
@@ -72,28 +74,14 @@ def test_opt_out_no_events_no_record(tmp_path: Path) -> None:
 
     # No record should have been written.
     canonical = feature_dir / "retrospective.yaml"
-    assert not canonical.exists(), (
-        f"No record should be written when policy.enabled=False; found {canonical}"
-    )
+    assert not canonical.exists(), f"No record should be written when policy.enabled=False; found {canonical}"
 
     # No retrospective lifecycle events should have been appended.
     events_path = feature_dir / "status.events.jsonl"
     if events_path.exists():
-        events = [
-            json.loads(line)
-            for line in events_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
-        retro_events = [
-            e for e in events
-            if e.get("type", "").startswith("Retrospective")
-        ]
-        assert not retro_events, (
-            f"No retrospective events should be emitted when policy.enabled=False; "
-            f"found: {retro_events}"
-        )
+        events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        retro_events = [e for e in events if e.get("type", "").startswith("Retrospective")]
+        assert not retro_events, f"No retrospective events should be emitted when policy.enabled=False; found: {retro_events}"
 
     # Callback returns None as no-op sentinel.
-    assert result is None, (
-        f"Callback must return None (no-op) when policy.enabled=False; got {result!r}"
-    )
+    assert result is None, f"Callback must return None (no-op) when policy.enabled=False; got {result!r}"

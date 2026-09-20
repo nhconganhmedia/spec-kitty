@@ -1,4 +1,5 @@
 """Regression tests for WP04 T020: resilient write in write_mission_brief."""
+
 from __future__ import annotations
 
 import pytest
@@ -14,6 +15,7 @@ from specify_cli.mission_brief import (
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
 
 def test_write_mission_brief_success(tmp_path):
     """Both files exist after a successful call, no temp files left."""

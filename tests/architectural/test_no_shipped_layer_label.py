@@ -117,9 +117,7 @@ CHARTER_SURFACES: list[list[str]] = [
 
 
 @pytest.mark.parametrize("cmd", CHARTER_SURFACES, ids=lambda c: " ".join(c))
-def test_public_json_surface_has_no_shipped_layer_label(
-    cmd: list[str], runner: CliRunner
-) -> None:
+def test_public_json_surface_has_no_shipped_layer_label(cmd: list[str], runner: CliRunner) -> None:
     """FR-016: charter status/lint and agent profile list must not surface
     ``"shipped"`` as a layer-label value.
 
@@ -130,21 +128,12 @@ def test_public_json_surface_has_no_shipped_layer_label(
     emitted JSON, not on the diagnostic outcome.
     """
     result = runner.invoke(spec_kitty_app, cmd)
-    assert result.exit_code in (0, 1), (
-        f"surface {' '.join(cmd)!r} exited unexpectedly: "
-        f"exit={result.exit_code} stdout={result.stdout[:500]!r}"
-    )
-    assert result.stdout.strip(), (
-        f"surface {' '.join(cmd)!r} produced no JSON output; "
-        "the architectural regression test cannot skip silently (FR-016)."
-    )
+    assert result.exit_code in (0, 1), f"surface {' '.join(cmd)!r} exited unexpectedly: exit={result.exit_code} stdout={result.stdout[:500]!r}"
+    assert result.stdout.strip(), f"surface {' '.join(cmd)!r} produced no JSON output; the architectural regression test cannot skip silently (FR-016)."
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"surface {' '.join(cmd)!r} did not emit valid JSON: {exc}\n"
-            f"stdout: {result.stdout[:500]!r}"
-        )
+        pytest.fail(f"surface {' '.join(cmd)!r} did not emit valid JSON: {exc}\nstdout: {result.stdout[:500]!r}")
 
     labels = list(_layer_label_values(payload))
     forbidden = [label for label in labels if label == FORBIDDEN_LAYER_LABEL]
@@ -179,45 +168,26 @@ def test_charter_preflight_has_no_shipped_layer_label(tmp_path: Path) -> None:
 
     labels = list(_layer_label_values(serialised))
     forbidden = [label for label in labels if label == FORBIDDEN_LAYER_LABEL]
-    assert not forbidden, (
-        f"charter preflight JSON surface still emits "
-        f"{FORBIDDEN_LAYER_LABEL!r} as a layer label. "
-        f"Payload: {json.dumps(serialised)[:600]}"
-    )
+    assert not forbidden, f"charter preflight JSON surface still emits {FORBIDDEN_LAYER_LABEL!r} as a layer label. Payload: {json.dumps(serialised)[:600]}"
 
 
-def test_doctrine_pack_validate_has_no_shipped_layer_label(
-    runner: CliRunner, fixture_pack: Path
-) -> None:
+def test_doctrine_pack_validate_has_no_shipped_layer_label(runner: CliRunner, fixture_pack: Path) -> None:
     """FR-016 — 5th surface: ``doctrine pack validate --json`` against a
     fixture pack must not surface ``"shipped"`` as a layer label in any
     validation message or advisory.
     """
     cmd = ["doctrine", "pack", "validate", str(fixture_pack), "--json"]
     result = runner.invoke(spec_kitty_app, cmd)
-    assert result.exit_code in (0, 1), (
-        f"doctrine pack validate exited unexpectedly: "
-        f"exit={result.exit_code} stdout={result.stdout[:500]!r}"
-    )
-    assert result.stdout.strip(), (
-        "doctrine pack validate --json produced no JSON; the architectural "
-        "regression test cannot skip silently (FR-016)."
-    )
+    assert result.exit_code in (0, 1), f"doctrine pack validate exited unexpectedly: exit={result.exit_code} stdout={result.stdout[:500]!r}"
+    assert result.stdout.strip(), "doctrine pack validate --json produced no JSON; the architectural regression test cannot skip silently (FR-016)."
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"doctrine pack validate did not emit valid JSON: {exc}\n"
-            f"stdout: {result.stdout[:500]!r}"
-        )
+        pytest.fail(f"doctrine pack validate did not emit valid JSON: {exc}\nstdout: {result.stdout[:500]!r}")
 
     labels = list(_layer_label_values(payload))
     forbidden = [label for label in labels if label == FORBIDDEN_LAYER_LABEL]
-    assert not forbidden, (
-        f"doctrine pack validate --json still emits "
-        f"{FORBIDDEN_LAYER_LABEL!r} as a layer label. "
-        f"Payload: {json.dumps(payload)[:600]}"
-    )
+    assert not forbidden, f"doctrine pack validate --json still emits {FORBIDDEN_LAYER_LABEL!r} as a layer label. Payload: {json.dumps(payload)[:600]}"
 
     # Also scan the advisory and error messages for the substring — the
     # validator surfaces vocabulary in human-readable strings as well as
@@ -232,13 +202,8 @@ def test_doctrine_pack_validate_has_no_shipped_layer_label(
             for item in node:
                 yield from _iter_messages(item)
 
-    messages_with_shipped = [
-        msg for msg in _iter_messages(payload) if FORBIDDEN_LAYER_LABEL in msg
-    ]
-    assert not messages_with_shipped, (
-        "doctrine pack validate --json messages still mention "
-        f"{FORBIDDEN_LAYER_LABEL!r}: {messages_with_shipped}"
-    )
+    messages_with_shipped = [msg for msg in _iter_messages(payload) if FORBIDDEN_LAYER_LABEL in msg]
+    assert not messages_with_shipped, f"doctrine pack validate --json messages still mention {FORBIDDEN_LAYER_LABEL!r}: {messages_with_shipped}"
 
 
 # ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ used to build directly. This test pins that the classmethod yields the exact
 same object the hand-built form produced — a pure constructor, no gate-policy
 change.
 """
+
 from __future__ import annotations
 
 import pytest

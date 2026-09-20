@@ -69,9 +69,7 @@ class _StubProvider:
     def can_handle(self, definition: SurfaceDefinition) -> bool:
         return bool(definition.kind == ToolSurfaceKind.COMMAND_SKILL)
 
-    def expand(
-        self, definition: SurfaceDefinition, tool_key: str, project_root: Path
-    ) -> list[SurfaceInstance]:
+    def expand(self, definition: SurfaceDefinition, tool_key: str, project_root: Path) -> list[SurfaceInstance]:
         return []
 
     def probe(self, instance: SurfaceInstance) -> SurfaceStatus:
@@ -148,9 +146,7 @@ def test_report_has_both_surfaces_and_findings() -> None:
         state=STATE_MISSING,
         findings=(make_finding(GENERATED_SURFACE_MISSING, SEVERITY_ERROR, "m"),),
     )
-    report = SurfaceStatusService([_StubProvider({"a": status})]).collect(
-        Path("/proj"), [_plan([inst])]
-    )
+    report = SurfaceStatusService([_StubProvider({"a": status})]).collect(Path("/proj"), [_plan([inst])])
     payload = report.to_json()
     assert isinstance(payload["surfaces"], list) and payload["surfaces"]
     assert isinstance(payload["findings"], list) and payload["findings"]

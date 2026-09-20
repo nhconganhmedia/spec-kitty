@@ -116,9 +116,7 @@ def discover_issue_references(feature_dir: Path) -> list[IssueReference]:
         for ref in detect_issue_references(path):
             if ref.number not in seen:
                 seen[ref.number] = (ref.first_line_context, ref.source_file)
-    return [
-        IssueReference(num, ctx, source_file) for num, (ctx, source_file) in seen.items()
-    ]
+    return [IssueReference(num, ctx, source_file) for num, (ctx, source_file) in seen.items()]
 
 
 __all__ = ["discover_issue_references"]

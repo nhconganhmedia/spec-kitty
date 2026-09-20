@@ -80,6 +80,7 @@ class TestWriteWrappers:
 
         def forbidden(*args: object, **kwargs: object) -> str:
             raise AssertionError("Retained wrapper rendered again")
+
         monkeypatch.setattr(claude_wrapper, "wrapper_bash_content", forbidden)
         monkeypatch.setattr(claude_wrapper, "wrapper_cmd_content", forbidden)
         (tmp_path / "bin").mkdir()
@@ -130,10 +131,7 @@ class TestWrapperBashContent:
 
     def test_path_match_must_be_reachable(self) -> None:
         content = wrapper_bash_content("1.0.0")
-        assert (
-            "command -v spec-kitty >/dev/null 2>&1 "
-            "&& spec-kitty --version >/dev/null 2>&1"
-        ) in content
+        assert ("command -v spec-kitty >/dev/null 2>&1 && spec-kitty --version >/dev/null 2>&1") in content
 
     def test_uvx_fallback_present(self) -> None:
         content = wrapper_bash_content("1.0.0")
@@ -199,10 +197,7 @@ class TestWrapperCmdContent:
         for line in lines:
             stripped = line.strip()
             if "EXIT /B %ERRORLEVEL%" in stripped:
-                assert depth == 0, (
-                    f"EXIT /B %ERRORLEVEL% is nested inside a parenthesized "
-                    f"block (depth={depth}): {stripped!r}"
-                )
+                assert depth == 0, f"EXIT /B %ERRORLEVEL% is nested inside a parenthesized block (depth={depth}): {stripped!r}"
             depth += stripped.count("(") - stripped.count(")")
 
     def test_no_parenthesized_if_blocks(self) -> None:
@@ -227,9 +222,7 @@ class TestWrapperCmdContent:
 
 class TestWrapperRuntimeFallback:
     @pytest.mark.skipif(sys.platform == "win32", reason="POSIX shell wrapper")
-    def test_bash_falls_back_to_uvx_when_path_shim_is_unreachable(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bash_falls_back_to_uvx_when_path_shim_is_unreachable(self, tmp_path: Path) -> None:
         write_wrappers(tmp_path, "9.9.9")
         fake_bin = tmp_path / "fake-bin"
         fake_bin.mkdir()
@@ -265,9 +258,7 @@ class TestMarketplaceJson:
     def _run_build(self, tmp_path: Path) -> Path:
         from specify_cli.tool_surface.bundles.claude import ClaudeBundleProjector
 
-        bundle_dir: Path = ClaudeBundleProjector(tmp_path / "dist").build(
-            skip_validate=True
-        )
+        bundle_dir: Path = ClaudeBundleProjector(tmp_path / "dist").build(skip_validate=True)
         return bundle_dir
 
     def test_marketplace_json_exists(self, tmp_path: Path) -> None:
@@ -276,9 +267,7 @@ class TestMarketplaceJson:
 
     def test_marketplace_json_schema(self, tmp_path: Path) -> None:
         self._run_build(tmp_path)
-        payload = json.loads(
-            (tmp_path / "dist" / "marketplace.json").read_text(encoding="utf-8")
-        )
+        payload = json.loads((tmp_path / "dist" / "marketplace.json").read_text(encoding="utf-8"))
         assert payload["name"] == "spec-kitty-plugins"
         assert payload.get("owner") == {"name": "Spec Kitty"}
         assert payload.get("description") == "Spec Kitty skills, agent profiles, and runtime wrappers for Claude Code."
@@ -309,9 +298,7 @@ class TestBuildIncludesWrappers:
     def _run_build(self, tmp_path: Path) -> Path:
         from specify_cli.tool_surface.bundles.claude import ClaudeBundleProjector
 
-        bundle_dir: Path = ClaudeBundleProjector(tmp_path / "dist").build(
-            skip_validate=True
-        )
+        bundle_dir: Path = ClaudeBundleProjector(tmp_path / "dist").build(skip_validate=True)
         return bundle_dir
 
     def test_bash_wrapper_in_bundle(self, tmp_path: Path) -> None:
@@ -324,9 +311,7 @@ class TestBuildIncludesWrappers:
 
     def test_wrapper_version_matches_plugin_json(self, tmp_path: Path) -> None:
         bundle_dir = self._run_build(tmp_path)
-        plugin_json = json.loads(
-            (bundle_dir / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
-        )
+        plugin_json = json.loads((bundle_dir / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         assert plugin_json["author"] == {
             "name": "Spec Kitty",
             "url": "https://github.com/spec-kitty/spec-kitty",

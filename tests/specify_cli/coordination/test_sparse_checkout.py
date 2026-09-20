@@ -53,9 +53,7 @@ def repo_with_status_files(tmp_path: Path) -> Path:
     spec_dir = repo / "kitty-specs" / MISSION_DIR
     spec_dir.mkdir(parents=True)
     (spec_dir / "spec.md").write_text("# spec\n")
-    (spec_dir / "status.events.jsonl").write_text(
-        '{"actor":"test","wp_id":"WP01","to_lane":"planned"}\n'
-    )
+    (spec_dir / "status.events.jsonl").write_text('{"actor":"test","wp_id":"WP01","to_lane":"planned"}\n')
     (spec_dir / "status.json").write_text('{"wps":{}}\n')
     _git(repo, "add", ".")
     _git(repo, "commit", "-q", "-m", "seed")
@@ -78,8 +76,7 @@ def test_lane_sparse_checkout_excludes_status_files(
 ) -> None:
     repo = repo_with_status_files
     lane_path = repo / ".worktrees" / f"{MISSION_SLUG}-{MID8}-lane-a"
-    _git(repo, "worktree", "add", "-b", LANE_BRANCH,
-         str(lane_path), COORD_BRANCH)
+    _git(repo, "worktree", "add", "-b", LANE_BRANCH, str(lane_path), COORD_BRANCH)
 
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)
 
@@ -97,8 +94,7 @@ def test_primary_checkout_unaffected(
     """The primary checkout still contains the status files."""
     repo = repo_with_status_files
     lane_path = repo / ".worktrees" / f"{MISSION_SLUG}-{MID8}-lane-a"
-    _git(repo, "worktree", "add", "-b", LANE_BRANCH,
-         str(lane_path), COORD_BRANCH)
+    _git(repo, "worktree", "add", "-b", LANE_BRANCH, str(lane_path), COORD_BRANCH)
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)
 
     spec_dir = repo / "kitty-specs" / MISSION_DIR
@@ -115,8 +111,7 @@ def test_coord_worktree_unaffected(
 
     # Also create a lane worktree and apply sparse-checkout.
     lane_path = repo / ".worktrees" / f"{MISSION_SLUG}-{MID8}-lane-a"
-    _git(repo, "worktree", "add", "-b", LANE_BRANCH,
-         str(lane_path), COORD_BRANCH)
+    _git(repo, "worktree", "add", "-b", LANE_BRANCH, str(lane_path), COORD_BRANCH)
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)
 
     # The coord worktree's sparse-checkout was never touched.
@@ -130,8 +125,7 @@ def test_register_lane_sparse_checkout_idempotent(
 ) -> None:
     repo = repo_with_status_files
     lane_path = repo / ".worktrees" / f"{MISSION_SLUG}-{MID8}-lane-a"
-    _git(repo, "worktree", "add", "-b", LANE_BRANCH,
-         str(lane_path), COORD_BRANCH)
+    _git(repo, "worktree", "add", "-b", LANE_BRANCH, str(lane_path), COORD_BRANCH)
 
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)
     register_lane_sparse_checkout(lane_path, MISSION_SLUG, MID8)

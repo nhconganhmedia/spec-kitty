@@ -76,17 +76,13 @@ def test_nfr001_claim_surface_never_reads_actor_role_from_frontmatter() -> None:
     for rel, qualname in _CLAIM_RESOLUTION_SURFACE:
         source = _function_source(_SRC / rel, qualname)
         offenders = _frontmatter_actor_role_reads(source)
-        assert not offenders, (
-            f"{rel}:{qualname} resolves actor/role from frontmatter (NFR-001 violation): {offenders}"
-        )
+        assert not offenders, f"{rel}:{qualname} resolves actor/role from frontmatter (NFR-001 violation): {offenders}"
 
 
 def test_nfr001_detector_fires_on_planted_frontmatter_read() -> None:
     """Negative control: the detector MUST fire on a planted frontmatter read."""
     planted = 'self.role = frontmatter.get("role")\nactor = wp_frontmatter["actor"]'
-    assert _frontmatter_actor_role_reads(planted), (
-        "NFR-001 detector is vacuous — it did not fire on a planted frontmatter actor/role read"
-    )
+    assert _frontmatter_actor_role_reads(planted), "NFR-001 detector is vacuous — it did not fire on a planted frontmatter actor/role read"
 
 
 # ---------------------------------------------------------------------------
@@ -109,24 +105,15 @@ def test_check_no_review_conflict_is_allow_only_no_reject_branch() -> None:
     code = "\n".join(ast.unparse(n) for n in executable)
     # ``ast.unparse`` renders a tuple return as ``return (True, None)`` — scan for
     # the bare ``False`` literal (a reject verdict) rather than a source spelling.
-    assert "False" not in code, (
-        f"_check_no_review_conflict must be allow-only (no reject/False branch); found in:\n{code}"
-    )
-    assert "already claimed" not in code, (
-        "_check_no_review_conflict must not carry the old block message"
-    )
+    assert "False" not in code, f"_check_no_review_conflict must be allow-only (no reject/False branch); found in:\n{code}"
+    assert "already claimed" not in code, "_check_no_review_conflict must not carry the old block message"
     # It must actually return an allow tuple.
     assert "True, None" in code
 
 
 def test_allow_only_detector_fires_on_planted_reject_branch() -> None:
     """Negative control: the reject-branch scan MUST fire on a planted block."""
-    planted = ast.parse(
-        "def f(ctx):\n"
-        "    if ctx.current_actor:\n"
-        "        return False, 'already claimed'\n"
-        "    return True, None\n"
-    )
+    planted = ast.parse("def f(ctx):\n    if ctx.current_actor:\n        return False, 'already claimed'\n    return True, None\n")
     func = planted.body[0]
     assert isinstance(func, ast.FunctionDef)
     code = "\n".join(ast.unparse(n) for n in func.body)

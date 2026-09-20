@@ -40,9 +40,7 @@ def _when_line(clause: str) -> str:
     # fetch_stanza_lines' return shape IS a fixed 2-line stanza (selector line +
     # When-clause line); there is no named-item collection here for a
     # set/frozenset equality to express more strongly than the count.
-    assert len(lines) == 2, (
-        f"fetch_stanza_lines must always return exactly 2 lines, got {lines!r}"
-    )
+    assert len(lines) == 2, f"fetch_stanza_lines must always return exactly 2 lines, got {lines!r}"
     return lines[1]
 
 
@@ -60,12 +58,8 @@ class TestFetchStanzaWhenClauseGrammaticality:
         # relation: suggests).
         clause = "designing or reviewing significant code changes"
         line = _when_line(clause)
-        assert "When you designing" not in line, (
-            f"Gerund clause must not be spliced directly after 'When you': {line!r}"
-        )
-        assert _WHEN_DOING_RE.search(line), (
-            f"Normalized gerund clause must match the closed lead-in set: {line!r}"
-        )
+        assert "When you designing" not in line, f"Gerund clause must not be spliced directly after 'When you': {line!r}"
+        assert _WHEN_DOING_RE.search(line), f"Normalized gerund clause must match the closed lead-in set: {line!r}"
 
     def test_full_sentence_stated_default_when_is_normalized_and_matches(self) -> None:
         # STATED_DEFAULT_WHEN is a complete sentence ending in a period --
@@ -73,33 +67,25 @@ class TestFetchStanzaWhenClauseGrammaticality:
         # "...authored yet)., run this command ...".
         line = _when_line(STATED_DEFAULT_WHEN)
         assert ".," not in line, f"Must not double a sentence terminator: {line!r}"
-        assert _WHEN_DOING_RE.search(line), (
-            f"Normalized STATED_DEFAULT_WHEN must match the closed lead-in set: {line!r}"
-        )
+        assert _WHEN_DOING_RE.search(line), f"Normalized STATED_DEFAULT_WHEN must match the closed lead-in set: {line!r}"
 
     def test_already_well_formed_clause_is_byte_unchanged(self) -> None:
         # DEFAULT_WHEN_CLAUSE already begins with the "are about to" lead-in --
         # the good path must not be touched by normalization (no regression).
         line = _when_line(DEFAULT_WHEN_CLAUSE)
-        assert line == (
-            f"When you {DEFAULT_WHEN_CLAUSE}, run this command and apply the returned rule."
-        )
+        assert line == (f"When you {DEFAULT_WHEN_CLAUSE}, run this command and apply the returned rule.")
         assert _WHEN_DOING_RE.search(line)
 
     def test_need_to_style_clause_passes_through_unchanged(self) -> None:
         clause = "need to add a database migration for the schema change"
         line = _when_line(clause)
-        assert line == (
-            f"When you {clause}, run this command and apply the returned rule."
-        )
+        assert line == (f"When you {clause}, run this command and apply the returned rule.")
         assert _WHEN_DOING_RE.search(line)
 
     def test_review_style_clause_passes_through_unchanged(self) -> None:
         clause = "review a merged diff for terminology drift"
         line = _when_line(clause)
-        assert line == (
-            f"When you {clause}, run this command and apply the returned rule."
-        )
+        assert line == (f"When you {clause}, run this command and apply the returned rule.")
         assert _WHEN_DOING_RE.search(line)
 
     def test_leading_when_prefixed_authored_clause_is_normalized_and_matches(self) -> None:
@@ -109,9 +95,5 @@ class TestFetchStanzaWhenClauseGrammaticality:
         # double into "When you when assessing ...".
         clause = "when assessing whether tests meet the quality gate they must pass"
         line = _when_line(clause)
-        assert "when you when" not in line.lower(), (
-            f"Must not double the 'when' conjunction: {line!r}"
-        )
-        assert _WHEN_DOING_RE.search(line), (
-            f"Normalized when-prefixed clause must match the closed lead-in set: {line!r}"
-        )
+        assert "when you when" not in line.lower(), f"Must not double the 'when' conjunction: {line!r}"
+        assert _WHEN_DOING_RE.search(line), f"Normalized when-prefixed clause must match the closed lead-in set: {line!r}"

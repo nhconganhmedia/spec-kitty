@@ -133,15 +133,11 @@ class TestIsCurrentlySnoozed:
 
 class TestResolveEffectivePreference:
     def test_no_env_no_persisted(self) -> None:
-        pref = resolve_effective_preference(
-            persisted_never_ask=False, persisted_always_upgrade=False, env={}
-        )
+        pref = resolve_effective_preference(persisted_never_ask=False, persisted_always_upgrade=False, env={})
         assert pref == EffectivePreference(False, False, False)
 
     def test_persisted_never_ask(self) -> None:
-        pref = resolve_effective_preference(
-            persisted_never_ask=True, persisted_always_upgrade=False, env={}
-        )
+        pref = resolve_effective_preference(persisted_never_ask=True, persisted_always_upgrade=False, env={})
         assert pref.never_ask is True
 
     def test_env_overrides_to_never_ask(self) -> None:
@@ -235,9 +231,7 @@ class TestApplyChoice:
         kwargs = _base_kwargs(now)
         kwargs["snooze_step"] = "48h"
         kwargs["snoozed_until"] = now + timedelta(hours=48)
-        updated = apply_choice(
-            kwargs, choice=UpgradeChoice.UPGRADE_NOW, current_latest="2.0", now=now
-        )
+        updated = apply_choice(kwargs, choice=UpgradeChoice.UPGRADE_NOW, current_latest="2.0", now=now)
         assert updated["remote_version_seen"] == "2.0"
         assert updated["snooze_step"] is None
         assert updated["snoozed_until"] is None
@@ -245,9 +239,7 @@ class TestApplyChoice:
     def test_always_sets_flag_and_clears(self) -> None:
         now = datetime(2026, 1, 1, tzinfo=UTC)
         kwargs = _base_kwargs(now)
-        updated = apply_choice(
-            kwargs, choice=UpgradeChoice.ALWAYS, current_latest="2.0", now=now
-        )
+        updated = apply_choice(kwargs, choice=UpgradeChoice.ALWAYS, current_latest="2.0", now=now)
         assert updated["always_upgrade"] is True
         assert updated["snooze_step"] is None
         assert updated["snoozed_until"] is None
@@ -255,9 +247,7 @@ class TestApplyChoice:
     def test_not_now_advances_cadence_first_time(self) -> None:
         now = datetime(2026, 1, 1, tzinfo=UTC)
         kwargs = _base_kwargs(now)
-        updated = apply_choice(
-            kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now
-        )
+        updated = apply_choice(kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now)
         assert updated["snooze_step"] == "24h"
         assert updated["snoozed_until"] == now + timedelta(hours=24)
 
@@ -266,32 +256,22 @@ class TestApplyChoice:
         now = datetime(2026, 1, 1, tzinfo=UTC)
         kwargs = _base_kwargs(now)
         # Step 1: None → 24h
-        kwargs = apply_choice(
-            kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now
-        )
+        kwargs = apply_choice(kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now)
         assert kwargs["snooze_step"] == "24h"
         # Step 2: 24h → 48h
-        kwargs = apply_choice(
-            kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now
-        )
+        kwargs = apply_choice(kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now)
         assert kwargs["snooze_step"] == "48h"
         # Step 3: 48h → 7d
-        kwargs = apply_choice(
-            kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now
-        )
+        kwargs = apply_choice(kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now)
         assert kwargs["snooze_step"] == "7d"
         # Step 4: 7d stays at 7d (ceiling)
-        kwargs = apply_choice(
-            kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now
-        )
+        kwargs = apply_choice(kwargs, choice=UpgradeChoice.NOT_NOW, current_latest="2.0", now=now)
         assert kwargs["snooze_step"] == "7d"
 
     def test_never_ask_sets_flag(self) -> None:
         now = datetime(2026, 1, 1, tzinfo=UTC)
         kwargs = _base_kwargs(now)
-        updated = apply_choice(
-            kwargs, choice=UpgradeChoice.NEVER_ASK, current_latest="2.0", now=now
-        )
+        updated = apply_choice(kwargs, choice=UpgradeChoice.NEVER_ASK, current_latest="2.0", now=now)
         assert updated["never_ask"] is True
 
 
@@ -493,17 +473,13 @@ class TestRunUpgradeUxNotAllowWithNag:
 class TestRunUpgradeUxFourChoices:
     """Acceptance criterion 3 + 8 — each of the four choices wires through."""
 
-    def _build_setup(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> dict[str, Any]:
+    def _build_setup(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
         monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
         _patch_planner(monkeypatch, "ALLOW_WITH_NAG", latest="2.0")
         return _patch_cache_noop(monkeypatch)
 
-    def test_choice_upgrade_now_safe_installer(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_choice_upgrade_now_safe_installer(self, monkeypatch: pytest.MonkeyPatch) -> None:
         cache_state = self._build_setup(monkeypatch)
         runs: list[int] = []
 
@@ -530,9 +506,7 @@ class TestRunUpgradeUxFourChoices:
         assert written.remote_version_seen == "2.0"
         assert written.snooze_step is None
 
-    def test_choice_always_persists(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_choice_always_persists(self, monkeypatch: pytest.MonkeyPatch) -> None:
         cache_state = self._build_setup(monkeypatch)
         outcome = run_upgrade_ux(
             None,
@@ -546,9 +520,7 @@ class TestRunUpgradeUxFourChoices:
         written = cache_state["writes"][0]
         assert written.always_upgrade is True
 
-    def test_choice_not_now_advances_cadence(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_choice_not_now_advances_cadence(self, monkeypatch: pytest.MonkeyPatch) -> None:
         cache_state = self._build_setup(monkeypatch)
         outcome = run_upgrade_ux(
             None,
@@ -563,9 +535,7 @@ class TestRunUpgradeUxFourChoices:
         written = cache_state["writes"][0]
         assert written.snooze_step == "24h"
 
-    def test_choice_never_ask_persists(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_choice_never_ask_persists(self, monkeypatch: pytest.MonkeyPatch) -> None:
         cache_state = self._build_setup(monkeypatch)
         outcome = run_upgrade_ux(
             None,
@@ -583,9 +553,7 @@ class TestRunUpgradeUxFourChoices:
 class TestRunUpgradeUxUnknownInstaller:
     """Acceptance criterion 5 + 8 — UNKNOWN installer never auto-upgrades."""
 
-    def test_upgrade_now_unknown_installer_is_guidance_only(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_upgrade_now_unknown_installer_is_guidance_only(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
         monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
         _patch_planner(monkeypatch, "ALLOW_WITH_NAG")
@@ -605,9 +573,7 @@ class TestRunUpgradeUxUnknownInstaller:
         assert outcome.guidance_only is True
         assert outcome.auto_upgrade_attempted is False
 
-    def test_always_unknown_installer_is_guidance_only(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_always_unknown_installer_is_guidance_only(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
         monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
         _patch_planner(monkeypatch, "ALLOW_WITH_NAG")
@@ -628,9 +594,7 @@ class TestRunUpgradeUxUnknownInstaller:
 class TestRunUpgradeUxNeverAskPersists:
     """Acceptance criterion 8 — Never ask again persists across invocations."""
 
-    def test_persisted_never_ask_suppresses_prompt(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_persisted_never_ask_suppresses_prompt(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.compat.cache import NagCacheRecord
 
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
@@ -664,9 +628,7 @@ class TestRunUpgradeUxNeverAskPersists:
 class TestRunUpgradeUxNewVersionResetsCadence:
     """Acceptance criterion 1 + 8 — new remote version resets cadence + never_ask."""
 
-    def test_new_version_resets_never_ask_and_snooze(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_new_version_resets_never_ask_and_snooze(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.compat.cache import NagCacheRecord
 
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
@@ -713,9 +675,7 @@ class TestRunUpgradeUxNewVersionResetsCadence:
 class TestRunUpgradeUxAlwaysSafe:
     """Acceptance criterion 3 + 5 — always_upgrade + safe installer auto-runs."""
 
-    def test_always_upgrade_safe_installer_subprocess_fires(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_always_upgrade_safe_installer_subprocess_fires(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
         monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
         _patch_planner(monkeypatch, "ALLOW_WITH_NAG", latest="2.0")
@@ -739,9 +699,7 @@ class TestRunUpgradeUxAlwaysSafe:
         assert outcome.auto_upgrade_attempted is True
         assert outcome.prompted is False
 
-    def test_uv_tool_auto_upgrade_reinstalls_target_version(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_auto_upgrade_reinstalls_target_version(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])
         monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
         _patch_planner(monkeypatch, "ALLOW_WITH_NAG", latest="2.0")
@@ -769,9 +727,7 @@ class TestRunUpgradeUxAlwaysSafe:
         assert outcome.auto_upgrade_attempted is True
         assert outcome.auto_upgrade_exit_code == 0
 
-    def test_uv_tool_auto_upgrade_threads_receipt_python_and_tool_dir_to_subprocess(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uv_tool_auto_upgrade_threads_receipt_python_and_tool_dir_to_subprocess(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """#2316: the receipt ``--python`` pin and a custom ``UV_TOOL_DIR`` must
         reach the ``uv tool install`` subprocess end-to-end.
 
@@ -830,18 +786,21 @@ class TestRunUpgradeUxAlwaysSafe:
         assert calls, "the uv-tool auto-upgrade subprocess must fire"
         argv, env = calls[0]
         assert argv == [
-            "uv", "tool", "install", "--force",
-            "--python", "3.13",
+            "uv",
+            "tool",
+            "install",
+            "--force",
+            "--python",
+            "3.13",
             "spec-kitty-cli==2.0",
         ], "receipt --python pin must be threaded into the install argv"
         assert env is not None, "UV_TOOL_DIR env must be passed to the subprocess, not dropped"
         assert env.get("UV_TOOL_DIR") == str(Path("/opt/uv"))
         assert outcome.auto_upgrade_attempted is True
 
+
 class TestRunUpgradeUxActiveSnooze:
-    def test_active_snooze_suppresses_prompt(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_active_snooze_suppresses_prompt(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.compat.cache import NagCacheRecord
 
         monkeypatch.setattr(sys, "argv", ["spec-kitty", "status"])

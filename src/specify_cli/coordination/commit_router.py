@@ -90,6 +90,7 @@ class _ProtectionPolicyProtocol(Protocol):
 
     def is_protected(self, ref: str) -> bool: ...
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -312,11 +313,7 @@ def _commit_partition_group(
     # topology — this removes the planning→coord arm (write-surface-coherence WP02).
     topology = resolve_topology(repo_root, mission_slug)
     primary_target = placement.ref if effective_root is not None else _resolve_mission_target_branch(repo_root, mission_slug)
-    use_coord = (
-        effective_root is None
-        and routes_through_coordination(topology)
-        and placement.ref != primary_target
-    )
+    use_coord = effective_root is None and routes_through_coordination(topology) and placement.ref != primary_target
 
     # T016 / INV-4 (shared-rule consultation): the protected-primary refusal now
     # DERIVES from the single authority :func:`resolve_surface_authority` (contract
@@ -609,29 +606,15 @@ def _group_files_by_partition(
         else:
             primary_files.append(file)
 
-    caller_partition_holds_everything = (
-        caller_is_primary and not coord_files
-    ) or (not caller_is_primary and not primary_files)
+    caller_partition_holds_everything = (caller_is_primary and not coord_files) or (not caller_is_primary and not primary_files)
     if caller_partition_holds_everything:
         # Every file lands in the caller's own partition — the historical
         # fast path: no extra resolve_placement_only call, byte-identical to
         # the pre-#2650 single-group call.
         return [(kind, files)]
 
-    primary_kind = (
-        kind
-        if caller_is_primary
-        else _representative_kind_for_bucket(
-            primary_files, mission_slug, expect_primary=True, fallback=_FALLBACK_PRIMARY_KIND
-        )
-    )
-    coord_kind = (
-        kind
-        if not caller_is_primary
-        else _representative_kind_for_bucket(
-            coord_files, mission_slug, expect_primary=False, fallback=_FALLBACK_COORD_KIND
-        )
-    )
+    primary_kind = kind if caller_is_primary else _representative_kind_for_bucket(primary_files, mission_slug, expect_primary=True, fallback=_FALLBACK_PRIMARY_KIND)
+    coord_kind = kind if not caller_is_primary else _representative_kind_for_bucket(coord_files, mission_slug, expect_primary=False, fallback=_FALLBACK_COORD_KIND)
 
     if primary_files and coord_files:
         primary_ref = resolve_placement_only(repo_root, mission_slug, kind=primary_kind).ref
@@ -812,9 +795,7 @@ def _resolve_mid8(repo_root: Path, mission_slug: str) -> str | None:
         from specify_cli.mission_metadata import load_meta
         from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 
-        feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.PRIMARY_METADATA
-        )
+        feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         meta = load_meta(feature_dir, allow_missing=True, on_malformed="none")
         raw_mid = meta.get("mission_id") if meta else None
         if not isinstance(raw_mid, str) or len(raw_mid) < 8:
@@ -942,9 +923,7 @@ def _stage_artifacts_in_coord_worktree(
 # ---------------------------------------------------------------------------
 
 
-def _resolve_planning_placement(
-    repo_root: Path, mission_slug: str, *, kind: MissionArtifactKind
-) -> CommitTarget:
+def _resolve_planning_placement(repo_root: Path, mission_slug: str, *, kind: MissionArtifactKind) -> CommitTarget:
     """Resolve the single planning-phase :class:`CommitTarget` for ``mission_slug``.
 
     WP05 / FR-003 / C-GUARD-3a (#1784): the ONE destination authority for every

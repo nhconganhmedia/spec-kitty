@@ -42,13 +42,7 @@ _MAX = 3
 
 # Path to the JSON contract schema. This file is 3-deep
 # (tests/specify_cli/compat/test_messages.py), so parents[3] is the repo root.
-_CONTRACT_PATH = (
-    Path(__file__).parents[3]
-    / "kitty-specs"
-    / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN"
-    / "contracts"
-    / "compat-planner.json"
-)
+_CONTRACT_PATH = Path(__file__).parents[3] / "kitty-specs" / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN" / "contracts" / "compat-planner.json"
 
 
 # ---------------------------------------------------------------------------
@@ -298,13 +292,19 @@ class TestRenderJson:
         except ImportError:
             # jsonschema not available — fall back to key-set check
             required_keys = {
-                "schema_version", "case", "decision", "exit_code",
-                "cli", "project", "safety", "install_method",
-                "upgrade_hint", "pending_migrations", "rendered_human",
+                "schema_version",
+                "case",
+                "decision",
+                "exit_code",
+                "cli",
+                "project",
+                "safety",
+                "install_method",
+                "upgrade_hint",
+                "pending_migrations",
+                "rendered_human",
             }
-            assert required_keys.issubset(set(obj.keys())), (
-                f"Missing keys: {required_keys - set(obj.keys())}"
-            )
+            assert required_keys.issubset(set(obj.keys())), f"Missing keys: {required_keys - set(obj.keys())}"
 
     def test_allow_plan(self) -> None:
         p = _make_plan(Decision.ALLOW, Fr023Case.NONE)
@@ -495,12 +495,7 @@ class TestRenderJson:
         fake_test_file.parent.mkdir(parents=True, exist_ok=True)
         fake_test_file.write_text("# stub\n", encoding="utf-8")
 
-        fake_contract_dir = (
-            fake_repo_root
-            / "kitty-specs"
-            / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN"
-            / "contracts"
-        )
+        fake_contract_dir = fake_repo_root / "kitty-specs" / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN" / "contracts"
         fake_contract_dir.mkdir(parents=True, exist_ok=True)
         fake_contract_path = fake_contract_dir / "compat-planner.json"
         fake_contract_path.write_text(_CONTRACT_PATH.read_text(), encoding="utf-8")
@@ -508,13 +503,7 @@ class TestRenderJson:
         assert ".worktrees" not in str(fake_repo_root)
 
         resolved_root = fake_test_file.parents[3]
-        resolved_contract_path = (
-            resolved_root
-            / "kitty-specs"
-            / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN"
-            / "contracts"
-            / "compat-planner.json"
-        )
+        resolved_contract_path = resolved_root / "kitty-specs" / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN" / "contracts" / "compat-planner.json"
         assert resolved_root == fake_repo_root
         assert resolved_contract_path == fake_contract_path
 

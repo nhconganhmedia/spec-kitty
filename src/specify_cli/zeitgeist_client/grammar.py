@@ -102,11 +102,7 @@ def ident(value: str, pattern: re.Pattern[str] = IDENT_RE) -> str:
     if not value:
         return ""
     kind = "ref" if pattern is REF_RE else "ident"
-    if (
-        pattern.fullmatch(value)
-        and len(value) <= _MAX_LENGTH[kind]
-        and not _too_many_segments(value, MAX_SEGMENTS[kind])
-    ):
+    if pattern.fullmatch(value) and len(value) <= _MAX_LENGTH[kind] and not _too_many_segments(value, MAX_SEGMENTS[kind]):
         return value
     # Non-cryptographic use: a short, stable, non-reversible correlation
     # label for a rejected identifier, not a security boundary — identical

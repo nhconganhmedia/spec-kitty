@@ -158,12 +158,7 @@ def test_squash_merge_preserves_target_newer_meta_provenance(
         from_commit="coordfromcommit1",
         accept_commit="coordacceptcommit1",
         vcs="svn",
-        trace_body=(
-            "# Mission Trace\n\n"
-            "<!-- section:coord-older -->\n"
-            "## Coord section (mission-branch, older)\n"
-            "coord trace body @ T1\n"
-        ),
+        trace_body=("# Mission Trace\n\n<!-- section:coord-older -->\n## Coord section (mission-branch, older)\ncoord trace body @ T1\n"),
     )
 
     # Target branch (``main``): NEWER accepted state (v2 @ T2).
@@ -178,31 +173,16 @@ def test_squash_merge_preserves_target_newer_meta_provenance(
         from_commit="targetfromcommit2",
         accept_commit="targetacceptcommit2",
         vcs="git",
-        trace_body=(
-            "# Mission Trace\n\n"
-            f"<!-- {TARGET_TRACE_MARKER} -->\n"
-            "## Target section (target-newer, target-only)\n"
-            "target trace body @ T2\n"
-        ),
+        trace_body=(f"# Mission Trace\n\n<!-- {TARGET_TRACE_MARKER} -->\n## Target section (target-newer, target-only)\ntarget trace body @ T2\n"),
     )
 
     # Preconditions (fixture health, asserted BEFORE the merge so a fixture
     # break surfaces as a precondition failure, never as a false contract RED).
-    base_main_meta = json.loads(
-        _git(tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json").stdout
-    )
-    assert base_main_meta.get("accepted_at") == T2_TARGET, (
-        "fixture precondition: target `main` must hold the NEWER acceptance "
-        "(v2 @ T2) before the merge"
-    )
-    base_coord_meta = json.loads(
-        _git(
-            tmp_path, "show", f"{COORD_BRANCH}:kitty-specs/{MISSION_SLUG}/meta.json"
-        ).stdout
-    )
+    base_main_meta = json.loads(_git(tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json").stdout)
+    assert base_main_meta.get("accepted_at") == T2_TARGET, "fixture precondition: target `main` must hold the NEWER acceptance (v2 @ T2) before the merge"
+    base_coord_meta = json.loads(_git(tmp_path, "show", f"{COORD_BRANCH}:kitty-specs/{MISSION_SLUG}/meta.json").stdout)
     assert base_coord_meta.get("accepted_at") == T1_COORD, (
-        "fixture precondition: the coord branch must hold the OLDER acceptance "
-        "(v1 @ T1) so `-X theirs` genuinely diverges from target"
+        "fixture precondition: the coord branch must hold the OLDER acceptance (v1 @ T1) so `-X theirs` genuinely diverges from target"
     )
 
     # Run the supported squash merge through the real entry point.
@@ -218,9 +198,7 @@ def test_squash_merge_preserves_target_newer_meta_provenance(
             allow_sparse_checkout=True,
         )
 
-    merged_meta = json.loads(
-        _git(tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json").stdout
-    )
+    merged_meta = json.loads(_git(tmp_path, "show", f"main:kitty-specs/{MISSION_SLUG}/meta.json").stdout)
 
     # --- Contract assertions (RED on the mission base). The FIRST assertion is a
     #     provenance field, satisfying SC-001 (RED for the right reason). ---
@@ -230,33 +208,25 @@ def test_squash_merge_preserves_target_newer_meta_provenance(
         f"{merged_meta.get('accepted_at')!r} (coord v1). meta={merged_meta!r}"
     )
     assert merged_meta.get("accepted_by") == "reviewer-target-v2", (
-        "#2709 regression: target-newer `accepted_by` was clobbered by the "
-        f"coord copy. got={merged_meta.get('accepted_by')!r}"
+        f"#2709 regression: target-newer `accepted_by` was clobbered by the coord copy. got={merged_meta.get('accepted_by')!r}"
     )
     assert merged_meta.get("accepted_from_commit") == "targetfromcommit2", (
-        "#2709 regression: target-newer `accepted_from_commit` was clobbered. "
-        f"got={merged_meta.get('accepted_from_commit')!r}"
+        f"#2709 regression: target-newer `accepted_from_commit` was clobbered. got={merged_meta.get('accepted_from_commit')!r}"
     )
     assert merged_meta.get("acceptance_mode") == "automatic", (
-        "#2709 regression: target-newer `acceptance_mode` was clobbered. "
-        f"got={merged_meta.get('acceptance_mode')!r}"
+        f"#2709 regression: target-newer `acceptance_mode` was clobbered. got={merged_meta.get('acceptance_mode')!r}"
     )
     assert merged_meta.get("accept_commit") == "targetacceptcommit2", (
-        "#2709 regression: target-newer `accept_commit` was clobbered. "
-        f"got={merged_meta.get('accept_commit')!r}"
+        f"#2709 regression: target-newer `accept_commit` was clobbered. got={merged_meta.get('accept_commit')!r}"
     )
     assert len(merged_meta.get("acceptance_history", [])) == 2, (
         "#2709 regression: `acceptance_history` must union both sides (coord v1 "
         "+ target v2). `-X theirs` kept only the coord copy. "
         f"history={merged_meta.get('acceptance_history')!r}"
     )
-    assert merged_meta.get("vcs") == "git", (
-        "#2709 regression: target-newer `vcs` was clobbered by the coord copy. "
-        f"got={merged_meta.get('vcs')!r}"
-    )
+    assert merged_meta.get("vcs") == "git", f"#2709 regression: target-newer `vcs` was clobbered by the coord copy. got={merged_meta.get('vcs')!r}"
     assert merged_meta.get("vcs_locked_at") == T2_TARGET, (
-        "#2709 regression: target-newer `vcs_locked_at` was clobbered by the "
-        f"coord copy. got={merged_meta.get('vcs_locked_at')!r}"
+        f"#2709 regression: target-newer `vcs_locked_at` was clobbered by the coord copy. got={merged_meta.get('vcs_locked_at')!r}"
     )
 
 
@@ -287,12 +257,7 @@ def test_squash_merge_preserves_target_newer_trace_section(
         from_commit="coordfromcommit1",
         accept_commit="coordacceptcommit1",
         vcs="svn",
-        trace_body=(
-            "# Mission Trace\n\n"
-            "<!-- section:coord-older -->\n"
-            "## Coord section (mission-branch, older)\n"
-            "coord trace body @ T1\n"
-        ),
+        trace_body=("# Mission Trace\n\n<!-- section:coord-older -->\n## Coord section (mission-branch, older)\ncoord trace body @ T1\n"),
     )
     _seed_branch_provenance(
         tmp_path,
@@ -305,20 +270,12 @@ def test_squash_merge_preserves_target_newer_trace_section(
         from_commit="targetfromcommit2",
         accept_commit="targetacceptcommit2",
         vcs="git",
-        trace_body=(
-            "# Mission Trace\n\n"
-            f"<!-- {TARGET_TRACE_MARKER} -->\n"
-            "## Target section (target-newer, target-only)\n"
-            "target trace body @ T2\n"
-        ),
+        trace_body=(f"# Mission Trace\n\n<!-- {TARGET_TRACE_MARKER} -->\n## Target section (target-newer, target-only)\ntarget trace body @ T2\n"),
     )
 
     # Precondition: the target-newer trace section is on `main` before the merge.
     base_trace = _git(tmp_path, "show", f"main:{TRACE_RELPATH}").stdout
-    assert TARGET_TRACE_MARKER in base_trace, (
-        "fixture precondition: the target-newer trace section must be on `main` "
-        "before the merge"
-    )
+    assert TARGET_TRACE_MARKER in base_trace, "fixture precondition: the target-newer trace section must be on `main` before the merge"
 
     _git(tmp_path, "checkout", "main")
     with _real_merge_external_mocks():

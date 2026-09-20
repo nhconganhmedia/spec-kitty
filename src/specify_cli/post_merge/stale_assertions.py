@@ -49,20 +49,18 @@ FP_CEILING = 5.0  # NFR-002: max findings per 100 LOC of merged change
 class StaleAssertionFinding:
     """A single test assertion that may be invalidated by a source change."""
 
-    test_file: Path       # absolute path to the test file
-    test_line: int        # 1-indexed line of the suspect assertion
-    source_file: Path     # absolute path to the source file that changed
-    source_line: int      # 1-indexed line of the changed source identifier
-    changed_symbol: str   # the identifier or literal that changed
+    test_file: Path  # absolute path to the test file
+    test_line: int  # 1-indexed line of the suspect assertion
+    source_file: Path  # absolute path to the source file that changed
+    source_line: int  # 1-indexed line of the changed source identifier
+    changed_symbol: str  # the identifier or literal that changed
     confidence: Confidence  # "high" | "medium" | "low"
-    hint: str             # one-line human-readable explanation (no newlines)
+    hint: str  # one-line human-readable explanation (no newlines)
 
-    label: str = ""       # optional classifier label (e.g. "message-content-check")
+    label: str = ""  # optional classifier label (e.g. "message-content-check")
 
     def __post_init__(self) -> None:
-        assert self.confidence in ("high", "medium", "low", "info"), (
-            f"confidence must be 'high', 'medium', 'low', or 'info', got {self.confidence!r}"
-        )
+        assert self.confidence in ("high", "medium", "low", "info"), f"confidence must be 'high', 'medium', 'low', or 'info', got {self.confidence!r}"
         assert "\n" not in self.hint, "hint must be a single line"
 
 
@@ -74,8 +72,8 @@ class StaleAssertionReport:
     head_ref: str
     repo_root: Path
     findings: list[StaleAssertionFinding]
-    elapsed_seconds: float    # for NFR-001 self-reporting
-    files_scanned: int        # count of test files parsed successfully
+    elapsed_seconds: float  # for NFR-001 self-reporting
+    files_scanned: int  # count of test files parsed successfully
     findings_per_100_loc: float  # for NFR-002 self-monitoring
 
 
@@ -83,19 +81,21 @@ class StaleAssertionReport:
 # Internal helper types
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _SourceSymbol:
     """An identifier or literal that was removed/changed in the source diff."""
 
-    name: str            # function/class name OR literal string value
+    name: str  # function/class name OR literal string value
     kind: Literal["identifier", "literal"]
-    source_file: Path    # absolute path
-    source_line: int     # 1-indexed line in base_ref version
+    source_file: Path  # absolute path
+    source_line: int  # 1-indexed line in base_ref version
 
 
 # ---------------------------------------------------------------------------
 # T002 — Source-side AST extraction
 # ---------------------------------------------------------------------------
+
 
 def _git_run(args: list[str], cwd: Path) -> str:
     """Run a git command and return stdout, raising on non-zero exit."""
@@ -106,9 +106,7 @@ def _git_run(args: list[str], cwd: Path) -> str:
         text=True,
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"git {' '.join(args)} failed (exit {result.returncode}):\n{result.stderr}"
-        )
+        raise RuntimeError(f"git {' '.join(args)} failed (exit {result.returncode}):\n{result.stderr}")
     return result.stdout
 
 
@@ -211,17 +209,69 @@ def _head_still_exports_name(head_tree: ast.AST | None, name: str) -> bool:
 # up as leftover literal pieces after a reformat or refactor and are, on
 # their own, never assert-critical signal. Pinned explicitly (not "e.g.") —
 # FR-004.
-_GENERIC_LITERAL_TOKENS: frozenset[str] = frozenset({
-    "ok", "true", "false", "none", "null", "yes", "no",
-    "error", "warning", "warn", "info", "debug", "trace",
-    "test", "tests", "value", "values", "name", "names",
-    "type", "types", "data", "result", "results", "status",
-    "success", "failure", "fail", "failed", "pass", "passed",
-    "id", "key", "keys", "path", "paths", "file", "files",
-    "message", "msg", "text", "label", "title", "description",
-    "default", "unknown", "empty", "count", "total", "start", "end",
-    "{}", "{0}", "{1}", "%s", "%d", "%r", "\n", "\t",
-})
+_GENERIC_LITERAL_TOKENS: frozenset[str] = frozenset(
+    {
+        "ok",
+        "true",
+        "false",
+        "none",
+        "null",
+        "yes",
+        "no",
+        "error",
+        "warning",
+        "warn",
+        "info",
+        "debug",
+        "trace",
+        "test",
+        "tests",
+        "value",
+        "values",
+        "name",
+        "names",
+        "type",
+        "types",
+        "data",
+        "result",
+        "results",
+        "status",
+        "success",
+        "failure",
+        "fail",
+        "failed",
+        "pass",
+        "passed",
+        "id",
+        "key",
+        "keys",
+        "path",
+        "paths",
+        "file",
+        "files",
+        "message",
+        "msg",
+        "text",
+        "label",
+        "title",
+        "description",
+        "default",
+        "unknown",
+        "empty",
+        "count",
+        "total",
+        "start",
+        "end",
+        "{}",
+        "{0}",
+        "{1}",
+        "%s",
+        "%d",
+        "%r",
+        "\n",
+        "\t",
+    }
+)
 
 
 def _is_generic_literal(value: str) -> bool:
@@ -306,11 +356,7 @@ def _extract_changed_symbols(
         ["diff", "--name-only", base_ref, head_ref, "--", "*.py"],
         cwd=repo_root,
     )
-    changed_files = [
-        line.strip()
-        for line in diff_output.splitlines()
-        if line.strip() and not line.strip().startswith("tests/")
-    ]
+    changed_files = [line.strip() for line in diff_output.splitlines() if line.strip() and not line.strip().startswith("tests/")]
 
     symbols: list[_SourceSymbol] = []
 
@@ -384,35 +430,37 @@ def _extract_changed_symbols(
 # T003 — Test-side AST scan
 # ---------------------------------------------------------------------------
 
-_UNITTEST_ASSERT_PREFIXES = frozenset({
-    "assertEqual",
-    "assertNotEqual",
-    "assertTrue",
-    "assertFalse",
-    "assertIs",
-    "assertIsNot",
-    "assertIsNone",
-    "assertIsNotNone",
-    "assertIn",
-    "assertNotIn",
-    "assertRaises",
-    "assertRaisesRegex",
-    "assertWarns",
-    "assertWarnsRegex",
-    "assertGreater",
-    "assertGreaterEqual",
-    "assertLess",
-    "assertLessEqual",
-    "assertRegex",
-    "assertNotRegex",
-    "assertCountEqual",
-    "assertMultiLineEqual",
-    "assertSequenceEqual",
-    "assertListEqual",
-    "assertTupleEqual",
-    "assertSetEqual",
-    "assertDictEqual",
-})
+_UNITTEST_ASSERT_PREFIXES = frozenset(
+    {
+        "assertEqual",
+        "assertNotEqual",
+        "assertTrue",
+        "assertFalse",
+        "assertIs",
+        "assertIsNot",
+        "assertIsNone",
+        "assertIsNotNone",
+        "assertIn",
+        "assertNotIn",
+        "assertRaises",
+        "assertRaisesRegex",
+        "assertWarns",
+        "assertWarnsRegex",
+        "assertGreater",
+        "assertGreaterEqual",
+        "assertLess",
+        "assertLessEqual",
+        "assertRegex",
+        "assertNotRegex",
+        "assertCountEqual",
+        "assertMultiLineEqual",
+        "assertSequenceEqual",
+        "assertListEqual",
+        "assertTupleEqual",
+        "assertSetEqual",
+        "assertDictEqual",
+    }
+)
 
 
 def _node_is_assertion_bearing(node: ast.expr | ast.stmt | ast.AST) -> bool:
@@ -426,9 +474,7 @@ def _node_is_assertion_bearing(node: ast.expr | ast.stmt | ast.AST) -> bool:
         return True
     if isinstance(node, ast.Call):
         func = node.func
-        if isinstance(func, ast.Attribute) and (
-            func.attr in _UNITTEST_ASSERT_PREFIXES or func.attr.startswith("assert")
-        ):
+        if isinstance(func, ast.Attribute) and (func.attr in _UNITTEST_ASSERT_PREFIXES or func.attr.startswith("assert")):
             return True
     return False
 
@@ -488,9 +534,7 @@ def _compare_checks_literal_absence(node: ast.Compare, literal: str) -> bool:
     for op, comparator in zip(node.ops, node.comparators, strict=False):
         if not isinstance(op, ast.NotIn):
             continue
-        if _node_contains_literal(node.left, literal) or _node_contains_literal(
-            comparator, literal
-        ):
+        if _node_contains_literal(node.left, literal) or _node_contains_literal(comparator, literal):
             return True
     return False
 
@@ -505,10 +549,7 @@ def _assert_call_checks_literal_absence(assertion: ast.Call, literal: str) -> bo
 
 def _node_contains_literal(node: ast.AST, literal: str) -> bool:
     """Return True when *node* contains the exact string literal."""
-    return any(
-        isinstance(child, ast.Constant) and child.value == literal
-        for child in ast.walk(node)
-    )
+    return any(isinstance(child, ast.Constant) and child.value == literal for child in ast.walk(node))
 
 
 def _is_message_capture_expr(node: ast.expr) -> bool:
@@ -566,10 +607,7 @@ def _collapsed_literal_hint(lit_val: str, sites: list[_SourceSymbol]) -> str:
     One collapsed finding now names the primary site plus the extras.
     """
     primary, extras = sites[0], sites[1:]
-    hint = (
-        f"Assertion contains string literal {lit_val!r} which was "
-        f"removed from {primary.source_file.name}:{primary.source_line}"
-    )
+    hint = f"Assertion contains string literal {lit_val!r} which was removed from {primary.source_file.name}:{primary.source_line}"
     if not extras:
         return hint
     named = extras[: _MAX_NAMED_REMOVAL_SITES - 1]
@@ -628,9 +666,7 @@ def _literal_findings_for_assertion(
     return findings
 
 
-def _assertion_checks_literal_in_message_expr(
-    assertion: ast.AST, literal: str
-) -> bool:
+def _assertion_checks_literal_in_message_expr(assertion: ast.AST, literal: str) -> bool:
     """Return True when the assertion checks *literal* membership in a message-capture expression.
 
     Handles both orientations of the ``in`` operator:
@@ -664,9 +700,7 @@ def _get_node_line(node: ast.AST) -> int:
     return getattr(node, "lineno", 0)
 
 
-def _is_directly_inside_assert(
-    node: ast.AST, assertion: ast.AST
-) -> bool:
+def _is_directly_inside_assert(node: ast.AST, assertion: ast.AST) -> bool:
     """Return True if node appears as a direct child of an Assert.test or assertEqual call.
 
     Used to distinguish high vs. medium confidence.
@@ -711,9 +745,7 @@ def _scan_test_file(
     # Build lookup sets for efficiency.
     # changed_identifiers: last-wins is acceptable because identifiers are
     # deduplicated by name (a renamed function has a single canonical removal).
-    changed_identifiers = {
-        sym.name: sym for sym in changed_symbols if sym.kind == "identifier"
-    }
+    changed_identifiers = {sym.name: sym for sym in changed_symbols if sym.kind == "identifier"}
     # changed_literals: collect ALL removal sites so multi-file removals are
     # fully reported (fixes last-wins dict bug — T022).
     changed_literals: dict[str, list[_SourceSymbol]] = {}
@@ -758,19 +790,12 @@ def _scan_test_file(
                         source_line=sym.source_line,
                         changed_symbol=sym_name,
                         confidence=confidence,
-                        hint=(
-                            f"Assertion references '{sym_name}' which was renamed/removed "
-                            f"in {sym.source_file.name}:{sym.source_line}"
-                        ),
+                        hint=(f"Assertion references '{sym_name}' which was renamed/removed in {sym.source_file.name}:{sym.source_line}"),
                     )
                 )
 
         # --- Literal matches ---
-        findings.extend(
-            _literal_findings_for_assertion(
-                assertion, line, changed_literals, test_path
-            )
-        )
+        findings.extend(_literal_findings_for_assertion(assertion, line, changed_literals, test_path))
 
     return findings
 
@@ -778,6 +803,7 @@ def _scan_test_file(
 # ---------------------------------------------------------------------------
 # T004 — run_check() orchestration
 # ---------------------------------------------------------------------------
+
 
 def _count_diff_loc(base_ref: str, head_ref: str, repo_root: Path) -> int:
     """Return the number of lines added+removed in the diff (for NFR-002)."""
@@ -836,11 +862,7 @@ def run_check(
             ["ls-files", "tests/"],
             cwd=repo_root,
         )
-        test_files = [
-            repo_root / line.strip()
-            for line in ls_output.splitlines()
-            if line.strip().endswith(".py")
-        ]
+        test_files = [repo_root / line.strip() for line in ls_output.splitlines() if line.strip().endswith(".py")]
     except RuntimeError:
         test_files = []
 
@@ -860,9 +882,7 @@ def run_check(
     # Step 5: compute metrics.
     elapsed_seconds = time.monotonic() - start_time
     loc_changed = _count_diff_loc(base_ref, head_ref, repo_root)
-    findings_per_100_loc: float = (
-        (len(all_findings) / loc_changed * 100.0) if loc_changed > 0 else 0.0
-    )
+    findings_per_100_loc: float = (len(all_findings) / loc_changed * 100.0) if loc_changed > 0 else 0.0
 
     # FR-022: self-monitoring warning if FP ceiling exceeded.
     if findings_per_100_loc > FP_CEILING:

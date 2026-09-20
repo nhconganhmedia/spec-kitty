@@ -150,9 +150,7 @@ def test_contract_b_bom_tolerant_decode(tmp_path: Path) -> None:
     """
     meta = _valid_meta()
 
-    (tmp_path / META_FILENAME).write_text(
-        json.dumps(meta, ensure_ascii=False), encoding="utf-8-sig"
-    )
+    (tmp_path / META_FILENAME).write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8-sig")
     assert load_meta_strict(tmp_path) == meta
 
 
@@ -165,9 +163,7 @@ def test_contract_b_bom_intolerant_when_disabled(tmp_path: Path) -> None:
     """
     meta = _valid_meta()
 
-    (tmp_path / META_FILENAME).write_text(
-        json.dumps(meta, ensure_ascii=False), encoding="utf-8-sig"
-    )
+    (tmp_path / META_FILENAME).write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8-sig")
     assert load_meta_strict(tmp_path, bom_tolerant=False) == {}
 
 

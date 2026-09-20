@@ -106,9 +106,7 @@ _ALL_TAXONOMY_SLUGS = {
 # ---------------------------------------------------------------------------
 
 
-def test_mission_type_json_classifies_every_taxonomy_state(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_json_classifies_every_taxonomy_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--json classifies every fixture mission into the correct, single state
     (SC-005) — none omitted, and the FR-008 boundary case is exercised."""
     import specify_cli.cli.commands.doctor as doctor_mod
@@ -158,9 +156,7 @@ def test_mission_type_json_classifies_every_taxonomy_state(
     assert doc["fail_on_triggered"] is False
 
 
-def test_mission_type_mission_entry_has_documented_fields(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_mission_entry_has_documented_fields(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Each mission entry in --json carries the documented fields."""
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner
@@ -233,9 +229,7 @@ def test_classify_mission_type_to_dict_shape(tmp_path: Path) -> None:
     d = tmp_path / "kitty-specs" / "001-resolved"
     _write_meta(d, {"mission_type": "software-dev"})
 
-    state = classify_mission_type(
-        d, registered=["software-dev"], roster={"software-dev": object()}
-    )
+    state = classify_mission_type(d, registered=["software-dev"], roster={"software-dev": object()})
     payload = state.to_dict()
     assert payload["slug"] == "001-resolved"
     assert payload["state"] == "resolved"
@@ -256,9 +250,7 @@ def test_classify_present_key_resolves_non_builtin_type_via_roster() -> None:
     org_type = "org-custom-mission-type"
     # Roster mirrors resolve_layered_mission_types' output: the custom type is
     # present (project > org > built-in), even though it is not a built-in.
-    resolved_key, state = _classify_present_key(
-        org_type, registered=[org_type], roster={org_type: object()}
-    )
+    resolved_key, state = _classify_present_key(org_type, registered=[org_type], roster={org_type: object()})
     assert state == "resolved"
     assert resolved_key == org_type
 
@@ -268,9 +260,7 @@ def test_classify_present_key_resolves_non_builtin_type_via_roster() -> None:
     assert missing_state == "activated-unresolvable"
 
 
-def test_classify_mission_type_classification_helper_exception_is_error_not_crash(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_classify_mission_type_classification_helper_exception_is_error_not_crash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-008 Edge Case: 'one bad mission must never crash the whole audit
     run' also covers bugs in the classification helpers that run AFTER the
     meta.json read, not just the read itself. A mission whose classifier
@@ -287,17 +277,13 @@ def test_classify_mission_type_classification_helper_exception_is_error_not_cras
 
     monkeypatch.setattr(mission_type_audit_mod, "canonical_mission_type_key", _boom)
 
-    state = mission_type_audit_mod.classify_mission_type(
-        d, registered=["software-dev"], roster={}
-    )
+    state = mission_type_audit_mod.classify_mission_type(d, registered=["software-dev"], roster={})
     assert state.state == "error"
     assert state.error is not None
     assert "classifier exploded" in state.error
 
 
-def test_audit_mission_types_classification_error_does_not_abort_run(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_audit_mission_types_classification_error_does_not_abort_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-008 Edge Case, run-level: one mission whose classifier blows up
     must not abort the whole ``audit_mission_types`` walk — every other
     mission in the tree must still be classified and reported.
@@ -331,9 +317,7 @@ def test_audit_mission_types_classification_error_does_not_abort_run(
     assert "classifier exploded" in (by_slug["002-boom"].error or "")
 
 
-def test_audit_mission_types_resolves_org_pack_type_via_layered_roster(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_audit_mission_types_resolves_org_pack_type_via_layered_roster(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Finding 1 (#3402 landing): ``audit_mission_types`` must classify an
     activated non-built-in (org/project pack) mission type as ``resolved`` by
     consulting the LAYERED roster (``resolve_layered_mission_types`` — the same
@@ -352,9 +336,7 @@ def test_audit_mission_types_resolves_org_pack_type_via_layered_roster(
     def _fake_layered(mission_types_dirs: object, pack_context: object) -> dict[str, object]:
         return {org_type: object()}
 
-    monkeypatch.setattr(
-        mission_type_audit_mod, "resolve_layered_mission_types", _fake_layered
-    )
+    monkeypatch.setattr(mission_type_audit_mod, "resolve_layered_mission_types", _fake_layered)
 
     states = mission_type_audit_mod.audit_mission_types(tmp_path)
     by_slug = {s.slug: s for s in states}
@@ -410,9 +392,7 @@ def test_summarize_mission_types_zero_filled() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_mission_type_fail_on_unknown_exits_nonzero(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_fail_on_unknown_exits_nonzero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner
 
@@ -429,9 +409,7 @@ def test_mission_type_fail_on_unknown_exits_nonzero(
     assert doc["fail_on_triggered"] is True
 
 
-def test_mission_type_no_fail_on_exits_zero_regardless_of_findings(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_no_fail_on_exits_zero_regardless_of_findings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Exits zero with no --fail-on flag regardless of findings (SC-006)."""
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner
@@ -449,9 +427,7 @@ def test_mission_type_no_fail_on_exits_zero_regardless_of_findings(
     assert doc["fail_on_triggered"] is False
 
 
-def test_mission_type_fail_on_state_with_no_matches_exits_zero(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_fail_on_state_with_no_matches_exits_zero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner
 
@@ -470,9 +446,7 @@ def test_mission_type_fail_on_state_with_no_matches_exits_zero(
     assert doc["fail_on_triggered"] is False
 
 
-def test_mission_type_fail_on_rejects_unknown_state(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_fail_on_rejects_unknown_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Finding 2 (#3402 landing): a misspelled --fail-on state (e.g. ``unkown``)
     must fail loudly — exit 2 (typer.BadParameter / click UsageError) — NOT
     silently match nothing and exit 0, which would be a vacuous-green CI gate.
@@ -493,9 +467,7 @@ def test_mission_type_fail_on_rejects_unknown_state(
     assert result.exit_code == 2, result.output
 
 
-def test_mission_type_mission_scope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_mission_scope(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """--mission <slug> scopes the report to one mission."""
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner
@@ -513,9 +485,7 @@ def test_mission_type_mission_scope(
     assert {m["slug"] for m in doc["missions"]} == {"001-resolved"}
 
 
-def test_mission_type_mission_scope_not_found_exits_1(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_mission_scope_not_found_exits_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner
 
@@ -530,9 +500,7 @@ def test_mission_type_mission_scope_not_found_exits_1(
     assert result.exit_code == 1
 
 
-def test_mission_type_human_output_smoke(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mission_type_human_output_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The human-readable (non-JSON) path renders without crashing."""
     import specify_cli.cli.commands.doctor as doctor_mod
     from typer.testing import CliRunner

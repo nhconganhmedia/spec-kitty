@@ -184,10 +184,7 @@ def _entry_for_page(md_path: Path, rel_path: str, text: str) -> DocsQueryEntry:
     _, body = split_frontmatter(text)
     headings = scan_headings(body)
     slugs = slug_for_headings([heading_text for _level, heading_text in headings])
-    anchors = tuple(
-        Anchor(slug=slug, text=heading_text, level=level)
-        for slug, (level, heading_text) in zip(slugs, headings, strict=True)
-    )
+    anchors = tuple(Anchor(slug=slug, text=heading_text, level=level) for slug, (level, heading_text) in zip(slugs, headings, strict=True))
     return DocsQueryEntry(
         path=rel_path,
         title=resolve_title(frontmatter, body, md_path),
@@ -317,9 +314,7 @@ def _emit_summary(report: IndexReport) -> None:
     for path in drift.changed:
         sys.stdout.write(f"DOCS-INDEX-DRIFT changed {path}\n")
     sys.stdout.write(
-        f"docs_index: exit={report.exit_code} generated={report.generated_rows} "
-        f"committed={report.committed_rows} drift={drift.has_drift} "
-        f"({drift.summary()})\n"
+        f"docs_index: exit={report.exit_code} generated={report.generated_rows} committed={report.committed_rows} drift={drift.has_drift} ({drift.summary()})\n"
     )
 
 

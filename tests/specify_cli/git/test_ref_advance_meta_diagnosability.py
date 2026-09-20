@@ -49,10 +49,7 @@ def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
         check=False,
     )
     if result.returncode != 0:
-        raise AssertionError(
-            f"git {' '.join(args)} failed in {cwd}: "
-            f"{result.stderr.strip() or result.stdout.strip()}"
-        )
+        raise AssertionError(f"git {' '.join(args)} failed in {cwd}: {result.stderr.strip() or result.stdout.strip()}")
     return result
 
 

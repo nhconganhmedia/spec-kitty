@@ -93,9 +93,7 @@ def test_from_config_reads_activated_directives_from_charter_yaml_via_pointer(
 
     ctx = PackContext.from_config(tmp_path)
 
-    assert ctx.activated_directives == frozenset(
-        {"001-architectural-integrity-standard", "010-specification-fidelity-requirement"}
-    )
+    assert ctx.activated_directives == frozenset({"001-architectural-integrity-standard", "010-specification-fidelity-requirement"})
     assert ctx.activated_tactics == frozenset({"acceptance-test-first"})
     assert ctx.activated_kinds == frozenset({"directives", "tactics"})
     assert ctx.activated_mission_types == frozenset({"software-dev"})
@@ -150,10 +148,7 @@ def test_activated_agent_profiles_populated_in_charter_yaml_returns_exact_set(
 ) -> None:
     """Non-empty list in charter.yaml -> exact frozenset of ids."""
     _write_config(tmp_path, _POINTER_CONFIG)
-    content = (
-        _MIGRATED_CHARTER_YAML
-        + "activated_agent_profiles:\n  - python-pedro\n  - reviewer-renata\n"
-    )
+    content = _MIGRATED_CHARTER_YAML + "activated_agent_profiles:\n  - python-pedro\n  - reviewer-renata\n"
     _write_charter_yaml(tmp_path, content)
 
     ctx = PackContext.from_config(tmp_path)
@@ -299,9 +294,7 @@ def test_migrated_project_ignores_stale_activated_keys_left_in_config(
 
     ctx = PackContext.from_config(tmp_path)
 
-    assert ctx.activated_directives == frozenset(
-        {"001-architectural-integrity-standard", "010-specification-fidelity-requirement"}
-    )
+    assert ctx.activated_directives == frozenset({"001-architectural-integrity-standard", "010-specification-fidelity-requirement"})
     assert "stale-config-directive" not in ctx.activated_directives
 
 
@@ -321,9 +314,7 @@ def test_resolve_charter_yaml_pointer_resolves_relative_to_repo_root(
 ) -> None:
     from charter.activation.pack_context import resolve_charter_yaml_pointer
 
-    resolved = resolve_charter_yaml_pointer(
-        tmp_path, {"charter": ".kittify/charter/charter.yaml"}
-    )
+    resolved = resolve_charter_yaml_pointer(tmp_path, {"charter": ".kittify/charter/charter.yaml"})
 
     assert resolved == tmp_path / ".kittify" / "charter" / "charter.yaml"
 

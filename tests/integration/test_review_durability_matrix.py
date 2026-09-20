@@ -232,24 +232,17 @@ _AUTO_COMMIT_SETTINGS: tuple[bool, ...] = (True, False)
 _MatrixCell = tuple[_Scenario, str, bool]
 
 _MATRIX_CELLS: tuple[_MatrixCell, ...] = tuple(
-    (scenario, topology, auto_commit)
-    for scenario in _SCENARIOS
-    for topology in _TOPOLOGIES
-    for auto_commit in _AUTO_COMMIT_SETTINGS
+    (scenario, topology, auto_commit) for scenario in _SCENARIOS for topology in _TOPOLOGIES for auto_commit in _AUTO_COMMIT_SETTINGS
 )
 # Pinned per the T067 validation checklist: the count is the DOCUMENTED
 # product of the dimension sizes above, so an added scenario/topology/
 # auto-commit value changes this number visibly rather than silently.
 assert len(_MATRIX_CELLS) == 3 * 2 * 2 == 12
 
-_DURABLE_CELLS: tuple[_MatrixCell, ...] = tuple(
-    cell for cell in _MATRIX_CELLS if cell[1] == "single_branch" and cell[2] is True
-)
+_DURABLE_CELLS: tuple[_MatrixCell, ...] = tuple(cell for cell in _MATRIX_CELLS if cell[1] == "single_branch" and cell[2] is True)
 assert len(_DURABLE_CELLS) == 3
 
-_INSULATED_CELLS: tuple[_MatrixCell, ...] = tuple(
-    cell for cell in _MATRIX_CELLS if cell not in _DURABLE_CELLS
-)
+_INSULATED_CELLS: tuple[_MatrixCell, ...] = tuple(cell for cell in _MATRIX_CELLS if cell not in _DURABLE_CELLS)
 assert len(_INSULATED_CELLS) == 9
 
 
@@ -286,9 +279,7 @@ def _seed_fixture(
     feature_dir, _wp_file = _build_wp_file(repo, mission, wp_id)
     _write_lanes_json(feature_dir, mission, wp_id)
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
     if seed_rejected_cycle:
         created = create_rejected_review_cycle(
@@ -381,15 +372,9 @@ def _assert_body_matches_scenario_verdict(body: str, verdict: str, *, cell: str)
     never starts that way.
     """
     if verdict == "approved":
-        assert body.startswith("Approved by "), (
-            f"cell {cell}: expected an 'Approved by ...' body for verdict={verdict!r}, "
-            f"got: {body!r}"
-        )
+        assert body.startswith("Approved by "), f"cell {cell}: expected an 'Approved by ...' body for verdict={verdict!r}, got: {body!r}"
     else:
-        assert not body.startswith("Approved by "), (
-            f"cell {cell}: expected reviewer-prose body for verdict={verdict!r}, "
-            f"got an approval-shaped body: {body!r}"
-        )
+        assert not body.startswith("Approved by "), f"cell {cell}: expected reviewer-prose body for verdict={verdict!r}, got an approval-shaped body: {body!r}"
 
 
 def _assert_committed_frontmatter_has_no_verdict_key(frontmatter_and_body: str) -> None:
@@ -401,15 +386,8 @@ def _assert_committed_frontmatter_has_no_verdict_key(frontmatter_and_body: str) 
     no longer exists), so every one of those sites now asserts its structural
     absence instead, on the SAME real committed git blob."""
     frontmatter = frontmatter_and_body.split("---", 2)[1]
-    keys = {
-        line.split(":", 1)[0].strip()
-        for line in frontmatter.splitlines()
-        if line and not line.startswith((" ", "\t", "-"))
-    }
-    assert "verdict" not in keys, (
-        f"committed review-cycle blob must carry no verdict key, found keys "
-        f"{sorted(keys)} in:\n{frontmatter_and_body}"
-    )
+    keys = {line.split(":", 1)[0].strip() for line in frontmatter.splitlines() if line and not line.startswith((" ", "\t", "-"))}
+    assert "verdict" not in keys, f"committed review-cycle blob must carry no verdict key, found keys {sorted(keys)} in:\n{frontmatter_and_body}"
 
 
 def _run_cell(
@@ -498,10 +476,7 @@ def _assert_persistence_failure(
 def _assert_no_new_status_event(feature_dir: Path, before_ids: set[str]) -> None:
     """A failed verdict save must stop before authoritative event emission."""
     after_ids = {event.event_id for event in read_events(feature_dir)}
-    assert after_ids == before_ids, (
-        "a persistence failure emitted a status event: "
-        f"before={sorted(before_ids)}, after={sorted(after_ids)}"
-    )
+    assert after_ids == before_ids, f"a persistence failure emitted a status event: before={sorted(before_ids)}, after={sorted(after_ids)}"
 
 
 def _assert_exact_blob_at_ref(repo: Path, ref: str, evidence_ref: str) -> None:
@@ -531,9 +506,7 @@ def _drive_scenario(
     rollback, the done-override-reason for a DONE target)."""
     if scenario.target_lane == "planned":
         feedback = repo / "feedback.md"
-        feedback.write_text(
-            "**Issue**: the matrix's rejection feedback.\n", encoding="utf-8"
-        )
+        feedback.write_text("**Issue**: the matrix's rejection feedback.\n", encoding="utf-8")
         _run_cell(
             repo,
             mission=mission,
@@ -545,9 +518,7 @@ def _drive_scenario(
             review_feedback_file=feedback,
         )
         return
-    done_override = (
-        "matrix cell: bypass merge-ancestry check" if scenario.target_lane == "done" else None
-    )
+    done_override = "matrix cell: bypass merge-ancestry check" if scenario.target_lane == "done" else None
     # ``_guard_unsupported_skip_metadata`` refuses a coord-protected commit
     # that ALSO carries a ``note`` (frontmatter activity-log write, which the
     # skip arm cannot land) -- omit it under that topology and rely on
@@ -574,26 +545,18 @@ def _drive_scenario(
 
 @pytest.mark.fast
 @pytest.mark.parametrize("cell", _MATRIX_CELLS, ids=[_cell_id(c) for c in _MATRIX_CELLS])
-def test_durability_matrix_cell(
-    tmp_path: Path, cell: _MatrixCell, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_durability_matrix_cell(tmp_path: Path, cell: _MatrixCell, capsys: pytest.CaptureFixture[str]) -> None:
     """Every one of the 12 documented cells: durability behaves as specified,
     and every assertion is specific to what THAT cell's own dimensions imply
     (never a shared "no exception raised" catch-all)."""
     scenario, topology, auto_commit = cell
     repo = tmp_path
     seed_rejected = scenario.verdict == "approved"
-    feature_dir = _seed_fixture(
-        repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=seed_rejected
-    )
+    feature_dir = _seed_fixture(repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=seed_rejected)
     wp_dir = _wp_dir(repo, _MISSION, _WP_ID)
     skip_target_branch_commit = topology == "coord_protected"
     expected_durable = auto_commit and not skip_target_branch_commit
-    router: CoordCommitRouter = (
-        _FaultInjectableCoordRouter(write_dir=feature_dir)
-        if expected_durable
-        else FakeCoordCommitRouter(write_dir=feature_dir)
-    )
+    router: CoordCommitRouter = _FaultInjectableCoordRouter(write_dir=feature_dir) if expected_durable else FakeCoordCommitRouter(write_dir=feature_dir)
     event_ids_before = {event.event_id for event in read_events(feature_dir)}
 
     if auto_commit and skip_target_branch_commit:
@@ -636,9 +599,7 @@ def test_durability_matrix_cell(
     if expected_durable:
         assert "verdict_durability_skip_reason" not in payload, payload
     else:
-        expected_reason = (
-            _REASON_NO_AUTO_COMMIT if not auto_commit else _REASON_PROTECTED_TARGET_BRANCH
-        )
+        expected_reason = _REASON_NO_AUTO_COMMIT if not auto_commit else _REASON_PROTECTED_TARGET_BRANCH
         assert payload["verdict_durability_skip_reason"] == expected_reason, payload
 
     latest = ReviewCycleArtifact.latest(wp_dir)
@@ -658,9 +619,7 @@ def test_durability_matrix_cell(
     _assert_body_matches_scenario_verdict(latest.body, scenario.verdict, cell=_cell_id(cell))
 
     if expected_durable:
-        evidence_ref = (
-            wp_dir / f"review-cycle-{latest.cycle_number}.md"
-        ).relative_to(repo).as_posix()
+        evidence_ref = (wp_dir / f"review-cycle-{latest.cycle_number}.md").relative_to(repo).as_posix()
         _assert_exact_blob_at_ref(repo, "main", evidence_ref)
     else:
         assert isinstance(router, FakeCoordCommitRouter)
@@ -678,18 +637,14 @@ def test_durability_matrix_cell(
 
 @pytest.mark.fast
 @pytest.mark.parametrize("cell", _DURABLE_CELLS, ids=[_cell_id(c) for c in _DURABLE_CELLS])
-def test_matrix_is_sensitive_to_commit_removal(
-    tmp_path: Path, cell: _MatrixCell, capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture
-) -> None:
+def test_matrix_is_sensitive_to_commit_removal(tmp_path: Path, cell: _MatrixCell, capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture) -> None:
     """A neutered automatic evidence router fails closed before emission."""
     scenario, topology, auto_commit = cell
     assert topology == "single_branch" and auto_commit is True  # documents the subset
 
     repo = tmp_path
     seed_rejected = scenario.verdict == "approved"
-    feature_dir = _seed_fixture(
-        repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=seed_rejected
-    )
+    feature_dir = _seed_fixture(repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=seed_rejected)
 
     router = FakeCoordCommitRouter(write_dir=feature_dir)
     commit_hits: list[str] = []
@@ -724,24 +679,24 @@ def test_matrix_is_sensitive_to_commit_removal(
     )
     assert commit_hits == ["commit_artifact"]
     assert (repo / evidence_ref).is_file(), payload
-    assert subprocess.run(
-        ["git", "show", f"main:{evidence_ref}"],
-        cwd=repo,
-        capture_output=True,
-        check=False,
-    ).returncode != 0
+    assert (
+        subprocess.run(
+            ["git", "show", f"main:{evidence_ref}"],
+            cwd=repo,
+            capture_output=True,
+            check=False,
+        ).returncode
+        != 0
+    )
     _assert_no_new_status_event(feature_dir, event_ids_before)
     assert any("Failed to commit review-cycle" in r.message for r in caplog.records), (
-        f"cell {_cell_id(cell)}: the fail-closed evidence error must be logged; "
-        f"records={caplog.records}"
+        f"cell {_cell_id(cell)}: the fail-closed evidence error must be logged; records={caplog.records}"
     )
 
 
 @pytest.mark.fast
 @pytest.mark.parametrize("cell", _INSULATED_CELLS, ids=[_cell_id(c) for c in _INSULATED_CELLS])
-def test_protected_and_no_auto_commit_cells_never_invoke_commit_artifact(
-    tmp_path: Path, cell: _MatrixCell, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_protected_and_no_auto_commit_cells_never_invoke_commit_artifact(tmp_path: Path, cell: _MatrixCell, capsys: pytest.CaptureFixture[str]) -> None:
     """The other half of T068's edge case: for the 9 cells where
     ``auto_commit=False`` or the topology is ``coord_protected``, the skip
     gate (``_resolve_verdict_commit_router``) must prevent ``commit_artifact``
@@ -751,14 +706,10 @@ def test_protected_and_no_auto_commit_cells_never_invoke_commit_artifact(
     scenario, topology, auto_commit = cell
     repo = tmp_path
     seed_rejected = scenario.verdict == "approved"
-    feature_dir = _seed_fixture(
-        repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=seed_rejected
-    )
+    feature_dir = _seed_fixture(repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=seed_rejected)
     router = FakeCoordCommitRouter(write_dir=feature_dir)
     router.commit_artifact = (  # type: ignore[method-assign]
-        lambda *args, **kwargs: CommitArtifactResult(
-            status="unchanged", placement_ref="main"
-        )
+        lambda *args, **kwargs: CommitArtifactResult(status="unchanged", placement_ref="main")
     )
     skip_target_branch_commit = topology == "coord_protected"
 
@@ -814,13 +765,9 @@ def test_protected_and_no_auto_commit_cells_never_invoke_commit_artifact(
 
 
 @pytest.mark.fast
-def test_uncommitted_rejection_is_visible_to_the_immediately_following_approval(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_uncommitted_rejection_is_visible_to_the_immediately_following_approval(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     repo = tmp_path
-    feature_dir = _seed_fixture(
-        repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=False
-    )
+    feature_dir = _seed_fixture(repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=False)
     wp_dir = _wp_dir(repo, _MISSION, _WP_ID)
 
     feedback = repo / "feedback.md"
@@ -904,13 +851,8 @@ def test_uncommitted_rejection_is_visible_to_the_immediately_following_approval(
     assert payload2["verdict_durably_persisted"] is True
     latest_after_approve = ReviewCycleArtifact.latest(wp_dir)
     assert latest_after_approve is not None
-    assert latest_after_approve.body.startswith("Approved by "), (
-        f"expected an 'Approved by ...' body after the approval hop, "
-        f"got: {latest_after_approve.body!r}"
-    )
-    approval_rel = (
-        wp_dir / f"review-cycle-{latest_after_approve.cycle_number}.md"
-    ).relative_to(repo).as_posix()
+    assert latest_after_approve.body.startswith("Approved by "), f"expected an 'Approved by ...' body after the approval hop, got: {latest_after_approve.body!r}"
+    approval_rel = (wp_dir / f"review-cycle-{latest_after_approve.cycle_number}.md").relative_to(repo).as_posix()
     _assert_exact_blob_at_ref(repo, "main", approval_rel)
 
 
@@ -930,9 +872,7 @@ def _seed_arbiter_fixture(repo: Path, mission: str, wp_id: str) -> Path:
     _init_repo(repo)
     feature_dir, _wp_file = _build_wp_file(repo, mission, wp_id)
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
     chain: Sequence[tuple[str, str]] = (
         ("planned", "claimed"),
@@ -984,9 +924,7 @@ def _seed_arbiter_fixture(repo: Path, mission: str, wp_id: str) -> Path:
 
 @pytest.mark.fast
 @pytest.mark.parametrize("auto_commit", _AUTO_COMMIT_SETTINGS, ids=["auto_commit", "no_auto_commit"])
-def test_arbiter_override_cell_suppresses_fabricated_approval(
-    tmp_path: Path, auto_commit: bool, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_arbiter_override_cell_suppresses_fabricated_approval(tmp_path: Path, auto_commit: bool, capsys: pytest.CaptureFixture[str]) -> None:
     """T055/FR-011 (WP12) re-verified through THIS WP's own matrix harness:
     an arbiter override targeting ``approved`` must record the ``ReviewOverride``
     (event-sourced) and must NOT also fabricate a fresh ``verdict: approved``
@@ -1017,10 +955,7 @@ def test_arbiter_override_cell_suppresses_fabricated_approval(
 
     wp_dir = _wp_dir(repo, mission, _WP_ID)
     cycle_artifacts = sorted(p.name for p in wp_dir.glob("review-cycle-*.md"))
-    assert cycle_artifacts == ["review-cycle-1.md"], (
-        "an arbiter override must not ALSO write a fresh approved review-cycle "
-        f"artifact; got {cycle_artifacts}"
-    )
+    assert cycle_artifacts == ["review-cycle-1.md"], f"an arbiter override must not ALSO write a fresh approved review-cycle artifact; got {cycle_artifacts}"
 
     snapshot = _materialize(feature_dir)
     override = snapshot.work_packages.get(_WP_ID, {}).get("review") or {}
@@ -1030,9 +965,7 @@ def test_arbiter_override_cell_suppresses_fabricated_approval(
 
 
 @pytest.mark.fast
-def test_arbiter_override_is_sensitive_to_its_own_commit_removal(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_arbiter_override_is_sensitive_to_its_own_commit_removal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T068's mutation proof, scoped correctly to the arbiter cell's OWN
     durability mechanism (``persist_arbiter_decision``, not ``commit_
     artifact`` -- see this module's docstring). Neutering the persist call to
@@ -1077,9 +1010,7 @@ def test_arbiter_override_is_sensitive_to_its_own_commit_removal(
     snapshot = _materialize(feature_dir)
     override = snapshot.work_packages.get(_WP_ID, {}).get("review") or {}
     assert override == {}, (
-        "expected the review-override slot to be EMPTY once the persist call "
-        f"is neutered (proving the assertion catches a deleted commit call); "
-        f"got {override!r}"
+        f"expected the review-override slot to be EMPTY once the persist call is neutered (proving the assertion catches a deleted commit call); got {override!r}"
     )
 
 
@@ -1090,9 +1021,7 @@ def test_arbiter_override_is_sensitive_to_its_own_commit_removal(
 
 @pytest.mark.integration
 @pytest.mark.git_repo
-def test_real_router_commit_lands_on_disk_and_git_history(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_real_router_commit_lands_on_disk_and_git_history(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """T069: at least one cell runs the REAL ``CoordCommitRouter``
     (``RealCoordCommitRouter``, wrapped by ``test_move_task_durability.py``'s
     established ``_FaultInjectableCoordRouter`` so the transition-emit leg
@@ -1100,9 +1029,7 @@ def test_real_router_commit_lands_on_disk_and_git_history(
     and asserts on ACTUAL git state -- never a fake's in-memory call log
     dressed up to look real."""
     repo = tmp_path
-    feature_dir = _seed_fixture(
-        repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=True
-    )
+    feature_dir = _seed_fixture(repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=True)
     router = _FaultInjectableCoordRouter(write_dir=feature_dir)
     ports = TasksPorts(
         fs=FakeFsReader(default_planning_dir=repo / "kitty-specs" / _MISSION),
@@ -1112,9 +1039,7 @@ def test_real_router_commit_lands_on_disk_and_git_history(
     )
     extra_patches = dict(_REVIEW_GATE_BYPASS)
     extra_patches["_skip_target_branch_commit"] = False
-    with setup_mocked_env(
-        repo, mission_slug=_MISSION, target_branch="main", extra_patches=extra_patches
-    ):
+    with setup_mocked_env(repo, mission_slug=_MISSION, target_branch="main", extra_patches=extra_patches):
         _do_move_task(
             _MoveTaskArgs(
                 task_id=_WP_ID,
@@ -1148,9 +1073,7 @@ def test_real_router_commit_lands_on_disk_and_git_history(
     status = _git_status(repo)
     assert "review-cycle-2.md" not in status, f"expected a clean tree after a real commit:\n{status}"
 
-    show = subprocess.run(
-        ["git", "show", f"HEAD:{rel}"], cwd=repo, capture_output=True, text=True
-    )
+    show = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=repo, capture_output=True, text=True)
     assert show.returncode == 0
     assert "Approved by" in show.stdout  # sanity: real body/content landed
     _assert_committed_frontmatter_has_no_verdict_key(show.stdout)
@@ -1158,14 +1081,10 @@ def test_real_router_commit_lands_on_disk_and_git_history(
 
 @pytest.mark.integration
 @pytest.mark.git_repo
-def test_real_router_cell_reds_when_commit_artifact_is_neutered(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture
-) -> None:
+def test_real_router_cell_reds_when_commit_artifact_is_neutered(tmp_path: Path, capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture) -> None:
     """A real-router evidence no-op becomes a typed, pre-event refusal."""
     repo = tmp_path
-    feature_dir = _seed_fixture(
-        repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=True
-    )
+    feature_dir = _seed_fixture(repo, _MISSION, _WP_ID, old_lane="in_review", seed_rejected_cycle=True)
 
     router = _FaultInjectableCoordRouter(write_dir=feature_dir)
     commit_hits: list[str] = []
@@ -1185,9 +1104,7 @@ def test_real_router_cell_reds_when_commit_artifact_is_neutered(
     extra_patches["_skip_target_branch_commit"] = False
     event_ids_before = {event.event_id for event in read_events(feature_dir)}
     with (
-        setup_mocked_env(
-            repo, mission_slug=_MISSION, target_branch="main", extra_patches=extra_patches
-        ),
+        setup_mocked_env(repo, mission_slug=_MISSION, target_branch="main", extra_patches=extra_patches),
         caplog.at_level("WARNING", logger="specify_cli.review.cycle"),
         pytest.raises(typer.Exit) as exc_info,
     ):
@@ -1227,9 +1144,7 @@ def test_real_router_cell_reds_when_commit_artifact_is_neutered(
     assert (repo / evidence_ref).is_file(), payload
     assert not _git_head_has_file(repo, evidence_ref)
     _assert_no_new_status_event(feature_dir, event_ids_before)
-    assert any("Failed to commit review-cycle" in r.message for r in caplog.records), (
-        "fail-closed evidence refusal must still be logged"
-    )
+    assert any("Failed to commit review-cycle" in r.message for r in caplog.records), "fail-closed evidence refusal must still be logged"
 
 
 # ---------------------------------------------------------------------------
@@ -1283,9 +1198,7 @@ def _coord_cell_ports(ctx: CoordTopologyContext, router: _FaultInjectableCoordRo
     )
 
 
-def _run_coord_cell_approval(
-    ctx: CoordTopologyContext, *, wp_id: str, router: _FaultInjectableCoordRouter
-) -> None:
+def _run_coord_cell_approval(ctx: CoordTopologyContext, *, wp_id: str, router: _FaultInjectableCoordRouter) -> None:
     """Drive the REAL ``_do_move_task`` against the real coord fixture.
 
     Deliberately does NOT patch ``_skip_target_branch_commit`` (unlike every
@@ -1367,16 +1280,12 @@ def _coord_review_cycle_rel(ctx: CoordTopologyContext, wp_id: str, cycle: int) -
 
 
 def _git_show(repo: Path, ref: str, rel: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "show", f"{ref}:{rel}"], cwd=repo, capture_output=True, text=True
-    )
+    return subprocess.run(["git", "show", f"{ref}:{rel}"], cwd=repo, capture_output=True, text=True)
 
 
 @pytest.mark.integration
 @pytest.mark.git_repo
-def test_real_coord_topology_review_cycle_commits_to_coord_ref_not_primary(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_real_coord_topology_review_cycle_commits_to_coord_ref_not_primary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """The genuine topology-dimension cell: a real coord worktree (not a
     patched ``skip_target_branch_commit`` boolean), driven through the real
     ``_do_move_task`` orchestrator with the REAL ``CoordCommitRouter``.
@@ -1396,16 +1305,12 @@ def test_real_coord_topology_review_cycle_commits_to_coord_ref_not_primary(
 
     rel = _coord_review_cycle_rel(ctx, "WP01", 2)
     coord_show = _git_show(ctx.repo, ctx.coord_branch, rel)
-    assert coord_show.returncode == 0, (
-        f"review-cycle-2.md is NOT on the coordination ref {ctx.coord_branch!r}: "
-        f"{coord_show.stderr}"
-    )
+    assert coord_show.returncode == 0, f"review-cycle-2.md is NOT on the coordination ref {ctx.coord_branch!r}: {coord_show.stderr}"
     _assert_committed_frontmatter_has_no_verdict_key(coord_show.stdout)
 
     primary_show = _git_show(ctx.repo, "main", rel)
     assert primary_show.returncode != 0, (
-        "review-cycle-2.md WAS committed to the primary ref 'main' -- a stale "
-        f"PRIMARY copy was left behind:\n{primary_show.stdout}"
+        f"review-cycle-2.md WAS committed to the primary ref 'main' -- a stale PRIMARY copy was left behind:\n{primary_show.stdout}"
     )
 
 
@@ -1425,14 +1330,10 @@ def test_real_coord_topology_cell_reds_when_commit_artifact_is_neutered(
 
     def _neutered_commit(*args: Any, **kwargs: Any) -> CommitArtifactResult:
         commit_hits.append("commit_artifact")
-        return CommitArtifactResult(
-            status="unchanged", placement_ref=ctx.coord_branch
-        )
+        return CommitArtifactResult(status="unchanged", placement_ref=ctx.coord_branch)
 
     router.commit_artifact = _neutered_commit  # type: ignore[method-assign]
-    event_ids_before = {
-        event.event_id for event in read_events(ctx.coord_feature_dir)
-    }
+    event_ids_before = {event.event_id for event in read_events(ctx.coord_feature_dir)}
     with (
         caplog.at_level("WARNING", logger="specify_cli.review.cycle"),
         pytest.raises(typer.Exit) as exc_info,
@@ -1450,9 +1351,7 @@ def test_real_coord_topology_cell_reds_when_commit_artifact_is_neutered(
     assert (ctx.repo / evidence_ref).is_file(), payload
     assert _git_show(ctx.repo, ctx.coord_branch, evidence_ref).returncode != 0
     _assert_no_new_status_event(ctx.coord_feature_dir, event_ids_before)
-    assert any("Failed to commit review-cycle" in r.message for r in caplog.records), (
-        "coord fail-closed evidence refusal must still be logged"
-    )
+    assert any("Failed to commit review-cycle" in r.message for r in caplog.records), "coord fail-closed evidence refusal must still be logged"
 
 
 @pytest.mark.integration
@@ -1499,8 +1398,7 @@ def test_real_coord_topology_revert_deletes_and_commits_on_coord_ref(
         check=True,
     ).stdout
     assert "review-cycle-2.md" in log, (
-        "the revert should be a NEW commit undoing the write, not a history "
-        f"rewrite -- the original commit should still appear in git log:\n{log}"
+        f"the revert should be a NEW commit undoing the write, not a history rewrite -- the original commit should still appear in git log:\n{log}"
     )
 
     # No readable committed verdict for this WP -- the reverted cycle-2 must
@@ -1511,8 +1409,7 @@ def test_real_coord_topology_revert_deletes_and_commits_on_coord_ref(
     # assertion is about: cycle-2's revert must not promote it over cycle-1.)
     latest = ReviewCycleArtifact.latest(ctx.primary_feature_dir / "tasks" / "WP01")
     assert latest is not None and latest.cycle_number == 1, (
-        f"expected the pre-existing rejected cycle 1 to still be the reader-"
-        f"visible latest after the coord-ref revert, got {latest!r}"
+        f"expected the pre-existing rejected cycle 1 to still be the reader-visible latest after the coord-ref revert, got {latest!r}"
     )
 
     # Coord worktree's tasks/ dir is clean after the revert-commit (no
@@ -1530,9 +1427,7 @@ def test_real_coord_topology_revert_deletes_and_commits_on_coord_ref(
         text=True,
         check=True,
     ).stdout
-    assert coord_status == "", (
-        f"coord worktree's tasks/ dir is not clean after the revert-commit:\n{coord_status}"
-    )
+    assert coord_status == "", f"coord worktree's tasks/ dir is not clean after the revert-commit:\n{coord_status}"
 
 
 # ---------------------------------------------------------------------------
@@ -1597,9 +1492,7 @@ def test_sigkill_between_write_and_commit_then_identical_retry_exits_zero(
     _init_repo(repo)
     feature_dir, _wp_file = _build_wp_file(repo, mission, _WP_ID)
     subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
     _unprotect_main(repo)
     sub_dir = _review_cycle_wp_dir(repo, mission, _WP_SLUG)
     ready_path = tmp_path / "ready.txt"
@@ -1637,10 +1530,7 @@ def test_sigkill_between_write_and_commit_then_identical_retry_exits_zero(
         capture_output=True,
         text=True,
     ).stdout
-    assert artifact_path.name in status_before_retry, (
-        f"expected the orphan {artifact_path.name} to be untracked after the kill:\n"
-        f"{status_before_retry}"
-    )
+    assert artifact_path.name in status_before_retry, f"expected the orphan {artifact_path.name} to be untracked after the kill:\n{status_before_retry}"
 
     # The identical retry, from the PARENT process -- exactly as an operator's
     # re-invocation would perform it.
@@ -1654,30 +1544,21 @@ def test_sigkill_between_write_and_commit_then_identical_retry_exits_zero(
         verdict="rejected",
         commit_router=RealCoordCommitRouter(),
     )
-    assert retried.artifact_path == artifact_path, (
-        "an identical retry must adopt the exact retained record"
-    )
+    assert retried.artifact_path == artifact_path, "an identical retry must adopt the exact retained record"
     assert retried.artifact.cycle_number == 1
-    assert retried.pointer == (
-        f"review-cycle://{mission}/{_WP_SLUG}/{artifact_path.name}"
-    )
+    assert retried.pointer == (f"review-cycle://{mission}/{_WP_SLUG}/{artifact_path.name}")
     assert retried.review_result.reference == retried.pointer
     retried_rel = retried.artifact_path.relative_to(repo)
-    show = subprocess.run(
-        ["git", "show", f"HEAD:{retried_rel}"], cwd=repo, capture_output=True, text=True
-    )
+    show = subprocess.run(["git", "show", f"HEAD:{retried_rel}"], cwd=repo, capture_output=True, text=True)
     assert show.returncode == 0, f"retry's write is not committed at HEAD: {show.stderr}"
     _assert_committed_frontmatter_has_no_verdict_key(show.stdout)
     assert body.strip() in show.stdout
 
     wp_dir = feature_dir / "tasks" / _WP_SLUG
-    assert sorted(path.name for path in wp_dir.glob("review-cycle-*.md")) == [
-        "review-cycle-1.md"
-    ], "identical adoption must not allocate a duplicate cycle"
+    assert sorted(path.name for path in wp_dir.glob("review-cycle-*.md")) == ["review-cycle-1.md"], "identical adoption must not allocate a duplicate cycle"
     latest = ReviewCycleArtifact.latest(wp_dir)
     assert latest is not None and latest.cycle_number == retried.artifact.cycle_number, (
-        f"expected the retry ({retried.artifact.cycle_number}) to be the "
-        f"reader-visible latest, got {latest!r}"
+        f"expected the retry ({retried.artifact.cycle_number}) to be the reader-visible latest, got {latest!r}"
     )
 
     # A non-identical retry must not adopt the retained record. It allocates
@@ -1750,9 +1631,7 @@ def _sc004_json(output: str) -> dict[str, Any] | None:
 
 
 @contextmanager
-def _sc004_tracked_unlocked(
-    hits: list[str], label: str, *_args: Any, **_kwargs: Any
-) -> Iterator[None]:
+def _sc004_tracked_unlocked(hits: list[str], label: str, *_args: Any, **_kwargs: Any) -> Iterator[None]:
     """Mutation seam: record use while deliberately providing no exclusion."""
     hits.append(f"lock:{label}")
     yield
@@ -1794,9 +1673,7 @@ def _sc004_worker(  # noqa: C901 - one child-local fault-injection boundary
         with ExitStack() as stack:
             if real_topology:
                 os.chdir(repo)
-                stack.enter_context(
-                    patch.dict(os.environ, {"SPECIFY_REPO_ROOT": str(repo)})
-                )
+                stack.enter_context(patch.dict(os.environ, {"SPECIFY_REPO_ROOT": str(repo)}))
             else:
                 stack.enter_context(
                     setup_mocked_env(
@@ -1810,17 +1687,12 @@ def _sc004_worker(  # noqa: C901 - one child-local fault-injection boundary
             stack.enter_context(patch("specify_cli.status.emit._saas_fan_out"))
 
             if mode == "commit_mutant":
-                def fake_commit(
-                    _router: Any, *_args: Any, _hits: list[str] = hits, **_kwargs: Any
-                ) -> CommitArtifactResult:
-                    _hits.append("evidence_commit")
-                    return CommitArtifactResult(
-                        status="committed", placement_ref="main", commit_hash="fabricated"
-                    )
 
-                stack.enter_context(
-                    patch.object(RealCoordCommitRouter, "commit_artifact", fake_commit)
-                )
+                def fake_commit(_router: Any, *_args: Any, _hits: list[str] = hits, **_kwargs: Any) -> CommitArtifactResult:
+                    _hits.append("evidence_commit")
+                    return CommitArtifactResult(status="committed", placement_ref="main", commit_hash="fabricated")
+
+                stack.enter_context(patch.object(RealCoordCommitRouter, "commit_artifact", fake_commit))
             elif mode == "hold_commit":
                 original_commit = RealCoordCommitRouter.commit_artifact
 
@@ -1838,9 +1710,7 @@ def _sc004_worker(  # noqa: C901 - one child-local fault-injection boundary
                         raise TimeoutError("test hold exceeded nine seconds")
                     return _original(router, *args, **kwargs)
 
-                stack.enter_context(
-                    patch.object(RealCoordCommitRouter, "commit_artifact", held_commit)
-                )
+                stack.enter_context(patch.object(RealCoordCommitRouter, "commit_artifact", held_commit))
             elif mode == "event_mutant":
                 lock_targets = (
                     "specify_cli.cli.commands.agent.tasks.feature_status_lock",
@@ -1852,9 +1722,7 @@ def _sc004_worker(  # noqa: C901 - one child-local fault-injection boundary
                     stack.enter_context(
                         patch(
                             target,
-                            lambda *args, _label=label, _hits=hits, **kwargs: _sc004_tracked_unlocked(
-                                _hits, _label, *args, **kwargs
-                            ),
+                            lambda *args, _label=label, _hits=hits, **kwargs: _sc004_tracked_unlocked(_hits, _label, *args, **kwargs),
                         )
                     )
                 from specify_cli.status import store as status_store
@@ -1881,9 +1749,7 @@ def _sc004_worker(  # noqa: C901 - one child-local fault-injection boundary
                         _hits.append("released_replace")
                     _original(source, destination)
 
-                stack.enter_context(
-                    patch.object(status_store.os, "replace", ordered_replace)
-                )
+                stack.enter_context(patch.object(status_store.os, "replace", ordered_replace))
 
             result = runner.invoke(
                 agent_app,
@@ -1961,8 +1827,18 @@ def _sc004_start_workers(
         process = ctx.Process(
             target=_sc004_worker,
             args=(
-                str(repo), mission, reviewer, inputs[role], output, ready, mode,
-                captured_self, captured_peer, release_self, at_commit, release_commit,
+                str(repo),
+                mission,
+                reviewer,
+                inputs[role],
+                output,
+                ready,
+                mode,
+                captured_self,
+                captured_peer,
+                release_self,
+                at_commit,
+                release_commit,
                 real_topology,
             ),
         )
@@ -1973,17 +1849,9 @@ def _sc004_start_workers(
         for _ in processes:
             readiness.append(ready.get(timeout=30))
     except Empty as exc:
-        process_state = [
-            {"pid": process.pid, "alive": process.is_alive(), "exit": process.exitcode}
-            for process in processes
-        ]
-        raise AssertionError(
-            "spawn workers did not complete readiness handshake: "
-            f"ready={readiness!r}, processes={process_state!r}"
-        ) from exc
-    assert {item.reviewer for item in readiness} == {"reviewer-a", "reviewer-b"}, (
-        f"invalid spawn readiness handshake: {readiness!r}"
-    )
+        process_state = [{"pid": process.pid, "alive": process.is_alive(), "exit": process.exitcode} for process in processes]
+        raise AssertionError(f"spawn workers did not complete readiness handshake: ready={readiness!r}, processes={process_state!r}") from exc
+    assert {item.reviewer for item in readiness} == {"reviewer-a", "reviewer-b"}, f"invalid spawn readiness handshake: {readiness!r}"
     assert all(item.pid > 0 for item in readiness), readiness
     return processes, inputs, output
 
@@ -2004,14 +1872,8 @@ def _sc004_get_pair(output: Any, round_id: int) -> list[_Sc004Result]:
         while len(results) < 2:
             results.append(output.get(timeout=max(0.01, deadline - time.monotonic())))
     except Empty as exc:
-        raise AssertionError(
-            f"round {round_id}: timed out waiting for spawned workers; "
-            f"partial child results:\n{_sc004_pair_diagnostics(results)}"
-        ) from exc
-    assert {result.round_id for result in results} == {round_id}, (
-        f"round {round_id}: received mismatched child results:\n"
-        f"{_sc004_pair_diagnostics(results)}"
-    )
+        raise AssertionError(f"round {round_id}: timed out waiting for spawned workers; partial child results:\n{_sc004_pair_diagnostics(results)}") from exc
+    assert {result.round_id for result in results} == {round_id}, f"round {round_id}: received mismatched child results:\n{_sc004_pair_diagnostics(results)}"
     return results
 
 
@@ -2026,28 +1888,14 @@ def _sc004_event_mutant_first_result(
     try:
         first = output.get(timeout=30)
     except Empty as exc:
-        process_state = [
-            {"pid": process.pid, "alive": process.is_alive(), "exit": process.exitcode}
-            for process in processes
-        ]
-        raise AssertionError(
-            f"round {round_id}: timed out waiting for the first event-mutant result; "
-            f"processes={process_state!r}"
-        ) from exc
+        process_state = [{"pid": process.pid, "alive": process.is_alive(), "exit": process.exitcode} for process in processes]
+        raise AssertionError(f"round {round_id}: timed out waiting for the first event-mutant result; processes={process_state!r}") from exc
 
     assert isinstance(first, _Sc004Result), repr(first)
-    process_state = [
-        {"pid": process.pid, "alive": process.is_alive(), "exit": process.exitcode}
-        for process in processes
-    ]
-    diagnostics = (
-        f"child result:\n{_sc004_pair_diagnostics([first])}\n"
-        f"processes={process_state!r}"
-    )
+    process_state = [{"pid": process.pid, "alive": process.is_alive(), "exit": process.exitcode} for process in processes]
+    diagnostics = f"child result:\n{_sc004_pair_diagnostics([first])}\nprocesses={process_state!r}"
     assert first.round_id == round_id, diagnostics
-    assert captured_a.is_set() and captured_b.is_set(), (
-        "writer A returned before both stale event preimages were captured; " + diagnostics
-    )
+    assert captured_a.is_set() and captured_b.is_set(), "writer A returned before both stale event preimages were captured; " + diagnostics
     assert first.reviewer == "reviewer-a", diagnostics
     return first
 
@@ -2079,7 +1927,7 @@ def _sc004_pair_diagnostics(results: Sequence[_Sc004Result]) -> str:
 def _sc004_pointer_path(repo: Path, mission: str, pointer: str) -> Path:
     prefix = f"review-cycle://{mission}/"
     assert pointer.startswith(prefix), f"unstable evidence pointer: {pointer!r}"
-    return repo / "kitty-specs" / mission / "tasks" / pointer[len(prefix):]
+    return repo / "kitty-specs" / mission / "tasks" / pointer[len(prefix) :]
 
 
 def _sc004_error_payload(result: _Sc004Result) -> dict[str, Any] | None:
@@ -2176,11 +2024,7 @@ def _sc004_refusal_left_no_authority(
     current_events = [event for event in events if event.wp_id == expected_wp]
     if not current_events:
         return False
-    if any(
-        event.review_result is not None
-        and event.review_result.reviewer == result.reviewer
-        for event in current_events
-    ):
+    if any(event.review_result is not None and event.review_result.reviewer == result.reviewer for event in current_events):
         return False
 
     wp_dir = repo / "kitty-specs" / mission / "tasks" / f"{expected_wp}-test"
@@ -2189,9 +2033,7 @@ def _sc004_refusal_left_no_authority(
         if artifact.reviewer_agent == result.reviewer or artifact.body == expected_body:
             return False
 
-    governed_ref = placement_seam(repo, mission).write_target(
-        MissionArtifactKind.REVIEW_CYCLE
-    ).ref
+    governed_ref = placement_seam(repo, mission).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
     relative_wp_dir = wp_dir.relative_to(repo).as_posix()
     listed = subprocess.run(
         ["git", "ls-tree", "-r", "--name-only", governed_ref, "--", relative_wp_dir],
@@ -2310,25 +2152,15 @@ def _sc004_missing_evidence_refusal(
     payload = result.payload or {}
     evidence_ref = payload.get("evidence_ref")
     destination_ref = payload.get("destination_ref")
-    governed_ref = placement_seam(repo, mission).write_target(
-        MissionArtifactKind.REVIEW_CYCLE
-    ).ref
+    governed_ref = placement_seam(repo, mission).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
     expected_prefix = f"kitty-specs/{mission}/tasks/{expected_wp}-test/review-cycle-"
-    if (
-        not isinstance(evidence_ref, str)
-        or not evidence_ref.startswith(expected_prefix)
-        or not evidence_ref.endswith(".md")
-        or destination_ref != governed_ref
-    ):
+    if not isinstance(evidence_ref, str) or not evidence_ref.startswith(expected_prefix) or not evidence_ref.endswith(".md") or destination_ref != governed_ref:
         return False
     retained = repo / evidence_ref
     if not retained.is_file():
         return False
     retained_text = retained.read_text(encoding="utf-8")
-    if (
-        f"reviewer_agent: {result.reviewer}" not in retained_text
-        or expected_body.strip() not in retained_text
-    ):
+    if f"reviewer_agent: {result.reviewer}" not in retained_text or expected_body.strip() not in retained_text:
         return False
     shown = subprocess.run(
         ["git", "show", f"{governed_ref}:{evidence_ref}"],
@@ -2338,11 +2170,7 @@ def _sc004_missing_evidence_refusal(
     )
     if shown.returncode == 0:
         return False
-    return not any(
-        event.review_result is not None
-        and event.review_result.reviewer == result.reviewer
-        for event in current_events
-    )
+    return not any(event.review_result is not None and event.review_result.reviewer == result.reviewer for event in current_events)
 
 
 def _sc004_committed_evidence(
@@ -2353,19 +2181,13 @@ def _sc004_committed_evidence(
 ) -> tuple[str, str | None]:
     """Inspect one claimed success's governed-ref evidence without reading events."""
     payload = result.payload or {}
-    if (
-        result.exit_code != 0
-        or payload.get("result") != "success"
-        or payload.get("verdict_durably_persisted") is not True
-    ):
+    if result.exit_code != 0 or payload.get("result") != "success" or payload.get("verdict_durably_persisted") is not True:
         return "not_durable_success", None
     pointer = payload.get("review_feedback")
     if not isinstance(pointer, str):
         return "missing_evidence_pointer", None
     evidence_path = _sc004_pointer_path(repo, mission, pointer)
-    target_ref = placement_seam(repo, mission).write_target(
-        MissionArtifactKind.REVIEW_CYCLE
-    ).ref
+    target_ref = placement_seam(repo, mission).write_target(MissionArtifactKind.REVIEW_CYCLE).ref
     shown = subprocess.run(
         ["git", "show", f"{target_ref}:{evidence_path.relative_to(repo).as_posix()}"],
         cwd=repo,
@@ -2379,11 +2201,7 @@ def _sc004_committed_evidence(
         return "committed_evidence_mismatch", pointer
     artifact = ReviewCycleArtifact.from_file(evidence_path)
     expected_wp, expected_body = expected[result.reviewer]
-    if (
-        artifact.wp_id != expected_wp
-        or artifact.reviewer_agent != result.reviewer
-        or artifact.body != expected_body
-    ):
+    if artifact.wp_id != expected_wp or artifact.reviewer_agent != result.reviewer or artifact.body != expected_body:
         return "committed_evidence_mismatch", pointer
     return "committed_evidence", pointer
 
@@ -2397,15 +2215,8 @@ def _sc004_complete_evidence_leg(
     """Require two distinct, matching committed blobs independently of events."""
     if len(results) != 2:
         return "not_two_results"
-    inspections = [
-        _sc004_committed_evidence(repo, mission, expected, result)
-        for result in results
-    ]
-    failures = [
-        classification
-        for classification, _pointer in inspections
-        if classification != "committed_evidence"
-    ]
+    inspections = [_sc004_committed_evidence(repo, mission, expected, result) for result in results]
+    failures = [classification for classification, _pointer in inspections if classification != "committed_evidence"]
     if failures:
         return failures[0]
     pointers = [pointer for _classification, pointer in inspections]
@@ -2421,22 +2232,16 @@ def _sc004_evidence_mutant_classification(
     results: list[_Sc004Result],
 ) -> str:
     """Recognise external liar detection or production's structured refusal."""
-    events = read_events(
-        placement_seam(repo, mission).read_dir(MissionArtifactKind.STATUS_STATE)
-    )
+    events = read_events(placement_seam(repo, mission).read_dir(MissionArtifactKind.STATUS_STATE))
     saw_expected_protection = False
     for result in results:
         if result.exit_code == 0 and (result.payload or {}).get("result") == "success":
-            evidence_class, _pointer = _sc004_committed_evidence(
-                repo, mission, expected, result
-            )
+            evidence_class, _pointer = _sc004_committed_evidence(repo, mission, expected, result)
             if evidence_class == "missing_committed_evidence":
                 saw_expected_protection = True
                 continue
             return evidence_class
-        if not _sc004_missing_evidence_refusal(
-            repo, mission, expected, result, events
-        ):
+        if not _sc004_missing_evidence_refusal(repo, mission, expected, result, events):
             return "unproven_refusal"
         saw_expected_protection = True
     return "missing_committed_evidence" if saw_expected_protection else "unproven_mutant"
@@ -2454,13 +2259,9 @@ def _sc004_refusal_is_causal(
     if kind == "busy":
         return _sc004_busy_refusal_is_causal(repo, mission, expected, result, events)
     if kind == "ownership_refusal":
-        return _sc004_ownership_refusal_is_causal(
-            repo, mission, expected, result, events
-        )
+        return _sc004_ownership_refusal_is_causal(repo, mission, expected, result, events)
     if kind == "persistence_failed":
-        return _sc004_missing_evidence_refusal(
-            repo, mission, expected, result, events
-        )
+        return _sc004_missing_evidence_refusal(repo, mission, expected, result, events)
     if kind == "state_refusal":
         return _sc004_state_refusal_is_causal(repo, mission, expected, result, events)
     return False
@@ -2475,16 +2276,9 @@ def _sc004_oracle(
     event_feature_dir: Path | None = None,
 ) -> str:
     """Independently verify exact event IDs and governed-ref evidence blobs."""
-    authoritative_status_dir = event_feature_dir or placement_seam(repo, mission).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    authoritative_status_dir = event_feature_dir or placement_seam(repo, mission).read_dir(MissionArtifactKind.STATUS_STATE)
     events = read_events(authoritative_status_dir)
-    successes = [
-        result for result in results
-        if result.exit_code == 0
-        and result.payload is not None
-        and result.payload.get("result") == "success"
-    ]
+    successes = [result for result in results if result.exit_code == 0 and result.payload is not None and result.payload.get("result") == "success"]
     if len(successes) != len(results):
         refusals = [result for result in results if result not in successes]
         if not successes:
@@ -2492,17 +2286,8 @@ def _sc004_oracle(
                 first_refusal, second_refusal = refusals
             except ValueError:
                 return "unclassified_command_outcome"
-            protected_refusals = [
-                _sc004_missing_evidence_refusal(
-                    repo, mission, expected, refusal, events
-                )
-                for refusal in (first_refusal, second_refusal)
-            ]
-            return (
-                "missing_committed_evidence"
-                if all(protected_refusals)
-                else "unproven_refusal"
-            )
+            protected_refusals = [_sc004_missing_evidence_refusal(repo, mission, expected, refusal, events) for refusal in (first_refusal, second_refusal)]
+            return "missing_committed_evidence" if all(protected_refusals) else "unproven_refusal"
         if len(successes) != 1 or len(refusals) != 1:
             return "unclassified_command_outcome"
         refusal = refusals[0]
@@ -2517,9 +2302,7 @@ def _sc004_oracle(
         )
         if refusal_kind is None:
             return "unproven_refusal"
-        if not _sc004_refusal_is_causal(
-            refusal_kind, repo, mission, expected, refusal, events
-        ):
+        if not _sc004_refusal_is_causal(refusal_kind, repo, mission, expected, refusal, events):
             return "unproven_refusal"
     pointers: list[str] = []
     for result in successes:
@@ -2547,9 +2330,7 @@ def _sc004_oracle(
                 f"event=({event.mission_slug},{event.wp_id},{review!r});"
                 f"expected=({mission},{expected_wp},{result.reviewer},changes_requested,{pointer})"
             )
-        evidence_class, evidence_pointer = _sc004_committed_evidence(
-            repo, mission, expected, result
-        )
+        evidence_class, evidence_pointer = _sc004_committed_evidence(repo, mission, expected, result)
         if evidence_class != "committed_evidence":
             return evidence_class
         assert evidence_pointer == pointer
@@ -2754,26 +2535,38 @@ def test_sc004_refusal_oracle_rejects_noncausal_shapes() -> None:
             "destination_ref": None,
         },
     )
-    assert _sc004_refusal_kind(
-        busy,
-        authoritative_lane="planned",
-        requested_lane="planned",
-    ) == "busy"
-    assert _sc004_refusal_kind(
-        state,
-        authoritative_lane="planned",
-        requested_lane="planned",
-    ) == "state_refusal"
-    assert _sc004_refusal_kind(
-        persistence,
-        authoritative_lane="in_review",
-        requested_lane="planned",
-    ) == "persistence_failed"
-    assert _sc004_refusal_kind(
-        ownership,
-        authoritative_lane="planned",
-        requested_lane="planned",
-    ) == "ownership_refusal"
+    assert (
+        _sc004_refusal_kind(
+            busy,
+            authoritative_lane="planned",
+            requested_lane="planned",
+        )
+        == "busy"
+    )
+    assert (
+        _sc004_refusal_kind(
+            state,
+            authoritative_lane="planned",
+            requested_lane="planned",
+        )
+        == "state_refusal"
+    )
+    assert (
+        _sc004_refusal_kind(
+            persistence,
+            authoritative_lane="in_review",
+            requested_lane="planned",
+        )
+        == "persistence_failed"
+    )
+    assert (
+        _sc004_refusal_kind(
+            ownership,
+            authoritative_lane="planned",
+            requested_lane="planned",
+        )
+        == "ownership_refusal"
+    )
 
 
 @pytest.mark.integration
@@ -2802,9 +2595,7 @@ def test_sc004_ownership_refusal_requires_independent_event_and_evidence_absence
     )
     feature_dir = tmp_path / "kitty-specs" / mission
     events = read_events(feature_dir)
-    assert _sc004_ownership_refusal_is_causal(
-        tmp_path, mission, expected, ownership, events
-    )
+    assert _sc004_ownership_refusal_is_causal(tmp_path, mission, expected, ownership, events)
 
     artifact_path = feature_dir / "tasks" / f"{wp_id}-test" / "review-cycle-1.md"
     ReviewCycleArtifact(
@@ -2815,9 +2606,9 @@ def test_sc004_ownership_refusal_requires_independent_event_and_evidence_absence
         reviewed_at="2026-08-24T00:00:00Z",
         body=expected["reviewer-b"][1],
     ).write(artifact_path)
-    assert not _sc004_ownership_refusal_is_causal(
-        tmp_path, mission, expected, ownership, events
-    ), "an ownership refusal cannot hide reviewer evidence in the working tree"
+    assert not _sc004_ownership_refusal_is_causal(tmp_path, mission, expected, ownership, events), (
+        "an ownership refusal cannot hide reviewer evidence in the working tree"
+    )
 
 
 @pytest.mark.integration
@@ -2844,9 +2635,7 @@ def test_sc004_busy_refusal_requires_independent_event_and_evidence_absence(
     events = read_events(feature_dir)
     assert _sc004_busy_refusal_is_causal(tmp_path, mission, expected, busy, events)
 
-    artifact_path = (
-        feature_dir / "tasks" / f"{wp_id}-test" / "review-cycle-1.md"
-    )
+    artifact_path = feature_dir / "tasks" / f"{wp_id}-test" / "review-cycle-1.md"
     ReviewCycleArtifact(
         cycle_number=1,
         wp_id=wp_id,
@@ -2855,9 +2644,7 @@ def test_sc004_busy_refusal_requires_independent_event_and_evidence_absence(
         reviewed_at="2026-08-24T00:00:00Z",
         body=expected["reviewer-b"][1],
     ).write(artifact_path)
-    assert not _sc004_busy_refusal_is_causal(
-        tmp_path, mission, expected, busy, events
-    ), "a busy envelope cannot hide reviewer evidence left in the working tree"
+    assert not _sc004_busy_refusal_is_causal(tmp_path, mission, expected, busy, events), "a busy envelope cannot hide reviewer evidence left in the working tree"
 
     event_repo = tmp_path / "event-present"
     event_repo.mkdir()
@@ -2904,10 +2691,7 @@ def test_sc004_start_workers_waits_for_both_spawned_workers(tmp_path: Path) -> N
     )
     try:
         first_process, second_process = processes
-        assert all(
-            process.is_alive() and process.exitcode is None
-            for process in (first_process, second_process)
-        )
+        assert all(process.is_alive() and process.exitcode is None for process in (first_process, second_process))
     finally:
         _sc004_stop(processes, inputs)
 
@@ -2955,10 +2739,7 @@ def test_sc004_two_concurrent_processes_never_clobber_a_verdict_over_50_iteratio
             inputs[1].put(_Sc004Request(round_id, wp_id, expected["reviewer-b"][1]))
             pair = _sc004_get_pair(output, round_id)
             verdict = _sc004_oracle(repo, mission, expected, pair)
-            assert verdict in {"durable", "durable_with_valid_refusal"}, (
-                f"round {round_id}: {verdict}; child results:\n"
-                f"{_sc004_pair_diagnostics(pair)}"
-            )
+            assert verdict in {"durable", "durable_with_valid_refusal"}, f"round {round_id}: {verdict}; child results:\n{_sc004_pair_diagnostics(pair)}"
     finally:
         _sc004_stop(processes, inputs)
 
@@ -3022,25 +2803,16 @@ def test_sc004_event_serialization_mutant_reports_missing_authoritative_event(
     try:
         inputs[0].put(_Sc004Request(0, wp_id, expected["reviewer-a"][1]))
         inputs[1].put(_Sc004Request(0, wp_id, expected["reviewer-b"][1]))
-        first = _sc004_event_mutant_first_result(
-            output, 0, processes, captured_a, captured_b
-        )
+        first = _sc004_event_mutant_first_result(output, 0, processes, captured_a, captured_b)
         release_b.set()
         second = output.get(timeout=30)
         pair = [first, second]
         diagnostics = _sc004_pair_diagnostics(pair)
         assert all(result.exit_code == 0 and result.payload for result in pair), diagnostics
         assert all("staged_event_replace" in result.seam_hits for result in pair), diagnostics
-        assert all(
-            {"lock:tasks", "lock:emit"}.issubset(result.seam_hits)
-            for result in pair
-        ), diagnostics
-        assert _sc004_complete_evidence_leg(repo, mission, expected, pair) == (
-            "committed_evidence"
-        ), diagnostics
-        assert _sc004_oracle(repo, mission, expected, pair) == (
-            "missing_authoritative_event"
-        ), diagnostics
+        assert all({"lock:tasks", "lock:emit"}.issubset(result.seam_hits) for result in pair), diagnostics
+        assert _sc004_complete_evidence_leg(repo, mission, expected, pair) == ("committed_evidence"), diagnostics
+        assert _sc004_oracle(repo, mission, expected, pair) == ("missing_authoritative_event"), diagnostics
     finally:
         release_b.set()
         _sc004_stop(processes, inputs)
@@ -3090,17 +2862,12 @@ def test_sc004_event_serialization_mutant_reports_missing_authoritative_event(
     try:
         inputs[0].put(_Sc004Request(1, "WP01", coord_expected["reviewer-a"][1]))
         inputs[1].put(_Sc004Request(1, "WP01", coord_expected["reviewer-b"][1]))
-        first = _sc004_event_mutant_first_result(
-            output, 1, processes, captured_a, captured_b
-        )
+        first = _sc004_event_mutant_first_result(output, 1, processes, captured_a, captured_b)
         release_b.set()
         pair = [first, output.get(timeout=30)]
         diagnostics = _sc004_pair_diagnostics(pair)
         assert all(result.exit_code == 0 and result.payload for result in pair), diagnostics
-        assert all(
-            {"lock:tasks", "lock:transaction"}.issubset(result.seam_hits)
-            for result in pair
-        ), diagnostics
+        assert all({"lock:tasks", "lock:transaction"}.issubset(result.seam_hits) for result in pair), diagnostics
         assert (
             _sc004_complete_evidence_leg(
                 coord.repo,
@@ -3145,13 +2912,8 @@ def test_sc004_evidence_commit_mutant_reports_missing_committed_evidence(
         pair = _sc004_get_pair(output, 0)
         diagnostics = _sc004_pair_diagnostics(pair)
         assert all("evidence_commit" in result.seam_hits for result in pair), diagnostics
-        assert (
-            _sc004_evidence_mutant_classification(repo, mission, expected, pair)
-            == "missing_committed_evidence"
-        ), diagnostics
-        assert _sc004_oracle(repo, mission, expected, pair) == (
-            "missing_committed_evidence"
-        ), diagnostics
+        assert _sc004_evidence_mutant_classification(repo, mission, expected, pair) == "missing_committed_evidence", diagnostics
+        assert _sc004_oracle(repo, mission, expected, pair) == ("missing_committed_evidence"), diagnostics
     finally:
         _sc004_stop(processes, inputs)
 
@@ -3170,11 +2932,7 @@ def _assert_durable_event_records_at_least(repo: Path, mission: str, wp_id: str,
     """
     feature_dir = repo / "kitty-specs" / mission
     events = read_events(feature_dir)
-    durable_ids = {
-        event.event_id
-        for event in events
-        if event.wp_id == wp_id and event.review_result is not None
-    }
+    durable_ids = {event.event_id for event in events if event.wp_id == wp_id and event.review_result is not None}
     assert len(durable_ids) >= minimum, (
         f"expected >= {minimum} distinct durable review_result event records "
         f"for {wp_id}, found {len(durable_ids)} -- the event log (not the "

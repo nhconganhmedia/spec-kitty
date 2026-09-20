@@ -75,13 +75,9 @@ def _resolved_dirs_for(repo_root: Path, mission_slug: str, wp_slug: str) -> dict
     wp_path = feature_dir / "tasks" / f"{wp_slug}.md"
 
     return {
-        "canonical (_review_cycle_wp_dir)": _review_cycle_wp_dir(
-            repo_root, mission_slug, wp_slug
-        ),
+        "canonical (_review_cycle_wp_dir)": _review_cycle_wp_dir(repo_root, mission_slug, wp_slug),
         "safety verdict reader (_resolve_verdict_wp_dir)": _resolve_verdict_wp_dir(wp_path),
-        "approval probe (_resolve_review_cycle_sub_artifact_dir)": (
-            _resolve_review_cycle_sub_artifact_dir(feature_dir, wp_slug)
-        ),
+        "approval probe (_resolve_review_cycle_sub_artifact_dir)": (_resolve_review_cycle_sub_artifact_dir(feature_dir, wp_slug)),
     }
 
 
@@ -90,8 +86,7 @@ def _assert_all_co_resolve(resolved: dict[str, Path]) -> Path:
     canonical = values[0]
     for name, path in resolved.items():
         assert path == canonical, (
-            f"co-resolution violated: {name!r} resolved {path}, expected the "
-            f"SAME directory as every other consumer ({canonical}). Full set: {resolved}"
+            f"co-resolution violated: {name!r} resolved {path}, expected the SAME directory as every other consumer ({canonical}). Full set: {resolved}"
         )
     return canonical
 
@@ -201,13 +196,10 @@ def _kind_keyword_violations(tree: ast.AST, *, source_label: str) -> list[str]:
             if kw.arg != "kind":
                 continue
             value = kw.value
-            is_sanctioned = (
-                isinstance(value, ast.Attribute) and value.attr == _SANCTIONED_KIND_ATTR
-            )
+            is_sanctioned = isinstance(value, ast.Attribute) and value.attr == _SANCTIONED_KIND_ATTR
             if not is_sanctioned:
                 violations.append(
-                    f"{source_label}: {_SANCTIONED_RESOLVER_NAME}(...) called with a "
-                    f"kind= argument other than MissionArtifactKind.{_SANCTIONED_KIND_ATTR}"
+                    f"{source_label}: {_SANCTIONED_RESOLVER_NAME}(...) called with a kind= argument other than MissionArtifactKind.{_SANCTIONED_KIND_ATTR}"
                 )
     return violations
 
@@ -235,9 +227,7 @@ def _check_source(text: str, *, source_label: str) -> list[str]:
         tree = ast.parse(text)
     except SyntaxError:
         return []
-    return _kind_keyword_violations(tree, source_label=source_label) + _positional_arity_violations(
-        tree, source_label=source_label
-    )
+    return _kind_keyword_violations(tree, source_label=source_label) + _positional_arity_violations(tree, source_label=source_label)
 
 
 def _repo_root() -> Path:
@@ -348,13 +338,5 @@ def test_doctor_review_cycle_reconcile_reports_zero_live_coord_pre_adr_findings(
 
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output)
-    live_coord_findings = [
-        finding
-        for report in payload
-        for finding in report["findings"]
-        if finding["stranded_class"] == _LIVE_COORD_PRE_ADR_CLASS
-    ]
-    assert live_coord_findings == [], (
-        f"expected zero {_LIVE_COORD_PRE_ADR_CLASS!r} findings for a healthy "
-        f"fixture, got: {live_coord_findings}"
-    )
+    live_coord_findings = [finding for report in payload for finding in report["findings"] if finding["stranded_class"] == _LIVE_COORD_PRE_ADR_CLASS]
+    assert live_coord_findings == [], f"expected zero {_LIVE_COORD_PRE_ADR_CLASS!r} findings for a healthy fixture, got: {live_coord_findings}"

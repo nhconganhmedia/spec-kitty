@@ -352,10 +352,7 @@ def _format_report() -> list[str]:
     ]
     if _suppressed_other:
         lines.append(f"  suppressed at sites not in the declared inventory: {_suppressed_other!r}")
-    lines.append(
-        "  deliberately unpatched (named, never counted as zero): "
-        f"{list(_DELIBERATELY_UNPATCHED_SITES)!r}"
-    )
+    lines.append(f"  deliberately unpatched (named, never counted as zero): {list(_DELIBERATELY_UNPATCHED_SITES)!r}")
     return lines
 
 
@@ -426,7 +423,9 @@ def pytest_sessionfinish(session: pytest.Session) -> None:  # noqa: ARG001
 
 
 def pytest_terminal_summary(
-    terminalreporter: Any, exitstatus: int, config: pytest.Config  # noqa: ARG001
+    terminalreporter: Any,
+    exitstatus: int,
+    config: pytest.Config,  # noqa: ARG001
 ) -> None:
     """Print the per-site suppression split; write loudly if it is zero.
 

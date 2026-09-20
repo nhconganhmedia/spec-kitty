@@ -42,6 +42,7 @@ UNCHANGED:
 This closes the #2548 audit obligation. Do NOT re-open or re-classify these
 ten without a fresh audit — see spec.md WS3 (FR-010/FR-011/FR-012).
 """
+
 from __future__ import annotations
 
 import ast
@@ -77,9 +78,7 @@ _SRC = Path(__file__).resolve().parents[2] / "src"
 # "doctrine" was dropped (charter-code-topology-01M152G1, S5): src/doctrine
 # relocated to src/charter/offering (S2a), so the collapsed chain is
 # kernel <- charter <- glossary/runtime/mission_runtime <- specify_cli.
-_DEFINED_LAYERS: frozenset[str] = frozenset(
-    ["kernel", "charter", "glossary", "runtime", "mission_runtime", "specify_cli"]
-)
+_DEFINED_LAYERS: frozenset[str] = frozenset(["kernel", "charter", "glossary", "runtime", "mission_runtime", "specify_cli"])
 
 # ---------------------------------------------------------------------------
 # WP08 / FR-009 (#2327, WS1): mission_runtime -> specify_cli outbound ledger
@@ -112,8 +111,8 @@ _MISSION_RUNTIME_ROOT = _SRC / "mission_runtime"
 
 _MISSION_RUNTIME_ALLOWED_SPECIFY_CLI: frozenset[str] = frozenset(
     {
-        "coordination",      # resolution.py: CoordinationWorkspace, surface_resolver
-        "core",              # artifacts.py + resolution.py: constants, paths, dependency_graph
+        "coordination",  # resolution.py: CoordinationWorkspace, surface_resolver
+        "core",  # artifacts.py + resolution.py: constants, paths, dependency_graph
         # coord-trust-2841: the "lanes" allow-row (resolution.py's coord-state
         # branch resolving the mid8 disambiguator via
         # ``lanes.branch_naming.resolve_mid8``, GEC-3 / contract C3) is CLOSED.
@@ -123,20 +122,20 @@ _MISSION_RUNTIME_ALLOWED_SPECIFY_CLI: frozenset[str] = frozenset(
         # existing importers are unaffected. resolution.py imports the
         # resolver directly from its new in-layer home — no specify_cli.lanes
         # crossing remains.
-        "migration",         # resolution.py: backfill_topology.read_topology
-        "mission",           # resolution.py: get_mission_type
+        "migration",  # resolution.py: backfill_topology.read_topology
+        "mission",  # resolution.py: get_mission_type
         "mission_metadata",  # resolution.py: load_meta
-        "missions",          # resolution.py: _read_path_resolver
+        "missions",  # resolution.py: _read_path_resolver
         # coord-primary-partition-lock WP01 (H-1, binding): the placement seam's
         # RETROSPECTIVE read leg MUST delegate to the SINGLE home authority
         # ``retrospective.writer.resolve_retrospective_home`` (#2119) — computing
         # a second RETROSPECTIVE home in mission_runtime would duplicate that
         # authority and fail its own single-authority guard. This is a sanctioned
         # upward edge, same class as the ``missions`` read-path delegation above.
-        "retrospective",     # resolution.py: PlacementSeam.read_dir -> resolve_retrospective_home
-        "status",            # resolution.py: Lane, get_wp_lane, read_events, ...
-        "task_utils",        # resolution.py: locate_work_package, split_frontmatter
-        "workspace",         # resolution.py: resolve_workspace_for_wp
+        "retrospective",  # resolution.py: PlacementSeam.read_dir -> resolve_retrospective_home
+        "status",  # resolution.py: Lane, get_wp_lane, read_events, ...
+        "task_utils",  # resolution.py: locate_work_package, split_frontmatter
+        "workspace",  # resolution.py: resolve_workspace_for_wp
     }
 )
 
@@ -175,7 +174,7 @@ _RUNTIME_ROOT = _SRC / "runtime"
 _RUNTIME_ALLOWED_SPECIFY_CLI: frozenset[str] = frozenset(
     {
         "",  # bare ``import specify_cli`` in next/runtime_bridge_io.py: resolve the
-             # legacy missions package root via specify_cli.__file__ (2 edges).
+        # legacy missions package root via specify_cli.__file__ (2 edges).
         "bulk_edit",
         "coordination",
         "core",
@@ -192,7 +191,7 @@ _RUNTIME_ALLOWED_SPECIFY_CLI: frozenset[str] = frozenset(
         "requirement_mapping",
         "retrospective",
         "review",
-        "runtime",           # specify_cli.runtime (installed-runtime assets), not the top-level pkg
+        "runtime",  # specify_cli.runtime (installed-runtime assets), not the top-level pkg
         "shims",
         "status",
         "status_lanes",
@@ -257,11 +256,7 @@ def _out_of_ledger_specify_cli_imports(
     Pure function of its inputs so the negative test can drive it with a
     synthetic out-of-set edge and prove non-vacuity without touching disk.
     """
-    return [
-        f"{rel} imports {module}"
-        for rel, module in imports
-        if _specify_cli_subpackage(module) not in allowed
-    ]
+    return [f"{rel} imports {module}" for rel, module in imports if _specify_cli_subpackage(module) not in allowed]
 
 
 class TestLayerCoverage:
@@ -276,13 +271,7 @@ class TestLayerCoverage:
         fixture *and* to this file's `_DEFINED_LAYERS` constant, or add it
         to `_EXCLUDED_FROM_LAYER_ENFORCEMENT` with a documented reason.
         """
-        src_packages = {
-            p.name
-            for p in _SRC.iterdir()
-            if p.is_dir()
-            and not p.name.startswith("_")
-            and (p / "__init__.py").exists()
-        }
+        src_packages = {p.name for p in _SRC.iterdir() if p.is_dir() and not p.name.startswith("_") and (p / "__init__.py").exists()}
         unregistered = src_packages - _DEFINED_LAYERS - _EXCLUDED_FROM_LAYER_ENFORCEMENT
         assert not unregistered, (
             f"src/ packages with no architectural layer assignment: "
@@ -332,26 +321,10 @@ class TestKernelIsolation:
     """kernel must not import from any other landscape container."""
 
     def test_kernel_does_not_import_charter(self, evaluable, landscape):
-        (
-            LayerRule()
-            .based_on(landscape)
-            .layers_that()
-            .are_named("kernel")
-            .should_not()
-            .access_layers_that()
-            .are_named("charter")
-        ).assert_applies(evaluable)
+        (LayerRule().based_on(landscape).layers_that().are_named("kernel").should_not().access_layers_that().are_named("charter")).assert_applies(evaluable)
 
     def test_kernel_does_not_import_specify_cli(self, evaluable, landscape):
-        (
-            LayerRule()
-            .based_on(landscape)
-            .layers_that()
-            .are_named("kernel")
-            .should_not()
-            .access_layers_that()
-            .are_named("specify_cli")
-        ).assert_applies(evaluable)
+        (LayerRule().based_on(landscape).layers_that().are_named("kernel").should_not().access_layers_that().are_named("specify_cli")).assert_applies(evaluable)
 
 
 # --- Invariant 2 (retired): "doctrine depends only on kernel" ---
@@ -376,30 +349,14 @@ class TestCharterBoundary:
     may import kernel only. No specify_cli imports."""
 
     def test_charter_does_not_import_specify_cli(self, evaluable, landscape):
-        (
-            LayerRule()
-            .based_on(landscape)
-            .layers_that()
-            .are_named("charter")
-            .should_not()
-            .access_layers_that()
-            .are_named("specify_cli")
-        ).assert_applies(evaluable)
+        (LayerRule().based_on(landscape).layers_that().are_named("charter").should_not().access_layers_that().are_named("specify_cli")).assert_applies(evaluable)
 
 
 class TestGlossaryBoundary:
     """glossary may import lower layers, but not specify_cli adapters."""
 
     def test_glossary_does_not_import_specify_cli(self, evaluable, landscape):
-        (
-            LayerRule()
-            .based_on(landscape)
-            .layers_that()
-            .are_named("glossary")
-            .should_not()
-            .access_layers_that()
-            .are_named("specify_cli")
-        ).assert_applies(evaluable)
+        (LayerRule().based_on(landscape).layers_that().are_named("glossary").should_not().access_layers_that().are_named("specify_cli")).assert_applies(evaluable)
 
 
 class TestRuntimeBoundary:
@@ -434,14 +391,8 @@ class TestRefAdvancePlumbingBoundary:
         offenders: list[str] = []
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
-                offenders.extend(
-                    alias.name for alias in node.names if _is_specify_cli_module(alias.name)
-                )
-            elif (
-                isinstance(node, ast.ImportFrom)
-                and node.module
-                and _is_specify_cli_module(node.module)
-            ):
+                offenders.extend(alias.name for alias in node.names if _is_specify_cli_module(alias.name))
+            elif isinstance(node, ast.ImportFrom) and node.module and _is_specify_cli_module(node.module):
                 offenders.append(node.module)
         assert not offenders, (
             "git/ref_advance.py must import zero specify_cli modules (C-003 / "
@@ -463,12 +414,7 @@ def _non_canonical_instances(objs: Iterable[object], canonical: type) -> list[st
     place of literal ``__module__ == "..."`` comparisons: identity/usage
     is what matters, not which module a class happens to report.
     """
-    return [
-        f"{obj!r} is {type(obj).__module__}.{type(obj).__qualname__}, "
-        f"not {canonical.__qualname__}"
-        for obj in objs
-        if not isinstance(obj, canonical)
-    ]
+    return [f"{obj!r} is {type(obj).__module__}.{type(obj).__qualname__}, not {canonical.__qualname__}" for obj in objs if not isinstance(obj, canonical)]
 
 
 class TestUnifiedMissionStepBoundary:
@@ -525,18 +471,10 @@ class TestUnifiedMissionStepBoundary:
         from charter.offering.missions.mission_step_repository import MissionStepRepository
         from charter.offering.missions.models import MissionStep
 
-        resolved = MissionStepRepository.default().resolve_all_for_mission_type(
-            "software-dev"
-        )
-        assert resolved, (
-            "expected the shipped software-dev built-in mission-steps to "
-            "resolve at least one step"
-        )
+        resolved = MissionStepRepository.default().resolve_all_for_mission_type("software-dev")
+        assert resolved, "expected the shipped software-dev built-in mission-steps to resolve at least one step"
         offenders = _non_canonical_instances(resolved.values(), MissionStep)
-        assert not offenders, (
-            "the mission-step resolver produced steps that are not "
-            f"instances of the canonical MissionStep class: {offenders}"
-        )
+        assert not offenders, f"the mission-step resolver produced steps that are not instances of the canonical MissionStep class: {offenders}"
 
     def test_legacy_contract_types_resolve_at_new_location(self) -> None:
         """The relocated legacy step-contract types are BOTH importable at
@@ -554,28 +492,18 @@ class TestUnifiedMissionStepBoundary:
 
         repo = MissionStepContractRepository()
         contract = repo.get("implement")
-        assert contract is not None, (
-            "expected the shipped 'implement' step contract to load"
-        )
+        assert contract is not None, "expected the shipped 'implement' step contract to load"
         assert isinstance(contract, MissionStepContract)
 
         offenders = _non_canonical_instances(contract.steps, MissionStepContractStep)
-        assert not offenders, (
-            f"loaded contract.steps produced non-canonical instances: {offenders}"
-        )
+        assert not offenders, f"loaded contract.steps produced non-canonical instances: {offenders}"
 
         delegating_steps = [s for s in contract.steps if s.delegates_to is not None]
         assert delegating_steps, (
-            "expected at least one shipped 'implement' step (e.g. 'workspace') "
-            "to populate delegates_to — the fixture this test relies on has drifted"
+            "expected at least one shipped 'implement' step (e.g. 'workspace') to populate delegates_to — the fixture this test relies on has drifted"
         )
-        offenders = _non_canonical_instances(
-            (s.delegates_to for s in delegating_steps), DelegatesTo
-        )
-        assert not offenders, (
-            f"loaded delegates_to values are not canonical DelegatesTo "
-            f"instances: {offenders}"
-        )
+        offenders = _non_canonical_instances((s.delegates_to for s in delegating_steps), DelegatesTo)
+        assert not offenders, f"loaded delegates_to values are not canonical DelegatesTo instances: {offenders}"
 
     def test_plant_and_catch_wrong_mission_step_wiring(self) -> None:
         """Non-vacuity guard for the two behavioural tests above (FR-013).
@@ -593,10 +521,7 @@ class TestUnifiedMissionStepBoundary:
         from charter.offering.missions.models import MissionStep
 
         offenders = _non_canonical_instances([_DecoyMissionStep()], MissionStep)
-        assert offenders, (
-            "expected the decoy instance to be flagged as non-canonical — "
-            "the wrong-wiring self-test has lost its teeth"
-        )
+        assert offenders, "expected the decoy instance to be flagged as non-canonical — the wrong-wiring self-test has lost its teeth"
 
 
 # --- Invariant 5: WP08 — mission_runtime outbound boundary (FR-009, #2327) ---
@@ -631,9 +556,7 @@ class TestMissionRuntimeBoundary:
         assert not offenders, (
             "mission_runtime imports specify_cli subpackages outside the "
             "documented allowed-exception ledger "
-            "(_MISSION_RUNTIME_ALLOWED_SPECIFY_CLI):\n  "
-            + "\n  ".join(offenders)
-            + "\nInvert the dependency (preferred). A sanctioned ledger expansion also "
+            "(_MISSION_RUNTIME_ALLOWED_SPECIFY_CLI):\n  " + "\n  ".join(offenders) + "\nInvert the dependency (preferred). A sanctioned ledger expansion also "
             "requires a justified independent _baselines.yaml update."
         )
 
@@ -649,12 +572,10 @@ class TestMissionRuntimeBoundary:
         synthetic = [
             ("mission_runtime/resolution.py", "specify_cli.cli.commands.tasks"),
         ]
-        offenders = _out_of_ledger_specify_cli_imports(
-            synthetic, _MISSION_RUNTIME_ALLOWED_SPECIFY_CLI
+        offenders = _out_of_ledger_specify_cli_imports(synthetic, _MISSION_RUNTIME_ALLOWED_SPECIFY_CLI)
+        assert offenders == ["mission_runtime/resolution.py imports specify_cli.cli.commands.tasks"], (
+            "the outbound rule must reject a specify_cli subpackage outside the ledger"
         )
-        assert offenders == [
-            "mission_runtime/resolution.py imports specify_cli.cli.commands.tasks"
-        ], "the outbound rule must reject a specify_cli subpackage outside the ledger"
 
     def test_ledger_has_no_stale_entries(self) -> None:
         """Stale-entry guard: every ledger entry must match a live source edge.
@@ -664,15 +585,9 @@ class TestMissionRuntimeBoundary:
         ``src/mission_runtime/``) reds here, keeping the exception set honestly
         minimal. Independent baseline comparisons enforce the size cap.
         """
-        live_subpackages = {
-            _specify_cli_subpackage(module)
-            for _, module in _collect_specify_cli_imports(_MISSION_RUNTIME_ROOT)
-        }
+        live_subpackages = {_specify_cli_subpackage(module) for _, module in _collect_specify_cli_imports(_MISSION_RUNTIME_ROOT)}
         stale = _MISSION_RUNTIME_ALLOWED_SPECIFY_CLI - live_subpackages
-        assert not stale, (
-            f"allowed-exception ledger has entries with no live edge: {sorted(stale)!r}. "
-            "Remove them and lower the independent _baselines.yaml cap."
-        )
+        assert not stale, f"allowed-exception ledger has entries with no live edge: {sorted(stale)!r}. Remove them and lower the independent _baselines.yaml cap."
 
 
 # --- Invariant 6: WP03 — runtime -> specify_cli outbound boundary (#3522) ---
@@ -796,12 +711,10 @@ class TestRuntimeSpecifyCliLedger:
         synthetic = [
             ("runtime/next/runtime_bridge.py", "specify_cli.cli.commands.tasks"),
         ]
-        offenders = _out_of_ledger_specify_cli_imports(
-            synthetic, _RUNTIME_ALLOWED_SPECIFY_CLI
+        offenders = _out_of_ledger_specify_cli_imports(synthetic, _RUNTIME_ALLOWED_SPECIFY_CLI)
+        assert offenders == ["runtime/next/runtime_bridge.py imports specify_cli.cli.commands.tasks"], (
+            "the outbound rule must reject a specify_cli subpackage outside the ledger"
         )
-        assert offenders == [
-            "runtime/next/runtime_bridge.py imports specify_cli.cli.commands.tasks"
-        ], "the outbound rule must reject a specify_cli subpackage outside the ledger"
 
     def test_runtime_ledger_has_no_stale_entries(self) -> None:
         """Stale-entry guard: every ledger entry must match a live source edge.
@@ -810,12 +723,6 @@ class TestRuntimeSpecifyCliLedger:
         A stale entry (no matching import under ``src/runtime/``) reds here, keeping the
         exception set minimal. Independent baseline comparisons enforce the size cap.
         """
-        live_subpackages = {
-            _specify_cli_subpackage(module)
-            for _, module in _collect_specify_cli_imports(_RUNTIME_ROOT)
-        }
+        live_subpackages = {_specify_cli_subpackage(module) for _, module in _collect_specify_cli_imports(_RUNTIME_ROOT)}
         stale = _RUNTIME_ALLOWED_SPECIFY_CLI - live_subpackages
-        assert not stale, (
-            f"allowed-exception ledger has entries with no live edge: {sorted(stale)!r}. "
-            "Remove them and lower the independent _baselines.yaml cap."
-        )
+        assert not stale, f"allowed-exception ledger has entries with no live edge: {sorted(stale)!r}. Remove them and lower the independent _baselines.yaml cap."

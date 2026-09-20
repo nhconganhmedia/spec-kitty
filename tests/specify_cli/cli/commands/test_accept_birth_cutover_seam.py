@@ -67,9 +67,7 @@ def _install_seam(
     seam = _RecordingSeam(seam_dir)
     resolved_kinds: list[MissionArtifactKind] = []
 
-    def _fake_resolve(
-        _repo_root: Path, _mission_slug: str, kind: MissionArtifactKind
-    ) -> ResolvedSurface:
+    def _fake_resolve(_repo_root: Path, _mission_slug: str, kind: MissionArtifactKind) -> ResolvedSurface:
         resolved_kinds.append(kind)
         return ResolvedSurface(path=seam_dir, surface_kind=surface_kind)
 
@@ -78,16 +76,12 @@ def _install_seam(
     return seam, resolved_kinds
 
 
-def test_coord_status_feature_dir_uses_seam_status_state_read_dir(
-    monkeypatch: pytest.MonkeyPatch, repo_root: Path, tmp_path: Path
-) -> None:
+def test_coord_status_feature_dir_uses_seam_status_state_read_dir(monkeypatch: pytest.MonkeyPatch, repo_root: Path, tmp_path: Path) -> None:
     """A COORD stamp returns the seam's dir — not a ``<root>/kitty-specs/<slug>`` join."""
     # Deliberately identity-suffixed and NOT equal to a slug-joined path, so a
     # reconstruction regression cannot accidentally produce the same answer.
     seam_dir = tmp_path / "coord-wt" / "kitty-specs" / f"{_SLUG}-01KYHP67"
-    seam, resolved_kinds = _install_seam(
-        monkeypatch, surface_kind=TopologySurface.COORD, seam_dir=seam_dir
-    )
+    seam, resolved_kinds = _install_seam(monkeypatch, surface_kind=TopologySurface.COORD, seam_dir=seam_dir)
 
     result = accept._coord_status_feature_dir(repo_root, _SLUG)
 
@@ -111,22 +105,16 @@ def test_coord_status_feature_dir_is_none_off_the_coord_surface(
     surface_kind: TopologySurface,
 ) -> None:
     """Non-COORD stamps collapse the stamp onto the PRIMARY leg (``None``)."""
-    seam, _ = _install_seam(
-        monkeypatch, surface_kind=surface_kind, seam_dir=tmp_path / "primary"
-    )
+    seam, _ = _install_seam(monkeypatch, surface_kind=surface_kind, seam_dir=tmp_path / "primary")
 
     assert accept._coord_status_feature_dir(repo_root, _SLUG) is None
     # The seam's read projection is never consulted off the coord surface.
     assert seam.read_kinds == []
 
 
-def test_coord_status_feature_dir_rejects_unsafe_handle_before_the_seam(
-    monkeypatch: pytest.MonkeyPatch, repo_root: Path, tmp_path: Path
-) -> None:
+def test_coord_status_feature_dir_rejects_unsafe_handle_before_the_seam(monkeypatch: pytest.MonkeyPatch, repo_root: Path, tmp_path: Path) -> None:
     """The traversal guard still fires, and fires ahead of any seam call."""
-    seam, resolved_kinds = _install_seam(
-        monkeypatch, surface_kind=TopologySurface.COORD, seam_dir=tmp_path / "coord"
-    )
+    seam, resolved_kinds = _install_seam(monkeypatch, surface_kind=TopologySurface.COORD, seam_dir=tmp_path / "coord")
 
     with pytest.raises(ValueError):
         accept._coord_status_feature_dir(repo_root, "../escape")
@@ -135,9 +123,7 @@ def test_coord_status_feature_dir_rejects_unsafe_handle_before_the_seam(
     assert seam.read_kinds == []
 
 
-def test_stamp_birth_cutover_passes_the_seam_dir_as_the_coord_leg(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_stamp_birth_cutover_passes_the_seam_dir_as_the_coord_leg(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """``_stamp_birth_cutover_for_accept`` hands the seam's dir to the cutover.
 
     read-side-seam-primary-primitive-closure-01KYKMMT WP06 (T029): the PRIMARY
@@ -162,9 +148,7 @@ def test_stamp_birth_cutover_passes_the_seam_dir_as_the_coord_leg(
 
     seam = _RecordingSeam(primary_dir)
     monkeypatch.setattr(mission_runtime, "placement_seam", lambda *_args: seam)
-    monkeypatch.setattr(
-        accept, "_coord_status_feature_dir", lambda _root, _slug: coord_dir
-    )
+    monkeypatch.setattr(accept, "_coord_status_feature_dir", lambda _root, _slug: coord_dir)
 
     captured: dict[str, object] = {}
 
@@ -177,9 +161,7 @@ def test_stamp_birth_cutover_passes_the_seam_dir_as_the_coord_leg(
 
         return _Result()
 
-    monkeypatch.setattr(
-        "specify_cli.migration.runtime_state_cutover.stamp_accept_cutover", _fake_stamp
-    )
+    monkeypatch.setattr("specify_cli.migration.runtime_state_cutover.stamp_accept_cutover", _fake_stamp)
 
     accept._stamp_birth_cutover_for_accept(repo_root, _SLUG)
 

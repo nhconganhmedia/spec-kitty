@@ -3,6 +3,7 @@
 Asserts that every supported host surface from AGENT_DIRS has exactly one row
 in docs/architecture/host-surface-parity.md, and that every row has a valid parity_status.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,12 +17,28 @@ PARITY_DOC = REPO_ROOT / "docs/architecture/host-surface-parity.md"
 
 # Pulled from src/specify_cli/upgrade/migrations/m_0_9_1_complete_lane_migration.py::AGENT_DIRS
 # plus Agent Skills surfaces.
-EXPECTED_SURFACES = frozenset({
-    "claude", "copilot", "gemini", "cursor", "qwen",
-    "opencode", "windsurf", "kilocode", "auggie",
-    # "roo" removed — Roo Code shut down on 2026-05-15 (C-007)
-    "q", "kiro", "agent", "codex", "vibe", "pi", "letta", "llxprt",
-})
+EXPECTED_SURFACES = frozenset(
+    {
+        "claude",
+        "copilot",
+        "gemini",
+        "cursor",
+        "qwen",
+        "opencode",
+        "windsurf",
+        "kilocode",
+        "auggie",
+        # "roo" removed — Roo Code shut down on 2026-05-15 (C-007)
+        "q",
+        "kiro",
+        "agent",
+        "codex",
+        "vibe",
+        "pi",
+        "letta",
+        "llxprt",
+    }
+)
 
 VALID_PARITY_STATUS = {"at_parity", "partial", "missing"}
 
@@ -72,9 +89,7 @@ def test_no_duplicate_surface_rows() -> None:
 def test_every_row_has_valid_parity_status() -> None:
     rows = _parse_rows()
     for row in rows:
-        assert row["parity_status"] in VALID_PARITY_STATUS, (
-            f"Invalid parity_status for {row['surface_key']}: {row['parity_status']}"
-        )
+        assert row["parity_status"] in VALID_PARITY_STATUS, f"Invalid parity_status for {row['surface_key']}: {row['parity_status']}"
 
 
 def test_every_non_parity_row_has_notes() -> None:
@@ -83,6 +98,5 @@ def test_every_non_parity_row_has_notes() -> None:
     for row in rows:
         if row["parity_status"] != "at_parity" or row.get("guidance_style") == "pointer":
             assert row.get("notes"), (
-                f"Row {row['surface_key']} (parity_status={row['parity_status']}, "
-                f"guidance_style={row.get('guidance_style')}) must have a non-empty notes column."
+                f"Row {row['surface_key']} (parity_status={row['parity_status']}, guidance_style={row.get('guidance_style')}) must have a non-empty notes column."
             )

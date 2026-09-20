@@ -66,9 +66,7 @@ def test_git_dirty_paths_raises_on_git_error(monkeypatch: pytest.MonkeyPatch, tm
 # ---------------------------------------------------------------------------
 
 
-def test_placement_ref_none_on_resolution_failure(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_placement_ref_none_on_resolution_failure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A resolution failure degrades to None (conservative; never breaks the lifecycle)."""
     import mission_runtime
     from mission_runtime import ActionContextError
@@ -110,9 +108,7 @@ def test_preflight_dirty_tree_gates(monkeypatch: pytest.MonkeyPatch, tmp_path: P
 def test_preflight_coord_drops_residue(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(seam, "is_git_repo", lambda _root: True)
     monkeypatch.setattr(seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"])
-    monkeypatch.setattr(
-        seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True
-    )
+    monkeypatch.setattr(seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True)
     monkeypatch.setattr(seam, "resolve_topology", lambda _r, _s: MissionTopology.COORD)
     # Residue dropped → empty dirty set → no gate.
     seam._enforce_analysis_report_write_preflight(
@@ -123,14 +119,10 @@ def test_preflight_coord_drops_residue(monkeypatch: pytest.MonkeyPatch, tmp_path
     )
 
 
-def test_preflight_non_coord_keeps_residue_and_gates(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_preflight_non_coord_keeps_residue_and_gates(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(seam, "is_git_repo", lambda _root: True)
     monkeypatch.setattr(seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"])
-    monkeypatch.setattr(
-        seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True
-    )
+    monkeypatch.setattr(seam, "is_coord_residue_churn", lambda _p, *, mission_slug=None: True)
     monkeypatch.setattr(seam, "resolve_topology", lambda _r, _s: MissionTopology.SINGLE_BRANCH)
     with pytest.raises(typer.Exit):
         seam._enforce_analysis_report_write_preflight(
@@ -141,9 +133,7 @@ def test_preflight_non_coord_keeps_residue_and_gates(
         )
 
 
-def test_preflight_no_slug_skips_residue_filter(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_preflight_no_slug_skips_residue_filter(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Without a mission_slug the residue filter is skipped → full dirty set gates."""
     monkeypatch.setattr(seam, "is_git_repo", lambda _root: True)
     monkeypatch.setattr(seam, "_git_dirty_paths", lambda _root: ["kitty-specs/001-demo/spec.md"])
@@ -166,9 +156,7 @@ _RUNNER = CliRunner()
 
 def test_command_project_root_not_found_json(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(seam, "locate_project_root", lambda: None)
-    result = _RUNNER.invoke(
-        mission_app, ["record-analysis", "--json"], catch_exceptions=False
-    )
+    result = _RUNNER.invoke(mission_app, ["record-analysis", "--json"], catch_exceptions=False)
     assert result.exit_code == 1
     assert seam.PROJECT_ROOT_NOT_FOUND in result.stdout
 
@@ -180,9 +168,7 @@ def test_command_project_root_not_found_human(monkeypatch: pytest.MonkeyPatch) -
     assert seam.PROJECT_ROOT_NOT_FOUND in result.stdout
 
 
-def test_command_feature_detection_error_json(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_command_feature_detection_error_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(seam, "locate_project_root", lambda: tmp_path)
     monkeypatch.setattr(seam, "get_main_repo_root", lambda _r: tmp_path)
 
@@ -190,16 +176,12 @@ def test_command_feature_detection_error_json(
         raise ActionContextError("FEATURE_CONTEXT_UNRESOLVED", "no mission")
 
     monkeypatch.setattr(seam, "_find_feature_directory", _raise)
-    result = _RUNNER.invoke(
-        mission_app, ["record-analysis", "--json", "--mission", "nope"], catch_exceptions=False
-    )
+    result = _RUNNER.invoke(mission_app, ["record-analysis", "--json", "--mission", "nope"], catch_exceptions=False)
     assert result.exit_code == 1
     assert "FEATURE_CONTEXT_UNRESOLVED" in result.stdout
 
 
-def test_command_empty_body_json(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_command_empty_body_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     feature_dir = tmp_path / "001-demo"
     feature_dir.mkdir()
     monkeypatch.setattr(seam, "locate_project_root", lambda: tmp_path)
@@ -216,16 +198,12 @@ def test_command_empty_body_json(
     )
     monkeypatch.setattr(seam, "_enforce_analysis_report_write_preflight", lambda *_a, **_k: None)
     # Empty stdin → empty body.
-    result = _RUNNER.invoke(
-        mission_app, ["record-analysis", "--json"], input="   \n", catch_exceptions=False
-    )
+    result = _RUNNER.invoke(mission_app, ["record-analysis", "--json"], input="   \n", catch_exceptions=False)
     assert result.exit_code == 1
     assert "empty" in result.stdout.lower()
 
 
-def test_command_unexpected_exception_human(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_command_unexpected_exception_human(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The top-level except handler renders a human error and exits 1."""
     monkeypatch.setattr(seam, "locate_project_root", lambda: tmp_path)
 
@@ -308,9 +286,7 @@ _CARRIER_READY = (
 )
 
 
-def test_record_analysis_commit_subject_is_conventional_commit_shaped(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_record_analysis_commit_subject_is_conventional_commit_shaped(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """#3678 / FR-006: the real captured `message=` kwarg must be a
     ``docs(<scope>): <subject>`` conventional-commit subject.
 

@@ -52,9 +52,7 @@ def _init_git_repo(repo: Path, *, branch: str = "main") -> None:
 
 
 def _read_meta_bytes(repo_root: Path, mission_slug_prefix: str) -> bytes:
-    matches = [
-        p for p in (repo_root / "kitty-specs").iterdir() if p.name.startswith(f"{mission_slug_prefix}-")
-    ]
+    matches = [p for p in (repo_root / "kitty-specs").iterdir() if p.name.startswith(f"{mission_slug_prefix}-")]
     assert len(matches) == 1, f"expected exactly one mission dir, found {matches}"
     return (matches[0] / "meta.json").read_bytes()
 
@@ -75,14 +73,10 @@ def _frozen_mint(monkeypatch: pytest.MonkeyPatch) -> None:
     left to patch.
     """
     monkeypatch.setattr(mission_creation_module, "ULID", _FrozenULID)
-    monkeypatch.setattr(
-        mission_creation_module, "now_utc_iso", lambda: _FROZEN_NOW.isoformat()
-    )
+    monkeypatch.setattr(mission_creation_module, "now_utc_iso", lambda: _FROZEN_NOW.isoformat())
 
 
-def test_make_mission_meta_is_byte_identical_to_direct_core_call(
-    tmp_path: Path, _frozen_mint: None
-) -> None:
+def test_make_mission_meta_is_byte_identical_to_direct_core_call(tmp_path: Path, _frozen_mint: None) -> None:
     """E-06 / IC-07: make_mission() delegates -- it does not fork the schema."""
     direct_repo = tmp_path / "direct"
     factory_repo = tmp_path / "factory"
@@ -100,10 +94,7 @@ def test_make_mission_meta_is_byte_identical_to_direct_core_call(
 
     friendly_name = "Parity Mission"
     purpose_tldr = "Deliver parity mission cleanly for the team."
-    purpose_context = (
-        "This mission delivers parity mission so product and engineering "
-        "can move forward with a clear outcome and shared understanding."
-    )
+    purpose_context = "This mission delivers parity mission so product and engineering can move forward with a clear outcome and shared understanding."
 
     create_mission_core(
         direct_repo,
@@ -132,9 +123,7 @@ def test_make_mission_meta_is_byte_identical_to_direct_core_call(
     assert direct_bytes == factory_bytes
 
 
-def test_make_mission_applies_explicit_overrides_on_production_shaped_meta(
-    tmp_path: Path, _frozen_mint: None
-) -> None:
+def test_make_mission_applies_explicit_overrides_on_production_shaped_meta(tmp_path: Path, _frozen_mint: None) -> None:
     """Overrides land on top of the production schema, not a forked one."""
     repo = tmp_path / "override-repo"
     repo.mkdir()
@@ -152,9 +141,7 @@ def test_make_mission_applies_explicit_overrides_on_production_shaped_meta(
     assert "coordination_branch" not in result.meta
 
 
-def test_create_mission_core_worktree_guard_default_still_blocks(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_create_mission_core_worktree_guard_default_still_blocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T038 behaviour-preservation proof: the new ``allow_worktree_context``
     seam defaults to ``False``, so the pre-existing interactive/CLI guard
     against scaffolding a mission from inside a worktree is unchanged for
@@ -181,9 +168,7 @@ def test_create_mission_core_worktree_guard_default_still_blocks(
         )
 
 
-def test_create_mission_core_worktree_guard_bypass_is_behaviour_preserving(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_create_mission_core_worktree_guard_bypass_is_behaviour_preserving(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The opt-in bypass unblocks mission creation from a worktree-shaped cwd
     while every other guard and the resulting schema stay unchanged --
     proving the new entrypoint is behaviour-preserving (NFR-003), not a new

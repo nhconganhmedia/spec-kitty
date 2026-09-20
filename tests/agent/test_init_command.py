@@ -20,6 +20,7 @@ from specify_cli.cli.commands.init import register_init_command
 
 pytestmark = pytest.mark.fast
 
+
 @pytest.fixture()
 def cli_app(monkeypatch: pytest.MonkeyPatch) -> tuple[Typer, Console, list[str]]:
     console = Console(file=io.StringIO(), force_terminal=False)
@@ -117,9 +118,7 @@ def test_init_non_interactive_requires_ai(cli_app, monkeypatch: pytest.MonkeyPat
     assert "--ai is required in non-interactive mode" in console_output
 
 
-def test_init_non_interactive_no_project_name_defaults_to_current_directory(
-    cli_app, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-):
+def test_init_non_interactive_no_project_name_defaults_to_current_directory(cli_app, monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     app, console, _ = cli_app
     monkeypatch.chdir(tmp_path)
 
@@ -323,9 +322,7 @@ def test_init_gitattributes_merge_driver_keys_have_git_config_registrations(
     )
     assert result.exit_code == 0, result.output
 
-    attributes = (
-        tmp_path / "merge-driver-coverage-project" / ".gitattributes"
-    ).read_text(encoding="utf-8")
+    attributes = (tmp_path / "merge-driver-coverage-project" / ".gitattributes").read_text(encoding="utf-8")
 
     declared_keys = set(re.findall(r"\bmerge=(\S+)", attributes))
     assert declared_keys, "expected at least one merge=<key> attribute entry"

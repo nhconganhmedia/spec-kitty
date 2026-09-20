@@ -41,11 +41,7 @@ def _is_explicit_typer_setting(value: object) -> bool:
 
 
 def _with_short_help(context_settings: dict[str, object] | None | DefaultPlaceholder) -> dict[str, object]:
-    settings = (
-        {}
-        if isinstance(context_settings, DefaultPlaceholder) or context_settings is None
-        else dict(context_settings)
-    )
+    settings = {} if isinstance(context_settings, DefaultPlaceholder) or context_settings is None else dict(context_settings)
     settings["help_option_names"] = HELP_OPTION_NAMES
     return settings
 
@@ -173,9 +169,7 @@ def _is_live_work_hook_fast_path(argv: list[str]) -> bool:
     return len(args) >= 2 and args[0] == "live-work" and args[1] == "hook"
 
 
-_LIVE_WORK_GROUP_HELP = (
-    "Live Work harness capture: tools, files, tests and delegation as live relay frames (#4268)."
-)
+_LIVE_WORK_GROUP_HELP = "Live Work harness capture: tools, files, tests and delegation as live relay frames (#4268)."
 
 
 def register_commands(app: typer.Typer) -> None:
@@ -263,9 +257,7 @@ def register_commands(app: typer.Typer) -> None:
     app.add_typer(auth_module.app, name="auth", help="Authentication commands")
     app.add_typer(charter_module.app, name="charter")
     app.add_typer(context_module.app, name="context")
-    app.command(name="cutover-guard", help="Diff-scoped fail-closed cut-over gate (pre-merge required check).")(
-        cutover_guard_module.cutover_guard
-    )
+    app.command(name="cutover-guard", help="Diff-scoped fail-closed cut-over gate (pre-merge required check).")(cutover_guard_module.cutover_guard)
     app.command()(dashboard_module.dashboard)
     app.add_typer(doctor_module.app, name="doctor", help="Project health diagnostics")
     # CR-02 (mission charter-code-topology-01M152G1 S4): the `doctrine`
@@ -303,21 +295,13 @@ def register_commands(app: typer.Typer) -> None:
         help="Regenerate the committed generated agent-command + skill fixtures from source (#3447).",
     )(regen_module.regen)
     app.command()(merge_module.merge)
-    app.command(name="commit-guard-hook", hidden=True)(
-        commit_guard_hook_cmd_module.commit_guard_hook_cli
-    )
+    app.command(name="commit-guard-hook", hidden=True)(commit_guard_hook_cmd_module.commit_guard_hook_cli)
     app.command(name="merge-driver-event-log", hidden=True)(merge_driver_module.merge_driver_event_log)
     app.command(name="merge-driver-meta", hidden=True)(merge_driver_module.merge_driver_meta)
     app.command(name="merge-driver-traces", hidden=True)(merge_driver_module.merge_driver_traces)
-    app.command(name="merge-driver-acceptance-matrix", hidden=True)(
-        merge_driver_module.merge_driver_acceptance_matrix
-    )
-    app.command(name="merge-driver-issue-matrix", hidden=True)(
-        merge_driver_module.merge_driver_issue_matrix
-    )
-    app.command(name="merge-driver-review-cycle", hidden=True)(
-        merge_driver_module.merge_driver_review_cycle
-    )
+    app.command(name="merge-driver-acceptance-matrix", hidden=True)(merge_driver_module.merge_driver_acceptance_matrix)
+    app.command(name="merge-driver-issue-matrix", hidden=True)(merge_driver_module.merge_driver_issue_matrix)
+    app.command(name="merge-driver-review-cycle", hidden=True)(merge_driver_module.merge_driver_review_cycle)
     app.add_typer(migrate_module.app, name="migrate")
     app.add_typer(mission_module.app, name="mission")
     app.command(name="next")(next_cmd_module.next_step)
@@ -334,9 +318,7 @@ def register_commands(app: typer.Typer) -> None:
         reconcile_module.reconcile
     )
     app.command()(research_module.research)
-    app.command(
-        name="routes", help="Show which team admits this checkout and which relay carries its moments."
-    )(routes_module.routes)
+    app.command(name="routes", help="Show which team admits this checkout and which relay carries its moments.")(routes_module.routes)
     app.command(name="review")(review_module.review_mission)
     app.command(name="safe-commit")(safe_commit_module.safe_commit_command)
     app.command(name="spec-commit")(spec_commit_module.spec_commit_command)

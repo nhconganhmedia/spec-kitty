@@ -54,17 +54,13 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 def test_append_event_log_batch_deleted() -> None:
     """append_event_log_batch must not exist — it was deleted in WP09 (be932d19a)."""
     assert not hasattr(status_service, "append_event_log_batch"), (
-        "append_event_log_batch should have been deleted; re-introducing it would "
-        "resurrect a dead symbol."
+        "append_event_log_batch should have been deleted; re-introducing it would resurrect a dead symbol."
     )
 
 
 def test_read_wp_lane_actor_deleted() -> None:
     """read_wp_lane_actor must not exist — it was deleted in WP09 (be932d19a)."""
-    assert not hasattr(status_service, "read_wp_lane_actor"), (
-        "read_wp_lane_actor should have been deleted; re-introducing it would "
-        "resurrect a dead symbol."
-    )
+    assert not hasattr(status_service, "read_wp_lane_actor"), "read_wp_lane_actor should have been deleted; re-introducing it would resurrect a dead symbol."
 
 
 # ---------------------------------------------------------------------------
@@ -75,24 +71,21 @@ def test_read_wp_lane_actor_deleted() -> None:
 def test_status_read_source_not_in_all() -> None:
     """StatusReadSource is a live internal — not part of the public API surface."""
     assert "StatusReadSource" not in status_service.__all__, (
-        "StatusReadSource is an internal implementation detail of EventLogReadContract; "
-        "exporting it would widen the public surface incorrectly."
+        "StatusReadSource is an internal implementation detail of EventLogReadContract; exporting it would widen the public surface incorrectly."
     )
 
 
 def test_event_log_write_target_not_in_all() -> None:
     """EventLogWriteTarget is a live internal — not part of the public API surface."""
     assert "EventLogWriteTarget" not in status_service.__all__, (
-        "EventLogWriteTarget is an internal implementation detail of EventLogWriteContract; "
-        "exporting it would widen the public surface incorrectly."
+        "EventLogWriteTarget is an internal implementation detail of EventLogWriteContract; exporting it would widen the public surface incorrectly."
     )
 
 
 def test_status_contract_error_not_in_all() -> None:
     """StatusContractError is a live internal — not part of the public API surface."""
     assert "StatusContractError" not in status_service.__all__, (
-        "StatusContractError is raised by the live facade; it is an internal guard, "
-        "not a public contract type callers should import directly."
+        "StatusContractError is raised by the live facade; it is an internal guard, not a public contract type callers should import directly."
     )
 
 
@@ -128,8 +121,7 @@ def test_event_log_read_contract_source_field_type() -> None:
     # The dataclass stores the annotation as a string due to __future__.annotations;
     # accept either the string form or the live type itself.
     assert source_type in ("StatusReadSource", StatusReadSource), (
-        f"EventLogReadContract.source field type is {source_type!r}, "
-        "expected StatusReadSource — the enum is a live internal dependency."
+        f"EventLogReadContract.source field type is {source_type!r}, expected StatusReadSource — the enum is a live internal dependency."
     )
 
 
@@ -138,8 +130,7 @@ def test_event_log_write_contract_target_field_type() -> None:
     fields = EventLogWriteContract.__dataclass_fields__
     target_type = fields["target"].type
     assert target_type in ("EventLogWriteTarget", EventLogWriteTarget), (
-        f"EventLogWriteContract.target field type is {target_type!r}, "
-        "expected EventLogWriteTarget — the enum is a live internal dependency."
+        f"EventLogWriteContract.target field type is {target_type!r}, expected EventLogWriteTarget — the enum is a live internal dependency."
     )
 
 

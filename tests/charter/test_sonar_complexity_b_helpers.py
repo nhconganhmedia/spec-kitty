@@ -59,9 +59,7 @@ class TestInterviewMappingHelpers:
     ) -> None:
         snapshot: dict[str, Any] = {"testing_requirements": "pytest, coverage>=80%"}
 
-        _copy_alias_answer_into_canonical_section(
-            snapshot, "testing_philosophy", ("testing_requirements",)
-        )
+        _copy_alias_answer_into_canonical_section(snapshot, "testing_philosophy", ("testing_requirements",))
 
         assert snapshot["testing_philosophy"] == "pytest, coverage>=80%"
         assert "testing_requirements" not in snapshot
@@ -74,9 +72,7 @@ class TestInterviewMappingHelpers:
             "testing_requirements": "alias answer",
         }
 
-        _copy_alias_answer_into_canonical_section(
-            snapshot, "testing_philosophy", ("testing_requirements",)
-        )
+        _copy_alias_answer_into_canonical_section(snapshot, "testing_philosophy", ("testing_requirements",))
 
         # Canonical value wins and is left untouched; the alias key is still
         # removed since the section is now known to be non-blank.
@@ -88,9 +84,7 @@ class TestInterviewMappingHelpers:
     ) -> None:
         snapshot: dict[str, Any] = {"unrelated": "value"}
 
-        _copy_alias_answer_into_canonical_section(
-            snapshot, "testing_philosophy", ("testing_requirements",)
-        )
+        _copy_alias_answer_into_canonical_section(snapshot, "testing_philosophy", ("testing_requirements",))
 
         assert snapshot == {"unrelated": "value"}
 

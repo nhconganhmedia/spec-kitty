@@ -43,6 +43,7 @@ from charter.activation.synthesizer.synthesize_pipeline import canonical_yaml
 
 pytestmark = [pytest.mark.unit, pytest.mark.corpus]
 
+
 def _compute_manifest_hash(
     manifest: SynthesisManifest,
 ) -> str:
@@ -191,13 +192,7 @@ def test_manifest_rejects_unknown_top_level_fields(tmp_path: Path) -> None:
 
 def test_manifest_v2_schema_accepts_runtime_model_dump() -> None:
     """Runtime SynthesisManifest output must remain compatible with v2 schema."""
-    schema_path = (
-        Path(__file__).parents[3]
-        / "kitty-specs"
-        / "charter-p7-schema-versioning-provenance-01KQEG13"
-        / "contracts"
-        / "synthesis-manifest-v2.schema.yaml"
-    )
+    schema_path = Path(__file__).parents[3] / "kitty-specs" / "charter-p7-schema-versioning-provenance-01KQEG13" / "contracts" / "synthesis-manifest-v2.schema.yaml"
     schema = YAML(typ="safe").load(schema_path.read_text(encoding="utf-8"))
 
     # bundle_content_hash (WP01, synthesized-drg-stale-refresh) is an
@@ -451,9 +446,7 @@ def test_verify_accepts_manifest_paths_with_windows_separators(tmp_path: Path) -
                 kind="tactic",
                 slug="windows-path",
                 path=artifact_rel.replace("/", "\\"),
-                provenance_path=".kittify/charter/provenance/tactic-windows-path.yaml".replace(
-                    "/", "\\"
-                ),
+                provenance_path=".kittify/charter/provenance/tactic-windows-path.yaml".replace("/", "\\"),
                 content_hash=hashlib.sha256(artifact_path.read_bytes()).hexdigest(),  # noqa: TID251 — file-integrity checksum of an artifact file's on-disk bytes, not the charter.hasher.hash_content() freshness algorithm
             )
         ]
@@ -672,8 +665,7 @@ def test_verify_manifest_hash_discriminates_present_field_tamper(
         canonical_yaml(pop_list_subset)
     ).hexdigest()
     assert pop_list_computed == legacy_hash, (
-        "fixture invariant broken: a pop-list recompute must reproduce the "
-        "stored legacy hash for this test to actually discriminate"
+        "fixture invariant broken: a pop-list recompute must reproduce the stored legacy hash for this test to actually discriminate"
     )
 
     # The per-field shim, in contrast, must raise.

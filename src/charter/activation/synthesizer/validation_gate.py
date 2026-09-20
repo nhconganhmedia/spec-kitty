@@ -103,16 +103,8 @@ def _graph_excluding_preserved_conflicts(
     left untouched here and still fail ``validate_graph`` below (unchanged
     behavior — the hard error for a current run's own collision).
     """
-    preserved_dangling = {
-        c.target_id
-        for c in conflicts
-        if c.provenance == "preserved" and c.kind == "preserved_dangling_endpoint"
-    }
-    preserved_duplicate = {
-        c.target_id
-        for c in conflicts
-        if c.provenance == "preserved" and c.kind == "duplicate_triple"
-    }
+    preserved_dangling = {c.target_id for c in conflicts if c.provenance == "preserved" and c.kind == "preserved_dangling_endpoint"}
+    preserved_duplicate = {c.target_id for c in conflicts if c.provenance == "preserved" and c.kind == "duplicate_triple"}
     if not preserved_dangling and not preserved_duplicate:
         return graph
 
@@ -188,21 +180,13 @@ def validate(
         project_overlay = load_graph_or_dir(overlay_doctrine_dir)
     except DRGLoadError as exc:
         raise ProjectDRGValidationError(
-            errors=(
-                f"Could not load staged project overlay from "
-                f"{overlay_doctrine_dir}: {exc}",
-            ),
-            merged_graph_summary=(
-                f"staging_dir={staging_dir}, "
-                f"built_in_nodes={len(built_in_drg.nodes)}"
-            ),
+            errors=(f"Could not load staged project overlay from {overlay_doctrine_dir}: {exc}",),
+            merged_graph_summary=(f"staging_dir={staging_dir}, built_in_nodes={len(built_in_drg.nodes)}"),
         ) from exc
     except Exception as exc:  # noqa: BLE001
         raise ProjectDRGValidationError(
             errors=(f"Unexpected error loading overlay {overlay_doctrine_dir}: {exc}",),
-            merged_graph_summary=(
-                f"staging_dir={staging_dir}"
-            ),
+            merged_graph_summary=(f"staging_dir={staging_dir}"),
         ) from exc
 
     # --- Step 2: Merge layers (additive) -----------------------------------

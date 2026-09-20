@@ -51,10 +51,7 @@ def test_map_covers_every_canonical_verb(verb: str) -> None:
     updating task_class_map.py must fail this test."""
     from specify_cli.invocation.task_class_map import task_type_for_verb
 
-    assert task_type_for_verb(verb) is not None, (
-        f"canonical verb {verb!r} from DEFAULT_ROLE_CAPABILITIES has no "
-        "task_class_map entry"
-    )
+    assert task_type_for_verb(verb) is not None, f"canonical verb {verb!r} from DEFAULT_ROLE_CAPABILITIES has no task_class_map entry"
 
 
 def test_known_verbs_returns_exactly_the_maintained_namespace() -> None:

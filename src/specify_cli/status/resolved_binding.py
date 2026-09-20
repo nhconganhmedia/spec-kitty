@@ -77,16 +77,8 @@ class ResolvedBinding:
         """
         return WPInnerStateDelta(
             role=role,
-            agent_profile=(
-                self.agent_profile
-                if self.agent_profile is not None
-                else RESOLVED_PROFILE_ABSENT
-            ),
-            agent_profile_version=(
-                self.agent_profile_version
-                if self.agent_profile_version is not None
-                else RESOLVED_PROFILE_VERSION_ABSENT
-            ),
+            agent_profile=(self.agent_profile if self.agent_profile is not None else RESOLVED_PROFILE_ABSENT),
+            agent_profile_version=(self.agent_profile_version if self.agent_profile_version is not None else RESOLVED_PROFILE_VERSION_ABSENT),
             model=self.model if self.model is not None else RESOLVED_MODEL_ABSENT,
             provider=self.provider if self.provider is not None else RESOLVED_PROVIDER_ABSENT,
         )

@@ -150,15 +150,8 @@ def test_blocked_reason_enumerates_all_non_passing_checks(tmp_path: Path) -> Non
         # Two of these three checks (charter_source invalid, synced_bundle
         # stale) are now exempt (C-EFF-2) and carry no command, so a fallback
         # here would re-assert the removed behaviour and pass vacuously.
-        expected_line = (
-            f"{check.name} {check.state}; run `{check.remediation}`"
-            if check.remediation
-            else f"{check.name} {check.state}: {check.detail}"
-        )
-        assert expected_line in result.blocked_reason, (
-            f"expected {check.name!r} to be enumerated in blocked_reason, "
-            f"got: {result.blocked_reason!r}"
-        )
+        expected_line = f"{check.name} {check.state}; run `{check.remediation}`" if check.remediation else f"{check.name} {check.state}: {check.detail}"
+        assert expected_line in result.blocked_reason, f"expected {check.name!r} to be enumerated in blocked_reason, got: {result.blocked_reason!r}"
     # The exemption must not cost the operator the diagnostic — every
     # non-passing check is still named, with or without a command.
     for check in non_passing:
@@ -323,10 +316,7 @@ def test_c004_fence_analysis_report_not_invoked(tmp_path: Path, monkeypatch: pyt
     import specify_cli.analysis_report as analysis_report_module
 
     def _must_not_be_called(*args: object, **kwargs: object) -> None:
-        raise AssertionError(
-            "check_analysis_report_current must not be invoked by charter "
-            "preflight (#2157a/#2157b fence)"
-        )
+        raise AssertionError("check_analysis_report_current must not be invoked by charter preflight (#2157a/#2157b fence)")
 
     monkeypatch.setattr(analysis_report_module, "check_analysis_report_current", _must_not_be_called)
 

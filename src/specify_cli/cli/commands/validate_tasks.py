@@ -29,9 +29,7 @@ def _normalize_mission_option(value: object) -> str | None:
 
 
 def validate_tasks(
-    mission: str | None = typer.Option(
-        None, "--mission", help="Mission slug to validate"
-    ),
+    mission: str | None = typer.Option(None, "--mission", help="Mission slug to validate"),
     fix: bool = typer.Option(False, "--fix", help="Automatically repair metadata inconsistencies"),
     check_all: bool = typer.Option(False, "--all", help="Check all features, not just one"),
     agent: str | None = typer.Option(None, "--agent", help="Agent name for activity log"),
@@ -86,18 +84,14 @@ def validate_tasks(
         total_fixed = 0
 
         for feature_dir in sorted(feature_dirs, key=lambda d: d.name):
-            mismatches, fixed = _validate_feature_tasks(
-                feature_dir, fix=fix, agent=agent, shell_pid=shell_pid
-            )
+            mismatches, fixed = _validate_feature_tasks(feature_dir, fix=fix, agent=agent, shell_pid=shell_pid)
             total_mismatches += mismatches
             total_fixed += fixed
 
         console.print()
         console.print(
             Panel(
-                f"[bold]Summary:[/bold]\n"
-                f"Total mismatches found: [yellow]{total_mismatches}[/yellow]\n"
-                f"Total mismatches fixed: [green]{total_fixed}[/green]",
+                f"[bold]Summary:[/bold]\nTotal mismatches found: [yellow]{total_mismatches}[/yellow]\nTotal mismatches fixed: [green]{total_fixed}[/green]",
                 title="Task Metadata Validation Complete",
                 border_style="cyan" if total_mismatches == 0 else "yellow",
             )
@@ -119,9 +113,7 @@ def validate_tasks(
         placement_seam,
     )
 
-    planning_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.WORK_PACKAGE_TASK
-    )
+    planning_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
     if not planning_dir.exists():
         console.print(f"[red]Error:[/red] Feature directory not found: {planning_dir}")
         raise typer.Exit(1)
@@ -129,9 +121,7 @@ def validate_tasks(
     console.print(f"[cyan]Validating task metadata for feature:[/cyan] {mission_slug}")
     console.print()
 
-    mismatches, fixed = _validate_feature_tasks(
-        planning_dir, fix=fix, agent=agent, shell_pid=shell_pid
-    )
+    mismatches, fixed = _validate_feature_tasks(planning_dir, fix=fix, agent=agent, shell_pid=shell_pid)
 
     if mismatches == 0:
         console.print("[green]✓ All task metadata is consistent![/green]")
@@ -190,9 +180,7 @@ def _validate_feature_tasks(
 
         status = "[yellow]Needs Fix[/yellow]"
         if fix:
-            was_repaired, error = repair_lane_mismatch(
-                full_path, agent=agent, shell_pid=shell_pid, add_history=True, dry_run=False
-            )
+            was_repaired, error = repair_lane_mismatch(full_path, agent=agent, shell_pid=shell_pid, add_history=True, dry_run=False)
             if was_repaired:
                 status = "[green]Fixed[/green]"
                 fixed_count += 1

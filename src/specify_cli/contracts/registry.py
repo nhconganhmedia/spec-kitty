@@ -286,19 +286,13 @@ def _reject_positional_anchors(prefix: str, obj: object, errors: list[str]) -> N
     if isinstance(obj, dict):
         for key, value in obj.items():
             if isinstance(key, str) and key in FORBIDDEN_POSITIONAL_FIELDS:
-                errors.append(
-                    f"{prefix}.{key}: positional 'file:line' anchoring is forbidden "
-                    f"(NFR-003/DIR-041) — anchor on a dotted symbol or a fixed literal"
-                )
+                errors.append(f"{prefix}.{key}: positional 'file:line' anchoring is forbidden (NFR-003/DIR-041) — anchor on a dotted symbol or a fixed literal")
             _reject_positional_anchors(f"{prefix}.{key}", value, errors)
     elif isinstance(obj, list):
         for i, item in enumerate(obj):
             _reject_positional_anchors(f"{prefix}[{i}]", item, errors)
     elif isinstance(obj, str) and is_file_line_anchor(obj):
-        errors.append(
-            f"{prefix}: value {obj!r} is a positional 'file:line' anchor, which is "
-            f"forbidden (NFR-003/DIR-041) — anchor on content, never a line number"
-        )
+        errors.append(f"{prefix}: value {obj!r} is a positional 'file:line' anchor, which is forbidden (NFR-003/DIR-041) — anchor on content, never a line number")
 
 
 def _validate_literal_entry(prefix: str, entry: object, errors: list[str]) -> None:

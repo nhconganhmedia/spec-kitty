@@ -211,9 +211,7 @@ def test_populated_activation_stem_resolves_directive_delegation(tmp_path: Path)
     directive delegation candidate (a config stem) resolves to its canonical
     URN -- the named observable proving the WP01 fix reaches this consumer."""
     repo_root, contract_repo = _setup(tmp_path)
-    ctx = _pack_context(
-        activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=repo_root
-    )
+    ctx = _pack_context(activated_directives=frozenset({_REAL_DIRECTIVE_STEM}), repo_root=repo_root)
 
     result = _run_directive_composer(repo_root, contract_repo, pack_context=ctx)
 
@@ -236,9 +234,7 @@ def test_none_activation_matches_no_filter_at_all(tmp_path: Path) -> None:
     repo_root, contract_repo = _setup(tmp_path)
 
     none_per_kind_ctx = _pack_context(activated_directives=None, repo_root=repo_root)
-    with_default_allow_pack_context = _run_directive_composer(
-        repo_root, contract_repo, pack_context=none_per_kind_ctx
-    )
+    with_default_allow_pack_context = _run_directive_composer(repo_root, contract_repo, pack_context=none_per_kind_ctx)
 
     with patch("charter.activation.pack_context.PackContext.from_config", return_value=None):
         no_pack_context_at_all = StepContractExecutor(
@@ -258,11 +254,7 @@ def test_none_activation_matches_no_filter_at_all(tmp_path: Path) -> None:
     resolved_a = [d.urn for d in with_default_allow_pack_context.steps[0].resolved_delegations]
     resolved_b = [d.urn for d in no_pack_context_at_all.steps[0].resolved_delegations]
     assert resolved_a == resolved_b == [_REAL_DIRECTIVE_CANONICAL_URN]
-    assert (
-        with_default_allow_pack_context.steps[0].unresolved_candidates
-        == no_pack_context_at_all.steps[0].unresolved_candidates
-        == ()
-    )
+    assert with_default_allow_pack_context.steps[0].unresolved_candidates == no_pack_context_at_all.steps[0].unresolved_candidates == ()
 
 
 # ---------------------------------------------------------------------------

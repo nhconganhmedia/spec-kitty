@@ -239,9 +239,7 @@ def _heal_duplicate_key_artifacts(
     from specify_cli.status import DuplicateKeyRepairError
 
     try:
-        report = repair_duplicate_key_artifacts(
-            repo_root, scan_root=fixture_dir, allow_dirty=allow_dirty
-        )
+        report = repair_duplicate_key_artifacts(repo_root, scan_root=fixture_dir, allow_dirty=allow_dirty)
     except (DuplicateKeyRepairError, MissionStateRepairError) as exc:
         if json_output:
             _emit_json_error("DUPLICATE_KEY_REPAIR_FAILED", message=str(exc))
@@ -251,10 +249,7 @@ def _heal_duplicate_key_artifacts(
 
     healed = sum(len(result.file_changes) for result in report.missions)
     if healed and not json_output:
-        console.print(
-            f"[green]Healed {healed} duplicate-key artifact(s)[/green] "
-            f"(keep-last-non-empty). Manifest: {report.manifest_path}"
-        )
+        console.print(f"[green]Healed {healed} duplicate-key artifact(s)[/green] (keep-last-non-empty). Manifest: {report.manifest_path}")
 
 
 def _run_mission_repair(
@@ -352,20 +347,13 @@ def _run_teamspace_dry_run_mode(
         # so attribute access type-checks without per-line suppressions.
         report = cast(TeamspaceDryRunReport, r)
         if report.valid:
-            console.print(
-                "[green]TeamSpace dry-run valid[/green] "
-                f"({report.envelope_count} envelopes, "
-                f"spec-kitty-events {report.events_package_version})."
-            )
+            console.print(f"[green]TeamSpace dry-run valid[/green] ({report.envelope_count} envelopes, spec-kitty-events {report.events_package_version}).")
         else:
             # ADDITIVE (FR-007/OUT-2): keep the count header, then name each
             # affected mission + reason so triage needs no gitignored read
             # (NFR-003). Does NOT touch the ``report.valid`` gate or the Exit(1)
             # refusal below (C-006 / ADR 2026-05-10-1).
-            console.print(
-                "[red]TeamSpace dry-run failed[/red] "
-                f"({len(report.errors)} validation issues)."
-            )
+            console.print(f"[red]TeamSpace dry-run failed[/red] ({len(report.errors)} validation issues).")
             for entry in report.errors:
                 console.print(_format_dry_run_error(entry), soft_wrap=True)
 
@@ -483,9 +471,7 @@ def _refuse_foreign_lane_fix(resolved_root: Path) -> None:
         raise typer.Exit(1) from exc
 
 
-def _surface_audit_disagreement(
-    resolved_root: Path, mission: str | None, json_output: bool
-) -> bool:
+def _surface_audit_disagreement(resolved_root: Path, mission: str | None, json_output: bool) -> bool:
     """Report an honest invoking-checkout-vs-primary disagreement for ``--audit``.
 
     Returns ``True`` when a disagreement was found (the caller then fails closed
@@ -498,9 +484,7 @@ def _surface_audit_disagreement(
         audit_invocation_disagreement,
     )
 
-    disagreements: list[CheckoutDisagreement] = audit_invocation_disagreement(
-        Path.cwd(), resolved_root, mission=mission
-    )
+    disagreements: list[CheckoutDisagreement] = audit_invocation_disagreement(Path.cwd(), resolved_root, mission=mission)
     if not disagreements:
         return False
     if json_output:
@@ -522,9 +506,7 @@ def _surface_audit_disagreement(
             "(NOT a false-green from reading the primary at both ends):"
         )
         for item in disagreements:
-            console.print(
-                f"  - {item.mission_slug}/{item.artifact}: invoking != primary"
-            )
+            console.print(f"  - {item.mission_slug}/{item.artifact}: invoking != primary")
     return True
 
 
@@ -551,9 +533,7 @@ def run_mission_state(
     """
     mode = _validate_modes(audit, fix, teamspace_dry_run)
     fail_on_severity, fail_on_teamspace_blocker = _resolve_fail_on(fail_on)
-    resolved_root, resolved_fixture_dir = _resolve_audit_root(
-        fixture_dir, include_fixtures, repo_root, json_output=json_output
-    )
+    resolved_root, resolved_fixture_dir = _resolve_audit_root(fixture_dir, include_fixtures, repo_root, json_output=json_output)
 
     # Unify audit + fix on ONE canonical-root authority (#2320 follow-up). The
     # ``--fix`` path already re-anchors to the primary main-checkout inside
@@ -576,18 +556,12 @@ def run_mission_state(
     if mode == _MissionStateMode.FIX:
         if resolved_fixture_dir is None:
             _refuse_foreign_lane_fix(resolved_root)
-        _run_mission_repair(
-            resolved_root, resolved_fixture_dir, mission, manifest_path, allow_dirty, json_output
-        )
+        _run_mission_repair(resolved_root, resolved_fixture_dir, mission, manifest_path, allow_dirty, json_output)
         return
     if mode == _MissionStateMode.TEAMSPACE_DRY_RUN:
         _run_teamspace_dry_run_mode(resolved_root, resolved_fixture_dir, mission, json_output)
         return
-    disagreement = (
-        _surface_audit_disagreement(resolved_root, mission, json_output)
-        if resolved_fixture_dir is None
-        else False
-    )
+    disagreement = _surface_audit_disagreement(resolved_root, mission, json_output) if resolved_fixture_dir is None else False
     _run_audit_mode(
         resolved_root,
         resolved_fixture_dir,

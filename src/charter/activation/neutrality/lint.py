@@ -26,7 +26,6 @@ __all__ = [
 ]
 
 
-
 # ---------------------------------------------------------------------------
 # Public data classes
 # ---------------------------------------------------------------------------
@@ -239,10 +238,7 @@ def _scan_literal_matches(
     hits: list[BannedTermHit] = []
     if not term.case_sensitive:
         assert term.compiled is not None
-        return [
-            _make_hit(repo_relative, lineno, match.start() + 1, term, match.group(0))
-            for match in term.compiled.finditer(line_text)
-        ]
+        return [_make_hit(repo_relative, lineno, match.start() + 1, term, match.group(0)) for match in term.compiled.finditer(line_text)]
 
     idx = 0
     while True:

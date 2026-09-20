@@ -65,7 +65,7 @@ pytestmark = [pytest.mark.fast]
 # Realistic test constants (NFR-005)
 # ---------------------------------------------------------------------------
 _FULL_ULID: str = "01KVJPEQ3FHVK9MXW7ZB2CDNRT"
-_MID8: str = _FULL_ULID[:8]                      # "01KVJPEQ"
+_MID8: str = _FULL_ULID[:8]  # "01KVJPEQ"
 _BARE_SLUG: str = "create-window-proof"
 # Post-WP03 canonical dir name: <slug>-<mid8>
 _MISSION_DIR: str = f"{_BARE_SLUG}-{_MID8}"
@@ -75,6 +75,7 @@ _COORD_BRANCH: str = f"kitty/mission-{_MISSION_DIR}"
 # ---------------------------------------------------------------------------
 # Fixture builder: declared-but-NOT-materialised coord topology
 # ---------------------------------------------------------------------------
+
 
 def _build_declared_unmaterialised_coord(repo_root: Path) -> tuple[Path, Path]:
     """Create a mission whose primary meta DECLARES a coord branch but the worktree is absent.
@@ -148,6 +149,7 @@ def _build_declared_unmaterialised_coord(repo_root: Path) -> tuple[Path, Path]:
 # T023 — Positive contract: bare slug + declared-unmaterialised coord → PRIMARY
 # ---------------------------------------------------------------------------
 
+
 class TestCreateWindowInvariant:
     """T023: declared-but-unmaterialised coord + bare slug resolves PRIMARY.
 
@@ -158,9 +160,7 @@ class TestCreateWindowInvariant:
     because the coord worktree root DOES NOT EXIST on disk.
     """
 
-    def test_bare_slug_declared_unmaterialised_resolves_primary(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bare_slug_declared_unmaterialised_resolves_primary(self, tmp_path: Path) -> None:
         """Core invariant: bare slug + declared-but-not-on-disk coord → PRIMARY dir."""
         from specify_cli.missions._read_path_resolver import resolve_handle_to_read_path
 
@@ -181,17 +181,12 @@ class TestCreateWindowInvariant:
         )
 
         # Confirm the coord path was NOT returned.
-        assert resolved != coord_path, (
-            f"Seam returned the coord path {coord_path!r} even though the coord "
-            f"worktree is not materialised on disk — #1718 regression."
-        )
+        assert resolved != coord_path, f"Seam returned the coord path {coord_path!r} even though the coord worktree is not materialised on disk — #1718 regression."
 
         # Confirm the coord path does not exist (structural sanity).
         assert not coord_path.exists(), "Test setup error: coord path must not exist"
 
-    def test_mid8_is_provable_yet_primary_is_returned(
-        self, tmp_path: Path
-    ) -> None:
+    def test_mid8_is_provable_yet_primary_is_returned(self, tmp_path: Path) -> None:
         """Provability of mid8 is ORTHOGONAL to the create-window→primary contract.
 
         The seam DOES derive a non-empty mid8 (mid8 lives in the primary meta).
@@ -206,25 +201,21 @@ class TestCreateWindowInvariant:
         # Step 1: confirm mid8 IS provable from the meta.
         meta = json.loads((primary_dir / "meta.json").read_text(encoding="utf-8"))
         derived_mid8 = resolve_declared_mid8(meta, _BARE_SLUG)
-        assert derived_mid8 == _MID8, (
-            f"Mid8 not derived from meta — test setup error. Got {derived_mid8!r}"
-        )
+        assert derived_mid8 == _MID8, f"Mid8 not derived from meta — test setup error. Got {derived_mid8!r}"
 
         # Step 2: despite a provable mid8, the seam returns the PRIMARY dir
         # (not the coord path) because the coord worktree is absent on disk.
         resolved = resolve_handle_to_read_path(tmp_path, _BARE_SLUG)
         assert resolved == primary_dir, (
-            f"Seam returned {resolved!r} instead of primary {primary_dir!r} "
-            f"even though mid8={derived_mid8!r} is provable and coord is absent."
+            f"Seam returned {resolved!r} instead of primary {primary_dir!r} even though mid8={derived_mid8!r} is provable and coord is absent."
         )
-        assert resolved.exists(), (
-            f"Seam returned a non-existent path {resolved!r}; primary must exist."
-        )
+        assert resolved.exists(), f"Seam returned a non-existent path {resolved!r}; primary must exist."
 
 
 # ---------------------------------------------------------------------------
 # T023 — Mutation guard: resolve_status_surface_with_anchor fails the contract
 # ---------------------------------------------------------------------------
+
 
 class TestCreateWindowMutationGuard:
     """Mutation guard: if the seam used ``resolve_status_surface_with_anchor``
@@ -243,9 +234,7 @@ class TestCreateWindowMutationGuard:
     wrong function is substituted — that is the mutation guard's bite.
     """
 
-    def test_surface_with_anchor_does_not_return_primary_in_create_window(
-        self, tmp_path: Path
-    ) -> None:
+    def test_surface_with_anchor_does_not_return_primary_in_create_window(self, tmp_path: Path) -> None:
         """Demonstrate that ``resolve_status_surface_with_anchor`` returns a different
         result than the correct seam in the create-window.
 
@@ -274,9 +263,7 @@ class TestCreateWindowMutationGuard:
         else:
             # Leg (b): a returned result must FAIL the correct seam's contract.
             wrong_result = surface.surface_path.parent
-            satisfies_correct_contract = (
-                wrong_result == primary_dir and wrong_result.exists()
-            )
+            satisfies_correct_contract = wrong_result == primary_dir and wrong_result.exists()
             assert not satisfies_correct_contract, (
                 f"resolve_status_surface_with_anchor unexpectedly satisfied the "
                 f"correct seam's create-window contract (== primary AND exists) — "
@@ -295,18 +282,11 @@ class TestCreateWindowMutationGuard:
         resolved = resolve_handle_to_read_path(tmp_path, _BARE_SLUG)
 
         # Must exist (the correct seam returns the existing primary).
-        assert resolved.exists(), (
-            f"Seam returned a non-existent path {resolved!r} — "
-            f"would indicate the coord path was composed instead of primary."
-        )
+        assert resolved.exists(), f"Seam returned a non-existent path {resolved!r} — would indicate the coord path was composed instead of primary."
         # Must equal the primary dir.
-        assert resolved == primary_dir, (
-            f"Seam returned {resolved!r} instead of existing primary {primary_dir!r}."
-        )
+        assert resolved == primary_dir, f"Seam returned {resolved!r} instead of existing primary {primary_dir!r}."
         # The wrong path (coord) must NOT be returned.
-        assert resolved != coord_path, (
-            f"Seam returned the coord path {coord_path!r} — #1718 regression."
-        )
+        assert resolved != coord_path, f"Seam returned the coord path {coord_path!r} — #1718 regression."
 
 
 # ---------------------------------------------------------------------------
@@ -337,9 +317,7 @@ class TestCreateWindowCommitBoundaryNFR001:
     orthogonal — it tests WHEN materialisation occurs, not WHICH seam is used.
     """
 
-    def test_read_resolves_primary_before_commit_boundary(
-        self, tmp_path: Path
-    ) -> None:
+    def test_read_resolves_primary_before_commit_boundary(self, tmp_path: Path) -> None:
         """NFR-001: in the create window, reads resolve to PRIMARY (materialisation not triggered).
 
         Layout:
@@ -360,20 +338,14 @@ class TestCreateWindowCommitBoundaryNFR001:
         resolved = resolve_handle_to_read_path(tmp_path, _BARE_SLUG)
 
         # NFR-001 assertion 1: read returns PRIMARY (not coord).
-        assert resolved == primary_dir, (
-            f"NFR-001 (#1718): read in create window returned {resolved!r} "
-            f"instead of primary {primary_dir!r}."
-        )
+        assert resolved == primary_dir, f"NFR-001 (#1718): read in create window returned {resolved!r} instead of primary {primary_dir!r}."
 
         # NFR-001 assertion 2: coord worktree was NOT materialised by the read.
         assert not coord_root.exists(), (
-            "NFR-001 (#1718): read operation materialised the coord worktree - "
-            "materialisation must only occur at the COMMIT boundary, not at read time."
+            "NFR-001 (#1718): read operation materialised the coord worktree - materialisation must only occur at the COMMIT boundary, not at read time."
         )
 
-    def test_materialisation_occurs_at_commit_boundary_not_read_time(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_materialisation_occurs_at_commit_boundary_not_read_time(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-001: commit_for_mission IS the commit boundary - materialisation occurs here.
 
         We use a spy on CoordinationWorkspace.resolve to confirm:
@@ -401,9 +373,7 @@ class TestCreateWindowCommitBoundaryNFR001:
             materialise_calls.append((str(repo_root), str(slug), str(mid8)))
             return _real_resolve(repo_root, slug, mid8)
 
-        monkeypatch.setattr(
-            ws_module.CoordinationWorkspace, "resolve", staticmethod(_spy_resolve)
-        )
+        monkeypatch.setattr(ws_module.CoordinationWorkspace, "resolve", staticmethod(_spy_resolve))
         monkeypatch.delenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", raising=False)
 
         # Phase 1: READ in create window - must NOT materialise.
@@ -430,15 +400,19 @@ class TestCreateWindowCommitBoundaryNFR001:
         report_path = primary_dir / "acceptance-matrix.json"
         report_path.write_text("{}\n", encoding="utf-8")
 
-        with patch(
-            "specify_cli.coordination.commit_router.resolve_placement_only",
-            lambda _root, _slug, *, kind: CommitTarget(ref=_coord_branch),
-        ), patch(
-            "specify_cli.coordination.commit_router._resolve_mission_target_branch",
-            lambda _root, _slug: "main",
-        ), patch(
-            "specify_cli.coordination.commit_router._resolve_mid8",
-            lambda _root, _slug: _MID8,
+        with (
+            patch(
+                "specify_cli.coordination.commit_router.resolve_placement_only",
+                lambda _root, _slug, *, kind: CommitTarget(ref=_coord_branch),
+            ),
+            patch(
+                "specify_cli.coordination.commit_router._resolve_mission_target_branch",
+                lambda _root, _slug: "main",
+            ),
+            patch(
+                "specify_cli.coordination.commit_router._resolve_mid8",
+                lambda _root, _slug: _MID8,
+            ),
         ):
             # Phase 2: COMMIT boundary - materialisation MUST occur here.
             #

@@ -32,6 +32,7 @@ from specify_cli.upgrade.migrations.m_0_8_0_worktree_agents_symlink import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 @pytest.fixture
 def migration() -> WorktreeAgentsSymlinkMigration:
     """Return a fresh migration instance for each test."""
@@ -113,9 +114,7 @@ def test_migration_symlink_fallback_copies_file_when_symlink_raises(
     assert wt_agents.read_text(encoding="utf-8") == source_content
 
     # Assert — changes list carries the fallback marker
-    assert any("(symlink failed)" in entry for entry in result.changes_made), (
-        f"Expected '(symlink failed)' in changes_made; got: {result.changes_made}"
-    )
+    assert any("(symlink failed)" in entry for entry in result.changes_made), f"Expected '(symlink failed)' in changes_made; got: {result.changes_made}"
 
 
 # ---------------------------------------------------------------------------
@@ -153,9 +152,7 @@ def test_migration_dual_failure_records_error_when_copy2_also_raises(
 
     # Assert — result-level
     assert result.success is False
-    assert any("copy also failed:" in entry for entry in result.errors), (
-        f"Expected 'copy also failed:' in errors; got: {result.errors}"
-    )
+    assert any("copy also failed:" in entry for entry in result.errors), f"Expected 'copy also failed:' in errors; got: {result.errors}"
 
     # Assert — no AGENTS.md was created in the worktree
     wt_agents = worktree / ".kittify" / "AGENTS.md"

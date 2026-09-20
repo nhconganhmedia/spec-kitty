@@ -122,13 +122,7 @@ def test_target_bookkeeping_paths_use_primary_checkout_for_coord_surface(
 ) -> None:
     """Regression: final target commit stages primary paths, never .worktrees paths."""
     mission_slug = "coord-bookkeeping-01KV1956"
-    coord_feature_dir = (
-        tmp_path
-        / ".worktrees"
-        / f"{mission_slug}-coord"
-        / "kitty-specs"
-        / mission_slug
-    )
+    coord_feature_dir = tmp_path / ".worktrees" / f"{mission_slug}-coord" / "kitty-specs" / mission_slug
 
     events_path, status_path = _target_bookkeeping_status_paths(
         main_repo=tmp_path,
@@ -192,8 +186,7 @@ def test_merge_ready_lanes_approved_and_done_only() -> None:
 
     # is_terminal covers done|canceled — that's cleanup logic, not merge-readiness
     # approved is merge-ready but NOT terminal
-    assert not is_terminal(Lane.APPROVED.value), \
-        "approved must NOT be terminal — merge-readiness is a distinct concept"
+    assert not is_terminal(Lane.APPROVED.value), "approved must NOT be terminal — merge-readiness is a distinct concept"
 
     # canceled is terminal but NOT merge-ready
     # This is the key distinction: if we used is_terminal for merge-readiness,
@@ -214,13 +207,11 @@ def test_merge_ready_lanes_approved_and_done_only() -> None:
         Lane.APPROVED: True,
         Lane.DONE: True,
         Lane.BLOCKED: False,
-        Lane.CANCELED: False,   # terminal but NOT merge-ready!
+        Lane.CANCELED: False,  # terminal but NOT merge-ready!
     }
     for lane, should_be_ready in expected.items():
         is_ready = lane in _MERGE_READY
-        assert is_ready == should_be_ready, (
-            f"Lane {lane.value}: expected merge-ready={should_be_ready}, got {is_ready}"
-        )
+        assert is_ready == should_be_ready, f"Lane {lane.value}: expected merge-ready={should_be_ready}, got {is_ready}"
 
 
 def test_canceled_is_not_merge_ready_even_though_terminal() -> None:
@@ -230,8 +221,7 @@ def test_canceled_is_not_merge_ready_even_though_terminal() -> None:
     assert is_terminal(Lane.CANCELED.value), "canceled is terminal"
     # Explicit approved|done check: canceled is excluded
     _MERGE_READY = frozenset({Lane.APPROVED, Lane.DONE})
-    assert Lane.CANCELED not in _MERGE_READY, \
-        "canceled must NOT be in merge-ready set (approved|done)"
+    assert Lane.CANCELED not in _MERGE_READY, "canceled must NOT be in merge-ready set (approved|done)"
 
 
 # ---------------------------------------------------------------------------
@@ -256,9 +246,7 @@ def test_assert_merged_wps_reached_done_passes_when_all_done(tmp_path: Path) -> 
     _assert_merged_wps_reached_done(tmp_path, mission_slug, ["WP01", "WP02"])
 
 
-def test_assert_merged_wps_reached_done_raises_when_wp_not_done(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_assert_merged_wps_reached_done_raises_when_wp_not_done(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """WP not in done → typer.Exit(1) raised."""
     mission_slug = "080-test-feature"
     feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -288,9 +276,7 @@ def test_assert_merged_wps_reached_done_raises_when_wp_not_done(
         _assert_merged_wps_reached_done(tmp_path, mission_slug, ["WP01", "WP02"])
 
 
-def test_assert_merged_wps_reached_done_includes_lane_value_in_error(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_assert_merged_wps_reached_done_includes_lane_value_in_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Error message includes WP id and current lane value (not raw string)."""
     mission_slug = "080-test-feature"
     feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -323,9 +309,7 @@ def test_assert_merged_wps_reached_done_includes_lane_value_in_error(
 # ---------------------------------------------------------------------------
 
 
-def test_mark_wp_merged_done_emits_done_when_lane_is_approved(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mark_wp_merged_done_emits_done_when_lane_is_approved(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """_mark_wp_merged_done emits done transition when WP is in approved lane."""
     mission_slug = "080-test-feature"
     feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -352,9 +336,7 @@ def test_mark_wp_merged_done_emits_done_when_lane_is_approved(
     assert emit_calls[0].actor == "merge"
 
 
-def test_mark_wp_merged_done_skips_when_already_done(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mark_wp_merged_done_skips_when_already_done(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """_mark_wp_merged_done is idempotent when WP is already in done lane."""
     mission_slug = "080-test-feature"
     feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -375,9 +357,7 @@ def test_mark_wp_merged_done_skips_when_already_done(
     emit_mock.assert_not_called()
 
 
-def test_mark_wp_merged_done_skips_when_no_approval_metadata_for_non_approved(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mark_wp_merged_done_skips_when_no_approval_metadata_for_non_approved(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """_mark_wp_merged_done warns and returns if WP is in_progress with no evidence."""
     mission_slug = "080-test-feature"
     feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -402,6 +382,7 @@ def test_mark_wp_merged_done_skips_when_no_approval_metadata_for_non_approved(
 # ---------------------------------------------------------------------------
 # T006: merge --abort cleanup tests (WP01)
 # ---------------------------------------------------------------------------
+
 
 def test_abort_clears_lock_and_state(tmp_path: Path) -> None:
     """--abort removes the global lock file and legacy merge-state JSON when both exist."""
@@ -441,9 +422,7 @@ def test_abort_idempotent(tmp_path: Path) -> None:
     with patch("specify_cli.cli.commands.merge.find_repo_root", return_value=tmp_path):
         result = runner.invoke(app, ["--abort"])
 
-    assert result.exit_code == 0, (
-        f"Expected exit 0 on idempotent abort, got {result.exit_code}\nOutput: {result.output}"
-    )
+    assert result.exit_code == 0, f"Expected exit 0 on idempotent abort, got {result.exit_code}\nOutput: {result.output}"
 
 
 # ---------------------------------------------------------------------------
@@ -467,21 +446,20 @@ def coord_branch_mission(tmp_path: Path) -> dict[str, Any]:
     primary_dir = tmp_path / "kitty-specs" / _COORD_SLUG_M
     primary_dir.mkdir(parents=True)
     (primary_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": _COORD_MISSION_ID_M,
-            "mission_slug": _COORD_SLUG_M,
-            "slug": _COORD_SLUG_M,
-            "coordination_branch": coord_branch,
-            "target_branch": "main",
-        }),
+        json.dumps(
+            {
+                "mission_id": _COORD_MISSION_ID_M,
+                "mission_slug": _COORD_SLUG_M,
+                "slug": _COORD_SLUG_M,
+                "coordination_branch": coord_branch,
+                "target_branch": "main",
+            }
+        ),
         encoding="utf-8",
     )
 
     coord_dir_name = f"{_COORD_SLUG_M}-{mid8}"
-    coord_specs = (
-        tmp_path / ".worktrees" / f"{coord_dir_name}-coord"
-        / "kitty-specs" / coord_dir_name
-    )
+    coord_specs = tmp_path / ".worktrees" / f"{coord_dir_name}-coord" / "kitty-specs" / coord_dir_name
     coord_specs.mkdir(parents=True)
     coord_events = coord_specs / "status.events.jsonl"
     coord_events.write_text("", encoding="utf-8")
@@ -573,10 +551,10 @@ def test_validate_mission_slug_delegates_to_canonical_validator() -> None:
 def test_validate_mission_slug_accepts_real_format_slugs() -> None:
     """Real-format slugs (full ULID, slug-mid8, numeric-prefix, bare mid8) are accepted."""
     valid_slugs = [
-        "01KVBBT6FEQ01NHNSQD7X8JTPE",   # full 26-char ULID
-        "canonical-seams-01KVBBT6",       # slug-mid8 dir name
-        "034-my-feature-slug",             # numeric-prefix
-        "01KVBBT6",                        # bare mid8
+        "01KVBBT6FEQ01NHNSQD7X8JTPE",  # full 26-char ULID
+        "canonical-seams-01KVBBT6",  # slug-mid8 dir name
+        "034-my-feature-slug",  # numeric-prefix
+        "01KVBBT6",  # bare mid8
         "valid-slug-with-hyphens",
     ]
     for slug in valid_slugs:
@@ -589,8 +567,7 @@ def test_dead_constant_mission_slug_re_removed() -> None:
     import specify_cli.cli.commands.merge as merge_module
 
     assert not hasattr(merge_module, "_MISSION_SLUG_PATH_SEGMENT_RE"), (
-        "_MISSION_SLUG_PATH_SEGMENT_RE must be removed from merge.py after delegating to "
-        "assert_safe_path_segment — it is a dead constant"
+        "_MISSION_SLUG_PATH_SEGMENT_RE must be removed from merge.py after delegating to assert_safe_path_segment — it is a dead constant"
     )
 
 
@@ -676,13 +653,9 @@ def test_abort_with_malformed_mission_slug_emits_clean_diagnostic(tmp_path: Path
         result = runner.invoke(app, ["--abort", "--mission", "../x"])
 
     # Must exit non-zero (the malformed slug is detected and rejected)
-    assert result.exit_code != 0, (
-        f"Expected non-zero exit for malformed slug, got {result.exit_code}\nOutput: {result.output}"
-    )
+    assert result.exit_code != 0, f"Expected non-zero exit for malformed slug, got {result.exit_code}\nOutput: {result.output}"
     # Must emit the canonical "single safe path segment" diagnostic, not a raw traceback
-    assert "single safe path segment" in result.output, (
-        f"Expected 'single safe path segment' in output, got:\n{result.output}"
-    )
+    assert "single safe path segment" in result.output, f"Expected 'single safe path segment' in output, got:\n{result.output}"
 
 
 def test_abort_with_slash_mission_slug_emits_clean_diagnostic(tmp_path: Path) -> None:
@@ -694,12 +667,8 @@ def test_abort_with_slash_mission_slug_emits_clean_diagnostic(tmp_path: Path) ->
     with patch("specify_cli.cli.commands.merge.find_repo_root", return_value=tmp_path):
         result = runner.invoke(app, ["--abort", "--mission", "a/b"])
 
-    assert result.exit_code != 0, (
-        f"Expected non-zero exit for malformed slug, got {result.exit_code}\nOutput: {result.output}"
-    )
-    assert "single safe path segment" in result.output, (
-        f"Expected 'single safe path segment' in output, got:\n{result.output}"
-    )
+    assert result.exit_code != 0, f"Expected non-zero exit for malformed slug, got {result.exit_code}\nOutput: {result.output}"
+    assert "single safe path segment" in result.output, f"Expected 'single safe path segment' in output, got:\n{result.output}"
 
 
 # ---------------------------------------------------------------------------
@@ -746,6 +715,7 @@ def test_assert_status_path_within_target_surface_accepts_inside(tmp_path: Path)
 def test_bookkeeping_snapshot_trusted_set_accepts_kitty_specs(tmp_path: Path) -> None:
     """T017: path under kitty-specs is accepted."""
     from specify_cli.core.constants import KITTY_SPECS_DIR
+
     candidate = tmp_path / KITTY_SPECS_DIR / "some-mission" / "file.json"
     snapshots = _capture_merge_snapshots(tmp_path, candidate)
     assert candidate.resolve(strict=False) in snapshots
@@ -754,6 +724,7 @@ def test_bookkeeping_snapshot_trusted_set_accepts_kitty_specs(tmp_path: Path) ->
 def test_bookkeeping_snapshot_trusted_set_accepts_worktrees(tmp_path: Path) -> None:
     """T017: path under .worktrees is accepted."""
     from specify_cli.core.constants import WORKTREES_DIR
+
     candidate = tmp_path / WORKTREES_DIR / "some-branch" / "file.json"
     snapshots = _capture_merge_snapshots(tmp_path, candidate)
     assert candidate.resolve(strict=False) in snapshots
@@ -762,6 +733,7 @@ def test_bookkeeping_snapshot_trusted_set_accepts_worktrees(tmp_path: Path) -> N
 def test_bookkeeping_snapshot_trusted_set_accepts_kittify_runtime_merge(tmp_path: Path) -> None:
     """T017: path under .kittify/runtime/merge is accepted."""
     from specify_cli.core.constants import KITTIFY_DIR
+
     candidate = tmp_path / KITTIFY_DIR / "runtime" / "merge" / "some-id" / "state.json"
     snapshots = _capture_merge_snapshots(tmp_path, candidate)
     assert candidate.resolve(strict=False) in snapshots
@@ -770,6 +742,7 @@ def test_bookkeeping_snapshot_trusted_set_accepts_kittify_runtime_merge(tmp_path
 def test_bookkeeping_snapshot_trusted_set_accepts_exact_merge_state_json(tmp_path: Path) -> None:
     """T017: exact .kittify/merge-state.json file is accepted via files= allowlist."""
     from specify_cli.core.constants import KITTIFY_DIR
+
     candidate = tmp_path / KITTIFY_DIR / "merge-state.json"
     snapshots = _capture_merge_snapshots(tmp_path, candidate)
     assert candidate.resolve(strict=False) in snapshots
@@ -780,6 +753,7 @@ def test_bookkeeping_snapshot_trusted_set_rejects_kittify_root_not_exact_file(
 ) -> None:
     """T017: a file inside .kittify but NOT merge-state.json and NOT under runtime/merge is rejected."""
     from specify_cli.core.constants import KITTIFY_DIR
+
     # .kittify/config.yaml is NOT in the trusted set
     candidate = tmp_path / KITTIFY_DIR / "config.yaml"
     with pytest.raises(ValueError):
@@ -851,9 +825,7 @@ def test_capture_bookkeeping_snapshots_rejects_symlink_escape(tmp_path: Path) ->
 
     # resolve(strict=False) follows the symlink → target is outside the roots.
     assert candidate.resolve(strict=False) == secret.resolve(strict=False)
-    assert not candidate.resolve(strict=False).is_relative_to(
-        (tmp_path / KITTY_SPECS_DIR).resolve(strict=False)
-    )
+    assert not candidate.resolve(strict=False).is_relative_to((tmp_path / KITTY_SPECS_DIR).resolve(strict=False))
 
     with pytest.raises(ValueError):
         _capture_merge_snapshots(tmp_path, candidate)
@@ -893,9 +865,7 @@ def test_status_surface_xor_rejects_kitty_specs_path_when_worktrees_is_active(
     # Confirm the topology:
     assert WORKTREES_DIR in xor_trap_path.parts, "fixture must have .worktrees in parts"
     resolved_xor = xor_trap_path.resolve(strict=False)
-    assert not resolved_xor.is_relative_to(repo_resolved / WORKTREES_DIR), (
-        "resolved form must NOT be under worktrees root — XOR fixture misconfigured"
-    )
+    assert not resolved_xor.is_relative_to(repo_resolved / WORKTREES_DIR), "resolved form must NOT be under worktrees root — XOR fixture misconfigured"
 
     with pytest.raises(ValueError):
         _assert_status_surface_path_is_trusted(

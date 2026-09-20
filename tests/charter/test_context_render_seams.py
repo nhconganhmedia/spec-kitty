@@ -94,10 +94,7 @@ def test_seam_module_imports_standalone_without_charter_context(
         timeout=60,
         env=env,
     )
-    assert result.returncode == 0, (
-        f"{module_name} failed to import standalone (module-load cycle?):\n"
-        f"{result.stderr}"
-    )
+    assert result.returncode == 0, f"{module_name} failed to import standalone (module-load cycle?):\n{result.stderr}"
 
 
 # ---------------------------------------------------------------------------
@@ -117,12 +114,7 @@ class TestTemplateIncludeSeam:
         # "directive"/"tactic" are routed by the caller BEFORE this helper;
         # every other unrecognised kind token returns None (never raises),
         # letting the caller (or the generic-artifact fan-out) decide.
-        assert (
-            template_include._render_doctrine_artifact_include(
-                object(), "not-a-real-kind", "some-id"
-            )
-            is None
-        )
+        assert template_include._render_doctrine_artifact_include(object(), "not-a-real-kind", "some-id") is None
 
     def test_render_doctrine_artifact_include_raises_structured_miss(self) -> None:
         class _EmptyRepo:
@@ -131,9 +123,7 @@ class TestTemplateIncludeSeam:
 
         service = type("Service", (), {"paradigms": _EmptyRepo()})()
         with pytest.raises(ValueError, match="No paradigm found"):
-            template_include._render_doctrine_artifact_include(
-                service, "paradigm", "missing-id"
-            )
+            template_include._render_doctrine_artifact_include(service, "paradigm", "missing-id")
 
 
 # ---------------------------------------------------------------------------
@@ -149,18 +139,10 @@ class TestSelectionBlockSeam:
     def test_provenance_suffix_bare_org_sentinel(self) -> None:
         # Empty-string pack name is the documented sentinel that collapses
         # to a bare "(source: org)" suffix (no per-pack attribution known).
-        assert (
-            selection_block._provenance_suffix("some-id", {"some-id": ""})
-            == " (source: org)"
-        )
+        assert selection_block._provenance_suffix("some-id", {"some-id": ""}) == " (source: org)"
 
     def test_provenance_suffix_names_the_pack(self) -> None:
-        assert (
-            selection_block._provenance_suffix(
-                "some-id", {"some-id": "example-org"}
-            )
-            == " (source: org, pack: example-org)"
-        )
+        assert selection_block._provenance_suffix("some-id", {"some-id": "example-org"}) == " (source: org, pack: example-org)"
 
     def test_collect_org_source_map_empty_without_repository_or_ids(self) -> None:
         assert selection_block._collect_org_source_map(None, ["a"]) == {}
@@ -171,9 +153,7 @@ class TestSelectionBlockSeam:
             def get_provenance(self, artifact_id: str) -> str:
                 return "org" if artifact_id == "org-one" else "builtin"
 
-        result = selection_block._collect_org_source_map(
-            _Repo(), ["org-one", "builtin-one"]
-        )
+        result = selection_block._collect_org_source_map(_Repo(), ["org-one", "builtin-one"])
         assert result == {"org-one": ""}
 
     def test_render_selection_block_empty_without_selection_or_service(
@@ -184,9 +164,7 @@ class TestSelectionBlockSeam:
 
     def test_extend_named_artifact_lines_noop_on_empty_ids(self) -> None:
         lines: list[str] = []
-        selection_block._extend_named_artifact_lines(
-            lines, "Heading", [], None, "title", "summary"
-        )
+        selection_block._extend_named_artifact_lines(lines, "Heading", [], None, "title", "summary")
         assert lines == []
 
     def test_build_action_org_source_map_empty_without_ids(self, tmp_path: Path) -> None:
@@ -226,16 +204,9 @@ class TestActivationBlockSeam:
         assert activation_block._union_activations([], []) == []
 
     def test_render_activation_block_empty_without_repo_root(self) -> None:
-        assert (
-            activation_block._render_activation_block(
-                None, None, object(), mission_type="software-dev", action="implement"
-            )
-            == ""
-        )
+        assert activation_block._render_activation_block(None, None, object(), mission_type="software-dev", action="implement") == ""
 
-    def test_render_activation_block_empty_when_no_activations_configured(
-        self, tmp_path: Path
-    ) -> None:
+    def test_render_activation_block_empty_when_no_activations_configured(self, tmp_path: Path) -> None:
         # No governance.yaml / org packs at all under tmp_path: both the
         # project and org reads collapse to [], so the union is empty and
         # the renderer short-circuits before ever calling the WP05 stanza
@@ -274,10 +245,7 @@ class TestBootstrapTextSeam:
     ) -> None:
         # Procedure/Asset stay always-inline (pre-D2c behaviour); the other
         # four carry the progressive-disclosure kind prefix.
-        by_heading = {
-            row.heading: row.progressive_kind
-            for row in bootstrap_text._ACTION_RENDER_ROWS
-        }
+        by_heading = {row.heading: row.progressive_kind for row in bootstrap_text._ACTION_RENDER_ROWS}
         assert by_heading["Directives"] == "directive"
         assert by_heading["Tactics"] == "tactic"
         assert by_heading["Styleguides"] == "styleguide"
@@ -289,9 +257,7 @@ class TestBootstrapTextSeam:
         lines: list[str] = []
         # A nonsense mission/action pair resolves no guidelines; the helper
         # is best-effort and must not raise (matches the pre-move contract).
-        bootstrap_text._append_guidelines_lines(
-            lines, "not-a-real-mission-type", "not-a-real-action"
-        )
+        bootstrap_text._append_guidelines_lines(lines, "not-a-real-mission-type", "not-a-real-action")
         assert lines == []
 
     def test_render_action_doctrine_lines_empty_bundle_emits_nothing(self) -> None:
@@ -308,7 +274,9 @@ class TestBootstrapTextSeam:
 
         lines: list[str] = []
         bootstrap_text._render_action_doctrine_lines(
-            lines, _EmptyBundle(), repo_root=None  # type: ignore[arg-type]
+            lines,
+            _EmptyBundle(),
+            repo_root=None,  # type: ignore[arg-type]
         )
         assert lines == []
 
@@ -343,9 +311,7 @@ class TestBootstrapTextSeam:
     def test_resolve_authority_block_missing_selection_returns_empty(self, tmp_path: Path) -> None:
         assert bootstrap_text._resolve_authority_block(tmp_path, None) == ""
 
-    def test_resolve_authority_block_delegates_to_renderer(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_resolve_authority_block_delegates_to_renderer(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         selection = DoctrineSelectionConfig()
         captured: dict[str, Any] = {}
 
@@ -368,9 +334,7 @@ class TestBootstrapTextSeam:
     def test_resolve_reference_block_missing_selection_returns_empty(self, tmp_path: Path) -> None:
         assert bootstrap_text._resolve_reference_block(tmp_path, None) == ""
 
-    def test_resolve_reference_block_delegates_to_renderer(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_resolve_reference_block_delegates_to_renderer(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         selection = DoctrineSelectionConfig(governance_references=["spec/constitution.md"])
         captured: dict[str, Any] = {}
 
@@ -416,9 +380,7 @@ class TestCompactGovernanceSeam:
     def test_compact_section_block_empty_without_charter_md(self, tmp_path: Path) -> None:
         assert compact_governance._compact_section_block(tmp_path, "implement") == ""
 
-    def test_render_compact_from_bundle_threads_suppress_project_resolver(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_render_compact_from_bundle_threads_suppress_project_resolver(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """WP03/#3064 contract: ``suppress_project_resolver`` must reach
         ``render_compact_view`` unchanged through BOTH wrapper layers
         (``_render_compact_from_bundle`` -> ``_render_compact_governance``
@@ -435,9 +397,7 @@ class TestCompactGovernanceSeam:
             captured.update(kwargs)
             return _FakeView()
 
-        monkeypatch.setattr(
-            "charter.activation.compact.render_compact_view", _fake_render_compact_view
-        )
+        monkeypatch.setattr("charter.activation.compact.render_compact_view", _fake_render_compact_view)
         monkeypatch.setattr(
             "charter.activation.context._load_doctrine_selection",
             lambda _repo_root: DoctrineSelectionConfig(),
@@ -461,9 +421,7 @@ class TestCompactGovernanceSeam:
 
         assert captured["suppress_project_resolver"] is True
 
-    def test_render_compact_from_bundle_default_does_not_suppress(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_render_compact_from_bundle_default_does_not_suppress(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
 
         class _FakeView:
@@ -473,9 +431,7 @@ class TestCompactGovernanceSeam:
             captured.update(kwargs)
             return _FakeView()
 
-        monkeypatch.setattr(
-            "charter.activation.compact.render_compact_view", _fake_render_compact_view
-        )
+        monkeypatch.setattr("charter.activation.compact.render_compact_view", _fake_render_compact_view)
         monkeypatch.setattr(
             "charter.activation.context._load_doctrine_selection",
             lambda _repo_root: DoctrineSelectionConfig(),

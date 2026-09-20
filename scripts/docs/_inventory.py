@@ -163,9 +163,7 @@ def load_inventory(inventory_path: Path) -> list[PageInventoryEntry]:
     if raw is None:
         return []
     if not isinstance(raw, list):
-        raise LoadError(
-            f"Inventory root must be a list of rows, got {type(raw).__name__}"
-        )
+        raise LoadError(f"Inventory root must be a list of rows, got {type(raw).__name__}")
 
     entries: list[PageInventoryEntry] = []
     for index, row in enumerate(raw):
@@ -173,77 +171,46 @@ def load_inventory(inventory_path: Path) -> list[PageInventoryEntry]:
     return entries
 
 
-def _validate_row(
-    row: Any, index: int, inventory_path: Path
-) -> PageInventoryEntry:
+def _validate_row(row: Any, index: int, inventory_path: Path) -> PageInventoryEntry:
     """Validate one raw YAML row and return a :class:`PageInventoryEntry`."""
     if not isinstance(row, dict):
-        raise LoadError(
-            f"{inventory_path}: row {index} must be a mapping, "
-            f"got {type(row).__name__}"
-        )
+        raise LoadError(f"{inventory_path}: row {index} must be a mapping, got {type(row).__name__}")
 
     missing = _REQUIRED_KEYS - set(row.keys())
     if missing:
-        raise LoadError(
-            f"{inventory_path}: row {index} missing keys: "
-            f"{sorted(missing)}"
-        )
+        raise LoadError(f"{inventory_path}: row {index} missing keys: {sorted(missing)}")
 
     path_value = row["path"]
     if not isinstance(path_value, str) or not path_value:
-        raise LoadError(
-            f"{inventory_path}: row {index} 'path' must be a non-empty string"
-        )
+        raise LoadError(f"{inventory_path}: row {index} 'path' must be a non-empty string")
 
     try:
         tag = VersionTag(row["tag"])
     except ValueError as exc:
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"invalid tag: {row['tag']!r}"
-        ) from exc
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) invalid tag: {row['tag']!r}") from exc
 
     try:
         divio_type = DivioType(row["divio_type"])
     except ValueError as exc:
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"invalid divio_type: {row['divio_type']!r}"
-        ) from exc
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) invalid divio_type: {row['divio_type']!r}") from exc
 
     owning_workstream = row["owning_workstream"]
     if not isinstance(owning_workstream, str) or not owning_workstream:
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"'owning_workstream' must be a non-empty string"
-        )
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) 'owning_workstream' must be a non-empty string")
 
     current_target = row["current_target"]
     if not isinstance(current_target, bool):
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"'current_target' must be a boolean"
-        )
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) 'current_target' must be a boolean")
 
     notes_raw = row.get("notes")
     if notes_raw is not None and not isinstance(notes_raw, str):
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"'notes' must be a string or null"
-        )
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) 'notes' must be a string or null")
 
     # Cross-field invariants from data-model.md §PageInventoryEntry.
     if tag is VersionTag.ARCHIVAL and current_target:
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"archival pages must have current_target=false"
-        )
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) archival pages must have current_target=false")
     if tag is VersionTag.CURRENT and not current_target:
-        raise LoadError(
-            f"{inventory_path}: row {index} ({path_value}) "
-            f"current pages must have current_target=true"
-        )
+        raise LoadError(f"{inventory_path}: row {index} ({path_value}) current pages must have current_target=true")
 
     return PageInventoryEntry(
         path=path_value,

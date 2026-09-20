@@ -181,15 +181,11 @@ def relocation_only_identity(source: str, bare_name: str) -> SymbolIdentity | No
     return SymbolIdentity(bare_name=bare_name, body_hash=body_hash)
 
 
-def hybrid_identity(
-    source: str, module_path: str, bare_name: str
-) -> ModuleQualifiedSymbolIdentity | None:
+def hybrid_identity(source: str, module_path: str, bare_name: str) -> ModuleQualifiedSymbolIdentity | None:
     """CANDIDATE B: ``(bare_name, module_path, body_hash)`` — module tiebreak
     restores fan-out correctness at the cost of full relocation tolerance for
     the re-export/facade subset (see module docstring)."""
     body_hash = body_hash_for_definition(source, bare_name)
     if body_hash is None:
         return None
-    return ModuleQualifiedSymbolIdentity(
-        bare_name=bare_name, module_path=module_path, body_hash=body_hash
-    )
+    return ModuleQualifiedSymbolIdentity(bare_name=bare_name, module_path=module_path, body_hash=body_hash)

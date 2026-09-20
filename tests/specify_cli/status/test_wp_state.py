@@ -146,7 +146,6 @@ class TestTransitionMatrixEquivalence:
                     assert not state.can_transition_to(target_lane, ctx), f"{source_lane} -> {target_lane} should be disallowed"
 
 
-
 class TestInReviewPromotion:
     """in_review is a first-class lane, not an alias."""
 
@@ -184,7 +183,6 @@ class TestInReviewPromotion:
         state = wp_state_for("doing")
         assert state.lane == Lane.IN_PROGRESS
         assert state.__class__.__name__ == "InProgressState"
-
 
 
 class TestStateProperties:
@@ -280,7 +278,6 @@ class TestStateProperties:
         """is_run_affecting returns True for active lanes, False for terminal/blocked."""
         state = wp_state_for(lane_str)
         assert state.is_run_affecting == expected
-
 
     def test_unknown_lane_raises(self):
         """wp_state_for raises ValueError for unknown lane."""

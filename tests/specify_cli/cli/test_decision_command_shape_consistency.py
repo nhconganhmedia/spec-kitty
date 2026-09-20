@@ -74,11 +74,7 @@ SCAN_ROOTS = (
 
 def _visible_subcommand_names(group: click.Group) -> set[str]:
     """Return the names of subcommands that are NOT hidden."""
-    return {
-        name
-        for name, cmd in group.commands.items()
-        if not getattr(cmd, "hidden", False)
-    }
+    return {name for name, cmd in group.commands.items() if not getattr(cmd, "hidden", False)}
 
 
 def test_agent_decision_subgroup_has_canonical_visible_subcommands() -> None:
@@ -88,34 +84,23 @@ def test_agent_decision_subgroup_has_canonical_visible_subcommands() -> None:
     # isinstance guard is a version-skew false negative. A command group is what
     # exposes ``.commands`` — that is the load-bearing property this test needs.
     agent_grp = cli.commands.get("agent")
-    assert agent_grp is not None and hasattr(agent_grp, "commands"), (
-        "spec-kitty agent group missing from CLI"
-    )
+    assert agent_grp is not None and hasattr(agent_grp, "commands"), "spec-kitty agent group missing from CLI"
     agent_grp = cast(click.Group, agent_grp)
     decision_grp = agent_grp.commands.get("decision")
-    assert decision_grp is not None and hasattr(decision_grp, "commands"), (
-        "spec-kitty agent decision subgroup missing from CLI"
-    )
+    assert decision_grp is not None and hasattr(decision_grp, "commands"), "spec-kitty agent decision subgroup missing from CLI"
     decision_grp = cast(click.Group, decision_grp)
     visible = _visible_subcommand_names(decision_grp)
     assert visible == EXPECTED_SUBCOMMANDS, (
-        f"FR-007 regression: visible decision subcommands drifted.\n"
-        f"  expected: {sorted(EXPECTED_SUBCOMMANDS)}\n"
-        f"  actual:   {sorted(visible)}"
+        f"FR-007 regression: visible decision subcommands drifted.\n  expected: {sorted(EXPECTED_SUBCOMMANDS)}\n  actual:   {sorted(visible)}"
     )
 
 
 def test_help_output_lists_canonical_subcommands() -> None:
     runner = CliRunner()
-    result = runner.invoke(
-        cli, ["agent", "decision", "--help"], catch_exceptions=False
-    )
+    result = runner.invoke(cli, ["agent", "decision", "--help"], catch_exceptions=False)
     assert result.exit_code == 0, result.output
     for sub in EXPECTED_SUBCOMMANDS:
-        assert sub in result.output, (
-            f"FR-007 regression: subcommand {sub!r} missing from "
-            f"`agent decision --help`:\n{result.output}"
-        )
+        assert sub in result.output, f"FR-007 regression: subcommand {sub!r} missing from `agent decision --help`:\n{result.output}"
 
 
 def test_no_non_canonical_decision_command_shape_in_repo_text() -> None:
@@ -132,10 +117,5 @@ def test_no_non_canonical_decision_command_shape_in_repo_text() -> None:
             except OSError:
                 continue
             for match in NON_CANONICAL_RE.finditer(text):
-                offenders.append(
-                    (str(path.relative_to(REPO_ROOT)), match.group(0))
-                )
-    assert not offenders, (
-        "FR-007 regression: non-canonical decision command shape found:\n  "
-        + "\n  ".join(f"{p}: {m!r}" for p, m in offenders)
-    )
+                offenders.append((str(path.relative_to(REPO_ROOT)), match.group(0)))
+    assert not offenders, "FR-007 regression: non-canonical decision command shape found:\n  " + "\n  ".join(f"{p}: {m!r}" for p, m in offenders)

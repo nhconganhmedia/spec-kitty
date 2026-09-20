@@ -73,9 +73,7 @@ def _build_clean_mission(tmp_path: Path, *, slug: str = "clean-mission") -> Path
         "---\nwork_package_id: WP01\ntitle: Clean WP\nexecution_mode: code_change\n---\n\n# WP01\n",
         encoding="utf-8",
     )
-    (feature_dir / "tasks.md").write_text(
-        "# Tasks\n\n## WP01 Clean\n\nNo subtasks recorded yet.\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("# Tasks\n\n## WP01 Clean\n\nNo subtasks recorded yet.\n", encoding="utf-8")
     return feature_dir
 
 
@@ -214,9 +212,7 @@ def test_apply_aborts_on_first_verify_failure_naming_mission_and_mismatch(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_folds_placement_mismatch_into_abort_without_a_bare_traceback(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_apply_folds_placement_mismatch_into_abort_without_a_bare_traceback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A PlacementMismatchError out of one mission must not escape ``apply()``.
 
     ``_cutover_corpus`` calls the shared ``cutover_mission`` helper, which is
@@ -245,10 +241,7 @@ def test_apply_folds_placement_mismatch_into_abort_without_a_bare_traceback(
     gamma = build_mission(tmp_path, slug="gamma")
     gamma_meta_before = (gamma / "meta.json").read_bytes()
     real_cutover_mission = migration_module.cutover_mission
-    mismatch_message = (
-        "_flip_phase refuses to write status_phase for 'alpha': the placement "
-        "port resolved its PRIMARY home elsewhere (fail-closed, FR-001)."
-    )
+    mismatch_message = "_flip_phase refuses to write status_phase for 'alpha': the placement port resolved its PRIMARY home elsewhere (fail-closed, FR-001)."
 
     def _fake_cutover_mission(feature_dir: Path, *, dry_run: bool = False) -> object:
         if feature_dir.name == "alpha":
@@ -393,13 +386,9 @@ def test_migration_is_auto_discovered_and_sorts_after_charter_folds() -> None:
 
     this_index = all_ids.index(_THIS_MIGRATION_ID)
     assert this_index > all_ids.index(_CHARTER_PROMOTE_ANSWERS_ID), (
-        "runtime_state_backfill must sort AFTER m_unify_charter_activation "
-        "(FR-010) -- an m_<digits>_* filename would lose this same-version tie"
+        "runtime_state_backfill must sort AFTER m_unify_charter_activation (FR-010) -- an m_<digits>_* filename would lose this same-version tie"
     )
-    assert this_index > all_ids.index(_CHARTER_FINALIZE_ID), (
-        "runtime_state_backfill must sort AFTER "
-        "m_unify_charter_activation_finalize (FR-010)"
-    )
+    assert this_index > all_ids.index(_CHARTER_FINALIZE_ID), "runtime_state_backfill must sort AFTER m_unify_charter_activation_finalize (FR-010)"
 
 
 def test_target_version_ties_with_charter_folds_not_higher() -> None:

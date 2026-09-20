@@ -44,9 +44,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True
-    )
+    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
 
 
 def _init_repo(tmp_path: Path) -> None:
@@ -60,9 +58,7 @@ def _init_repo(tmp_path: Path) -> None:
     # fails closed without this key.
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "agents: {}\nmission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("agents: {}\nmission_type_activations:\n  - software-dev\n", encoding="utf-8")
     (tmp_path / "README.md").write_text("init\n", encoding="utf-8")
     _git(tmp_path, "add", "-A")
     _git(tmp_path, "commit", "-m", "init")
@@ -143,9 +139,7 @@ def _run_setup_plan(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str
     return captured
 
 
-def test_setup_plan_exact_one_auto_selects_sole_mission(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_setup_plan_exact_one_auto_selects_sole_mission(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Case A (live-repro.md#4): exactly one mission, no --mission flag.
 
     Pre-fix HEAD returns ``PLAN_CONTEXT_UNRESOLVED`` (the hard --mission raise);
@@ -167,9 +161,7 @@ def test_setup_plan_exact_one_auto_selects_sole_mission(
     assert payload.get("mission_slug") == "single-mission-plan-01kv8npc", payload
 
 
-def test_setup_plan_two_missions_still_returns_structured_ambiguity(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_setup_plan_two_missions_still_returns_structured_ambiguity(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Case B: two missions present, no --mission → structured detection error
     (no silent fallback to either mission)."""
     _init_repo(tmp_path)
@@ -218,9 +210,7 @@ def _build_coord_with_mission_dir_spec_on_primary_only(
     only a primary-target-branch leg can find the spec.
     """
     _init_repo(tmp_path)
-    _seed_mission_on_primary(
-        tmp_path, slug, mission_id, coordination_branch=coord_ref, with_spec=True
-    )
+    _seed_mission_on_primary(tmp_path, slug, mission_id, coordination_branch=coord_ref, with_spec=True)
 
     # Create the coordination branch from main, then strip spec.md off it so
     # the coord branch carries the mission dir but not the spec.
@@ -274,9 +264,7 @@ def test_fr011_primary_only_inversion_resolves_coord_without_rescue(
     slug = "committed-primary-7b-01KV8NPC"
     coord_ref = "kitty/mission-committed-primary-7b-01KV8NPC-coord"
     handle = "committed-primary-7b-01KV8NPC"
-    _resolved_coord_spec, primary_root = _build_coord_with_mission_dir_spec_on_primary_only(
-        tmp_path, slug, "01KV8NPCDEBBIECOMMIT7B0000", coord_ref
-    )
+    _resolved_coord_spec, primary_root = _build_coord_with_mission_dir_spec_on_primary_only(tmp_path, slug, "01KV8NPCDEBBIECOMMIT7B0000", coord_ref)
 
     try:
         resolved = resolve_handle_to_read_path(primary_root, handle, require_exists=True)
@@ -303,14 +291,11 @@ def test_fr011_single_surface_does_not_rescue_primary_only_inversion(tmp_path: P
 
     slug = "committed-primary-redproof-01kv8npc"
     coord_ref = "kitty/mission-committed-primary-redproof-01KV8NPC-coord"
-    resolved_coord_spec, primary_root = _build_coord_with_mission_dir_spec_on_primary_only(
-        tmp_path, slug, "01KV8NPCDEBBIEREDPROOF0000", coord_ref
-    )
+    resolved_coord_spec, primary_root = _build_coord_with_mission_dir_spec_on_primary_only(tmp_path, slug, "01KV8NPCDEBBIEREDPROOF0000", coord_ref)
 
     committed = is_committed(resolved_coord_spec, primary_root)
     assert committed is False, (
-        "FR-011 collapsed the OR: the coord surface lacks spec.md, so the "
-        "single-surface check reports False (no primary-target-branch rescue)."
+        "FR-011 collapsed the OR: the coord surface lacks spec.md, so the single-surface check reports False (no primary-target-branch rescue)."
     )
 
 
@@ -334,9 +319,7 @@ def test_is_committed_single_repo_committed_still_true(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_commit_to_branch_reports_real_hash_on_success(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_commit_to_branch_reports_real_hash_on_success(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Success path: a flat-topology commit reports a real commit hash (not None)."""
     from specify_cli.cli.commands.agent import mission as mission_mod
     from specify_cli.cli.commands.agent.mission import _commit_to_branch
@@ -373,9 +356,7 @@ def test_commit_to_branch_reports_real_hash_on_success(
     assert result.status == "committed", result
 
 
-def test_commit_to_branch_no_op_wrong_surface_surfaces_typed_diagnostic(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_commit_to_branch_no_op_wrong_surface_surfaces_typed_diagnostic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """No-op against the WRONG surface (artifact NOT present at the resolved
     placement) surfaces a typed diagnostic, not a silent ``commit_created: None``.
 
@@ -429,9 +410,7 @@ def test_commit_to_branch_no_op_wrong_surface_surfaces_typed_diagnostic(
     assert result.diagnostic is not None and "plan" in result.diagnostic.lower()
 
 
-def test_commit_to_branch_genuine_unchanged_stays_benign(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_commit_to_branch_genuine_unchanged_stays_benign(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Genuine-unchanged (artifact present AND already committed at placement)
     stays a benign no-op — no typed wrong-surface diagnostic."""
     from specify_cli.cli.commands.agent import mission as mission_mod
@@ -472,9 +451,7 @@ def test_commit_to_branch_genuine_unchanged_stays_benign(
 # ---------------------------------------------------------------------------
 
 
-def test_finalize_tasks_reads_primary_on_materialized_empty_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_finalize_tasks_reads_primary_on_materialized_empty_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#11/#1718: a materialized-but-EMPTY coord worktree must NOT fail-closed
     before the primary read.
 
@@ -510,9 +487,7 @@ def test_finalize_tasks_reads_primary_on_materialized_empty_coord(
     tasks_dir = mission_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
     (mission_dir / "tasks.md").write_text("# Tasks\n\n## WP01\n", encoding="utf-8")
-    (tasks_dir / "WP01-sample.md").write_text(
-        "---\nwork_package_id: WP01\nsubtasks: [T001]\n---\n# WP01\n", encoding="utf-8"
-    )
+    (tasks_dir / "WP01-sample.md").write_text("---\nwork_package_id: WP01\nsubtasks: [T001]\n---\n# WP01\n", encoding="utf-8")
     _git(tmp_path, "add", "-A")
     _git(tmp_path, "commit", "-m", "seed tasks")
 
@@ -538,9 +513,7 @@ def test_finalize_tasks_reads_primary_on_materialized_empty_coord(
     # validate-only keeps the run read-only; the #11 fail-closed is in the
     # READ-anchor that runs before validate-only branches.
     with contextlib.suppress(typer.Exit):
-        mission_mod.finalize_tasks(
-            feature=slug_dir, json_output=True, validate_only=True
-        )
+        mission_mod.finalize_tasks(feature=slug_dir, json_output=True, validate_only=True)
 
     # The read-path fail-closed must NOT surface (it pre-empted the primary read
     # on HEAD). Any other downstream outcome is acceptable for this guard.

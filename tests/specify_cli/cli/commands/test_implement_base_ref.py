@@ -97,6 +97,4 @@ def test_validate_base_ref_exits_on_nonzero_returncode(tmp_path: Path) -> None:
     with pytest.raises(typer.Exit) as exc_info:
         _validate_base_ref(tmp_path, "no-such-ref")
 
-    assert exc_info.value.exit_code == 1, (
-        f"Expected exit code 1 for unknown ref, got {exc_info.value.exit_code}"
-    )
+    assert exc_info.value.exit_code == 1, f"Expected exit code 1 for unknown ref, got {exc_info.value.exit_code}"

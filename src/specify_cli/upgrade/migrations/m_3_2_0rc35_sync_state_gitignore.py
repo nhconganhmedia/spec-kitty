@@ -58,11 +58,7 @@ def _untrack(project_path: Path, relative_path: str) -> bool:
 
 def _read_gitignore_entries(project_path: Path) -> set[str]:
     content = read_ignore_file_text(project_path / ".gitignore")
-    return {
-        line.strip()
-        for line in content.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    }
+    return {line.strip() for line in content.splitlines() if line.strip() and not line.lstrip().startswith("#")}
 
 
 @MigrationRegistry.register
@@ -76,10 +72,7 @@ class KittifyRuntimeGitHygieneMigration(BaseMigration):
     def detect(self, project_path: Path) -> bool:
         gitignore_entries = _read_gitignore_entries(project_path)
         entry_missing = any(entry not in gitignore_entries for entry in _GITIGNORE_ENTRIES)
-        tracked_runtime = any(
-            _is_tracked(project_path, path)
-            for path in _LOCAL_RUNTIME_TRACKED_PATHS
-        )
+        tracked_runtime = any(_is_tracked(project_path, path) for path in _LOCAL_RUNTIME_TRACKED_PATHS)
         return entry_missing or tracked_runtime
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:
@@ -90,27 +83,18 @@ class KittifyRuntimeGitHygieneMigration(BaseMigration):
     def apply(self, project_path: Path, dry_run: bool = False) -> MigrationResult:
         if dry_run:
             gitignore_entries = _read_gitignore_entries(project_path)
-            missing_entries = [
-                entry for entry in _GITIGNORE_ENTRIES if entry not in gitignore_entries
-            ]
-            tracked = [
-                path
-                for path in _LOCAL_RUNTIME_TRACKED_PATHS
-                if _is_tracked(project_path, path)
-            ]
+            missing_entries = [entry for entry in _GITIGNORE_ENTRIES if entry not in gitignore_entries]
+            tracked = [path for path in _LOCAL_RUNTIME_TRACKED_PATHS if _is_tracked(project_path, path)]
             return MigrationResult(
                 success=True,
-                changes_made=[f"Would add {entry} to .gitignore" for entry in missing_entries]
-                + [f"Would untrack local runtime file: {path}" for path in tracked],
+                changes_made=[f"Would add {entry} to .gitignore" for entry in missing_entries] + [f"Would untrack local runtime file: {path}" for path in tracked],
             )
 
         changes: list[str] = []
         errors: list[str] = []
 
         gitignore_entries = _read_gitignore_entries(project_path)
-        missing_entries = [
-            entry for entry in _GITIGNORE_ENTRIES if entry not in gitignore_entries
-        ]
+        missing_entries = [entry for entry in _GITIGNORE_ENTRIES if entry not in gitignore_entries]
         manager = GitignoreManager(project_path)
         modified = manager.ensure_entries(list(_GITIGNORE_ENTRIES))
         if modified and missing_entries:

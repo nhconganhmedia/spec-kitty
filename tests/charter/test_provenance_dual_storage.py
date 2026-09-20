@@ -83,6 +83,7 @@ def test_per_mission_routing_writes_to_mission_file(tmp_path: Path) -> None:
     global_prov = tmp_path / ".kittify" / "encoding-provenance" / "global.jsonl"
 
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
 
     def _patched_route(source_path: Path | None) -> Path:
@@ -109,16 +110,11 @@ def test_per_mission_routing_writes_to_mission_file(tmp_path: Path) -> None:
 
     # Per-mission file should have the record.
     per_mission_records = _read_provenance(per_mission_prov)
-    assert len(per_mission_records) == 1, (
-        f"Expected 1 record in per-mission file, got {len(per_mission_records)}"
-    )
+    assert len(per_mission_records) == 1, f"Expected 1 record in per-mission file, got {len(per_mission_records)}"
 
     # Global file should NOT exist or be empty.
     global_records = _read_provenance(global_prov)
-    assert global_records == [], (
-        f"Global provenance file should be empty for per-mission ingest, "
-        f"but got {len(global_records)} record(s)"
-    )
+    assert global_records == [], f"Global provenance file should be empty for per-mission ingest, but got {len(global_records)} record(s)"
 
 
 def test_centralized_routing_writes_to_global_file(tmp_path: Path) -> None:
@@ -133,6 +129,7 @@ def test_centralized_routing_writes_to_global_file(tmp_path: Path) -> None:
     global_prov = tmp_path / ".kittify" / "encoding-provenance" / "global.jsonl"
 
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
 
     def _patched_route(source_path: Path | None) -> Path:
@@ -149,18 +146,13 @@ def test_centralized_routing_writes_to_global_file(tmp_path: Path) -> None:
 
     # Global file should have the record.
     global_records = _read_provenance(global_prov)
-    assert len(global_records) == 1, (
-        f"Expected 1 record in global file, got {len(global_records)}"
-    )
+    assert len(global_records) == 1, f"Expected 1 record in global file, got {len(global_records)}"
 
     # Verify no mission-specific files were created.
     kitty_specs = tmp_path / "kitty-specs"
     if kitty_specs.exists():
         mission_prov_files = list(kitty_specs.rglob(".encoding-provenance.jsonl"))
-        assert mission_prov_files == [], (
-            f"No per-mission provenance files should exist for non-mission ingest, "
-            f"found: {mission_prov_files}"
-        )
+        assert mission_prov_files == [], f"No per-mission provenance files should exist for non-mission ingest, found: {mission_prov_files}"
 
 
 def test_no_duplication_single_ingest_one_record(tmp_path: Path) -> None:
@@ -174,6 +166,7 @@ def test_no_duplication_single_ingest_one_record(tmp_path: Path) -> None:
     global_prov = tmp_path / "global.jsonl"
 
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
     original_write = _io_mod._write_provenance
 
@@ -195,9 +188,7 @@ def test_no_duplication_single_ingest_one_record(tmp_path: Path) -> None:
         _io_mod._write_provenance = original_write
 
     # Exactly one write call.
-    assert call_count[0] == 1, (
-        f"Expected exactly 1 provenance write call, got {call_count[0]}"
-    )
+    assert call_count[0] == 1, f"Expected exactly 1 provenance write call, got {call_count[0]}"
 
     # The global file has exactly one record.
     global_records = _read_provenance(global_prov)

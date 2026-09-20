@@ -1324,9 +1324,7 @@ def test_g5_every_destination_is_a_literal_member_with_the_per_site_mapping_inta
     # (i) node-shape clause: a destination bound from a config read is an ast.Name.
     mutant_i = analyze_calls_in_source(_UNSWAPPED_CONTROL + _MUTANT_ADDED_CONFIG_DERIVED, VERDICT_FN, module="<g5-mutant-i>")
     non_literal = _non_literal_sites(mutant_i)
-    assert len(non_literal) == 1, (
-        f"G5 MUTANT SURVIVED (config-derived name): control had 0 non-literal sites, mutant has {non_literal}"
-    )
+    assert len(non_literal) == 1, f"G5 MUTANT SURVIVED (config-derived name): control had 0 non-literal sites, mutant has {non_literal}"
     assert "(name)" in non_literal[0], f"G5 mutant (i) killed by the wrong clause -- expected a Name node, got {non_literal[0]}"
     killed += 1
     print(f"[G5] mutant killed (added site, config-derived name) via CLAUSE 2 node-shape: control had 0 non-literal sites, mutant has {non_literal}")
@@ -1374,9 +1372,7 @@ def test_g5_module_qualified_mutant_observed_red_then_green() -> None:
     seeing = analyze_calls_in_source(source, VERDICT_FN, module="<red-then-green>")
     _announce("G5-red-then-green", seeing.input_count, ast_Name_only_matcher_sees=len(blind), both_forms_matcher_sees=seeing.call_count)
 
-    assert len(blind) == 2, (
-        f"the ast.Name-only matcher was expected to miss the qualified site and see 2, saw {len(blind)}"
-    )
+    assert len(blind) == 2, f"the ast.Name-only matcher was expected to miss the qualified site and see 2, saw {len(blind)}"
     assert seeing.call_count == 3, f"the both-forms matcher was expected to see all 3, saw {seeing.call_count}"
 
     blind_map = {q: v for q, v in _per_site_destinations(seeing).items() if q in {c.qualname for c in seeing.calls if c.func_form == "Name"}}
@@ -1607,6 +1603,7 @@ _LOCAL_SUBPROCESS_CASES: tuple[_ProjectRootCase, ...] = (
     ),
 )
 
+
 def _expected_hosted_service_refused(case: _ProjectRootCase) -> bool:
     """The single-channel polarity table G7 pins for the hosted destination.
 
@@ -1668,8 +1665,7 @@ def test_g7_single_channel_polarity_table_is_exhaustive_and_fails_closed(tmp_pat
                 )
                 expected_channels = frozenset({CHANNEL_2}) if expected_refused else frozenset()
                 assert verdict.refusing_channels == expected_channels, (
-                    f"G7: HOSTED_SERVICE x {case.label!r} named refusing channels "
-                    f"{sorted(verdict.refusing_channels)}, expected {sorted(expected_channels)}."
+                    f"G7: HOSTED_SERVICE x {case.label!r} named refusing channels {sorted(verdict.refusing_channels)}, expected {sorted(expected_channels)}."
                 )
                 continue
             assert verdict.refused == case.refused, (
@@ -1678,8 +1674,7 @@ def test_g7_single_channel_polarity_table_is_exhaustive_and_fails_closed(tmp_pat
                 f"'{tracker_config.EGRESS_PERMITTED}' grants locally; absence, refusal and faults all refuse."
             )
             assert verdict.channel2_state == case.channel_state, (
-                f"G7: LOCAL_SUBPROCESS x {case.label!r} reported channel state {verdict.channel2_state!r}, "
-                f"expected {case.channel_state!r}."
+                f"G7: LOCAL_SUBPROCESS x {case.label!r} reported channel state {verdict.channel2_state!r}, expected {case.channel_state!r}."
             )
             if verdict.refused:
                 assert verdict.refusing_channels == frozenset({CHANNEL_2}), (
@@ -1717,8 +1712,7 @@ def test_g7_single_channel_polarity_table_is_exhaustive_and_fails_closed(tmp_pat
         identifiers="issue fields",
     )
     assert fault_verdict.refused and "deferred" in fault_verdict.message, (
-        f"G7 MUTANT SURVIVED: an unmapped egress value was not quoted verbatim into a refusal "
-        f"(refused={fault_verdict.refused}, message={fault_verdict.message!r})"
+        f"G7 MUTANT SURVIVED: an unmapped egress value was not quoted verbatim into a refusal (refused={fault_verdict.refused}, message={fault_verdict.message!r})"
     )
     print(f"[G7] KILLED-PIN COUNT: 1/1  (unmapped value 'deferred' refused verbatim: {fault_verdict.message!r})")
     print(f"[G7] positive control: {cells_checked} (state x destination) cells match the pinned single-channel table")

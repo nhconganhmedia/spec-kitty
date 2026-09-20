@@ -29,6 +29,7 @@ from spec_kitty_events.mission_next import (
     NextStepAutoCompletedPayload,
     NextStepIssuedPayload,
 )
+
 # WP04 (org-doctrine-profile-integrity-closeout, T014): these two payloads
 # are imported for use as annotations on the emitter Protocol/impl below
 # (``emit_significance_evaluated`` / ``emit_decision_timeout_expired``).
@@ -40,6 +41,7 @@ from runtime.next._internal_runtime.significance import (
     SignificanceEvaluatedPayload,
     TimeoutExpiredPayload,
 )
+
 # Layer note (dead-port-disposition-01M1VRA2, research R-5): ``runtime`` may import
 # ``specify_cli.*`` except ``specify_cli.cli`` / ``specify_cli.next``; both ``core``
 # and ``mission_metadata`` are already on the runtime outbound ledger
@@ -75,6 +77,7 @@ __all__ = [
 # ---------------------------------------------------------------------------
 # RuntimeEventEmitter protocol
 # ---------------------------------------------------------------------------
+
 
 class RuntimeEventEmitter(Protocol):
     """Interface for mission runtime event emission.
@@ -117,6 +120,7 @@ def seed_runtime_emitter(emitter: RuntimeEventEmitter, snapshot: Any) -> None:
 # ---------------------------------------------------------------------------
 # NullEmitter (no-op default)
 # ---------------------------------------------------------------------------
+
 
 class NullEmitter:
     """No-op emitter — default when no concrete emitter is provided.
@@ -203,6 +207,7 @@ class NullEmitter:
 #
 # Governing ADR: ``docs/adr/3.x/2026-09-06-2-runtime-event-emitter-disposition.md``.
 
+
 class RuntimeEmitterFactory(Protocol):
     """A producer factory: keyword-only mission identity in, a conforming emitter out.
 
@@ -213,6 +218,7 @@ class RuntimeEmitterFactory(Protocol):
     """
 
     def __call__(self, *, feature_dir: Path, mission_slug: str, mission_type: str) -> RuntimeEventEmitter: ...
+
 
 _registered_factory: RuntimeEmitterFactory | None = None
 
@@ -315,31 +321,24 @@ def runtime_emitter_for_mission(
     silent.
     """
     if moment_handlers_disabled_reason() is not None:
-        return NullEmitter.for_mission(
-            feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type
-        )
+        return NullEmitter.for_mission(feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type)
     if _registered_factory is not None:
         try:
-            return _registered_factory(
-                feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type
-            )
+            return _registered_factory(feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type)
         except Exception:
             logging.getLogger(__name__).warning(
                 "runtime_emitter_for_mission: registered factory %r raised; degrading to NullEmitter",
                 _registered_factory,
                 exc_info=True,
             )
-            return NullEmitter.for_mission(
-                feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type
-            )
-    return NullEmitter.for_mission(
-        feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type
-    )
+            return NullEmitter.for_mission(feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type)
+    return NullEmitter.for_mission(feature_dir=feature_dir, mission_slug=mission_slug, mission_type=mission_type)
 
 
 # ---------------------------------------------------------------------------
 # JsonlEventLog (append-only JSONL persistence)
 # ---------------------------------------------------------------------------
+
 
 class JsonlEventLog:
     """Append-only JSONL log. Writes dicts with sort_keys for determinism.

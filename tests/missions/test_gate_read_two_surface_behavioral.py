@@ -151,22 +151,14 @@ def _plant_planning(feature_dir: Path) -> None:
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
     (tasks_dir / "WP01-sample.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Sample\n"
-        "agent: claude\n"
-        "assignee: claude\n"
-        "shell_pid: '1'\n"
-        "---\n\n# WP01\n",
+        "---\nwork_package_id: WP01\ntitle: Sample\nagent: claude\nassignee: claude\nshell_pid: '1'\n---\n\n# WP01\n",
         encoding="utf-8",
     )
 
 
 def _plant_status_events(feature_dir: Path) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(_STATUS_EVENT) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(_STATUS_EVENT) + "\n", encoding="utf-8")
 
 
 @pytest.fixture
@@ -194,8 +186,7 @@ def coord_mission(tmp_path: Path) -> tuple[Path, Path, Path]:
     # real gate's "no tasks directory" break — closeout N+1 de-mask, debbie §3.)
     (primary_feature_dir / "tasks").mkdir(parents=True, exist_ok=True)
     (primary_feature_dir / "tasks" / "WP01-sample.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: Sample\nagent: claude\n"
-        "assignee: claude\nshell_pid: '1'\n---\n\n# WP01\n",
+        "---\nwork_package_id: WP01\ntitle: Sample\nagent: claude\nassignee: claude\nshell_pid: '1'\n---\n\n# WP01\n",
         encoding="utf-8",
     )
 
@@ -215,9 +206,7 @@ def coord_mission(tmp_path: Path) -> tuple[Path, Path, Path]:
 # ---------------------------------------------------------------------------
 
 
-def _assert_all_primary(
-    repo_root: Path, primary_dir: Path, coord_dir: Path, kinds: Iterable[tuple[str, MissionArtifactKind]]
-) -> None:
+def _assert_all_primary(repo_root: Path, primary_dir: Path, coord_dir: Path, kinds: Iterable[tuple[str, MissionArtifactKind]]) -> None:
     for label, kind in kinds:
         resolved = resolve_planning_read_dir(repo_root, _HANDLE, kind=kind).resolve()
         assert resolved == primary_dir.resolve(), (
@@ -225,14 +214,10 @@ def _assert_all_primary(
             f"target_branch dir {primary_dir}. Reverting this read to the topology "
             f"candidate resolver lands it on the coord husk {coord_dir} (RED)."
         )
-        assert resolved != coord_dir.resolve(), (
-            f"{label}: PLANNING read leaked onto the coord surface {coord_dir}."
-        )
+        assert resolved != coord_dir.resolve(), f"{label}: PLANNING read leaked onto the coord surface {coord_dir}."
 
 
-def _assert_all_coord(
-    repo_root: Path, primary_dir: Path, coord_dir: Path, kinds: Iterable[tuple[str, MissionArtifactKind]]
-) -> None:
+def _assert_all_coord(repo_root: Path, primary_dir: Path, coord_dir: Path, kinds: Iterable[tuple[str, MissionArtifactKind]]) -> None:
     for label, kind in kinds:
         resolved = resolve_planning_read_dir(repo_root, _HANDLE, kind=kind).resolve()
         assert resolved == coord_dir.resolve(), (
@@ -240,9 +225,7 @@ def _assert_all_coord(
             f"{coord_dir} (C-001/C-002). Redirecting the status read to primary "
             f"{primary_dir} turns this RED."
         )
-        assert resolved != primary_dir.resolve(), (
-            f"{label}: STATUS read leaked onto the primary surface {primary_dir}."
-        )
+        assert resolved != primary_dir.resolve(), f"{label}: STATUS read leaked onto the primary surface {primary_dir}."
 
 
 def test_two_surface_seam_across_commands(
@@ -255,12 +238,8 @@ def test_two_surface_seam_across_commands(
     """
     repo_root, primary_dir, coord_dir = coord_mission
 
-    _assert_all_primary(
-        repo_root, primary_dir, coord_dir, _COMMAND_PLANNING_KINDS.items()
-    )
-    _assert_all_coord(
-        repo_root, primary_dir, coord_dir, _COMMAND_STATUS_KINDS.items()
-    )
+    _assert_all_primary(repo_root, primary_dir, coord_dir, _COMMAND_PLANNING_KINDS.items())
+    _assert_all_coord(repo_root, primary_dir, coord_dir, _COMMAND_STATUS_KINDS.items())
 
 
 def test_command_planning_kinds_are_primary_partition() -> None:
@@ -270,12 +249,8 @@ def test_command_planning_kinds_are_primary_partition() -> None:
     cross-partition reclassification in ``mission_runtime.artifacts`` is caught
     HERE, not by a silent stale read.
     """
-    assert all(
-        is_primary_artifact_kind(kind) for kind in _COMMAND_PLANNING_KINDS.values()
-    )
-    assert all(
-        not is_primary_artifact_kind(kind) for kind in _COMMAND_STATUS_KINDS.values()
-    )
+    assert all(is_primary_artifact_kind(kind) for kind in _COMMAND_PLANNING_KINDS.values())
+    assert all(not is_primary_artifact_kind(kind) for kind in _COMMAND_STATUS_KINDS.values())
 
 
 def test_planning_seam_red_when_routed_to_coord(
@@ -295,29 +270,20 @@ def test_planning_seam_red_when_routed_to_coord(
     repo_root, primary_dir, coord_dir = coord_mission
 
     # Sanity: unmutated, the planning kinds resolve PRIMARY.
-    resolved_ok = resolve_planning_read_dir(
-        repo_root, _HANDLE, kind=MissionArtifactKind.SPEC
-    ).resolve()
+    resolved_ok = resolve_planning_read_dir(repo_root, _HANDLE, kind=MissionArtifactKind.SPEC).resolve()
     assert resolved_ok == primary_dir.resolve()
 
     # Control: the topology-aware candidate (the pre-mission, kind-blind path)
     # resolves the materialized coord husk under coord topology.
-    assert (
-        candidate_feature_dir_for_mission(repo_root, _HANDLE).resolve()
-        == coord_dir.resolve()
-    ), (
-        "The topology candidate did not land on the coord husk — the fixture is "
-        "not exercising the coord/primary divergence (NFR-002 false-green guard)."
+    assert candidate_feature_dir_for_mission(repo_root, _HANDLE).resolve() == coord_dir.resolve(), (
+        "The topology candidate did not land on the coord husk — the fixture is not exercising the coord/primary divergence (NFR-002 false-green guard)."
     )
 
     # Mutate: make the PRIMARY-partition branch fall through to the coord candidate.
     monkeypatch.setattr(mission_runtime, "is_primary_artifact_kind", lambda _kind: False)
-    resolved_mutant = resolve_planning_read_dir(
-        repo_root, _HANDLE, kind=MissionArtifactKind.SPEC
-    ).resolve()
+    resolved_mutant = resolve_planning_read_dir(repo_root, _HANDLE, kind=MissionArtifactKind.SPEC).resolve()
     assert resolved_mutant == coord_dir.resolve(), (
-        "Reverting the planning read to the kind-blind candidate did NOT land on "
-        "the coord husk — the seam's primary-partition routing is not load-bearing."
+        "Reverting the planning read to the kind-blind candidate did NOT land on the coord husk — the seam's primary-partition routing is not load-bearing."
     )
     assert resolved_mutant != primary_dir.resolve()
 
@@ -338,21 +304,15 @@ def test_accept_gate_reads_primary_planning_and_coord_status(
     """
     repo_root, _primary_dir, _coord_dir = coord_mission
 
-    summary = collect_feature_summary(
-        repo_root, _HANDLE, strict_metadata=False, mutate_matrix=False
-    )
+    summary = collect_feature_summary(repo_root, _HANDLE, strict_metadata=False, mutate_matrix=False)
 
     # PLANNING → primary: the docs (primary-only) are found, not mis-reported missing.
     assert summary.missing_artifacts == [], (
-        "Accept gate mis-blocked planning artifacts — it read the coord surface "
-        "instead of primary (planning-read split regressed)."
+        "Accept gate mis-blocked planning artifacts — it read the coord surface instead of primary (planning-read split regressed)."
     )
     # STATUS → coord: the event log (coord-only) is consulted, no "no canonical state".
-    assert not [
-        issue for issue in summary.activity_issues if "No canonical state found" in issue
-    ], (
-        "Accept gate lost the status event log — it read primary instead of coord "
-        "(C-002 status leniency regressed)."
+    assert not [issue for issue in summary.activity_issues if "No canonical state found" in issue], (
+        "Accept gate lost the status event log — it read primary instead of coord (C-002 status leniency regressed)."
     )
 
 
@@ -373,14 +333,11 @@ def test_accept_gate_iterates_wp_tasks_from_primary(
 
     # No raise: the WP-task read landed on PRIMARY (where the task lives), not the
     # coord husk. Pre-fix this raised AcceptanceError("has no tasks directory").
-    summary = collect_feature_summary(
-        repo_root, _HANDLE, strict_metadata=False, mutate_matrix=False
-    )
+    summary = collect_feature_summary(repo_root, _HANDLE, strict_metadata=False, mutate_matrix=False)
 
     # The primary-only WP task was actually iterated (the gate SAW it).
     assert [wp.work_package_id for wp in summary.work_packages] == ["WP01"], (
-        "Accept gate did not iterate the primary WP task — it read the coord "
-        "surface (WORK_PACKAGE_TASK is a PRIMARY-partition kind; closeout N+1)."
+        "Accept gate did not iterate the primary WP task — it read the coord surface (WORK_PACKAGE_TASK is a PRIMARY-partition kind; closeout N+1)."
     )
 
 
@@ -400,21 +357,16 @@ def test_record_analysis_allowlist_and_g5_dirt(
 
     # Self-bookkeeping churn (meta.json + provenance) — allowlisted, must NOT block.
     (primary_dir / "meta.json").write_text(
-        (primary_dir / "meta.json").read_text(encoding="utf-8").replace(
-            "software-dev", "software-dev "
-        ),
+        (primary_dir / "meta.json").read_text(encoding="utf-8").replace("software-dev", "software-dev "),
         encoding="utf-8",
     )
     provenance = repo_root / ".kittify" / "encoding-provenance"
     provenance.mkdir(parents=True, exist_ok=True)
-    (provenance / "global.jsonl").write_text(
-        '{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n', encoding="utf-8"
-    )
+    (provenance / "global.jsonl").write_text('{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n', encoding="utf-8")
     _git(repo_root, "add", ".kittify")
     _git(repo_root, "commit", "-q", "-m", "seed provenance")
     (provenance / "global.jsonl").write_text(
-        '{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n'
-        '{"path": "kitty-specs/y/plan.md", "encoding": "utf-8"}\n',
+        '{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n{"path": "kitty-specs/y/plan.md", "encoding": "utf-8"}\n',
         encoding="utf-8",
     )
 
@@ -459,8 +411,7 @@ def test_write_twin_resolves_target_branch_not_main(
     repo_root, _primary_dir, coord_dir = coord_mission
 
     assert get_feature_target_branch(repo_root, _HANDLE) == _TARGET, (
-        "get_feature_target_branch must anchor on the PRIMARY meta.json "
-        "(target_branch), not the topology candidate."
+        "get_feature_target_branch must anchor on the PRIMARY meta.json (target_branch), not the topology candidate."
     )
 
     resolution = resolve_target_branch(
@@ -471,13 +422,8 @@ def test_write_twin_resolves_target_branch_not_main(
     )
     assert resolution.target == _TARGET
 
-    placement = resolve_placement_only(
-        repo_root, _HANDLE, kind=MissionArtifactKind.TASKS_INDEX
-    )
-    assert placement.ref == _TARGET, (
-        "finalize-tasks TASKS_INDEX commit must resolve target_branch, not the "
-        f"protected repo primary (got {placement.ref!r})."
-    )
+    placement = resolve_placement_only(repo_root, _HANDLE, kind=MissionArtifactKind.TASKS_INDEX)
+    assert placement.ref == _TARGET, f"finalize-tasks TASKS_INDEX commit must resolve target_branch, not the protected repo primary (got {placement.ref!r})."
 
     # The STATUS/coord surface is untouched by the write-twin resolution.
     assert (coord_dir / "status.events.jsonl").exists()
@@ -497,10 +443,7 @@ def test_write_twin_anchors_on_primary_not_candidate(
 
     # Control: the production primary anchor points at the primary feature dir,
     # which carries target_branch; the coord meta in this fixture lacks it.
-    assert (
-        _compose_primary_feature_dir(repo_root, _HANDLE).resolve()
-        == primary_dir.resolve()
-    )
+    assert _compose_primary_feature_dir(repo_root, _HANDLE).resolve() == primary_dir.resolve()
 
     # Sanity: production resolves target_branch off primary.
     assert get_feature_target_branch(repo_root, _HANDLE) == _TARGET
@@ -510,9 +453,7 @@ def test_write_twin_anchors_on_primary_not_candidate(
     # divergence the fix removes. The resolver must drop to the fallback (not _TARGET).
     no_target_dir = repo_root / "kitty-specs" / "no-target"
     no_target_dir.mkdir(parents=True)
-    (no_target_dir / "meta.json").write_text(
-        json.dumps({"mission_slug": _HANDLE, "mid8": _MID8}), encoding="utf-8"
-    )
+    (no_target_dir / "meta.json").write_text(json.dumps({"mission_slug": _HANDLE, "mid8": _MID8}), encoding="utf-8")
     # read-side-seam-primary-primitive-closure-01KYKMMT WP08 (T035): patch
     # target moved from the deleted public wrapper to the module-private
     # ``_compose_primary_feature_dir`` leaf -- ``get_feature_target_branch``
@@ -524,6 +465,5 @@ def test_write_twin_anchors_on_primary_not_candidate(
     )
     mutated = get_feature_target_branch(repo_root, _HANDLE)
     assert mutated != _TARGET, (
-        "Anchoring on a candidate dir without target_branch did NOT regress target "
-        "resolution — the write-twin primary anchor is not load-bearing."
+        "Anchoring on a candidate dir without target_branch did NOT regress target resolution — the write-twin primary anchor is not load-bearing."
     )

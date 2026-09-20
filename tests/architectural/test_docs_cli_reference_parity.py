@@ -97,16 +97,10 @@ _WP07_GENERATOR_MARKER = "<!-- BEGIN GENERATED -->"
 
 def _read_or_skip(path: Path, *, wp_label: str) -> str:
     if not path.exists():
-        pytest.skip(
-            f"{wp_label} not yet run: {path} is missing. "
-            "Re-run after the rebuilt CLI reference lands."
-        )
+        pytest.skip(f"{wp_label} not yet run: {path} is missing. Re-run after the rebuilt CLI reference lands.")
     text = path.read_text(encoding="utf-8")
     if _WP07_GENERATOR_MARKER not in text:
-        pytest.skip(
-            f"{wp_label} not yet run: {path} does not carry the generator "
-            "marker. Re-run after the rebuilt CLI reference lands."
-        )
+        pytest.skip(f"{wp_label} not yet run: {path} does not carry the generator marker. Re-run after the rebuilt CLI reference lands.")
     return text
 
 
@@ -129,31 +123,16 @@ def test_reference_paths_are_present_and_generated() -> None:
     that silent skip. This test fails LOUDLY instead of skipping, so a
     regression in either path is a red, not a quiet green-via-skip.
     """
-    missing = [
-        str(path)
-        for path in (REFERENCE_PATH, AGENT_REFERENCE_PATH)
-        if not path.exists()
-    ]
-    assert not missing, (
-        "CLI reference doc(s) missing — the parity gate would silently "
-        f"SKIP instead of running: {missing}"
-    )
-    ungenerated = [
-        str(path)
-        for path in (REFERENCE_PATH, AGENT_REFERENCE_PATH)
-        if _WP07_GENERATOR_MARKER not in path.read_text(encoding="utf-8")
-    ]
+    missing = [str(path) for path in (REFERENCE_PATH, AGENT_REFERENCE_PATH) if not path.exists()]
+    assert not missing, f"CLI reference doc(s) missing — the parity gate would silently SKIP instead of running: {missing}"
+    ungenerated = [str(path) for path in (REFERENCE_PATH, AGENT_REFERENCE_PATH) if _WP07_GENERATOR_MARKER not in path.read_text(encoding="utf-8")]
     assert not ungenerated, (
-        "CLI reference doc(s) missing the generator marker "
-        f"({_WP07_GENERATOR_MARKER!r}) — regenerate via "
-        f"scripts/docs/build_cli_reference.py: {ungenerated}"
+        f"CLI reference doc(s) missing the generator marker ({_WP07_GENERATOR_MARKER!r}) — regenerate via scripts/docs/build_cli_reference.py: {ungenerated}"
     )
 
 
 @pytest.mark.parametrize("sync_flag", ["0", "1"])
-def test_visible_paths_match_reference(
-    reference_text: str, agent_reference_text: str, sync_flag: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_visible_paths_match_reference(reference_text: str, agent_reference_text: str, sync_flag: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Every visible (non-hidden) command path must appear in one of the references."""
     monkeypatch.setenv("SPEC_KITTY_ENABLE_SAAS_SYNC", sync_flag)
     app = _build_live_app()
@@ -168,14 +147,8 @@ def test_visible_paths_match_reference(
     missing = live_visible - referenced
     extra = referenced - {e.path for e in entries}
 
-    assert not missing, (
-        "Visible command paths missing from the reference docs:\n"
-        + "\n".join(f"  - spec-kitty {' '.join(p)}" for p in sorted(missing))
-    )
-    assert not extra, (
-        "Reference docs name command paths that are not in the live tree:\n"
-        + "\n".join(f"  - spec-kitty {' '.join(p)}" for p in sorted(extra))
-    )
+    assert not missing, "Visible command paths missing from the reference docs:\n" + "\n".join(f"  - spec-kitty {' '.join(p)}" for p in sorted(missing))
+    assert not extra, "Reference docs name command paths that are not in the live tree:\n" + "\n".join(f"  - spec-kitty {' '.join(p)}" for p in sorted(extra))
 
 
 def test_deprecated_paths_classified(reference_text: str, agent_reference_text: str) -> None:
@@ -190,15 +163,9 @@ def test_deprecated_paths_classified(reference_text: str, agent_reference_text: 
     agent_paths = extract_referenced_paths(agent_reference_text)
     combined = {**main_paths, **agent_paths}
 
-    unclassified = [
-        e.path
-        for e in deprecated
-        if combined.get(e.path)
-        and not combined[e.path].get("classified_deprecated")
-    ]
-    assert not unclassified, (
-        "Deprecated paths missing Deprecated banner in the reference:\n"
-        + "\n".join(f"  - spec-kitty {' '.join(p)}" for p in sorted(unclassified))
+    unclassified = [e.path for e in deprecated if combined.get(e.path) and not combined[e.path].get("classified_deprecated")]
+    assert not unclassified, "Deprecated paths missing Deprecated banner in the reference:\n" + "\n".join(
+        f"  - spec-kitty {' '.join(p)}" for p in sorted(unclassified)
     )
 
 
@@ -221,28 +188,20 @@ def test_retired_check_residual_option_is_absent(reference_text: str) -> None:
 #: At minimum the ad-hoc-profile-load SKILL.md (the source template — generated
 #: agent copies under ``.claude/`` etc. propagate from it on upgrade, so they
 #: are intentionally out of scope here per C-006).
-_SKILL_DOCS = (
-    _REPO_ROOT / "src" / "charter" / "offering" / "skills" / "ad-hoc-profile-load" / "SKILL.md",
-)
+_SKILL_DOCS = (_REPO_ROOT / "src" / "charter" / "offering" / "skills" / "ad-hoc-profile-load" / "SKILL.md",)
 
 #: Match ``spec-kitty agent profile <sub>`` where ``<sub>`` is a command token
 #: (lower-case word, optionally hyphenated). The ``spec-kitty`` prefix anchors
 #: the match to genuine command invocations, so prose like "load an agent
 #: profile on demand" (which lacks the prefix) is never captured.
-_PROFILE_CMD_RE = re.compile(
-    r"spec-kitty\s+agent\s+profile\s+([a-z][a-z-]*)(?=\s|$|`)"
-)
+_PROFILE_CMD_RE = re.compile(r"spec-kitty\s+agent\s+profile\s+([a-z][a-z-]*)(?=\s|$|`)")
 
 
 def _registered_profile_commands() -> set[str]:
     """Return the set of command names registered on the ``profile`` Typer app."""
     from specify_cli.cli.commands import profiles_cmd
 
-    return {
-        cmd.name
-        for cmd in profiles_cmd.app.registered_commands
-        if cmd.name is not None
-    }
+    return {cmd.name for cmd in profiles_cmd.app.registered_commands if cmd.name is not None}
 
 
 def test_skill_docs_profile_subcommands_are_registered() -> None:
@@ -268,15 +227,11 @@ def test_skill_docs_profile_subcommands_are_registered() -> None:
                 rel = doc.relative_to(_REPO_ROOT)
                 orphans.append((str(rel), sub))
 
-    assert scanned_any, (
-        "No skill docs were scanned — expected at least "
-        f"{_SKILL_DOCS[0].relative_to(_REPO_ROOT)} to exist."
-    )
+    assert scanned_any, f"No skill docs were scanned — expected at least {_SKILL_DOCS[0].relative_to(_REPO_ROOT)} to exist."
     assert not orphans, (
         "Skill docs reference 'spec-kitty agent profile <sub>' commands that "
         "are not registered on the profile Typer app "
-        f"(registered: {sorted(registered)}):\n"
-        + "\n".join(f"  - {doc}: 'agent profile {sub}'" for doc, sub in sorted(orphans))
+        f"(registered: {sorted(registered)}):\n" + "\n".join(f"  - {doc}: 'agent profile {sub}'" for doc, sub in sorted(orphans))
     )
 
 
@@ -305,9 +260,7 @@ _BASH_FENCE_RE: re.Pattern[str] = re.compile(r"```bash(.*?)```", re.DOTALL)
 
 #: Characters that mark the end of a command path and the start of an
 #: argument, placeholder, or flag section.
-_PATH_STOP_RE: re.Pattern[str] = re.compile(
-    r"^(?:-|<|\[|\{|\$|\.\.\.)|[A-Z\"\']"
-)
+_PATH_STOP_RE: re.Pattern[str] = re.compile(r"^(?:-|<|\[|\{|\$|\.\.\.)|[A-Z\"\']")
 
 #: A valid command-path token: lower-case ASCII letter followed by
 #: lower-case letters, digits, or hyphens.
@@ -341,7 +294,7 @@ def _extract_command_path(line: str) -> tuple[str, ...] | None:
     # Strip common shell prefixes that are not part of the command.
     for prefix in ("uv run ", "$ ", "  "):
         if stripped.startswith(prefix):
-            stripped = stripped[len(prefix):]
+            stripped = stripped[len(prefix) :]
     # Skip comment lines (the whole line is a shell comment).
     if stripped.startswith("#"):
         return None
@@ -375,9 +328,7 @@ def _doctrine_source_snippets(
             rel = str(filepath.relative_to(repo_root))
             for fence_match in _BASH_FENCE_RE.finditer(text):
                 block = fence_match.group(1)
-                for line_match in re.finditer(
-                    r"^[ \t]*(spec-kitty[ \t]+[^\n]+)", block, re.MULTILINE
-                ):
+                for line_match in re.finditer(r"^[ \t]*(spec-kitty[ \t]+[^\n]+)", block, re.MULTILINE):
                     raw = line_match.group(1)
                     path = _extract_command_path(raw)
                     if path is not None:
@@ -459,10 +410,7 @@ def test_doctrine_source_snippets_are_registered() -> None:
     assert not failures, (
         "Doctrine SOURCE bash fences reference unregistered 'spec-kitty' command paths "
         f"(finding: unregistered-path). {len(failures)} violation(s):\n"
-        + "\n".join(
-            f"  {rel}  spec-kitty {' '.join(path)!r}  ← {raw_line[:72]}"
-            for rel, path, raw_line in sorted(failures)
-        )
+        + "\n".join(f"  {rel}  spec-kitty {' '.join(path)!r}  ← {raw_line[:72]}" for rel, path, raw_line in sorted(failures))
         + "\n\nFix the SOURCE snippet to point at a real registered surface, or add "
         "an allow-list entry in _SNIPPET_DRIFT_ALLOWLIST with a rationale comment."
     )
@@ -489,9 +437,7 @@ def test_guard_rejects_planted_nonexistent_command() -> None:
     # Plant a nonexistent command path — ``doctrine list`` never exists.
     planted_line = "spec-kitty doctrine list --kind directive"
     path = _extract_command_path(planted_line)
-    assert path == ("doctrine", "list"), (
-        f"Expected path extraction to yield ('doctrine', 'list'), got {path!r}"
-    )
+    assert path == ("doctrine", "list"), f"Expected path extraction to yield ('doctrine', 'list'), got {path!r}"
     assert not _is_registered_path(path, registered, registered_commands), (
         "Expected ('doctrine', 'list') to be UNREGISTERED — the guard would "
         "not catch it if this assertion fails.  ('doctrine',) is a group, so "
@@ -509,14 +455,9 @@ def test_guard_accepts_valid_bool_auto_negation() -> None:
     line = "spec-kitty charter context --action specify --no-mark-loaded --json"
     path = _extract_command_path(line)
     # Path must be ("charter", "context") — stops before the first "--" flag.
-    assert path == ("charter", "context"), (
-        f"Expected ('charter', 'context'), got {path!r}.  "
-        "The guard must stop tokenising at the first flag."
-    )
+    assert path == ("charter", "context"), f"Expected ('charter', 'context'), got {path!r}.  The guard must stop tokenising at the first flag."
 
     app = _build_live_app()
     entries = walk(app)
     registered: set[tuple[str, ...]] = {e.path for e in entries}
-    assert _is_registered_path(path, registered), (
-        "('charter', 'context') must be registered — guard would false-positive otherwise."
-    )
+    assert _is_registered_path(path, registered), "('charter', 'context') must be registered — guard would false-positive otherwise."

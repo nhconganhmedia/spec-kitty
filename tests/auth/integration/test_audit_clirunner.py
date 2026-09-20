@@ -96,9 +96,7 @@ class TestCliRunnerAudit:
             uses_subprocess = "subprocess" in source
 
             if not (uses_clirunner or uses_subprocess):
-                offenders.append(
-                    (test_file, "missing CliRunner AND subprocess imports")
-                )
+                offenders.append((test_file, "missing CliRunner AND subprocess imports"))
                 continue
 
             # If the test imports any flow class directly, that's a red
@@ -114,10 +112,8 @@ class TestCliRunnerAudit:
                         )
                     )
 
-        assert not offenders, (
-            "T063 violation: the following integration tests do not drive "
-            "the real Typer app via CliRunner:\n"
-            + "\n".join(f"  - {path.name}: {reason}" for path, reason in offenders)
+        assert not offenders, "T063 violation: the following integration tests do not drive the real Typer app via CliRunner:\n" + "\n".join(
+            f"  - {path.name}: {reason}" for path, reason in offenders
         )
 
     def test_exempt_files_still_exist(self) -> None:
@@ -128,10 +124,7 @@ class TestCliRunnerAudit:
         """
         for exempt in _CLIRUNNER_AUDIT_EXEMPT:
             exempt_path = _INTEGRATION_DIR / exempt
-            assert exempt_path.exists(), (
-                f"CliRunner-exempt file {exempt!r} no longer exists — "
-                f"remove it from _CLIRUNNER_AUDIT_EXEMPT"
-            )
+            assert exempt_path.exists(), f"CliRunner-exempt file {exempt!r} no longer exists — remove it from _CLIRUNNER_AUDIT_EXEMPT"
 
 
 class TestLegacyClassAudit:
@@ -171,13 +164,8 @@ class TestLegacyClassAudit:
                     if legacy in source:
                         offenders.append((test_file, legacy))
 
-        assert not offenders, (
-            "T064 violation: the following WP11 tests reference deleted "
-            "legacy classes:\n"
-            + "\n".join(
-                f"  - {path.relative_to(_INTEGRATION_DIR.parent)}: {name}"
-                for path, name in offenders
-            )
+        assert not offenders, "T064 violation: the following WP11 tests reference deleted legacy classes:\n" + "\n".join(
+            f"  - {path.relative_to(_INTEGRATION_DIR.parent)}: {name}" for path, name in offenders
         )
 
     def test_integration_tests_use_get_token_manager_factory(self) -> None:
@@ -202,10 +190,8 @@ class TestLegacyClassAudit:
             if "get_token_manager" not in source:
                 offenders.append((test_file, "references TokenManager but not get_token_manager"))
 
-        assert not offenders, (
-            "Factory-access violation: integration tests must use "
-            "get_token_manager(), not TokenManager() directly:\n"
-            + "\n".join(f"  - {path.name}: {reason}" for path, reason in offenders)
+        assert not offenders, "Factory-access violation: integration tests must use get_token_manager(), not TokenManager() directly:\n" + "\n".join(
+            f"  - {path.name}: {reason}" for path, reason in offenders
         )
 
 
@@ -236,8 +222,6 @@ class TestHardcodedSaasUrlAudit:
                     if fragment in source:
                         offenders.append((test_file, fragment))
 
-        assert not offenders, (
-            "C-012 violation: the following tests hardcode a production "
-            "SaaS URL instead of using the SPEC_KITTY_SAAS_URL env var:\n"
-            + "\n".join(f"  - {path.name}: {frag}" for path, frag in offenders)
+        assert not offenders, "C-012 violation: the following tests hardcode a production SaaS URL instead of using the SPEC_KITTY_SAAS_URL env var:\n" + "\n".join(
+            f"  - {path.name}: {frag}" for path, frag in offenders
         )

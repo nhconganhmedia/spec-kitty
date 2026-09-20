@@ -5,6 +5,7 @@ ATDD anchor
 * ``test_default_workflow_produces_byte_stable_pairs``
   covers: FR-014, C-008 — expected GREEN at: WP11 final commit
 """
+
 from __future__ import annotations
 
 
@@ -33,7 +34,4 @@ def test_default_workflow_produces_byte_stable_pairs() -> None:
     for current, expected_next in _HARDCODED_SEQUENCE:
         action = by_name[current]
         actual_next = action.next[0] if action.next else None
-        assert actual_next == expected_next, (
-            f"byte-stability violation: from {current!r} expected next={expected_next!r}, "
-            f"got {actual_next!r}"
-        )
+        assert actual_next == expected_next, f"byte-stability violation: from {current!r} expected next={expected_next!r}, got {actual_next!r}"

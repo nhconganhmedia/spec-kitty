@@ -51,9 +51,7 @@ def tmp_monorepo(tmp_path: Path) -> Path:
 
     auth_root = tmp_path / "packages" / "auth"
     (auth_root / ".kittify" / "charter").mkdir(parents=True)
-    (auth_root / ".kittify" / "charter" / "charter.md").write_text(
-        "# Auth charter\n"
-    )
+    (auth_root / ".kittify" / "charter" / "charter.md").write_text("# Auth charter\n")
     (auth_root / "some" / "deep" / "dir").mkdir(parents=True)
 
     web_root = tmp_path / "packages" / "web"

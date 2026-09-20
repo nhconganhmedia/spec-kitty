@@ -34,7 +34,6 @@ __all__ = [
 ]
 
 
-
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -142,11 +141,7 @@ def _make_title_for_section(section_label: str, kind: str, answer_context: dict[
 def _known_drg_urns(drg_snapshot: dict[str, Any]) -> frozenset[str]:
     """Return the set of node URNs present in *drg_snapshot*."""
     nodes = drg_snapshot.get("nodes", [])
-    return frozenset(
-        str(node["urn"])
-        for node in nodes
-        if isinstance(node, dict) and node.get("urn")
-    )
+    return frozenset(str(node["urn"]) for node in nodes if isinstance(node, dict) and node.get("urn"))
 
 
 def _validate_source_urns(
@@ -173,15 +168,8 @@ def _validate_source_urns(
     dangling = [u for u in source_urns if u not in known_urns]
     if dangling:
         raise ProjectDRGValidationError(
-            errors=tuple(
-                f"Source URN '{u}' referenced by target '{target_label}' "
-                f"does not exist in the built-in DRG snapshot."
-                for u in dangling
-            ),
-            merged_graph_summary=(
-                f"{len(known_urns)} known URNs; "
-                f"{len(dangling)} dangling reference(s): {', '.join(dangling)}"
-            ),
+            errors=tuple(f"Source URN '{u}' referenced by target '{target_label}' does not exist in the built-in DRG snapshot." for u in dangling),
+            merged_graph_summary=(f"{len(known_urns)} known URNs; {len(dangling)} dangling reference(s): {', '.join(dangling)}"),
         )
 
 
@@ -270,13 +258,9 @@ def build_targets(
     for section_label, answer_context in mappings:
         kinds: list[str] = answer_context.get("kinds", [])
         source_section: str | None = answer_context.get("source_section") or None
-        explicit_source_urns: tuple[str, ...] = tuple(
-            answer_context.get("source_urns", ())
-        )
+        explicit_source_urns: tuple[str, ...] = tuple(answer_context.get("source_urns", ()))
         if not explicit_source_urns:
-            explicit_source_urns = _mission_type_evidence_urns(
-                section_label, answer_context, drg_snapshot
-            )
+            explicit_source_urns = _mission_type_evidence_urns(section_label, answer_context, drg_snapshot)
 
         # Validate any explicitly declared source URNs against the DRG.
         if explicit_source_urns:

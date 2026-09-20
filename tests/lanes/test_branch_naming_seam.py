@@ -135,19 +135,13 @@ def _embedded_row() -> GoldenRow:
 @pytest.mark.parametrize("row", GOLDEN_ROWS, ids=lambda r: r.label)
 def test_golden_table_branch_and_lane(row: GoldenRow) -> None:
     assert bn.mission_branch_name(row.mission_slug, mission_id=row.mission_id) == row.mission_branch
-    assert (
-        bn.lane_branch_name(row.mission_slug, row.lane_id, mission_id=row.mission_id)
-        == row.lane_branch
-    )
+    assert bn.lane_branch_name(row.mission_slug, row.lane_id, mission_id=row.mission_id) == row.lane_branch
 
 
 @pytest.mark.parametrize("row", GOLDEN_ROWS, ids=lambda r: r.label)
 def test_golden_table_worktree_dir(row: GoldenRow) -> None:
     """worktree_dir_name reproduces today's on-disk grammar EXACTLY in both modes."""
-    assert (
-        bn.worktree_dir_name(row.mission_slug, mission_id=row.mission_id, lane_id=row.lane_id)
-        == row.worktree_dir
-    )
+    assert bn.worktree_dir_name(row.mission_slug, mission_id=row.mission_id, lane_id=row.lane_id) == row.worktree_dir
 
 
 def test_golden_table_mission_and_coord_derivations() -> None:
@@ -180,11 +174,7 @@ def test_1589_coordination_composers_verbatim_no_nnn_strip() -> None:
     assert bn.coord_reconstruct_branch(row.mission_slug, mid8=_NNN_ROW_MID8) == row.coord_branch
     # Pre-WP06 algorithm, recomputed inline as the byte-identical oracle.
     suffix = f"-{_NNN_ROW_MID8}"
-    expected_dir = (
-        row.mission_slug
-        if row.mission_slug.endswith(suffix)
-        else f"{row.mission_slug}{suffix}"
-    )
+    expected_dir = row.mission_slug if row.mission_slug.endswith(suffix) else f"{row.mission_slug}{suffix}"
     assert bn.coord_mission_dir_name(row.mission_slug, mid8=_NNN_ROW_MID8) == expected_dir
 
 
@@ -199,9 +189,7 @@ def test_1589_canonical_branch_grammar_still_strips_nnn() -> None:
     row = _nnn_row()
     # Canonical branch grammar: NNN- stripped (WP02 / #1978 merge path).
     assert bn.mission_branch_name(row.mission_slug, mission_id=row.mission_id) == row.mission_branch
-    assert (
-        bn.mission_branch_name_required(row.mission_slug, row.mission_id) == row.mission_branch
-    )
+    assert bn.mission_branch_name_required(row.mission_slug, row.mission_id) == row.mission_branch
     # Canonical mission-dir grammar: NNN- stripped.
     assert bn.mission_dir_name(row.mission_slug, mid8=_NNN_ROW_MID8) == row.mission_dir
     # The two grammars genuinely DIFFER for an NNN- slug — that is the contract.
@@ -212,17 +200,12 @@ def test_1589_canonical_branch_grammar_still_strips_nnn() -> None:
 def test_worktree_dir_legacy_matches_allocator_fstring() -> None:
     """The legacy worktree dir is byte-identical to ``f"{slug}-{lane}"`` (no mid8)."""
     row = _legacy_row()
-    assert (
-        bn.worktree_dir_name(row.mission_slug, mission_id=None, lane_id=row.lane_id)
-        == f"{row.mission_slug}-{row.lane_id}"
-    )
+    assert bn.worktree_dir_name(row.mission_slug, mission_id=None, lane_id=row.lane_id) == f"{row.mission_slug}-{row.lane_id}"
 
 
 def test_worktree_path_emits_under_worktrees(tmp_path) -> None:
     row = _embedded_row()
-    path = bn.worktree_path(
-        tmp_path, row.mission_slug, mission_id=row.mission_id, lane_id=row.lane_id
-    )
+    path = bn.worktree_path(tmp_path, row.mission_slug, mission_id=row.mission_id, lane_id=row.lane_id)
     assert path == tmp_path / ".worktrees" / row.worktree_dir
 
 
@@ -250,14 +233,8 @@ def test_1949_compose_idempotent_with_mission_id_LOCK() -> None:
     # Bare slug + mission_id → single mid8.
     assert bn.mission_branch_name("foo", mission_id=MISSION_ID) == "kitty/mission-foo-01KV6510"
     # Already-embedded slug + mission_id → still single mid8 (idempotent).
-    assert (
-        bn.mission_branch_name("foo-01KV6510", mission_id=MISSION_ID)
-        == "kitty/mission-foo-01KV6510"
-    )
-    assert (
-        bn.lane_branch_name("foo-01KV6510", LANE, mission_id=MISSION_ID)
-        == "kitty/mission-foo-01KV6510-lane-a"
-    )
+    assert bn.mission_branch_name("foo-01KV6510", mission_id=MISSION_ID) == "kitty/mission-foo-01KV6510"
+    assert bn.lane_branch_name("foo-01KV6510", LANE, mission_id=MISSION_ID) == "kitty/mission-foo-01KV6510-lane-a"
 
 
 def test_1949_compose_idempotent_mission_id_none_embedded() -> None:
@@ -342,17 +319,9 @@ def test_mid8_from_slug_remains_heuristic_detector() -> None:
 def test_resolve_transaction_mid8_still_resolves_embedded_tail() -> None:
     """The embedded-mid8 final fallback must NOT newly fail-close (FR-004)."""
     # No declared mid8/mission_id, but the slug carries a genuine mid8 tail.
-    assert (
-        bn.resolve_transaction_mid8(
-            "foo-01KV6510", mission_id=None, mid8=None, coordination_branch="kitty/mission-foo-01KV6510"
-        )
-        == "01KV6510"
-    )
+    assert bn.resolve_transaction_mid8("foo-01KV6510", mission_id=None, mid8=None, coordination_branch="kitty/mission-foo-01KV6510") == "01KV6510"
     # Declared mid8 still wins.
-    assert (
-        bn.resolve_transaction_mid8("foo-01KV6510", mission_id=None, mid8="DEADBEE1")
-        == "DEADBEE1"
-    )
+    assert bn.resolve_transaction_mid8("foo-01KV6510", mission_id=None, mid8="DEADBEE1") == "DEADBEE1"
 
 
 # ---------------------------------------------------------------------------
@@ -365,10 +334,7 @@ def test_resolve_branch_prefers_canonical_no_warning() -> None:
     bn.reset_legacy_failover_warning()
     with warnings.catch_warnings():
         warnings.simplefilter("error")  # any warning becomes an error
-        assert (
-            bn.resolve_branch_name("foo-01KV6510", mission_id=MISSION_ID)
-            == "kitty/mission-foo-01KV6510"
-        )
+        assert bn.resolve_branch_name("foo-01KV6510", mission_id=MISSION_ID) == "kitty/mission-foo-01KV6510"
 
 
 def test_resolve_branch_legacy_emits_one_shot_warning(monkeypatch) -> None:
@@ -416,9 +382,7 @@ ROUND_TRIP_CASES = [
 
 
 @pytest.mark.parametrize("slug,mission_id,exp_slug,exp_mid8", ROUND_TRIP_CASES)
-def test_compose_parse_round_trip(
-    slug: str, mission_id: str | None, exp_slug: str, exp_mid8: str | None
-) -> None:
+def test_compose_parse_round_trip(slug: str, mission_id: str | None, exp_slug: str, exp_mid8: str | None) -> None:
     branch = bn.mission_branch_name(slug, mission_id=mission_id)
     parsed = bn.parse_mission_slug_from_branch(branch)
     assert parsed is not None

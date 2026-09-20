@@ -126,9 +126,7 @@ def test_read_event_file_missing_path_returns_empty_list(tmp_path: Path) -> None
 def test_read_event_file_skips_blank_lines(tmp_path: Path) -> None:
     path = tmp_path / "events.jsonl"
     path.write_text(
-        "\n"
-        + json.dumps(_event("01AAA000000000000000000001", "2026-04-09T06:00:00Z"), sort_keys=True)
-        + "\n\n",
+        "\n" + json.dumps(_event("01AAA000000000000000000001", "2026-04-09T06:00:00Z"), sort_keys=True) + "\n\n",
         encoding="utf-8",
     )
 
@@ -195,9 +193,6 @@ def test_merge_event_payloads_mixed_at_timestamp_neither() -> None:
     reversed_groups = merge_event_payloads([neither_b, neither_a], [timestamp_only], [at_only])
 
     assert [payload["event_id"] for payload in forward] == expected_order
-    assert forward == reversed_groups, (
-        "mixed-schema sort must be deterministic and total across input "
-        "permutations (AC-F2)"
-    )
+    assert forward == reversed_groups, "mixed-schema sort must be deterministic and total across input permutations (AC-F2)"
     # Repeated runs over identical input are byte-stable.
     assert merge_event_payloads([at_only], [timestamp_only], [neither_a, neither_b]) == forward

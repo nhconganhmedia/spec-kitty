@@ -179,9 +179,7 @@ class TestFinalizeGateBlocksSchemaInvalidMap:
         _write_occurrence_map(feature_dir, INVALID_OCCURRENCE_MAP_MISSING_TARGET)
         result = _invoke(tmp_path, feature_dir)
         assert result.exit_code == 1, result.stdout
-        payload_line = next(
-            line for line in result.stdout.splitlines() if line.strip().startswith("{")
-        )
+        payload_line = next(line for line in result.stdout.splitlines() if line.strip().startswith("{"))
         payload = json.loads(payload_line)
         assert any("target" in err.lower() for err in payload["gate_errors"])
 
@@ -194,14 +192,9 @@ class TestFinalizeGateBlocksInadmissibleMap:
         _write_occurrence_map(feature_dir, INADMISSIBLE_OCCURRENCE_MAP_FEW_CATEGORIES)
         result = _invoke(tmp_path, feature_dir)
         assert result.exit_code == 1, result.stdout
-        payload_line = next(
-            line for line in result.stdout.splitlines() if line.strip().startswith("{")
-        )
+        payload_line = next(line for line in result.stdout.splitlines() if line.strip().startswith("{"))
         payload = json.loads(payload_line)
-        assert any(
-            "at least" in err.lower() or "categories" in err.lower()
-            for err in payload["gate_errors"]
-        )
+        assert any("at least" in err.lower() or "categories" in err.lower() for err in payload["gate_errors"])
 
 
 def _assert_gate_did_not_fire(result: Result) -> None:

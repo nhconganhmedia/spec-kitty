@@ -44,6 +44,7 @@ runner = CliRunner()
 def _make_sync_result_stub(repo_root: Path) -> object:
     class _Stub:
         canonical_root = repo_root
+
     return _Stub()
 
 
@@ -125,11 +126,7 @@ def _write_manifest(
 ) -> None:
     path = repo / ".kittify" / "charter" / "synthesis-manifest.yaml"
     path.parent.mkdir(parents=True, exist_ok=True)
-    hash_line = (
-        f"bundle_content_hash: {bundle_content_hash}\n"
-        if bundle_content_hash is not None
-        else "bundle_content_hash: null\n"
-    )
+    hash_line = f"bundle_content_hash: {bundle_content_hash}\n" if bundle_content_hash is not None else "bundle_content_hash: null\n"
     path.write_text(
         dedent(
             f"""\
@@ -171,11 +168,7 @@ def _invoke_status_json(repo: Path) -> dict[str, object]:
     ):
         result = runner.invoke(charter_app, ["status", "--json"])
     if result.exit_code != 0 or not result.stdout.strip():
-        raise AssertionError(
-            f"charter status failed: exit_code={result.exit_code}\n"
-            f"stdout={result.stdout!r}\n"
-            f"exception={result.exception!r}"
-        )
+        raise AssertionError(f"charter status failed: exit_code={result.exit_code}\nstdout={result.stdout!r}\nexception={result.exception!r}")
     return json.loads(result.stdout)
 
 

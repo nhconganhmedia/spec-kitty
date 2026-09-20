@@ -26,6 +26,7 @@ from specify_cli.status.store import append_event
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_snapshot(
     mission_slug: str,
     wp_lanes: dict[str, str],
@@ -360,9 +361,7 @@ def test_generate_progress_json_empty_feature(tmp_path):
     assert data["total_count"] == 0
 
 
-def test_generate_progress_json_falls_back_to_feature_dir_name_when_snapshot_slug_empty(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
+def test_generate_progress_json_falls_back_to_feature_dir_name_when_snapshot_slug_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     import specify_cli.status.progress as progress_module
 
     feature_dir = tmp_path / "kitty-specs" / "064-complete-mission-identity-cutover"

@@ -72,15 +72,17 @@ def test_hook_failure_is_not_classified_as_empty_changeset(repo: Path) -> None:
     # The load-bearing assertion: the router must NOT treat this as a benign
     # empty changeset (which it would render as status="unchanged").
     assert not _is_empty_changeset_error(excinfo.value), (
-        "hook failure was misclassified as an empty changeset -> would surface "
-        f"as 'unchanged, no commit needed'. message={excinfo.value!r}"
+        f"hook failure was misclassified as an empty changeset -> would surface as 'unchanged, no commit needed'. message={excinfo.value!r}"
     )
     # And the failure must carry git's own output so the operator can diagnose it.
     assert "pre-commit boom" in str(excinfo.value)
     # The commit genuinely did not land.
     head_files = subprocess.run(
         ["git", "ls-files", "kitty-specs/demo-mission/spec.md"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
     assert head_files == "", "hook aborted the commit, so the spec must not be tracked"
 
@@ -90,19 +92,22 @@ def test_genuine_empty_changeset_is_still_classified_as_empty(repo: Path) -> Non
     spec = _new_spec(repo)
     # First commit lands.
     safe_commit(
-        repo_root=repo, worktree_root=repo, destination_ref=_UNPROTECTED_BRANCH,
-        message="Add spec", paths=(spec,),
+        repo_root=repo,
+        worktree_root=repo,
+        destination_ref=_UNPROTECTED_BRANCH,
+        message="Add spec",
+        paths=(spec,),
     )
     # Re-committing identical content is a genuine empty changeset.
     with pytest.raises(RuntimeError) as excinfo:
         safe_commit(
-            repo_root=repo, worktree_root=repo, destination_ref=_UNPROTECTED_BRANCH,
-            message="Add spec again", paths=(spec,),
+            repo_root=repo,
+            worktree_root=repo,
+            destination_ref=_UNPROTECTED_BRANCH,
+            message="Add spec again",
+            paths=(spec,),
         )
-    assert _is_empty_changeset_error(excinfo.value), (
-        "a genuine empty changeset must still classify as empty (-> 'unchanged'); "
-        f"message={excinfo.value!r}"
-    )
+    assert _is_empty_changeset_error(excinfo.value), f"a genuine empty changeset must still classify as empty (-> 'unchanged'); message={excinfo.value!r}"
 
 
 def test_hook_failure_that_prints_nothing_to_commit_is_not_classified_as_empty(repo: Path) -> None:
@@ -142,7 +147,10 @@ def test_hook_failure_that_prints_nothing_to_commit_is_not_classified_as_empty(r
     # The commit genuinely did not land.
     head_files = subprocess.run(
         ["git", "ls-files", "kitty-specs/demo-mission/spec.md"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
     assert head_files == "", "hook aborted the commit, so the spec must not be tracked"
 
@@ -152,12 +160,18 @@ def test_fresh_untracked_file_commits_cleanly(repo: Path) -> None:
     first-spec-of-a-fresh-mission path that originally looked broken)."""
     spec = _new_spec(repo)
     result = safe_commit(
-        repo_root=repo, worktree_root=repo, destination_ref=_UNPROTECTED_BRANCH,
-        message="Add spec", paths=(spec,),
+        repo_root=repo,
+        worktree_root=repo,
+        destination_ref=_UNPROTECTED_BRANCH,
+        message="Add spec",
+        paths=(spec,),
     )
     assert result is not None and result.sha
     tracked = subprocess.run(
         ["git", "ls-files", "kitty-specs/demo-mission/spec.md"],
-        cwd=repo, capture_output=True, text=True, check=True,
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
     assert tracked == "kitty-specs/demo-mission/spec.md"

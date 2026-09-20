@@ -56,7 +56,7 @@ def test_posix_shell_syntax_uses_explicit_sh_argv(monkeypatch: pytest.MonkeyPatc
 
 def test_quoted_command_substitution_uses_explicit_sh_argv(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr("specify_cli.configured_command.is_windows", lambda: False)
-    command = 'test -z "$(printf \'\')"'
+    command = "test -z \"$(printf '')\""
 
     with patch("specify_cli.configured_command.subprocess.run", return_value=_completed()) as run:
         run_configured_command(command, cwd=tmp_path)

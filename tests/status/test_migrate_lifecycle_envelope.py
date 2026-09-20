@@ -52,11 +52,24 @@ _MISSION_SLUG = "migrate-lifecycle-envelope"
 # COMPAT6 stub -- pinned local approximation of F1's strict.py, test-only.
 # ---------------------------------------------------------------------------
 
-_STUB_STRICT_ENVELOPE_KEYS = frozenset({
-    "event_id", "event_type", "aggregate_id", "payload", "timestamp",
-    "build_id", "node_id", "lamport_clock", "causation_id", "project_uuid",
-    "project_slug", "correlation_id", "schema_version", "data_tier",
-})
+_STUB_STRICT_ENVELOPE_KEYS = frozenset(
+    {
+        "event_id",
+        "event_type",
+        "aggregate_id",
+        "payload",
+        "timestamp",
+        "build_id",
+        "node_id",
+        "lamport_clock",
+        "causation_id",
+        "project_uuid",
+        "project_slug",
+        "correlation_id",
+        "schema_version",
+        "data_tier",
+    }
+)
 
 
 def _stub_validate_strict_envelope(record: dict) -> tuple[str, ...]:
@@ -127,33 +140,45 @@ def _six_legacy_row_fixture(project_uuid: str) -> list[dict]:
     (ReviewerSelfApproval has no events model, F1 U5)."""
     return [
         _legacy_row(
-            event_type="ProjectInitialized", aggregate_id=project_uuid,
-            aggregate_type="Project", payload={"project_uuid": project_uuid},
+            event_type="ProjectInitialized",
+            aggregate_id=project_uuid,
+            aggregate_type="Project",
+            payload={"project_uuid": project_uuid},
             project_uuid=project_uuid,
         ),
         _legacy_row(
-            event_type="MissionCreated", aggregate_id=_MISSION_SLUG,
-            aggregate_type="Mission", payload={"mission_slug": _MISSION_SLUG},
+            event_type="MissionCreated",
+            aggregate_id=_MISSION_SLUG,
+            aggregate_type="Mission",
+            payload={"mission_slug": _MISSION_SLUG},
             project_uuid=project_uuid,
         ),
         _legacy_row(
-            event_type="WPCreated", aggregate_id="WP01",
-            aggregate_type="WorkPackage", payload={"wp_id": "WP01"},
+            event_type="WPCreated",
+            aggregate_id="WP01",
+            aggregate_type="WorkPackage",
+            payload={"wp_id": "WP01"},
             project_uuid=project_uuid,
         ),
         _legacy_row(
-            event_type="WPCreated", aggregate_id="WP02",
-            aggregate_type="WorkPackage", payload={"wp_id": "WP02"},
+            event_type="WPCreated",
+            aggregate_id="WP02",
+            aggregate_type="WorkPackage",
+            payload={"wp_id": "WP02"},
             project_uuid=project_uuid,
         ),
         _legacy_row(
-            event_type="SpecifyStarted", aggregate_id=_MISSION_SLUG,
-            aggregate_type="Mission", payload={"mission_slug": _MISSION_SLUG},
+            event_type="SpecifyStarted",
+            aggregate_id=_MISSION_SLUG,
+            aggregate_type="Mission",
+            payload={"mission_slug": _MISSION_SLUG},
             project_uuid=project_uuid,
         ),
         _legacy_row(
-            event_type="ReviewerSelfApproval", aggregate_id="WP01",
-            aggregate_type="WorkPackage", payload={"wp_id": "WP01"},
+            event_type="ReviewerSelfApproval",
+            aggregate_id="WP01",
+            aggregate_type="WorkPackage",
+            payload={"wp_id": "WP01"},
             project_uuid=project_uuid,
         ),
     ]
@@ -171,9 +196,7 @@ def test_mig1_count_and_hash_manifest_exact(feature_dir: Path) -> None:
     assert manifest.skipped_count == 1
     assert manifest.unchanged_count == 0
     for row in manifest.rows:
-        assert row.pre_hash == row.post_hash, (
-            f"{row.event_type}: payload must be untouched by migration"
-        )
+        assert row.pre_hash == row.post_hash, f"{row.event_type}: payload must be untouched by migration"
 
     entries = read_lifecycle_events(log_path)
     migrated = [e for e in entries if e["event_type"] != "ReviewerSelfApproval"]
@@ -192,11 +215,7 @@ def test_mig2_idempotent_rerun(feature_dir: Path) -> None:
 
     migrate_lifecycle_envelope(log_path)
     post_first = log_path.read_text(encoding="utf-8")
-    first_node_ids = {
-        json.loads(line).get("node_id")
-        for line in post_first.splitlines()
-        if line.strip() and "node_id" in json.loads(line)
-    }
+    first_node_ids = {json.loads(line).get("node_id") for line in post_first.splitlines() if line.strip() and "node_id" in json.loads(line)}
 
     second = migrate_lifecycle_envelope(log_path)
     post_second = log_path.read_text(encoding="utf-8")
@@ -206,48 +225,43 @@ def test_mig2_idempotent_rerun(feature_dir: Path) -> None:
     assert second.skipped_count == 1
     assert post_second == post_first, "re-migrating an already-migrated file is a no-op"
 
-    second_node_ids = {
-        json.loads(line).get("node_id")
-        for line in post_second.splitlines()
-        if line.strip() and "node_id" in json.loads(line)
-    }
-    assert first_node_ids == second_node_ids, (
-        "synthesized node_id must be deterministic across runs (generate_node_id "
-        "is host+user-derived, not random)"
-    )
+    second_node_ids = {json.loads(line).get("node_id") for line in post_second.splitlines() if line.strip() and "node_id" in json.loads(line)}
+    assert first_node_ids == second_node_ids, "synthesized node_id must be deterministic across runs (generate_node_id is host+user-derived, not random)"
 
 
 def test_mig3_migration_touches_only_lifecycle_rows(feature_dir: Path) -> None:
     _seed_planned(feature_dir, "WP01", slug=_MISSION_SLUG)
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01",
-        to_lane="claimed", actor="implementer",
-    ))
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=_MISSION_SLUG,
+            wp_id="WP01",
+            to_lane="claimed",
+            actor="implementer",
+        )
+    )
     project_uuid = str(uuid.uuid4())
     emit_wp_created_local(
-        feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01", wp_title="T",
-        project_uuid=project_uuid, project_slug="demo",
+        feature_dir,
+        mission_slug=_MISSION_SLUG,
+        wp_id="WP01",
+        wp_title="T",
+        project_uuid=project_uuid,
+        project_slug="demo",
     )
     log_path = mission_event_log_path(feature_dir)
-    raw_lines_before = [
-        line for line in log_path.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
-    non_lifecycle_before = [
-        line for line in raw_lines_before if json.loads(line).get("event_type") != "WPCreated"
-    ]
+    raw_lines_before = [line for line in log_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    non_lifecycle_before = [line for line in raw_lines_before if json.loads(line).get("event_type") != "WPCreated"]
 
     manifest = migrate_lifecycle_envelope(log_path)
     assert manifest.total_rows == 1
     assert manifest.migrated_count == 1
 
-    raw_lines_after = [
-        line for line in log_path.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
+    raw_lines_after = [line for line in log_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     non_lifecycle_after = [
         line
         for line in raw_lines_after
-        if json.loads(line).get("event_type") not in ("WPCreated",)
-        and ("to_lane" in json.loads(line) or "kind" in json.loads(line))
+        if json.loads(line).get("event_type") not in ("WPCreated",) and ("to_lane" in json.loads(line) or "kind" in json.loads(line))
     ]
     # The genesis/planned/claimed StatusEvent rows are byte-identical.
     assert non_lifecycle_before == non_lifecycle_after
@@ -257,8 +271,12 @@ def test_mig3_migration_touches_only_lifecycle_rows(feature_dir: Path) -> None:
 def test_mig4_refuses_when_snapshot_already_exists(feature_dir: Path) -> None:
     project_uuid = str(uuid.uuid4())
     emit_wp_created_local(
-        feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01", wp_title="T",
-        project_uuid=project_uuid, project_slug="demo",
+        feature_dir,
+        mission_slug=_MISSION_SLUG,
+        wp_id="WP01",
+        wp_title="T",
+        project_uuid=project_uuid,
+        project_slug="demo",
     )
     log_path = mission_event_log_path(feature_dir)
     original = log_path.read_text(encoding="utf-8")
@@ -277,8 +295,12 @@ def test_mig4_refuses_when_snapshot_already_exists(feature_dir: Path) -> None:
 
 def test_mig5_null_project_uuid_row_is_skipped_not_migrated(feature_dir: Path) -> None:
     emit_wp_created_local(
-        feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01", wp_title="T",
-        project_uuid=None, project_slug=None,
+        feature_dir,
+        mission_slug=_MISSION_SLUG,
+        wp_id="WP01",
+        wp_title="T",
+        project_uuid=None,
+        project_slug=None,
     )
     log_path = mission_event_log_path(feature_dir)
     original = log_path.read_text(encoding="utf-8")
@@ -296,8 +318,12 @@ def test_mig5_null_project_uuid_row_is_skipped_not_migrated(feature_dir: Path) -
 def test_dry_run_computes_manifest_without_writing(feature_dir: Path) -> None:
     project_uuid = str(uuid.uuid4())
     emit_wp_created_local(
-        feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01", wp_title="T",
-        project_uuid=project_uuid, project_slug="demo",
+        feature_dir,
+        mission_slug=_MISSION_SLUG,
+        wp_id="WP01",
+        wp_title="T",
+        project_uuid=project_uuid,
+        project_slug="demo",
     )
     log_path = mission_event_log_path(feature_dir)
     original = log_path.read_text(encoding="utf-8")
@@ -311,14 +337,23 @@ def test_dry_run_computes_manifest_without_writing(feature_dir: Path) -> None:
 
 def test_compat2_migration_does_not_change_materialized_snapshot(feature_dir: Path) -> None:
     _seed_planned(feature_dir, "WP01", slug=_MISSION_SLUG)
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01",
-        to_lane="claimed", actor="implementer",
-    ))
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=_MISSION_SLUG,
+            wp_id="WP01",
+            to_lane="claimed",
+            actor="implementer",
+        )
+    )
     project_uuid = str(uuid.uuid4())
     emit_wp_created_local(
-        feature_dir, mission_slug=_MISSION_SLUG, wp_id="WP01", wp_title="T",
-        project_uuid=project_uuid, project_slug="demo",
+        feature_dir,
+        mission_slug=_MISSION_SLUG,
+        wp_id="WP01",
+        wp_title="T",
+        project_uuid=project_uuid,
+        project_slug="demo",
     )
     before = materialize_to_json(materialize_snapshot(feature_dir))
 
@@ -352,9 +387,7 @@ def test_compat6_every_migrated_row_passes_strict_validation(feature_dir: Path) 
 # ---------------------------------------------------------------------------
 
 
-def test_symlinked_log_path_is_refused_not_followed(
-    feature_dir: Path, tmp_path: Path
-) -> None:
+def test_symlinked_log_path_is_refused_not_followed(feature_dir: Path, tmp_path: Path) -> None:
     external = tmp_path / "external_outside_mission_dir.jsonl"
     external.write_text('{"secret": "leak-me-not"}\n', encoding="utf-8")
 
@@ -378,9 +411,7 @@ def test_symlinked_log_path_is_refused_not_followed(
 # ---------------------------------------------------------------------------
 
 
-def test_c2_crash_between_backup_and_final_replace_leaves_original_untouched(
-    feature_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_c2_crash_between_backup_and_final_replace_leaves_original_untouched(feature_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """migrate_lifecycle_envelope calls _atomic_replace_file twice: once for
     the .pre-migration.bak snapshot, once for the rewritten log itself. A
     crash (os.replace failure) on the SECOND call -- after the snapshot has
@@ -407,12 +438,9 @@ def test_c2_crash_between_backup_and_final_replace_leaves_original_untouched(
 
     assert call_count["n"] == 2, "expected exactly 2 os.replace calls (backup, then final)"
     assert log_path.read_text(encoding="utf-8") == original, (
-        "a crash on the final replace must leave the live log untouched -- "
-        "the backup landing first must not be observable as a partial migration"
+        "a crash on the final replace must leave the live log untouched -- the backup landing first must not be observable as a partial migration"
     )
-    assert list(log_path.parent.glob(f".{log_path.name}.*.tmp")) == [], (
-        "no leftover tmp file after the simulated crash"
-    )
+    assert list(log_path.parent.glob(f".{log_path.name}.*.tmp")) == [], "no leftover tmp file after the simulated crash"
 
 
 # ---------------------------------------------------------------------------

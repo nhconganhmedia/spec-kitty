@@ -111,9 +111,7 @@ class StatusView:
     dependency_readiness: dict[str, DependencyReadiness]
 
 
-def build_stale_fallback_results(
-    doing_wps: Sequence[StatusRow], error: Exception
-) -> dict[str, StaleCheckResult]:
+def build_stale_fallback_results(doing_wps: Sequence[StatusRow], error: Exception) -> dict[str, StaleCheckResult]:
     """Return per-WP stale fallbacks when git-staleness detection cannot run.
 
     PURE (INV-4): reproduces the live ``_build_stale_fallback_results`` verbatim.
@@ -136,9 +134,7 @@ def build_stale_fallback_results(
         workspace_kind = str(wp.get("workspace_kind", "unknown"))
         execution_mode = str(wp.get("execution_mode", ""))
         fallback_reason = (
-            PLANNING_ARTIFACT_REPO_ROOT_REASON
-            if workspace_kind == "repo_root" and execution_mode == "planning_artifact"
-            else "stale_detection_unavailable"
+            PLANNING_ARTIFACT_REPO_ROOT_REASON if workspace_kind == "repo_root" and execution_mode == "planning_artifact" else "stale_detection_unavailable"
         )
         results[str(wp_id)] = StaleCheckResult(
             wp_id=str(wp_id),
@@ -161,9 +157,7 @@ def _kanban_rollup(
     ``"other"`` overflow bucket — preserving the same key set, insertion order,
     and row-object identity the inline ``by_lane`` grouping produced.
     """
-    lanes: dict[Lane | str, list[StatusRow]] = {
-        lane: [] for lane in Lane if lane not in NON_DISPLAY_LANES
-    }
+    lanes: dict[Lane | str, list[StatusRow]] = {lane: [] for lane in Lane if lane not in NON_DISPLAY_LANES}
     for row in work_packages:
         lane = row["lane"]
         if lane in lanes:
@@ -201,12 +195,7 @@ def build_status_view(req: StatusRequest) -> StatusView:
 
     total_wps = len(req.work_packages)
     done_count = len(lanes[Lane.DONE])
-    in_progress_count = (
-        len(lanes[Lane.CLAIMED])
-        + len(lanes[Lane.IN_PROGRESS])
-        + len(lanes[Lane.IN_REVIEW])
-        + len(lanes[Lane.FOR_REVIEW])
-    )
+    in_progress_count = len(lanes[Lane.CLAIMED]) + len(lanes[Lane.IN_PROGRESS]) + len(lanes[Lane.IN_REVIEW]) + len(lanes[Lane.FOR_REVIEW])
     planned_count = len(lanes[Lane.PLANNED])
     stale_count = sum(1 for row in req.work_packages if row.get("is_stale"))
 
@@ -226,10 +215,7 @@ def build_status_view(req: StatusRequest) -> StatusView:
     provenance = req.snapshot.work_packages if req.snapshot is not None else None
     # Pre-flight UX only (FR-014, fsm-write-path-integrity WP04). The authoritative
     # dependency gate is `GuardContext.dependency_ready`, resolved in-lock by the emit shells.
-    dependency_readiness = {
-        wp_id: dependency_readiness_for_wp(wp_id, deps, lane_by_wp, provenance=provenance)
-        for wp_id, deps in req.wp_dependencies.items()
-    }
+    dependency_readiness = {wp_id: dependency_readiness_for_wp(wp_id, deps, lane_by_wp, provenance=provenance) for wp_id, deps in req.wp_dependencies.items()}
 
     return StatusView(
         lanes=lanes,

@@ -50,9 +50,7 @@ __all__ = ["resolve_org_expected_artifacts"]
 _EXPECTED_ARTIFACTS_FILENAME = "expected-artifacts.yaml"
 
 
-def resolve_org_expected_artifacts(
-    org_roots: list[Path], mission_type: str
-) -> Mapping[str, Any] | None:
+def resolve_org_expected_artifacts(org_roots: list[Path], mission_type: str) -> Mapping[str, Any] | None:
     """Return the parsed org-tier ``expected-artifacts.yaml`` for *mission_type*.
 
     Checks each *org_roots* entry (already existence-filtered by the caller,
@@ -113,7 +111,5 @@ def _read_yaml_mapping(path: Path) -> Mapping[str, Any] | None:
     except (OSError, UnicodeDecodeError, YAMLError) as exc:
         raise MalformedManifestError(path, exc) from exc
     if not isinstance(parsed, Mapping):
-        raise MalformedManifestError(
-            path, TypeError(f"expected a YAML mapping, got {type(parsed).__name__}")
-        )
+        raise MalformedManifestError(path, TypeError(f"expected a YAML mapping, got {type(parsed).__name__}"))
     return parsed

@@ -176,9 +176,7 @@ class TestLoadSeedFile:
         result = load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)
         assert result == []
 
-    def test_loaded_sense_provenance_timestamp_is_aware_utc(
-        self, tmp_path: Path
-    ) -> None:
+    def test_loaded_sense_provenance_timestamp_is_aware_utc(self, tmp_path: Path) -> None:
         """kernel-clock-single-door FR-011: the seed-load provenance timestamp
         is aware-UTC, not naive local time.
 
@@ -196,9 +194,7 @@ class TestLoadSeedFile:
         assert senses[0].provenance.timestamp.tzinfo is not None
         assert senses[0].provenance.timestamp.tzinfo is UTC
 
-    def test_non_normalized_surface_raises_seed_file_validation_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_normalized_surface_raises_seed_file_validation_error(self, tmp_path: Path) -> None:
         """Previously raised ValueError; now raises SeedFileValidationError."""
         _write_seed(tmp_path, GlossaryScope.SPEC_KITTY_CORE, INVALID_SURFACE_YAML)
         with pytest.raises(SeedFileValidationError) as exc_info:
@@ -206,23 +202,17 @@ class TestLoadSeedFile:
         assert len(exc_info.value.errors) >= 1
         assert "normalized" in str(exc_info.value).lower()
 
-    def test_missing_terms_key_raises_seed_file_validation_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_missing_terms_key_raises_seed_file_validation_error(self, tmp_path: Path) -> None:
         _write_seed(tmp_path, GlossaryScope.SPEC_KITTY_CORE, MISSING_TERMS_YAML)
         with pytest.raises(SeedFileValidationError):
             load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)
 
-    def test_empty_definition_raises_seed_file_validation_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_empty_definition_raises_seed_file_validation_error(self, tmp_path: Path) -> None:
         _write_seed(tmp_path, GlossaryScope.SPEC_KITTY_CORE, EMPTY_DEFINITION_YAML)
         with pytest.raises(SeedFileValidationError):
             load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)
 
-    def test_bad_confidence_raises_seed_file_validation_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bad_confidence_raises_seed_file_validation_error(self, tmp_path: Path) -> None:
         _write_seed(tmp_path, GlossaryScope.SPEC_KITTY_CORE, BAD_CONFIDENCE_YAML)
         with pytest.raises(SeedFileValidationError):
             load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)
@@ -233,9 +223,7 @@ class TestLoadSeedFile:
             load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)
         assert "spec_kitty_core.yaml" in str(exc_info.value.file_path)
 
-    def test_validation_before_term_surface_construction(
-        self, tmp_path: Path
-    ) -> None:
+    def test_validation_before_term_surface_construction(self, tmp_path: Path) -> None:
         """Pydantic validates BEFORE TermSurface() is constructed, so the
         error type is SeedFileValidationError, not ValueError."""
         _write_seed(tmp_path, GlossaryScope.SPEC_KITTY_CORE, INVALID_SURFACE_YAML)
@@ -254,10 +242,7 @@ class TestLoadSeedFile:
         _write_seed(
             tmp_path,
             GlossaryScope.SPEC_KITTY_CORE,
-            "terms:\n"
-            "  - surface: alpha\n"
-            "    definition: ok\n"
-            "    confidence: [unterminated\n",
+            "terms:\n  - surface: alpha\n    definition: ok\n    confidence: [unterminated\n",
         )
 
         with pytest.raises(SeedFileValidationError) as exc_info:
@@ -316,9 +301,7 @@ class TestSaveSeedFile:
             _make_sense("alpha", "First letter"),
         ]
         save_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path, terms)
-        content = (
-            tmp_path / ".kittify" / "glossaries" / "spec_kitty_core.yaml"
-        ).read_text(encoding="utf-8")
+        content = (tmp_path / ".kittify" / "glossaries" / "spec_kitty_core.yaml").read_text(encoding="utf-8")
         alpha_pos = content.index("alpha")
         zebra_pos = content.index("zebra")
         assert alpha_pos < zebra_pos
@@ -354,6 +337,4 @@ class TestSaveSeedFile:
         assert term["see_also"][0]["fr"] == "FR-008"
         assert term["synonyms_to_avoid"] == ["snapshot"]
         assert term["introduced_in_mission"] == "glossary-seed-file-schema-validation-01KSN752"
-        assert load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)[0].definition.startswith(
-            "A test that captures existing behavior"
-        )
+        assert load_seed_file(GlossaryScope.SPEC_KITTY_CORE, tmp_path)[0].definition.startswith("A test that captures existing behavior")

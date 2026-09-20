@@ -60,10 +60,7 @@ pytestmark = [pytest.mark.fast]
 def test_accept_real_format_values(value: str) -> None:
     """Every currently-valid real-format mission slug/segment MUST pass."""
     result = assert_safe_path_segment(value)
-    assert result == value, (
-        f"assert_safe_path_segment({value!r}) must return the value unchanged, "
-        f"got {result!r}"
-    )
+    assert result == value, f"assert_safe_path_segment({value!r}) must return the value unchanged, got {result!r}"
 
 
 # ---------------------------------------------------------------------------

@@ -86,11 +86,7 @@ def _every_dispatch_relevant_sequence_step() -> list[tuple[str, str]]:
     """
     pairs: list[tuple[str, str]] = []
     for mission_type_id in sorted(MissionTypeRepository.default().ids()):
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type(mission_type_id, pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type(mission_type_id, pack_context=None).values())
         for step_id in project_action_sequence(steps):
             pairs.append((mission_type_id, step_id))
     return pairs
@@ -119,34 +115,20 @@ class TestEverySequenceStepPromptClearsTheStructuralFloor:
         _SEQUENCE_STEPS,
         ids=[f"{mt}/{sid}" for mt, sid in _SEQUENCE_STEPS],
     )
-    def test_prompt_clears_structural_floor(
-        self, mission_type: str, step_id: str
-    ) -> None:
+    def test_prompt_clears_structural_floor(self, mission_type: str, step_id: str) -> None:
         prompt_path = _prompt_path(mission_type, step_id)
         assert prompt_path.is_file(), f"expected prompt.md at {prompt_path}"
 
         text = prompt_path.read_text(encoding="utf-8")
         stripped = text.strip()
 
-        assert stripped, (
-            f"{mission_type}/{step_id}: prompt.md at {prompt_path} is empty"
-        )
+        assert stripped, f"{mission_type}/{step_id}: prompt.md at {prompt_path} is empty"
         for marker in _DUMMY_MARKERS:
-            assert marker not in text, (
-                f"{mission_type}/{step_id}: prompt.md at {prompt_path} "
-                f"contains dummy marker {marker!r}"
-            )
-        assert "$ARGUMENTS" in text, (
-            f"{mission_type}/{step_id}: prompt.md at {prompt_path} does not "
-            "reference $ARGUMENTS"
-        )
-        assert "## " in text, (
-            f"{mission_type}/{step_id}: prompt.md at {prompt_path} has no "
-            "`## ` heading"
-        )
+            assert marker not in text, f"{mission_type}/{step_id}: prompt.md at {prompt_path} contains dummy marker {marker!r}"
+        assert "$ARGUMENTS" in text, f"{mission_type}/{step_id}: prompt.md at {prompt_path} does not reference $ARGUMENTS"
+        assert "## " in text, f"{mission_type}/{step_id}: prompt.md at {prompt_path} has no `## ` heading"
         assert len(stripped) >= _MIN_PROMPT_LENGTH, (
-            f"{mission_type}/{step_id}: prompt.md at {prompt_path} is only "
-            f"{len(stripped)} chars (floor: {_MIN_PROMPT_LENGTH})"
+            f"{mission_type}/{step_id}: prompt.md at {prompt_path} is only {len(stripped)} chars (floor: {_MIN_PROMPT_LENGTH})"
         )
 
 

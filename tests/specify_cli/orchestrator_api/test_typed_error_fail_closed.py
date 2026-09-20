@@ -70,9 +70,7 @@ def _seed_coord_topology(tmp_path: Path) -> tuple[Path, Path]:
         "coordination_branch": _COORD_BRANCH,
         "status_phase": 2,
     }
-    (primary / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (primary / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     # Stale primary status surface (would be read if the guard were suppressed).
     (primary / "status.events.jsonl").write_text("", encoding="utf-8")
     tasks_dir = primary / "tasks"
@@ -116,12 +114,9 @@ def test_resolve_seam_resolves_primary_on_empty_coord_topology(tmp_path: Path) -
     # Single-authority: the PRIMARY checkout is the authoritative surface for the
     # EMPTY coord state — no fail-closed raise, no stale-coord husk.
     assert resolved == primary, (
-        "EMPTY coord topology must resolve to the PRIMARY checkout under the "
-        f"single-authority model (FR-004 / WP04 Option B); got {resolved}"
+        f"EMPTY coord topology must resolve to the PRIMARY checkout under the single-authority model (FR-004 / WP04 Option B); got {resolved}"
     )
-    assert ".worktrees" not in str(resolved), (
-        "must not route into the empty coord worktree"
-    )
+    assert ".worktrees" not in str(resolved), "must not route into the empty coord worktree"
     assert primary.exists()
 
 
@@ -155,10 +150,7 @@ def test_mission_state_endpoint_reads_primary_on_empty_coord_topology(
         )
 
     envelope = json.loads(result.output.strip().split("\n")[0])
-    assert envelope["success"] is True, (
-        "single-authority: EMPTY coord topology reads PRIMARY and succeeds; "
-        f"envelope={envelope}"
-    )
+    assert envelope["success"] is True, f"single-authority: EMPTY coord topology reads PRIMARY and succeeds; envelope={envelope}"
     assert envelope["error_code"] is None
     # The status came from the PRIMARY surface (the seeded WP01).
     data = envelope["data"]
@@ -212,11 +204,7 @@ def test_specify_duplicate_mission_classifies_to_structured_error_code(
         print(
             json.dumps(
                 {
-                    "error": (
-                        "A mission named 'wp03-dup-classify' of type "
-                        "'software-dev' already exists and is not abandoned "
-                        "(#4033)."
-                    ),
+                    "error": ("A mission named 'wp03-dup-classify' of type 'software-dev' already exists and is not abandoned (#4033)."),
                     "error_code": "MISSION_ALREADY_EXISTS",
                 }
             )
@@ -273,16 +261,7 @@ def test_specify_duplicate_prose_without_typed_code_is_not_already_exists(
     import typer
 
     def _fake_prose_only(slug: str, mission_type: str | None, topology: object) -> None:
-        print(
-            json.dumps(
-                {
-                    "error": (
-                        "meta.json commit failed: safe_commit: nothing to "
-                        "commit for destination_ref='wp03-work' (empty changeset)"
-                    )
-                }
-            )
-        )
+        print(json.dumps({"error": ("meta.json commit failed: safe_commit: nothing to commit for destination_ref='wp03-work' (empty changeset)")}))
         raise typer.Exit(1)
 
     with patch(
@@ -409,9 +388,7 @@ def _seed_wp04_mission(tmp_path: Path) -> tuple[Path, Path]:
         "target_branch": "main",
         "status_phase": 2,
     }
-    (mission_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (mission_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (mission_dir / "spec.md").write_text("# Spec\n", encoding="utf-8")
     (mission_dir / "plan.md").write_text("# Plan\n", encoding="utf-8")
     (mission_dir / "tasks.md").write_text("# Tasks\n", encoding="utf-8")

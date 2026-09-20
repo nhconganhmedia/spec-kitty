@@ -49,22 +49,14 @@ _CANONICAL_DIR_NAME = "demo-mission-01KYJGCQ"
 @pytest.fixture
 def surfaces(tmp_path: Path) -> dict[str, Path]:
     repo_root = tmp_path / "repo"
-    coord_dir = (
-        repo_root
-        / ".worktrees"
-        / f"{_CANONICAL_DIR_NAME}-coord"
-        / "kitty-specs"
-        / _CANONICAL_DIR_NAME
-    )
+    coord_dir = repo_root / ".worktrees" / f"{_CANONICAL_DIR_NAME}-coord" / "kitty-specs" / _CANONICAL_DIR_NAME
     primary_dir = repo_root / "kitty-specs" / _CANONICAL_DIR_NAME
     coord_dir.mkdir(parents=True)
     primary_dir.mkdir(parents=True)
     return {"repo_root": repo_root, "coord": coord_dir, "primary": primary_dir}
 
 
-def test_coord_stamp_leg_does_not_round_trip_through_git(
-    monkeypatch: pytest.MonkeyPatch, surfaces: dict[str, Path]
-) -> None:
+def test_coord_stamp_leg_does_not_round_trip_through_git(monkeypatch: pytest.MonkeyPatch, surfaces: dict[str, Path]) -> None:
     """The COORD anchor comes straight off the seam — no walk to the worktree root.
 
     ``run_git`` is replaced with a fail-fast stub rather than a stub returning a
@@ -82,9 +74,7 @@ def test_coord_stamp_leg_does_not_round_trip_through_git(
     monkeypatch.setattr(
         mission_runtime,
         "resolve_artifact_surface",
-        lambda *_a, **_k: ResolvedSurface(
-            path=surfaces["coord"], surface_kind=TopologySurface.COORD
-        ),
+        lambda *_a, **_k: ResolvedSurface(path=surfaces["coord"], surface_kind=TopologySurface.COORD),
     )
     monkeypatch.setattr(
         mission_runtime,
@@ -105,9 +95,7 @@ def test_coord_stamp_leg_does_not_round_trip_through_git(
     assert captured == [surfaces["coord"]]
 
 
-def test_coord_status_feature_dir_propagates_a_deleted_coordination_branch(
-    monkeypatch: pytest.MonkeyPatch, surfaces: dict[str, Path]
-) -> None:
+def test_coord_status_feature_dir_propagates_a_deleted_coordination_branch(monkeypatch: pytest.MonkeyPatch, surfaces: dict[str, Path]) -> None:
     """C3 fail-loud survives the extraction.
 
     A deleted coordination branch at accept time carries unmerged status, so the

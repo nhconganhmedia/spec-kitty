@@ -77,9 +77,7 @@ def _find_heading_span(doc_text: str, relation: Relation) -> tuple[int, int]:
     heading_pattern = re.compile(_HEADING_TEMPLATE.format(token=re.escape(token)), re.MULTILINE)
     match = heading_pattern.search(doc_text)
     if match is None:
-        raise LookupError(
-            f"No '### ... `{token}` ...' heading found in {DOC_PATH} for relation {token!r}"
-        )
+        raise LookupError(f"No '### ... `{token}` ...' heading found in {DOC_PATH} for relation {token!r}")
     body_start = match.end()
     next_heading = re.search(r"^#{1,6} ", doc_text[body_start:], re.MULTILINE)
     body_end = body_start + next_heading.start() if next_heading else len(doc_text)
@@ -151,10 +149,7 @@ def test_red_first_mutation_is_detected_and_named(doc_text: str) -> None:
     target = Relation.RECONCILES_TENSION
     original_entry = _extract_doc_description(doc_text, target)
     assert original_entry, "sanity: original doc entry must be non-empty before mutating"
-    assert "reconciliation" in original_entry, (
-        "sanity: expected word to mutate is missing -- update this test if the "
-        "registry text for RECONCILES_TENSION changes"
-    )
+    assert "reconciliation" in original_entry, "sanity: expected word to mutate is missing -- update this test if the registry text for RECONCILES_TENSION changes"
 
     mutated_entry = original_entry.replace("reconciliation", "MUTATED-RECONCILIATION", 1)
     assert mutated_entry != original_entry, "mutation did not change the text -- fix the test"
@@ -166,10 +161,7 @@ def test_red_first_mutation_is_detected_and_named(doc_text: str) -> None:
     # relation -- not "parity check failed" in general, and not any of the
     # other 14 scoped relations, which were left untouched.
     divergent_after_mutation = find_divergent_relations(mutated_doc_text)
-    assert divergent_after_mutation == [target.value], (
-        f"expected mutation to flag exactly ['{target.value}'], "
-        f"got {divergent_after_mutation}"
-    )
+    assert divergent_after_mutation == [target.value], f"expected mutation to flag exactly ['{target.value}'], got {divergent_after_mutation}"
 
     # Green: reverting -- i.e. re-checking the untouched original text --
     # must pass again with zero divergence.

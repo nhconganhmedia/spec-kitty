@@ -157,9 +157,7 @@ def _write_meta(feature_dir: Path) -> None:
         "purpose_tldr": "merge rollback/resume coherence regression (#2711)",
         "purpose_context": "a failed target advance must not strand a committed done",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _write_manifest(feature_dir: Path) -> LanesManifest:
@@ -195,14 +193,7 @@ def _write_wp_file(feature_dir: Path) -> None:
     """Seed WP markdown with approved-review frontmatter so the real
     ``approved -> done`` transition fires during merge bookkeeping."""
     (feature_dir / "tasks" / f"{WP_ID}-work.md").write_text(
-        "---\n"
-        f"work_package_id: {WP_ID}\n"
-        f"title: {WP_ID} work\n"
-        "agent: implementer-bot\n"
-        "review_status: approved\n"
-        "reviewed_by: reviewer-renata\n"
-        "---\n"
-        f"# {WP_ID}\n",
+        f"---\nwork_package_id: {WP_ID}\ntitle: {WP_ID} work\nagent: implementer-bot\nreview_status: approved\nreviewed_by: reviewer-renata\n---\n# {WP_ID}\n",
         encoding="utf-8",
     )
 
@@ -281,12 +272,8 @@ def _merge_external_mocks() -> Iterator[dict[str, MagicMock]]:
         "run_check": patch("specify_cli.merge.executor.run_check"),
         "sparse": patch("specify_cli.merge.executor.require_no_sparse_checkout"),
         "preflight": patch("specify_cli.cli.commands.merge._enforce_git_preflight"),
-        "review_consistency": patch(
-            "specify_cli.merge.executor._enforce_review_artifact_consistency"
-        ),
-        "status_history": patch(
-            "specify_cli.merge.executor._enforce_canonical_status_history"
-        ),
+        "review_consistency": patch("specify_cli.merge.executor._enforce_review_artifact_consistency"),
+        "status_history": patch("specify_cli.merge.executor._enforce_canonical_status_history"),
         "hollow": patch("specify_cli.merge.executor._warn_or_confirm_hollow_reviews"),
         "bake": patch(
             "specify_cli.merge.executor._bake_mission_number_into_mission_branch",
@@ -296,16 +283,10 @@ def _merge_external_mocks() -> Iterator[dict[str, MagicMock]]:
             "specify_cli.merge.executor._record_baseline_merge_commit",
             return_value=None,
         ),
-        "baseline_assert": patch(
-            "specify_cli.merge.executor._assert_baseline_merge_commit_on_target"
-        ),
-        "done_on_target": patch(
-            "specify_cli.merge.executor._assert_merged_wps_done_on_target"
-        ),
+        "baseline_assert": patch("specify_cli.merge.executor._assert_baseline_merge_commit_on_target"),
+        "done_on_target": patch("specify_cli.merge.executor._assert_merged_wps_done_on_target"),
         "safe_commit": patch("specify_cli.merge.executor.commit_merge_bookkeeping"),
-        "refresh_primary": patch(
-            "specify_cli.merge.executor._refresh_primary_checkout_after_merge"
-        ),
+        "refresh_primary": patch("specify_cli.merge.executor._refresh_primary_checkout_after_merge"),
         "porcelain": patch(
             "specify_cli.merge.executor._classify_porcelain_lines",
             return_value=([], 0),
@@ -355,8 +336,7 @@ def _run_failing_merge(repo: Path) -> BaseException:
         except BaseException as exc:  # noqa: BLE001 — the act under test raises by design
             return exc
     raise AssertionError(
-        "precondition: injected target-advance failure did not propagate — the "
-        "merge unexpectedly succeeded, so the #2711 rollback path never ran."
+        "precondition: injected target-advance failure did not propagate — the merge unexpectedly succeeded, so the #2711 rollback path never ran."
     )
 
 
@@ -447,8 +427,7 @@ def test_rollback_leaves_committed_done_incoherent_with_working_tree(
     # (fired AFTER the pre-target ``done`` commit), never an unrelated setup
     # error — so a ``done`` genuinely landed on the coordination branch. ---
     assert isinstance(exc, RuntimeError) and _INJECTED_TARGET_FAILURE in str(exc), (
-        "precondition: the merge must fail via the injected target-advance fault "
-        f"(RuntimeError, AFTER the pre-target done commit); got {exc!r}"
+        f"precondition: the merge must fail via the injected target-advance fault (RuntimeError, AFTER the pre-target done commit); got {exc!r}"
     )
 
     committed_events = _committed_coord_events(repo, feature_dir)
@@ -458,10 +437,7 @@ def test_rollback_leaves_committed_done_incoherent_with_working_tree(
 
     # --- Precondition: the working tree DID roll back to ``approved`` (survives
     # the fix — the working side is coherent both today and post-fix). ---
-    assert working_lane == Lane.APPROVED, (
-        "precondition: the rolled-back working tree should reduce to ``approved``; "
-        f"got {working_lane}"
-    )
+    assert working_lane == Lane.APPROVED, f"precondition: the rolled-back working tree should reduce to ``approved``; got {working_lane}"
 
     # --- Coherence CONTRACT (RED on base): the committed coordination reduction
     # and the working-tree reduction must agree after rollback. Contract-routed

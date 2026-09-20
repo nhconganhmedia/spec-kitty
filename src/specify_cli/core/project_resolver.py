@@ -21,6 +21,7 @@ def locate_project_root(start: Path | None = None) -> Path | None:
     deferred imports. Reverting to a module-level import is a regression. (#1971)
     """
     from specify_cli.core.paths import locate_project_root as _authoritative
+
     result: Path | None = _authoritative(start)
     return result
 

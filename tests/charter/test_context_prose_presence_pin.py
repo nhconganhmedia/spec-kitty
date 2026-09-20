@@ -119,9 +119,7 @@ def _seed_charter_dir(tmp_path: Path, *, with_yaml: bool, with_md: bool) -> Path
     # (independent of the with_yaml/with_md presence cell under test) since
     # PackContext resolution is orthogonal to the charter.yaml/charter.md
     # prose-presence gate this fixture pins.
-    (tmp_path / ".kittify" / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     if with_yaml:
         (charter_dir / "charter.yaml").write_text(_CHARTER_YAML, encoding="utf-8")
     if with_md:

@@ -29,11 +29,7 @@ def _private_imports(paths: list[Path]) -> list[str]:
             else:
                 continue
             for module in modules:
-                if any(
-                    module == f"{package}._internal"
-                    or module.startswith(f"{package}._internal.")
-                    for package in _PACKAGES
-                ):
+                if any(module == f"{package}._internal" or module.startswith(f"{package}._internal.") for package in _PACKAGES):
                     offenders.append(f"{path}:{lineno} -> {module}")
     return offenders
 

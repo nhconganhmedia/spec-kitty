@@ -8,6 +8,7 @@ authorable ``charter.yaml``.
 NOT nested under an ``activation:`` mapping — ``test_rejects_nested_
 activation_mapping`` is the structural regression guard for that.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -59,9 +60,7 @@ def _governance() -> GovernanceConfig:
 
 
 def _directives() -> DirectivesConfig:
-    return DirectivesConfig(
-        directives=[Directive(id="DIRECTIVE_001", title="Architectural Integrity Standard")]
-    )
+    return DirectivesConfig(directives=[Directive(id="DIRECTIVE_001", title="Architectural Integrity Standard")])
 
 
 class TestCharterYamlRoundTrip:

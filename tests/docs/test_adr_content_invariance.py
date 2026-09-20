@@ -79,11 +79,7 @@ def _adr_files_on_disk() -> list[Path]:
 
 class TestCensus:
     def test_no_dangling_back_compat_symlinks(self) -> None:
-        dangling = [
-            p
-            for p in _DOCS_ADR.rglob("*")
-            if p.is_symlink() and not p.exists()
-        ]
+        dangling = [p for p in _DOCS_ADR.rglob("*") if p.is_symlink() and not p.exists()]
         assert dangling == [], f"dangling symlinks under docs/adr: {dangling}"
 
     def test_every_adr_has_bare_madr_status_frontmatter(self) -> None:

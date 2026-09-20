@@ -48,6 +48,7 @@ _root_app.add_typer(docs_cli.app, name="docs")
 def _invoke(*args: str) -> object:
     return runner.invoke(_root_app, ["docs", *args])
 
+
 # ---------------------------------------------------------------------------
 # Fixture index -- three pages, deliberately path-sorted, that exercise every
 # contract row without relying on a single-anchor "return everything" fixture.
@@ -236,9 +237,7 @@ def test_invalid_divio_type_is_usage_error_no_traceback(indexed_repo: Path) -> N
 # ---------------------------------------------------------------------------
 
 
-def test_missing_docs_tree_is_actionable_error_no_traceback(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_missing_docs_tree_is_actionable_error_no_traceback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)  # empty dir: no docs/, no index
 
     result = _invoke("query", "worktree", "--json")
@@ -248,9 +247,7 @@ def test_missing_docs_tree_is_actionable_error_no_traceback(
     assert "docs" in result.output.lower()
 
 
-def test_missing_index_file_with_docs_tree_present_is_actionable_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_missing_index_file_with_docs_tree_present_is_actionable_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "docs").mkdir()  # docs/ exists, but no generated index file
     monkeypatch.chdir(tmp_path)
 
@@ -261,9 +258,7 @@ def test_missing_index_file_with_docs_tree_present_is_actionable_error(
     assert "index" in result.output.lower()
 
 
-def test_malformed_index_is_actionable_error_no_traceback(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_malformed_index_is_actionable_error_no_traceback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # A syntactically broken index (hand-edit / truncated write / merge markers)
     # must surface a clean error, NOT a raw ruamel YAMLError traceback -- the
     # "consumer hand-edits or a stale index" case.
@@ -305,9 +300,7 @@ def test_human_table_renders_with_no_rich_markup_leak(indexed_repo: Path) -> Non
 # ---------------------------------------------------------------------------
 
 
-def test_query_performs_no_filesystem_access_after_load(
-    indexed_repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_query_performs_no_filesystem_access_after_load(indexed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.docs.index_model import DocsIndexStore
 
     # Load for real (this is the one legitimate filesystem read).

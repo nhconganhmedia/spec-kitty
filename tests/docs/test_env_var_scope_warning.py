@@ -26,13 +26,6 @@ def test_env_var_reference_states_machine_global_scope() -> None:
 
     assert "SPEC_KITTY_ENABLE_SAAS_SYNC" in text
     assert "SPEC_KITTY_SAAS_URL" in text
-    assert "machine-global" in text, (
-        "the env-var reference must state that the hosted-sync variables are "
-        "machine-global; see spec-kitty#3030"
-    )
-    assert "no project-scoped form" in text, (
-        "the reference must say the variables have no project-scoped form"
-    )
-    assert "every project that shell subsequently touches" in text, (
-        "the reference must spell out the consequence of exporting in a shell"
-    )
+    assert "machine-global" in text, "the env-var reference must state that the hosted-sync variables are machine-global; see spec-kitty#3030"
+    assert "no project-scoped form" in text, "the reference must say the variables have no project-scoped form"
+    assert "every project that shell subsequently touches" in text, "the reference must spell out the consequence of exporting in a shell"

@@ -210,17 +210,13 @@ def test_recommendation_varies_with_catalog_scoring_via_invoke(tmp_path: Path) -
             "charter.model_routing.load",
             side_effect=_load_from(catalog_alpha_wins),
         ):
-            payload_alpha = executor.invoke(
-                "review the diff", profile_hint="reviewer-fixture", action_hint="review"
-            )
+            payload_alpha = executor.invoke("review the diff", profile_hint="reviewer-fixture", action_hint="review")
 
         with patch(
             "charter.model_routing.load",
             side_effect=_load_from(catalog_beta_wins),
         ):
-            payload_beta = executor.invoke(
-                "review the diff", profile_hint="reviewer-fixture", action_hint="review"
-            )
+            payload_beta = executor.invoke("review the diff", profile_hint="reviewer-fixture", action_hint="review")
 
     rec_alpha = payload_alpha.recommendation
     rec_beta = payload_beta.recommendation
@@ -243,9 +239,7 @@ def test_recommendation_absent_when_catalog_missing_dispatch_still_succeeds(tmp_
     with patch("specify_cli.invocation.executor.build_charter_context", return_value=_COMPACT_CTX):
         executor = ProfileInvocationExecutor(tmp_path)
         with patch("charter.model_routing.load", return_value=None):
-            payload = executor.invoke(
-                "review the diff", profile_hint="reviewer-fixture", action_hint="review"
-            )
+            payload = executor.invoke("review the diff", profile_hint="reviewer-fixture", action_hint="review")
 
     assert payload.recommendation is None
     # dispatch still succeeded -- an Op was opened, no exception propagated.
@@ -269,9 +263,7 @@ def test_recommendation_absent_when_catalog_stale(tmp_path: Path) -> None:
             "charter.model_routing.load",
             side_effect=_load_from(stale_catalog),
         ):
-            payload = executor.invoke(
-                "review the diff", profile_hint="reviewer-fixture", action_hint="review"
-            )
+            payload = executor.invoke("review the diff", profile_hint="reviewer-fixture", action_hint="review")
 
     assert payload.recommendation is None
     assert payload.invocation_id
@@ -294,9 +286,7 @@ def test_recommendation_absent_when_task_type_unmatched(tmp_path: Path) -> None:
             "charter.model_routing.load",
             side_effect=_load_from(unmatched_catalog),
         ):
-            payload = executor.invoke(
-                "review the diff", profile_hint="reviewer-fixture", action_hint="review"
-            )
+            payload = executor.invoke("review the diff", profile_hint="reviewer-fixture", action_hint="review")
 
     assert payload.recommendation is None
     assert payload.invocation_id
@@ -330,9 +320,7 @@ def test_invoke_produces_recommendation_from_real_shipped_catalog_default_path(t
     _setup_project(tmp_path)
     with patch("specify_cli.invocation.executor.build_charter_context", return_value=_COMPACT_CTX):
         executor = ProfileInvocationExecutor(tmp_path)
-        payload = executor.invoke(
-            "review the diff", profile_hint="reviewer-fixture", action_hint="review"
-        )
+        payload = executor.invoke("review the diff", profile_hint="reviewer-fixture", action_hint="review")
 
     assert payload.recommendation is not None
     assert payload.recommendation.task_type == "code-review"
@@ -350,9 +338,7 @@ def test_invoke_produces_recommendation_for_non_review_verb_real_catalog(tmp_pat
     _setup_project(tmp_path)
     with patch("specify_cli.invocation.executor.build_charter_context", return_value=_COMPACT_CTX):
         executor = ProfileInvocationExecutor(tmp_path)
-        payload = executor.invoke(
-            "implement the fix", profile_hint="implementer-fixture", action_hint="implement"
-        )
+        payload = executor.invoke("implement the fix", profile_hint="implementer-fixture", action_hint="implement")
 
     assert payload.recommendation is not None
     assert payload.recommendation.task_type == "code-implementation"
@@ -416,9 +402,7 @@ def test_to_dict_serializes_recommendation_and_is_json_safe() -> None:
         task_type="code-review",
         objective="quality_first",
         override_mode="advisory",
-        candidates=(
-            RoutingCandidate(model_id="model-alpha", source="catalog", score=0.87, rationale="fixture"),
-        ),
+        candidates=(RoutingCandidate(model_id="model-alpha", source="catalog", score=0.87, rationale="fixture"),),
     )
     payload = _sample_payload(recommendation)
 
@@ -448,9 +432,7 @@ def test_render_rich_payload_includes_recommendation_line(capsys: pytest.Capture
         task_type="code-review",
         objective="quality_first",
         override_mode="advisory",
-        candidates=(
-            RoutingCandidate(model_id="model-alpha", source="catalog", score=0.87, rationale="fixture pick"),
-        ),
+        candidates=(RoutingCandidate(model_id="model-alpha", source="catalog", score=0.87, rationale="fixture pick"),),
     )
     payload = _sample_payload(recommendation)
 

@@ -58,9 +58,7 @@ class TestConflictRegionParsing:
         assert _split_conflict_region("<<<<<<< HEAD\nours only\n") is None
 
     def test_diff3_base_section_is_dropped(self) -> None:
-        split = _split_conflict_region(
-            "<<<<<<< HEAD\nours\n||||||| base\nbase\n=======\ntheirs\n>>>>>>> branch\n"
-        )
+        split = _split_conflict_region("<<<<<<< HEAD\nours\n||||||| base\nbase\n=======\ntheirs\n>>>>>>> branch\n")
         assert split == ("ours\n", "theirs\n")
 
 
@@ -89,9 +87,7 @@ class TestPyprojectDepsUnion:
         assert "version drift" in cls.resolution.reason.lower() or "semantic" in cls.resolution.reason.lower()
 
     def test_returns_none_for_non_pyproject(self) -> None:
-        cls = r_pyproject_deps_union(
-            Path("src/foo.py"), _hunk('  "x",\n', '  "y",\n')
-        )
+        cls = r_pyproject_deps_union(Path("src/foo.py"), _hunk('  "x",\n', '  "y",\n'))
         assert cls is None
 
     def test_returns_none_for_garbage_block(self) -> None:
@@ -123,9 +119,7 @@ class TestInitImportsUnion:
     def test_happy_two_sides_add_distinct_imports(self) -> None:
         ours = "from .auth import AuthFlow\nfrom .flags import FeatureFlags\n"
         theirs = "from .flags import FeatureFlags\nfrom .sync import SyncClient\n"
-        cls = r_init_imports_union(
-            Path("apps/collab/__init__.py"), _hunk(ours, theirs)
-        )
+        cls = r_init_imports_union(Path("apps/collab/__init__.py"), _hunk(ours, theirs))
         assert cls is not None
         assert isinstance(cls.resolution, Auto)
         assert cls.resolution.rule_id == RULE_ID_INIT_IMPORTS
@@ -138,9 +132,7 @@ class TestInitImportsUnion:
         # Ours renames the existing import on .auth.
         ours = "from .auth import OAuthFlow\n"
         theirs = "from .auth import AuthFlow\nfrom .sync import SyncClient\n"
-        cls = r_init_imports_union(
-            Path("pkg/__init__.py"), _hunk(ours, theirs)
-        )
+        cls = r_init_imports_union(Path("pkg/__init__.py"), _hunk(ours, theirs))
         assert cls is not None
         assert isinstance(cls.resolution, Manual)
         assert ".auth" in cls.resolution.reason
@@ -164,9 +156,7 @@ class TestInitImportsUnion:
         assert cls is None
 
     def test_import_parser_skips_comments_and_rejects_non_imports(self) -> None:
-        assert _parse_import_lines("# comment\n\nfrom .a import A\n") == [
-            ("from .a import a", "from .a import A")
-        ]
+        assert _parse_import_lines("# comment\n\nfrom .a import A\n") == [("from .a import a", "from .a import A")]
         assert _parse_import_lines("not an import\n") is None
 
     def test_extract_module_handles_import_and_non_import_lines(self) -> None:
@@ -395,9 +385,7 @@ class TestFailSafeOnException:
             raise RuntimeError("synthetic failure")
 
         monkeypatch.setattr(cc, "_split_conflict_region", _boom)
-        cls = cc.r_pyproject_deps_union(
-            Path("pyproject.toml"), '<<<<<<< x\na\n=======\nb\n>>>>>>> y\n'
-        )
+        cls = cc.r_pyproject_deps_union(Path("pyproject.toml"), "<<<<<<< x\na\n=======\nb\n>>>>>>> y\n")
         assert cls is not None
         assert isinstance(cls.resolution, Manual)
         assert "rule raised" in cls.resolution.reason

@@ -36,6 +36,7 @@ pytestmark = pytest.mark.git_repo
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _sample_artifact(**kwargs: object) -> ReviewCycleArtifact:
     defaults: dict[str, Any] = {
         "cycle_number": 1,
@@ -60,6 +61,7 @@ def _sample_artifact(**kwargs: object) -> ReviewCycleArtifact:
 # T1: to_dict / from_dict round-trip
 # ---------------------------------------------------------------------------
 
+
 def test_review_cycle_artifact_to_dict_round_trip() -> None:
     original = _sample_artifact()
     d = original.to_dict()
@@ -73,14 +75,13 @@ def test_review_cycle_artifact_to_dict_round_trip() -> None:
     assert restored.reviewed_at == original.reviewed_at
     assert restored.reproduction_command == original.reproduction_command
     assert restored.body == original.body
-    assert restored.affected_files == [
-        AffectedFile(path="src/specify_cli/cli/commands/agent/tasks.py", line_range="245-265")
-    ]
+    assert restored.affected_files == [AffectedFile(path="src/specify_cli/cli/commands/agent/tasks.py", line_range="245-265")]
 
 
 # ---------------------------------------------------------------------------
 # T2: write() / from_file() round-trip
 # ---------------------------------------------------------------------------
+
 
 def test_write_and_from_file_round_trip(tmp_path: Path) -> None:
     artifact = _sample_artifact()
@@ -133,6 +134,7 @@ def test_to_dict_omits_override_keys_when_absent() -> None:
 # T3: next_cycle_number() on empty dir → 1
 # ---------------------------------------------------------------------------
 
+
 def test_next_cycle_number_empty_dir(tmp_path: Path) -> None:
     assert ReviewCycleArtifact.next_cycle_number(tmp_path) == 1
 
@@ -140,6 +142,7 @@ def test_next_cycle_number_empty_dir(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # T4: next_cycle_number() with 3 existing files → 4
 # ---------------------------------------------------------------------------
+
 
 def test_next_cycle_number_with_existing(tmp_path: Path) -> None:
     for i in range(1, 4):
@@ -151,6 +154,7 @@ def test_next_cycle_number_with_existing(tmp_path: Path) -> None:
 # T5: latest() on empty dir → None
 # ---------------------------------------------------------------------------
 
+
 def test_latest_empty_dir(tmp_path: Path) -> None:
     assert ReviewCycleArtifact.latest(tmp_path) is None
 
@@ -158,6 +162,7 @@ def test_latest_empty_dir(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # T6: latest() with multiple files → highest cycle number
 # ---------------------------------------------------------------------------
+
 
 def test_latest_with_multiple(tmp_path: Path) -> None:
     for cycle_n in (1, 3, 2):
@@ -173,6 +178,7 @@ def test_latest_with_multiple(tmp_path: Path) -> None:
 # T7: AffectedFile with optional line_range = None
 # ---------------------------------------------------------------------------
 
+
 def test_affected_file_optional_line_range() -> None:
     af = AffectedFile(path="src/foo.py")
     assert af.line_range is None
@@ -185,6 +191,7 @@ def test_affected_file_optional_line_range() -> None:
 # ---------------------------------------------------------------------------
 # T8: frontmatter field completeness
 # ---------------------------------------------------------------------------
+
 
 def test_frontmatter_field_completeness(tmp_path: Path) -> None:
     artifact = _sample_artifact()
@@ -213,6 +220,7 @@ def test_frontmatter_field_completeness(tmp_path: Path) -> None:
 # T9: legacy feedback:// pointer resolution
 # ---------------------------------------------------------------------------
 
+
 def test_legacy_feedback_pointer_resolution(tmp_path: Path) -> None:
     from specify_cli.cli.commands.agent.workflow import _resolve_review_feedback_pointer
 
@@ -238,17 +246,12 @@ def test_legacy_feedback_pointer_resolution(tmp_path: Path) -> None:
 # T10: new review-cycle:// pointer resolution
 # ---------------------------------------------------------------------------
 
+
 def test_new_review_cycle_pointer_resolution(tmp_path: Path) -> None:
     from specify_cli.cli.commands.agent.workflow import _resolve_review_feedback_pointer
 
     # Create a fake review artifact
-    artifact_dir = (
-        tmp_path
-        / "kitty-specs"
-        / "066-review-loop-stabilization"
-        / "tasks"
-        / "WP01-persisted-review-artifact-model"
-    )
+    artifact_dir = tmp_path / "kitty-specs" / "066-review-loop-stabilization" / "tasks" / "WP01-persisted-review-artifact-model"
     artifact_dir.mkdir(parents=True)
     artifact_file = artifact_dir / "review-cycle-1.md"
     _sample_artifact(
@@ -269,6 +272,7 @@ def test_new_review_cycle_pointer_resolution(tmp_path: Path) -> None:
 # T11: "force-override" sentinel returns None
 # ---------------------------------------------------------------------------
 
+
 def test_force_override_pointer_returns_none(tmp_path: Path) -> None:
     from specify_cli.cli.commands.agent.workflow import _resolve_review_feedback_pointer
 
@@ -280,17 +284,12 @@ def test_force_override_pointer_returns_none(tmp_path: Path) -> None:
 # T12: _persist_review_feedback() creates artifact file
 # ---------------------------------------------------------------------------
 
+
 def test_persist_review_feedback_creates_artifact(tmp_path: Path) -> None:
     from specify_cli.cli.commands.agent.tasks import _persist_review_feedback
 
     # Build kitty-specs task directory so _resolve_wp_slug finds the slug
-    task_dir = (
-        tmp_path
-        / "kitty-specs"
-        / "066-test-mission"
-        / "tasks"
-        / "WP01-some-title"
-    )
+    task_dir = tmp_path / "kitty-specs" / "066-test-mission" / "tasks" / "WP01-some-title"
     task_dir.mkdir(parents=True)
     # Create a stub WP file so the directory scanner finds it
     (task_dir.parent / "WP01-some-title.md").write_text("---\n---\n", encoding="utf-8")
@@ -414,9 +413,7 @@ def test_terminal_lane_rejected_artifact_helper_flags_approved_or_done(tmp_path:
         sub_tmp_path = tmp_path / str(lane)
         sub_tmp_path.mkdir(parents=True)
         feature_dir = _artifacts_feature_dir(sub_tmp_path)
-        _artifacts_append_terminal_event(
-            feature_dir, verdict="changes_requested", to_lane=lane, event_id=event_id
-        )
+        _artifacts_append_terminal_event(feature_dir, verdict="changes_requested", to_lane=lane, event_id=event_id)
 
         findings = find_rejected_review_artifact_conflicts(feature_dir)
 
@@ -431,9 +428,7 @@ def test_terminal_lane_rejected_artifact_helper_ignores_non_rejected_latest(tmp_
     the merge gate -- the event-authority successor of the retired helper's
     "ignores non-rejected latest" guarantee."""
     feature_dir = _artifacts_feature_dir(tmp_path)
-    _artifacts_append_terminal_event(
-        feature_dir, verdict="approved", to_lane=Lane.APPROVED, event_id="01ARTAPP0000000000000001"
-    )
+    _artifacts_append_terminal_event(feature_dir, verdict="approved", to_lane=Lane.APPROVED, event_id="01ARTAPP0000000000000001")
 
     assert find_rejected_review_artifact_conflicts(feature_dir) == []
 
@@ -444,9 +439,7 @@ def test_complete_override_is_honored_for_terminal_lane(tmp_path: Path) -> None:
     event-authority successor of the retired frontmatter-override
     recognition this test originally asserted."""
     feature_dir = _artifacts_feature_dir(tmp_path)
-    _artifacts_append_terminal_event(
-        feature_dir, verdict="changes_requested", to_lane=Lane.APPROVED, event_id="01ARTOVR0000000000000001"
-    )
+    _artifacts_append_terminal_event(feature_dir, verdict="changes_requested", to_lane=Lane.APPROVED, event_id="01ARTOVR0000000000000001")
     emit_inner_state_changed(
         feature_dir,
         "WP01",
@@ -471,15 +464,11 @@ def test_incomplete_override_still_flags_rejected_terminal_lane(tmp_path: Path) 
     suppress the merge-gate flag -- the event-authority successor of the
     retired helper's "incomplete override still flags" guarantee."""
     feature_dir = _artifacts_feature_dir(tmp_path)
-    _artifacts_append_terminal_event(
-        feature_dir, verdict="changes_requested", to_lane=Lane.APPROVED, event_id="01ARTINC0000000000000001"
-    )
+    _artifacts_append_terminal_event(feature_dir, verdict="changes_requested", to_lane=Lane.APPROVED, event_id="01ARTINC0000000000000001")
     emit_inner_state_changed(
         feature_dir,
         "WP01",
-        WPInnerStateDelta(
-            review=ReviewOverride(at="2026-01-02T00:00:00+00:00", actor="operator", wp_id="WP01", reason="")
-        ),
+        WPInnerStateDelta(review=ReviewOverride(at="2026-01-02T00:00:00+00:00", actor="operator", wp_id="WP01", reason="")),
         actor="operator",
         mission_slug=feature_dir.name,
     )
@@ -499,6 +488,7 @@ def test_incomplete_override_still_flags_rejected_terminal_lane(tmp_path: Path) 
 # number, and an unparseable sibling must be a hard refusal, not a silent
 # skip that falls back to max() over only the parseable candidates.
 # ---------------------------------------------------------------------------
+
 
 def test_next_cycle_number_survives_a_numbering_gap(tmp_path: Path) -> None:
     """FR-006 reproduction: cycles 1 and 3 present must derive next = 4.
@@ -555,12 +545,8 @@ def test_create_rejected_review_cycle_survives_a_numbering_gap(tmp_path: Path) -
     repo = tmp_path / "repo"
     artifact_dir = repo / "kitty-specs" / "001-mission" / "tasks" / "WP01-core"
     artifact_dir.mkdir(parents=True)
-    _sample_artifact(cycle_number=1, body="cycle 1 verdict content").write(
-        artifact_dir / "review-cycle-1.md"
-    )
-    _sample_artifact(cycle_number=3, body="cycle 3 verdict content").write(
-        artifact_dir / "review-cycle-3.md"
-    )
+    _sample_artifact(cycle_number=1, body="cycle 1 verdict content").write(artifact_dir / "review-cycle-1.md")
+    _sample_artifact(cycle_number=3, body="cycle 3 verdict content").write(artifact_dir / "review-cycle-3.md")
     cycle_3_path = artifact_dir / "review-cycle-3.md"
     cycle_3_bytes_before = cycle_3_path.read_bytes()
 

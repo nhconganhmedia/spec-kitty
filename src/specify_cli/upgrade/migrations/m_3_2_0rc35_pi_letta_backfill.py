@@ -59,9 +59,7 @@ def _agent_skill_manifest_complete(project_path: Path, agent_key: str) -> bool:
 
 def _agent_skills_complete(project_path: Path, agent_key: str) -> bool:
     """Return True when files exist and manifest ownership is complete."""
-    return _skills_complete(project_path) and _agent_skill_manifest_complete(
-        project_path, agent_key
-    )
+    return _skills_complete(project_path) and _agent_skill_manifest_complete(project_path, agent_key)
 
 
 @MigrationRegistry.register
@@ -96,10 +94,7 @@ class PiLettaBackfillMigration(BaseMigration):
                 return True
 
         # Check for missing skill files or missing per-agent manifest ownership.
-        return any(
-            not _agent_skills_complete(project_path, agent_key)
-            for agent_key in pi_letta_configured
-        )
+        return any(not _agent_skills_complete(project_path, agent_key) for agent_key in pi_letta_configured)
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:
         if not project_path.exists():
@@ -155,9 +150,7 @@ class PiLettaBackfillMigration(BaseMigration):
                 _ci.install(project_path, agent_key)
                 changes.append(f"Repaired skill pack for {agent_key}")
             except Exception as exc:
-                warnings.append(
-                    f"Skill repair for {agent_key} skipped: {exc}"
-                )
+                warnings.append(f"Skill repair for {agent_key} skipped: {exc}")
 
         return MigrationResult(
             success=True,

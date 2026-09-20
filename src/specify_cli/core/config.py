@@ -75,28 +75,28 @@ SKILL_CLASS_NATIVE: str = "native-root-required"
 SKILL_CLASS_WRAPPER: str = "wrapper-only"
 
 AGENT_SKILL_CONFIG: dict[str, dict[str, str | list[str] | None]] = {
-    "claude":       {"class": SKILL_CLASS_NATIVE,  "skill_roots": [".claude/skills/"]},
-    "copilot":      {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".github/skills/"]},
-    "gemini":       {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".gemini/skills/"]},
-    "cursor":       {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".cursor/skills/"]},
-    "qwen":         {"class": SKILL_CLASS_NATIVE,  "skill_roots": [".qwen/skills/"]},
-    "opencode":     {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".opencode/skills/"]},
-    "windsurf":     {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".windsurf/skills/"]},
-    "codex":        {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/"]},
-    "vibe":         {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/"]},
-    "pi":           {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".pi/skills/"]},
-    "letta":        {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/"]},
-    "kilocode":     {"class": SKILL_CLASS_NATIVE,  "skill_roots": [".kilocode/skills/"]},
-    "auggie":       {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".augment/skills/"]},
+    "claude": {"class": SKILL_CLASS_NATIVE, "skill_roots": [".claude/skills/"]},
+    "copilot": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".github/skills/"]},
+    "gemini": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".gemini/skills/"]},
+    "cursor": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".cursor/skills/"]},
+    "qwen": {"class": SKILL_CLASS_NATIVE, "skill_roots": [".qwen/skills/"]},
+    "opencode": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".opencode/skills/"]},
+    "windsurf": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".windsurf/skills/"]},
+    "codex": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/"]},
+    "vibe": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/"]},
+    "pi": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".pi/skills/"]},
+    "letta": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/"]},
+    "kilocode": {"class": SKILL_CLASS_NATIVE, "skill_roots": [".kilocode/skills/"]},
+    "auggie": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".augment/skills/"]},
     # "roo" removed — Roo Code shut down on 2026-05-15 (C-007)
-    "q":            {"class": SKILL_CLASS_WRAPPER, "skill_roots": None},
-    "kiro":         {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".kiro/skills/"]},
-    "antigravity":  {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".agent/skills/"]},
+    "q": {"class": SKILL_CLASS_WRAPPER, "skill_roots": None},
+    "kiro": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".kiro/skills/"]},
+    "antigravity": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".agent/skills/"]},
     # LLxprt Code reads the cross-tool .agents/skills/ standard alongside its own
     # .llxprt/skills/ root at the project tier (.agents/skills/ wins), and
     # ~/.agents/skills/ plus <global-config>/skills/ (macOS:
     # ~/Library/Preferences/llxprt-code/skills/) at the user-global tier.
-    "llxprt":       {"class": SKILL_CLASS_SHARED,  "skill_roots": [".agents/skills/", ".llxprt/skills/"]},
+    "llxprt": {"class": SKILL_CLASS_SHARED, "skill_roots": [".agents/skills/", ".llxprt/skills/"]},
 }
 
 BANNER = """

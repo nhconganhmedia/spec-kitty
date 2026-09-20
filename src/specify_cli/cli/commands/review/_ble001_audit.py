@@ -70,9 +70,7 @@ def _repo_relative_path(file_path: str | Path, repo_root: Path | None = None) ->
     path = Path(file_path)
     if repo_root is not None:
         try:
-            return path.resolve(strict=False).relative_to(
-                repo_root.resolve(strict=False)
-            ).as_posix()
+            return path.resolve(strict=False).relative_to(repo_root.resolve(strict=False)).as_posix()
         except ValueError:
             pass
 
@@ -90,9 +88,7 @@ def _is_auth_storage_ble001_scoped_path(
     repo_root: Path | None = None,
 ) -> bool:
     repo_path = _repo_relative_path(file_path, repo_root)
-    return repo_path.startswith(
-        _AUTH_STORAGE_BLE001_AUTH_PREFIX
-    ) or repo_path in _AUTH_STORAGE_BLE001_COMMAND_FILES
+    return repo_path.startswith(_AUTH_STORAGE_BLE001_AUTH_PREFIX) or repo_path in _AUTH_STORAGE_BLE001_COMMAND_FILES
 
 
 def _ble001_reason_from_line(line_text: str) -> str | None:

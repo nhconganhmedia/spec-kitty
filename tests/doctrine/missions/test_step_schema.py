@@ -84,9 +84,7 @@ template:
         assert step.sequence_index == 0
         assert step.in_action_sequence is True
         assert step.recommended_model_tier == "opus"
-        assert step.template == MissionStepTemplateRef(
-            artifact_key="spec", template_file="spec-template.md"
-        )
+        assert step.template == MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md")
 
     def test_new_fields_default_when_absent_from_yaml(self, tmp_path: Path) -> None:
         """A step.yaml that predates S-B (no new keys) still loads with safe defaults."""
@@ -177,9 +175,7 @@ step_type: agent
                 sequence_index=0,
                 in_action_sequence=True,
                 recommended_model_tier="opus",
-                template=MissionStepTemplateRef(
-                    artifact_key="spec", template_file="spec-template.md"
-                ),
+                template=MissionStepTemplateRef(artifact_key="spec", template_file="spec-template.md"),
             )  # type: ignore[call-arg]
 
 

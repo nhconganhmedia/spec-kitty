@@ -112,8 +112,7 @@ def coord_mission(tmp_path: Path) -> Path:
                 "computed_at": "2026-01-01T00:00:00+00:00",
                 "computed_from": "test",
                 "lanes": [
-                    {"lane_id": "lane-a", "wp_ids": ["WP01"], "write_scope": [],
-                     "predicted_surfaces": [], "depends_on_lanes": [], "parallel_group": 0},
+                    {"lane_id": "lane-a", "wp_ids": ["WP01"], "write_scope": [], "predicted_surfaces": [], "depends_on_lanes": [], "parallel_group": 0},
                 ],
             }
         ),
@@ -137,9 +136,7 @@ def coord_mission(tmp_path: Path) -> Path:
     return repo
 
 
-def test_close_discard_tears_down_coordination_worktree_and_branch(
-    coord_mission: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_discard_tears_down_coordination_worktree_and_branch(coord_mission: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo = coord_mission
     monkeypatch.chdir(repo)
 
@@ -152,37 +149,34 @@ def test_close_discard_tears_down_coordination_worktree_and_branch(
 
     # The command must actually tear down what it claims to.
     assert not CoordinationWorkspace.is_present(repo, SLUG, MID8), (
-        "coordination worktree still present after `close --discard` "
-        f"(command output: {result.output!r})"
+        f"coordination worktree still present after `close --discard` (command output: {result.output!r})"
     )
     branches = _git(repo, "branch", "--list", COORD_BRANCH).stdout.strip()
     assert branches == "", f"coordination branch leaked after `close --discard`: {branches!r}"
 
 
-def test_close_discard_is_idempotent_on_rerun(
-    coord_mission: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_discard_is_idempotent_on_rerun(coord_mission: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A second `close --discard` after a successful one is a clean success —
     the residual verifier must not false-fail when there is nothing left."""
     repo = coord_mission
     monkeypatch.chdir(repo)
 
     first = runner.invoke(
-        mission_type.app, ["close", "--mission", SLUG, "--discard", "--force"],
+        mission_type.app,
+        ["close", "--mission", SLUG, "--discard", "--force"],
         env={"PWD": str(repo)},
     )
     assert first.exit_code == 0, first.output
 
     second = runner.invoke(
-        mission_type.app, ["close", "--mission", SLUG, "--discard", "--force"],
+        mission_type.app,
+        ["close", "--mission", SLUG, "--discard", "--force"],
         env={"PWD": str(repo)},
     )
     assert second.exit_code == 0, second.output
 
 
-def test_close_discard_flattens_coordination_branch_from_meta(
-    coord_mission: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_discard_flattens_coordination_branch_from_meta(coord_mission: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """After a discard deletes the coord branch, meta.json must no longer declare
     `coordination_branch` — otherwise subsequent commands trip
     CoordinationBranchDeleted (the dangling-reference data-loss guard)."""
@@ -192,16 +186,15 @@ def test_close_discard_flattens_coordination_branch_from_meta(
     assert "coordination_branch" in json.loads(meta_path.read_text())
 
     result = runner.invoke(
-        mission_type.app, ["close", "--mission", SLUG, "--discard", "--force"],
+        mission_type.app,
+        ["close", "--mission", SLUG, "--discard", "--force"],
         env={"PWD": str(repo)},
     )
     assert result.exit_code == 0, result.output
     assert "coordination_branch" not in json.loads(meta_path.read_text())
 
 
-def test_close_without_discard_tears_down_coord_worktree(
-    coord_mission: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_without_discard_tears_down_coord_worktree(coord_mission: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The non-discard `close` (re-anchored too) must tear down the coordination
     worktree on a coord mission — pre-fix it silently no-op'd as well — while
     leaving the branches intact (no --discard).
@@ -225,18 +218,14 @@ def test_close_without_discard_tears_down_coord_worktree(
     _git(repo, "commit", "-q", "-m", "mark mission merged for teardown-routing test")
     monkeypatch.chdir(repo)
 
-    result = runner.invoke(
-        mission_type.app, ["close", "--mission", SLUG], env={"PWD": str(repo)}
-    )
+    result = runner.invoke(mission_type.app, ["close", "--mission", SLUG], env={"PWD": str(repo)})
     assert result.exit_code == 0, result.output
     assert not CoordinationWorkspace.is_present(repo, SLUG, MID8)
     # Non-discard leaves branches in place.
     assert _git(repo, "branch", "--list", COORD_BRANCH).stdout.strip() != ""
 
 
-def test_close_discard_fails_closed_on_corrupt_lanes_json(
-    coord_mission: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_close_discard_fails_closed_on_corrupt_lanes_json(coord_mission: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A corrupt lanes.json must abort the discard (non-zero, no teardown) rather
     than silently degrade a modern mission to the legacy single-branch path and
     leave its lane branches/worktrees behind."""
@@ -245,7 +234,8 @@ def test_close_discard_fails_closed_on_corrupt_lanes_json(
     monkeypatch.chdir(repo)
 
     result = runner.invoke(
-        mission_type.app, ["close", "--mission", SLUG, "--discard", "--force"],
+        mission_type.app,
+        ["close", "--mission", SLUG, "--discard", "--force"],
         env={"PWD": str(repo)},
     )
     assert result.exit_code != 0
@@ -298,8 +288,12 @@ def _single_lane_manifest(slug: str):
         target_branch="main",
         lanes=[
             ExecutionLane(
-                lane_id="lane-a", wp_ids=("WP01",), write_scope=(),
-                predicted_surfaces=(), depends_on_lanes=(), parallel_group=0,
+                lane_id="lane-a",
+                wp_ids=("WP01",),
+                write_scope=(),
+                predicted_surfaces=(),
+                depends_on_lanes=(),
+                parallel_group=0,
             )
         ],
         computed_at="2026-01-01T00:00:00+00:00",
@@ -316,8 +310,12 @@ def test_expected_lane_worktree_dir_names_are_exact() -> None:
     manifest = _single_lane_manifest("alpha")
     manifest.lanes.append(
         ExecutionLane(
-            lane_id="lane-planning", wp_ids=(), write_scope=(),
-            predicted_surfaces=(), depends_on_lanes=(), parallel_group=0,
+            lane_id="lane-planning",
+            wp_ids=(),
+            write_scope=(),
+            predicted_surfaces=(),
+            depends_on_lanes=(),
+            parallel_group=0,
         )
     )
     assert _expected_lane_worktree_dir_names("alpha", manifest) == {"alpha-lane-a"}

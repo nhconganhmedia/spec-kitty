@@ -11,6 +11,7 @@ from glossary.resolution import resolve_term
 
 pytestmark = pytest.mark.fast
 
+
 @pytest.fixture
 def glossary_store(tmp_path: Path) -> GlossaryStore:
     """Create a GlossaryStore with sample data."""

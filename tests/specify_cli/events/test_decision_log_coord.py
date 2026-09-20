@@ -5,6 +5,7 @@ T018: _wrap_with_decision_git_log passes coord worktree path when it exists.
 T019: _wrap_with_decision_git_log falls back to repo_root when coord absent.
 T020: DecisionGitLog.safe_commit uses worktree_root as worktree_root arg.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,6 +22,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _write_coord_meta(repo_root: Path, slug: str) -> Path:
     """Write a coord-topology ``meta.json`` so ``ensure_topology`` classifies COORD.
 
@@ -32,8 +34,7 @@ def _write_coord_meta(repo_root: Path, slug: str) -> Path:
     mission_dir = repo_root / "kitty-specs" / slug
     mission_dir.mkdir(parents=True, exist_ok=True)
     (mission_dir / "meta.json").write_text(
-        '{"coordination_branch":"kitty/mission-' + slug + '",'
-        '"mission_id":"01KT3YBDABCDEFGHIJKLMNOP"}',
+        '{"coordination_branch":"kitty/mission-' + slug + '","mission_id":"01KT3YBDABCDEFGHIJKLMNOP"}',
         encoding="utf-8",
     )
     return mission_dir
@@ -59,6 +60,7 @@ def _make_log(
 # ---------------------------------------------------------------------------
 # T017: _decisions_file is rooted under worktree_root
 # ---------------------------------------------------------------------------
+
 
 class TestDecisionsFileLocation:
     """Verify decisions.events.jsonl is written under worktree_root (T017)."""
@@ -101,6 +103,7 @@ class TestDecisionsFileLocation:
 # ---------------------------------------------------------------------------
 # T018: _wrap_with_decision_git_log coord routing
 # ---------------------------------------------------------------------------
+
 
 class TestWrapWithDecisionGitLogCoordRouting:
     """_wrap_with_decision_git_log selects worktree_root based on coord existence (T018, T019)."""
@@ -186,15 +189,12 @@ class TestWrapWithDecisionGitLogCoordRouting:
         _write_coord_meta(tmp_path, slug)
         # Materialized coord worktree whose mission dir has NO meta.json — the
         # surface the coord-aware resolver would (wrongly) read identity from.
-        coord_mission_dir = (
-            tmp_path / ".worktrees" / f"{base_slug}-{mid8}-coord" / "kitty-specs" / slug
-        )
+        coord_mission_dir = tmp_path / ".worktrees" / f"{base_slug}-{mid8}-coord" / "kitty-specs" / slug
         coord_mission_dir.mkdir(parents=True)
         assert not (coord_mission_dir / "meta.json").exists()
 
         assert _resolve_mission_ulid(slug, tmp_path) == ulid, (
-            "identity read must anchor on the primary checkout's meta.json, not "
-            "the coord worktree (which has no meta.json) — #2091"
+            "identity read must anchor on the primary checkout's meta.json, not the coord worktree (which has no meta.json) — #2091"
         )
 
     def test_repo_root_used_when_coord_absent(self, tmp_path: Path) -> None:
@@ -238,9 +238,7 @@ class TestWrapWithDecisionGitLogCoordRouting:
         assert "worktree_root" in captured
         assert captured["worktree_root"] == tmp_path
 
-    def test_declared_coord_topology_missing_worktree_resolves_coord_worktree(
-        self, tmp_path: Path
-    ) -> None:
+    def test_declared_coord_topology_missing_worktree_resolves_coord_worktree(self, tmp_path: Path) -> None:
         """Modern missions create/use coord worktree instead of dropping audit."""
         from runtime.next.runtime_bridge import _wrap_with_decision_git_log
 
@@ -249,8 +247,7 @@ class TestWrapWithDecisionGitLogCoordRouting:
         mission_dir = repo_root / "kitty-specs" / slug
         mission_dir.mkdir(parents=True)
         (mission_dir / "meta.json").write_text(
-            '{"coordination_branch":"kitty/mission-my-feature-01KT3YBD",'
-            '"mission_id":"01KT3YBDABCDEFGHIJKLMNOP"}',
+            '{"coordination_branch":"kitty/mission-my-feature-01KT3YBD","mission_id":"01KT3YBDABCDEFGHIJKLMNOP"}',
             encoding="utf-8",
         )
         inner = MagicMock(spec=RuntimeEventEmitter)
@@ -290,13 +287,9 @@ class TestWrapWithDecisionGitLogCoordRouting:
             wrapped = _wrap_with_decision_git_log(inner, slug, repo_root)
 
         assert wrapped is inner
-        assert captured["worktree_root"] == (
-            repo_root / ".worktrees" / "my-feature-01KT3YBD-coord"
-        )
+        assert captured["worktree_root"] == (repo_root / ".worktrees" / "my-feature-01KT3YBD-coord")
 
-    def test_declared_coord_topology_decision_log_failure_raises(
-        self, tmp_path: Path
-    ) -> None:
+    def test_declared_coord_topology_decision_log_failure_raises(self, tmp_path: Path) -> None:
         """Modern missions fail closed when durable decision audit cannot build."""
         from runtime.next.runtime_bridge import (
             DecisionGitLogUnavailable,
@@ -308,8 +301,7 @@ class TestWrapWithDecisionGitLogCoordRouting:
         mission_dir = repo_root / "kitty-specs" / slug
         mission_dir.mkdir(parents=True)
         (mission_dir / "meta.json").write_text(
-            '{"coordination_branch":"kitty/mission-my-feature-01KT3YBD",'
-            '"mission_id":"01KT3YBDABCDEFGHIJKLMNOP"}',
+            '{"coordination_branch":"kitty/mission-my-feature-01KT3YBD","mission_id":"01KT3YBDABCDEFGHIJKLMNOP"}',
             encoding="utf-8",
         )
         inner = MagicMock(spec=RuntimeEventEmitter)
@@ -329,6 +321,7 @@ class TestWrapWithDecisionGitLogCoordRouting:
 # Non-identity fixture: primary root != coord root, so an identity fixture (where
 # the two coincide) could NOT distinguish a broken selection from a correct one.
 # ---------------------------------------------------------------------------
+
 
 class TestWorktreeRootPreservedThroughKindDrain:
     """C-011: dropping the vestigial ``.kind`` carrier must NOT alter worktree_root."""
@@ -403,6 +396,7 @@ class TestWorktreeRootPreservedThroughKindDrain:
 # ---------------------------------------------------------------------------
 # T020: safe_commit called with correct worktree_root
 # ---------------------------------------------------------------------------
+
 
 class TestDecisionGitLogSafeCommitWorktreeRoot:
     """DecisionGitLog passes worktree_root (not repo_root) to safe_commit (T020)."""
@@ -492,12 +486,11 @@ class TestDecisionGitLogSafeCommitWorktreeRoot:
 # T021: NFR-004 — _wrap_with_decision_git_log never raises when coord absent
 # ---------------------------------------------------------------------------
 
+
 class TestNFR004FallbackNoRaise:
     """NFR-004: _wrap_with_decision_git_log must not abort when coord worktree absent (T021)."""
 
-    def test_decision_log_construction_does_not_abort_when_coord_worktree_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_decision_log_construction_does_not_abort_when_coord_worktree_missing(self, tmp_path: Path) -> None:
         """_wrap_with_decision_git_log never raises when coord worktree absent (NFR-004)."""
         from runtime.next.runtime_bridge import _wrap_with_decision_git_log
 
@@ -512,10 +505,7 @@ class TestNFR004FallbackNoRaise:
         try:
             wrapped = _wrap_with_decision_git_log(mock_emitter, mission_slug, repo_root)
         except Exception as exc:
-            pytest.fail(
-                f"_wrap_with_decision_git_log raised {type(exc).__name__} when "
-                f"coord worktree was absent — violates NFR-004: {exc}"
-            )
+            pytest.fail(f"_wrap_with_decision_git_log raised {type(exc).__name__} when coord worktree was absent — violates NFR-004: {exc}")
 
         # Wrapped result is usable (either DecisionGitLog or plain emitter)
         assert wrapped is not None

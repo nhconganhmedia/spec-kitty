@@ -45,20 +45,8 @@ MISSION_DIRNAME = f"{MISSION_SLUG}-{MID8}"
 COORD_BRANCH = f"kitty/mission-{MISSION_DIRNAME}"
 TARGET_BRANCH = "feat/split-target"
 
-_WP01 = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: First\n"
-    "dependencies: []\n"
-    "---\n\n# WP01\n"
-)
-_WP02 = (
-    "---\n"
-    "work_package_id: WP02\n"
-    "title: Second\n"
-    "dependencies: [WP01]\n"
-    "---\n\n# WP02\n"
-)
+_WP01 = "---\nwork_package_id: WP01\ntitle: First\ndependencies: []\n---\n\n# WP01\n"
+_WP02 = "---\nwork_package_id: WP02\ntitle: Second\ndependencies: [WP01]\n---\n\n# WP02\n"
 _LANES_JSON = {
     "version": 1,
     "feature_slug": MISSION_DIRNAME,
@@ -71,9 +59,7 @@ _LANES_JSON = {
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
 
 @pytest.fixture
@@ -118,9 +104,7 @@ def split_repo(tmp_path: Path) -> Path:
     tasks_dir.mkdir()
     (tasks_dir / "WP01.md").write_text(_WP01, encoding="utf-8")
     (tasks_dir / "WP02.md").write_text(_WP02, encoding="utf-8")
-    (feature_dir / "lanes.json").write_text(
-        json.dumps(_LANES_JSON) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "lanes.json").write_text(json.dumps(_LANES_JSON) + "\n", encoding="utf-8")
     _git(repo, "add", "kitty-specs")
     _git(repo, "commit", "-q", "-m", "planning artifacts on target branch")
 
@@ -131,11 +115,7 @@ def split_repo(tmp_path: Path) -> Path:
 
 
 def _coord_feature_dir(repo: Path) -> Path:
-    return (
-        CoordinationWorkspace.worktree_path(repo, MISSION_SLUG, MID8)
-        / "kitty-specs"
-        / MISSION_DIRNAME
-    )
+    return CoordinationWorkspace.worktree_path(repo, MISSION_SLUG, MID8) / "kitty-specs" / MISSION_DIRNAME
 
 
 def test_planning_read_dir_resolves_primary_not_coord(split_repo: Path) -> None:
@@ -146,8 +126,7 @@ def test_planning_read_dir_resolves_primary_not_coord(split_repo: Path) -> None:
 
     assert status_dir is not None
     assert planning_dir != status_dir, (
-        "Under coord topology the planning surface must differ from the status "
-        "(coord worktree) surface — else the split cannot be exercised."
+        "Under coord topology the planning surface must differ from the status (coord worktree) surface — else the split cannot be exercised."
     )
     # PRIMARY artifacts live on the planning surface ...
     assert (planning_dir / "lanes.json").exists()
@@ -172,10 +151,7 @@ def test_mission_state_discovers_wps_from_primary_surface(split_repo: Path) -> N
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)["data"]
     wp_ids = {wp["wp_id"] for wp in data["work_packages"]}
-    assert wp_ids == {"WP01", "WP02"}, (
-        "WPs not discovered — mission-state read tasks/ off the coord worktree "
-        "(empty) instead of the primary surface (#2118)."
-    )
+    assert wp_ids == {"WP01", "WP02"}, "WPs not discovered — mission-state read tasks/ off the coord worktree (empty) instead of the primary surface (#2118)."
     by_id = {wp["wp_id"]: wp for wp in data["work_packages"]}
     assert by_id["WP02"]["dependencies"] == ["WP01"]
 
@@ -187,9 +163,6 @@ def test_list_ready_returns_unblocked_wp_under_coord_split(split_repo: Path) -> 
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)["data"]
     ready = {wp["wp_id"] for wp in data["ready_work_packages"]}
-    assert "WP01" in ready, (
-        "WP01 should be schedulable; an empty ready-set is the #2118 stall "
-        "(dependency graph read off the coord worktree instead of primary)."
-    )
+    assert "WP01" in ready, "WP01 should be schedulable; an empty ready-set is the #2118 stall (dependency graph read off the coord worktree instead of primary)."
     # WP02 depends on the not-yet-approved WP01 → not ready.
     assert "WP02" not in ready

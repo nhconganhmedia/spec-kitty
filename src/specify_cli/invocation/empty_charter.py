@@ -61,10 +61,7 @@ _CHARTER_BUNDLE_PATH = Path(".kittify/charter/charter.yaml")
 
 #: Human-readable reason recorded on the resulting ``RouterDecision`` --
 #: surfaced by ``dispatch.py``'s warning panel and useful for audit trails.
-_MATCH_REASON = (
-    "empty charter: no compiled charter bundle (.kittify/charter/charter.yaml), "
-    "no org/project pack, and no explicit agent-profile activation found"
-)
+_MATCH_REASON = "empty charter: no compiled charter bundle (.kittify/charter/charter.yaml), no org/project pack, and no explicit agent-profile activation found"
 
 
 def is_charter_empty(repo_root: Path) -> bool:

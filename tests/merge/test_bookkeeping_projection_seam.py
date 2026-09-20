@@ -85,9 +85,7 @@ def test_capture_restore_recreates_deleted_file(tmp_path: Path) -> None:
 def test_snapshot_trust_accepts_kitty_specs(tmp_path: Path) -> None:
     repo = _repo_with_spec(tmp_path)
     candidate = repo / KITTY_SPECS_DIR / "m" / "status.json"
-    snapshots = aw.capture_generated_artifact_snapshots(
-        candidate, trusted_roots=[repo / KITTY_SPECS_DIR]
-    )
+    snapshots = aw.capture_generated_artifact_snapshots(candidate, trusted_roots=[repo / KITTY_SPECS_DIR])
     assert candidate.resolve(strict=False) in snapshots
 
 
@@ -95,9 +93,7 @@ def test_snapshot_trust_rejects_outside_path(tmp_path: Path) -> None:
     repo = _repo_with_spec(tmp_path)
     outside = tmp_path / "elsewhere" / "evil.json"
     with pytest.raises(ValueError):
-        aw.capture_generated_artifact_snapshots(
-            outside, trusted_roots=[repo / KITTY_SPECS_DIR]
-        )
+        aw.capture_generated_artifact_snapshots(outside, trusted_roots=[repo / KITTY_SPECS_DIR])
 
 
 def test_status_surface_trust_accepts_kitty_specs(tmp_path: Path) -> None:
@@ -127,9 +123,7 @@ def test_status_surface_file_trust_rejects_bad_filename(tmp_path: Path) -> None:
         patch.object(bp, "get_main_repo_root", lambda _r: repo),
         pytest.raises(ValueError, match="Refusing untrusted status filename"),
     ):
-        bp._assert_status_surface_file_path_is_trusted(
-            repo_root=repo, status_feature_dir=surface, filename="evil.txt"
-        )
+        bp._assert_status_surface_file_path_is_trusted(repo_root=repo, status_feature_dir=surface, filename="evil.txt")
 
 
 # --- _target_branch_still_at_baseline ---------------------------------------
@@ -152,8 +146,6 @@ def test_project_returns_target_paths_when_not_worktree(tmp_path: Path) -> None:
     repo = _repo_with_spec(tmp_path)
     surface = repo / KITTY_SPECS_DIR / "m"
     with patch.object(bp, "get_main_repo_root", lambda _r: repo):
-        events, status = bp._project_status_bookkeeping_to_target(
-            main_repo=repo, mission_slug="m", status_feature_dir=surface
-        )
+        events, status = bp._project_status_bookkeeping_to_target(main_repo=repo, mission_slug="m", status_feature_dir=surface)
     assert events.name == "status.events.jsonl"
     assert status.name == "status.json"

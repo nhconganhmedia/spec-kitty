@@ -22,6 +22,7 @@ from specify_cli.auth.errors import DeviceFlowDenied, DeviceFlowExpired
 
 pytestmark = [pytest.mark.integration]
 
+
 class TestFormatUserCode:
     """Tests for the :func:`format_user_code` helper."""
 
@@ -224,9 +225,7 @@ class TestDeviceFlowPoller:
             await poller.poll(mock_request)
 
         assert sleep_durations, "poller should have slept at least once"
-        assert all(
-            d <= 10 for d in sleep_durations
-        ), f"All sleeps must be <=10s, got {sleep_durations}"
+        assert all(d <= 10 for d in sleep_durations), f"All sleeps must be <=10s, got {sleep_durations}"
 
     async def test_slow_down_bumps_interval_but_caps(self) -> None:
         """``slow_down`` bumps the interval 5s but still caps at 10."""

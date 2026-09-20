@@ -56,8 +56,7 @@ def derive_caption(source_text: str) -> str:
     caption = (title or "").strip()
     if caption.lower() in _GENERIC_CAPTIONS:
         raise PlantumlRenderPageError(
-            f"diagram has no descriptive title (got {caption!r}); every schema diagram "
-            "must carry a `title` so its alt text is non-trivial (NFR-005)"
+            f"diagram has no descriptive title (got {caption!r}); every schema diagram must carry a `title` so its alt text is non-trivial (NFR-005)"
         )
     return caption
 
@@ -90,9 +89,7 @@ def render_html(page_html: str, *, workdir: Path) -> str:
         if not _START_RE.search(source):
             return match.group(0)  # a non-PlantUML code block (bash, mermaid, …) — leave it
         caption = derive_caption(source)
-        svg = plantuml_invoke.render_startyaml(
-            source, workdir=workdir, jar_path=_JAR_PATH, pins=pins
-        )
+        svg = plantuml_invoke.render_startyaml(source, workdir=workdir, jar_path=_JAR_PATH, pins=pins)
         return _accessible_svg(svg, caption)
 
     rendered = _CODE_BLOCK_RE.sub(_replace, page_html)
@@ -101,10 +98,7 @@ def render_html(page_html: str, *, workdir: Path) -> str:
     for block in _CODE_BLOCK_RE.finditer(rendered):
         if _START_RE.search(html.unescape(block.group("body"))):
             snippet = block.group(0)[:200]
-            raise PlantumlRenderPageError(
-                "an @start* block fence survived unrendered — refusing to ship empty "
-                f"diagrams. First offending block: {snippet!r}"
-            )
+            raise PlantumlRenderPageError(f"an @start* block fence survived unrendered — refusing to ship empty diagrams. First offending block: {snippet!r}")
     return rendered
 
 

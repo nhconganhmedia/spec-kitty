@@ -423,10 +423,7 @@ def _evaluate_spec_gate(
                 f"Or select another mission explicitly: {SETUP_PLAN_COMMAND_NAME} --mission <mission-slug> --json",
             ],
         }
-        message = "\n".join(
-            [f"[red]Error:[/red] {payload['error']}"]
-            + [f"  - {step}" for step in cast(list[str], payload["remediation"])]
-        )
+        message = "\n".join([f"[red]Error:[/red] {payload['error']}"] + [f"  - {step}" for step in cast(list[str], payload["remediation"])])
         return SetupPlanLocalOutcome(payload, 1, "error"), message
 
     # FR-011: single read-surface commit check. ``spec_file`` is the
@@ -712,9 +709,7 @@ def _commit_plan_if_substantive(
 
     _field_info = describe_plan_field_requirements(mission_type, project_dir=repo_root)
     # FR-013 (#1896): name the offending Technical Context format.
-    _plan_gap = describe_technical_context_gap(
-        plan_file.read_text(encoding="utf-8"), mission_type, project_dir=repo_root
-    )
+    _plan_gap = describe_technical_context_gap(plan_file.read_text(encoding="utf-8"), mission_type, project_dir=repo_root)
 
     if _field_info is None:
         # #3830 severity-4 compounding-diagnostic fix: no field declaration
@@ -882,9 +877,7 @@ def _run_documentation_wiring(
     ``gap-analysis.md`` itself carries no ``MissionArtifactKind`` (WP02 T013's
     honest bound) -- it simply anchors on this resolved directory.
     """
-    primary_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    primary_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     if get_mission_type(primary_dir) != MISSION_TYPE_DOCUMENTATION:
         return None, []
     meta_file = primary_dir / "meta.json"
@@ -949,13 +942,7 @@ def _build_setup_plan_result(
         current_branch=current_branch,
         match_target_branch=match_target_branch,
     )
-    render_kind: Literal["success", "scaffold", "blocked", "error"] = (
-        "scaffold"
-        if plan_scaffold_only
-        else "success"
-        if plan_is_substantive
-        else "blocked"
-    )
+    render_kind: Literal["success", "scaffold", "blocked", "error"] = "scaffold" if plan_scaffold_only else "success" if plan_is_substantive else "blocked"
     return SetupPlanLocalOutcome(result, 0, render_kind)
 
 
@@ -1033,7 +1020,6 @@ def setup_plan(
             else:
                 console.print(f"[red]Error:[/red] {error_msg}")
             raise typer.Exit(1)
-
 
         _mission._enforce_git_preflight(
             repo_root,
@@ -1134,9 +1120,7 @@ def setup_plan(
             plan_template=plan_template,
         )
 
-        gap_analysis_path, generators_detected = _run_documentation_wiring(
-            mission_slug, repo_root, target_branch=target_branch, json_output=json_output
-        )
+        gap_analysis_path, generators_detected = _run_documentation_wiring(mission_slug, repo_root, target_branch=target_branch, json_output=json_output)
 
         _emit_setup_plan_result(
             plan_file=plan_file,

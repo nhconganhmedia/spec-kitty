@@ -95,9 +95,7 @@ def _empty_graph() -> DRGGraph:
 @pytest.mark.doctrine
 def test_coherent_when_activated_stem_survives_in_graph(tmp_path: Path) -> None:
     """A real, resolvable stem whose kind is permitted -> no per-ID gap."""
-    ctx = _ctx_with_config(
-        tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-    )
+    ctx = _ctx_with_config(tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n")
 
     report = run_consistency_check(ctx)
 
@@ -112,9 +110,7 @@ def test_coherent_when_activated_stem_survives_in_graph(tmp_path: Path) -> None:
 
 
 @pytest.mark.doctrine
-def test_per_id_gap_named_when_node_absent_from_graph(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_per_id_gap_named_when_node_absent_from_graph(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A resolvable stem whose canonical node is absent from the DRG graph
     itself -> ``graph_kind_gaps`` names the specific id, not just the kind.
 
@@ -125,22 +121,14 @@ def test_per_id_gap_named_when_node_absent_from_graph(
     desync a KIND-level check could never distinguish from "some other id of
     this kind is missing".
     """
-    ctx = _ctx_with_config(
-        tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-    )
-    monkeypatch.setattr(
-        drg_helpers, "load_validated_graph", lambda repo_root: _empty_graph()
-    )
+    ctx = _ctx_with_config(tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n")
+    monkeypatch.setattr(drg_helpers, "load_validated_graph", lambda repo_root: _empty_graph())
 
     report = run_consistency_check(ctx)
 
     assert report.coherent is False
     assert f"directive/{_REAL_DIRECTIVE_STEM}" in report.graph_kind_gaps
-    assert any(
-        f"directive/{_REAL_DIRECTIVE_STEM}" in s
-        and "does not survive in the activation-filtered DRG graph" in s
-        for s in report.suggestions
-    )
+    assert any(f"directive/{_REAL_DIRECTIVE_STEM}" in s and "does not survive in the activation-filtered DRG graph" in s for s in report.suggestions)
 
 
 # ---------------------------------------------------------------------------
@@ -164,10 +152,9 @@ def test_unresolvable_stem_names_the_id_in_verification_errors(
     report = run_consistency_check(ctx)
 
     assert report.coherent is False
-    assert any(
-        entry.startswith(f"directive/{fake_stem}:")
-        for entry in report.verification_errors
-    ), f"Expected a 'directive/{fake_stem}:...' entry, got: {report.verification_errors}"
+    assert any(entry.startswith(f"directive/{fake_stem}:") for entry in report.verification_errors), (
+        f"Expected a 'directive/{fake_stem}:...' entry, got: {report.verification_errors}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -175,9 +162,7 @@ def test_unresolvable_stem_names_the_id_in_verification_errors(
 # ---------------------------------------------------------------------------
 
 
-def test_non_drift_error_propagates_not_swallowed_as_drift(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_non_drift_error_propagates_not_swallowed_as_drift(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A genuine programming-bug exception during per-stem resolution must
     propagate, never be silently reported as an ordinary drift finding.
 
@@ -188,9 +173,7 @@ def test_non_drift_error_propagates_not_swallowed_as_drift(
     a fail-closed *report* contract (silence would hide a real bug, not
     surface a config problem).
     """
-    ctx = _ctx_with_config(
-        tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-    )
+    ctx = _ctx_with_config(tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n")
 
     def _boom(*_args: object, **_kwargs: object) -> str:
         raise TypeError("simulated programming bug, not a config-drift condition")
@@ -206,9 +189,7 @@ def test_non_drift_error_propagates_not_swallowed_as_drift(
 # ---------------------------------------------------------------------------
 
 
-def test_drg_load_failure_still_fails_closed(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_drg_load_failure_still_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A DRG load/validate failure still surfaces a verification error.
 
     This is a distinct, structurally different failure mode from the
@@ -217,9 +198,7 @@ def test_drg_load_failure_still_fails_closed(
     per-stem programming bug masquerade as a DRG-load failure, or vice
     versa.
     """
-    ctx = _ctx_with_config(
-        tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n"
-    )
+    ctx = _ctx_with_config(tmp_path, f"activated_directives:\n  - {_REAL_DIRECTIVE_STEM}\n")
 
     def _raise_corrupt_drg(*_args: object, **_kwargs: object) -> None:
         raise ValueError("simulated corrupt/invalid DRG graph")
@@ -229,7 +208,4 @@ def test_drg_load_failure_still_fails_closed(
     report = run_consistency_check(ctx)
 
     assert report.coherent is False
-    assert any(
-        "could not verify config<->graph kind parity" in entry.lower()
-        for entry in report.verification_errors
-    )
+    assert any("could not verify config<->graph kind parity" in entry.lower() for entry in report.verification_errors)

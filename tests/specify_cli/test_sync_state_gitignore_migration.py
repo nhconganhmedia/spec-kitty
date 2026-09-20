@@ -43,9 +43,7 @@ def test_apply_is_idempotent(tmp_path: Path) -> None:
 
     assert first.success
     assert second.success
-    assert (
-        tmp_path / ".gitignore"
-    ).read_text(encoding="utf-8").count(".kittify/sync-state.json") == 1
+    assert (tmp_path / ".gitignore").read_text(encoding="utf-8").count(".kittify/sync-state.json") == 1
 
 
 def test_detect_rejects_symlinked_gitignore(tmp_path: Path) -> None:
@@ -66,9 +64,7 @@ def test_apply_untracks_known_local_runtime_files(tmp_path: Path) -> None:
     _git(tmp_path, "config", "user.email", "t@example.invalid")
     _git(tmp_path, "config", "user.name", "Test")
     (tmp_path / ".gitignore").write_text(
-        ".kittify/charter/context-state.json\n"
-        ".kittify/encoding-provenance/\n"
-        ".kittify/sync-state.json\n",
+        ".kittify/charter/context-state.json\n.kittify/encoding-provenance/\n.kittify/sync-state.json\n",
         encoding="utf-8",
     )
     context_state = tmp_path / ".kittify" / "charter" / "context-state.json"

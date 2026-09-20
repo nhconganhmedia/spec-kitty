@@ -26,6 +26,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 
+
 def _init_repo_with_kittify(repo: Path) -> None:
     """Initialise a minimal git repo with .kittify/memory and AGENTS.md."""
     subprocess.run(["git", "init", "--quiet"], cwd=repo, check=True)
@@ -74,12 +75,8 @@ def test_worktree_materializes_kittify_memory_and_agents_on_windows(tmp_path: py
     assert memory_file.exists(), f".kittify/memory/memory.md missing in worktree: {memory_file}"
     assert agents_file.exists(), f".kittify/AGENTS.md missing in worktree: {agents_file}"
 
-    assert memory_file.read_text(encoding="utf-8") == "memory content", (
-        f"memory.md content mismatch: {memory_file.read_text(encoding='utf-8')!r}"
-    )
-    assert agents_file.read_text(encoding="utf-8") == "agents content", (
-        f"AGENTS.md content mismatch: {agents_file.read_text(encoding='utf-8')!r}"
-    )
+    assert memory_file.read_text(encoding="utf-8") == "memory content", f"memory.md content mismatch: {memory_file.read_text(encoding='utf-8')!r}"
+    assert agents_file.read_text(encoding="utf-8") == "agents content", f"AGENTS.md content mismatch: {agents_file.read_text(encoding='utf-8')!r}"
 
 
 @pytest.mark.windows_ci

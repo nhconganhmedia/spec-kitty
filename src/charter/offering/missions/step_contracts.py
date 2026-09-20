@@ -154,9 +154,7 @@ class MissionStepContract(BaseModel):
         ids = [s.id for s in self.steps]
         duplicates = [sid for sid in ids if ids.count(sid) > 1]
         if duplicates:
-            raise ValueError(
-                f"duplicate step IDs: {sorted(set(duplicates))}"
-            )
+            raise ValueError(f"duplicate step IDs: {sorted(set(duplicates))}")
         return self
 
 
@@ -213,9 +211,7 @@ class MissionStepContractRepository(BaseDoctrineRepository[MissionStepContract])
     def _glob(self) -> str:
         return self.GLOB
 
-    def get_by_action(
-        self, mission: str, action: str
-    ) -> MissionStepContract | None:
+    def get_by_action(self, mission: str, action: str) -> MissionStepContract | None:
         """Get contract by mission and action name.
 
         Scans all loaded contracts for matching mission + action pair.
@@ -248,9 +244,7 @@ class MissionStepContractRepository(BaseDoctrineRepository[MissionStepContract])
             ValueError: If ``project_dir`` is not configured.
         """
         if self._project_dir is None:
-            raise ValueError(
-                "Cannot save step contract: project_dir not configured"
-            )
+            raise ValueError("Cannot save step contract: project_dir not configured")
 
         self._project_dir.mkdir(parents=True, exist_ok=True)
 

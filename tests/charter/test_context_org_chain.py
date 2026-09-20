@@ -258,12 +258,9 @@ class TestTwoPackChainReachesBothPaths:
         # Pack A (declared first) already worked pre-fix for a single pack --
         # a required companion assertion, not the load-bearing one.
         assert _PACK_A_ID in _directive_ids(payload), (
-            "regression: pack A (first-declared) dropped out of the JSON "
-            "bundle -- the fix must not break the already-working single-pack case"
+            "regression: pack A (first-declared) dropped out of the JSON bundle -- the fix must not break the already-working single-pack case"
         )
-        assert _PACK_A_ID in text, (
-            "regression: pack A dropped out of the plain-text Action Doctrine stanza"
-        )
+        assert _PACK_A_ID in text, "regression: pack A dropped out of the plain-text Action Doctrine stanza"
 
         # Pack B (second-declared) is the load-bearing assertion: it was
         # UNREACHABLE before this WP's fix at this call site, regardless of
@@ -354,9 +351,7 @@ class TestGraphlessPackInChainDegradesPerRoot:
     fragment so it isolates the pure graphless-root per-root-degrade case.
     """
 
-    def test_graphless_second_pack_skipped_healthy_pack_survives(
-        self, tmp_path: Path
-    ) -> None:
+    def test_graphless_second_pack_skipped_healthy_pack_survives(self, tmp_path: Path) -> None:
         repo_root = tmp_path / "repo"
         repo_root.mkdir()
         _write_project_fixture(repo_root)
@@ -432,9 +427,7 @@ class TestContextCliTwoPackChain:
                 args.append("--json")
             return runner.invoke(charter_app, args)
 
-    def test_pack_two_directive_present_in_cli_text_output(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pack_two_directive_present_in_cli_text_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo_root = tmp_path / "repo"
         repo_root.mkdir()
         _write_project_fixture(repo_root)
@@ -447,18 +440,14 @@ class TestContextCliTwoPackChain:
         result = self._invoke(repo_root, tmp_path, monkeypatch, json_output=False)
 
         assert result.exit_code == 0, result.output
-        assert _PACK_A_ID in result.output, (
-            "regression: pack A dropped out of the real CLI's plain-text output"
-        )
+        assert _PACK_A_ID in result.output, "regression: pack A dropped out of the real CLI's plain-text output"
         assert _PACK_B_ID in result.output, (
             "pack B (second org pack in the chain) is missing from the real "
             "`spec-kitty charter context` plain-text output -- the CLI command "
             "itself is truncating org_root to org_roots[0] again (T017 regressed)"
         )
 
-    def test_pack_two_directive_present_in_cli_json_output(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pack_two_directive_present_in_cli_json_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         repo_root = tmp_path / "repo"
         repo_root.mkdir()
         _write_project_fixture(repo_root)
@@ -473,9 +462,7 @@ class TestContextCliTwoPackChain:
         assert result.exit_code == 0, result.output
         payload = json.loads(result.output)
         directive_ids = _directive_ids(payload)
-        assert _PACK_A_ID in directive_ids, (
-            "regression: pack A dropped out of the real CLI's --json output"
-        )
+        assert _PACK_A_ID in directive_ids, "regression: pack A dropped out of the real CLI's --json output"
         assert _PACK_B_ID in directive_ids, (
             "pack B (second org pack in the chain) is missing from the real "
             "`spec-kitty charter context --json` output -- the CLI command "

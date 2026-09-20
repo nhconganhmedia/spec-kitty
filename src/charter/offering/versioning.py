@@ -106,10 +106,7 @@ def check_bundle_compatibility(bundle_version: int | None) -> BundleCompatibilit
             bundle_version=None,
             supported_min=MIN_READABLE_BUNDLE_SCHEMA,
             supported_max=MAX_READABLE_BUNDLE_SCHEMA,
-            message=(
-                "Bundle schema version not found; treating as v1. "
-                "Run `spec-kitty upgrade`."
-            ),
+            message=("Bundle schema version not found; treating as v1. Run `spec-kitty upgrade`."),
             exit_code=1,
         )
 
@@ -129,10 +126,7 @@ def check_bundle_compatibility(bundle_version: int | None) -> BundleCompatibilit
             bundle_version=bundle_version,
             supported_min=MIN_READABLE_BUNDLE_SCHEMA,
             supported_max=MAX_READABLE_BUNDLE_SCHEMA,
-            message=(
-                f"Bundle schema version {bundle_version} requires migration. "
-                "Run `spec-kitty upgrade`."
-            ),
+            message=(f"Bundle schema version {bundle_version} requires migration. Run `spec-kitty upgrade`."),
             exit_code=1,
         )
 
@@ -142,10 +136,7 @@ def check_bundle_compatibility(bundle_version: int | None) -> BundleCompatibilit
             bundle_version=bundle_version,
             supported_min=MIN_READABLE_BUNDLE_SCHEMA,
             supported_max=MAX_READABLE_BUNDLE_SCHEMA,
-            message=(
-                f"Bundle schema version {bundle_version} predates the earliest "
-                f"supported version ({MIN_READABLE_BUNDLE_SCHEMA}). Contact support."
-            ),
+            message=(f"Bundle schema version {bundle_version} predates the earliest supported version ({MIN_READABLE_BUNDLE_SCHEMA}). Contact support."),
             exit_code=1,
         )
 
@@ -155,10 +146,7 @@ def check_bundle_compatibility(bundle_version: int | None) -> BundleCompatibilit
         bundle_version=bundle_version,
         supported_min=MIN_READABLE_BUNDLE_SCHEMA,
         supported_max=MAX_READABLE_BUNDLE_SCHEMA,
-        message=(
-            f"Bundle schema version {bundle_version} is newer than this CLI "
-            f"supports ({MAX_READABLE_BUNDLE_SCHEMA}). Upgrade your CLI."
-        ),
+        message=(f"Bundle schema version {bundle_version} is newer than this CLI supports ({MAX_READABLE_BUNDLE_SCHEMA}). Upgrade your CLI."),
         exit_code=1,
     )
 
@@ -213,9 +201,7 @@ PRE_PHASE7_MIGRATION_SENTINEL = "(pre-phase7-migration)"
 
 def _compute_v2_synthesis_manifest_hash(manifest_data: dict[str, object]) -> str:
     """Hash a migrated v2 synthesis manifest using verifier-visible defaults."""
-    fields_for_hash = {
-        k: v for k, v in manifest_data.items() if k != "manifest_hash"
-    }
+    fields_for_hash = {k: v for k, v in manifest_data.items() if k != "manifest_hash"}
     fields_for_hash["schema_version"] = "2"
     fields_for_hash.setdefault("mission_id", None)
     fields_for_hash.setdefault("built_in_only", False)
@@ -288,17 +274,12 @@ def repair_v2_synthesis_manifest_defaults(
             to_version=2,
         )
 
-    legacy_fields_for_hash = {
-        k: v for k, v in manifest_data.items() if k != "manifest_hash"
-    }
+    legacy_fields_for_hash = {k: v for k, v in manifest_data.items() if k != "manifest_hash"}
     legacy_hash = hashlib.sha256(canonical_yaml(legacy_fields_for_hash)).hexdigest()  # noqa: TID251 - production raw SHA-256 owner
     if legacy_hash != stored_hash:
         return MigrationResult(
             changes_made=[],
-            errors=[
-                "Cannot repair synthesis-manifest.yaml: existing manifest_hash does not "
-                "match the pre-built_in_only v2 payload."
-            ],
+            errors=["Cannot repair synthesis-manifest.yaml: existing manifest_hash does not match the pre-built_in_only v2 payload."],
             from_version=2,
             to_version=2,
         )
@@ -309,9 +290,7 @@ def repair_v2_synthesis_manifest_defaults(
 
     if not dry_run:
         write_errors: list[str] = []
-        _dump_yaml_safe(
-            _yaml, manifest_path, manifest_data, write_errors, what="synthesis-manifest.yaml"
-        )
+        _dump_yaml_safe(_yaml, manifest_path, manifest_data, write_errors, what="synthesis-manifest.yaml")
         if write_errors:
             return MigrationResult(
                 changes_made=[],
@@ -422,9 +401,7 @@ def _apply_v2_sidecar_defaults(data: dict[str, Any], sidecar_path: Path) -> None
     data["schema_version"] = "2"
 
 
-def _migrate_provenance_sidecars(
-    bundle_root: Path, dry_run: bool, yaml_rt: YAML
-) -> tuple[list[str], list[str]]:
+def _migrate_provenance_sidecars(bundle_root: Path, dry_run: bool, yaml_rt: YAML) -> tuple[list[str], list[str]]:
     """Migrate every v1 provenance sidecar under ``<bundle_root>/provenance`` to v2.
 
     Extracted from :func:`migrate_v1_to_v2` (phase 1 of 3) to keep its
@@ -446,9 +423,7 @@ def _migrate_provenance_sidecars(
             continue
 
         if not isinstance(data, dict):
-            errors.append(
-                f"Sidecar {sidecar_path.name} is not a YAML mapping; skipping."
-            )
+            errors.append(f"Sidecar {sidecar_path.name} is not a YAML mapping; skipping.")
             continue
 
         if data.get("schema_version") == "2":
@@ -457,16 +432,12 @@ def _migrate_provenance_sidecars(
         _apply_v2_sidecar_defaults(data, sidecar_path)
         changes_made.append(str(sidecar_path))
         if not dry_run:
-            _dump_yaml_safe(
-                yaml_rt, sidecar_path, data, errors, what=f"sidecar {sidecar_path.name}"
-            )
+            _dump_yaml_safe(yaml_rt, sidecar_path, data, errors, what=f"sidecar {sidecar_path.name}")
 
     return changes_made, errors
 
 
-def _migrate_synthesis_manifest(
-    bundle_root: Path, dry_run: bool, yaml_rt: YAML
-) -> tuple[list[str], list[str]]:
+def _migrate_synthesis_manifest(bundle_root: Path, dry_run: bool, yaml_rt: YAML) -> tuple[list[str], list[str]]:
     """Migrate ``<bundle_root>/synthesis-manifest.yaml`` to v2 field defaults.
 
     Extracted from :func:`migrate_v1_to_v2` (phase 2 of 3) to keep its
@@ -496,16 +467,12 @@ def _migrate_synthesis_manifest(
 
     changes_made.append(str(manifest_path))
     if not dry_run:
-        _dump_yaml_safe(
-            yaml_rt, manifest_path, manifest_data, errors, what="synthesis-manifest.yaml"
-        )
+        _dump_yaml_safe(yaml_rt, manifest_path, manifest_data, errors, what="synthesis-manifest.yaml")
 
     return changes_made, errors
 
 
-def _stamp_charter_bundle_version(
-    bundle_root: Path, dry_run: bool, yaml_rt: YAML
-) -> tuple[list[str], list[str]]:
+def _stamp_charter_bundle_version(bundle_root: Path, dry_run: bool, yaml_rt: YAML) -> tuple[list[str], list[str]]:
     """Stamp ``bundle_schema_version: 2`` into ``charter.yaml``'s ``metadata:`` section.
 
     Extracted from :func:`migrate_v1_to_v2` (phase 3 of 3) to keep its
@@ -551,9 +518,7 @@ def _stamp_charter_bundle_version(
     metadata_section["bundle_schema_version"] = 2
     changes_made.append(str(charter_yaml_path))
     if not dry_run:
-        _dump_yaml_safe(
-            yaml_rt, charter_yaml_path, charter_yaml_data, errors, what="charter.yaml"
-        )
+        _dump_yaml_safe(yaml_rt, charter_yaml_path, charter_yaml_data, errors, what="charter.yaml")
 
     return changes_made, errors
 
@@ -561,9 +526,7 @@ def _stamp_charter_bundle_version(
 _register_migration(1, migrate_v1_to_v2)
 
 
-def run_migration(
-    from_version: int, bundle_root: Path, dry_run: bool = False
-) -> MigrationResult:
+def run_migration(from_version: int, bundle_root: Path, dry_run: bool = False) -> MigrationResult:
     """Run the registered migration for the given from-version.
 
     Args:

@@ -155,25 +155,19 @@ def test_reduce_over_recovered_log_equals_pre_abort_union_committed(tmp_path: Pa
     # Append-only integrity: the cutover NEVER rewrote alpha's prior lines — the
     # recovered log begins with the byte-identical pre-abort prefix.
     recovered_text = (fixture.alpha / _STATUS_EVENTS_FILENAME).read_text(encoding="utf-8")
-    assert recovered_text.startswith(fixture.alpha_pre_abort_text), (
-        "recovery mutated pre-abort rows -> append-only integrity broken"
-    )
+    assert recovered_text.startswith(fixture.alpha_pre_abort_text), "recovery mutated pre-abort rows -> append-only integrity broken"
 
     recovered = read_event_stream(fixture.alpha)
     recovered_snapshot = _snapshot_dict(recovered)
 
     # Independently split the union into its two halves.
     pre_abort = read_event_stream_from_text(fixture.alpha, fixture.alpha_pre_abort_text)
-    pre_ids = {e.event_id for e in pre_abort.transitions} | {
-        a.event_id for a in pre_abort.annotations
-    }
+    pre_ids = {e.event_id for e in pre_abort.transitions} | {a.event_id for a in pre_abort.annotations}
     committed_transitions = [e for e in recovered.transitions if e.event_id not in pre_ids]
     committed_annotations = [a for a in recovered.annotations if a.event_id not in pre_ids]
 
     # Non-vacuous: the cutover genuinely committed events for alpha this run.
-    assert committed_transitions or committed_annotations, (
-        "fixture committed nothing for alpha -> the union invariant would be trivial"
-    )
+    assert committed_transitions or committed_annotations, "fixture committed nothing for alpha -> the union invariant would be trivial"
 
     # reduce(pre-abort ∪ committed), presented committed-first (the OPPOSITE of the
     # on-disk order) -> must match reduce(recovered).
@@ -181,9 +175,7 @@ def test_reduce_over_recovered_log_equals_pre_abort_union_committed(tmp_path: Pa
         transitions=committed_transitions + pre_abort.transitions,
         annotations=committed_annotations + pre_abort.annotations,
     )
-    assert _snapshot_dict(reordered_union) == recovered_snapshot, (
-        "reducer diverged when the recovered log was presented in a different order"
-    )
+    assert _snapshot_dict(reordered_union) == recovered_snapshot, "reducer diverged when the recovered log was presented in a different order"
 
 
 def test_duplicated_committed_batch_folds_to_the_same_snapshot(tmp_path: Path) -> None:
@@ -201,9 +193,7 @@ def test_duplicated_committed_batch_folds_to_the_same_snapshot(tmp_path: Path) -
     recovered_snapshot = _snapshot_dict(recovered)
 
     pre_abort = read_event_stream_from_text(fixture.alpha, fixture.alpha_pre_abort_text)
-    pre_ids = {e.event_id for e in pre_abort.transitions} | {
-        a.event_id for a in pre_abort.annotations
-    }
+    pre_ids = {e.event_id for e in pre_abort.transitions} | {a.event_id for a in pre_abort.annotations}
     committed_transitions = [e for e in recovered.transitions if e.event_id not in pre_ids]
     committed_annotations = [a for a in recovered.annotations if a.event_id not in pre_ids]
     assert committed_transitions or committed_annotations
@@ -212,9 +202,7 @@ def test_duplicated_committed_batch_folds_to_the_same_snapshot(tmp_path: Path) -
         transitions=recovered.transitions + committed_transitions,
         annotations=recovered.annotations + committed_annotations,
     )
-    assert _snapshot_dict(duplicated) == recovered_snapshot, (
-        "reducer failed to de-dup a duplicated committed batch on event_id"
-    )
+    assert _snapshot_dict(duplicated) == recovered_snapshot, "reducer failed to de-dup a duplicated committed batch on event_id"
 
 
 # ---------------------------------------------------------------------------
@@ -235,12 +223,8 @@ def test_rerun_after_partial_backfill_appends_no_duplicate_transitions(tmp_path:
     recovered_text = (fixture.alpha / _STATUS_EVENTS_FILENAME).read_text(encoding="utf-8")
 
     # detect()-gating: the cut-over mission is skipped; the still-corrupt one is not.
-    assert _mission_needs_cutover(fixture.alpha) is False, (
-        "already-cut-over mission must be skipped by the idempotency gate"
-    )
-    assert _mission_needs_cutover(fixture.beta) is True, (
-        "the aborted (never-flipped) mission still needs cutover"
-    )
+    assert _mission_needs_cutover(fixture.alpha) is False, "already-cut-over mission must be skipped by the idempotency gate"
+    assert _mission_needs_cutover(fixture.beta) is True, "the aborted (never-flipped) mission still needs cutover"
 
     before_snapshot = _snapshot_dict(read_event_stream(fixture.alpha))
 
@@ -250,15 +234,11 @@ def test_rerun_after_partial_backfill_appends_no_duplicate_transitions(tmp_path:
     assert second_result.success is False, "beta is still corrupt -> the re-run still aborts"
 
     # No new rows appended for alpha: the on-disk log is byte-identical.
-    assert (fixture.alpha / _STATUS_EVENTS_FILENAME).read_text(encoding="utf-8") == recovered_text, (
-        "re-run appended rows to the already-cut-over mission's log"
-    )
+    assert (fixture.alpha / _STATUS_EVENTS_FILENAME).read_text(encoding="utf-8") == recovered_text, "re-run appended rows to the already-cut-over mission's log"
 
     # No event_id occurs twice in the recovered log (append-only, de-dup-safe).
     ids = [row["event_id"] for row in read_events_raw(fixture.alpha) if "event_id" in row]
     assert len(ids) == len(set(ids)), "re-run introduced duplicate event ids"
 
     # Reducer determinism across the re-run: the snapshot is unchanged.
-    assert _snapshot_dict(read_event_stream(fixture.alpha)) == before_snapshot, (
-        "the reduced snapshot changed across an idempotent re-run"
-    )
+    assert _snapshot_dict(read_event_stream(fixture.alpha)) == before_snapshot, "the reduced snapshot changed across an idempotent re-run"

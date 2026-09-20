@@ -107,9 +107,7 @@ def _init_flat_mission(tmp_path: Path, slug: str) -> tuple[Path, Path]:
     # mission this fixture mints (``mission_type": "software-dev"`` above).
     kittify_dir = repo_root / ".kittify"
     kittify_dir.mkdir(parents=True, exist_ok=True)
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
     feature_dir = repo_root / "kitty-specs" / slug
     feature_dir.mkdir(parents=True)
@@ -165,9 +163,7 @@ class TestOverallVerdictIsComputedNotStored:
         payload["overall_verdict"] = "fail"
 
         reloaded = AcceptanceMatrix.from_dict(payload)
-        assert reloaded.overall_verdict == "pass", (
-            "a stored overall_verdict value must never override the computed one"
-        )
+        assert reloaded.overall_verdict == "pass", "a stored overall_verdict value must never override the computed one"
 
     def test_to_dict_round_trip_omits_no_information_needed_to_recompute(self) -> None:
         matrix = AcceptanceMatrix(
@@ -228,9 +224,7 @@ class TestVerdictDeterminismNoIo:
 
 
 class TestPersistOnAcceptRegression2318:
-    def test_all_pass_no_invariants_persists_pass_not_stale_pending(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_all_pass_no_invariants_persists_pass_not_stale_pending(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Drives the PRE-EXISTING entry point named in #2318 comment
         5102989064 (``_evaluate_acceptance_matrix``) directly: an all-pass
         matrix with ZERO negative invariants (the previously-uncovered
@@ -257,14 +251,17 @@ class TestPersistOnAcceptRegression2318:
         # state — a scaffolded, never-since-refreshed matrix) so this test
         # actually pins the "stops being stale" transition, not merely "a
         # fresh write happens to say pass".
-        stale = AcceptanceMatrix(mission_slug=slug, criteria=[
-            AcceptanceCriterion(
-                criterion_id="FR-001",
-                description="the feature behaves as specified",
-                proof_type="automated_test",
-                pass_fail="pending",
-            )
-        ])
+        stale = AcceptanceMatrix(
+            mission_slug=slug,
+            criteria=[
+                AcceptanceCriterion(
+                    criterion_id="FR-001",
+                    description="the feature behaves as specified",
+                    proof_type="automated_test",
+                    pass_fail="pending",
+                )
+            ],
+        )
         write_acceptance_matrix(feature_dir, stale)
         assert json.loads((feature_dir / "acceptance-matrix.json").read_text())["overall_verdict"] == "pending"
 
@@ -273,21 +270,15 @@ class TestPersistOnAcceptRegression2318:
         activity_issues: list[str] = []
         skipped: list = []
         blocked: list = []
-        _evaluate_acceptance_matrix(
-            tmp_path, feature_dir, activity_issues, skipped, blocked, mutate_matrix=True
-        )
+        _evaluate_acceptance_matrix(tmp_path, feature_dir, activity_issues, skipped, blocked, mutate_matrix=True)
 
         assert activity_issues == []
         persisted = json.loads((feature_dir / "acceptance-matrix.json").read_text())
         assert persisted["overall_verdict"] == "pass", (
-            "#2318: an all-pass / no-negative-invariant accept must persist "
-            "the recomputed verdict, not leave the on-disk file at a stale "
-            "'pending'"
+            "#2318: an all-pass / no-negative-invariant accept must persist the recomputed verdict, not leave the on-disk file at a stale 'pending'"
         )
 
-    def test_diagnose_mode_still_does_not_write(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_diagnose_mode_still_does_not_write(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Contrast case: ``mutate_matrix=False`` (``--diagnose``) must still
         never write — the T016 fix only widens the ``mutate_matrix=True`` arm,
         it does not touch the read-only contract (#1883/#1908)."""
@@ -318,9 +309,7 @@ class TestPersistOnAcceptRegression2318:
 
 
 class TestWriteAndCommitAcceptanceMatrix:
-    def test_first_write_commits_second_identical_write_is_unchanged(
-        self, tmp_path: Path
-    ) -> None:
+    def test_first_write_commits_second_identical_write_is_unchanged(self, tmp_path: Path) -> None:
         """FR-012 idempotence, inherited from ``commit_for_mission``: a
         byte-identical re-write resolves to ``"unchanged"`` — no duplicate
         commit, HEAD does not move."""
@@ -386,9 +375,7 @@ class TestAcceptanceVerdictCommand:
             ),
         )
 
-    def test_records_verdict_and_persists_recomputed_overall_verdict(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_records_verdict_and_persists_recomputed_overall_verdict(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         slug = "verdict-command-mission"
         repo_root, feature_dir = _init_flat_mission(tmp_path, slug)
         self._seed_matrix(feature_dir, slug)
@@ -416,9 +403,7 @@ class TestAcceptanceVerdictCommand:
         assert reloaded.criteria[0].evidence == "ci-run-123"
         assert reloaded.overall_verdict == "pass"
 
-    def test_rerun_with_identical_inputs_is_a_no_op(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_rerun_with_identical_inputs_is_a_no_op(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         """FR-012: a second invocation with IDENTICAL inputs does not bump
         ``verified_at`` (nothing observable changed), so the underlying write
         is byte-identical and the commit resolves to ``"unchanged"`` — no new
@@ -455,9 +440,7 @@ class TestAcceptanceVerdictCommand:
         assert second_payload["write_status"] == "unchanged", second_payload
         assert _head(repo_root) == head_after_first, "an identical re-run must not create a new commit"
 
-    def test_unknown_criterion_reports_available_ids(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unknown_criterion_reports_available_ids(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         slug = "verdict-command-unknown-criterion"
         repo_root, feature_dir = _init_flat_mission(tmp_path, slug)
         self._seed_matrix(feature_dir, slug)
@@ -490,9 +473,7 @@ class TestAcceptanceVerdictCommand:
             )
         assert exc_info.value.exit_code == 2
 
-    def test_lands_on_coord_surface_not_a_stranded_primary_dir(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_lands_on_coord_surface_not_a_stranded_primary_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """The command must resolve the SAME coord surface every other
         production writer lands on (never a stranded primary-checkout copy)."""
         result, coord_root, coord_feature_dir = _build_coord_mission_for_matrix(tmp_path)
@@ -500,9 +481,7 @@ class TestAcceptanceVerdictCommand:
 
         coord_feature_dir.mkdir(parents=True, exist_ok=True)
         self._seed_matrix(coord_feature_dir, slug)
-        subprocess.run(
-            ["git", "-C", str(coord_root), "add", "-A"], check=True, capture_output=True
-        )
+        subprocess.run(["git", "-C", str(coord_root), "add", "-A"], check=True, capture_output=True)
         subprocess.run(
             ["git", "-C", str(coord_root), "commit", "-q", "-m", "seed coord matrix"],
             check=True,
@@ -525,8 +504,7 @@ class TestAcceptanceVerdictCommand:
 
         # The PRIMARY checkout must NOT carry a stranded copy of the matrix.
         assert not (result.feature_dir / "acceptance-matrix.json").exists(), (
-            "acceptance-verdict must not strand a copy on the primary checkout "
-            "for a coord-topology mission"
+            "acceptance-verdict must not strand a copy on the primary checkout for a coord-topology mission"
         )
         reloaded = read_acceptance_matrix(coord_feature_dir)
         assert reloaded is not None

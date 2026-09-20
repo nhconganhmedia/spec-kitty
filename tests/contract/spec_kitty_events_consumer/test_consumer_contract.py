@@ -24,6 +24,7 @@ list was derived by grep over ``src/`` on the post-WP04 tree:
 If WP02 / WP04 / future work changes which events symbols CLI uses, update
 both the contract doc and this test in the same PR.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -118,10 +119,7 @@ def test_normalize_event_id_signature() -> None:
 
     sig = inspect.signature(normalize_event_id)
     params = list(sig.parameters)
-    assert len(params) >= 1, (
-        f"spec_kitty_events.normalize_event_id signature changed: {sig}. "
-        "CLI passes a single positional argument."
-    )
+    assert len(params) >= 1, f"spec_kitty_events.normalize_event_id signature changed: {sig}. CLI passes a single positional argument."
 
 
 def test_event_class_pydantic_shape() -> None:
@@ -133,9 +131,7 @@ def test_event_class_pydantic_shape() -> None:
     from spec_kitty_events import Event
 
     assert hasattr(Event, "model_dump"), (
-        "spec_kitty_events.Event no longer exposes Pydantic model_dump(). "
-        "CLI's sync emitter relies on this surface — adapt CLI or restore "
-        "the upstream method."
+        "spec_kitty_events.Event no longer exposes Pydantic model_dump(). CLI's sync emitter relies on this surface — adapt CLI or restore the upstream method."
     )
 
 
@@ -151,9 +147,7 @@ def test_validate_strict_envelope_is_callable() -> None:
     from spec_kitty_events.strict import validate_strict_envelope
 
     assert callable(validate_strict_envelope), (
-        "spec_kitty_events.strict.validate_strict_envelope is no longer "
-        "callable. CLI's fail-closed envelope verification relies on this "
-        "surface."
+        "spec_kitty_events.strict.validate_strict_envelope is no longer callable. CLI's fail-closed envelope verification relies on this surface."
     )
 
 
@@ -166,7 +160,5 @@ def test_forbidden_keys_walk_is_callable() -> None:
     from spec_kitty_events.forbidden_keys import find_forbidden_keys
 
     assert callable(find_forbidden_keys), (
-        "spec_kitty_events.forbidden_keys.find_forbidden_keys is no longer "
-        "callable. CLI's fail-closed envelope verification relies on this "
-        "surface."
+        "spec_kitty_events.forbidden_keys.find_forbidden_keys is no longer callable. CLI's fail-closed envelope verification relies on this surface."
     )

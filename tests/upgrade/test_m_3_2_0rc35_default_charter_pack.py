@@ -95,9 +95,7 @@ def test_apply_writes_absent_keys_from_default_pack(tmp_path: Path) -> None:
 
         for key in _PER_KIND_KEYS:
             assert key in data, f"Missing key: {key}"
-            assert data[key] == expected.get(key, []), (
-                f"Key {key!r} does not match default.yaml"
-            )
+            assert data[key] == expected.get(key, []), f"Key {key!r} does not match default.yaml"
         assert data["activated_kinds"] == expected["activated_kinds"]
         assert data["activated_kinds"] != []
     else:
@@ -113,9 +111,7 @@ def test_apply_writes_absent_keys_from_default_pack(tmp_path: Path) -> None:
             dump_yaml.dump(fixture_content, fh)
 
         m = DefaultCharterPackMigration()
-        with patch.object(
-            m_3_2_0rc35_default_charter_pack, "_DEFAULT_YAML_PATH", fixture_pack
-        ):
+        with patch.object(m_3_2_0rc35_default_charter_pack, "_DEFAULT_YAML_PATH", fixture_pack):
             result = m.apply(tmp_path)
 
         assert result.success is True
@@ -125,9 +121,7 @@ def test_apply_writes_absent_keys_from_default_pack(tmp_path: Path) -> None:
 
         for key in _PER_KIND_KEYS:
             assert key in data, f"Missing key: {key}"
-            assert data[key] == expected.get(key, []), (
-                f"Key {key!r} does not match fixture default.yaml"
-            )
+            assert data[key] == expected.get(key, []), f"Key {key!r} does not match fixture default.yaml"
 
 
 @pytest.mark.fast
@@ -171,9 +165,7 @@ def test_apply_does_not_overwrite_existing_keys(tmp_path: Path) -> None:
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
     config = kittify / "config.yaml"
-    config.write_text(
-        "activated_directives:\n  - my-custom-directive\n", encoding="utf-8"
-    )
+    config.write_text("activated_directives:\n  - my-custom-directive\n", encoding="utf-8")
 
     # Provide a minimal default.yaml fixture so apply() can complete
     fixture_pack = tmp_path / "fixture_default.yaml"
@@ -192,9 +184,7 @@ def test_apply_does_not_overwrite_existing_keys(tmp_path: Path) -> None:
 
     yaml = YAML(typ="safe")
     data = yaml.load(config) or {}
-    assert data["activated_directives"] == ["my-custom-directive"], (
-        "Existing activated_directives must not be overwritten"
-    )
+    assert data["activated_directives"] == ["my-custom-directive"], "Existing activated_directives must not be overwritten"
 
 
 @pytest.mark.fast
@@ -236,9 +226,7 @@ def test_apply_creates_backup_when_charter_md_exists(tmp_path: Path) -> None:
 
 
 @pytest.mark.fast
-def test_apply_backup_filename_timestamp_is_utc_not_local(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_apply_backup_filename_timestamp_is_utc_not_local(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-011 (kernel-clock-single-door, WP13c): the backup filename's
     timestamp suffix is derived from the door's aware-UTC ``now_utc()``, not
     a naive local-time ``datetime.now()``.
@@ -285,10 +273,7 @@ def test_apply_backup_filename_timestamp_is_utc_not_local(
     assert result.success is True
 
     expected_backup = charter_dir / "backups" / "charter-2026-03-04T05-06-07.md"
-    assert expected_backup.exists(), (
-        f"Expected backup at {expected_backup}, found: "
-        f"{glob.glob(str(charter_dir / 'backups' / 'charter-*.md'))}"
-    )
+    assert expected_backup.exists(), f"Expected backup at {expected_backup}, found: {glob.glob(str(charter_dir / 'backups' / 'charter-*.md'))}"
 
 
 @pytest.mark.fast

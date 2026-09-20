@@ -54,9 +54,7 @@ def shipped_registry(tmp_path: Path) -> ProfileRegistry:
 def test_registry_loaded_shipped_writing_comms_profiles(shipped_registry: ProfileRegistry) -> None:
     """The registry actually loaded the three colliding profiles from packs/built-in."""
     for profile_id in ("diagram-daisy", "comms-cleo", "synthesizer-sam"):
-        assert shipped_registry.get(profile_id) is not None, (
-            f"Profile '{profile_id}' was not loaded from {SHIPPED_PROFILES_DIR}"
-        )
+        assert shipped_registry.get(profile_id) is not None, f"Profile '{profile_id}' was not loaded from {SHIPPED_PROFILES_DIR}"
 
 
 @pytest.mark.parametrize(
@@ -67,18 +65,14 @@ def test_registry_loaded_shipped_writing_comms_profiles(shipped_registry: Profil
         ("synthesizer-sam", "synthesizer"),
     ],
 )
-def test_shipped_primary_roles_are_narrowed(
-    shipped_registry: ProfileRegistry, profile_id: str, expected_role: str
-) -> None:
+def test_shipped_primary_roles_are_narrowed(shipped_registry: ProfileRegistry, profile_id: str, expected_role: str) -> None:
     """Each colliding profile's shipped ``roles[0]`` was narrowed off the generic bucket.
 
     RED-first: on the relocated-but-not-narrowed tree these are still ``designer``/``curator``.
     """
     profile = shipped_registry.get(profile_id)
     assert profile is not None
-    assert profile.role == expected_role, (
-        f"{profile_id}.role is {profile.role!r}, expected {expected_role!r}"
-    )
+    assert profile.role == expected_role, f"{profile_id}.role is {profile.role!r}, expected {expected_role!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -135,9 +129,7 @@ def test_diagram_as_code_still_routes_to_diagram_daisy(shipped_registry: Profile
 
 def test_diagram_daisy_selectable_by_profile_hint(shipped_registry: ProfileRegistry) -> None:
     """The explicit profile hint still resolves diagram-daisy after narrowing."""
-    decision = ActionRouter(shipped_registry).route(
-        "produce a C4 container diagram", profile_hint="diagram-daisy"
-    )
+    decision = ActionRouter(shipped_registry).route("produce a C4 container diagram", profile_hint="diagram-daisy")
     assert decision.profile_id == "diagram-daisy"
 
 

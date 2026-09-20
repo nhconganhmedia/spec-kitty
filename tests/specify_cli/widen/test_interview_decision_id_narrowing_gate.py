@@ -66,6 +66,5 @@ def test_interview_decision_id_narrowing_is_mypy_clean() -> None:
         "stdout:\n" + result.stdout + "\nstderr:\n" + result.stderr
     )
     assert "decision_id" not in result.stdout, (
-        "A decision_id-related mypy error resurfaced — has the narrow-once seam "
-        "regressed to a per-file duplicate fix?\n" + result.stdout
+        "A decision_id-related mypy error resurfaced — has the narrow-once seam regressed to a per-file duplicate fix?\n" + result.stdout
     )

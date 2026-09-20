@@ -255,6 +255,7 @@ def _evaluate_uncached(ctx: typer.Context) -> ReadinessResult:
     # is then gated on the verdict + output policy.
     try:
         from specify_cli.readiness.auth import probe_auth_status  # noqa: PLC0415 — lazy
+
         auth_status, teamspace_handle = probe_auth_status()
     except Exception:  # noqa: BLE001 — coordinator must never raise; degrade to UNKNOWN.
         auth_status = AuthStatus.UNKNOWN
@@ -266,16 +267,11 @@ def _evaluate_uncached(ctx: typer.Context) -> ReadinessResult:
     # - MACHINE_OUTPUT (``--json``/``--quiet``) is always silent.
     # - ``--help``/``--version`` is always silent: users asking for help
     #   text or a version number are not asking to be told about auth.
-    help_or_version = any(
-        tok in {"--help", "-h", "--version", "-v"} for tok in sys.argv[1:]
-    )
-    if (
-        auth_status == AuthStatus.LOGGED_OUT_IN_TEAMSPACE
-        and output_policy != OutputPolicy.MACHINE_OUTPUT
-        and not help_or_version
-    ):
+    help_or_version = any(tok in {"--help", "-h", "--version", "-v"} for tok in sys.argv[1:])
+    if auth_status == AuthStatus.LOGGED_OUT_IN_TEAMSPACE and output_policy != OutputPolicy.MACHINE_OUTPUT and not help_or_version:
         try:
             from specify_cli.readiness.render import render_auth_guidance  # noqa: PLC0415 — lazy
+
             command_name = ctx.invoked_subcommand or "spec-kitty"
             render_auth_guidance(
                 status=auth_status,

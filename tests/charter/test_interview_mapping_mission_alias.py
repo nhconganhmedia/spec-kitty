@@ -46,14 +46,7 @@ pytestmark = [pytest.mark.unit]
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SHIPPED_MISSION_TYPES_DIR = _REPO_ROOT / "packs" / "built-in" / "missions" / "mission_types"
 
-_SYNTHETIC_ANALYSIS_YAML = (
-    "schema_version: 1\n"
-    "id: analysis\n"
-    'display_name: "Analysis"\n'
-    "action_sequence:\n"
-    "  - specify\n"
-    "  - plan\n"
-)
+_SYNTHETIC_ANALYSIS_YAML = 'schema_version: 1\nid: analysis\ndisplay_name: "Analysis"\naction_sequence:\n  - specify\n  - plan\n'
 
 _SUBPROCESS_DRIVER = """
 import sys
@@ -90,9 +83,7 @@ def test_synthetic_mission_type_is_picked_up_by_both_rosters(tmp_path: Path) -> 
     monkeypatching + reloading in-process.
     """
     for shipped_yaml in _SHIPPED_MISSION_TYPES_DIR.glob("*.yaml"):
-        (tmp_path / shipped_yaml.name).write_text(
-            shipped_yaml.read_text(encoding="utf-8"), encoding="utf-8"
-        )
+        (tmp_path / shipped_yaml.name).write_text(shipped_yaml.read_text(encoding="utf-8"), encoding="utf-8")
     (tmp_path / "analysis.yaml").write_text(_SYNTHETIC_ANALYSIS_YAML, encoding="utf-8")
 
     driver_script = tmp_path / "_driver.py"
@@ -112,9 +103,7 @@ def test_synthetic_mission_type_is_picked_up_by_both_rosters(tmp_path: Path) -> 
         check=False,
     )
 
-    assert result.returncode == 0, (
-        f"stdout={result.stdout!r}\nstderr={result.stderr!r}"
-    )
+    assert result.returncode == 0, f"stdout={result.stdout!r}\nstderr={result.stderr!r}"
     assert "OK" in result.stdout
 
 

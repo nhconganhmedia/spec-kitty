@@ -216,8 +216,7 @@ class TestChk028RegexParity:
 
         # Compare the underlying pattern strings.
         assert remediation_re.pattern == hint_re.pattern, (
-            f"CHK028 regex mismatch: remediation.py has {remediation_re.pattern!r}, "
-            f"upgrade_hint.py has {hint_re.pattern!r}"
+            f"CHK028 regex mismatch: remediation.py has {remediation_re.pattern!r}, upgrade_hint.py has {hint_re.pattern!r}"
         )
 
     def test_chk028_regex_accepts_valid_commands(self) -> None:

@@ -105,9 +105,7 @@ class MergeDriverPathError(Exception):
     same-directory temp-file contract (#2970 / Sonar S2083)."""
 
 
-def _resolve_merge_driver_paths(
-    base_path: str, ours_path: str, theirs_path: str
-) -> tuple[Path, Path, Path]:
+def _resolve_merge_driver_paths(base_path: str, ours_path: str, theirs_path: str) -> tuple[Path, Path, Path]:
     """Resolve the three driver placeholders, refusing a path-injection escape.
 
     Git materializes ``%O``/``%A``/``%B`` as three sibling temp files in ONE
@@ -134,9 +132,7 @@ def _resolve_merge_driver_paths(
     return resolved
 
 
-def _resolve_merge_driver_paths_or_exit(
-    base_path: str, ours_path: str, theirs_path: str
-) -> tuple[Path, Path, Path]:
+def _resolve_merge_driver_paths_or_exit(base_path: str, ours_path: str, theirs_path: str) -> tuple[Path, Path, Path]:
     """:func:`_resolve_merge_driver_paths`, translating a refusal to ``Exit(1)``.
 
     Every driver entrypoint calls this FIRST, before any file is opened — the
@@ -436,10 +432,7 @@ def _merge_row_fields(
     to "changed on the side that has it")."""
     base = base_row or {}
     field_names = dict.fromkeys((*base, *ours_row, *theirs_row))
-    return {
-        name: _merge_field(base.get(name), ours_row.get(name), theirs_row.get(name))
-        for name in field_names
-    }
+    return {name: _merge_field(base.get(name), ours_row.get(name), theirs_row.get(name)) for name in field_names}
 
 
 def _reconcile_added_row(
@@ -542,9 +535,7 @@ def _reconcile_keyed_rows(
 
     merged: dict[str, dict[str, Any]] = {}
     for key in sorted({*base, *ours, *theirs}):
-        row = _reconcile_row(
-            base_row=base.get(key), ours_row=ours.get(key), theirs_row=theirs.get(key)
-        )
+        row = _reconcile_row(base_row=base.get(key), ours_row=ours.get(key), theirs_row=theirs.get(key))
         if row is not None:
             merged[key] = row
     return merged  # already inserted in sorted-key order

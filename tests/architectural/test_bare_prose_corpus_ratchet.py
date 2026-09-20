@@ -82,10 +82,7 @@ def _load_fixture() -> list[dict[str, Any]]:
         raise TypeError(f"{_FIXTURE_PATH} must contain a JSON array; got {type(data).__name__}")
     for entry in data:
         if not isinstance(entry, dict) or "spec_path" not in entry or "flagged_ids" not in entry:
-            raise ValueError(
-                f"{_FIXTURE_PATH}: every entry must be an object with "
-                f"'spec_path' and 'flagged_ids' keys; got {entry!r}"
-            )
+            raise ValueError(f"{_FIXTURE_PATH}: every entry must be an object with 'spec_path' and 'flagged_ids' keys; got {entry!r}")
     return data
 
 
@@ -130,8 +127,7 @@ def test_specs_outside_the_fixture_have_no_live_bare_prose_ids() -> None:
         "tests/fixtures/bare_prose_corpus_baseline.json -- this is growth above "
         "the frozen baseline. If these are genuine new bare-prose requirements, "
         "add a fixture entry (with a recorded reason) in the same PR; if this is "
-        "a detector regression, fix the detector instead:\n"
-        + "\n".join(newly_flagged)
+        "a detector regression, fix the detector instead:\n" + "\n".join(newly_flagged)
     )
 
 
@@ -144,16 +140,12 @@ def test_fixture_specs_live_ids_never_exceed_recorded() -> None:
         recorded_ids = set(entry["flagged_ids"])
         live_ids = set(_live_flagged_ids(spec_path))
         if not live_ids <= recorded_ids:
-            growth.append(
-                f"{entry['spec_path']}: recorded={sorted(recorded_ids)} "
-                f"live={sorted(live_ids)} (new: {sorted(live_ids - recorded_ids)})"
-            )
+            growth.append(f"{entry['spec_path']}: recorded={sorted(recorded_ids)} live={sorted(live_ids)} (new: {sorted(live_ids - recorded_ids)})")
     assert not growth, (
         "The following fixture spec(s) now flag id(s) NOT in the recorded "
         "signature -- growth above the frozen baseline. Re-snapshot "
         "tests/fixtures/bare_prose_corpus_baseline.json with a recorded reason "
-        "if this growth is genuine, or fix the detector regression:\n"
-        + "\n".join(growth)
+        "if this growth is genuine, or fix the detector regression:\n" + "\n".join(growth)
     )
 
 
@@ -170,8 +162,7 @@ def _assert_fixture_specs_have_non_empty_live_result() -> None:
         "The following fixture spec(s) have an EMPTY live result -- a "
         "fully-collapsed, always-'[]' detector would pass the shrink-only "
         "checks above vacuously (empty is a subset of any recorded set); this "
-        "concrete floor is what catches that silent-success class:\n"
-        + "\n".join(empty)
+        "concrete floor is what catches that silent-success class:\n" + "\n".join(empty)
     )
 
 

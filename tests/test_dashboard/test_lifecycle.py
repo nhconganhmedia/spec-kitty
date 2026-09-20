@@ -68,9 +68,7 @@ def test_port_exhaustion_retry_routes_by_typed_exception(monkeypatch, tmp_path):
     cleanup_mock = MagicMock(return_value=2)
     monkeypatch.setattr(lifecycle, "_cleanup_orphaned_dashboards_in_range", cleanup_mock)
 
-    url, port, started = lifecycle.ensure_dashboard_running(
-        project_dir, preferred_port=40404, background_process=False
-    )
+    url, port, started = lifecycle.ensure_dashboard_running(project_dir, preferred_port=40404, background_process=False)
 
     assert started
     assert port == 40404
@@ -93,14 +91,10 @@ def test_port_exhaustion_no_orphans_reraises(monkeypatch, tmp_path):
         raise PortUnavailableError("no sockets available whatsoever")
 
     monkeypatch.setattr(lifecycle, "start_dashboard", fake_start)
-    monkeypatch.setattr(
-        lifecycle, "_cleanup_orphaned_dashboards_in_range", lambda *a, **k: 0
-    )
+    monkeypatch.setattr(lifecycle, "_cleanup_orphaned_dashboards_in_range", lambda *a, **k: 0)
 
     with pytest.raises(PortUnavailableError):
-        lifecycle.ensure_dashboard_running(
-            project_dir, preferred_port=40404, background_process=False
-        )
+        lifecycle.ensure_dashboard_running(project_dir, preferred_port=40404, background_process=False)
 
 
 def test_non_port_runtime_error_propagates(monkeypatch, tmp_path):
@@ -121,9 +115,7 @@ def test_non_port_runtime_error_propagates(monkeypatch, tmp_path):
     monkeypatch.setattr(lifecycle, "start_dashboard", fake_start)
 
     with pytest.raises(RuntimeError, match="totally unrelated failure"):
-        lifecycle.ensure_dashboard_running(
-            project_dir, preferred_port=40404, background_process=False
-        )
+        lifecycle.ensure_dashboard_running(project_dir, preferred_port=40404, background_process=False)
     cleanup_mock.assert_not_called()
 
 
@@ -140,6 +132,7 @@ def test_ensure_dashboard_running_writes_state(monkeypatch, tmp_path):
 
     monkeypatch.setattr(lifecycle, "_check_dashboard_health", fake_check)
     monkeypatch.setattr(lifecycle, "start_dashboard", lambda *args, **kwargs: (34567, None))
+
     class EnsureTime:
         value = 0.0
 
@@ -189,7 +182,7 @@ def test_stop_dashboard_sends_shutdown(monkeypatch, tmp_path):
                     "status": "ok",
                     "project_path": str(project_dir),
                 }
-                return json.dumps(payload).encode('utf-8')
+                return json.dumps(payload).encode("utf-8")
 
         if isinstance(request, str) and "/api/shutdown" in request:
             calls["shutdown"] += 1
@@ -263,9 +256,7 @@ def test_get_dashboard_status_reads_health_metadata(monkeypatch, tmp_path):
     assert status.token == "secret"
     assert status.pid == 99999
     field_names = {f.name for f in dataclasses.fields(lifecycle.DashboardStatus)}
-    assert field_names == {"healthy", "url", "port", "token", "pid"}, (
-        "DashboardStatus carries no sync-daemon metadata (E4 re-homing)"
-    )
+    assert field_names == {"healthy", "url", "port", "token", "pid"}, "DashboardStatus carries no sync-daemon metadata (E4 re-homing)"
 
 
 def test_get_dashboard_status_ignores_stale_sync_keys_in_payload(monkeypatch, tmp_path):

@@ -168,9 +168,7 @@ def test_transition_1_an_empty_census_reds(
     emptied = with_rows(census, [])
     verdict = evaluate(root, emptied, baseline, exempt)
     assert not verdict.ok
-    assert verdict.unexpected == census_keys(census), (
-        "an empty census must surface every censused member as unexpected"
-    )
+    assert verdict.unexpected == census_keys(census), "an empty census must surface every censused member as unexpected"
 
 
 def test_transition_3_a_41st_member_anywhere_reds(tmp_path: Path) -> None:
@@ -265,8 +263,7 @@ def test_transition_6_a_41st_requesting_the_owner_and_restating_the_pin_reds(
 
     monkeypatch.delenv(scan.NEEDLE, raising=False)
     assert evaluate(tree.root, census, baseline, rebased) == verdict, (
-        "the verdict moved when the ambient pin was removed — the classifier must read FILES, "
-        "never the process environment"
+        "the verdict moved when the ambient pin was removed — the classifier must read FILES, never the process environment"
     )
 
 
@@ -286,17 +283,13 @@ def test_transition_7_a_41st_accompanied_by_a_new_census_row_still_reds(tmp_path
     grown = tmp_path / "grown"
     tree = synthetic.extra_member_in_an_existing_file(grown)
     rebased = _rebased(exempt, tree.root)
-    intruder = next(
-        m.key for m in scan.discover(tree.root) if m.key[1] == "test_beta_pins_a_second_home"
-    )
+    intruder = next(m.key for m in scan.discover(tree.root) if m.key[1] == "test_beta_pins_a_second_home")
     absorbed = add_row(census, intruder)
 
     verdict = evaluate(tree.root, absorbed, baseline, rebased)
     assert verdict.unexpected == frozenset(), "the row was added so the equality would be clean"
     assert verdict.stale == frozenset()
-    assert not verdict.census_hash_ok, (
-        "absorbing a new member by adding a census row must still red — on the hash limb"
-    )
+    assert not verdict.census_hash_ok, "absorbing a new member by adding a census row must still red — on the hash limb"
     assert not verdict.ok
 
 
@@ -315,9 +308,8 @@ def test_transition_8_removing_one_of_a_colliding_pair_reds(tmp_path: Path) -> N
     synthetic.colliding_pair_tree(root)
     members = sorted(scan.discover(root), key=lambda m: m.key)
     bare = {key[1:] for key in (m.key for m in members)}
-    assert bare == {("pinned_home", 'monkeypatch . setenv ( , str ( tmp_path / ) )')}, (
-        f"the pair no longer collides on the BARE composite_key — got {sorted(bare)}. "
-        f"Transition (8) tests nothing unless the collision is real."
+    assert bare == {("pinned_home", "monkeypatch . setenv ( , str ( tmp_path / ) )")}, (
+        f"the pair no longer collides on the BARE composite_key — got {sorted(bare)}. Transition (8) tests nothing unless the collision is real."
     )
     assert members[0].key != members[1].key, "the 3-tuple must still separate them by relpath"
     assert members[0].key[0] != members[1].key[0], "and it separates them on the RELPATH component"
@@ -329,8 +321,7 @@ def test_transition_8_removing_one_of_a_colliding_pair_reds(tmp_path: Path) -> N
     verdict = evaluate(root, drop_row(census, members[0].key), baseline, ())
     assert not verdict.ok
     assert verdict.unexpected == {members[0].key}, (
-        "under a BARE 2-tuple key the two members collapse to one, the census still 'contains' the "
-        "survivor, and this removal greens — which is the 19-key collapse"
+        "under a BARE 2-tuple key the two members collapse to one, the census still 'contains' the survivor, and this removal greens — which is the 19-key collapse"
     )
 
 
@@ -418,10 +409,7 @@ def test_the_comparison_is_set_equality_and_not_containment(tmp_path: Path) -> N
 
     discovered = {m.key for m in scan.discover(shrunk)}
     known = census_keys(census) | {e.key for e in exempt}
-    assert discovered < known, (
-        "this tree must be a STRICT SUBSET of the frozen class, or it does not discriminate "
-        "set equality from containment"
-    )
+    assert discovered < known, "this tree must be a STRICT SUBSET of the frozen class, or it does not discriminate set equality from containment"
 
     verdict = evaluate(shrunk, census, baseline, _rebased(exempt, shrunk))
     assert not verdict.ok, "a subset-only ratchet greens here; set equality must not"
@@ -459,14 +447,14 @@ def test_sc013_the_handler_matcher_bites_on_a_module_that_does_catch(tmp_path: P
     planted = tmp_path / "catcher.py"
     planted.write_text(
         textwrap.dedent(
-            '''
+            """
             def scan_them(paths):
                 for path in paths:
                     try:
                         parse(path)
                     except SyntaxError:
                         continue
-            '''
+            """
         ).lstrip(),
         encoding="utf-8",
     )
@@ -497,8 +485,7 @@ def test_c004_synthetic_outermost_versus_innermost_witness(tmp_path: Path) -> No
     keyed = scan.kind_distribution(root, at="keyed")
     innermost = scan.kind_distribution(root, at="innermost")
     assert keyed != innermost, (
-        "the witness does not discriminate: keyed and innermost readings agree, so an implementer "
-        "who attributed to the innermost def would still green"
+        "the witness does not discriminate: keyed and innermost readings agree, so an implementer who attributed to the innermost def would still green"
     )
     assert keyed == {"fixture": 1, "test-body": 0, "helper": 0}
     assert innermost == {"fixture": 0, "test-body": 0, "helper": 1}
@@ -508,7 +495,7 @@ def test_c004_synthetic_outermost_versus_innermost_witness(tmp_path: Path) -> No
 # T018 — the E mechanism: arity, hash placement, and the co-edit asymmetry
 # ---------------------------------------------------------------------------
 
-_ARITY_PROBE = '''
+_ARITY_PROBE = """
 from __future__ import annotations
 
 from tests.architectural._home_pin_scan import Exempt
@@ -516,7 +503,7 @@ from tests.architectural._home_pin_scan import Exempt
 E: tuple[Exempt, Exempt] = (
 {entries}
 )
-'''
+"""
 
 _ARITY_ENTRY = '    Exempt(key=("f{n}.py", "q{n}", "t{n}"), why="entry {n}"),'
 
@@ -564,12 +551,8 @@ def test_e_is_fixed_arity_a_third_entry_is_a_type_error(tmp_path: Path) -> None:
     ``_home_pin_exempt.py``**, which is what SC-005 itself needs; this does not duplicate it.
     """
     result = _run_mypy(tmp_path / "three", 3)
-    assert result.returncode != 0, (
-        f"a third E entry must be a type error, mypy exited 0. stdout:\n{result.stdout}"
-    )
-    assert "tuple[Exempt, Exempt]" in result.stdout, (
-        f"the diagnostic must name the tuple type, got:\n{result.stdout}"
-    )
+    assert result.returncode != 0, f"a third E entry must be a type error, mypy exited 0. stdout:\n{result.stdout}"
+    assert "tuple[Exempt, Exempt]" in result.stdout, f"the diagnostic must name the tuple type, got:\n{result.stdout}"
 
 
 def test_the_arity_harness_passes_on_two_entries(tmp_path: Path) -> None:
@@ -580,8 +563,7 @@ def test_the_arity_harness_passes_on_two_entries(tmp_path: Path) -> None:
     """
     result = _run_mypy(tmp_path / "two", 2)
     assert result.returncode == 0, (
-        f"the two-entry control must pass; the arity red above is only meaningful against it. "
-        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        f"the two-entry control must pass; the arity red above is only meaningful against it. stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
 
 
@@ -592,9 +574,7 @@ def test_mypy_is_available_and_its_absence_fails_rather_than_skips() -> None:
     That is deliberate — ``E``'s fixed arity has no CI backstop, so a skip here would silently
     retire SC-005's only enforcement — and under DIR-013 such a red is **reported, not absorbed**.
     """
-    probe = subprocess.run(
-        [sys.executable, "-m", "mypy", "--version"], capture_output=True, text=True, check=False
-    )
+    probe = subprocess.run([sys.executable, "-m", "mypy", "--version"], capture_output=True, text=True, check=False)
     assert probe.returncode == 0, (
         "mypy is not importable under this interpreter. This is a FAILURE, not a skip: E's fixed "
         "arity is enforced by nothing else. Install mypy or report the red per DIR-013."
@@ -649,8 +629,7 @@ def test_hash_placement_a_row_removal_with_a_matching_tombstone_passes(
     assert verdict.census_hash_ok, "an adjudicated removal with a tombstone must pass the hash limb"
     assert verdict.stale == frozenset(), "the row is gone and so is nothing else"
     assert verdict.unexpected == {victim}, (
-        "the DEFINITION is still in the tree, so the equality limb still reds — a tombstone "
-        "records an adjudication, it does not delete a member"
+        "the DEFINITION is still in the tree, so the equality limb still reds — a tombstone records an adjudication, it does not delete a member"
     )
 
 
@@ -679,9 +658,7 @@ def test_e_co_edit_has_no_tombstone_escape(
     root, census, baseline, exempt = frozen
     swapped = (exempt[0], scan.Exempt(key=("other.py", "other_home", "x"), why="a quiet swap"))
     excused = with_tombstones(baseline, frozenset({exempt[1].key, swapped[1].key}))
-    assert not evaluate(root, census, excused, swapped).exempt_hash_ok, (
-        "a tombstone must NOT excuse an E delta — that path exists for the census only"
-    )
+    assert not evaluate(root, census, excused, swapped).exempt_hash_ok, "a tombstone must NOT excuse an E delta — that path exists for the census only"
 
 
 def test_e_is_typed_as_a_fixed_pair_at_the_alias(
@@ -694,9 +671,7 @@ def test_e_is_typed_as_a_fixed_pair_at_the_alias(
     """
     root, _census, _baseline, exempt = frozen
     by_key = {member.key: member for member in scan.discover(root)}
-    assert {entry.key for entry in exempt} == {
-        key for key, member in by_key.items() if (member.relpath, key[1]) in EXEMPT_SITES
-    }
+    assert {entry.key for entry in exempt} == {key for key, member in by_key.items() if (member.relpath, key[1]) in EXEMPT_SITES}
     assert all(entry.why for entry in exempt), "every E entry states why; prose entitles nothing"
 
 
@@ -720,10 +695,6 @@ def test_this_module_never_parses_outside_the_seam() -> None:
     visitors = [
         node.lineno
         for node in ast.walk(tree)
-        if isinstance(node, ast.ClassDef)
-        and any(
-            isinstance(base, ast.Attribute) and base.attr in {"NodeVisitor", "NodeTransformer"}
-            for base in node.bases
-        )
+        if isinstance(node, ast.ClassDef) and any(isinstance(base, ast.Attribute) and base.attr in {"NodeVisitor", "NodeTransformer"} for base in node.bases)
     ]
     assert parses == [] and visitors == []

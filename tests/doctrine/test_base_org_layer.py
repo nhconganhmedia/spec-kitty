@@ -449,9 +449,7 @@ class TestDoctrineLayerCollisionWarning:
         )
 
         with pytest.warns(DoctrineLayerCollisionWarning) as record:
-            DirectiveRepository(
-                built_in_dir=shipped, org_dirs=[org], project_dir=project
-            )
+            DirectiveRepository(built_in_dir=shipped, org_dirs=[org], project_dir=project)
 
         messages = [str(w.message) for w in record]
         # We expect both org-over-shipped and project-over-org collisions surfaced.
@@ -502,11 +500,7 @@ class TestDoctrineLayerCollisionWarning:
         with warnings_capture() as captured:
             DirectiveRepository(built_in_dir=shipped, org_dirs=[org])
 
-        collision_msgs = [
-            str(w.message)
-            for w in captured
-            if isinstance(w.message, DoctrineLayerCollisionWarning)
-        ]
+        collision_msgs = [str(w.message) for w in captured if isinstance(w.message, DoctrineLayerCollisionWarning)]
         assert collision_msgs == []
 
     def test_collision_warning_reports_field_count(self, tmp_path: Path) -> None:
@@ -568,9 +562,7 @@ class TestApplyOverlayFileDirect:
         yaml.dump({"schema_version": "1.0", "title": "No id"}, no_id_file)
 
         with pytest.warns(UserWarning, match="no id"):
-            repo._apply_overlay_file(
-                no_id_file, "org", yaml_parser=YAML(typ="safe"), built_in=repo._items
-            )
+            repo._apply_overlay_file(no_id_file, "org", yaml_parser=YAML(typ="safe"), built_in=repo._items)
 
     def test_apply_overlay_file_records_skip_on_invalid_yaml(self, tmp_path: Path) -> None:
         shipped = tmp_path / "built-in"
@@ -583,15 +575,11 @@ class TestApplyOverlayFileDirect:
         bad_file.write_text("not: valid: yaml: [")
 
         with pytest.warns(UserWarning, match="Skipping invalid"):
-            repo._apply_overlay_file(
-                bad_file, "org", yaml_parser=YAML(typ="safe"), built_in=repo._items
-            )
+            repo._apply_overlay_file(bad_file, "org", yaml_parser=YAML(typ="safe"), built_in=repo._items)
 
 
 class TestMergeAndInsertOverlayItemDirect:
-    def test_merge_overlay_item_scope_filtered_excludes_merged_result(
-        self, tmp_path: Path
-    ) -> None:
+    def test_merge_overlay_item_scope_filtered_excludes_merged_result(self, tmp_path: Path) -> None:
         """The merge branch's scope-filtered path: an org override that
         narrows a built-in tactic to a non-active language must exclude the
         merged result (recorded in ``_scope_filtered_ids``), leaving the
@@ -613,9 +601,7 @@ class TestMergeAndInsertOverlayItemDirect:
         assert "my-tactic" in repo._scope_filtered_ids
         assert repo.get_provenance("my-tactic") == "builtin"
 
-    def test_insert_overlay_item_scope_filtered_excludes_new_item(
-        self, tmp_path: Path
-    ) -> None:
+    def test_insert_overlay_item_scope_filtered_excludes_new_item(self, tmp_path: Path) -> None:
         shipped = tmp_path / "built-in"
         _write_tactic(shipped, "base.tactic.yaml", _tactic_data("base"))
         repo = TacticRepository(built_in_dir=shipped, active_languages=["java"])

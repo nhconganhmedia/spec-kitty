@@ -33,6 +33,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 class TestDetectLegacyKeys:
     def test_detect_legacy_keys_feature_slug(self) -> None:
         """A dict with 'feature_slug' produces one LEGACY_KEY finding."""
@@ -115,8 +116,7 @@ class TestDetectCorruptJsonl:
         """A file with all valid JSONL lines returns no findings."""
         f = tmp_path / "events.jsonl"
         f.write_text(
-            json.dumps({"actor": "claude", "to_lane": "claimed"}) + "\n"
-            + json.dumps({"actor": "human", "to_lane": "approved"}) + "\n",
+            json.dumps({"actor": "claude", "to_lane": "claimed"}) + "\n" + json.dumps({"actor": "human", "to_lane": "approved"}) + "\n",
             encoding="utf-8",
         )
         findings = detect_corrupt_jsonl(f, "status.events.jsonl")
@@ -126,9 +126,7 @@ class TestDetectCorruptJsonl:
         """One bad line produces exactly one CORRUPT_JSONL finding with correct line number."""
         f = tmp_path / "events.jsonl"
         f.write_text(
-            json.dumps({"actor": "claude"}) + "\n"
-            "not valid json\n"
-            + json.dumps({"actor": "human"}) + "\n",
+            json.dumps({"actor": "claude"}) + "\nnot valid json\n" + json.dumps({"actor": "human"}) + "\n",
             encoding="utf-8",
         )
         findings = detect_corrupt_jsonl(f, "status.events.jsonl")
@@ -142,8 +140,7 @@ class TestDetectCorruptJsonl:
         """Two corrupt lines: only the first is reported (stop-at-first semantics)."""
         f = tmp_path / "events.jsonl"
         f.write_text(
-            "bad json line\n"
-            "also bad\n",
+            "bad json line\nalso bad\n",
             encoding="utf-8",
         )
         findings = detect_corrupt_jsonl(f, "status.events.jsonl")
@@ -155,10 +152,7 @@ class TestDetectCorruptJsonl:
         """Blank / whitespace-only lines are skipped silently."""
         f = tmp_path / "events.jsonl"
         f.write_text(
-            "\n"
-            "   \n"
-            + json.dumps({"ok": True}) + "\n"
-            "\n",
+            "\n   \n" + json.dumps({"ok": True}) + "\n\n",
             encoding="utf-8",
         )
         findings = detect_corrupt_jsonl(f, "status.events.jsonl")

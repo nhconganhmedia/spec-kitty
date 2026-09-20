@@ -101,10 +101,7 @@ _COORD_BRANCH_ABSENT_HINT = (
 _STRANDED_COORD_REVERT_CODE = "COORDINATION_STRANDED_COORD_REVERT"
 
 #: Recovery hint for a live strand — points at the ``--fix`` repair path.
-_STRANDED_COORD_REVERT_HINT = (
-    "Run `spec-kitty doctor coordination --fix` to revert the stranded coordination "
-    "`done` commit(s) and clear the reconcile marker."
-)
+_STRANDED_COORD_REVERT_HINT = "Run `spec-kitty doctor coordination --fix` to revert the stranded coordination `done` commit(s) and clear the reconcile marker."
 
 #: STUCK variant (FR-007): a live strand whose recorded coordination worktree no
 #: longer exists. It is STILL a committed-ref split-brain, so it stays an
@@ -146,7 +143,9 @@ def _detect_git_version() -> tuple[int, int] | None:
     """Return ``(major, minor)`` of the local git binary, or ``None`` on failure."""
     try:
         out = subprocess.check_output(
-            ["git", "--version"], text=True, stderr=subprocess.DEVNULL,
+            ["git", "--version"],
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return None
@@ -171,31 +170,35 @@ def _check_git_version(
     """
     version = detected if detected is not None else _detect_git_version()
     if version is None:
-        return [DoctorFinding(
-            severity="error",
-            message="Could not detect git version. spec-kitty requires git >= 2.25.",
-            next_step="Install or upgrade git to >= 2.25.",
-            error_code="GIT_VERSION_UNDETECTABLE",
-        )]
+        return [
+            DoctorFinding(
+                severity="error",
+                message="Could not detect git version. spec-kitty requires git >= 2.25.",
+                next_step="Install or upgrade git to >= 2.25.",
+                error_code="GIT_VERSION_UNDETECTABLE",
+            )
+        ]
     if version < _MIN_GIT_VERSION:
-        return [DoctorFinding(
-            severity="error",
-            message=(
-                f"git {version[0]}.{version[1]} is older than the required "
-                f"{_MIN_GIT_VERSION[0]}.{_MIN_GIT_VERSION[1]}. "
-                "Sparse-checkout exclusion of status files requires the "
-                "modern non-cone surface."
-            ),
-            next_step=(
-                "Upgrade git to >= 2.25 — see https://git-scm.com/downloads."
-            ),
-            error_code="GIT_VERSION_TOO_OLD",
-            extra={"detected": f"{version[0]}.{version[1]}"},
-        )]
-    return [DoctorFinding(
-        severity="ok",
-        message=f"git {version[0]}.{version[1]} satisfies the >= 2.25 requirement.",
-    )]
+        return [
+            DoctorFinding(
+                severity="error",
+                message=(
+                    f"git {version[0]}.{version[1]} is older than the required "
+                    f"{_MIN_GIT_VERSION[0]}.{_MIN_GIT_VERSION[1]}. "
+                    "Sparse-checkout exclusion of status files requires the "
+                    "modern non-cone surface."
+                ),
+                next_step=("Upgrade git to >= 2.25 — see https://git-scm.com/downloads."),
+                error_code="GIT_VERSION_TOO_OLD",
+                extra={"detected": f"{version[0]}.{version[1]}"},
+            )
+        ]
+    return [
+        DoctorFinding(
+            severity="ok",
+            message=f"git {version[0]}.{version[1]} satisfies the >= 2.25 requirement.",
+        )
+    ]
 
 
 def _check_tracked_worktrees_content(repo_root: Path) -> list[DoctorFinding]:
@@ -225,34 +228,30 @@ def _check_tracked_worktrees_content(repo_root: Path) -> list[DoctorFinding]:
         # Not a git repo / git error — nothing to report here.
         return []
 
-    tracked = [
-        line
-        for line in out.splitlines()
-        if line.strip() and path_is_under_worktrees(Path(line.strip()))
-    ]
+    tracked = [line for line in out.splitlines() if line.strip() and path_is_under_worktrees(Path(line.strip()))]
     if not tracked:
-        return [DoctorFinding(
-            severity="ok",
-            message=f"No tracked content under {WORKTREES_DIR}/.",
-        )]
+        return [
+            DoctorFinding(
+                severity="ok",
+                message=f"No tracked content under {WORKTREES_DIR}/.",
+            )
+        ]
 
     preview = tracked[:10]
     more = "" if len(tracked) <= 10 else f" (+{len(tracked) - 10} more)"
-    return [DoctorFinding(
-        severity="error",
-        message=(
-            f"{len(tracked)} tracked file(s) under {WORKTREES_DIR}/ — this is "
-            "execution scratch space and must never be committed. Tracked "
-            "content here drives the #1772 merge-staging failures."
-        ),
-        next_step=(
-            f"Remove it from version control: "
-            f"`git rm -r --cached {WORKTREES_DIR}/` then commit, and ensure "
-            f"`{WORKTREES_DIR}/` is gitignored."
-        ),
-        error_code="TRACKED_WORKTREES_CONTENT",
-        extra={"tracked": preview, "tracked_count": len(tracked), "truncated": more != ""},
-    )]
+    return [
+        DoctorFinding(
+            severity="error",
+            message=(
+                f"{len(tracked)} tracked file(s) under {WORKTREES_DIR}/ — this is "
+                "execution scratch space and must never be committed. Tracked "
+                "content here drives the #1772 merge-staging failures."
+            ),
+            next_step=(f"Remove it from version control: `git rm -r --cached {WORKTREES_DIR}/` then commit, and ensure `{WORKTREES_DIR}/` is gitignored."),
+            error_code="TRACKED_WORKTREES_CONTENT",
+            extra={"tracked": preview, "tracked_count": len(tracked), "truncated": more != ""},
+        )
+    ]
 
 
 def _coordination_identity(
@@ -274,14 +273,13 @@ def _coordination_identity(
     return (coord_branch, mission_slug, mission_id)
 
 
-def _coord_worktree_head_finding(
-    worktree: Path, coord_branch: str
-) -> DoctorFinding | None:
+def _coord_worktree_head_finding(worktree: Path, coord_branch: str) -> DoctorFinding | None:
     """Return a finding if the coord worktree HEAD is off the coord branch."""
 
     try:
         actual_head = subprocess.check_output(
-            ["git", "-C", str(worktree), "symbolic-ref", "HEAD"], text=True,
+            ["git", "-C", str(worktree), "symbolic-ref", "HEAD"],
+            text=True,
         ).strip()
     except subprocess.CalledProcessError:
         actual_head = "<detached>"
@@ -290,14 +288,8 @@ def _coord_worktree_head_finding(
         return None
     return DoctorFinding(
         severity="warning",
-        message=(
-            f"Coordination worktree {worktree} is on {actual_head!r}, "
-            f"expected {coord_branch!r}."
-        ),
-        next_step=(
-            f"Inspect the worktree manually; then run `{_WORKSPACE_RECOVERY_CMD}` "
-            "to restore."
-        ),
+        message=(f"Coordination worktree {worktree} is on {actual_head!r}, expected {coord_branch!r}."),
+        next_step=(f"Inspect the worktree manually; then run `{_WORKSPACE_RECOVERY_CMD}` to restore."),
         error_code="COORDINATION_WORKTREE_BRANCH_MISMATCH",
     )
 
@@ -307,7 +299,8 @@ def _coord_worktree_dirty_finding(worktree: Path) -> DoctorFinding | None:
 
     try:
         dirty = subprocess.check_output(
-            ["git", "-C", str(worktree), "status", "--porcelain"], text=True,
+            ["git", "-C", str(worktree), "status", "--porcelain"],
+            text=True,
         ).strip()
     except subprocess.CalledProcessError:
         dirty = ""
@@ -316,10 +309,7 @@ def _coord_worktree_dirty_finding(worktree: Path) -> DoctorFinding | None:
     return DoctorFinding(
         severity="warning",
         message=f"Coordination worktree {worktree} has uncommitted changes.",
-        next_step=(
-            "Commit or discard the changes inside the coord worktree "
-            "before next implement/review."
-        ),
+        next_step=("Commit or discard the changes inside the coord worktree before next implement/review."),
         error_code="COORDINATION_WORKTREE_DIRTY",
     )
 
@@ -334,7 +324,8 @@ def _rev_parse(cwd: Path, ref: str) -> str:
     try:
         return subprocess.check_output(
             ["git", "-C", str(cwd), "rev-parse", ref],
-            text=True, stderr=subprocess.DEVNULL,
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return ""
@@ -352,8 +343,7 @@ def _is_ff_candidate(repo_root: Path, ancestor_sha: str, descendant_sha: str) ->
         return False
     try:
         result = subprocess.run(
-            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor",
-             ancestor_sha, descendant_sha],
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", ancestor_sha, descendant_sha],
             capture_output=True,
         )
     except OSError:
@@ -383,12 +373,17 @@ def _fast_forward_finding(
     if not _is_ff_candidate(repo_root, subject_sha, tip_sha):
         return None
     return DoctorFinding(
-        severity="warning", message=message, next_step=next_step, error_code=error_code,
+        severity="warning",
+        message=message,
+        next_step=next_step,
+        error_code=error_code,
     )
 
 
 def _coord_worktree_stale_finding(
-    worktree: Path, repo_root: Path, coord_branch: str,
+    worktree: Path,
+    repo_root: Path,
+    coord_branch: str,
 ) -> DoctorFinding | None:
     """Return a finding if the coord worktree HEAD is behind the coord branch tip.
 
@@ -400,15 +395,11 @@ def _coord_worktree_stale_finding(
     worktree_head = _rev_parse(worktree, "HEAD")
     branch_tip = _rev_parse(repo_root, f"refs/heads/{coord_branch}")
     return _fast_forward_finding(
-        subject_sha=worktree_head, tip_sha=branch_tip, repo_root=repo_root,
-        message=(
-            f"Coordination worktree {worktree} is behind the coord branch "
-            f"{coord_branch!r} tip (fast-forward available)."
-        ),
-        next_step=(
-            f"Run `{_WORKSPACE_RECOVERY_CMD}` to refresh it "
-            "(fast-forwards stale coord worktrees)."
-        ),
+        subject_sha=worktree_head,
+        tip_sha=branch_tip,
+        repo_root=repo_root,
+        message=(f"Coordination worktree {worktree} is behind the coord branch {coord_branch!r} tip (fast-forward available)."),
+        next_step=(f"Run `{_WORKSPACE_RECOVERY_CMD}` to refresh it (fast-forwards stale coord worktrees)."),
         error_code="COORDINATION_WORKTREE_STALE",
     )
 
@@ -430,7 +421,8 @@ def _resolve_coord_short(mission_slug: str, mission_id: str) -> str:
 
 
 def _check_coordination_worktree_health(
-    repo_root: Path, mission_meta: dict[str, object],
+    repo_root: Path,
+    mission_meta: dict[str, object],
 ) -> list[DoctorFinding]:
     """Verify the coordination worktree exists and is healthy.
 
@@ -446,15 +438,14 @@ def _check_coordination_worktree_health(
         return []
     coord_branch, mission_slug, mission_id = identity
     if not mission_slug or not mission_id:
-        return [DoctorFinding(
-            severity="warning",
-            message=(
-                "meta.json carries coordination_branch but is missing "
-                "mission_slug/mission_id; coord worktree health cannot be verified."
-            ),
-            next_step="Run `spec-kitty doctor identity --json` for details.",
-            error_code="COORDINATION_META_INCOMPLETE",
-        )]
+        return [
+            DoctorFinding(
+                severity="warning",
+                message=("meta.json carries coordination_branch but is missing mission_slug/mission_id; coord worktree health cannot be verified."),
+                next_step="Run `spec-kitty doctor identity --json` for details.",
+                error_code="COORDINATION_META_INCOMPLETE",
+            )
+        ]
 
     short = _resolve_coord_short(mission_slug, mission_id)
     worktree = CoordinationWorkspace.worktree_path(repo_root, mission_slug, short)
@@ -468,37 +459,41 @@ def _check_coordination_worktree_health(
         if not _coord_branch_exists(repo_root, coord_branch):
             # Branch was never created or has been deleted.  Flatten is the
             # correct recovery, consistent with WP02 / CoordinationBranchDeleted.
-            return [DoctorFinding(
-                severity="warning",
-                message=(
-                    f"Coordination worktree {worktree} is missing for mission "
-                    f"{mission_slug!r} and the declared coordination branch "
-                    f"{coord_branch!r} does not exist in git "
-                    "(never created or deleted)."
-                ),
-                next_step=_COORD_BRANCH_ABSENT_HINT,
-                error_code="COORDINATION_WORKTREE_NEVER_CREATED",
-            )]
+            return [
+                DoctorFinding(
+                    severity="warning",
+                    message=(
+                        f"Coordination worktree {worktree} is missing for mission "
+                        f"{mission_slug!r} and the declared coordination branch "
+                        f"{coord_branch!r} does not exist in git "
+                        "(never created or deleted)."
+                    ),
+                    next_step=_COORD_BRANCH_ABSENT_HINT,
+                    error_code="COORDINATION_WORKTREE_NEVER_CREATED",
+                )
+            ]
 
         # Branch exists but the worktree has not been materialised yet.
         # Provide a real `git worktree add` command — NOT `doctor workspaces --fix`
         # which only removes husks and cannot CREATE a worktree (#2240).
         _recovery_args = [
-            "git", "-C", str(repo_root), "worktree", "add",
-            str(worktree), coord_branch,
+            "git",
+            "-C",
+            str(repo_root),
+            "worktree",
+            "add",
+            str(worktree),
+            coord_branch,
         ]
-        return [DoctorFinding(
-            severity="warning",
-            message=(
-                f"Coordination worktree {worktree} is missing for mission "
-                f"{mission_slug!r} (the branch {coord_branch!r} exists)."
-            ),
-            next_step=(
-                f"Run: `git -C {repo_root} worktree add {worktree} {coord_branch}`"
-            ),
-            error_code="COORDINATION_WORKTREE_MISSING",
-            extra={"recovery_args": _recovery_args},
-        )]
+        return [
+            DoctorFinding(
+                severity="warning",
+                message=(f"Coordination worktree {worktree} is missing for mission {mission_slug!r} (the branch {coord_branch!r} exists)."),
+                next_step=(f"Run: `git -C {repo_root} worktree add {worktree} {coord_branch}`"),
+                error_code="COORDINATION_WORKTREE_MISSING",
+                extra={"recovery_args": _recovery_args},
+            )
+        ]
 
     findings: list[DoctorFinding] = []
     head_finding = _coord_worktree_head_finding(worktree, coord_branch)
@@ -512,10 +507,12 @@ def _check_coordination_worktree_health(
         findings.append(stale_finding)
 
     if not findings:
-        findings.append(DoctorFinding(
-            severity="ok",
-            message=f"Coordination worktree {worktree} is healthy.",
-        ))
+        findings.append(
+            DoctorFinding(
+                severity="ok",
+                message=f"Coordination worktree {worktree} is healthy.",
+            )
+        )
     return findings
 
 
@@ -531,14 +528,13 @@ def _check_coordination_worktree_health(
 _COORD_STALE_VS_TARGET_CODE = "COORDINATION_BRANCH_STALE_VS_TARGET"
 #: NOT `--fix`-eligible: coord and target have diverged.
 _COORD_DIVERGED_VS_TARGET_CODE = "COORDINATION_BRANCH_DIVERGED_VS_TARGET"
-_COORD_DIVERGED_VS_TARGET_HINT = (
-    "Inspect and reconcile manually; `spec-kitty doctor coordination --fix` "
-    "will refuse to mutate a diverged coordination branch."
-)
+_COORD_DIVERGED_VS_TARGET_HINT = "Inspect and reconcile manually; `spec-kitty doctor coordination --fix` will refuse to mutate a diverged coordination branch."
 
 
 def _coord_branch_stale_vs_target_finding(
-    repo_root: Path, coord_branch: str, target_branch: str,
+    repo_root: Path,
+    coord_branch: str,
+    target_branch: str,
 ) -> DoctorFinding | None:
     """FR-008 (Gap-1): compare the coord branch TIP against ``target_branch``.
 
@@ -555,11 +551,10 @@ def _coord_branch_stale_vs_target_finding(
     if not coord_sha or not target_sha or coord_sha == target_sha:
         return None
     stale = _fast_forward_finding(
-        subject_sha=coord_sha, tip_sha=target_sha, repo_root=repo_root,
-        message=(
-            f"Coordination branch {coord_branch!r} is behind target branch "
-            f"{target_branch!r} (fast-forward available)."
-        ),
+        subject_sha=coord_sha,
+        tip_sha=target_sha,
+        repo_root=repo_root,
+        message=(f"Coordination branch {coord_branch!r} is behind target branch {target_branch!r} (fast-forward available)."),
         next_step="Run `spec-kitty doctor coordination --fix` to fast-forward it.",
         error_code=_COORD_STALE_VS_TARGET_CODE,
     )
@@ -567,17 +562,15 @@ def _coord_branch_stale_vs_target_finding(
         return stale
     return DoctorFinding(
         severity="warning",
-        message=(
-            f"Coordination branch {coord_branch!r} has diverged from target "
-            f"branch {target_branch!r} and cannot be fast-forwarded automatically."
-        ),
+        message=(f"Coordination branch {coord_branch!r} has diverged from target branch {target_branch!r} and cannot be fast-forwarded automatically."),
         next_step=_COORD_DIVERGED_VS_TARGET_HINT,
         error_code=_COORD_DIVERGED_VS_TARGET_CODE,
     )
 
 
 def _coord_vs_target_shas(
-    repo_root: Path, mission_meta: dict[str, object],
+    repo_root: Path,
+    mission_meta: dict[str, object],
 ) -> tuple[str, str, str, str] | None:
     """Resolve ``(coord_branch, target_branch, coord_sha, target_sha)`` for one mission.
 
@@ -607,7 +600,8 @@ def _coord_vs_target_shas(
 
 
 def _check_coord_branch_staleness(
-    repo_root: Path, mission_meta: dict[str, object],
+    repo_root: Path,
+    mission_meta: dict[str, object],
 ) -> list[DoctorFinding]:
     """FR-008 entry: coord-branch-vs-target staleness for one mission (Gap-1).
 
@@ -648,8 +642,7 @@ def _lane_sparse_file(lane_dir: Path) -> Path | None:
 
     try:
         raw = subprocess.check_output(
-            ["git", "-C", str(lane_dir), "rev-parse",
-             "--git-path", "info/sparse-checkout"],
+            ["git", "-C", str(lane_dir), "rev-parse", "--git-path", "info/sparse-checkout"],
             text=True,
         ).strip()
     except subprocess.CalledProcessError:
@@ -660,9 +653,7 @@ def _lane_sparse_file(lane_dir: Path) -> Path | None:
     return sparse_file
 
 
-def _scan_lane_sparse_drift(
-    lane_dir: Path, expected: set[str]
-) -> DoctorFinding | None:
+def _scan_lane_sparse_drift(lane_dir: Path, expected: set[str]) -> DoctorFinding | None:
     """Return a drift finding for one lane worktree, or None when it is healthy."""
     repair_hint = f"Run `{_WORKSPACE_RECOVERY_CMD}` to restore."
     sparse_file = _lane_sparse_file(lane_dir)
@@ -676,27 +667,17 @@ def _scan_lane_sparse_drift(
     if not sparse_file.exists():
         return DoctorFinding(
             severity="warning",
-            message=(
-                f"Lane worktree {lane_dir} is missing the sparse-checkout "
-                "policy that excludes status files."
-            ),
+            message=(f"Lane worktree {lane_dir} is missing the sparse-checkout policy that excludes status files."),
             next_step=repair_hint,
             error_code=_LANE_DRIFT_CODE,
         )
-    present = {
-        line.strip()
-        for line in sparse_file.read_text().splitlines()
-        if line.strip()
-    }
+    present = {line.strip() for line in sparse_file.read_text().splitlines() if line.strip()}
     missing = expected - present
     if not missing:
         return None
     return DoctorFinding(
         severity="warning",
-        message=(
-            f"Lane worktree {lane_dir} sparse-checkout is missing "
-            f"{len(missing)} expected pattern(s): {sorted(missing)}."
-        ),
+        message=(f"Lane worktree {lane_dir} sparse-checkout is missing {len(missing)} expected pattern(s): {sorted(missing)}."),
         next_step=repair_hint,
         error_code=_LANE_DRIFT_CODE,
         extra={"missing_patterns": sorted(missing)},
@@ -704,7 +685,8 @@ def _scan_lane_sparse_drift(
 
 
 def _check_lane_sparse_checkout_drift(
-    repo_root: Path, mission_meta: dict[str, object],
+    repo_root: Path,
+    mission_meta: dict[str, object],
 ) -> list[DoctorFinding]:
     """Verify every lane worktree carries the expected sparse-checkout patterns.
 
@@ -748,10 +730,12 @@ def _check_lane_sparse_checkout_drift(
             findings.append(finding)
 
     if not findings:
-        findings.append(DoctorFinding(
-            severity="ok",
-            message="All lane worktrees carry the expected sparse-checkout policy.",
-        ))
+        findings.append(
+            DoctorFinding(
+                severity="ok",
+                message="All lane worktrees carry the expected sparse-checkout policy.",
+            )
+        )
     return findings
 
 
@@ -779,11 +763,7 @@ def _resolve_mission_dirs(repo_root: Path, mission_filter: str | None) -> list[P
         from specify_cli.context.mission_resolver import resolve_mission
 
         return [resolve_mission(mission_filter, repo_root).feature_dir]
-    return [
-        mission_dir
-        for mission_dir in sorted(specs_dir.iterdir())
-        if safe_is_dir(mission_dir)
-    ]
+    return [mission_dir for mission_dir in sorted(specs_dir.iterdir()) if safe_is_dir(mission_dir)]
 
 
 def _collect_coordination_findings(
@@ -891,9 +871,7 @@ def _parse_reconcile_marker(
     return coord_ref, captured_sha, coord_worktree, [str(w) for w in stranded]
 
 
-def _marker_extra(state: object, coord_ref: str, captured_sha: str,
-                  coord_worktree: str, candidate_wps: list[str],
-                  remaining: list[str]) -> dict[str, object]:
+def _marker_extra(state: object, coord_ref: str, captured_sha: str, coord_worktree: str, candidate_wps: list[str], remaining: list[str]) -> dict[str, object]:
     """Assemble the stable ``extra`` payload shared by the strand findings."""
     return {
         "mission_id": getattr(state, "mission_id", None),
@@ -906,9 +884,7 @@ def _marker_extra(state: object, coord_ref: str, captured_sha: str,
     }
 
 
-def _finding_for_reconcile_marker(
-    state: object, repo_root: Path
-) -> DoctorFinding | None:
+def _finding_for_reconcile_marker(state: object, repo_root: Path) -> DoctorFinding | None:
     """Re-verify one ``pending_coord_reconcile`` marker → a single finding (or None).
 
     Returns ``None`` only for a genuinely-stale marker (the committed ref
@@ -939,10 +915,7 @@ def _finding_for_reconcile_marker(
     if parsed is None:
         return DoctorFinding(
             severity="warning",
-            message=(
-                f"Mission {mission_slug!r} carries a `pending_coord_reconcile` marker "
-                "that could not be parsed into repair inputs."
-            ),
+            message=(f"Mission {mission_slug!r} carries a `pending_coord_reconcile` marker that could not be parsed into repair inputs."),
             next_step=_MARKER_UNPARSEABLE_HINT,
             error_code=_MARKER_UNPARSEABLE_CODE,
             extra=base_extra,
@@ -953,10 +926,7 @@ def _finding_for_reconcile_marker(
         # than passing None into the read seam and crashing the doctor sweep.
         return DoctorFinding(
             severity="warning",
-            message=(
-                "A `pending_coord_reconcile` marker is present but its mission "
-                "carries no `mission_slug` to resolve a planning directory."
-            ),
+            message=("A `pending_coord_reconcile` marker is present but its mission carries no `mission_slug` to resolve a planning directory."),
             next_step=_MARKER_UNRESOLVABLE_MISSION_HINT,
             error_code=_MARKER_UNRESOLVABLE_MISSION_CODE,
             extra=base_extra,
@@ -967,22 +937,24 @@ def _finding_for_reconcile_marker(
         # resolve the identical feature_dir — a raw resolver here would read a
         # divergent path on a non-canonical slug and silently miss the strand.
         feature_dir = resolve_planning_read_dir(
-            repo_root, mission_slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK,
+            repo_root,
+            mission_slug,
+            kind=MissionArtifactKind.WORK_PACKAGE_TASK,
         )
     except (ValueError, MissionSelectorAmbiguous):
         # Unsafe/ambiguous mission_slug — surface a warning rather than silently drop.
         return DoctorFinding(
             severity="warning",
-            message=(
-                f"Mission {mission_slug!r} on a `pending_coord_reconcile` marker "
-                "could not be resolved to a planning directory."
-            ),
+            message=(f"Mission {mission_slug!r} on a `pending_coord_reconcile` marker could not be resolved to a planning directory."),
             next_step=_MARKER_UNRESOLVABLE_MISSION_HINT,
             error_code=_MARKER_UNRESOLVABLE_MISSION_CODE,
             extra=base_extra,
         )
     remaining = coord_incoherent_done_wps(
-        coord_ref, candidate_wps, repo_root=repo_root, feature_dir=feature_dir,
+        coord_ref,
+        candidate_wps,
+        repo_root=repo_root,
+        feature_dir=feature_dir,
     )
     if not remaining:
         # Stale marker: the committed ref re-derives coherent (US2-S5). No finding.
@@ -1009,9 +981,7 @@ def _finding_for_reconcile_marker(
     return DoctorFinding(
         severity="error",
         message=(
-            f"Coordination ref {coord_ref!r} for mission "
-            f"{mission_slug!r} still reduces WP(s) {remaining} to "
-            "`done` after a merge rollback (expected `approved`)."
+            f"Coordination ref {coord_ref!r} for mission {mission_slug!r} still reduces WP(s) {remaining} to `done` after a merge rollback (expected `approved`)."
         ),
         next_step=_STRANDED_COORD_REVERT_HINT,
         error_code=_STRANDED_COORD_REVERT_CODE,
@@ -1054,9 +1024,7 @@ def _clear_pending_marker(repo_root: Path, mission_id: str) -> None:
     save_state(state, repo_root)
 
 
-def _heal_one_strand(
-    f: DoctorFinding, repo_root: Path
-) -> tuple[str | None, DoctorFinding | None]:
+def _heal_one_strand(f: DoctorFinding, repo_root: Path) -> tuple[str | None, DoctorFinding | None]:
     """Attempt to heal one live-strand finding.
 
     Returns ``(healed_slug, warning)``: at most one is non-``None``. A genuine heal
@@ -1091,15 +1059,14 @@ def _heal_one_strand(
         # Mirror the check + the executor: the canonicalizing WORK_PACKAGE_TASK
         # read seam (one feature_dir authority across all three strand sites).
         feature_dir = resolve_planning_read_dir(
-            repo_root, mission_slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK,
+            repo_root,
+            mission_slug,
+            kind=MissionArtifactKind.WORK_PACKAGE_TASK,
         )
     except (ValueError, MissionSelectorAmbiguous):
         return None, DoctorFinding(
             severity="warning",
-            message=(
-                f"Mission {mission_slug!r} on a live-strand finding could not be "
-                "resolved to a planning directory; skipping its heal."
-            ),
+            message=(f"Mission {mission_slug!r} on a live-strand finding could not be resolved to a planning directory; skipping its heal."),
             next_step=_MARKER_UNRESOLVABLE_MISSION_HINT,
             error_code=_MARKER_UNRESOLVABLE_MISSION_CODE,
             extra={"mission_id": mission_id, "mission_slug": mission_slug},
@@ -1120,10 +1087,7 @@ def _heal_one_strand(
         # (exit 1) with a manual-recovery hint; a `warning` would exit 0 and hide it.
         return None, DoctorFinding(
             severity="error",
-            message=(
-                f"Coordination worktree {coord_worktree!r} for mission "
-                f"{mission_slug!r} no longer exists — `--fix` cannot revert its strand."
-            ),
+            message=(f"Coordination worktree {coord_worktree!r} for mission {mission_slug!r} no longer exists — `--fix` cannot revert its strand."),
             next_step=_STRANDED_COORD_REVERT_STUCK_HINT,
             error_code=_STRANDED_COORD_REVERT_STUCK_CODE,
             extra={"mission_id": mission_id, "mission_slug": mission_slug},
@@ -1131,9 +1095,7 @@ def _heal_one_strand(
     return None, None
 
 
-def _fix_stranded_reverts(
-    findings: list[DoctorFinding], repo_root: Path
-) -> tuple[list[str], list[DoctorFinding]]:
+def _fix_stranded_reverts(findings: list[DoctorFinding], repo_root: Path) -> tuple[list[str], list[DoctorFinding]]:
     """Heal every live-strand finding via WP02's shared repair primitive.
 
     Delegates to
@@ -1169,22 +1131,16 @@ def _apply_never_created_fix(findings: list[DoctorFinding], repo_root: Path) -> 
         return
     fixed_slugs = _fix_never_created_branches(fixable)
     for slug in fixed_slugs:
-        console.print(
-            f"[green]Flattened:[/green] removed coordination_branch from {slug}/meta.json"
-        )
+        console.print(f"[green]Flattened:[/green] removed coordination_branch from {slug}/meta.json")
     if fixed_slugs:
         from specify_cli.migration.backfill_topology import backfill_topology_repo
+
         for slug in fixed_slugs:
             backfill_topology_repo(repo_root, mission_slug=slug)
-        console.print(
-            "[green]Topology backfilled.[/green] "
-            "Run `spec-kitty doctor coordination` to verify."
-        )
+        console.print("[green]Topology backfilled.[/green] Run `spec-kitty doctor coordination` to verify.")
 
 
-def _apply_stranded_revert_fix(
-    findings: list[DoctorFinding], repo_root: Path
-) -> list[DoctorFinding]:
+def _apply_stranded_revert_fix(findings: list[DoctorFinding], repo_root: Path) -> list[DoctorFinding]:
     """Heal live coord strands (FR-007) via the shared repair primitive.
 
     Returns the ``warning`` findings for strands that could not be healed (pruned
@@ -1193,16 +1149,11 @@ def _apply_stranded_revert_fix(
     """
     healed, warnings = _fix_stranded_reverts(findings, repo_root)
     for slug in healed:
-        console.print(
-            f"[green]Healed:[/green] reverted the stranded coordination `done` and "
-            f"cleared the reconcile marker for {slug}."
-        )
+        console.print(f"[green]Healed:[/green] reverted the stranded coordination `done` and cleared the reconcile marker for {slug}.")
     return warnings
 
 
-def _apply_coordination_fixes(
-    findings: list[DoctorFinding], repo_root: Path
-) -> list[DoctorFinding]:
+def _apply_coordination_fixes(findings: list[DoctorFinding], repo_root: Path) -> list[DoctorFinding]:
     """Run every registered ``--fix`` handler over the collected findings.
 
     Extracted so adding a fixer keeps the caller (:func:`run_coordination_health`)
@@ -1234,7 +1185,9 @@ def _unified_diff(repo_root: Path, ref_a: str, ref_b: str) -> str:
     try:
         result = subprocess.run(
             ["git", "-C", str(repo_root), "diff", ref_a, ref_b],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
     except OSError:
         return ""
@@ -1248,7 +1201,11 @@ _COORD_STALE_FIX_BLOCKED_CODE = "COORDINATION_BRANCH_STALE_FIX_BLOCKED"
 
 
 def _coord_staleness_fix_blocked_finding(
-    repo_root: Path, coord_branch: str, target_branch: str, *, reason: str,
+    repo_root: Path,
+    coord_branch: str,
+    target_branch: str,
+    *,
+    reason: str,
 ) -> DoctorFinding:
     """FR-009: an unsafe Gap-1 fast-forward precondition, as a surfaced ``error``.
 
@@ -1266,25 +1223,20 @@ def _coord_staleness_fix_blocked_finding(
     ``coord_branch..target_branch``.
     """
     diff_text = _unified_diff(repo_root, coord_branch, target_branch)
-    message = (
-        f"Refusing to fast-forward: coordination branch {coord_branch!r} "
-        f"is {reason} target branch {target_branch!r} — `--fix` mutates nothing."
-    )
+    message = f"Refusing to fast-forward: coordination branch {coord_branch!r} is {reason} target branch {target_branch!r} — `--fix` mutates nothing."
     if diff_text:
         message = f"{message}\n{diff_text}"
     return DoctorFinding(
         severity="error",
         message=message,
-        next_step=(
-            "Inspect the diff above and reconcile manually; `--fix` will not "
-            "mutate a diverged or dirty coordination branch."
-        ),
+        next_step=("Inspect the diff above and reconcile manually; `--fix` will not mutate a diverged or dirty coordination branch."),
         error_code=_COORD_STALE_FIX_BLOCKED_CODE,
     )
 
 
 def _fix_one_mission_coord_staleness(
-    repo_root: Path, mission_meta: dict[str, object],
+    repo_root: Path,
+    mission_meta: dict[str, object],
 ) -> DoctorFinding | None:
     """Attempt the Gap-1 fast-forward for a single mission.
 
@@ -1309,7 +1261,10 @@ def _fix_one_mission_coord_staleness(
 
     if not _is_ff_candidate(repo_root, coord_sha, target_sha):
         return _coord_staleness_fix_blocked_finding(
-            repo_root, coord_branch, target_branch, reason="diverged from",
+            repo_root,
+            coord_branch,
+            target_branch,
+            reason="diverged from",
         )
 
     # `shas` only proves coordination_branch/target_branch/slug/id are all
@@ -1330,23 +1285,23 @@ def _fix_one_mission_coord_staleness(
 
     if _coord_worktree_dirty_finding(worktree) is not None:
         return _coord_staleness_fix_blocked_finding(
-            repo_root, coord_branch, target_branch, reason="not cleanly fast-forwardable vs",
+            repo_root,
+            coord_branch,
+            target_branch,
+            reason="not cleanly fast-forwardable vs",
         )
 
     subprocess.run(
         ["git", "-C", str(worktree), "merge", "--ff-only", target_branch],
-        check=True, capture_output=True, text=True,
+        check=True,
+        capture_output=True,
+        text=True,
     )
-    console.print(
-        f"[green]Fast-forwarded:[/green] coordination branch {coord_branch!r} "
-        f"({coord_sha[:8]} -> {target_sha[:8]}) to match target {target_branch!r}."
-    )
+    console.print(f"[green]Fast-forwarded:[/green] coordination branch {coord_branch!r} ({coord_sha[:8]} -> {target_sha[:8]}) to match target {target_branch!r}.")
     return None
 
 
-def _apply_coord_staleness_fixes(
-    repo_root: Path, mission_filter: str | None = None
-) -> list[DoctorFinding]:
+def _apply_coord_staleness_fixes(repo_root: Path, mission_filter: str | None = None) -> list[DoctorFinding]:
     """FR-009 (Gap-1, C-003 minimized): fast-forward every coordinated mission's
     coord branch to ``target_branch`` -- and ONLY when that is unambiguously safe.
 
@@ -1386,16 +1341,16 @@ def _emit_coordination_findings(findings: list[DoctorFinding], json_output: bool
         return
     for f in findings:
         colour = {
-            "ok": "green", "warning": "yellow", "error": "red",
+            "ok": "green",
+            "warning": "yellow",
+            "error": "red",
         }.get(f.severity, "white")
         console.print(f"[{colour}]{f.severity}[/{colour}]: {f.message}")
         if f.next_step:
             console.print(f"  → {f.next_step}")
 
 
-def _emit_mission_resolver_error(
-    error_code: str, handle: str | None, json_output: bool
-) -> None:
+def _emit_mission_resolver_error(error_code: str, handle: str | None, json_output: bool) -> None:
     """Emit the canonical error with its stable code and mission handle context."""
     label = "Mission not found" if error_code == "MISSION_NOT_FOUND" else "Ambiguous handle"
     message = f"{label}: {handle!r}"
@@ -1446,9 +1401,7 @@ def run_coordination_health(
     )
 
     try:
-        findings = _collect_coordination_findings(
-            repo_root, check_staleness=check_staleness, mission_filter=mission
-        )
+        findings = _collect_coordination_findings(repo_root, check_staleness=check_staleness, mission_filter=mission)
 
         if fix:
             fix_warnings = _apply_coordination_fixes(findings, repo_root)
@@ -1462,9 +1415,7 @@ def run_coordination_health(
             # issues they could not heal (pruned worktree / unparseable /
             # unresolvable / unsafe Gap-1 precondition) — these must not be
             # silently dropped by the re-collect.
-            findings = _collect_coordination_findings(
-                repo_root, check_staleness=check_staleness, mission_filter=mission
-            )
+            findings = _collect_coordination_findings(repo_root, check_staleness=check_staleness, mission_filter=mission)
             findings.extend(fix_warnings)
             findings.extend(staleness_blocked)
     except MissionNotFoundError as exc:

@@ -50,9 +50,7 @@ def project_root(tmp_path: Path) -> Path:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     return tmp_path
 
 
@@ -163,9 +161,7 @@ def _write_artifact(pack_root: Path, plural_dir: str, kind_singular: str, stem: 
     """
     target_dir = pack_root / plural_dir
     target_dir.mkdir(parents=True, exist_ok=True)
-    (target_dir / f"{stem}.{kind_singular}.yaml").write_text(
-        f"id: {declared_id}\ntype: {kind_singular}\ntitle: {stem}\n", encoding="utf-8"
-    )
+    (target_dir / f"{stem}.{kind_singular}.yaml").write_text(f"id: {declared_id}\ntype: {kind_singular}\ntitle: {stem}\n", encoding="utf-8")
 
 
 def _write_graph_fragment(
@@ -179,19 +175,10 @@ def _write_graph_fragment(
     node_lines = "\n".join(f'  - urn: "{urn}"\n    kind: {kind}' for urn, kind in nodes)
     nodes_section = f"nodes:\n{node_lines}" if nodes else "nodes: []"
 
-    edge_lines = "\n".join(
-        f'  - source: "{src}"\n    target: "{tgt}"\n    relation: {rel}'
-        for src, tgt, rel in edges
-    )
+    edge_lines = "\n".join(f'  - source: "{src}"\n    target: "{tgt}"\n    relation: {rel}' for src, tgt, rel in edges)
     edges_section = f"edges:\n{edge_lines}" if edges else "edges: []"
 
-    body = (
-        'schema_version: "1.0"\n'
-        'generated_at: "2026-08-17T00:00:00Z"\n'
-        'generated_by: "test"\n'
-        f"{nodes_section}\n"
-        f"{edges_section}\n"
-    )
+    body = f'schema_version: "1.0"\ngenerated_at: "2026-08-17T00:00:00Z"\ngenerated_by: "test"\n{nodes_section}\n{edges_section}\n'
     (pack_root / filename).write_text(body, encoding="utf-8")
 
 
@@ -206,9 +193,7 @@ def _activate_kind_filtered_fixture(project_root: Path, *args: str) -> object:
 class TestKindFilteredNodeRendering:
     """FR-003/FR-004/FR-008: `_render_cascade_activation` renders kind-filtered nodes."""
 
-    def test_cascade_all_renders_kind_filtered_asset_alongside_activated_tactic(
-        self, project_root: Path
-    ) -> None:
+    def test_cascade_all_renders_kind_filtered_asset_alongside_activated_tactic(self, project_root: Path) -> None:
         """Scenario 1 (spec.md User Story 1): a source with one `suggests` edge to
         an activatable-kind node (`tactic`) and one to a kind-filtered node
         (`asset`) renders BOTH the existing `Cascade-activated` line (tactic,
@@ -233,21 +218,14 @@ class TestKindFilteredNodeRendering:
         )
         _write_org_pack_config(project_root, [("pack1", "org-packs/pack1")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "--cascade", "all", "directive", "source-directive"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "--cascade", "all", "directive", "source-directive")
         assert result.exit_code == 0, result.output
         assert "Cascade-activated: tactic/cascade-tactic" in result.output
-        assert (
-            "Not cascaded: asset/cascade-asset (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Not cascaded: asset/cascade-asset (kind not charter-activatable)" in result.output
         # FR-004 must NOT fire: at least one referenced node landed in `activated`.
         assert "resolved zero activatable targets" not in result.output
 
-    def test_cascade_all_asset_only_source_states_zero_activatable_targets(
-        self, project_root: Path
-    ) -> None:
+    def test_cascade_all_asset_only_source_states_zero_activatable_targets(self, project_root: Path) -> None:
         """Scenario 2 (SC-002): a source whose ONLY outgoing reference-relation
         edges target non-activatable kinds explicitly states the cascade
         resolved zero activatable targets. Exit code stays 0 (FR-004).
@@ -266,19 +244,12 @@ class TestKindFilteredNodeRendering:
         )
         _write_org_pack_config(project_root, [("pack2", "org-packs/pack2")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "--cascade", "all", "directive", "asset-only-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "--cascade", "all", "directive", "asset-only-source")
         assert result.exit_code == 0, result.output
-        assert (
-            "Not cascaded: asset/only-asset (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Not cascaded: asset/only-asset (kind not charter-activatable)" in result.output
         assert "resolved zero activatable targets" in result.output
 
-    def test_cascade_narrow_scope_does_not_trigger_zero_activatable_message(
-        self, project_root: Path
-    ) -> None:
+    def test_cascade_narrow_scope_does_not_trigger_zero_activatable_message(self, project_root: Path) -> None:
         """Scenario 4 / SC-007 (over-reporting guard): a source whose referenced
         nodes are ALL activatable-kind but ALL excluded by a narrow
         `--cascade <scope>` must NOT print the FR-004 message -- that case is
@@ -312,9 +283,7 @@ class TestKindFilteredNodeRendering:
         )
         _write_org_pack_config(project_root, [("pack3", "org-packs/pack3")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "--cascade", "tactic", "directive", "narrow-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "--cascade", "tactic", "directive", "narrow-source")
         assert result.exit_code == 0, result.output
         assert "Skipped (out of scope): directive/narrow-target" in result.output
         assert "resolved zero activatable targets" not in result.output
@@ -354,9 +323,7 @@ class TestKindFilteredNodeRendering:
             "is what keeps this pure scope-narrowing case from wrongly printing the message"
         )
 
-    def test_mixed_scope_narrowed_and_kind_filtered_does_not_claim_all_kind_filtered(
-        self, project_root: Path
-    ) -> None:
+    def test_mixed_scope_narrowed_and_kind_filtered_does_not_claim_all_kind_filtered(self, project_root: Path) -> None:
         """M1 regression (PR #3711 landing review): in the MIXED case -- a
         source with one activatable-kind ref excluded by a narrow
         `--cascade <scope>` AND one kind-filtered ref -- the FR-004 summary
@@ -386,23 +353,16 @@ class TestKindFilteredNodeRendering:
         )
         _write_org_pack_config(project_root, [("mixed-pack", "org-packs/mixed-pack")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "--cascade", "tactic", "directive", "mixed-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "--cascade", "tactic", "directive", "mixed-source")
         assert result.exit_code == 0, result.output
         # Both facts are reported per-node...
         assert "Skipped (out of scope): directive/mixed-target" in result.output
-        assert (
-            "Not cascaded: asset/mixed-asset (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Not cascaded: asset/mixed-asset (kind not charter-activatable)" in result.output
         # ...but the summary that claims EVERY referenced node was kind-filtered
         # must NOT fire, because a scope-skipped activatable-kind node exists.
         assert "resolved zero activatable targets" not in result.output
 
-    def test_cascade_kind_filtered_line_renders_resolved_config_stem_not_raw_bare_id(
-        self, project_root: Path
-    ) -> None:
+    def test_cascade_kind_filtered_line_renders_resolved_config_stem_not_raw_bare_id(self, project_root: Path) -> None:
         """The kind-filtered line renders the RESOLVED config-stem ID, not the
         raw DRG bare ID (`drg_urn_to_config_id`'s docstring,
         `_cascade_shared.py`):
@@ -426,18 +386,11 @@ class TestKindFilteredNodeRendering:
             nodes=[("asset:ASSET_RAW_BARE_ID", "asset")],
             edges=[],
         )
-        _write_org_pack_config(
-            project_root, [("packA", "org-packs/packA"), ("packB", "org-packs/packB")]
-        )
+        _write_org_pack_config(project_root, [("packA", "org-packs/packA"), ("packB", "org-packs/packB")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "--cascade", "all", "directive", "stem-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "--cascade", "all", "directive", "stem-source")
         assert result.exit_code == 0, result.output
-        assert (
-            "Not cascaded: asset/resolved-asset-stem (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Not cascaded: asset/resolved-asset-stem (kind not charter-activatable)" in result.output
         assert "ASSET_RAW_BARE_ID" not in result.output
 
 
@@ -453,9 +406,7 @@ class TestKindFilteredNodeRendering:
 class TestNoCascadeKindFilteredRendering:
     """FR-005/FR-005a: `_render_no_cascade_warning` renders kind-filtered nodes too."""
 
-    def test_no_cascade_renders_kind_filtered_asset_alongside_existing_warning(
-        self, project_root: Path
-    ) -> None:
+    def test_no_cascade_renders_kind_filtered_asset_alongside_existing_warning(self, project_root: Path) -> None:
         """Scenario 1 (spec.md User Story 2): a source with one `suggests` edge
         to an activatable-kind node (`tactic`) and one to a kind-filtered node
         (`asset`), run WITHOUT `--cascade`, renders BOTH the existing
@@ -483,31 +434,19 @@ class TestNoCascadeKindFilteredRendering:
         )
         _write_org_pack_config(project_root, [("nc-pack1", "org-packs/nc-pack1")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "directive", "nc-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "directive", "nc-source")
         assert result.exit_code == 0, result.output
-        assert (
-            "Warning: referenced tactic/nc-tactic was not activated (no --cascade)."
-            in result.output
-        )
-        assert (
-            "Not cascaded: asset/nc-asset (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Warning: referenced tactic/nc-tactic was not activated (no --cascade)." in result.output
+        assert "Not cascaded: asset/nc-asset (kind not charter-activatable)" in result.output
         # The kind-filtered line must never suggest `--cascade` as a recovery
         # path for a kind-filtered node -- re-running with `--cascade` would
         # NOT activate an asset/template (spec.md FAILS-if, User Story 2).
         # The existing recovery-hint sentence is still fine (it's about the
         # tactic), so scope this check to the kind-filtered line itself.
-        kind_filtered_line = next(
-            line for line in result.output.splitlines() if "Not cascaded: asset" in line
-        )
+        kind_filtered_line = next(line for line in result.output.splitlines() if "Not cascaded: asset" in line)
         assert "--cascade" not in kind_filtered_line
 
-    def test_no_cascade_kind_filtered_only_source_still_renders_despite_empty_skipped(
-        self, project_root: Path
-    ) -> None:
+    def test_no_cascade_kind_filtered_only_source_still_renders_despite_empty_skipped(self, project_root: Path) -> None:
         """Scenario 2 (spec.md User Story 2, FR-005a): a source whose ONLY
         referenced nodes are kind-filtered (zero activatable-kind refs at
         all) still renders the kind-filtered line when run WITHOUT
@@ -531,14 +470,9 @@ class TestNoCascadeKindFilteredRendering:
         )
         _write_org_pack_config(project_root, [("nc-pack2", "org-packs/nc-pack2")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "directive", "nc-asset-only-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "directive", "nc-asset-only-source")
         assert result.exit_code == 0, result.output
-        assert (
-            "Not cascaded: asset/nc-only-asset (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Not cascaded: asset/nc-only-asset (kind not charter-activatable)" in result.output
         # Implementation choice (beyond T012's letter, in FR-005's spirit):
         # the summary `[yellow]Hint[/yellow]: Re-run with --cascade ...`
         # line is gated on `report.skipped` specifically, not the broader
@@ -585,9 +519,7 @@ class TestNoCascadeKindFilteredRendering:
             "the referenced artifacts' hint despite there being none"
         )
 
-    def test_no_cascade_kind_filtered_line_renders_resolved_config_stem_not_raw_bare_id(
-        self, project_root: Path
-    ) -> None:
+    def test_no_cascade_kind_filtered_line_renders_resolved_config_stem_not_raw_bare_id(self, project_root: Path) -> None:
         """The no-cascade kind-filtered line renders the RESOLVED config-stem
         ID, not the raw DRG bare ID (`drg_urn_to_config_id`'s docstring,
         `_cascade_shared.py`): an org-pack-2..N node's bare DRG id and
@@ -610,16 +542,9 @@ class TestNoCascadeKindFilteredRendering:
             nodes=[("asset:ASSET_NC_RAW_BARE_ID", "asset")],
             edges=[],
         )
-        _write_org_pack_config(
-            project_root, [("nc-packA", "org-packs/nc-packA"), ("nc-packB", "org-packs/nc-packB")]
-        )
+        _write_org_pack_config(project_root, [("nc-packA", "org-packs/nc-packA"), ("nc-packB", "org-packs/nc-packB")])
 
-        result = _activate_kind_filtered_fixture(
-            project_root, "directive", "nc-stem-source"
-        )
+        result = _activate_kind_filtered_fixture(project_root, "directive", "nc-stem-source")
         assert result.exit_code == 0, result.output
-        assert (
-            "Not cascaded: asset/nc-resolved-asset-stem (kind not charter-activatable)"
-            in result.output
-        )
+        assert "Not cascaded: asset/nc-resolved-asset-stem (kind not charter-activatable)" in result.output
         assert "ASSET_NC_RAW_BARE_ID" not in result.output

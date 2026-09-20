@@ -21,6 +21,7 @@ See also:
   - ADR ``docs/adr/3.x/2026-06-07-1-execution-state-canonical-surface.md``
   - Contract ``kitty-specs/execution-state-canonical-surface-01KTG6P9/contracts/mission_runtime_api.md``
 """
+
 from __future__ import annotations
 
 import ast
@@ -179,7 +180,6 @@ class TestMissionRuntimeSurface:
 
         assert list(mission_runtime.__all__) == _PUBLIC_SURFACE
 
-
     def test_no_external_submodule_imports(self, evaluable: EvaluableArchitecture) -> None:
         """pytestarch rule: nothing imports mission_runtime internals directly.
 
@@ -219,10 +219,7 @@ def _is_internal_submodule_import(module_name: str) -> bool:
     and ``mission_runtime.resolution`` (and any future internal submodule) are
     bypass imports when referenced from outside the package.
     """
-    return (
-        module_name.startswith("mission_runtime.")
-        and module_name != "mission_runtime"
-    )
+    return module_name.startswith("mission_runtime.") and module_name != "mission_runtime"
 
 
 def _collect_type_checking_linenos(tree: ast.AST) -> set[int]:
@@ -232,10 +229,7 @@ def _collect_type_checking_linenos(tree: ast.AST) -> set[int]:
         if not isinstance(node, ast.If):
             continue
         test = node.test
-        is_type_checking = (
-            (isinstance(test, ast.Name) and test.id == "TYPE_CHECKING")
-            or (isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING")
-        )
+        is_type_checking = (isinstance(test, ast.Name) and test.id == "TYPE_CHECKING") or (isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING")
         if is_type_checking:
             for child in ast.walk(node):
                 if hasattr(child, "lineno"):
@@ -332,12 +326,8 @@ def test_ast_scan_catches_injected_violation(tmp_path: pathlib.Path) -> None:
         encoding="utf-8",
     )
     violations = scan_for_internal_imports([bad_file])
-    assert len(violations) == 1, (
-        f"Expected exactly 1 violation, got {len(violations)}: {violations}"
-    )
-    assert "mission_runtime.resolution" in violations[0], (
-        f"Expected 'mission_runtime.resolution' in violation, got: {violations[0]}"
-    )
+    assert len(violations) == 1, f"Expected exactly 1 violation, got {len(violations)}: {violations}"
+    assert "mission_runtime.resolution" in violations[0], f"Expected 'mission_runtime.resolution' in violation, got: {violations[0]}"
 
 
 def test_ast_scan_allows_package_root_import(tmp_path: pathlib.Path) -> None:
@@ -353,9 +343,7 @@ def test_ast_scan_allows_package_root_import(tmp_path: pathlib.Path) -> None:
         encoding="utf-8",
     )
     violations = scan_for_internal_imports([good_file])
-    assert not violations, (
-        f"Package-root import should not be flagged, got: {violations}"
-    )
+    assert not violations, f"Package-root import should not be flagged, got: {violations}"
 
 
 def test_ast_scan_ignores_type_checking_imports(tmp_path: pathlib.Path) -> None:
@@ -378,6 +366,4 @@ def test_ast_scan_ignores_type_checking_imports(tmp_path: pathlib.Path) -> None:
         encoding="utf-8",
     )
     violations = scan_for_internal_imports([safe_file])
-    assert not violations, (
-        f"TYPE_CHECKING imports should not be flagged, got: {violations}"
-    )
+    assert not violations, f"TYPE_CHECKING imports should not be flagged, got: {violations}"

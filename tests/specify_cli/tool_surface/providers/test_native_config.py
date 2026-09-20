@@ -145,7 +145,7 @@ def test_wp07_existing_vibe_helper_preserves_unowned_toml(tmp_path: Path) -> Non
 
     target = tmp_path / ".vibe/config.toml"
     target.parent.mkdir()
-    original = (b'# personal config\r\nskill_paths = ["custom"] # retain comment\r\n\r\n[tools]\r\nskill_paths = ["nested"]\r\ncustom = "value"\r\n\r\n')
+    original = b'# personal config\r\nskill_paths = ["custom"] # retain comment\r\n\r\n[tools]\r\nskill_paths = ["nested"]\r\ncustom = "value"\r\n\r\n'
     target.write_bytes(original)
     ensure_project_skill_path(tmp_path)
     assert target.read_bytes() == original.replace(b'["custom"]', b'["custom", ".agents/skills"]')

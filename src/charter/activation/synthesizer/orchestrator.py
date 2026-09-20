@@ -134,9 +134,7 @@ def _reconstruct_synthesis_result(
                 target_slug=prov.artifact_slug,
                 adapter_output=_AdapterOutput(
                     body=body,
-                    generated_at=parse_iso(prov.generated_at)
-                    if not isinstance(prov.generated_at, datetime)
-                    else prov.generated_at,
+                    generated_at=parse_iso(prov.generated_at) if not isinstance(prov.generated_at, datetime) else prov.generated_at,
                 ),
                 inputs_hash=prov.inputs_hash,
                 effective_adapter_id=prov.adapter_id,
@@ -152,9 +150,7 @@ def _reconstruct_synthesis_result(
         target_slug=first_prov.artifact_slug,
         adapter_output=_AdapterOutput(
             body=first_body,
-            generated_at=parse_iso(first_prov.generated_at)
-            if not isinstance(first_prov.generated_at, datetime)
-            else first_prov.generated_at,
+            generated_at=parse_iso(first_prov.generated_at) if not isinstance(first_prov.generated_at, datetime) else first_prov.generated_at,
         ),
         inputs_hash=first_prov.inputs_hash,
         effective_adapter_id=first_prov.adapter_id,
@@ -235,8 +231,7 @@ def synthesize(
         from . import write_pipeline as _write_pipeline  # noqa: PLC0415
     except ImportError as exc:
         raise NotImplementedError(
-            "synthesize() is not yet fully implemented — WP02 must deliver "
-            "synthesize_pipeline.py and WP03 must deliver write_pipeline.py."
+            "synthesize() is not yet fully implemented — WP02 must deliver synthesize_pipeline.py and WP03 must deliver write_pipeline.py."
         ) from exc
 
     # Version resolution is deliberately outside the import-guard above:
@@ -370,10 +365,7 @@ def resynthesize(
     try:
         from .resynthesize_pipeline import run as _run  # noqa: PLC0415
     except ImportError as exc:
-        raise NotImplementedError(
-            "resynthesize() is not yet implemented — WP05 will deliver "
-            "src/charter/activation/synthesizer/resynthesize_pipeline.py."
-        ) from exc
+        raise NotImplementedError("resynthesize() is not yet implemented — WP05 will deliver src/charter/activation/synthesizer/resynthesize_pipeline.py.") from exc
 
     # The pipeline call is deliberately outside the import-guard above: any
     # ImportError raised while *running* the pipeline (e.g. a transitive

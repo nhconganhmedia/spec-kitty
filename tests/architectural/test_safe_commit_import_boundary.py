@@ -143,23 +143,11 @@ def _source_imports_or_calls_evaluate(source: str) -> bool:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             if node.module == _COMMIT_GUARD_MODULE:
-                decision_aliases.update(
-                    alias.asname or alias.name
-                    for alias in node.names
-                    if alias.name in {_DECISION_SYMBOL, "*"}
-                )
+                decision_aliases.update(alias.asname or alias.name for alias in node.names if alias.name in {_DECISION_SYMBOL, "*"})
             elif node.module == "specify_cli.core":
-                module_aliases.update(
-                    alias.asname or alias.name
-                    for alias in node.names
-                    if alias.name == "commit_guard"
-                )
+                module_aliases.update(alias.asname or alias.name for alias in node.names if alias.name == "commit_guard")
         elif isinstance(node, ast.Import):
-            module_aliases.update(
-                alias.asname
-                for alias in node.names
-                if alias.name == _COMMIT_GUARD_MODULE and alias.asname
-            )
+            module_aliases.update(alias.asname for alias in node.names if alias.name == _COMMIT_GUARD_MODULE and alias.asname)
     if decision_aliases:
         return True
     for node in ast.walk(tree):
@@ -186,29 +174,15 @@ def _safe_commit_import_aliases(tree: ast.Module) -> tuple[set[str], set[str]]:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             if node.module == _SAFE_COMMIT_MODULE:
-                safe_commit_aliases.update(
-                    alias.asname or alias.name
-                    for alias in node.names
-                    if alias.name == "safe_commit"
-                )
+                safe_commit_aliases.update(alias.asname or alias.name for alias in node.names if alias.name == "safe_commit")
             elif node.module == "specify_cli.git":
-                module_aliases.update(
-                    alias.asname or alias.name
-                    for alias in node.names
-                    if alias.name == "commit_helpers"
-                )
+                module_aliases.update(alias.asname or alias.name for alias in node.names if alias.name == "commit_helpers")
         elif isinstance(node, ast.Import):
-            module_aliases.update(
-                alias.asname
-                for alias in node.names
-                if alias.name == _SAFE_COMMIT_MODULE and alias.asname
-            )
+            module_aliases.update(alias.asname for alias in node.names if alias.name == _SAFE_COMMIT_MODULE and alias.asname)
     return module_aliases, safe_commit_aliases
 
 
-def _is_safe_commit_ref(
-    expr: ast.expr, module_aliases: set[str], safe_commit_aliases: set[str]
-) -> bool:
+def _is_safe_commit_ref(expr: ast.expr, module_aliases: set[str], safe_commit_aliases: set[str]) -> bool:
     dotted = _dotted_name(expr)
     if dotted in safe_commit_aliases:
         return True
@@ -220,9 +194,7 @@ def _is_safe_commit_ref(
     return symbol == "safe_commit" and prefix in module_aliases
 
 
-def _propagate_safe_commit_rebindings(
-    tree: ast.Module, module_aliases: set[str], safe_commit_aliases: set[str]
-) -> None:
+def _propagate_safe_commit_rebindings(tree: ast.Module, module_aliases: set[str], safe_commit_aliases: set[str]) -> None:
     def is_ref(expr: ast.expr) -> bool:
         return _is_safe_commit_ref(expr, module_aliases, safe_commit_aliases)
 
@@ -230,15 +202,8 @@ def _propagate_safe_commit_rebindings(
         rebound: set[str] = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign) and is_ref(node.value):
-                rebound.update(
-                    target.id for target in node.targets if isinstance(target, ast.Name)
-                )
-            elif (
-                isinstance(node, ast.AnnAssign)
-                and isinstance(node.target, ast.Name)
-                and node.value is not None
-                and is_ref(node.value)
-            ):
+                rebound.update(target.id for target in node.targets if isinstance(target, ast.Name))
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None and is_ref(node.value):
                 rebound.add(node.target.id)
         rebound -= safe_commit_aliases
         if not rebound:
@@ -278,8 +243,7 @@ def _safe_commit_destination_ref_call_sites(path: Path) -> bool:
         "import specify_cli.core.commit_guard as guard\nguard.evaluate(None)",
         "from specify_cli.core import commit_guard as guard\nguard.evaluate(None)",
         "import specify_cli.core.commit_guard\nspecify_cli.core.commit_guard.evaluate(None)",
-        "import specify_cli.core.commit_guard as guard\n"
-        "decide = guard.evaluate\ndecide(None)",
+        "import specify_cli.core.commit_guard as guard\ndecide = guard.evaluate\ndecide(None)",
     ],
 )
 def test_evaluate_scanner_rejects_every_supported_import_shape(source: str) -> None:
@@ -289,16 +253,11 @@ def test_evaluate_scanner_rejects_every_supported_import_shape(source: str) -> N
 @pytest.mark.parametrize(
     "source",
     [
-        "import specify_cli.git.commit_helpers as commits\n"
-        "commits.safe_commit(repo, destination_ref='main')",
-        "from specify_cli.git import commit_helpers as commits\n"
-        "commits.safe_commit(repo, destination_ref='main')",
-        "from specify_cli.git.commit_helpers import safe_commit as commit\n"
-        "commit(repo, destination_ref='main')",
-        "import specify_cli.git.commit_helpers as commits\n"
-        "commit = commits.safe_commit\ncommit(repo, destination_ref='main')",
-        "from specify_cli.git.commit_helpers import safe_commit as commit\n"
-        "rebound = commit\nrebound(repo, destination_ref='main')",
+        "import specify_cli.git.commit_helpers as commits\ncommits.safe_commit(repo, destination_ref='main')",
+        "from specify_cli.git import commit_helpers as commits\ncommits.safe_commit(repo, destination_ref='main')",
+        "from specify_cli.git.commit_helpers import safe_commit as commit\ncommit(repo, destination_ref='main')",
+        "import specify_cli.git.commit_helpers as commits\ncommit = commits.safe_commit\ncommit(repo, destination_ref='main')",
+        "from specify_cli.git.commit_helpers import safe_commit as commit\nrebound = commit\nrebound(repo, destination_ref='main')",
     ],
 )
 def test_safe_commit_scanner_rejects_attribute_and_alias_forms(source: str) -> None:
@@ -416,7 +375,4 @@ def test_safe_commit_target_argument_is_seam_derived() -> None:
                 "test_no_write_side_rederivation.py with a tracked rationale"
             )
 
-    assert not offenders, (
-        "safe_commit(target=CommitTarget(...)) construction not seam-derived "
-        "(WP06 / T028 / FR-001). Offenders:\n" + "\n".join(offenders)
-    )
+    assert not offenders, "safe_commit(target=CommitTarget(...)) construction not seam-derived (WP06 / T028 / FR-001). Offenders:\n" + "\n".join(offenders)

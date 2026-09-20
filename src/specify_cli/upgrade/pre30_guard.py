@@ -4,6 +4,7 @@ Raises Pre30LayoutError when a mission directory still uses lane-directory
 layout (tasks/planned/, tasks/doing/, etc.). Called after feature_path is
 resolved, before any WP mutation.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,9 +22,7 @@ class Pre30LayoutError(Exception):
         self.detected_dirs = detected_dirs
         lane_hint = detected_dirs[0] if detected_dirs else "tasks/{lane}/"
         super().__init__(
-            f"Pre-3.0 layout detected (tasks/{lane_hint}/ directories or "
-            f"frontmatter lane state).\n"
-            f"Run `spec-kitty upgrade` to migrate before continuing."
+            f"Pre-3.0 layout detected (tasks/{lane_hint}/ directories or frontmatter lane state).\nRun `spec-kitty upgrade` to migrate before continuing."
         )
 
 
@@ -36,9 +35,5 @@ def check_pre30_layout(feature_path: Path) -> None:
     if not is_legacy_format(feature_path):
         return
     tasks_dir = feature_path / "tasks"
-    detected = [
-        d.name
-        for d in tasks_dir.iterdir()
-        if d.is_dir() and list(d.glob("*.md"))
-    ]
+    detected = [d.name for d in tasks_dir.iterdir() if d.is_dir() and list(d.glob("*.md"))]
     raise Pre30LayoutError(feature_path=feature_path, detected_dirs=detected)

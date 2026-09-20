@@ -22,7 +22,6 @@ __all__ = [
 ]
 
 
-
 _LANGUAGE_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("python", (r"\bpython\b", r"\bpytest\b", r"\bmypy\b", r"\bruff\b")),
     ("typescript", (r"\btypescript\b", r"\btsc\b")),

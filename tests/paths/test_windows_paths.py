@@ -1,4 +1,5 @@
 """Tests for RuntimeRoot and get_runtime_root() platform dispatch."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -12,6 +13,7 @@ from specify_cli.paths import RuntimeRoot, get_runtime_root
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
 
 def test_get_runtime_root_on_windows(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "win32")

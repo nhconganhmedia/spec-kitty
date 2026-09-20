@@ -104,21 +104,11 @@ def test_union_acceptance_history_handles_missing() -> None:
 
 
 def _target_trace() -> str:
-    return (
-        "# Mission Trace\n\n"
-        f"{_TARGET_MARKER}\n"
-        "## Target section\n"
-        "target body\n"
-    )
+    return f"# Mission Trace\n\n{_TARGET_MARKER}\n## Target section\ntarget body\n"
 
 
 def _coord_trace() -> str:
-    return (
-        "# Mission Trace\n\n"
-        f"{_COORD_MARKER}\n"
-        "## Coord section\n"
-        "coord body\n"
-    )
+    return f"# Mission Trace\n\n{_COORD_MARKER}\n## Coord section\ncoord body\n"
 
 
 def test_union_traces_target_newer_section_survives() -> None:

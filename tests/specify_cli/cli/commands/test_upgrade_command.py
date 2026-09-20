@@ -59,13 +59,7 @@ def _strip_ansi(text: str) -> str:
 
 
 _WORKTREE_ROOT = Path(__file__).parent.parent.parent.parent.parent  # repo root
-_CONTRACT_PATH = (
-    _WORKTREE_ROOT
-    / "kitty-specs"
-    / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN"
-    / "contracts"
-    / "compat-planner.json"
-)
+_CONTRACT_PATH = _WORKTREE_ROOT / "kitty-specs" / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN" / "contracts" / "compat-planner.json"
 
 
 def _load_contract(contract_path: Path) -> dict[str, Any]:
@@ -248,9 +242,7 @@ def test_agent_check_json_prompts_when_update_available(tmp_path: Path, monkeypa
     assert "upgrade_command" in payload
 
 
-def test_agent_check_guidance_when_upgrade_command_unavailable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_agent_check_guidance_when_upgrade_command_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.compat._detect.install_method import InstallMethod
     from specify_cli.compat.cache import NagCache
     from specify_cli.compat.provider import PyPIProvider
@@ -400,11 +392,15 @@ def test_cli_update_available_json_contract(tmp_path: Path) -> None:
     # CLI guidance is read-only: it consumes known version data from the cache.
     cache_path = tmp_path / "upgrade-nag-test.json"
     cache = NagCache(cache_path)
-    cache.write(NagCacheRecord(
-        cli_version_key=_cache_version_key(_get_installed_version(), prerelease=prerelease_enabled()),
-        latest_version="999.0.0", latest_source="pypi",
-        fetched_at=now_utc(), last_shown_at=None,
-    ))
+    cache.write(
+        NagCacheRecord(
+            cli_version_key=_cache_version_key(_get_installed_version(), prerelease=prerelease_enabled()),
+            latest_version="999.0.0",
+            latest_source="pypi",
+            fetched_at=now_utc(),
+            last_shown_at=None,
+        )
+    )
     before = cache_path.read_bytes()
     with patch("specify_cli.compat.cache.NagCache.default", return_value=cache):
         result = _invoke_upgrade(["--cli", "--json"], cwd=tmp_path)
@@ -791,18 +787,13 @@ def test_bare_upgrade_outside_project_exits_0(tmp_path: Path) -> None:
     """Bare 'spec-kitty upgrade' outside a project exits 0 (FR-014 fall-through to --cli)."""
     # tmp_path has no .kittify
     result = _invoke_upgrade([], cwd=tmp_path)
-    assert result.exit_code == 0, (
-        f"Expected exit 0 for bare upgrade outside project (FR-014), got {result.exit_code}. "
-        f"Output: {result.output}"
-    )
+    assert result.exit_code == 0, f"Expected exit 0 for bare upgrade outside project (FR-014), got {result.exit_code}. Output: {result.output}"
 
 
 def test_bare_upgrade_outside_project_no_error_message(tmp_path: Path) -> None:
     """Bare 'spec-kitty upgrade' outside a project must NOT print 'Not a Spec Kitty project'."""
     result = _invoke_upgrade([], cwd=tmp_path)
-    assert "not a spec kitty project" not in result.output.lower(), (
-        f"Bare upgrade should not show project-error message. Output: {result.output}"
-    )
+    assert "not a spec kitty project" not in result.output.lower(), f"Bare upgrade should not show project-error message. Output: {result.output}"
 
 
 def test_project_flag_outside_project_still_errors(tmp_path: Path) -> None:
@@ -810,11 +801,7 @@ def test_project_flag_outside_project_still_errors(tmp_path: Path) -> None:
     result = _invoke_upgrade(["--project"], cwd=tmp_path)
     assert result.exit_code != 0, "Expected non-zero exit for --project outside a project"
     combined = (result.output or "") + (result.stderr or "")
-    assert (
-        "not a spec kitty project" in combined.lower()
-        or "no project" in combined.lower()
-        or "init" in combined.lower()
-    )
+    assert "not a spec kitty project" in combined.lower() or "no project" in combined.lower() or "init" in combined.lower()
 
 
 def test_planner_json_too_new_project_has_exit_code_5_in_payload(tmp_path: Path) -> None:
@@ -1046,9 +1033,7 @@ def _render_upgrade_outcome(result: Any) -> str:
 def test_dry_run_success_does_not_print_upgrade_complete() -> None:
     """A --dry-run never prints a line implying changes were applied (FR-013)."""
     output = _render_upgrade_outcome(_make_upgrade_result(dry_run=True))
-    assert "Upgrade complete!" not in output, (
-        f"--dry-run printed a success line implying changes were applied:\n{output}"
-    )
+    assert "Upgrade complete!" not in output, f"--dry-run printed a success line implying changes were applied:\n{output}"
     assert "Dry run complete" in output
     assert "no changes applied" in output
 
@@ -1173,12 +1158,7 @@ def test_contract_loads_from_a_simulated_non_worktrees_layout(tmp_path: Path) ->
     fake_test_file.parent.mkdir(parents=True, exist_ok=True)
     fake_test_file.write_text("# stub\n", encoding="utf-8")
 
-    fake_contract_dir = (
-        fake_repo_root
-        / "kitty-specs"
-        / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN"
-        / "contracts"
-    )
+    fake_contract_dir = fake_repo_root / "kitty-specs" / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN" / "contracts"
     fake_contract_dir.mkdir(parents=True, exist_ok=True)
     fake_contract_path = fake_contract_dir / "compat-planner.json"
     fake_contract_path.write_text(_CONTRACT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
@@ -1186,13 +1166,7 @@ def test_contract_loads_from_a_simulated_non_worktrees_layout(tmp_path: Path) ->
     assert ".worktrees" not in str(fake_repo_root)
 
     resolved_root = fake_test_file.parent.parent.parent.parent.parent
-    resolved_contract_path = (
-        resolved_root
-        / "kitty-specs"
-        / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN"
-        / "contracts"
-        / "compat-planner.json"
-    )
+    resolved_contract_path = resolved_root / "kitty-specs" / "cli-upgrade-nag-lazy-project-migrations-01KQ6YDN" / "contracts" / "compat-planner.json"
     assert resolved_root == fake_repo_root
     assert resolved_contract_path == fake_contract_path
 
@@ -1252,10 +1226,7 @@ def test_no_op_upgrade_stamps_last_upgraded_at_as_aware_utc(tmp_path: Path) -> N
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
     (kittify / "metadata.yaml").write_text(
-        "spec_kitty:\n"
-        "  schema_version: 3\n"
-        "  version: 0.1.0\n"
-        "  initialized_at: '2020-01-01T00:00:00+00:00'\n",
+        "spec_kitty:\n  schema_version: 3\n  version: 0.1.0\n  initialized_at: '2020-01-01T00:00:00+00:00'\n",
         encoding="utf-8",
     )
 
@@ -1267,8 +1238,7 @@ def test_no_op_upgrade_stamps_last_upgraded_at_as_aware_utc(tmp_path: Path) -> N
     last_upgraded_at = data["spec_kitty"]["last_upgraded_at"]
     assert isinstance(last_upgraded_at, str), "expected an unquoted ISO string in the raw YAML"
     assert last_upgraded_at.endswith("+00:00"), (
-        f"last_upgraded_at={last_upgraded_at!r} is missing the aware-UTC offset suffix "
-        "-- the naive datetime.now() regression has returned"
+        f"last_upgraded_at={last_upgraded_at!r} is missing the aware-UTC offset suffix -- the naive datetime.now() regression has returned"
     )
 
 
@@ -1303,16 +1273,12 @@ def test_load_upgrade_system_with_heal_retries_after_pycache_heal(
             assert root is not None
             fake_pyc = root / "upgrade" / "migrations" / "__pycache__" / "base.cpython-311.pyc"
             cause = ImportError(f"Non-code object in '{fake_pyc}'")
-            raise migrations.MigrationDiscoveryError(
-                f"Failed to import migration module(s): base: {cause}"
-            ) from cause
+            raise migrations.MigrationDiscoveryError(f"Failed to import migration module(s): base: {cause}") from cause
 
     printed: list[str] = []
     monkeypatch.setattr(migrations, "auto_discover_migrations", flaky)
     monkeypatch.setattr(bytecode_heal, "purge_package_bytecode", lambda: 7)
-    monkeypatch.setattr(
-        upgrade_mod.console, "print", lambda *args, **kwargs: printed.append(" ".join(str(a) for a in args))
-    )
+    monkeypatch.setattr(upgrade_mod.console, "print", lambda *args, **kwargs: printed.append(" ".join(str(a) for a in args)))
 
     detector, registry, runner, validate = upgrade_mod._load_upgrade_system_with_heal()
 
@@ -1354,9 +1320,7 @@ def test_load_upgrade_system_with_heal_propagates_laundered_genuine_import_bug(
 
     def broken_module() -> None:
         cause = SyntaxError("invalid syntax (m_0_10_12_charter_cleanup.py, line 1)")
-        raise migrations.MigrationDiscoveryError(
-            f"Failed to import migration module(s): m_0_10_12_charter_cleanup: {cause}"
-        ) from cause
+        raise migrations.MigrationDiscoveryError(f"Failed to import migration module(s): m_0_10_12_charter_cleanup: {cause}") from cause
 
     purged: list[int] = []
     monkeypatch.setattr(migrations, "auto_discover_migrations", broken_module)

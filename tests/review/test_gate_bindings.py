@@ -193,9 +193,7 @@ def test_resolve_active_negative_control_deactivated(tmp_path: Path) -> None:
 
 
 def test_resolve_active_edge_mismatch_returns_empty() -> None:
-    active = resolve_active_gate_bindings(
-        frozenset({_OWNING_URN}), [_binding(on_transition="for_review->in_review")], _EDGE, _OWNING_URN
-    )
+    active = resolve_active_gate_bindings(frozenset({_OWNING_URN}), [_binding(on_transition="for_review->in_review")], _EDGE, _OWNING_URN)
     assert active == []
 
 

@@ -49,10 +49,7 @@ class ContextPreconditionError(RuntimeError):
     hint: str | None = None
 
     def __str__(self) -> str:
-        base = (
-            f"Context precondition failed: '{self.field}' is required "
-            f"but absent in {self.context_type}"
-        )
+        base = f"Context precondition failed: '{self.field}' is required but absent in {self.context_type}"
         if self.hint:
             return f"{base}. {self.hint}"
         return base
@@ -127,25 +124,19 @@ class ProjectContext:
     def require_repo_root(self) -> Path:
         """Return ``repo_root`` or raise ``ContextPreconditionError``."""
         if self.repo_root is None:
-            raise ContextPreconditionError(
-                field="repo_root", context_type="ProjectContext"
-            )
+            raise ContextPreconditionError(field="repo_root", context_type="ProjectContext")
         return self.repo_root
 
     def require_pack_context(self) -> PackContext:
         """Return ``pack_context`` or raise ``ContextPreconditionError``."""
         if self.pack_context is None:
-            raise ContextPreconditionError(
-                field="pack_context", context_type="ProjectContext"
-            )
+            raise ContextPreconditionError(field="pack_context", context_type="ProjectContext")
         return self.pack_context
 
     def require_org_root(self) -> Path:
         """Return ``org_root`` or raise ``ContextPreconditionError``."""
         if self.org_root is None:
-            raise ContextPreconditionError(
-                field="org_root", context_type="ProjectContext"
-            )
+            raise ContextPreconditionError(field="org_root", context_type="ProjectContext")
         return self.org_root
 
 
@@ -189,10 +180,7 @@ class OperationalContext:
             raise ContextPreconditionError(
                 field="active_profile",
                 context_type="OperationalContext",
-                hint=(
-                    "Resolve the active agent profile and pass it as "
-                    "build_operational_context(active_profile=<profile_id>)."
-                ),
+                hint=("Resolve the active agent profile and pass it as build_operational_context(active_profile=<profile_id>)."),
             )
         return self.active_profile
 
@@ -206,10 +194,7 @@ class OperationalContext:
             raise ContextPreconditionError(
                 field="active_role",
                 context_type="OperationalContext",
-                hint=(
-                    "Resolve the active agent role and pass it as "
-                    "build_operational_context(active_role=<role>)."
-                ),
+                hint=("Resolve the active agent role and pass it as build_operational_context(active_role=<role>)."),
             )
         return self.active_role
 

@@ -114,9 +114,7 @@ def _run_command(cmd: list[str], **_kwargs: object) -> tuple[int, str, str]:
     return (0, "", "")
 
 
-def _invoke_finalize(
-    tmp_path: Path, feature_dir: Path, extra_args: list[str] | None = None
-):
+def _invoke_finalize(tmp_path: Path, feature_dir: Path, extra_args: list[str] | None = None):
     args = ["finalize-tasks", "--mission", feature_dir.name, "--json"]
     if extra_args:
         args.extend(extra_args)
@@ -326,10 +324,7 @@ def test_inference_reject_unset_mode_code_signal_stays_fail_closed(tmp_path: Pat
 
     The resolved ``code_change`` mode is asserted BEFORE the rejection, so a naive
     kitty-specs-owning WP that would infer planning cannot pass as a false negative."""
-    body = (
-        "# WP01\nImplement the change in src/specify_cli/foo.py and cover it in "
-        "tests/test_foo.py.\n"
-    )
+    body = "# WP01\nImplement the change in src/specify_cli/foo.py and cover it in tests/test_foo.py.\n"
     owned = [f"kitty-specs/{MISSION_SLUG}/disposition-matrix.md"]
 
     # (a) resolved mode is code_change (read-back via the inference seam).

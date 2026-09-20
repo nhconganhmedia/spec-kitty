@@ -247,9 +247,7 @@ def classify_catalog_miss(
     if not candidates:
         return CatalogMissDiagnosis(cause=CatalogMissCause.MISSING_ARTIFACT)
 
-    matches = difflib.get_close_matches(
-        missing_id, candidates, n=1, cutoff=_TYPO_SIMILARITY_CUTOFF
-    )
+    matches = difflib.get_close_matches(missing_id, candidates, n=1, cutoff=_TYPO_SIMILARITY_CUTOFF)
     if matches:
         return CatalogMissDiagnosis(
             cause=CatalogMissCause.TYPO_SUSPECTED,
@@ -338,10 +336,7 @@ def format_catalog_miss_stanza(
     lines: list[str] = [f"{indent}(catalog entry not found for {selector})"]
     lines.append(f"{indent}  Cause: {diagnosis.cause.value}")
     if diagnosis.cause is CatalogMissCause.TYPO_SUSPECTED and diagnosis.suggestion:
-        lines.append(
-            f"{indent}  Suggestion: did you mean '{diagnosis.suggestion}'? "
-            "Update the charter selection to match the canonical ID."
-        )
+        lines.append(f"{indent}  Suggestion: did you mean '{diagnosis.suggestion}'? Update the charter selection to match the canonical ID.")
     elif diagnosis.cause is CatalogMissCause.SCHEMA_VALIDATION_SUSPECTED:
         lines.append(
             f"{indent}  Suggestion: the artifact YAML failed Pydantic "
@@ -405,10 +400,7 @@ def emit_catalog_miss_warning(
             module.  Defaults to ``3`` to point past the renderer
             helper.
     """
-    if (
-        diagnosis.cause is CatalogMissCause.SCOPE_FILTERED
-        and selector_kind in _QUIET_SCOPE_FILTERED_KINDS
-    ):
+    if diagnosis.cause is CatalogMissCause.SCOPE_FILTERED and selector_kind in _QUIET_SCOPE_FILTERED_KINDS:
         return
 
     emission_key = (selector_kind, artifact_id)

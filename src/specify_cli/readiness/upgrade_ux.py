@@ -66,6 +66,7 @@ class _PlanResultLike(Protocol):
 class _NagCacheLike(Protocol):
     def write(self, record: NagCacheRecord) -> None: ...
 
+
 # Public env keys (WS3 acceptance criterion 4).
 ENV_UPGRADE_AUTO = "SPEC_KITTY_UPGRADE_AUTO"
 ENV_UPGRADE_NEVER_ASK = "SPEC_KITTY_UPGRADE_NEVER_ASK"
@@ -100,9 +101,7 @@ _CADENCE_SECONDS: dict[str | None, tuple[str, int]] = {
 }
 
 
-def advance_snooze(
-    current: str | None, *, now: datetime
-) -> tuple[str, datetime]:
+def advance_snooze(current: str | None, *, now: datetime) -> tuple[str, datetime]:
     """Advance the cadence ladder one step.
 
     The mapping is::
@@ -199,9 +198,7 @@ def needs_reset(
     return record_remote_version != current_latest
 
 
-def is_currently_snoozed(
-    *, snoozed_until: datetime | None, now: datetime
-) -> bool:
+def is_currently_snoozed(*, snoozed_until: datetime | None, now: datetime) -> bool:
     """Return True iff the prompt should be suppressed by an active snooze."""
     if snoozed_until is None:
         return False
@@ -284,11 +281,7 @@ def _append_upgrade_attempt_record(
             UpgradeAttemptStore,
         )
 
-        outcome = (
-            UpgradeAttemptOutcome.SUCCESS
-            if completed.returncode == 0
-            else UpgradeAttemptOutcome.FAILURE
-        )
+        outcome = UpgradeAttemptOutcome.SUCCESS if completed.returncode == 0 else UpgradeAttemptOutcome.FAILURE
         record = UpgradeAttemptRecord(
             attempt_id=str(ulid.ULID()),
             timestamp=now_utc(),
@@ -476,9 +469,7 @@ def _print_unsafe_installer_guidance(method_name: str) -> None:
     from rich.console import Console
 
     out = Console(stderr=True)
-    out.print(
-        f"[yellow]spec-kitty cannot auto-upgrade for install method '{method_name}'.[/yellow]"
-    )
+    out.print(f"[yellow]spec-kitty cannot auto-upgrade for install method '{method_name}'.[/yellow]")
     out.print("  Upgrade manually with the package manager you used to install spec-kitty,")
     out.print("  or run `spec-kitty upgrade` interactively.")
 
@@ -576,11 +567,7 @@ def _run_auto_upgrade_if_safe(
             # Override install_method with what installer_detector() returned —
             # in tests the injected detector may differ from detect_runtime().
             # Receipt-derived fields (python, tool_dir, etc.) come from detect_runtime().
-            runtime = (
-                _replace(raw_runtime, install_method=method, safe_for_auto_upgrade=True)
-                if isinstance(method, InstallMethod)
-                else raw_runtime
-            )
+            runtime = _replace(raw_runtime, install_method=method, safe_for_auto_upgrade=True) if isinstance(method, InstallMethod) else raw_runtime
             cmd = plan_remediation(runtime, RemediationIntent.UPGRADE, latest_version)
             runner_exit = _default_upgrade_runner(cmd, runtime, target_version=latest_version).returncode
         else:
@@ -709,8 +696,10 @@ def run_upgrade_ux(
         from specify_cli.compat._detect.runtime import detect_runtime
 
         if installer_detector is None:
+
             def _default_installer_detector() -> object:
                 return detect_runtime().install_method
+
             installer_detector = _default_installer_detector
 
         # Kill switch (env-only; not persisted).

@@ -190,9 +190,7 @@ class AgentProfileSchema(BaseModel):
     profile_id: str = Field(alias="profile-id", pattern=r"^[a-z][a-z0-9-]*$")
     name: str
     description: str | None = None
-    schema_version: str | None = Field(
-        default=None, alias="schema-version", pattern=AGENT_PROFILE_SCHEMA_VERSION_PATTERN
-    )
+    schema_version: str | None = Field(default=None, alias="schema-version", pattern=AGENT_PROFILE_SCHEMA_VERSION_PATTERN)
     purpose: str
     role: str | None = Field(
         default=None,
@@ -230,34 +228,22 @@ class AgentProfileSchema(BaseModel):
     initialization_declaration: str | None = Field(default=None, alias="initialization-declaration")
 
     # Section 6: Specialization context
-    specialization_context: AgentSpecializationContext | None = Field(
-        default=None, alias="specialization-context"
-    )
+    specialization_context: AgentSpecializationContext | None = Field(default=None, alias="specialization-context")
 
     # Directive references
-    directive_references: list[AgentDirectiveReference] = Field(
-        default_factory=list, alias="directive-references"
-    )
+    directive_references: list[AgentDirectiveReference] = Field(default_factory=list, alias="directive-references")
 
     # Tactic references
-    tactic_references: list[AgentTacticReference] = Field(
-        default_factory=list, alias="tactic-references"
-    )
+    tactic_references: list[AgentTacticReference] = Field(default_factory=list, alias="tactic-references")
 
     # Toolguide references
-    toolguide_references: list[AgentToolguideReference] = Field(
-        default_factory=list, alias="toolguide-references"
-    )
+    toolguide_references: list[AgentToolguideReference] = Field(default_factory=list, alias="toolguide-references")
 
     # Styleguide references
-    styleguide_references: list[AgentStyleguideReference] = Field(
-        default_factory=list, alias="styleguide-references"
-    )
+    styleguide_references: list[AgentStyleguideReference] = Field(default_factory=list, alias="styleguide-references")
 
     # Self-review protocol
-    self_review_protocol: SelfReviewProtocol | None = Field(
-        default=None, alias="self-review-protocol"
-    )
+    self_review_protocol: SelfReviewProtocol | None = Field(default=None, alias="self-review-protocol")
 
     @model_validator(mode="before")
     @classmethod

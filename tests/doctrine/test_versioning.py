@@ -327,14 +327,10 @@ def test_run_migration_raises_key_error_for_unregistered_version(tmp_path: Path)
 def test_run_migration_v1_returns_migration_result(tmp_path: Path) -> None:
     """The v1 migration (WP03 implementation) returns a MigrationResult; does not raise."""
     # A metadata.yaml without bundle_schema_version is treated as v1 and gets stamped.
-    (tmp_path / "metadata.yaml").write_text(
-        "charter_slug: test-charter\n", encoding="utf-8"
-    )
+    (tmp_path / "metadata.yaml").write_text("charter_slug: test-charter\n", encoding="utf-8")
     # consolidate-charter-bundle (WP07 / T030): step 3 now stamps
     # charter.yaml's metadata section, not the retired metadata.yaml.
-    (tmp_path / "charter.yaml").write_text(
-        "schema_version: '2.0.0'\n", encoding="utf-8"
-    )
+    (tmp_path / "charter.yaml").write_text("schema_version: '2.0.0'\n", encoding="utf-8")
     result = run_migration(1, tmp_path)
     assert isinstance(result, MigrationResult)
     assert result.from_version == 1
@@ -353,9 +349,7 @@ def test_run_migration_v1_backfills_manifest_and_sidecar_fields(tmp_path: Path) 
     assert result.errors == []
     manifest_path = tmp_path / "synthesis-manifest.yaml"
     manifest = manifest_path.read_text(encoding="utf-8")
-    sidecar = (tmp_path / "provenance" / "directive-use-prs.yaml").read_text(
-        encoding="utf-8"
-    )
+    sidecar = (tmp_path / "provenance" / "directive-use-prs.yaml").read_text(encoding="utf-8")
     assert "synthesizer_version: (pre-phase7-migration)" in manifest
     assert "mission_id:" in manifest
     assert "built_in_only: false" in manifest
@@ -365,9 +359,7 @@ def test_run_migration_v1_backfills_manifest_and_sidecar_fields(tmp_path: Path) 
     assert "source_input_ids:" in sidecar
 
 
-def test_run_migration_v1_uses_sentinel_when_sidecar_stat_fails(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_migration_v1_uses_sentinel_when_sidecar_stat_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     target_sidecar = _write_v1_bundle(tmp_path)
     original_stat = Path.stat
 
@@ -381,9 +373,7 @@ def test_run_migration_v1_uses_sentinel_when_sidecar_stat_fails(
     result = run_migration(1, tmp_path)
 
     assert result.errors == []
-    sidecar = (tmp_path / "provenance" / "directive-use-prs.yaml").read_text(
-        encoding="utf-8"
-    )
+    sidecar = (tmp_path / "provenance" / "directive-use-prs.yaml").read_text(encoding="utf-8")
     assert "produced_at: (pre-phase7-migration)" in sidecar
 
 
@@ -407,9 +397,12 @@ def _write_legacy_v2_manifest(
         "synthesizer_version": "3.2.6",
         "artifacts": [],
     }
-    manifest_data["manifest_hash"] = stored_hash or hashlib.sha256(  # noqa: TID251 — legacy v2 manifest self-hash fixture
-        canonical_yaml(manifest_data)
-    ).hexdigest()
+    manifest_data["manifest_hash"] = (
+        stored_hash
+        or hashlib.sha256(  # noqa: TID251 — legacy v2 manifest self-hash fixture
+            canonical_yaml(manifest_data)
+        ).hexdigest()
+    )
 
     manifest_path = bundle_root / "synthesis-manifest.yaml"
     yaml = YAML()
@@ -426,9 +419,7 @@ def test_repair_v2_manifest_no_manifest_is_noop(tmp_path: Path) -> None:
     assert result.errors == []
 
 
-def test_repair_v2_manifest_load_error_is_reported(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_repair_v2_manifest_load_error_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import charter.offering.versioning as versioning
 
     (tmp_path / "synthesis-manifest.yaml").write_text("schema_version: '2'\n")
@@ -468,9 +459,7 @@ def test_repair_v2_manifest_missing_hash_is_error(tmp_path: Path) -> None:
     result = repair_v2_synthesis_manifest_defaults(tmp_path)
 
     assert result.changes_made == []
-    assert result.errors == [
-        "Cannot repair synthesis-manifest.yaml: manifest_hash is missing or invalid."
-    ]
+    assert result.errors == ["Cannot repair synthesis-manifest.yaml: manifest_hash is missing or invalid."]
 
 
 def test_repair_v2_manifest_hash_mismatch_is_error(tmp_path: Path) -> None:
@@ -479,10 +468,7 @@ def test_repair_v2_manifest_hash_mismatch_is_error(tmp_path: Path) -> None:
     result = repair_v2_synthesis_manifest_defaults(tmp_path)
 
     assert result.changes_made == []
-    assert result.errors == [
-        "Cannot repair synthesis-manifest.yaml: existing manifest_hash does not "
-        "match the pre-built_in_only v2 payload."
-    ]
+    assert result.errors == ["Cannot repair synthesis-manifest.yaml: existing manifest_hash does not match the pre-built_in_only v2 payload."]
 
 
 def test_repair_v2_manifest_writes_canonical_default(tmp_path: Path) -> None:
@@ -511,9 +497,7 @@ def test_repair_v2_manifest_dry_run_reports_without_write(tmp_path: Path) -> Non
     assert "built_in_only" not in YAML().load(manifest_path)
 
 
-def test_repair_v2_manifest_write_error_is_reported(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_repair_v2_manifest_write_error_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     manifest_path = _write_legacy_v2_manifest(tmp_path)
     original_write_bytes = Path.write_bytes
 
@@ -586,16 +570,12 @@ def test_versioning_does_not_import_charter() -> None:
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             if isinstance(node, ast.ImportFrom) and node.module:
-                assert node.module == "charter.offering" or node.module.startswith(
-                    "charter.offering."
-                ) or not node.module.startswith("charter"), (
+                assert node.module == "charter.offering" or node.module.startswith("charter.offering.") or not node.module.startswith("charter"), (
                     f"charter.offering.versioning imports from charter's activation layer: {node.module}"
                 )
             elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    assert alias.name == "charter.offering" or alias.name.startswith(
-                        "charter.offering."
-                    ) or not alias.name.startswith("charter"), (
+                    assert alias.name == "charter.offering" or alias.name.startswith("charter.offering.") or not alias.name.startswith("charter"), (
                         f"charter.offering.versioning imports charter's activation layer: {alias.name}"
                     )
 
@@ -633,11 +613,7 @@ def test_versioning_charter_filename_literals_match_charter_bundle() -> None:
     source = inspect.getsource(charter.offering.versioning)
     tree = ast.parse(source)
     literals_found = {
-        node.value
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and node.value in {"charter.yaml", "charter.md"}
+        node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value in {"charter.yaml", "charter.md"}
     }
 
     assert literals_found, (
@@ -685,9 +661,7 @@ class TestDumpYamlSafeDirect:
         assert target.exists()
         assert _rt_yaml().load(target) == {"a": 1}
 
-    def test_write_failure_is_appended_to_errors_not_raised(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_write_failure_is_appended_to_errors_not_raised(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         target = tmp_path / "out.yaml"
         original_write_bytes = Path.write_bytes
 
@@ -706,9 +680,7 @@ class TestDumpYamlSafeDirect:
 
 
 class TestApplyV2SidecarDefaultsDirect:
-    def test_fills_sentinel_defaults_and_stamps_schema_version(
-        self, tmp_path: Path
-    ) -> None:
+    def test_fills_sentinel_defaults_and_stamps_schema_version(self, tmp_path: Path) -> None:
         sidecar_path = tmp_path / "sidecar.yaml"
         sidecar_path.write_text("schema_version: '1'\n", encoding="utf-8")
         data: dict[str, object] = {"schema_version": "1", "source_urns": ["drg:directive:X"]}
@@ -740,9 +712,7 @@ class TestApplyV2SidecarDefaultsDirect:
         assert data["source_input_ids"] == ["already-set"]
         assert data["corpus_snapshot_id"] == "snap-123"
 
-    def test_uses_sentinel_when_stat_fails(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_uses_sentinel_when_stat_fails(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         sidecar_path = tmp_path / "sidecar.yaml"
         sidecar_path.write_text("schema_version: '1'\n", encoding="utf-8")
 
@@ -763,9 +733,7 @@ class TestMigrateProvenanceSidecarsDirect:
         assert changes == []
         assert errors == []
 
-    def test_already_migrated_sidecar_is_skipped_idempotently(
-        self, tmp_path: Path
-    ) -> None:
+    def test_already_migrated_sidecar_is_skipped_idempotently(self, tmp_path: Path) -> None:
         provenance_dir = tmp_path / "provenance"
         provenance_dir.mkdir()
         sidecar = provenance_dir / "already-v2.yaml"
@@ -815,9 +783,7 @@ class TestMigrateSynthesisManifestDirect:
         assert changes == []
         assert errors == []
 
-    def test_load_error_is_reported_and_does_not_raise(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_load_error_is_reported_and_does_not_raise(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         manifest_path = tmp_path / "synthesis-manifest.yaml"
         manifest_path.write_text("schema_version: '1'\n", encoding="utf-8")
 

@@ -81,9 +81,7 @@ def test_doctor_skills_json_has_frozen_top_level_keys(tmp_path: Path) -> None:
         "unsafe",
         "slash_commands",
     }
-    assert frozen_keys.issubset(output.keys()), (
-        f"Missing frozen keys: {frozen_keys - set(output.keys())}"
-    )
+    assert frozen_keys.issubset(output.keys()), f"Missing frozen keys: {frozen_keys - set(output.keys())}"
     assert isinstance(output["ok"], bool)
     for list_key in ("configured_agents", "drift", "gaps", "orphans", "stale", "unsafe"):
         assert isinstance(output[list_key], list), f"{list_key} must be a list"
@@ -155,9 +153,7 @@ def test_doctor_surface_kinds_are_known_enum_members() -> None:
 
     valid = {kind.value for kind in ToolSurfaceKind}
     missing = EXPECTED_SURFACE_KINDS - valid
-    assert not missing, (
-        f"frozen surface kinds no longer exist in ToolSurfaceKind enum: {missing}"
-    )
+    assert not missing, f"frozen surface kinds no longer exist in ToolSurfaceKind enum: {missing}"
 
 
 def test_doctor_emits_agent_profile_kind(tmp_path: Path) -> None:
@@ -173,26 +169,16 @@ def test_doctor_emits_agent_profile_kind(tmp_path: Path) -> None:
     payload = result.json()
 
     actual_kinds = {surface["kind"] for surface in payload["surfaces"]}
-    assert "agent_profile" in actual_kinds, (
-        "doctor tool-surfaces must report the agent_profile surface kind"
-    )
+    assert "agent_profile" in actual_kinds, "doctor tool-surfaces must report the agent_profile surface kind"
     # Additive-only: nothing emitted may be an unknown kind.
     from specify_cli.tool_surface.enums import ToolSurfaceKind
 
     valid = {kind.value for kind in ToolSurfaceKind}
-    assert actual_kinds <= valid, (
-        f"doctor emitted unknown surface kinds: {actual_kinds - valid}"
-    )
+    assert actual_kinds <= valid, f"doctor emitted unknown surface kinds: {actual_kinds - valid}"
 
     # FR-016: agent_profile states for codex are concrete (not research_gap).
-    codex_profile_states = {
-        surface["state"]
-        for surface in payload["surfaces"]
-        if surface["kind"] == "agent_profile" and surface["tool"] == "codex"
-    }
-    assert "research_gap" not in codex_profile_states, (
-        "Codex agent-profile must not report research_gap after its renderer lands"
-    )
+    codex_profile_states = {surface["state"] for surface in payload["surfaces"] if surface["kind"] == "agent_profile" and surface["tool"] == "codex"}
+    assert "research_gap" not in codex_profile_states, "Codex agent-profile must not report research_gap after its renderer lands"
 
 
 def test_baseline_fixture_is_machine_independent() -> None:

@@ -47,17 +47,13 @@ def _edge_projection(
     """Full edge identity incl. gate metadata: ``(source, target, relation,
     when, reason)`` — so a dropped or mutated ``when`` is not silently tolerated.
     """
-    return {
-        (e.source, e.target, e.relation.value, e.when, e.reason) for e in graph.edges
-    }
+    return {(e.source, e.target, e.relation.value, e.when, e.reason) for e in graph.edges}
 
 
 def _regenerate_into(directory: Path) -> DRGGraph:
     """Regenerate the shipped built-in DRG (extractor + hand-authored overlay)
     into *directory* as per-kind fragments; return the composed graph."""
-    return write_reference_graph_with_overlay(
-        built_in_graph_source(), directory / "graph.yaml"
-    )
+    return write_reference_graph_with_overlay(built_in_graph_source(), directory / "graph.yaml")
 
 
 class TestRegenerationWriteTarget:
@@ -72,10 +68,7 @@ class TestRegenerationWriteTarget:
 
     def test_old_src_doctrine_home_carries_no_fragments(self) -> None:
         stale = sorted((_REPO_ROOT / "src" / "charter" / "offering").glob("*.graph.yaml"))
-        assert stale == [], (
-            "graph fragments still sit under the retired src/doctrine home: "
-            f"{[p.name for p in stale]}"
-        )
+        assert stale == [], f"graph fragments still sit under the retired src/doctrine home: {[p.name for p in stale]}"
 
 
 class TestRegenerationRoundTrips:
@@ -93,10 +86,7 @@ class TestRegenerationRoundTrips:
 
     def test_regenerated_fragments_are_byte_identical(self) -> None:
         def _fragments(directory: Path) -> dict[str, str]:
-            return {
-                p.name: p.read_text(encoding="utf-8")
-                for p in sorted(directory.glob("*.graph.yaml"))
-            }
+            return {p.name: p.read_text(encoding="utf-8") for p in sorted(directory.glob("*.graph.yaml"))}
 
         committed = _fragments(built_in_graph_source())
         with tempfile.TemporaryDirectory() as tmp:
@@ -110,21 +100,13 @@ class TestRegenerationRoundTrips:
         """The projection guard is non-vacuous: there IS at least one
         ``when``-carrying edge, and every such edge round-trips identically."""
         on_disk = load_graph_or_dir(built_in_graph_source())
-        gated = {
-            (e.source, e.target, e.relation.value, e.when)
-            for e in on_disk.edges
-            if e.when is not None
-        }
+        gated = {(e.source, e.target, e.relation.value, e.when) for e in on_disk.edges if e.when is not None}
         assert gated, "no when-gated edges on disk — the guard would be vacuous"
 
         with tempfile.TemporaryDirectory() as tmp:
             _regenerate_into(Path(tmp))
             regenerated = load_graph_or_dir(Path(tmp))
-        regenerated_gated = {
-            (e.source, e.target, e.relation.value, e.when)
-            for e in regenerated.edges
-            if e.when is not None
-        }
+        regenerated_gated = {(e.source, e.target, e.relation.value, e.when) for e in regenerated.edges if e.when is not None}
         assert regenerated_gated == gated
 
 

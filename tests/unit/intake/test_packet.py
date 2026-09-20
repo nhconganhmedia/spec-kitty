@@ -79,9 +79,7 @@ def test_non_list_requirements_degrades_to_prose():
 
 
 def test_requirement_missing_statement_degrades_to_prose():
-    raw = (
-        "---\nhandoff_packet: 1\nrequirements:\n  - id: FR-001\n---\n\n# Bad\n"
-    )
+    raw = "---\nhandoff_packet: 1\nrequirements:\n  - id: FR-001\n---\n\n# Bad\n"
     assert parse_handoff_packet(raw) is None
 
 
@@ -96,41 +94,31 @@ def test_empty_requirements_list_is_valid_packet():
 def test_acceptance_criterion_missing_id_degrades_to_prose():
     raw = (
         "---\nhandoff_packet: 1\nrequirements:\n"
-        "  - id: FR-001\n    statement: \"Do the thing.\"\n"
+        '  - id: FR-001\n    statement: "Do the thing."\n'
         "    acceptance_criteria:\n"
-        "      - statement: \"Missing id.\"\n"
+        '      - statement: "Missing id."\n'
         "---\n\n# Bad\n"
     )
     assert parse_handoff_packet(raw) is None
 
 
 def test_acceptance_criterion_missing_statement_degrades_to_prose():
-    raw = (
-        "---\nhandoff_packet: 1\nrequirements:\n"
-        "  - id: FR-001\n    statement: \"Do the thing.\"\n"
-        "    acceptance_criteria:\n"
-        "      - id: AC-001\n"
-        "---\n\n# Bad\n"
-    )
+    raw = '---\nhandoff_packet: 1\nrequirements:\n  - id: FR-001\n    statement: "Do the thing."\n    acceptance_criteria:\n      - id: AC-001\n---\n\n# Bad\n'
     assert parse_handoff_packet(raw) is None
 
 
 def test_constraint_missing_id_degrades_to_prose():
-    raw = (
-        "---\nhandoff_packet: 1\nrequirements: []\n"
-        "constraints:\n  - statement: \"No id here.\"\n"
-        "---\n\n# Bad\n"
-    )
+    raw = '---\nhandoff_packet: 1\nrequirements: []\nconstraints:\n  - statement: "No id here."\n---\n\n# Bad\n'
     assert parse_handoff_packet(raw) is None
 
 
 def test_valid_nested_acceptance_criteria_and_constraint_parses():
     raw = (
         "---\nhandoff_packet: 1\nrequirements:\n"
-        "  - id: FR-001\n    statement: \"Do the thing.\"\n"
+        '  - id: FR-001\n    statement: "Do the thing."\n'
         "    acceptance_criteria:\n"
-        "      - id: AC-001\n        statement: \"The thing is done.\"\n"
-        "constraints:\n  - id: C-001\n    statement: \"Must not overlap.\"\n"
+        '      - id: AC-001\n        statement: "The thing is done."\n'
+        'constraints:\n  - id: C-001\n    statement: "Must not overlap."\n'
         "---\n\n# Good\n"
     )
     packet = parse_handoff_packet(raw)
@@ -141,11 +129,7 @@ def test_valid_nested_acceptance_criteria_and_constraint_parses():
 
 def test_malformed_constraint_does_not_inflate_constraint_count():
     """A malformed constraint degrades the whole packet, it never inflates the count."""
-    raw = (
-        "---\nhandoff_packet: 1\nrequirements: []\n"
-        "constraints:\n  - id: C-001\n    statement: ok\n  - statement: \"no id\"\n"
-        "---\n\n# Bad\n"
-    )
+    raw = '---\nhandoff_packet: 1\nrequirements: []\nconstraints:\n  - id: C-001\n    statement: ok\n  - statement: "no id"\n---\n\n# Bad\n'
     assert parse_handoff_packet(raw) is None
 
 
@@ -172,10 +156,7 @@ def test_bom_prefixed_packet_still_parses():
 
 
 def test_comment_terminator_in_source_tool_is_escaped_in_sidecar():
-    raw = (
-        "---\nhandoff_packet: 1\nsource_tool: \"evil --> visible\"\n"
-        "requirements: []\n---\n\n# X\n"
-    )
+    raw = '---\nhandoff_packet: 1\nsource_tool: "evil --> visible"\nrequirements: []\n---\n\n# X\n'
     packet = parse_handoff_packet(raw)
     assert packet is not None
     assert "-->" not in packet.sidecar_fields()["source_tool"]

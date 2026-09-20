@@ -30,6 +30,7 @@ Fixture data uses a real 26-char ULID ``mission_id`` and the derived 8-char
 ``mid8`` so the resolver exercises real-shaped identity (realistic test data),
 mirroring ``tests/mission_runtime/test_artifact_partition.py``.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -86,9 +87,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "user.name", "Test")
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
-    (r / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (r / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return r
 
 
@@ -144,9 +143,7 @@ def _build_mission(repo_root: Path, *, topology: MissionTopology) -> Path:
 
 @pytest.mark.parametrize("topology", _ALL_TOPOLOGIES, ids=lambda t: t.value)
 @pytest.mark.parametrize("kind", list(MissionArtifactKind), ids=lambda k: k.value)
-def test_write_target_lands_partition_correct(
-    repo: Path, topology: MissionTopology, kind: MissionArtifactKind
-) -> None:
+def test_write_target_lands_partition_correct(repo: Path, topology: MissionTopology, kind: MissionArtifactKind) -> None:
     """``write_target(kind)`` lands on the primary ref, or coord ref when routed.
 
     Primary kinds always land on ``target_branch`` (every topology, INV-5
@@ -168,9 +165,7 @@ def test_write_target_lands_partition_correct(
 
 @pytest.mark.parametrize("topology", _ALL_TOPOLOGIES, ids=lambda t: t.value)
 @pytest.mark.parametrize("kind", list(MissionArtifactKind), ids=lambda k: k.value)
-def test_read_dir_lands_partition_correct(
-    repo: Path, topology: MissionTopology, kind: MissionArtifactKind
-) -> None:
+def test_read_dir_lands_partition_correct(repo: Path, topology: MissionTopology, kind: MissionArtifactKind) -> None:
     """``read_dir(kind)`` resolves the primary dir, or coord dir when routed.
 
     Primary kinds (including ``RETROSPECTIVE``, H-1) always resolve the
@@ -202,9 +197,7 @@ def test_read_dir_lands_partition_correct(
 # ---------------------------------------------------------------------------
 
 
-def test_read_dir_retrospective_delegates_to_resolve_retrospective_home(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_read_dir_retrospective_delegates_to_resolve_retrospective_home(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``read_dir(RETROSPECTIVE)`` calls the dedicated home authority, not the
     generic planning-read seam — computing a second RETROSPECTIVE home here
     would violate the single-authority contract H-1 relies on."""
@@ -222,10 +215,7 @@ def test_read_dir_retrospective_delegates_to_resolve_retrospective_home(
         return home
 
     def _forbidden(*_args: object, **_kwargs: object) -> Path:
-        raise AssertionError(
-            "H-1 violated: read_dir(RETROSPECTIVE) called resolve_planning_read_dir "
-            "— it must delegate to resolve_retrospective_home only."
-        )
+        raise AssertionError("H-1 violated: read_dir(RETROSPECTIVE) called resolve_planning_read_dir — it must delegate to resolve_retrospective_home only.")
 
     monkeypatch.setattr(writer_mod, "resolve_retrospective_home", _spy_home)
     monkeypatch.setattr(read_path_resolver_mod, "resolve_planning_read_dir", _forbidden)
@@ -237,9 +227,7 @@ def test_read_dir_retrospective_delegates_to_resolve_retrospective_home(
     assert result == primary_dir
 
 
-def test_read_dir_non_retrospective_uses_resolve_planning_read_dir(
-    repo: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_read_dir_non_retrospective_uses_resolve_planning_read_dir(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A non-RETROSPECTIVE kind routes through ``resolve_planning_read_dir`` —
     the RETROSPECTIVE special-case does not silently swallow every kind."""
     _build_mission(repo, topology=MissionTopology.SINGLE_BRANCH)
@@ -247,9 +235,7 @@ def test_read_dir_non_retrospective_uses_resolve_planning_read_dir(
     import specify_cli.retrospective.writer as writer_mod
 
     def _forbidden(*_args: object, **_kwargs: object) -> Path:
-        raise AssertionError(
-            "resolve_retrospective_home must only be called for RETROSPECTIVE."
-        )
+        raise AssertionError("resolve_retrospective_home must only be called for RETROSPECTIVE.")
 
     monkeypatch.setattr(writer_mod, "resolve_retrospective_home", _forbidden)
 
@@ -293,9 +279,7 @@ def test_assert_partition_invariant_detects_gap(monkeypatch: pytest.MonkeyPatch)
         assert_partition_invariant()
 
 
-def test_placement_seam_asserts_partition_invariant_at_construction(
-    monkeypatch: pytest.MonkeyPatch, repo: Path
-) -> None:
+def test_placement_seam_asserts_partition_invariant_at_construction(monkeypatch: pytest.MonkeyPatch, repo: Path) -> None:
     """``placement_seam()`` runs the P-1 guard before returning (T002 wiring)."""
     import mission_runtime.resolution as resolution_mod
 

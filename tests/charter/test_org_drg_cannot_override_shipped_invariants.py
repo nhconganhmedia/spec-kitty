@@ -86,14 +86,9 @@ def test_org_pack_overriding_shipped_invariant_is_permitted_with_warning(
     override_warnings = [
         rec.getMessage()
         for rec in caplog.records
-        if rec.levelno == logging.WARNING
-        and "caveman-comments" in rec.getMessage()
-        and "override" in rec.getMessage().lower()
+        if rec.levelno == logging.WARNING and "caveman-comments" in rec.getMessage() and "override" in rec.getMessage().lower()
     ]
-    assert override_warnings, (
-        "expected a same-kind-override WARNING naming 'caveman-comments', "
-        f"got {[r.getMessage() for r in caplog.records]}"
-    )
+    assert override_warnings, f"expected a same-kind-override WARNING naming 'caveman-comments', got {[r.getMessage() for r in caplog.records]}"
 
 
 def test_org_pack_body_path_referencing_specify_cli_is_layer_rule_violation() -> None:
@@ -141,7 +136,4 @@ def test_org_pack_body_path_referencing_specify_cli_is_layer_rule_violation() ->
         )
 
     conflicts = exc_info.value.conflicts
-    assert any(c.kind == "layer_rule_violation" for c in conflicts), (
-        f"expected layer_rule_violation, got "
-        f"{[(c.kind, c.target_id) for c in conflicts]}"
-    )
+    assert any(c.kind == "layer_rule_violation" for c in conflicts), f"expected layer_rule_violation, got {[(c.kind, c.target_id) for c in conflicts]}"

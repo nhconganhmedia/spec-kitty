@@ -160,8 +160,7 @@ def test_canonical_command_snapshot(agent: str, command: str) -> None:
 
     assert snap.exists(), f"Canonical baseline missing at {snap}.\nRun: spec-kitty regen"
     assert produced == snap.read_text(encoding="utf-8"), (
-        f"Canonical command render ({agent}/{command}) drifted from its committed "
-        "snapshot.\nIf the change is intentional, run: spec-kitty regen"
+        f"Canonical command render ({agent}/{command}) drifted from its committed snapshot.\nIf the change is intentional, run: spec-kitty regen"
     )
 
 
@@ -177,15 +176,11 @@ def test_command_renders_with_expected_structure(agent: str, command: str) -> No
     """
     produced = _render_for_agent(agent, command)
     assert produced.strip(), f"Empty render for {agent}/{command}"
-    assert "spec-kitty-command-version:" in produced, (
-        f"Render for {agent}/{command} is missing the version marker"
-    )
+    assert "spec-kitty-command-version:" in produced, f"Render for {agent}/{command} is missing the version marker"
     # An unsubstituted template placeholder is a real render regression the old
     # byte grid caught (adversarial-review F3); assert none leaked through.
     for placeholder in ("__AGENT__", "{SCRIPT}", "{AGENT_SCRIPT}"):
-        assert placeholder not in produced, (
-            f"Render for {agent}/{command} leaked an unsubstituted {placeholder}"
-        )
+        assert placeholder not in produced, f"Render for {agent}/{command} leaked an unsubstituted {placeholder}"
 
 
 def test_structural_gate_rejects_a_broken_render(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -262,9 +257,7 @@ def test_only_canonical_baseline_is_committed() -> None:
         # committed (standard-gitignored), not a baseline fixture.
         and "__pycache__" not in p.parts
     )
-    assert committed == ["claude/specify.md", "gemini/specify.toml"], (
-        f"Expected only the per-branch canonical baselines, found: {committed}"
-    )
+    assert committed == ["claude/specify.md", "gemini/specify.toml"], f"Expected only the per-branch canonical baselines, found: {committed}"
 
 
 @pytest.mark.parametrize("agent", NON_MIGRATED_AGENTS)

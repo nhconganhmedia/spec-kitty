@@ -72,48 +72,54 @@ def test_is_ff_candidate_false_for_blank_input(tmp_path: Path) -> None:
     assert cd._is_ff_candidate(tmp_path, "abc", "") is False
 
 
-def test_is_ff_candidate_true_when_merge_base_reports_ancestor(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    monkeypatch.setattr(
-        subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0)
-    )
+def test_is_ff_candidate_true_when_merge_base_reports_ancestor(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0))
     assert cd._is_ff_candidate(tmp_path, "a", "b") is True
 
 
-def test_is_ff_candidate_false_when_diverged(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    monkeypatch.setattr(
-        subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 1)
-    )
+def test_is_ff_candidate_false_when_diverged(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 1))
     assert cd._is_ff_candidate(tmp_path, "a", "b") is False
 
 
 def test_fast_forward_finding_none_when_equal(tmp_path: Path) -> None:
-    assert cd._fast_forward_finding(
-        subject_sha="a", tip_sha="a", repo_root=tmp_path,
-        message="m", next_step="n", error_code="E",
-    ) is None
+    assert (
+        cd._fast_forward_finding(
+            subject_sha="a",
+            tip_sha="a",
+            repo_root=tmp_path,
+            message="m",
+            next_step="n",
+            error_code="E",
+        )
+        is None
+    )
 
 
-def test_fast_forward_finding_none_when_not_ff_candidate(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_fast_forward_finding_none_when_not_ff_candidate(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "_is_ff_candidate", lambda *a: False)
-    assert cd._fast_forward_finding(
-        subject_sha="a", tip_sha="b", repo_root=tmp_path,
-        message="m", next_step="n", error_code="E",
-    ) is None
+    assert (
+        cd._fast_forward_finding(
+            subject_sha="a",
+            tip_sha="b",
+            repo_root=tmp_path,
+            message="m",
+            next_step="n",
+            error_code="E",
+        )
+        is None
+    )
 
 
-def test_fast_forward_finding_returns_warning_when_ff_candidate(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_fast_forward_finding_returns_warning_when_ff_candidate(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "_is_ff_candidate", lambda *a: True)
     finding = cd._fast_forward_finding(
-        subject_sha="a", tip_sha="b", repo_root=tmp_path,
-        message="m", next_step="n", error_code="E",
+        subject_sha="a",
+        tip_sha="b",
+        repo_root=tmp_path,
+        message="m",
+        next_step="n",
+        error_code="E",
     )
     assert finding is not None
     assert finding.severity == "warning"
@@ -134,16 +140,12 @@ def test_resolve_coord_short_falls_back_to_prefix(monkeypatch: pytest.MonkeyPatc
     assert cd._resolve_coord_short("m", "01ABCDEF00000000000000000A") == "01ABCDEF"
 
 
-def test_coord_branch_stale_vs_target_finding_none_when_equal(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_branch_stale_vs_target_finding_none_when_equal(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "_rev_parse", lambda *a: "same-sha")
     assert cd._coord_branch_stale_vs_target_finding(tmp_path, "coord", "main") is None
 
 
-def test_coord_branch_stale_vs_target_finding_stale(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_branch_stale_vs_target_finding_stale(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     shas = {"refs/heads/coord": "coord-sha", "refs/heads/main": "main-sha"}
     monkeypatch.setattr(cd, "_rev_parse", lambda _cwd, ref: shas[ref])
     monkeypatch.setattr(cd, "_is_ff_candidate", lambda *a: True)
@@ -154,9 +156,7 @@ def test_coord_branch_stale_vs_target_finding_stale(
     assert "behind target branch" in finding.message
 
 
-def test_coord_branch_stale_vs_target_finding_diverged(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_branch_stale_vs_target_finding_diverged(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     shas = {"refs/heads/coord": "coord-sha", "refs/heads/main": "main-sha"}
     monkeypatch.setattr(cd, "_rev_parse", lambda _cwd, ref: shas[ref])
     monkeypatch.setattr(cd, "_is_ff_candidate", lambda *a: False)
@@ -176,9 +176,7 @@ def test_check_coord_branch_staleness_skips_missing_target_branch(tmp_path: Path
     assert cd._check_coord_branch_staleness(tmp_path, meta) == []
 
 
-def test_check_coord_branch_staleness_delegates(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_check_coord_branch_staleness_delegates(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     # A-3 dedup: `_check_coord_branch_staleness` now resolves both SHAs via the
     # shared `_coord_vs_target_shas` preamble before delegating; both refs must
     # be readable (and non-equal) or the shared helper short-circuits to `[]`
@@ -188,8 +186,10 @@ def test_check_coord_branch_staleness_delegates(
     sentinel = cd.DoctorFinding(severity="warning", message="m", error_code="E")
     monkeypatch.setattr(cd, "_coord_branch_stale_vs_target_finding", lambda *a: sentinel)
     meta = {
-        "coordination_branch": "coord", "mission_slug": "m",
-        "mission_id": "01ABCDEF00000000000000000A", "target_branch": "main",
+        "coordination_branch": "coord",
+        "mission_slug": "m",
+        "mission_id": "01ABCDEF00000000000000000A",
+        "target_branch": "main",
     }
     assert cd._check_coord_branch_staleness(tmp_path, meta) == [sentinel]
 
@@ -199,28 +199,31 @@ def test_coord_vs_target_shas_none_when_target_branch_missing(tmp_path: Path) ->
     assert cd._coord_vs_target_shas(tmp_path, meta) is None
 
 
-def test_coord_vs_target_shas_none_when_sha_unreadable(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_vs_target_shas_none_when_sha_unreadable(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cd, "_rev_parse", lambda *_a: "")
     meta = {
-        "coordination_branch": "coord", "mission_slug": "m",
-        "mission_id": "01ABCDEF00000000000000000A", "target_branch": "main",
+        "coordination_branch": "coord",
+        "mission_slug": "m",
+        "mission_id": "01ABCDEF00000000000000000A",
+        "target_branch": "main",
     }
     assert cd._coord_vs_target_shas(tmp_path, meta) is None
 
 
-def test_coord_vs_target_shas_returns_tuple_when_resolvable(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_coord_vs_target_shas_returns_tuple_when_resolvable(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     shas = {"refs/heads/coord": "coord-sha", "refs/heads/main": "main-sha"}
     monkeypatch.setattr(cd, "_rev_parse", lambda _cwd, ref: shas[ref])
     meta = {
-        "coordination_branch": "coord", "mission_slug": "m",
-        "mission_id": "01ABCDEF00000000000000000A", "target_branch": "main",
+        "coordination_branch": "coord",
+        "mission_slug": "m",
+        "mission_id": "01ABCDEF00000000000000000A",
+        "target_branch": "main",
     }
     assert cd._coord_vs_target_shas(tmp_path, meta) == (
-        "coord", "main", "coord-sha", "main-sha",
+        "coord",
+        "main",
+        "coord-sha",
+        "main-sha",
     )
 
 
@@ -232,25 +235,28 @@ def test_unified_diff_returns_empty_on_os_error(monkeypatch: pytest.MonkeyPatch,
     assert cd._unified_diff(tmp_path, "coord", "main") == ""
 
 
-def test_check_and_warn_coord_staleness_no_meta_is_silent(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_check_and_warn_coord_staleness_no_meta_is_silent(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     cd.check_and_warn_coord_staleness(tmp_path, tmp_path)
     assert capsys.readouterr().out == ""
 
 
-def test_check_and_warn_coord_staleness_prints_finding(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_check_and_warn_coord_staleness_prints_finding(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "meta.json").write_text(
-        json.dumps({
-            "coordination_branch": "coord", "mission_slug": "m",
-            "mission_id": "01ABCDEF00000000000000000A", "target_branch": "main",
-        }),
+        json.dumps(
+            {
+                "coordination_branch": "coord",
+                "mission_slug": "m",
+                "mission_id": "01ABCDEF00000000000000000A",
+                "target_branch": "main",
+            }
+        ),
         encoding="utf-8",
     )
     sentinel = cd.DoctorFinding(
-        severity="warning", message="coord is stale", next_step="run --fix", error_code="E",
+        severity="warning",
+        message="coord is stale",
+        next_step="run --fix",
+        error_code="E",
     )
     monkeypatch.setattr(cd, "_check_coord_branch_staleness", lambda *a: [sentinel])
     cd.check_and_warn_coord_staleness(tmp_path, tmp_path)
@@ -269,16 +275,12 @@ _TARGET_BRANCH = "main"
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True
-    )
+    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True)
 
 
 def _init_repo(repo: Path) -> None:
     repo.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        ["git", "init", "-qb", _TARGET_BRANCH, str(repo)], check=True, capture_output=True
-    )
+    subprocess.run(["git", "init", "-qb", _TARGET_BRANCH, str(repo)], check=True, capture_output=True)
     _git(repo, "config", "user.email", "test@test.com")
     _git(repo, "config", "user.name", "Test")
     _git(repo, "config", "commit.gpgsign", "false")
@@ -292,12 +294,15 @@ def _seed_stale_meta(repo: Path, mission_slug: str) -> Path:
     feature_dir = repo / "kitty-specs" / mission_slug
     feature_dir.mkdir(parents=True, exist_ok=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_slug": mission_slug,
-            "mission_id": _MISSION_ID,
-            "coordination_branch": _COORD_BRANCH,
-            "target_branch": _TARGET_BRANCH,
-        }, sort_keys=True),
+        json.dumps(
+            {
+                "mission_slug": mission_slug,
+                "mission_id": _MISSION_ID,
+                "coordination_branch": _COORD_BRANCH,
+                "target_branch": _TARGET_BRANCH,
+            },
+            sort_keys=True,
+        ),
         encoding="utf-8",
     )
     return feature_dir
@@ -337,9 +342,7 @@ def _add_coord_worktree(repo: Path, tmp_path: Path) -> Path:
 def _patch_worktree_path(monkeypatch: pytest.MonkeyPatch, worktree: Path) -> None:
     from specify_cli import coordination as coord_mod
 
-    monkeypatch.setattr(
-        coord_mod.CoordinationWorkspace, "worktree_path", staticmethod(lambda *_a: worktree)
-    )
+    monkeypatch.setattr(coord_mod.CoordinationWorkspace, "worktree_path", staticmethod(lambda *_a: worktree))
 
 
 @pytest.mark.git_repo
@@ -379,9 +382,7 @@ def test_a_strict_ancestor_check_staleness_reports_and_fix_fast_forwards(
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_b_diverged_fix_fails_loud_and_mutates_nothing(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_b_diverged_fix_fails_loud_and_mutates_nothing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """(b) diverged -> ``--fix`` fails loud with a diff, mutates nothing."""
     repo = tmp_path / "repo"
     mission_slug = "b-mission"
@@ -411,9 +412,7 @@ def test_b_diverged_fix_fails_loud_and_mutates_nothing(
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_c_dirty_worktree_fix_fails_loud(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_c_dirty_worktree_fix_fails_loud(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """(c) dirty coord worktree -> ``--fix`` fails loud (even though strict-ancestor)."""
     repo = tmp_path / "repo"
     mission_slug = "c-mission"
@@ -447,7 +446,9 @@ def test_c_dirty_worktree_fix_fails_loud(
 def _porcelain(worktree: Path) -> str:
     return subprocess.run(
         ["git", "-C", str(worktree), "status", "--porcelain"],
-        check=True, capture_output=True, text=True,
+        check=True,
+        capture_output=True,
+        text=True,
     ).stdout.strip()
 
 
@@ -456,7 +457,8 @@ def _build_finalize_fixture(feature_dir: Path) -> None:
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
     (feature_dir / "tasks.md").write_text(
-        "# Tasks\n\n## WP01\n\nNo explicit dependencies.\n", encoding="utf-8",
+        "# Tasks\n\n## WP01\n\nNo explicit dependencies.\n",
+        encoding="utf-8",
     )
     (tasks_dir / "WP01-test.md").write_text(
         "---\nwork_package_id: WP01\ntitle: Test WP01\nexecution_mode: code_change\n---\n# WP01\n",
@@ -470,15 +472,16 @@ def _fake_finalize_ports(feature_dir: Path) -> TasksPorts:
         default_planning_dir=feature_dir,
     )
     return TasksPorts(
-        fs=fs, coord=FakeCoordCommitRouter(), git=FakeGitOps(), render=FakeRender(),
+        fs=fs,
+        coord=FakeCoordCommitRouter(),
+        git=FakeGitOps(),
+        render=FakeRender(),
     )
 
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
-def test_d_finalize_tasks_surfaces_warn_and_exits_0(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_d_finalize_tasks_surfaces_warn_and_exits_0(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """(d) ``finalize-tasks`` on a stale-coord mission surfaces the WARN AND still succeeds.
 
     Isolates the WP06 hook (real coord/target branches drive the actual
@@ -512,7 +515,10 @@ def test_d_finalize_tasks_surfaces_warn_and_exits_0(
         # FR-008's "surface the WARN" contract lives in human mode; this test
         # exercises exactly that. Must NOT raise -- finalize stays non-blocking.
         tasks_finalize._do_finalize_tasks(
-            mission=mission_slug, json_output=False, validate_only=True, ports=ports,
+            mission=mission_slug,
+            json_output=False,
+            validate_only=True,
+            ports=ports,
         )
 
     out = capsys.readouterr().out
@@ -526,7 +532,9 @@ def test_d_finalize_tasks_surfaces_warn_and_exits_0(
 
 
 def _patch_worktree_path_by_slug(
-    monkeypatch: pytest.MonkeyPatch, mapping: dict[str, Path], fallback: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mapping: dict[str, Path],
+    fallback: Path,
 ) -> None:
     """Route ``CoordinationWorkspace.worktree_path`` by ``mission_slug``.
 
@@ -540,15 +548,15 @@ def _patch_worktree_path_by_slug(
     def _route(_repo_root: Path, mission_slug: str, _mid8: str) -> Path:
         return mapping.get(mission_slug, fallback)
 
-    monkeypatch.setattr(
-        coord_mod.CoordinationWorkspace, "worktree_path", staticmethod(_route)
-    )
+    monkeypatch.setattr(coord_mod.CoordinationWorkspace, "worktree_path", staticmethod(_route))
 
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox
 def test_e_one_diverged_mission_does_not_block_fix_for_other_missions(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """(e, renata LOW) one mission's diverged Gap-1 state must not abort ``--fix``
     for an UNRELATED mission's flatten-cleanup in the same run.
@@ -572,11 +580,13 @@ def test_e_one_diverged_mission_does_not_block_fix_for_other_missions(
     flat_dir = repo / "kitty-specs" / flat_slug
     flat_dir.mkdir(parents=True)
     (flat_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_slug": flat_slug,
-            "mission_id": "01ABCDEF00000000000000FLAT",
-            "coordination_branch": "kitty/mission-flatten-mission-neverexisted",
-        }),
+        json.dumps(
+            {
+                "mission_slug": flat_slug,
+                "mission_id": "01ABCDEF00000000000000FLAT",
+                "coordination_branch": "kitty/mission-flatten-mission-neverexisted",
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -601,6 +611,5 @@ def test_e_one_diverged_mission_does_not_block_fix_for_other_missions(
     # The unrelated mission's flatten fix must have applied regardless.
     flattened_meta = json.loads((flat_dir / "meta.json").read_text())
     assert "coordination_branch" not in flattened_meta, (
-        "an unrelated mission's diverged Gap-1 state must not block the "
-        "flatten-cleanup fix for a different mission in the same --fix run"
+        "an unrelated mission's diverged Gap-1 state must not block the flatten-cleanup fix for a different mission in the same --fix run"
     )

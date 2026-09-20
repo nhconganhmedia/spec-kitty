@@ -41,9 +41,7 @@ def _make_meta(
     }
     if with_coord:
         payload["coordination_branch"] = f"kitty/mission-{mission_slug}-{mission_id[:8]}"
-    (feature_dir / "meta.json").write_text(
-        json.dumps(payload, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 class TestFeatureDirStatusPaths:
@@ -87,9 +85,7 @@ class TestFeatureDirStatusPaths:
 
         paths = _feature_dir_status_paths(repo, feature_dir)
 
-        assert paths == ["kitty-specs/demo-feature/status.json"], (
-            f"expected the full untruncated path; got {paths!r}"
-        )
+        assert paths == ["kitty-specs/demo-feature/status.json"], f"expected the full untruncated path; got {paths!r}"
         # The parsed path must actually exist on disk (the claim loop checks this).
         assert (repo / paths[0]).exists()
 
@@ -127,9 +123,7 @@ class TestPlanningArtifactIdempotentCommit:
         repo.mkdir()
 
         def git(*args: str) -> str:
-            return subprocess.run(
-                ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-            ).stdout.strip()
+            return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
         mission_slug = "demo-feature"
         mission_id = "01J6XW9K00000000000000000P"
@@ -214,9 +208,7 @@ class TestSoloPrBoundCoordMissionClaimPrecondition:
         repo.mkdir()
 
         def git(*args: str) -> str:
-            return subprocess.run(
-                ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-            ).stdout.strip()
+            return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
         mission_slug = "solo-coord-mission"
         mission_id = "01J7Y8Z900000000000000000Q"
@@ -262,8 +254,7 @@ class TestSoloPrBoundCoordMissionClaimPrecondition:
         # this is a genuinely dirty PRIMARY file at claim time, not merely a
         # clean-but-coord-absent one.
         wp.write_text(
-            "---\nwork_package_id: WP01\nagent: null\nshell_pid: '4242'\n"
-            "shell_pid_created_at: '123.0'\n---\nbody\n",
+            "---\nwork_package_id: WP01\nagent: null\nshell_pid: '4242'\nshell_pid_created_at: '123.0'\n---\nbody\n",
             encoding="utf-8",
         )
         assert git("status", "--porcelain", str(feature_dir)), "expected WP01.md to be dirty"
@@ -309,9 +300,7 @@ class TestStructuralPlanningArtifactsFailClosed:
         repo.mkdir()
 
         def git(*args: str) -> str:
-            return subprocess.run(
-                ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-            ).stdout.strip()
+            return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
         git("init", "-q", "-b", "main")
         git("config", "user.email", "t@example.com")
@@ -383,9 +372,7 @@ class TestStructuralPlanningArtifactsFailClosed:
 class TestPlanningArtifactPath:
     """Modern (post-WP03) mission routes planning artifacts through coord branch."""
 
-    def test_modern_mission_resolves_coord_branch_from_meta(
-        self, tmp_path: Path
-    ) -> None:
+    def test_modern_mission_resolves_coord_branch_from_meta(self, tmp_path: Path) -> None:
         from specify_cli.mission_metadata import load_meta
 
         feature_dir = tmp_path / "kitty-specs" / "wp06-impl-mission"
@@ -460,9 +447,7 @@ class TestNonCoordStatusFilesCommitted:
 
         # Coordination branch present → status log/snapshot are coord-owned and
         # excluded so the primary checkout's stale copies do not clobber the seed.
-        paths = _status_paths_for_commit(
-            self._entries(), coord_branch_for_filter="kitty/mission-m-01ABCDEF"
-        )
+        paths = _status_paths_for_commit(self._entries(), coord_branch_for_filter="kitty/mission-m-01ABCDEF")
         assert "kitty-specs/m/status.events.jsonl" not in paths
         assert "kitty-specs/m/status.json" not in paths
         assert "kitty-specs/m/tasks.md" in paths
@@ -536,10 +521,7 @@ class TestPlanningArtifactAutoCommit:
         # (PRIMARY tasks.md committed onto coord); the fix routes it to the
         # target branch and leaves coord free of PRIMARY files.
         assert git("rev-parse", planning_branch) != git("rev-parse", coord_branch)
-        assert (
-            git("show", f"{planning_branch}:kitty-specs/{mission_slug}/tasks.md").strip()
-            == "# tasks"
-        )
+        assert git("show", f"{planning_branch}:kitty-specs/{mission_slug}/tasks.md").strip() == "# tasks"
         coord_branch_tasks = subprocess.run(
             ["git", "show", f"{coord_branch}:kitty-specs/{mission_slug}/tasks.md"],
             cwd=repo,
@@ -548,13 +530,10 @@ class TestPlanningArtifactAutoCommit:
             check=False,
         )
         assert coord_branch_tasks.returncode != 0, (
-            "PRIMARY tasks.md must NOT be committed onto the coordination branch "
-            "(#3371); it belongs on the mission target branch."
+            "PRIMARY tasks.md must NOT be committed onto the coordination branch (#3371); it belongs on the mission target branch."
         )
 
-    def test_auto_commit_with_coord_feature_dir_uses_primary_artifact_source(
-        self, tmp_path: Path
-    ) -> None:
+    def test_auto_commit_with_coord_feature_dir_uses_primary_artifact_source(self, tmp_path: Path) -> None:
         from specify_cli.cli.commands.implement import (
             _ensure_planning_artifacts_committed_git,
         )
@@ -614,10 +593,7 @@ class TestPlanningArtifactAutoCommit:
         # coordination worktree (the removed #3371 mis-route). So the first claim
         # lands tasks.md on ``planning_branch`` and materialises NO coord worktree
         # for primary artifacts.
-        assert (
-            git("show", f"{planning_branch}:kitty-specs/{mission_slug}/tasks.md").strip()
-            == "# tasks"
-        )
+        assert git("show", f"{planning_branch}:kitty-specs/{mission_slug}/tasks.md").strip() == "# tasks"
         coord_first = subprocess.run(
             ["git", "show", f"{coord_branch}:kitty-specs/{mission_slug}/tasks.md"],
             cwd=repo,
@@ -640,10 +616,7 @@ class TestPlanningArtifactAutoCommit:
             auto_commit=True,
         )
 
-        assert (
-            git("show", f"{planning_branch}:kitty-specs/{mission_slug}/tasks.md").strip()
-            == "# tasks\n\nupdated"
-        )
+        assert git("show", f"{planning_branch}:kitty-specs/{mission_slug}/tasks.md").strip() == "# tasks\n\nupdated"
         coord_second = subprocess.run(
             ["git", "show", f"{coord_branch}:kitty-specs/{mission_slug}/tasks.md"],
             cwd=repo,
@@ -651,7 +624,4 @@ class TestPlanningArtifactAutoCommit:
             text=True,
             check=False,
         )
-        assert coord_second.returncode != 0, (
-            "PRIMARY tasks.md must never be committed onto the coordination "
-            "branch (#3371)."
-        )
+        assert coord_second.returncode != 0, "PRIMARY tasks.md must never be committed onto the coordination branch (#3371)."

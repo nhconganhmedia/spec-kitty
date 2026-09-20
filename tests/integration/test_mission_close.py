@@ -326,9 +326,7 @@ def test_two_lane_mission_merges_via_coordination(
 
     # Teardown step (what merge runs at the end of Stage 2).
     feature_dir_name = f"{MISSION_SLUG}-{MID8}"
-    coord_path = CoordinationWorkspace.worktree_path(
-        repo, feature_dir_name, MID8
-    )
+    coord_path = CoordinationWorkspace.worktree_path(repo, feature_dir_name, MID8)
     # The fixture never created a worktree, but teardown is idempotent.
     CoordinationWorkspace.teardown(repo, feature_dir_name, MID8)
     assert not coord_path.exists()
@@ -374,9 +372,6 @@ def test_lane_conflict_surfaces_via_git_exit_code(
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0, (
-        "Stage 1 must surface lane-integration conflicts; "
-        f"got returncode={result.returncode} stderr={result.stderr!r}"
-    )
+    assert result.returncode != 0, f"Stage 1 must surface lane-integration conflicts; got returncode={result.returncode} stderr={result.stderr!r}"
     # The conflict is visible to the operator UX via the conflict marker.
     assert "CONFLICT" in (result.stdout + result.stderr).upper()

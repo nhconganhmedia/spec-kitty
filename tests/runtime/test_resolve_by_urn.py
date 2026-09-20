@@ -46,9 +46,7 @@ def _create_file(path: Path, content: str = "placeholder") -> Path:
 class TestEquivalence:
     """For an authored template, by-URN and by-name resolve to the same file."""
 
-    def test_urn_and_name_resolve_to_the_same_package_default_file(
-        self, tmp_path: Path
-    ) -> None:
+    def test_urn_and_name_resolve_to_the_same_package_default_file(self, tmp_path: Path) -> None:
         """A real, shipped authored template (``software-dev/spec-template.md``)
         resolves to the same on-disk path whether reached by name (Lane 1's
         underlying :func:`resolve_template`) or by URN (Lane 2,
@@ -67,21 +65,15 @@ class TestEquivalence:
             ),
             patch("charter.offering.resolver.get_kittify_home", return_value=empty_home),
         ):
-            name_result = resolve_template(
-                "spec-template.md", project, mission="software-dev"
-            )
-            urn_result = resolve_template_by_urn(
-                "template:software-dev/spec-template.md", project
-            )
+            name_result = resolve_template("spec-template.md", project, mission="software-dev")
+            urn_result = resolve_template_by_urn("template:software-dev/spec-template.md", project)
 
         assert urn_result.path == name_result.path
         assert urn_result.path.is_file()
         assert urn_result.tier == ResolutionTier.PACKAGE_DEFAULT
         assert name_result.tier == ResolutionTier.PACKAGE_DEFAULT
 
-    def test_urn_and_name_agree_when_neither_side_has_customization(
-        self, tmp_path: Path
-    ) -> None:
+    def test_urn_and_name_agree_when_neither_side_has_customization(self, tmp_path: Path) -> None:
         """Same as above for a second real content template, guarding
         against a coincidental match on a single filename.
         """
@@ -96,12 +88,8 @@ class TestEquivalence:
             ),
             patch("charter.offering.resolver.get_kittify_home", return_value=empty_home),
         ):
-            name_result = resolve_template(
-                "tasks-template.md", project, mission="software-dev"
-            )
-            urn_result = resolve_template_by_urn(
-                "template:software-dev/tasks-template.md", project
-            )
+            name_result = resolve_template("tasks-template.md", project, mission="software-dev")
+            urn_result = resolve_template_by_urn("template:software-dev/tasks-template.md", project)
 
         assert urn_result.path == name_result.path
         assert urn_result.path.is_file()
@@ -115,26 +103,20 @@ class TestEquivalence:
 class TestOverrideWinsOnUrnLane:
     """A project override wins for the URN lane, exactly as for the name lane."""
 
-    def test_project_override_wins_over_package_default_on_urn_lane(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_override_wins_over_package_default_on_urn_lane(self, tmp_path: Path) -> None:
         project = tmp_path / "project"
         override_path = _create_file(
             project / ".kittify" / "overrides" / "templates" / "spec-template.md",
             content="# Project-customized spec template",
         )
 
-        result = resolve_template_by_urn(
-            "template:software-dev/spec-template.md", project
-        )
+        result = resolve_template_by_urn("template:software-dev/spec-template.md", project)
 
         assert result.tier == ResolutionTier.OVERRIDE
         assert result.path == override_path
         assert result.path.read_text() == "# Project-customized spec template"
 
-    def test_override_wins_matches_the_name_lane_for_the_same_project(
-        self, tmp_path: Path
-    ) -> None:
+    def test_override_wins_matches_the_name_lane_for_the_same_project(self, tmp_path: Path) -> None:
         """The override-tier winner is identical on both lanes for the same
         project + filename -- the URN lane doesn't just happen to find *an*
         override, it finds the *same* one the name lane would.
@@ -145,20 +127,14 @@ class TestOverrideWinsOnUrnLane:
             content="# Shared override content",
         )
 
-        name_result = resolve_template(
-            "spec-template.md", project, mission="software-dev"
-        )
-        urn_result = resolve_template_by_urn(
-            "template:software-dev/spec-template.md", project
-        )
+        name_result = resolve_template("spec-template.md", project, mission="software-dev")
+        urn_result = resolve_template_by_urn("template:software-dev/spec-template.md", project)
 
         assert name_result.path == override_path
         assert urn_result.path == override_path
         assert name_result.tier == urn_result.tier == ResolutionTier.OVERRIDE
 
-    def test_legacy_tier_also_wins_over_package_default_on_urn_lane(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_legacy_tier_also_wins_over_package_default_on_urn_lane(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Sanity: the URN lane honours the *full* 5-tier chain, not just
         override -- legacy still beats package default.
         """
@@ -181,15 +157,11 @@ class TestOverrideWinsOnUrnLane:
         monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "empty_home"))
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            result = resolve_template_by_urn(
-                "template:software-dev/spec-template.md", project
-            )
+            result = resolve_template_by_urn("template:software-dev/spec-template.md", project)
 
         assert result.tier == ResolutionTier.LEGACY
         assert result.path == legacy_path
-        deprecation_warnings = [
-            w for w in caught if issubclass(w.category, DeprecationWarning)
-        ]
+        deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert len(deprecation_warnings) == 1
         assert "Legacy asset resolved" in str(deprecation_warnings[0].message)
 
@@ -216,15 +188,11 @@ class TestFailClosed:
         ],
         ids=["no-prefix", "wrong-prefix-order", "wrong-kind-prefix"],
     )
-    def test_missing_template_prefix_fails_closed(
-        self, tmp_path: Path, urn: str
-    ) -> None:
+    def test_missing_template_prefix_fails_closed(self, tmp_path: Path, urn: str) -> None:
         with pytest.raises(TemplateURNError, match="template:"):
             resolve_template_by_urn(urn, tmp_path)
 
-    def test_unqualified_urn_never_defaults_mission_to_software_dev(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unqualified_urn_never_defaults_mission_to_software_dev(self, tmp_path: Path) -> None:
         """C-001 / no #2660 inference: a URN with no ``<mission>/`` segment
         must fail closed rather than silently resolving under
         ``mission="software-dev"``.
@@ -257,6 +225,4 @@ class TestFailClosed:
             patch("charter.offering.resolver.get_kittify_home", return_value=empty_home),
             pytest.raises(TemplateURNError, match="could not be resolved"),
         ):
-            resolve_template_by_urn(
-                "template:software-dev/does-not-exist-anywhere.md", project
-            )
+            resolve_template_by_urn("template:software-dev/does-not-exist-anywhere.md", project)

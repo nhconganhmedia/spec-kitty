@@ -198,16 +198,12 @@ def test_1827_resume_rerun_idempotent_and_passes(tmp_path: Path) -> None:
         bookkeeping_sha,  # re-derived HEAD on resume — must be ignored
         mission_id=_MISSION_ID,
     )
-    assert result is None, (
-        "_record_baseline_merge_commit must return None when baseline already recorded "
-        "(idempotency: do not overwrite with the advanced HEAD)"
-    )
+    assert result is None, "_record_baseline_merge_commit must return None when baseline already recorded (idempotency: do not overwrite with the advanced HEAD)"
 
     # Confirm working meta still carries the ORIGINAL baseline, not the advanced HEAD.
     working_meta = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
     assert working_meta["baseline_merge_commit"] == initial_sha, (
-        "Idempotency violated: working meta.json must retain the original recorded "
-        "baseline even after re-running with the advanced HEAD as input"
+        "Idempotency violated: working meta.json must retain the original recorded baseline even after re-running with the advanced HEAD as input"
     )
 
     # Resume assert with the ADVANCED HEAD as expected_baseline — must NOT raise.
@@ -259,12 +255,6 @@ def test_1827_falsification_guard_broken_ordering_raises(tmp_path: Path) -> None
         )
 
     error_message = str(exc_info.value)
-    assert "baseline_merge_commit is missing from committed" in error_message, (
-        f"Exact #1827 error substring not found in: {error_message!r}"
-    )
-    assert "meta.json" in error_message, (
-        f"Expected 'meta.json' in error message: {error_message!r}"
-    )
-    assert f"on {_TARGET_BRANCH}" in error_message, (
-        f"Expected 'on {_TARGET_BRANCH}' in error message: {error_message!r}"
-    )
+    assert "baseline_merge_commit is missing from committed" in error_message, f"Exact #1827 error substring not found in: {error_message!r}"
+    assert "meta.json" in error_message, f"Expected 'meta.json' in error message: {error_message!r}"
+    assert f"on {_TARGET_BRANCH}" in error_message, f"Expected 'on {_TARGET_BRANCH}' in error message: {error_message!r}"

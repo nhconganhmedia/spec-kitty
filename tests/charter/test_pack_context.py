@@ -102,9 +102,7 @@ def _write_config(tmp_path: Path, content: str) -> None:
 #: mission-type-activation fallback itself, so ``PackContext.from_config``
 #: doesn't fail closed on an unrelated test's fixture (WP04 T020 removed
 #: the config-absent backfill).
-_PROVISIONED_MISSION_TYPES_YAML = (
-    "mission_type_activations:\n  - software-dev\n  - documentation\n  - research\n  - plan\n"
-)
+_PROVISIONED_MISSION_TYPES_YAML = "mission_type_activations:\n  - software-dev\n  - documentation\n  - research\n  - plan\n"
 
 
 # ---------------------------------------------------------------------------

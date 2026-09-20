@@ -19,6 +19,7 @@ from tests._perf_helpers import assert_timing_budget
 
 pytestmark = [pytest.mark.unit]
 
+
 def _make_file(path, content: str = "") -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
@@ -116,9 +117,7 @@ def test_node_modules_excluded(tmp_path):
     signals = CodeReadingCollector(tmp_path).collect()
 
     for f in signals.representative_files:
-        assert "node_modules" not in f, (
-            f"Expected node_modules to be excluded but found: {f}"
-        )
+        assert "node_modules" not in f, f"Expected node_modules to be excluded but found: {f}"
 
 
 # ---------------------------------------------------------------------------
@@ -134,17 +133,13 @@ def test_depth_limit(tmp_path):
     # depth 3: level1/level2/level3/
     # depth 4: level1/level2/level3/level4/  <- beyond limit
     _make_file(tmp_path / "pyproject.toml", "")
-    deep_file = (
-        tmp_path / "level1" / "level2" / "level3" / "level4" / "deep.py"
-    )
+    deep_file = tmp_path / "level1" / "level2" / "level3" / "level4" / "deep.py"
     _make_file(deep_file, "# deep")
 
     signals = CodeReadingCollector(tmp_path, max_depth=3).collect()
 
     for f in signals.representative_files:
-        assert "deep.py" not in f, (
-            f"File beyond max_depth should not appear: {f}"
-        )
+        assert "deep.py" not in f, f"File beyond max_depth should not appear: {f}"
 
 
 # ---------------------------------------------------------------------------

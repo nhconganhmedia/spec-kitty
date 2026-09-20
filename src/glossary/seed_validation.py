@@ -27,9 +27,7 @@ __all__ = [
 # Scope filename mapping
 # ---------------------------------------------------------------------------
 
-VALID_SCOPE_FILENAMES: dict[str, GlossaryScope] = {
-    f"{scope.value}.yaml": scope for scope in GlossaryScope
-}
+VALID_SCOPE_FILENAMES: dict[str, GlossaryScope] = {f"{scope.value}.yaml": scope for scope in GlossaryScope}
 
 
 # ---------------------------------------------------------------------------

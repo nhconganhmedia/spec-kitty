@@ -22,7 +22,6 @@ from specify_cli.missions._read_path_resolver import MissionSelectorAmbiguous
 from kernel.clock import now_utc_iso
 
 
-
 def _resolve_selected_dir(repo_root: Path, mission_slug: str, json_output: bool) -> Path:
     """Resolve the status partition, rendering expected selector ambiguity."""
     from mission_runtime import MissionArtifactKind, placement_seam
@@ -101,9 +100,7 @@ def materialize(
         if not specs_dir.exists():
             feature_dirs = []
         else:
-            feature_dirs = sorted(
-                p for p in specs_dir.iterdir() if p.is_dir() and not p.name.startswith(".")
-            )
+            feature_dirs = sorted(p for p in specs_dir.iterdir() if p.is_dir() and not p.name.startswith("."))
 
     processed: list[dict[str, Any]] = []
     errors: list[str] = []
@@ -118,11 +115,13 @@ def materialize(
             files_written.append("progress.json")
             generate_lifecycle_json(feature_dir, derived_dir)
             files_written.append("lifecycle.json")
-            processed.append({
-                "mission_slug": slug,
-                "files_written": files_written,
-                "timestamp": now_utc_iso(),
-            })
+            processed.append(
+                {
+                    "mission_slug": slug,
+                    "files_written": files_written,
+                    "timestamp": now_utc_iso(),
+                }
+            )
         except Exception as exc:  # noqa: BLE001 — per-mission derived-view failure must not abort the full materialize pass
             errors.append(f"{slug}: {exc}")
 

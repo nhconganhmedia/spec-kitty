@@ -38,9 +38,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=True
-    ).stdout.strip()
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=True).stdout.strip()
 
 
 def _tree_paths(repo: Path, ref: str) -> list[str]:
@@ -165,10 +163,7 @@ def test_sc002_no_primary_files_on_coord_after_implement(tmp_path: Path) -> None
     )
 
     offenders = _primary_mission_files_on_ref(repo, coord_branch, _IMPL_SLUG)
-    assert offenders == [], (
-        f"SC-002: PRIMARY-partition files leaked onto the coordination ref "
-        f"{coord_branch!r}: {offenders!r}"
-    )
+    assert offenders == [], f"SC-002: PRIMARY-partition files leaked onto the coordination ref {coord_branch!r}: {offenders!r}"
     # And they landed on the primary target branch instead (routed, not dropped).
     target_primary = _primary_mission_files_on_ref(repo, _IMPL_TARGET, _IMPL_SLUG)
     assert f"kitty-specs/{_IMPL_SLUG}/lanes.json" in target_primary
@@ -183,9 +178,7 @@ _MT_TARGET = "mission/wp-integrity-scan-mt"
 _MT_LANE = "kitty/mission-wp-integrity-scan-mt-lane-a"
 
 
-def test_sc002_no_coord_artifacts_on_lane_after_move_task(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sc002_no_coord_artifacts_on_lane_after_move_task(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.cli.commands.agent import tasks as _tasks
     from specify_cli.cli.commands.agent.tasks_move_task import (
         _MoveTaskState,
@@ -211,13 +204,9 @@ def test_sc002_no_coord_artifacts_on_lane_after_move_task(
     lane_wt = repo / ".worktrees" / f"{_MT_SLUG}-lane-a"
     _git(repo, "worktree", "add", "-q", "-b", _MT_LANE, str(lane_wt), _MT_TARGET)
     (lane_wt / "src" / "foo.py").write_text("print('x')\n", encoding="utf-8")
-    (lane_wt / "kitty-specs" / _MT_SLUG / "status.events.jsonl").write_text(
-        '{"event_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}\n', encoding="utf-8"
-    )
+    (lane_wt / "kitty-specs" / _MT_SLUG / "status.events.jsonl").write_text('{"event_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}\n', encoding="utf-8")
     # Also a coord-residue matrix artifact (not the status log) to widen coverage.
-    (lane_wt / "kitty-specs" / _MT_SLUG / "issue-matrix.md").write_text(
-        "# Issue Matrix\n", encoding="utf-8"
-    )
+    (lane_wt / "kitty-specs" / _MT_SLUG / "issue-matrix.md").write_text("# Issue Matrix\n", encoding="utf-8")
 
     resolved = ResolvedWorkspace(
         mission_slug=_MT_SLUG,
@@ -260,9 +249,6 @@ def test_sc002_no_coord_artifacts_on_lane_after_move_task(
     _mt_commit_lane_deliverables(st)
 
     offenders = _coord_artifacts_on_ref(repo, _MT_LANE, _MT_SLUG)
-    assert offenders == [], (
-        f"SC-002: COORD-partition artifacts leaked onto the lane ref "
-        f"{_MT_LANE!r}: {offenders!r}"
-    )
+    assert offenders == [], f"SC-002: COORD-partition artifacts leaked onto the lane ref {_MT_LANE!r}: {offenders!r}"
     # The genuine code deliverable IS on the lane (routing preserved, not over-dropped).
     assert "src/foo.py" in _tree_paths(repo, _MT_LANE)

@@ -55,10 +55,7 @@ def safe_commit(
     ):
         raise ProtectedBranchCommitError(f"protected branch '{branch}'")
 
-    rel_paths = [
-        str(path.relative_to(repo_path) if path.is_absolute() else path)
-        for path in files_to_commit
-    ]
+    rel_paths = [str(path.relative_to(repo_path) if path.is_absolute() else path) for path in files_to_commit]
     status = subprocess.run(
         ["git", "status", "--porcelain", "--", *rel_paths],
         cwd=repo_path,
@@ -74,7 +71,8 @@ def safe_commit(
                 capture_output=True,
                 text=True,
                 check=False,
-            ).returncode == 0
+            ).returncode
+            == 0
             for rel_path in rel_paths
         )
         if all_paths_tracked:
@@ -93,6 +91,7 @@ def safe_commit(
     except RuntimeError:
         return False
     return True
+
 
 @pytest.fixture
 def git_repo(tmp_path: Path) -> Path:
@@ -133,6 +132,7 @@ def git_repo(tmp_path: Path) -> Path:
     )
 
     return repo
+
 
 def test_safe_commit_preserves_unrelated_staged_files(git_repo: Path):
     """T045: Pre-stage unrelated file, run safe_commit, assert unrelated file remains staged.
@@ -211,7 +211,9 @@ def test_safe_commit_blocks_status_commit_on_unborn_protected_branch(tmp_path: P
     repo.mkdir()
     subprocess.run(
         ["git", "init", "--initial-branch=main"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     (repo / ".kittify").mkdir()
     (repo / ".kittify" / "config.json").write_text("{}\n")
@@ -235,7 +237,7 @@ def test_safe_commit_blocks_merged_wp_done_commit_on_protected_branch(git_repo: 
     (git_repo / ".kittify" / "config.json").write_text("{}\n")
     status_file = git_repo / "kitty-specs" / "099-demo" / "status.events.jsonl"
     status_file.parent.mkdir(parents=True)
-    status_file.write_text("{\"to_lane\":\"done\"}\n")
+    status_file.write_text('{"to_lane":"done"}\n')
 
     with pytest.raises(ProtectedBranchCommitError, match="protected branch 'main'"):
         safe_commit(
@@ -244,6 +246,7 @@ def test_safe_commit_blocks_merged_wp_done_commit_on_protected_branch(git_repo: 
             commit_message="chore(099-demo): record done transitions for merged WPs",
             allow_empty=False,
         )
+
 
 def test_safe_commit_nothing_to_commit_graceful(git_repo: Path):
     """T046: Test 'nothing to commit' graceful handling.
@@ -462,6 +465,7 @@ def test_safe_commit_preserves_multiple_unrelated_staged_files(git_repo: Path):
     assert "A  docs.md" in status_result.stdout
     assert "WP02.md" not in status_result.stdout, "WP02.md should be committed"
 
+
 def test_safe_commit_with_absolute_paths(git_repo: Path):
     """Test safe_commit works with absolute file paths."""
     # Stage unrelated file
@@ -491,6 +495,7 @@ def test_safe_commit_with_absolute_paths(git_repo: Path):
         check=True,
     )
     assert "A  unrelated.txt" in status_result.stdout
+
 
 def test_safe_commit_with_subdirectory_files(git_repo: Path):
     """Test safe_commit works with files in subdirectories."""
@@ -527,6 +532,7 @@ def test_safe_commit_with_subdirectory_files(git_repo: Path):
     assert "A  root_file.txt" in status_result.stdout
     assert "WP04.md" not in status_result.stdout
 
+
 def test_safe_commit_can_commit_explicitly_ignored_file(git_repo: Path):
     """safe_commit should commit explicitly requested files even if ignored."""
     # Simulate stale project-level ignore rule.
@@ -555,6 +561,7 @@ def test_safe_commit_can_commit_explicitly_ignored_file(git_repo: Path):
         check=True,
     )
     assert str(wp_file.relative_to(git_repo)) in tracked.stdout
+
 
 def test_safe_commit_multiple_files_at_once(git_repo: Path):
     """Test committing multiple intended files while preserving staged files."""
@@ -590,6 +597,7 @@ def test_safe_commit_multiple_files_at_once(git_repo: Path):
     assert "A  unrelated.txt" in status_result.stdout
     assert "WP05.md" not in status_result.stdout
     assert "WP06.md" not in status_result.stdout
+
 
 def test_safe_commit_fails_gracefully_on_invalid_file(git_repo: Path):
     """Test safe_commit returns False when file doesn't exist."""
@@ -667,9 +675,7 @@ def test_safe_commit_allows_rename_like_staging_pair(git_repo: Path):
     src_dir.mkdir(parents=True)
     src = src_dir / "charter.md"
     src.write_text(
-        "# Project charter\n"
-        + "\n".join(f"- policy line {n}" for n in range(40))
-        + "\n",
+        "# Project charter\n" + "\n".join(f"- policy line {n}" for n in range(40)) + "\n",
         encoding="utf-8",
     )
     subprocess.run(

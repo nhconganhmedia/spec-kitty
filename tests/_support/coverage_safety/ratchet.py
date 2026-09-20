@@ -75,15 +75,9 @@ class RatchetResult:
     def summary(self) -> str:
         """One-line human summary suitable for CI logs."""
         verdict = "ACCEPTED" if self.accepted else "REJECTED"
-        line = (
-            f"Stability ratchet {verdict}: {self.green_runs}/{self.runs} "
-            f"parallel runs green."
-        )
+        line = f"Stability ratchet {verdict}: {self.green_runs}/{self.runs} parallel runs green."
         if self.new_failures:
-            line += (
-                " New/flaky failures: "
-                + ", ".join(sorted(self.new_failures))
-            )
+            line += " New/flaky failures: " + ", ".join(sorted(self.new_failures))
         return line
 
 
@@ -161,10 +155,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """
     parser = argparse.ArgumentParser(
         prog="python -m tests._support.coverage_safety.ratchet",
-        description=(
-            "Run a pytest shard N times under -n auto and accept a "
-            "parallelization flip only if every run is green (C-RATCHET)."
-        ),
+        description=("Run a pytest shard N times under -n auto and accept a parallelization flip only if every run is green (C-RATCHET)."),
     )
     parser.add_argument(
         "-n",

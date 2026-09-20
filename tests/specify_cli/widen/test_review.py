@@ -55,6 +55,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def make_discussion(
     participants: list[str] | None = None,
     message_count: int = 3,
@@ -192,11 +193,7 @@ class TestReadLlmResponse:
         assert result["candidate_answer"] == "PostgreSQL"
 
     def test_json_embedded_in_prose(self) -> None:
-        payload = (
-            'Here is the output:\n'
-            '{"candidate_summary":"S","candidate_answer":"A","source_hint":"slack_extraction"}\n'
-            'End.\n'
-        )
+        payload = 'Here is the output:\n{"candidate_summary":"S","candidate_answer":"A","source_hint":"slack_extraction"}\nEnd.\n'
         stdin = io.StringIO(payload)
         result = _read_llm_response(timeout=1.0, _stdin=stdin)
         assert result is not None
@@ -213,13 +210,7 @@ class TestReadLlmResponse:
         assert result is None
 
     def test_multiline_json(self) -> None:
-        payload = (
-            '{\n'
-            '  "candidate_summary": "Multi-line",\n'
-            '  "candidate_answer": "Yes",\n'
-            '  "source_hint": "slack_extraction"\n'
-            '}\n'
-        )
+        payload = '{\n  "candidate_summary": "Multi-line",\n  "candidate_answer": "Yes",\n  "source_hint": "slack_extraction"\n}\n'
         stdin = io.StringIO(payload)
         result = _read_llm_response(timeout=1.0, _stdin=stdin)
         assert result is not None
@@ -300,16 +291,10 @@ class TestDetermineSource:
 
     def test_major_edit_returns_override(self) -> None:
         # Completely different answer — >30% edit distance
-        assert (
-            _determine_source("PostgreSQL.", "PostgreSQL with replicas.")
-            == SummarySource.MISSION_OWNER_OVERRIDE
-        )
+        assert _determine_source("PostgreSQL.", "PostgreSQL with replicas.") == SummarySource.MISSION_OWNER_OVERRIDE
 
     def test_complete_rewrite_returns_override(self) -> None:
-        assert (
-            _determine_source("Use PostgreSQL", "Actually use MySQL for legacy reasons")
-            == SummarySource.MISSION_OWNER_OVERRIDE
-        )
+        assert _determine_source("Use PostgreSQL", "Actually use MySQL for legacy reasons") == SummarySource.MISSION_OWNER_OVERRIDE
 
     def test_whitespace_only_candidate_returns_manual(self) -> None:
         assert _determine_source("   ", "Some answer") == SummarySource.MANUAL
@@ -377,9 +362,7 @@ class TestHandleAccept:
 
         console, buf = _console_with_capture()
         svc = make_dm_service()
-        svc.resolve_decision.side_effect = DecisionError(
-            code=DecisionErrorCode.TERMINAL_CONFLICT
-        )
+        svc.resolve_decision.side_effect = DecisionError(code=DecisionErrorCode.TERMINAL_CONFLICT)
         discussion = make_discussion()
         candidate = CandidateReview(
             decision_id="D01",
@@ -545,9 +528,7 @@ class TestHandleEdit:
 
         console, buf = _console_with_capture()
         svc = make_dm_service()
-        svc.resolve_decision.side_effect = DecisionError(
-            code=DecisionErrorCode.TERMINAL_CONFLICT
-        )
+        svc.resolve_decision.side_effect = DecisionError(code=DecisionErrorCode.TERMINAL_CONFLICT)
         discussion = make_discussion()
         candidate = CandidateReview(
             decision_id="D01",

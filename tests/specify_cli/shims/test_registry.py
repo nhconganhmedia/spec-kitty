@@ -27,6 +27,8 @@ from specify_cli.shims.registry import (
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 class TestConsumerSkills:
     @pytest.mark.parametrize(
         "skill",
@@ -177,6 +179,7 @@ class TestCommandClassificationInvariant:
 
     def test_no_overlap_between_sets(self) -> None:
         assert frozenset() == PROMPT_DRIVEN_COMMANDS & CLI_DRIVEN_COMMANDS
+
 
 class TestIsPromptDriven:
     @pytest.mark.parametrize("skill", sorted(PROMPT_DRIVEN_COMMANDS))

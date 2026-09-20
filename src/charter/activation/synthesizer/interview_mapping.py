@@ -57,7 +57,6 @@ __all__ = [
 ]
 
 
-
 # ---------------------------------------------------------------------------
 # Data types
 # ---------------------------------------------------------------------------
@@ -157,12 +156,7 @@ _INTERVIEW_SECTION_ALIASES: dict[str, tuple[str, ...]] = {
 # module is the accepted NFR-001 carve-out for a module-level derived value
 # (C-012) — this table is private with a single internal consumer, so a
 # lazy form would be over-engineering.
-_MISSION_IDENTIFIER_ANSWERS: frozenset[str] = frozenset(
-    {
-        mission_type_id.replace("-", "_")
-        for mission_type_id in builtin_mission_type_ids()
-    }
-)
+_MISSION_IDENTIFIER_ANSWERS: frozenset[str] = frozenset({mission_type_id.replace("-", "_") for mission_type_id in builtin_mission_type_ids()})
 
 # #3052 edge wiring (FR-012/NFR-007): underscore-normalized mission-type
 # identifier -> its ``mission_type:<id>`` DRG URN (built-in NodeKind.MISSION_TYPE,
@@ -174,25 +168,17 @@ _MISSION_IDENTIFIER_ANSWERS: frozenset[str] = frozenset(
 # mission-type id, that identity *is* the declared upstream URN -- not an
 # inferred relationship (NFR-007 no-fabrication).
 _MISSION_TYPE_URN_BY_NORMALIZED_ID: dict[str, str] = {
-    mission_type_id.replace("-", "_"): f"mission_type:{mission_type_id}"
-    for mission_type_id in builtin_mission_type_ids()
+    mission_type_id.replace("-", "_"): f"mission_type:{mission_type_id}" for mission_type_id in builtin_mission_type_ids()
 }
 
 # Gated sections without a direct producer key. These remain accepted for
 # legacy/synthetic synthesis snapshots and are documented so contract tests do
 # not silently bless missing real interview data.
 _SYNTHETIC_SECTIONS: dict[str, str] = {
-    "neutrality_posture": (
-        "Legacy synthesis topic with no current CharterInterview producer key; "
-        "accepted only when callers provide it explicitly."
-    ),
+    "neutrality_posture": ("Legacy synthesis topic with no current CharterInterview producer key; accepted only when callers provide it explicitly."),
 }
 
-_ALIAS_TO_SECTION: dict[str, str] = {
-    alias: section
-    for section, aliases in _INTERVIEW_SECTION_ALIASES.items()
-    for alias in aliases
-}
+_ALIAS_TO_SECTION: dict[str, str] = {alias: section for section, aliases in _INTERVIEW_SECTION_ALIASES.items() for alias in aliases}
 
 # Interview sections that receive special per-item expansion in resolve_sections().
 # These are NOT rows in INTERVIEW_MAPPINGS because each item in the list drives
@@ -373,11 +359,7 @@ def _iter_clean_strings(raw_values: object) -> tuple[str, ...]:
         cleaned = raw_values.strip()
         return (cleaned,) if cleaned else ()
     if isinstance(raw_values, (list, tuple)):
-        return tuple(
-            item.strip()
-            for item in raw_values
-            if isinstance(item, str) and item.strip()
-        )
+        return tuple(item.strip() for item in raw_values if isinstance(item, str) and item.strip())
     return ()
 
 
@@ -386,9 +368,7 @@ def _append_selected_directives(
     interview_snapshot: dict[str, Any],
 ) -> None:
     """Append one tactic entry per selected directive."""
-    for directive_id in _iter_clean_strings(
-        interview_snapshot.get("selected_directives", [])
-    ):
+    for directive_id in _iter_clean_strings(interview_snapshot.get("selected_directives", [])):
         results.append(
             (
                 "selected_directives",
@@ -413,11 +393,7 @@ def _append_language_scope_results(
     if not languages:
         raw_alias = interview_snapshot.get("languages_frameworks", "")
         source_key = "languages_frameworks"
-        languages = (
-            tuple(extract_declared_languages(raw_alias))
-            if isinstance(raw_alias, str)
-            else _iter_clean_strings(raw_alias)
-        )
+        languages = tuple(extract_declared_languages(raw_alias)) if isinstance(raw_alias, str) else _iter_clean_strings(raw_alias)
 
     for language in languages:
         normalized_language = language.lower()
@@ -465,8 +441,7 @@ def resolve_sections(
     # The _use_built_in_only_drg sentinel documents and enforces this invariant.
     if not _use_built_in_only_drg:
         raise ValueError(
-            "resolve_sections() requires _use_built_in_only_drg=True (R-9 invariant). "
-            "Do not merge the project-layer DRG during interview-time resolution."
+            "resolve_sections() requires _use_built_in_only_drg=True (R-9 invariant). Do not merge the project-layer DRG during interview-time resolution."
         )
 
     results: list[tuple[str, dict[str, Any]]] = []

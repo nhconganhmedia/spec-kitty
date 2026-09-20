@@ -44,16 +44,9 @@ def run_channel_report(*, json_output: bool) -> None:
         raise typer.Exit(0)
 
     if channel == _PRERELEASE:
-        console.print(
-            "[yellow]Release channel[/yellow]: prerelease-opt-in "
-            "(SPEC_KITTY_PRERELEASE is set) — 'latest version' surfaces "
-            "include release candidates."
-        )
+        console.print("[yellow]Release channel[/yellow]: prerelease-opt-in (SPEC_KITTY_PRERELEASE is set) — 'latest version' surfaces include release candidates.")
     else:
-        console.print(
-            "[green]Release channel[/green]: stable (default) — "
-            "'latest version' surfaces only stable releases."
-        )
+        console.print("[green]Release channel[/green]: stable (default) — 'latest version' surfaces only stable releases.")
     raise typer.Exit(0)
 
 

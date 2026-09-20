@@ -63,8 +63,7 @@ class ActivateBuiltinMissionTypesMigration(BaseMigration):
 
     migration_id = "3.2.0rc35_activate_builtin_mission_types"
     description = (
-        "Add mission_type_activations: [software-dev, documentation, research, plan] "
-        "to .kittify/config.yaml for projects that do not yet have the key (FR-019)."
+        "Add mission_type_activations: [software-dev, documentation, research, plan] to .kittify/config.yaml for projects that do not yet have the key (FR-019)."
     )
     target_version = "3.2.0rc35"
 
@@ -146,9 +145,7 @@ class ActivateBuiltinMissionTypesMigration(BaseMigration):
             return MigrationResult(success=False, errors=[f"Invalid YAML: {exc}"])
 
         if not isinstance(data, dict):
-            return MigrationResult(
-                success=False, errors=["config.yaml root must be a mapping"]
-            )
+            return MigrationResult(success=False, errors=["config.yaml root must be a mapping"])
 
         # Idempotency check — skip if already present and non-empty
         existing = data.get("mission_type_activations")
@@ -160,9 +157,7 @@ class ActivateBuiltinMissionTypesMigration(BaseMigration):
 
         builtin_types = sorted(builtin_mission_type_ids())
 
-        change_description = (
-            f"Added mission_type_activations: {builtin_types}"
-        )
+        change_description = f"Added mission_type_activations: {builtin_types}"
 
         if dry_run:
             return MigrationResult(
@@ -176,8 +171,6 @@ class ActivateBuiltinMissionTypesMigration(BaseMigration):
             with config_file.open("w", encoding="utf-8") as fh:
                 yaml.dump(data, fh)
         except OSError as exc:
-            return MigrationResult(
-                success=False, errors=[f"Failed writing config.yaml: {exc}"]
-            )
+            return MigrationResult(success=False, errors=[f"Failed writing config.yaml: {exc}"])
 
         return MigrationResult(success=True, changes_made=[change_description])

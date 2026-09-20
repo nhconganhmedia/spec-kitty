@@ -99,11 +99,7 @@ def _declared_action_labels(repo_root: Path) -> frozenset[str]:
         merged = load_validated_graph(repo_root)
     except (DRGLoadError, DRGValidationError, OSError):
         return frozenset()
-    return frozenset(
-        urn.split("/", 1)[1]
-        for urn in merged.node_urns()
-        if urn.startswith("action:") and "/" in urn
-    )
+    return frozenset(urn.split("/", 1)[1] for urn in merged.node_urns() if urn.startswith("action:") and "/" in urn)
 
 
 def validate_local_support_declarations(
@@ -141,17 +137,11 @@ def validate_local_support_declarations(
         path = decl.path
         # Reject glob patterns
         if any(c in path for c in _GLOB_CHARS):
-            errors.append(
-                f"local_supporting_files path '{path}' contains glob characters; "
-                "explicit file paths only."
-            )
+            errors.append(f"local_supporting_files path '{path}' contains glob characters; explicit file paths only.")
             continue
         # Reject paths that look like directories (trailing slash)
         if path.endswith(("/", "\\")):
-            errors.append(
-                f"local_supporting_files path '{path}' looks like a directory; "
-                "explicit file paths only."
-            )
+            errors.append(f"local_supporting_files path '{path}' looks like a directory; explicit file paths only.")
             continue
         # Normalize action: unknown values are silently dropped (set to None)
         normalized_action: str | None = None
@@ -160,9 +150,7 @@ def validate_local_support_declarations(
                 normalized_action = decl.action
             else:
                 errors.append(
-                    f"local_supporting_files path '{path}': unknown action "
-                    f"'{decl.action}' (expected one of {sorted(known_actions)}); "
-                    "treating as global."
+                    f"local_supporting_files path '{path}': unknown action '{decl.action}' (expected one of {sorted(known_actions)}); treating as global."
                 )
                 # Still include the declaration but with action=None
         normalized = LocalSupportDeclaration(
@@ -223,9 +211,7 @@ _DEFAULT_MISSION_DIRECTIVES: dict[str, tuple[str, ...]] = {}
 _UNSET = object()
 _LYNN_COLE_DIRECTIVE = "DIRECTIVE_039"
 _LYNN_COLE_PARADIGM = "deep-module-design"
-_LYNN_COLE_EXPLICIT_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\blynn\s+cole\b"),
-)
+_LYNN_COLE_EXPLICIT_PATTERNS: tuple[re.Pattern[str], ...] = (re.compile(r"\blynn\s+cole\b"),)
 _LYNN_COLE_CONCERN_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"\bagents?\s+(?:write|produce|generate|create)\s+too\s+much\s+code\b"),
     re.compile(r"\b(?:ai|llm|agentic|generated)\s+code\s+(?:is\s+)?(?:bloated|sprawling|too\s+long)\b"),
@@ -279,9 +265,7 @@ class CharterInterview:
         mission = str(data.get("mission", "software-dev")).strip() or "software-dev"
         profile = str(data.get("profile", "minimal")).strip() or "minimal"
         raw_answers = data.get("answers")
-        answers: dict[str, str] = (
-            {str(k): str(v) for k, v in raw_answers.items()} if isinstance(raw_answers, dict) else {}
-        )
+        answers: dict[str, str] = {str(k): str(v) for k, v in raw_answers.items()} if isinstance(raw_answers, dict) else {}
 
         raw_local = data.get("local_supporting_files")
         local_supporting_files: list[LocalSupportDeclaration] = []
@@ -291,18 +275,20 @@ class CharterInterview:
                 if parsed is not None:
                     local_supporting_files.append(parsed)
 
-        return apply_doctrine_intent_aliases(cls(
-            mission=mission,
-            profile=profile,
-            answers=answers,
-            selected_paradigms=_normalize_list(data.get("selected_paradigms")),
-            selected_directives=_normalize_list(data.get("selected_directives")),
-            available_tools=_normalize_list(data.get("available_tools")),
-            agent_profile=_normalize_optional_string(data.get("agent_profile")),
-            agent_role=_normalize_optional_string(data.get("agent_role")),
-            local_supporting_files=local_supporting_files,
-            selected_tactics=_normalize_list(data.get("selected_tactics")),
-        ))
+        return apply_doctrine_intent_aliases(
+            cls(
+                mission=mission,
+                profile=profile,
+                answers=answers,
+                selected_paradigms=_normalize_list(data.get("selected_paradigms")),
+                selected_directives=_normalize_list(data.get("selected_directives")),
+                available_tools=_normalize_list(data.get("available_tools")),
+                agent_profile=_normalize_optional_string(data.get("agent_profile")),
+                agent_role=_normalize_optional_string(data.get("agent_role")),
+                local_supporting_files=local_supporting_files,
+                selected_tactics=_normalize_list(data.get("selected_tactics")),
+            )
+        )
 
 
 def default_interview(
@@ -315,11 +301,7 @@ def default_interview(
     catalog = doctrine_catalog or load_doctrine_catalog()
     defaults = _load_packaged_defaults()
     raw_default_answers = defaults.get("answers", {})
-    answers: dict[str, str] = (
-        dict(cast(dict[str, str], raw_default_answers))
-        if isinstance(raw_default_answers, dict)
-        else {}
-    )
+    answers: dict[str, str] = dict(cast(dict[str, str], raw_default_answers)) if isinstance(raw_default_answers, dict) else {}
 
     if profile == "minimal":
         answers = {key: answers[key] for key in MINIMAL_QUESTION_ORDER}
@@ -335,27 +317,29 @@ def default_interview(
         available=catalog.directives,
     )
 
-    return apply_doctrine_intent_aliases(CharterInterview(
-        mission=mission,
-        profile=profile,
-        answers=answers,
-        selected_paradigms=_normalize_iterable(
-            cast(Iterable[str] | None, defaults.get("selected_paradigms")),
-            fallback=default_paradigms,
-        ),
-        selected_directives=_normalize_iterable(
-            cast(Iterable[str] | None, defaults.get("selected_directives")),
-            fallback=default_directives,
-        ),
-        available_tools=_normalize_iterable(
-            cast(Iterable[str] | None, defaults.get("available_tools")),
-            fallback=sorted(DEFAULT_TOOL_REGISTRY),
-        ),
-        selected_tactics=_normalize_iterable(
-            cast(Iterable[str] | None, defaults.get("selected_tactics")),
-            fallback=[],
-        ),
-    ))
+    return apply_doctrine_intent_aliases(
+        CharterInterview(
+            mission=mission,
+            profile=profile,
+            answers=answers,
+            selected_paradigms=_normalize_iterable(
+                cast(Iterable[str] | None, defaults.get("selected_paradigms")),
+                fallback=default_paradigms,
+            ),
+            selected_directives=_normalize_iterable(
+                cast(Iterable[str] | None, defaults.get("selected_directives")),
+                fallback=default_directives,
+            ),
+            available_tools=_normalize_iterable(
+                cast(Iterable[str] | None, defaults.get("available_tools")),
+                fallback=sorted(DEFAULT_TOOL_REGISTRY),
+            ),
+            selected_tactics=_normalize_iterable(
+                cast(Iterable[str] | None, defaults.get("selected_tactics")),
+                fallback=[],
+            ),
+        )
+    )
 
 
 def read_interview_answers(path: Path, *, unsafe: bool = False) -> CharterInterview | None:
@@ -461,10 +445,7 @@ def _guard_against_regression(existing: dict[str, Any], new: dict[str, Any]) -> 
         old_value = existing.get(field_name)
         new_value = new.get(field_name)
         if isinstance(old_value, list) and old_value and not new_value:
-            raise InterviewAnswersRegressionError(
-                f"Refusing to write '{field_name}': would drop "
-                f"{len(old_value)} existing selection(s) with no replacement."
-            )
+            raise InterviewAnswersRegressionError(f"Refusing to write '{field_name}': would drop {len(old_value)} existing selection(s) with no replacement.")
 
     existing_answers = existing.get("answers")
     if not isinstance(existing_answers, dict):
@@ -473,10 +454,7 @@ def _guard_against_regression(existing: dict[str, Any], new: dict[str, Any]) -> 
     new_answers_dict = new_answers if isinstance(new_answers, dict) else {}
     for key, old_answer in existing_answers.items():
         if old_answer and not new_answers_dict.get(key):
-            raise InterviewAnswersRegressionError(
-                f"Refusing to write answers: existing answer {key!r} would "
-                "be dropped or emptied."
-            )
+            raise InterviewAnswersRegressionError(f"Refusing to write answers: existing answer {key!r} would be dropped or emptied.")
 
 
 def write_interview_answers(
@@ -559,15 +537,10 @@ def apply_org_charter_pre_fill_to_answers(
 
     messages: list[str] = []
     if new_required:
-        messages.append(
-            f"Pre-selected {len(new_required)} directives from org charter "
-            "required_directives."
-        )
+        messages.append(f"Pre-selected {len(new_required)} directives from org charter required_directives.")
 
     if prefilled:
-        messages.append(
-            f"Pre-filled {prefilled} interview defaults from org charter."
-        )
+        messages.append(f"Pre-filled {prefilled} interview defaults from org charter.")
 
     if messages:
         answers_path.parent.mkdir(parents=True, exist_ok=True)
@@ -594,9 +567,7 @@ def _load_existing_answers(answers_path: Path, yaml: YAML) -> dict[str, Any]:
     return loaded if isinstance(loaded, dict) else {}
 
 
-def _prefill_answer_defaults(
-    existing: dict[str, Any], interview_defaults: dict[str, str | bool]
-) -> int:
+def _prefill_answer_defaults(existing: dict[str, Any], interview_defaults: dict[str, str | bool]) -> int:
     """Set each default whose key is missing from ``existing`` in place.
 
     Returns the count of keys that were prefilled.
@@ -619,9 +590,7 @@ def _existing_directives_from(existing: dict[str, Any]) -> list[str]:
     return []
 
 
-def _merge_required_directives(
-    existing: dict[str, Any], required_directives: list[str]
-) -> list[str]:
+def _merge_required_directives(existing: dict[str, Any], required_directives: list[str]) -> list[str]:
     """Append any missing ``required_directives`` to ``existing`` in place.
 
     Returns the subset of ``required_directives`` that was newly added
@@ -662,30 +631,32 @@ def apply_answer_overrides(
     else:
         resolved_local = list(cast(list[LocalSupportDeclaration], local_supporting_files))
 
-    return apply_doctrine_intent_aliases(CharterInterview(
-        mission=interview.mission,
-        profile=interview.profile,
-        answers=merged_answers,
-        selected_paradigms=_normalize_iterable(
-            selected_paradigms,
-            fallback=interview.selected_paradigms,
-        ),
-        selected_directives=_normalize_iterable(
-            selected_directives,
-            fallback=interview.selected_directives,
-        ),
-        available_tools=_normalize_iterable(
-            available_tools,
-            fallback=interview.available_tools,
-        ),
-        agent_profile=interview.agent_profile if agent_profile is _UNSET else _normalize_optional_string(agent_profile),
-        agent_role=interview.agent_role if agent_role is _UNSET else _normalize_optional_string(agent_role),
-        local_supporting_files=resolved_local,
-        selected_tactics=_normalize_iterable(
-            selected_tactics,
-            fallback=interview.selected_tactics,
-        ),
-    ))
+    return apply_doctrine_intent_aliases(
+        CharterInterview(
+            mission=interview.mission,
+            profile=interview.profile,
+            answers=merged_answers,
+            selected_paradigms=_normalize_iterable(
+                selected_paradigms,
+                fallback=interview.selected_paradigms,
+            ),
+            selected_directives=_normalize_iterable(
+                selected_directives,
+                fallback=interview.selected_directives,
+            ),
+            available_tools=_normalize_iterable(
+                available_tools,
+                fallback=interview.available_tools,
+            ),
+            agent_profile=interview.agent_profile if agent_profile is _UNSET else _normalize_optional_string(agent_profile),
+            agent_role=interview.agent_role if agent_role is _UNSET else _normalize_optional_string(agent_role),
+            local_supporting_files=resolved_local,
+            selected_tactics=_normalize_iterable(
+                selected_tactics,
+                fallback=interview.selected_tactics,
+            ),
+        )
+    )
 
 
 def apply_doctrine_intent_aliases(interview: CharterInterview) -> CharterInterview:
@@ -695,10 +666,7 @@ def apply_doctrine_intent_aliases(interview: CharterInterview) -> CharterIntervi
 
     selected_directives = _append_unique(interview.selected_directives, _LYNN_COLE_DIRECTIVE)
     selected_paradigms = _append_unique(interview.selected_paradigms, _LYNN_COLE_PARADIGM)
-    if (
-        selected_directives == interview.selected_directives
-        and selected_paradigms == interview.selected_paradigms
-    ):
+    if selected_directives == interview.selected_directives and selected_paradigms == interview.selected_paradigms:
         return interview
 
     return CharterInterview(
@@ -719,9 +687,7 @@ def _matches_lynn_cole_alias(interview: CharterInterview) -> bool:
     haystack = " ".join(str(value).lower() for value in interview.answers.values())
     if not haystack.strip():
         return False
-    return any(pattern.search(haystack) for pattern in _LYNN_COLE_EXPLICIT_PATTERNS) or any(
-        pattern.search(haystack) for pattern in _LYNN_COLE_CONCERN_PATTERNS
-    )
+    return any(pattern.search(haystack) for pattern in _LYNN_COLE_EXPLICIT_PATTERNS) or any(pattern.search(haystack) for pattern in _LYNN_COLE_CONCERN_PATTERNS)
 
 
 def _append_unique(values: list[str], item: str) -> list[str]:
@@ -787,11 +753,7 @@ def _load_packaged_defaults() -> dict[str, object]:
         return empty
 
     answers = data.get("answers")
-    normalized_answers = (
-        {str(key): str(value) for key, value in answers.items()}
-        if isinstance(answers, dict)
-        else {}
-    )
+    normalized_answers = {str(key): str(value) for key, value in answers.items()} if isinstance(answers, dict) else {}
     return {
         "answers": normalized_answers,
         "selected_paradigms": _normalize_list(data.get("selected_paradigms")),

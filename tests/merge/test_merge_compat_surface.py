@@ -152,10 +152,7 @@ def test_map_has_no_duplicate_source_symbol() -> None:
         + _DONE_BOOKKEEPING_SYMBOLS
         + _BOOKKEEPING_PROJECTION_SYMBOLS
     )
-    assert len(all_names) == len(set(all_names)), (
-        f"duplicate symbol across seam batteries: "
-        f"{sorted({n for n in all_names if all_names.count(n) > 1})}"
-    )
+    assert len(all_names) == len(set(all_names)), f"duplicate symbol across seam batteries: {sorted({n for n in all_names if all_names.count(n) > 1})}"
     assert len(all_names) == len(SYMBOL_RESIDUAL_MAP) == 51
 
 
@@ -264,11 +261,7 @@ def test_no_map_symbol_is_natively_defined_on_the_shim() -> None:
     make the identity check below meaningless (it would simply fail for the
     wrong reason). Verified here by AST rather than assumed."""
     tree = ast.parse(inspect.getsource(shim))
-    natively_defined = {
-        node.name
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
-    }
+    natively_defined = {node.name for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
     hazards = natively_defined & set(SYMBOL_RESIDUAL_MAP)
     assert not hazards, (
         f"symbols natively defined on the shim, not re-exported: {sorted(hazards)} -- "
@@ -287,8 +280,7 @@ def test_shim_reexports_identical_object(name: str, residual: ModuleType) -> Non
     object as ``<residual>.<name>`` -- never a copy. A copy is a false-green
     under ``monkeypatch.setattr``/``mocker.patch`` seams that target the shim."""
     assert getattr(shim, name) is getattr(residual, name), (
-        f"merge.{name} is not the identical object as {residual.__name__}.{name} -- "
-        "the shim re-export is a copy, not an identity re-export."
+        f"merge.{name} is not the identical object as {residual.__name__}.{name} -- the shim re-export is a copy, not an identity re-export."
     )
 
 

@@ -55,11 +55,7 @@ def corrupt_seed_value(
 ) -> None:
     """Mutate one deterministic migration seed payload in place for fault tests."""
     meta = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
-    seed_id = str(
-        deterministic_ulid(
-            f"{meta['mission_id']}|WP01|{field_name}"
-        )
-    )
+    seed_id = str(deterministic_ulid(f"{meta['mission_id']}|WP01|{field_name}"))
     events_path = feature_dir / "status.events.jsonl"
     rows = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
     matched = False
@@ -77,9 +73,7 @@ def corrupt_seed_value(
     )
 
 
-def _transition(
-    *, event_id: str, slug: str, mission_id: str, wp: str, frm: str, to: str, at: str
-) -> dict[str, object]:
+def _transition(*, event_id: str, slug: str, mission_id: str, wp: str, frm: str, to: str, at: str) -> dict[str, object]:
     return {
         "event_id": event_id,
         "mission_slug": slug,
@@ -172,9 +166,7 @@ def build_mission(
     fm += ["---", "", "# WP01 body", ""]
     (tasks / "WP01-demo.md").write_text("\n".join(fm), encoding="utf-8")
 
-    subtask_lines = (
-        "- [x] T001 first subtask\n- [ ] T002 second subtask\n" if with_subtasks else ""
-    )
+    subtask_lines = "- [x] T001 first subtask\n- [ ] T002 second subtask\n" if with_subtasks else ""
     (feature_dir / "tasks.md").write_text(
         f"# Tasks\n\n## WP01 Demo\n{subtask_lines}",
         encoding="utf-8",

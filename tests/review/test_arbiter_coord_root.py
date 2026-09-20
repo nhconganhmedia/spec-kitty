@@ -77,9 +77,7 @@ def test_arbiter_override_under_coord_topology_threads_the_resolved_root(
     ctx = coord_topology_mission
     wrong_root_if_self_inferred = ctx.coord_feature_dir.parent.parent
     assert wrong_root_if_self_inferred != ctx.repo, (
-        "fixture invariant: the coord worktree root must differ from the "
-        "primary repo root, or this test cannot distinguish threading from "
-        "self-inference"
+        "fixture invariant: the coord worktree root must differ from the primary repo root, or this test cannot distinguish threading from self-inference"
     )
 
     captured: dict[str, Any] = {}
@@ -143,8 +141,7 @@ def test_persist_arbiter_decision_requires_repo_root_no_self_inference() -> None
     signature = inspect.signature(persist_arbiter_decision)
     repo_root_param = signature.parameters["repo_root"]
     assert repo_root_param.default is inspect.Parameter.empty, (
-        "repo_root must be a required parameter (no default) -- a default "
-        "reopens the door to the retired self-inference fallback"
+        "repo_root must be a required parameter (no default) -- a default reopens the door to the retired self-inference fallback"
     )
 
 
@@ -166,15 +163,11 @@ def test_arbiter_write_path_keeps_latest_for_cycle_number_only() -> None:
 
     source = inspect.getsource(persist_arbiter_decision)
     assert "ReviewCycleArtifact.latest" in source, (
-        "persist_arbiter_decision must keep resolving cycle_number via "
-        "ReviewCycleArtifact.latest -- this WP is root-threading only, not "
-        "a reader repoint"
+        "persist_arbiter_decision must keep resolving cycle_number via ReviewCycleArtifact.latest -- this WP is root-threading only, not a reader repoint"
     )
     assert "cycle_number" in source
     assert "latest.verdict" not in source and ".verdict" not in source, (
-        "persist_arbiter_decision must never read a verdict off `latest` -- "
-        "it is a WRITE-path artifact-location helper (cycle_number only), "
-        "not a verdict reader"
+        "persist_arbiter_decision must never read a verdict off `latest` -- it is a WRITE-path artifact-location helper (cycle_number only), not a verdict reader"
     )
 
 
@@ -189,18 +182,11 @@ def test_arbiter_verdict_read_is_event_sourced_via_get_arbiter_overrides_for_wp(
     from specify_cli.review.arbiter import get_arbiter_overrides_for_wp
 
     source = inspect.getsource(get_arbiter_overrides_for_wp)
-    assert "wp_snapshot_state" in source, (
-        "get_arbiter_overrides_for_wp must resolve the override via the "
-        "event-sourced wp_snapshot_state surface"
-    )
+    assert "wp_snapshot_state" in source, "get_arbiter_overrides_for_wp must resolve the override via the event-sourced wp_snapshot_state surface"
     assert "ReviewCycleArtifact" not in source, (
-        "get_arbiter_overrides_for_wp must not read review-cycle artifact "
-        "frontmatter -- its verdict/override read is event-sourced only"
+        "get_arbiter_overrides_for_wp must not read review-cycle artifact frontmatter -- its verdict/override read is event-sourced only"
     )
-    assert ".from_file(" not in source, (
-        "get_arbiter_overrides_for_wp must not call ReviewCycleArtifact.from_file "
-        "-- that would be a frontmatter verdict read"
-    )
+    assert ".from_file(" not in source, "get_arbiter_overrides_for_wp must not call ReviewCycleArtifact.from_file -- that would be a frontmatter verdict read"
 
 
 def test_no_frontmatter_verdict_read_survives_anywhere_in_arbiter_module() -> None:

@@ -149,10 +149,7 @@ class RefreshOrientationBlockMigration(BaseMigration):
         if dry_run:
             return MigrationResult(
                 success=True,
-                changes_made=[
-                    f"Would refresh stale orientation block for harness: {key}"
-                    for key in stale
-                ],
+                changes_made=[f"Would refresh stale orientation block for harness: {key}" for key in stale],
             )
 
         if not stale:

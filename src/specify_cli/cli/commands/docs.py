@@ -78,14 +78,9 @@ def _load_store() -> DocsIndexStore:
     if not index_path.exists():
         docs_root = Path("docs")
         if not docs_root.exists():
-            err_console.print(
-                "[red]Error: no docs/ tree found in the current directory.[/red]"
-            )
+            err_console.print("[red]Error: no docs/ tree found in the current directory.[/red]")
         else:
-            err_console.print(
-                f"[red]Error: no Common Docs retrieval index at "
-                f"{index_path}.[/red] {_GENERATOR_HINT}."
-            )
+            err_console.print(f"[red]Error: no Common Docs retrieval index at {index_path}.[/red] {_GENERATOR_HINT}.")
         raise typer.Exit(1)
     try:
         return DocsIndexStore.load(index_path)
@@ -94,16 +89,11 @@ def _load_store() -> DocsIndexStore:
         # merge markers) makes ruamel raise a YAMLError; an unreadable file
         # raises OSError. Either way, surface a clean, actionable one-line error
         # rather than a multi-frame traceback.
-        err_console.print(
-            f"[red]Error: could not read or parse the docs retrieval index at "
-            f"{index_path}: {exc}[/red]"
-        )
+        err_console.print(f"[red]Error: could not read or parse the docs retrieval index at {index_path}: {exc}[/red]")
         raise typer.Exit(1) from exc
 
 
-def _matching_anchors(
-    entry: DocsQueryEntry, normalized_term: str, section: str | None
-) -> list[Anchor]:
+def _matching_anchors(entry: DocsQueryEntry, normalized_term: str, section: str | None) -> list[Anchor]:
     """Return only the anchors of ``entry`` that matched the query (FR-003).
 
     An anchor is "matching" if the term substring hits its ``text`` or
@@ -120,9 +110,7 @@ def _matching_anchors(
     return matched
 
 
-def _entry_to_dict(
-    entry: DocsQueryEntry, normalized_term: str, section: str | None
-) -> dict[str, object]:
+def _entry_to_dict(entry: DocsQueryEntry, normalized_term: str, section: str | None) -> dict[str, object]:
     """Serialize one matched entry to the JSON element shape (cli-contract.md)."""
     anchors = _matching_anchors(entry, normalized_term, section)
     return {
@@ -145,10 +133,7 @@ def _validate_term(term: str) -> str:
 def _validate_divio_type(divio_type: str | None) -> None:
     """Reject a ``--divio-type`` value outside the known set (exit 2)."""
     if divio_type is not None and divio_type not in _VALID_DIVIO_TYPES:
-        raise typer.BadParameter(
-            f"Invalid --divio-type '{divio_type}'. "
-            f"Valid values: {', '.join(_VALID_DIVIO_TYPES)}."
-        )
+        raise typer.BadParameter(f"Invalid --divio-type '{divio_type}'. Valid values: {', '.join(_VALID_DIVIO_TYPES)}.")
 
 
 def _render_table(term: str, matches: list[DocsQueryEntry], section: str | None) -> None:

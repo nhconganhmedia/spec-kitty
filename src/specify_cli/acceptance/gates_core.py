@@ -84,11 +84,7 @@ def _all_work_packages_terminal(lanes: Mapping[str, list[str]]) -> bool:
     # included) is not. Provenance-aware terminality is decided by the caller
     # (``collect_feature_summary``) and threaded via
     # :func:`_normalized_unchecked_tasks`'s ``all_packages_acceptable`` override.
-    return not any(
-        wp_ids
-        for lane, wp_ids in lanes.items()
-        if not is_acceptable_ending(lane, has_provenance=False)
-    )
+    return not any(wp_ids for lane, wp_ids in lanes.items() if not is_acceptable_ending(lane, has_provenance=False))
 
 
 def _normalized_unchecked_tasks(
@@ -121,11 +117,7 @@ def _normalized_unchecked_tasks(
     """
     if unchecked_tasks == [f"{_TASKS_FILE} missing"]:
         return []
-    terminal = (
-        all_packages_acceptable
-        if all_packages_acceptable is not None
-        else _all_work_packages_terminal(lanes)
-    )
+    terminal = all_packages_acceptable if all_packages_acceptable is not None else _all_work_packages_terminal(lanes)
     if terminal:
         return []
     return unchecked_tasks
@@ -251,7 +243,11 @@ def _evaluate_branch_gate(
 
 
 def _acceptance_gate_context(
-    repo_root: Path, feature_dir: Path, *, branch: str | None = None, effective_root: Path | None = None,
+    repo_root: Path,
+    feature_dir: Path,
+    *,
+    branch: str | None = None,
+    effective_root: Path | None = None,
 ) -> GateExecutionContext:
     """Build the ACCEPT-phase :class:`GateExecutionContext` for the acceptance matrix.
 
@@ -389,7 +385,11 @@ def _acceptance_matrix_read_dir(repo_root: Path, feature_dir: Path) -> Path:
 
 
 def _matrix_surface_cannot_hold(
-    context: GateExecutionContext, repo_root: Path, feature_dir: Path, *, effective_root: Path | None = None,
+    context: GateExecutionContext,
+    repo_root: Path,
+    feature_dir: Path,
+    *,
+    effective_root: Path | None = None,
 ) -> CannotEvaluate | None:
     """GEC-5 / C2: refuse when the coord-homed matrix is judged on a PRIMARY stamp.
 
@@ -417,7 +417,9 @@ def _matrix_surface_cannot_hold(
 
     scope: dict[str, Any] = effective_root_kwargs(effective_root)
     home = declared_home_surface(
-        repo_root, feature_dir.name, MissionArtifactKind.ACCEPTANCE_MATRIX,
+        repo_root,
+        feature_dir.name,
+        MissionArtifactKind.ACCEPTANCE_MATRIX,
         **scope,
     )
     return context.surface_cannot_hold(home)
@@ -514,9 +516,7 @@ def _evaluate_acceptance_matrix(
         # ``getattr`` guard tolerates unit-test doubles (bare
         # ``SimpleNamespace`` fixtures elsewhere in this module's test
         # suite) that model only the fields their own test cares about.
-        acc_matrix.criteria = populate_criteria_from_review_evidence(
-            matrix_dir, acc_matrix.criteria
-        )
+        acc_matrix.criteria = populate_criteria_from_review_evidence(matrix_dir, acc_matrix.criteria)
 
     if acc_matrix.negative_invariants and mutate_matrix:
         # WP04 T023: hand the gate context to the enforcer so a pending invariant

@@ -43,9 +43,9 @@ _BOM_BYTES = _BOM_PREFIX + _UTF8_BYTES
 # producing a UnicodeDecodeError for UTF-8 AND low-confidence from c-n.
 # We use a known-bad Latin-1/cp1252 mixed sequence here.
 _AMBIGUOUS_BYTES = (
-    b"\xff\xfe" +  # UTF-16-LE BOM — but then continued as cp1252 content
-    b"\x00" * 30 +  # null bytes that confuse the detector
-    b"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89"  # cp1252 control region
+    b"\xff\xfe"  # UTF-16-LE BOM — but then continued as cp1252 content
+    + b"\x00" * 30  # null bytes that confuse the detector
+    + b"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89"  # cp1252 control region
     b"\x00\x00\x00\x00\x00"
     b"\xef\xbf\xbd\x00\xff"  # UTF-8 replacement char embedded, then invalid byte
 )
@@ -77,6 +77,7 @@ def test_pure_utf8_ingest_records_provenance_without_normalization(tmp_path: Pat
 
     # Patch provenance routing to write into tmp_path so tests don't pollute CWD.
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
 
     def _patched_route(source_path: Path | None) -> Path:
@@ -115,6 +116,7 @@ def test_cp1252_ingest_normalizes_and_records_provenance(tmp_path: Path) -> None
     charter_file.write_bytes(_CP1252_BYTES)
 
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
 
     def _patched_route(source_path: Path | None) -> Path:
@@ -151,6 +153,7 @@ def test_bom_sniff_recognized(tmp_path: Path) -> None:
     charter_file.write_bytes(_BOM_BYTES)
 
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
 
     def _patched_route(source_path: Path | None) -> Path:
@@ -210,6 +213,7 @@ def test_ambiguous_content_raises_without_unsafe(tmp_path: Path) -> None:
     ambiguous = b"\x80" + b"\x00" * 10 + b"\x81" + b"\x00" * 10 + b"\x9f" + b"\x00" * 5
 
     import charter.activation._io as _io_mod
+
     original_route = _io_mod._route_provenance_path
     provenance_file = tmp_path / "provenance.jsonl"
 

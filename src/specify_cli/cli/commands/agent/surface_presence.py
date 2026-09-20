@@ -95,10 +95,7 @@ class SurfacePresenceIndex:
         try:
             roots_by_tool = cls._roots_from_plan(project_root, ordered, resolver)
         except ManifestError:
-            roots_by_tool = {
-                tool_key: _static_roots(tool_key, project_root, resolver)
-                for tool_key in ordered
-            }
+            roots_by_tool = {tool_key: _static_roots(tool_key, project_root, resolver) for tool_key in ordered}
         return cls(roots_by_tool)
 
     @staticmethod
@@ -110,10 +107,7 @@ class SurfacePresenceIndex:
         registry = build_registry(ordered)
         builder = SurfacePlanBuilder(registry, build_providers())
         plans = builder.build(ordered, project_root)
-        return {
-            plan.tool_key: _roots_for_plan(plan, project_root, resolver)
-            for plan in plans
-        }
+        return {plan.tool_key: _roots_for_plan(plan, project_root, resolver) for plan in plans}
 
     def presence(self, tool_key: str) -> ToolSurfacePresence:
         """Return the presence rollup for ``tool_key`` (empty if unplanned)."""
@@ -156,11 +150,7 @@ def _kinds_for_plan(plan: SurfacePlan) -> set[ToolSurfaceKind]:
     command-file instance is a sentinel has no slash-command adapter, so the
     kind must not contribute a presence root.
     """
-    return {
-        instance.definition.kind
-        for instance in plan.instances
-        if str(instance.path) not in _SENTINEL_PATHS
-    }
+    return {instance.definition.kind for instance in plan.instances if str(instance.path) not in _SENTINEL_PATHS}
 
 
 def _roots_for_plan(

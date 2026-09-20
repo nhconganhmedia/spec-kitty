@@ -31,12 +31,7 @@ def test_generic_content_template_copies_removed() -> None:
         REPO_ROOT / "src" / "charter" / "offering" / "templates",
     ]
 
-    stale_copies = [
-        root / name
-        for root in stale_roots
-        for name in CONTENT_TEMPLATE_NAMES
-        if (root / name).exists()
-    ]
+    stale_copies = [root / name for root in stale_roots for name in CONTENT_TEMPLATE_NAMES if (root / name).exists()]
 
     assert stale_copies == []
 
@@ -63,15 +58,7 @@ def test_runtime_package_default_resolves_doctrine_template(
     result = resolve_template("plan-template.md", project, mission="software-dev")
 
     assert result.tier == ResolutionTier.PACKAGE_DEFAULT
-    assert result.path == (
-        REPO_ROOT
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "software-dev"
-        / "templates"
-        / "plan-template.md"
-    )
+    assert result.path == (REPO_ROOT / "packs" / "built-in" / "missions" / "software-dev" / "templates" / "plan-template.md")
 
 
 def test_stale_specify_cli_missions_env_root_resolves_doctrine_assets(
@@ -89,23 +76,6 @@ def test_stale_specify_cli_missions_env_root_resolves_doctrine_assets(
     command = resolve_command("implement.md", project, mission="software-dev")
 
     assert content.tier == ResolutionTier.PACKAGE_DEFAULT
-    assert content.path == (
-        REPO_ROOT
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "software-dev"
-        / "templates"
-        / "plan-template.md"
-    )
+    assert content.path == (REPO_ROOT / "packs" / "built-in" / "missions" / "software-dev" / "templates" / "plan-template.md")
     assert command.tier == ResolutionTier.PACKAGE_DEFAULT
-    assert command.path == (
-        REPO_ROOT
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "mission-steps"
-        / "software-dev"
-        / "implement"
-        / "prompt.md"
-    )
+    assert command.path == (REPO_ROOT / "packs" / "built-in" / "missions" / "mission-steps" / "software-dev" / "implement" / "prompt.md")

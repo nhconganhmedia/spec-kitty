@@ -58,9 +58,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 # ---------------------------------------------------------------------------
 
 
-def test_coord_root_walk_sites_current_values_before_oracle(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coord_root_walk_sites_current_values_before_oracle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The HEAD (before) oracle for all 5 root-walk sites under coord topology.
 
     Driven WITHOUT explicit ``repo_root`` from the coord worktree CWD. This is
@@ -110,9 +108,7 @@ def test_coord_root_walk_sites_current_values_before_oracle(
     assert main_root != worktree_root
 
 
-def test_coord_status_write_surface_is_coord_authority_never_primary(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coord_status_write_surface_is_coord_authority_never_primary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T003 / C-007: the status WRITE surface stays on the coord authority.
 
     ``resolve_status_surface`` for a coord-declaring mission must land inside a
@@ -134,9 +130,7 @@ def test_coord_status_write_surface_is_coord_authority_never_primary(
     # The placement / write-target is the coordination branch (C-TARGET coord arm).
     # The status write surface resolves with STATUS_STATE (coord-preserving) kind
     # (write-surface-coherence WP02 / T031): coord topology keeps the coord branch.
-    placement = resolve_placement_only(
-        coord.main_root, coord.mission_slug, kind=MissionArtifactKind.STATUS_STATE
-    )
+    placement = resolve_placement_only(coord.main_root, coord.mission_slug, kind=MissionArtifactKind.STATUS_STATE)
     assert placement.ref == coord.coord_branch
 
 
@@ -145,9 +139,7 @@ def test_coord_status_write_surface_is_coord_authority_never_primary(
 # ---------------------------------------------------------------------------
 
 
-def test_primary_all_root_walk_sites_resolve_repo_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_primary_all_root_walk_sites_resolve_repo_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """On a plain primary checkout every root-walk site resolves the repo root."""
     primary = build_primary(tmp_path)
     monkeypatch.chdir(primary.repo_root)
@@ -165,9 +157,7 @@ def test_primary_all_root_walk_sites_resolve_repo_root(
 # ---------------------------------------------------------------------------
 
 
-def test_submodule_root_walk_sites_stop_at_submodule_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_submodule_root_walk_sites_stop_at_submodule_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T004 / NFR-002: under a real submodule, root resolution STOPS at the
     submodule root — it must NOT walk up into the enclosing superproject.
 
@@ -249,9 +239,7 @@ def test_store_slug_resolver_non_kitty_specs_falls_back_to_parent(
     assert resolver._mission_specs_root == loose.parent
 
 
-def test_lanes_dir_under_coord_resolves_to_coord_authority(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lanes_dir_under_coord_resolves_to_coord_authority(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T005 / FR-008 oracle: ``resolve_lanes_dir`` is pure path composition —
     given a coord feature dir it returns a path under that coord dir (GIGO).
 
@@ -271,9 +259,7 @@ def test_lanes_dir_under_coord_resolves_to_coord_authority(
     assert primary_specs not in lanes.parents
 
 
-def test_lanes_dir_flat_resolves_to_primary_specs(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lanes_dir_flat_resolves_to_primary_specs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T005 / FR-008 oracle (flat arm): with NO coord, the lanes-dir resolves
     under the primary checkout's ``kitty-specs/<slug>`` — the simple case.
     """
@@ -285,9 +271,7 @@ def test_lanes_dir_flat_resolves_to_primary_specs(
     assert ".worktrees" not in lanes.parts
 
 
-def test_coord_topology_classification_is_coord_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coord_topology_classification_is_coord_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Sanity guard for the coord fixture: git REALLY registers the worktree.
 
     A reviewer relies on this to confirm the coord fixture exercises the real
@@ -295,7 +279,4 @@ def test_coord_topology_classification_is_coord_worktree(
     """
     coord = build_coord(tmp_path)
     monkeypatch.chdir(coord.coord_worktree)
-    assert (
-        classify_worktree_topology(coord.coord_feature_dir)
-        is WorktreeTopology.COORD_WORKTREE
-    )
+    assert classify_worktree_topology(coord.coord_feature_dir) is WorktreeTopology.COORD_WORKTREE

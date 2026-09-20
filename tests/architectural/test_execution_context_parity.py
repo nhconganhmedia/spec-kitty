@@ -344,15 +344,11 @@ def _build_mission_dir(repo_root: Path, slug: str) -> Path:
             at="2026-06-03T10:00:01+00:00",
         ),
     ]
-    (feature_dir / "status.events.jsonl").write_text(
-        "\n".join(events) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text("\n".join(events) + "\n", encoding="utf-8")
 
     # Minimal status.json (derived snapshot; content doesn't affect reads
     # in Phase 2 but must exist to satisfy directory-level checks).
-    (feature_dir / "status.json").write_text(
-        json.dumps({"event_count": 0, "work_packages": {}}), encoding="utf-8"
-    )
+    (feature_dir / "status.json").write_text(json.dumps({"event_count": 0, "work_packages": {}}), encoding="utf-8")
 
     return feature_dir
 
@@ -374,9 +370,7 @@ def _build_repo(tmp_path: Path) -> tuple[Path, Path]:
     # .kittify marker (required for find_repo_root())
     kittify_dir = repo_root / ".kittify"
     kittify_dir.mkdir()
-    (kittify_dir / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
 
     # Mission artifacts
     _build_mission_dir(repo_root, _MISSION_SLUG)
@@ -428,9 +422,7 @@ def _get_status_json(cwd: Path, mission_slug: str) -> dict[str, object]:
         cwd=cwd,
     )
     assert result.returncode == 0, (
-        f"spec-kitty agent tasks status --json failed (cwd={cwd}):\n"
-        f"  stdout: {result.stdout.strip()[:500]}\n"
-        f"  stderr: {result.stderr.strip()[:500]}"
+        f"spec-kitty agent tasks status --json failed (cwd={cwd}):\n  stdout: {result.stdout.strip()[:500]}\n  stderr: {result.stderr.strip()[:500]}"
     )
     parsed: dict[str, object] = json.loads(result.stdout)
     return parsed
@@ -571,12 +563,8 @@ def test_ratchet_catches_divergence(tmp_path: Path) -> None:
         at="2026-06-03T11:00:00+00:00",
     )
     worktree_events = initial_events + [divergent_event]
-    (worktree_feature_dir / "status.events.jsonl").write_text(
-        "\n".join(worktree_events) + "\n", encoding="utf-8"
-    )
-    (worktree_feature_dir / "status.json").write_text(
-        json.dumps({"event_count": 0, "work_packages": {}}), encoding="utf-8"
-    )
+    (worktree_feature_dir / "status.events.jsonl").write_text("\n".join(worktree_events) + "\n", encoding="utf-8")
+    (worktree_feature_dir / "status.json").write_text(json.dumps({"event_count": 0, "work_packages": {}}), encoding="utf-8")
     (worktree_feature_dir / "meta.json").write_text(_META_JSON, encoding="utf-8")
     tasks_dir = worktree_feature_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
@@ -591,10 +579,7 @@ def test_ratchet_catches_divergence(tmp_path: Path) -> None:
     # would disagree under a CWD-routing regression.
     main_authority_dir = repo_root / "kitty-specs" / mission_slug
     main_wp1_lane = get_wp_lane(main_authority_dir, "WP01")
-    assert main_wp1_lane == "planned", (
-        f"Expected WP01 to be 'planned' in main checkout authority; "
-        f"got {main_wp1_lane!r}"
-    )
+    assert main_wp1_lane == "planned", f"Expected WP01 to be 'planned' in main checkout authority; got {main_wp1_lane!r}"
 
     # The worktree's kitty-specs/ now contains a divergent event log.
     # If CWD routing for worktree paths is broken (i.e., the worktree CWD
@@ -607,9 +592,7 @@ def test_ratchet_catches_divergence(tmp_path: Path) -> None:
 
     worktree_events_loaded = read_events(worktree_feature_dir)
     worktree_snapshot = reduce(worktree_events_loaded)
-    worktree_wp1_lane = (
-        worktree_snapshot.work_packages.get("WP01", {}).get("lane", "planned")
-    )
+    worktree_wp1_lane = worktree_snapshot.work_packages.get("WP01", {}).get("lane", "planned")
     assert worktree_wp1_lane == "in_progress", (
         f"Injection proof setup error: the worktree's status.events.jsonl should "
         f"show WP01 as 'in_progress' after the divergent event, "
@@ -672,9 +655,7 @@ def _emit_status(
         cwd=cwd,
     )
     assert result.returncode == 0, (
-        f"spec-kitty agent status emit failed (cwd={cwd}):\n"
-        f"  stdout: {result.stdout.strip()[:500]}\n"
-        f"  stderr: {result.stderr.strip()[:500]}"
+        f"spec-kitty agent status emit failed (cwd={cwd}):\n  stdout: {result.stdout.strip()[:500]}\n  stderr: {result.stderr.strip()[:500]}"
     )
     parsed: dict[str, object] = json.loads(result.stdout)
     return parsed
@@ -770,14 +751,8 @@ def test_cwd_parity_write(tmp_path: Path) -> None:
     main_authority_b = repo_b_root / "kitty-specs" / mission_slug
     main_lane = get_wp_lane(main_authority_a, "WP01")
     lane_lane = get_wp_lane(main_authority_b, "WP01")
-    assert main_lane == "claimed", (
-        f"Write from main-checkout CWD did not persist 'claimed'; "
-        f"got {main_lane!r}"
-    )
-    assert lane_lane == "claimed", (
-        f"Write from lane-worktree CWD did not persist 'claimed'; "
-        f"got {lane_lane!r}"
-    )
+    assert main_lane == "claimed", f"Write from main-checkout CWD did not persist 'claimed'; got {main_lane!r}"
+    assert lane_lane == "claimed", f"Write from lane-worktree CWD did not persist 'claimed'; got {lane_lane!r}"
     assert main_lane == lane_lane, (
         "Write-path CWD divergence: the resulting lane differs across CWDs.\n"
         f"  main-checkout CWD wrote -> {main_lane!r}\n"
@@ -790,8 +765,7 @@ def test_cwd_parity_write(tmp_path: Path) -> None:
     # worktree copy instead.
     main_authority_dir = repo_b_root / "kitty-specs" / mission_slug
     assert get_wp_lane(main_authority_dir, "WP01") == "claimed", (
-        "Write from the lane-worktree CWD did not land in the main checkout's "
-        "event log; the write target was re-derived from the worktree CWD."
+        "Write from the lane-worktree CWD did not land in the main checkout's event log; the write target was re-derived from the worktree CWD."
     )
     # The worktree carries its own checked-out copy of the seeded event log
     # (committed before the worktree was created). The write issued from the
@@ -851,10 +825,7 @@ def test_write_ratchet_catches_divergence(tmp_path: Path) -> None:
         f.write(claimed_event + "\n")
 
     main_wp1_lane = get_wp_lane(main_authority_dir, "WP01")
-    assert main_wp1_lane == "claimed", (
-        "Setup error: the main-checkout authority should show WP01 as "
-        f"'claimed'; got {main_wp1_lane!r}."
-    )
+    assert main_wp1_lane == "claimed", f"Setup error: the main-checkout authority should show WP01 as 'claimed'; got {main_wp1_lane!r}."
 
     # (3) Simulate a CWD-routing regression: write a divergent event log into
     # the worktree's own kitty-specs/ that drives WP01 to 'in_progress'.
@@ -876,20 +847,15 @@ def test_write_ratchet_catches_divergence(tmp_path: Path) -> None:
             at="2026-06-03T11:00:00+00:00",
         ),
     ]
-    (worktree_feature_dir / "status.events.jsonl").write_text(
-        "\n".join(divergent_events) + "\n", encoding="utf-8"
-    )
+    (worktree_feature_dir / "status.events.jsonl").write_text("\n".join(divergent_events) + "\n", encoding="utf-8")
 
     from specify_cli.status.reducer import reduce
     from specify_cli.status.store import read_events
 
     worktree_snapshot = reduce(read_events(worktree_feature_dir))
-    worktree_wp1_lane = (
-        worktree_snapshot.work_packages.get("WP01", {}).get("lane", "planned")
-    )
+    worktree_wp1_lane = worktree_snapshot.work_packages.get("WP01", {}).get("lane", "planned")
     assert worktree_wp1_lane == "in_progress", (
-        "Injection proof setup error: the simulated regression's worktree-local "
-        f"event log should show WP01 as 'in_progress'; got {worktree_wp1_lane!r}."
+        f"Injection proof setup error: the simulated regression's worktree-local event log should show WP01 as 'in_progress'; got {worktree_wp1_lane!r}."
     )
 
     # (4) The main authority (real write) and the worktree-local (simulated
@@ -956,9 +922,7 @@ def _build_repo_no_worktree(tmp_path: Path) -> Path:
     # .kittify marker required for find_repo_root()
     kittify_dir = repo_root / ".kittify"
     kittify_dir.mkdir()
-    (kittify_dir / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
 
     _build_mission_dir(repo_root, _MISSION_SLUG)
 
@@ -1004,9 +968,7 @@ def _move_task(
         cwd=cwd,
     )
     assert result.returncode == 0, (
-        f"move-task WP01 --to {to_lane!r} failed (cwd={cwd}):\n"
-        f"  stdout: {result.stdout.strip()[:500]}\n"
-        f"  stderr: {result.stderr.strip()[:500]}"
+        f"move-task WP01 --to {to_lane!r} failed (cwd={cwd}):\n  stdout: {result.stdout.strip()[:500]}\n  stderr: {result.stderr.strip()[:500]}"
     )
     parsed: dict[str, object] = json.loads(result.stdout)
     return parsed
@@ -1034,9 +996,7 @@ def _transition_identity(move_json: dict[str, object]) -> dict[str, str | None]:
     }
 
 
-def _drive_full_sequence(
-    cwd: Path, mission_slug: str
-) -> tuple[list[dict[str, str | None]], dict[str, str]]:
+def _drive_full_sequence(cwd: Path, mission_slug: str) -> tuple[list[dict[str, str | None]], dict[str, str]]:
     """Drive WP01 through the full sequence and return (transitions, final_lanes).
 
     Returns:
@@ -1072,29 +1032,16 @@ def test_full_sequence_main_checkout_parity(tmp_path: Path) -> None:
     repo_root, _worktree_path = _build_repo(tmp_path)
     mission_slug = _MISSION_SLUG
 
-    transitions, final_lanes = _drive_full_sequence(
-        cwd=repo_root, mission_slug=mission_slug
-    )
+    transitions, final_lanes = _drive_full_sequence(cwd=repo_root, mission_slug=mission_slug)
 
     # Each step must have the expected (from_lane, to_lane) identity.
-    for i, ((expected_from, expected_to), got) in enumerate(
-        zip(_FULL_SEQUENCE_TRANSITIONS, transitions, strict=True)
-    ):
-        assert got["from_lane"] == expected_from, (
-            f"Step {i}: expected from_lane={expected_from!r}; got {got['from_lane']!r}"
-        )
-        assert got["to_lane"] == expected_to, (
-            f"Step {i}: expected to_lane={expected_to!r}; got {got['to_lane']!r}"
-        )
-        assert got["wp_id"] == "WP01", (
-            f"Step {i}: expected wp_id='WP01'; got {got['wp_id']!r}"
-        )
+    for i, ((expected_from, expected_to), got) in enumerate(zip(_FULL_SEQUENCE_TRANSITIONS, transitions, strict=True)):
+        assert got["from_lane"] == expected_from, f"Step {i}: expected from_lane={expected_from!r}; got {got['from_lane']!r}"
+        assert got["to_lane"] == expected_to, f"Step {i}: expected to_lane={expected_to!r}; got {got['to_lane']!r}"
+        assert got["wp_id"] == "WP01", f"Step {i}: expected wp_id='WP01'; got {got['wp_id']!r}"
 
     # Final lane must be the last step's target.
-    assert final_lanes.get("WP01") == "in_review", (
-        f"Full sequence from main-checkout CWD did not reach 'in_review'; "
-        f"got {final_lanes.get('WP01')!r}"
-    )
+    assert final_lanes.get("WP01") == "in_review", f"Full sequence from main-checkout CWD did not reach 'in_review'; got {final_lanes.get('WP01')!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -1135,22 +1082,14 @@ def test_full_sequence_worktree_parity(tmp_path: Path) -> None:
 
     mission_slug = _MISSION_SLUG
 
-    main_transitions, main_lanes = _drive_full_sequence(
-        cwd=repo_a_root, mission_slug=mission_slug
-    )
-    lane_transitions, lane_lanes = _drive_full_sequence(
-        cwd=worktree_b, mission_slug=mission_slug
-    )
+    main_transitions, main_lanes = _drive_full_sequence(cwd=repo_a_root, mission_slug=mission_slug)
+    lane_transitions, lane_lanes = _drive_full_sequence(cwd=worktree_b, mission_slug=mission_slug)
 
     # (1) Transition identity must match step-for-step.
     assert len(main_transitions) == len(lane_transitions), (
-        "Sequence length divergence: main-checkout drove "
-        f"{len(main_transitions)} steps; lane-worktree drove "
-        f"{len(lane_transitions)} steps."
+        f"Sequence length divergence: main-checkout drove {len(main_transitions)} steps; lane-worktree drove {len(lane_transitions)} steps."
     )
-    for i, (main_step, lane_step) in enumerate(
-        zip(main_transitions, lane_transitions, strict=True)
-    ):
+    for i, (main_step, lane_step) in enumerate(zip(main_transitions, lane_transitions, strict=True)):
         assert main_step == lane_step, (
             f"Transition identity divergence at step {i}:\n"
             f"  from main-checkout CWD: {main_step!r}\n"
@@ -1166,10 +1105,7 @@ def test_full_sequence_worktree_parity(tmp_path: Path) -> None:
         f"  main-checkout CWD → {main_lanes.get('WP01')!r}\n"
         f"  lane-worktree CWD → {lane_lanes.get('WP01')!r}"
     )
-    assert main_lanes.get("WP01") == "in_review", (
-        f"Full sequence did not reach 'in_review'; "
-        f"got {main_lanes.get('WP01')!r}"
-    )
+    assert main_lanes.get("WP01") == "in_review", f"Full sequence did not reach 'in_review'; got {main_lanes.get('WP01')!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -1198,13 +1134,8 @@ def test_full_sequence_direct_to_target(tmp_path: Path) -> None:
     mission_slug = _MISSION_SLUG
 
     # (1) Full sequence from repo root without a worktree.
-    transitions, final_lanes = _drive_full_sequence(
-        cwd=repo_root, mission_slug=mission_slug
-    )
-    assert final_lanes.get("WP01") == "in_review", (
-        f"Direct-to-target full sequence did not reach 'in_review'; "
-        f"got {final_lanes.get('WP01')!r}"
-    )
+    transitions, final_lanes = _drive_full_sequence(cwd=repo_root, mission_slug=mission_slug)
+    assert final_lanes.get("WP01") == "in_review", f"Direct-to-target full sequence did not reach 'in_review'; got {final_lanes.get('WP01')!r}"
     # All transitions must carry the correct WP identity.
     for step in transitions:
         assert step["wp_id"] == "WP01"
@@ -1282,8 +1213,7 @@ def test_full_sequence_ratchet_catches_divergence(tmp_path: Path) -> None:
     # Verify the main authority shows in_review.
     main_lanes = _wp_lanes(_get_status_json(cwd=repo_root, mission_slug=mission_slug))
     assert main_lanes.get("WP01") == "in_review", (
-        "Setup error: expected WP01='in_review' in the main authority after "
-        f"driving the full sequence; got {main_lanes.get('WP01')!r}"
+        f"Setup error: expected WP01='in_review' in the main authority after driving the full sequence; got {main_lanes.get('WP01')!r}"
     )
 
     # Inject a divergent event log into the worktree's kitty-specs/: WP01
@@ -1308,9 +1238,7 @@ def test_full_sequence_ratchet_catches_divergence(tmp_path: Path) -> None:
             at="2026-06-03T12:00:00+00:00",
         ),
     ]
-    (worktree_feature_dir / "status.events.jsonl").write_text(
-        "\n".join(divergent_events) + "\n", encoding="utf-8"
-    )
+    (worktree_feature_dir / "status.events.jsonl").write_text("\n".join(divergent_events) + "\n", encoding="utf-8")
     (worktree_feature_dir / "meta.json").write_text(_META_JSON, encoding="utf-8")
     tasks_dir = worktree_feature_dir / "tasks"
     tasks_dir.mkdir(parents=True, exist_ok=True)
@@ -1322,12 +1250,9 @@ def test_full_sequence_ratchet_catches_divergence(tmp_path: Path) -> None:
     from specify_cli.status.store import read_events
 
     worktree_snapshot = reduce(read_events(worktree_feature_dir))
-    worktree_wp1_lane = (
-        worktree_snapshot.work_packages.get("WP01", {}).get("lane", "planned")
-    )
+    worktree_wp1_lane = worktree_snapshot.work_packages.get("WP01", {}).get("lane", "planned")
     assert worktree_wp1_lane == "approved", (
-        "Injection proof setup error: the worktree's injected event log should "
-        f"show WP01 as 'approved'; got {worktree_wp1_lane!r}"
+        f"Injection proof setup error: the worktree's injected event log should show WP01 as 'approved'; got {worktree_wp1_lane!r}"
     )
 
     # The main authority and the worktree-local surface must disagree.
@@ -1475,12 +1400,8 @@ def test_dual_cwd_existing_field_parity(parity_repo: tuple[Path, Path, str]) -> 
     repo_root, worktree_path, mission_slug = parity_repo
 
     for action in _RESOLVABLE_LANE_FREE_ACTIONS:
-        primary_ctx = _resolve_context_from_cwd(
-            repo_root, action=action, mission_slug=mission_slug
-        )
-        lane_ctx = _resolve_context_from_cwd(
-            worktree_path, action=action, mission_slug=mission_slug
-        )
+        primary_ctx = _resolve_context_from_cwd(repo_root, action=action, mission_slug=mission_slug)
+        lane_ctx = _resolve_context_from_cwd(worktree_path, action=action, mission_slug=mission_slug)
 
         for field_name in _EXISTING_PARITY_FIELDS:
             primary_val = getattr(primary_ctx, field_name)
@@ -1510,28 +1431,18 @@ def test_identity_fragment_parity(parity_repo: tuple[Path, Path, str]) -> None:
     """
     repo_root, worktree_path, mission_slug = parity_repo
 
-    primary_ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    lane_ctx = _resolve_context_from_cwd(
-        worktree_path, action="tasks", mission_slug=mission_slug
-    )
+    primary_ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    lane_ctx = _resolve_context_from_cwd(worktree_path, action="tasks", mission_slug=mission_slug)
 
     for field_name in ("mission_id", "mid8", "mission_slug"):
         primary_val = _fragment_value(primary_ctx, _IDENTITY_FRAGMENT, field_name)
         lane_val = _fragment_value(lane_ctx, _IDENTITY_FRAGMENT, field_name)
-        assert primary_val == lane_val, (
-            f"IdentityFragment.{field_name} diverges across CWDs: "
-            f"{primary_val!r} (primary) != {lane_val!r} (lane)."
-        )
+        assert primary_val == lane_val, f"IdentityFragment.{field_name} diverges across CWDs: {primary_val!r} (primary) != {lane_val!r} (lane)."
 
     # mid8 single-derivation invariant: mid8 == mission_id[:8].
     mission_id = _fragment_value(primary_ctx, _IDENTITY_FRAGMENT, "mission_id")
     mid8 = _fragment_value(primary_ctx, _IDENTITY_FRAGMENT, "mid8")
-    assert mid8 == str(mission_id)[:8], (
-        f"mid8 must be derived as mission_id[:8]; got mid8={mid8!r}, "
-        f"mission_id={mission_id!r} (C-CTX-3)."
-    )
+    assert mid8 == str(mission_id)[:8], f"mid8 must be derived as mission_id[:8]; got mid8={mid8!r}, mission_id={mission_id!r} (C-CTX-3)."
 
 
 # CONVERGED (WP03): BranchRefFragment + destination_ref/CommitTarget now land on
@@ -1546,34 +1457,21 @@ def test_branchref_fragment_parity(parity_repo: tuple[Path, Path, str]) -> None:
     """
     repo_root, worktree_path, mission_slug = parity_repo
 
-    primary_ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    lane_ctx = _resolve_context_from_cwd(
-        worktree_path, action="tasks", mission_slug=mission_slug
-    )
+    primary_ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    lane_ctx = _resolve_context_from_cwd(worktree_path, action="tasks", mission_slug=mission_slug)
 
     for field_name in ("target_branch", "coordination_branch", "destination_ref"):
         primary_val = _fragment_value(primary_ctx, _BRANCHREF_FRAGMENT, field_name)
         lane_val = _fragment_value(lane_ctx, _BRANCHREF_FRAGMENT, field_name)
-        assert primary_val == lane_val, (
-            f"BranchRefFragment.{field_name} diverges across CWDs: "
-            f"{primary_val!r} (primary) != {lane_val!r} (lane)."
-        )
+        assert primary_val == lane_val, f"BranchRefFragment.{field_name} diverges across CWDs: {primary_val!r} (primary) != {lane_val!r} (lane)."
 
     # destination_ref is a ref-only CommitTarget value object (C-007 / FR-001b):
     # it carries a ``ref`` and NO retired ``kind`` field.
-    destination_ref = _fragment_value(
-        primary_ctx, _BRANCHREF_FRAGMENT, "destination_ref"
-    )
+    destination_ref = _fragment_value(primary_ctx, _BRANCHREF_FRAGMENT, "destination_ref")
     assert getattr(destination_ref, "ref", None), (
-        "BranchRefFragment.destination_ref must be a CommitTarget carrying a "
-        f"``ref``; got {destination_ref!r} (ADR-2026-06-03-2 / C-007)."
+        f"BranchRefFragment.destination_ref must be a CommitTarget carrying a ``ref``; got {destination_ref!r} (ADR-2026-06-03-2 / C-007)."
     )
-    assert not hasattr(destination_ref, "kind"), (
-        "CommitTarget is ref-only (FR-001b): the retired ``kind`` field must be "
-        f"gone; got {destination_ref!r}."
-    )
+    assert not hasattr(destination_ref, "kind"), f"CommitTarget is ref-only (FR-001b): the retired ``kind`` field must be gone; got {destination_ref!r}."
 
 
 # CONVERGED (WP02 facade + WP03 attachment): StatusSurfaceFragment is now carried
@@ -1589,22 +1487,13 @@ def test_status_surface_fragment_parity(parity_repo: tuple[Path, Path, str]) -> 
     """
     repo_root, worktree_path, mission_slug = parity_repo
 
-    primary_ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    lane_ctx = _resolve_context_from_cwd(
-        worktree_path, action="tasks", mission_slug=mission_slug
-    )
+    primary_ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    lane_ctx = _resolve_context_from_cwd(worktree_path, action="tasks", mission_slug=mission_slug)
 
     for field_name in ("status_read_dir", "status_write_dir"):
-        primary_val = _fragment_value(
-            primary_ctx, _STATUS_SURFACE_FRAGMENT, field_name
-        )
+        primary_val = _fragment_value(primary_ctx, _STATUS_SURFACE_FRAGMENT, field_name)
         lane_val = _fragment_value(lane_ctx, _STATUS_SURFACE_FRAGMENT, field_name)
-        assert primary_val == lane_val, (
-            f"StatusSurfaceFragment.{field_name} diverges across CWDs: "
-            f"{primary_val!r} (primary) != {lane_val!r} (lane)."
-        )
+        assert primary_val == lane_val, f"StatusSurfaceFragment.{field_name} diverges across CWDs: {primary_val!r} (primary) != {lane_val!r} (lane)."
 
 
 # CONVERGED (WP04): the read-path is folded into the single ``_read_path_resolver``
@@ -1621,16 +1510,10 @@ def test_read_path_fragment_parity(parity_repo: tuple[Path, Path, str]) -> None:
     """
     repo_root, worktree_path, mission_slug = parity_repo
 
-    primary_ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    lane_ctx = _resolve_context_from_cwd(
-        worktree_path, action="tasks", mission_slug=mission_slug
-    )
+    primary_ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    lane_ctx = _resolve_context_from_cwd(worktree_path, action="tasks", mission_slug=mission_slug)
 
-    primary_val = _fragment_value(
-        primary_ctx, _STATUS_SURFACE_FRAGMENT, "status_read_dir"
-    )
+    primary_val = _fragment_value(primary_ctx, _STATUS_SURFACE_FRAGMENT, "status_read_dir")
     lane_val = _fragment_value(lane_ctx, _STATUS_SURFACE_FRAGMENT, "status_read_dir")
     assert primary_val == lane_val, (
         "Read-path (status read) fragment diverges across CWDs: "
@@ -1653,12 +1536,8 @@ def test_workspace_fragment_parity(parity_repo: tuple[Path, Path, str]) -> None:
     """
     repo_root, worktree_path, mission_slug = parity_repo
 
-    primary_ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    lane_ctx = _resolve_context_from_cwd(
-        worktree_path, action="tasks", mission_slug=mission_slug
-    )
+    primary_ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    lane_ctx = _resolve_context_from_cwd(worktree_path, action="tasks", mission_slug=mission_slug)
 
     primary_val = _fragment_value(primary_ctx, _WORKSPACE_FRAGMENT, "primary_root")
     lane_val = _fragment_value(lane_ctx, _WORKSPACE_FRAGMENT, "primary_root")
@@ -1671,8 +1550,7 @@ def test_workspace_fragment_parity(parity_repo: tuple[Path, Path, str]) -> None:
     # The lane arm derived its root from inside the worktree; primary_root must
     # still be the main checkout, not the worktree path.
     assert Path(str(lane_val)).resolve() == repo_root.resolve(), (
-        "WorkspaceFragment.primary_root resolved from the lane-worktree CWD must "
-        f"be the main checkout {repo_root!r}; got {lane_val!r}."
+        f"WorkspaceFragment.primary_root resolved from the lane-worktree CWD must be the main checkout {repo_root!r}; got {lane_val!r}."
     )
 
 
@@ -1689,28 +1567,17 @@ def test_artifact_placement_fragment_parity(
     """
     repo_root, worktree_path, mission_slug = parity_repo
 
-    primary_ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    lane_ctx = _resolve_context_from_cwd(
-        worktree_path, action="tasks", mission_slug=mission_slug
-    )
+    primary_ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    lane_ctx = _resolve_context_from_cwd(worktree_path, action="tasks", mission_slug=mission_slug)
 
-    primary_val = _fragment_value(
-        primary_ctx, _ARTIFACT_PLACEMENT_FRAGMENT, "placement_ref"
-    )
+    primary_val = _fragment_value(primary_ctx, _ARTIFACT_PLACEMENT_FRAGMENT, "placement_ref")
     lane_val = _fragment_value(lane_ctx, _ARTIFACT_PLACEMENT_FRAGMENT, "placement_ref")
-    assert primary_val == lane_val, (
-        "ArtifactPlacementFragment.placement_ref diverges across CWDs: "
-        f"{primary_val!r} (primary) != {lane_val!r} (lane) (C-PLACE-1)."
-    )
+    assert primary_val == lane_val, f"ArtifactPlacementFragment.placement_ref diverges across CWDs: {primary_val!r} (primary) != {lane_val!r} (lane) (C-PLACE-1)."
 
     # C-PLACE-1: the placement ref is literally the same CommitTarget the
     # BranchRefFragment carries as ``destination_ref`` — planning artifacts and
     # status events resolve to ONE ref, not two reconciled values.
-    primary_destination = _fragment_value(
-        primary_ctx, _BRANCHREF_FRAGMENT, "destination_ref"
-    )
+    primary_destination = _fragment_value(primary_ctx, _BRANCHREF_FRAGMENT, "destination_ref")
     assert primary_val == primary_destination, (
         "ArtifactPlacementFragment.placement_ref must equal "
         "BranchRefFragment.destination_ref (one placement ref, C-PLACE-1): "
@@ -1733,19 +1600,12 @@ def test_runtime_lifecycle_action_parity(parity_repo: tuple[Path, Path, str]) ->
 
     lifecycle_only_actions = ("specify", "plan", "analyze", "status")
     for action in lifecycle_only_actions:
-        primary_ctx = _resolve_context_from_cwd(
-            repo_root, action=action, mission_slug=mission_slug
-        )
-        lane_ctx = _resolve_context_from_cwd(
-            worktree_path, action=action, mission_slug=mission_slug
-        )
+        primary_ctx = _resolve_context_from_cwd(repo_root, action=action, mission_slug=mission_slug)
+        lane_ctx = _resolve_context_from_cwd(worktree_path, action=action, mission_slug=mission_slug)
         for field_name in _EXISTING_PARITY_FIELDS:
             primary_val = getattr(primary_ctx, field_name)
             lane_val = getattr(lane_ctx, field_name)
-            assert primary_val == lane_val, (
-                f"Lifecycle action {action!r} field {field_name!r} diverges "
-                f"across CWDs: {primary_val!r} != {lane_val!r} (FR-011)."
-            )
+            assert primary_val == lane_val, f"Lifecycle action {action!r} field {field_name!r} diverges across CWDs: {primary_val!r} != {lane_val!r} (FR-011)."
 
 
 # ===========================================================================
@@ -1815,9 +1675,7 @@ def _build_flattened_repo(tmp_path: Path) -> tuple[Path, str]:
 
     kittify_dir = repo_root / ".kittify"
     kittify_dir.mkdir()
-    (kittify_dir / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
 
     feature_dir = repo_root / "kitty-specs" / _FLATTENED_MISSION_SLUG
     tasks_dir = feature_dir / "tasks"
@@ -1833,12 +1691,8 @@ def _build_flattened_repo(tmp_path: Path) -> tuple[Path, str]:
             at="2026-06-03T10:00:00+00:00",
         ),
     ]
-    (feature_dir / "status.events.jsonl").write_text(
-        "\n".join(events) + "\n", encoding="utf-8"
-    )
-    (feature_dir / "status.json").write_text(
-        json.dumps({"event_count": 0, "work_packages": {}}), encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text("\n".join(events) + "\n", encoding="utf-8")
+    (feature_dir / "status.json").write_text(json.dumps({"event_count": 0, "work_packages": {}}), encoding="utf-8")
 
     _git(["add", "."], repo_root)
     _git(["commit", "-m", "chore: flattened parity fixture initial commit"], repo_root)
@@ -1879,18 +1733,13 @@ def test_flattened_topology_does_not_route_through_coordination(
     from mission_runtime import resolve_topology, routes_through_coordination
 
     repo_root, mission_slug = flattened_repo
-    ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
+    ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
     destination_ref = _fragment_value(ctx, _BRANCHREF_FRAGMENT, "destination_ref")
     # Ref-only carrier (C-007): no retired ``kind`` field.
     assert not hasattr(destination_ref, "kind")
-    assert getattr(destination_ref, "ref", None), (
-        f"flattened destination_ref must carry a ref; got {destination_ref!r}"
-    )
+    assert getattr(destination_ref, "ref", None), f"flattened destination_ref must carry a ref; got {destination_ref!r}"
     assert routes_through_coordination(resolve_topology(repo_root, mission_slug)) is False, (
-        "Under flattened topology the mission must NOT route through coordination "
-        "(C-001 proof) — the stored topology is coord-less."
+        "Under flattened topology the mission must NOT route through coordination (C-001 proof) — the stored topology is coord-less."
     )
 
 
@@ -1906,16 +1755,9 @@ def test_flattened_topology_no_coordination_branch(
     the BranchRefFragment does not exist on the context.
     """
     repo_root, mission_slug = flattened_repo
-    ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
-    coordination_branch = _fragment_value(
-        ctx, _BRANCHREF_FRAGMENT, "coordination_branch"
-    )
-    assert coordination_branch is None, (
-        "Under flattened topology BranchRefFragment.coordination_branch must be "
-        f"None; got {coordination_branch!r} (C-001)."
-    )
+    ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
+    coordination_branch = _fragment_value(ctx, _BRANCHREF_FRAGMENT, "coordination_branch")
+    assert coordination_branch is None, f"Under flattened topology BranchRefFragment.coordination_branch must be None; got {coordination_branch!r} (C-001)."
 
 
 # CONVERGED (WP02 facade + WP03 attachment): status_read_dir == status_write_dir
@@ -1930,14 +1772,11 @@ def test_flattened_topology_status_surface_collapses(
     today: the StatusSurfaceFragment does not exist on the context.
     """
     repo_root, mission_slug = flattened_repo
-    ctx = _resolve_context_from_cwd(
-        repo_root, action="tasks", mission_slug=mission_slug
-    )
+    ctx = _resolve_context_from_cwd(repo_root, action="tasks", mission_slug=mission_slug)
     read_dir = _fragment_value(ctx, _STATUS_SURFACE_FRAGMENT, "status_read_dir")
     write_dir = _fragment_value(ctx, _STATUS_SURFACE_FRAGMENT, "status_write_dir")
     assert read_dir == write_dir, (
-        "Under flattened topology status_read_dir must equal status_write_dir; "
-        f"got read={read_dir!r}, write={write_dir!r} (C-001 / C-PLACE-1)."
+        f"Under flattened topology status_read_dir must equal status_write_dir; got read={read_dir!r}, write={write_dir!r} (C-001 / C-PLACE-1)."
     )
 
 
@@ -2083,9 +1922,7 @@ def _callee_name(node: ast.Call) -> str | None:
     return None
 
 
-def _feature_dir_read_family_hits(
-    func: ast.AST, exempt_seams: frozenset[str]
-) -> list[str]:
+def _feature_dir_read_family_hits(func: ast.AST, exempt_seams: frozenset[str]) -> list[str]:
     """Return AC10 read-family violations inside *func* (line-tagged).
 
     An argument that is itself a call to a routed seam helper (e.g.
@@ -2099,29 +1936,14 @@ def _feature_dir_read_family_hits(
         if (
             isinstance(node, ast.Call)
             and _callee_name(node) == "read_events"
-            and any(
-                _subtree_anchors_feature_dir(arg)
-                and not (
-                    isinstance(arg, ast.Call) and _callee_name(arg) in exempt_seams
-                )
-                for arg in node.args
-            )
+            and any(_subtree_anchors_feature_dir(arg) and not (isinstance(arg, ast.Call) and _callee_name(arg) in exempt_seams) for arg in node.args)
         ):
-            hits.append(
-                f"line {node.lineno}: feature_dir-anchored read_events() call"
-            )
+            hits.append(f"line {node.lineno}: feature_dir-anchored read_events() call")
         # Family 2: <…feature_dir…> / "status.events.jsonl"
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
             right = node.right
-            if (
-                isinstance(right, ast.Constant)
-                and right.value == _STATUS_EVENTS_LITERAL
-                and _subtree_anchors_feature_dir(node.left)
-            ):
-                hits.append(
-                    f"line {node.lineno}: feature_dir-anchored "
-                    f'"{_STATUS_EVENTS_LITERAL}" path composition'
-                )
+            if isinstance(right, ast.Constant) and right.value == _STATUS_EVENTS_LITERAL and _subtree_anchors_feature_dir(node.left):
+                hits.append(f'line {node.lineno}: feature_dir-anchored "{_STATUS_EVENTS_LITERAL}" path composition')
     return hits
 
 
@@ -2153,19 +1975,13 @@ def test_no_feature_dir_anchored_status_event_reads() -> None:
                 # canonical resolver before any fallback composition.
                 seam_source = ast.unparse(node)
                 if "resolve_status_surface" not in seam_source:
-                    hits.append(
-                        f"line {node.lineno}: routed seam {node.name!r} no longer "
-                        "calls resolve_status_surface — the exemption does not apply"
-                    )
+                    hits.append(f"line {node.lineno}: routed seam {node.name!r} no longer calls resolve_status_surface — the exemption does not apply")
                 continue
             hits.extend(_feature_dir_read_family_hits(node, exempt_seams))
 
         missing_seams = exempt_seams - seen_seams
         if missing_seams:
-            hits.append(
-                f"routed seam(s) {sorted(missing_seams)!r} missing — the canonical "
-                "read routing (WP05 T024/T025) appears to have been reverted"
-            )
+            hits.append(f"routed seam(s) {sorted(missing_seams)!r} missing — the canonical read routing (WP05 T024/T025) appears to have been reverted")
         if hits:
             offenders[rel_path] = hits
 

@@ -120,20 +120,13 @@ class TestEveryLoadTextDelivery:
         """
         from charter.activation.context import build_charter_context
 
-        first = build_charter_context(
-            project, action="implement", mark_loaded=True, mission_type="software-dev"
-        )
+        first = build_charter_context(project, action="implement", mark_loaded=True, mission_type="software-dev")
         assert first.mode == "bootstrap"
         assert _DELIVERED_DIRECTIVE in first.text
 
-        second = build_charter_context(
-            project, action="implement", mark_loaded=True, mission_type="software-dev"
-        )
+        second = build_charter_context(project, action="implement", mark_loaded=True, mission_type="software-dev")
         assert not second.first_load, "second load must be a steady-state render"
-        assert _DELIVERED_DIRECTIVE in second.text, (
-            "directive present on load one vanished on load two — governance is "
-            "declared, not in force"
-        )
+        assert _DELIVERED_DIRECTIVE in second.text, "directive present on load one vanished on load two — governance is declared, not in force"
         assert _DELIVERED_STYLEGUIDE in second.text
         assert _DELIVERED_TOOLGUIDE in second.text
 
@@ -167,9 +160,7 @@ class TestBootstrapRendersExtendedKinds:
         """
         from charter.activation.context import build_charter_context
 
-        result = build_charter_context(
-            project, action="implement", mark_loaded=False, mission_type="software-dev"
-        )
+        result = build_charter_context(project, action="implement", mark_loaded=False, mission_type="software-dev")
         assert result.mode == "bootstrap"
         assert "Styleguides:" in result.text
         assert _DELIVERED_STYLEGUIDE in result.text
@@ -187,9 +178,7 @@ class TestJsonEveryLoadDelivery:
         """T060 site 4 (red-first): depth<minimum returns an empty payload today."""
         from charter.activation.context import build_charter_context_json
 
-        payload = build_charter_context_json(
-            project, action="implement", depth=1, mission_type="software-dev"
-        )
+        payload = build_charter_context_json(project, action="implement", depth=1, mission_type="software-dev")
         assert payload.get("directives"), "steady-state --json must carry directives"
         assert payload.get("styleguides"), "steady-state --json must carry styleguides"
         assert payload.get("toolguides"), "steady-state --json must carry toolguides"
@@ -207,16 +196,12 @@ class TestJsonEveryLoadDelivery:
         """
         from charter.activation.context import build_charter_context_json
 
-        payload = build_charter_context_json(
-            project, action="tasks", mission_type="software-dev"
-        )
+        payload = build_charter_context_json(project, action="tasks", mission_type="software-dev")
         assert payload.get("mode") == "bootstrap"
         assert payload.get("directives"), "declared 'tasks' action must deliver directives"
 
     @pytest.mark.parametrize("mission_type", ["documentation", "research"])
-    def test_json_retrospect_delivers_for_documentation_and_research(
-        self, project: Path, mission_type: str
-    ) -> None:
+    def test_json_retrospect_delivers_for_documentation_and_research(self, project: Path, mission_type: str) -> None:
         """AC-3 retrospect half (WP02, #3596, ADR
         2026-08-21-1-charter-gate-predicate-inversion, reversal A).
 
@@ -230,13 +215,9 @@ class TestJsonEveryLoadDelivery:
         """
         from charter.activation.context import build_charter_context_json
 
-        payload = build_charter_context_json(
-            project, action="retrospect", mission_type=mission_type
-        )
+        payload = build_charter_context_json(project, action="retrospect", mission_type=mission_type)
         assert payload.get("mode") == "bootstrap"
-        assert payload.get("directives"), (
-            f"declared 'retrospect' action ({mission_type}) must deliver directives"
-        )
+        assert payload.get("directives"), f"declared 'retrospect' action ({mission_type}) must deliver directives"
 
 
 # ===========================================================================
@@ -272,12 +253,8 @@ class TestShippedCliDelivery:
         assert second["first_load"] is False, "second CLI invocation must be steady state"
         second_directives = {d["id"] for d in second["directives"]}  # type: ignore[index,union-attr]
         second_styleguides = {s["id"] for s in second["styleguides"]}  # type: ignore[index,union-attr]
-        assert _DELIVERED_DIRECTIVE in second_directives, (
-            "SC-001: the directive vanished on the subsequent CLI load"
-        )
-        assert _DELIVERED_STYLEGUIDE in second_styleguides, (
-            "SC-001: the styleguide vanished on the subsequent CLI load"
-        )
+        assert _DELIVERED_DIRECTIVE in second_directives, "SC-001: the directive vanished on the subsequent CLI load"
+        assert _DELIVERED_STYLEGUIDE in second_styleguides, "SC-001: the styleguide vanished on the subsequent CLI load"
 
     def test_sc002_unactivated_kind_absent_on_both_loads(self, project: Path) -> None:
         """SC-002 (T063): a kind that resolves to nothing is absent, not phantom.
@@ -316,8 +293,7 @@ class TestGrainCallersForwardMissionType:
             wf.return_value.build_charter_context = _spy
             wx.render_charter_context_text(tmp_path, "implement", mission_type="software-dev")
         assert captured.get("mission_type") == "software-dev", (
-            "render_charter_context_text MUST forward the mission-type grain so "
-            "the action bundle resolves rather than degrading to typeless (FR-012)"
+            "render_charter_context_text MUST forward the mission-type grain so the action bundle resolves rather than degrading to typeless (FR-012)"
         )
 
     def test_workflow_render_forwards_mission_type(self, tmp_path: Path) -> None:
@@ -359,6 +335,5 @@ class TestScopeRouterForwardsGrain:
         with patch.object(scope_router, "build_charter_context", _spy):
             scope_router.build_with_scope(tmp_path, feature_dir, action="implement")
         assert captured.get("feature_dir") == feature_dir, (
-            "build_with_scope MUST forward feature_dir so the action grain keys "
-            "off meta.json mission_type (removing line 71 must redden this)"
+            "build_with_scope MUST forward feature_dir so the action grain keys off meta.json mission_type (removing line 71 must redden this)"
         )

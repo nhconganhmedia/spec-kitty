@@ -68,9 +68,7 @@ def _bytes(path: Path) -> bytes:
 def test_read_topology_present_field_no_write(tmp_path: Path) -> None:
     """A valid stored topology is returned with NO write (byte-identical file)."""
     feature_dir = tmp_path / "mission-present"
-    meta_path = _write_meta(
-        feature_dir, {"coordination_branch": "kitty/x", "topology": "coord"}
-    )
+    meta_path = _write_meta(feature_dir, {"coordination_branch": "kitty/x", "topology": "coord"})
     before = _bytes(meta_path)
 
     result = read_topology(feature_dir)
@@ -89,17 +87,14 @@ def test_read_topology_unbackfilled_derives_WITHOUT_persisting(tmp_path: Path) -
     tree (the finalize ``--validate-only`` / accept-readiness regression close).
     """
     feature_dir = tmp_path / "mission-unbackfilled"
-    meta_path = _write_meta(
-        feature_dir, {"coordination_branch": None}
-    )  # NO topology key
+    meta_path = _write_meta(feature_dir, {"coordination_branch": None})  # NO topology key
     before = _bytes(meta_path)
 
     result = read_topology(feature_dir)
 
     assert result is MissionTopology.SINGLE_BRANCH
     assert _bytes(meta_path) == before, (
-        "read_topology MUST NOT persist a derived topology (the #1814 "
-        "read-only contract); only ensure_topology / backfill may write."
+        "read_topology MUST NOT persist a derived topology (the #1814 read-only contract); only ensure_topology / backfill may write."
     )
     # And it really is absent — no incidental back-fill key sneaked in.
     assert "topology" not in json.loads(meta_path.read_text(encoding="utf-8"))
@@ -147,9 +142,7 @@ def test_present_field_returns_stored_value_no_write_single_branch(tmp_path: Pat
     re-derived from the (disagreeing) coordination_branch signal.
     """
     feature_dir = tmp_path / "mission-present"
-    meta_path = _write_meta(
-        feature_dir, {"coordination_branch": "kitty/x", "topology": "single_branch"}
-    )
+    meta_path = _write_meta(feature_dir, {"coordination_branch": "kitty/x", "topology": "single_branch"})
     before = _bytes(meta_path)
 
     result = read_topology(feature_dir)
@@ -255,9 +248,7 @@ def test_existing_flattened_flag_preserved_on_backfill(tmp_path: Path) -> None:
         ("kitty/mission-x", True, "lanes_with_coord"),
     ],
 )
-def test_backfill_covers_four_cells(
-    tmp_path: Path, coord: str | None, lanes: bool, expected: str
-) -> None:
+def test_backfill_covers_four_cells(tmp_path: Path, coord: str | None, lanes: bool, expected: str) -> None:
     """All four coord × lanes combinations backfill to the matching topology value."""
     feature_dir = tmp_path / "kitty-specs" / f"mission-{expected}"
     meta: dict[str, object] = {}
@@ -295,9 +286,7 @@ def test_backfill_never_overwrites_existing_value(tmp_path: Path) -> None:
     """An existing topology is preserved even if it disagrees with current signals."""
     feature_dir = tmp_path / "kitty-specs" / "mission-keep"
     # coordination_branch present (would derive coord) but a value is already stored.
-    meta_path = _write_meta(
-        feature_dir, {"coordination_branch": "kitty/x", "topology": "single_branch"}
-    )
+    meta_path = _write_meta(feature_dir, {"coordination_branch": "kitty/x", "topology": "single_branch"})
 
     result = backfill_mission_topology(feature_dir)
 

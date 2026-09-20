@@ -53,7 +53,11 @@ FEATURE_DIRNAME = f"{MISSION_SLUG}-{MID8}"
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True,
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
@@ -155,6 +159,7 @@ def stress_repo(tmp_path: Path) -> Path:
     # which runs the resolver in the main checkout before fanning work
     # out to lanes; we replicate that here by warming the worktree.
     from specify_cli.coordination.workspace import CoordinationWorkspace  # noqa: PLC0415
+
     CoordinationWorkspace.resolve(repo, MISSION_SLUG, MID8)
     return repo
 
@@ -198,10 +203,7 @@ def test_concurrent_emits_produce_valid_event_log(stress_repo: Path) -> None:
 
     # 1. Every worker reported success.
     failures = [r for r in results if not r["ok"]]
-    assert not failures, (
-        f"{len(failures)} of {n} concurrent emitters failed: "
-        f"{[(r['wp_id'], r.get('error')) for r in failures]}"
-    )
+    assert not failures, f"{len(failures)} of {n} concurrent emitters failed: {[(r['wp_id'], r.get('error')) for r in failures]}"
 
     # 2. Inspect the event log — it lives on the coord worktree, not the
     #    repo_root. CoordinationWorkspace.resolve created it under
@@ -210,20 +212,13 @@ def test_concurrent_emits_produce_valid_event_log(stress_repo: Path) -> None:
     feature_dir = coord_worktree / "kitty-specs" / FEATURE_DIRNAME
     events_path = feature_dir / "status.events.jsonl"
     assert events_path.exists(), (
-        f"status.events.jsonl missing at {events_path}. "
-        f"Coord worktree contents: "
-        f"{list(coord_worktree.rglob('*')) if coord_worktree.exists() else 'no worktree'}"
+        f"status.events.jsonl missing at {events_path}. Coord worktree contents: {list(coord_worktree.rglob('*')) if coord_worktree.exists() else 'no worktree'}"
     )
 
-    lines = [
-        ln for ln in events_path.read_text(encoding="utf-8").splitlines()
-        if ln.strip()
-    ]
+    lines = [ln for ln in events_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
     # 3. Exactly N lines.
-    assert len(lines) == n, (
-        f"expected {n} events; found {len(lines)} in {events_path}"
-    )
+    assert len(lines) == n, f"expected {n} events; found {len(lines)} in {events_path}"
 
     # 4. Each line is valid JSON and has the expected envelope.
     events: list[dict[str, Any]] = []
@@ -239,9 +234,7 @@ def test_concurrent_emits_produce_valid_event_log(stress_repo: Path) -> None:
         wp_id = obj.get("wp_id")
         assert eid, f"line {i} missing event_id: {line!r}"
         assert wp_id, f"line {i} missing wp_id: {line!r}"
-        assert eid not in event_ids, (
-            f"duplicate event_id {eid} at line {i} — lock did not serialize"
-        )
+        assert eid not in event_ids, f"duplicate event_id {eid} at line {i} — lock did not serialize"
         event_ids.add(eid)
         seen_wps.add(wp_id)
         # Every line is a planned → claimed transition for some WP.
@@ -249,15 +242,9 @@ def test_concurrent_emits_produce_valid_event_log(stress_repo: Path) -> None:
         assert obj.get("to_lane") == "claimed"
 
     # 5. Every WP shows up exactly once.
-    assert seen_wps == set(wp_ids), (
-        f"wp coverage mismatch: missing={set(wp_ids) - seen_wps} "
-        f"unexpected={seen_wps - set(wp_ids)}"
-    )
+    assert seen_wps == set(wp_ids), f"wp coverage mismatch: missing={set(wp_ids) - seen_wps} unexpected={seen_wps - set(wp_ids)}"
 
     # 6. SC-12 timing budget. Don't fail the test on a slow runner — but
     #    leave evidence in the report.
     if duration > 60.0:  # pragma: no cover — environment-dependent
-        pytest.skip(
-            f"stress completed but exceeded 60s budget ({duration:.1f}s); "
-            f"runner is slow — passing for correctness, skipping SLA assertion"
-        )
+        pytest.skip(f"stress completed but exceeded 60s budget ({duration:.1f}s); runner is slow — passing for correctness, skipping SLA assertion")

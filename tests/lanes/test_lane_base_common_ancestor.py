@@ -88,9 +88,7 @@ def _commit_planning_artifacts(repo: Path, feature_dir: Path) -> str:
     return _git(repo, "rev-parse", "HEAD")
 
 
-def _make_manifest(
-    coordination_branch: str, *, planning_commit_sha: str | None
-) -> LanesManifest:
+def _make_manifest(coordination_branch: str, *, planning_commit_sha: str | None) -> LanesManifest:
     return LanesManifest(
         version=1,
         mission_slug=MISSION_SLUG,
@@ -128,9 +126,7 @@ def _is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
 
 
 class TestLaneSharesCommonAncestor:
-    def test_lane_descends_from_both_planning_commit_and_coordination_branch(
-        self, tmp_path: Path
-    ) -> None:
+    def test_lane_descends_from_both_planning_commit_and_coordination_branch(self, tmp_path: Path) -> None:
         """The lane must descend from BOTH ancestries (#2993 Assert A + Assert A')."""
         repo = tmp_path / "repo"
         _init_repo(repo)
@@ -148,17 +144,10 @@ class TestLaneSharesCommonAncestor:
             lanes_manifest=manifest,
         )
 
-        assert _is_ancestor(repo, planning_sha, lane_branch), (
-            "lane must descend from the recorded planning-artifact commit"
-        )
-        assert _is_ancestor(repo, coord_branch, lane_branch), (
-            "lane must still descend from its coordination_branch parent "
-            "(the fix is additive, not a parent swap)"
-        )
+        assert _is_ancestor(repo, planning_sha, lane_branch), "lane must descend from the recorded planning-artifact commit"
+        assert _is_ancestor(repo, coord_branch, lane_branch), "lane must still descend from its coordination_branch parent (the fix is additive, not a parent swap)"
 
-    def test_no_recorded_sha_falls_back_to_pre_wp01_behaviour(
-        self, tmp_path: Path
-    ) -> None:
+    def test_no_recorded_sha_falls_back_to_pre_wp01_behaviour(self, tmp_path: Path) -> None:
         """``planning_commit_sha=None`` reproduces byte-identical pre-fix behaviour.
 
         A ``lanes.json`` written before this WP has no such field. The lane
@@ -181,10 +170,7 @@ class TestLaneSharesCommonAncestor:
         # Lane tip must equal coord_branch tip exactly (no extra merge commit).
         lane_tip = _git(repo, "rev-parse", lane_branch)
         coord_tip = _git(repo, "rev-parse", coord_branch)
-        assert lane_tip == coord_tip, (
-            "with no recorded SHA, the lane must be byte-identical to its "
-            "coordination_branch parent -- no merge commit introduced"
-        )
+        assert lane_tip == coord_tip, "with no recorded SHA, the lane must be byte-identical to its coordination_branch parent -- no merge commit introduced"
 
 
 # ---------------------------------------------------------------------------
@@ -193,9 +179,7 @@ class TestLaneSharesCommonAncestor:
 
 
 class TestWriteSurvivesConsolidation:
-    def test_lane_write_and_planning_artifact_both_survive_merge(
-        self, tmp_path: Path
-    ) -> None:
+    def test_lane_write_and_planning_artifact_both_survive_merge(self, tmp_path: Path) -> None:
         """Merging the lane back does not revert the planning artifacts it
         gained via the recorded-SHA merge, and the lane's own write survives
         too -- the #2993 "silent revert" failure mode is closed.
@@ -229,9 +213,7 @@ class TestWriteSurvivesConsolidation:
         # Both survive: the lane's own write, AND the planning artifact the
         # lane picked up via the recorded-SHA merge.
         assert (repo / "feature.py").exists(), "lane write must survive consolidation"
-        assert (feature_dir / "spec.md").exists(), (
-            "planning artifact must survive consolidation -- zero silent reversion"
-        )
+        assert (feature_dir / "spec.md").exists(), "planning artifact must survive consolidation -- zero silent reversion"
         assert "Lane base fix" in (feature_dir / "spec.md").read_text(encoding="utf-8")
 
 
@@ -281,9 +263,7 @@ class TestMergeRecordedPlanningCommit:
         _merge_recorded_planning_commit(repo, repo, "lane-a", head)
         assert _git(repo, "rev-parse", "HEAD") == head
 
-    def test_conflicting_merge_fails_closed_and_leaves_worktree_clean(
-        self, tmp_path: Path
-    ) -> None:
+    def test_conflicting_merge_fails_closed_and_leaves_worktree_clean(self, tmp_path: Path) -> None:
         repo = tmp_path / "repo"
         _init_repo(repo)
         # Diverge: same file, different content on two branches.

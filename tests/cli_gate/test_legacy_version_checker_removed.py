@@ -22,6 +22,7 @@ from specify_cli.migration.gate import check_schema_version
 
 pytestmark = [pytest.mark.integration]
 
+
 @pytest.fixture()
 def fixture_project_old_semver_compat_schema(tmp_path: Path) -> Path:
     """Project with stale spec_kitty.version semver but compatible schema_version."""
@@ -61,6 +62,5 @@ def test_check_version_compatibility_not_imported_in_dashboard() -> None:
 
     source = inspect.getsource(dashboard_mod)
     assert "check_version_compatibility" not in source, (
-        "dashboard.py still references check_version_compatibility — "
-        "the legacy semver checker must be removed (C-008 single authority)."
+        "dashboard.py still references check_version_compatibility — the legacy semver checker must be removed (C-008 single authority)."
     )

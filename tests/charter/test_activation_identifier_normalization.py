@@ -36,17 +36,11 @@ class TestNormalizeActivationIdentifier:
         the file slug while the graph node is ``directive:DIRECTIVE_025``. After
         normalization the two forms name the same node.
         """
-        assert (
-            normalize_activation_identifier("directive", "025-boy-scout-rule")
-            == "directive:DIRECTIVE_025"
-        )
+        assert normalize_activation_identifier("directive", "025-boy-scout-rule") == "directive:DIRECTIVE_025"
 
     def test_already_normalized_directive_is_idempotent(self) -> None:
         """A selector-form identifier passed back through the boundary is a fixed point."""
-        assert (
-            normalize_activation_identifier("directive", "DIRECTIVE_025")
-            == "directive:DIRECTIVE_025"
-        )
+        assert normalize_activation_identifier("directive", "DIRECTIVE_025") == "directive:DIRECTIVE_025"
 
     def test_non_directive_kind_only_gains_its_kind_prefix(self) -> None:
         """For every non-directive kind, store id == node id (only the prefix is added).
@@ -54,23 +48,14 @@ class TestNormalizeActivationIdentifier:
         Probed against the shipped graph: tactics/toolguides/procedures/
         paradigms/styleguides need no id translation — only directives do.
         """
-        assert (
-            normalize_activation_identifier("tactic", "usage-examples-sync")
-            == "tactic:usage-examples-sync"
-        )
-        assert (
-            normalize_activation_identifier("styleguide", "deployable-skill-authoring")
-            == "styleguide:deployable-skill-authoring"
-        )
+        assert normalize_activation_identifier("tactic", "usage-examples-sync") == "tactic:usage-examples-sync"
+        assert normalize_activation_identifier("styleguide", "deployable-skill-authoring") == "styleguide:deployable-skill-authoring"
 
     def test_activation_store_key_forms_are_accepted(self) -> None:
         """The boundary accepts the singular kind, the plural, and the
         ``activated_<plural>`` config-key form — the store speaks all three."""
         for kind in ("directive", "directives", "activated_directives"):
-            assert (
-                normalize_activation_identifier(kind, "025-boy-scout-rule")
-                == "directive:DIRECTIVE_025"
-            )
+            assert normalize_activation_identifier(kind, "025-boy-scout-rule") == "directive:DIRECTIVE_025"
 
     def test_unknown_kind_fails_naming_the_accepted_form(self) -> None:
         """An unrecognised kind fails loudly, naming the accepted kinds (C-006 —
@@ -106,9 +91,7 @@ class TestPartitionActivatedUnreachable:
             node_urns=node_urns,
             reachable_urns=frozenset(),
         )
-        assert part.node_but_unreachable == frozenset(
-            {"styleguide:deployable-skill-authoring"}
-        )
+        assert part.node_but_unreachable == frozenset({"styleguide:deployable-skill-authoring"})
         assert part.not_a_node == frozenset()
         assert part.normalization_delta == 0
 
@@ -149,13 +132,9 @@ class TestPartitionActivatedUnreachable:
         # Two directives are the swing; the stray tactic id is genuinely absent
         # (not a node in either form) so it is NOT counted as recovered.
         assert part.normalization_delta == 2
-        assert part.normalization_recovered == frozenset(
-            {"directive:DIRECTIVE_025", "directive:DIRECTIVE_030"}
-        )
+        assert part.normalization_recovered == frozenset({"directive:DIRECTIVE_025", "directive:DIRECTIVE_030"})
         assert "tactic:id-that-names-nothing" in part.not_a_node
-        assert part.node_but_unreachable == frozenset(
-            {"styleguide:deployable-skill-authoring"}
-        )
+        assert part.node_but_unreachable == frozenset({"styleguide:deployable-skill-authoring"})
         # The genuinely-absent stray is in not_a_node but NOT recovered by
         # normalization — so the swing count stays honest.
         assert "tactic:id-that-names-nothing" not in part.normalization_recovered

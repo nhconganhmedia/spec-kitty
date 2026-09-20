@@ -153,9 +153,7 @@ def _write_meta(feature_dir: Path) -> None:
         "purpose_tldr": "#2367-B bake-mid-write-set strand regression",
         "purpose_context": "an aborted multi-WP coord write-set must roll back atomically",
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _write_manifest(feature_dir: Path) -> None:
@@ -188,14 +186,7 @@ def _write_wp_file(feature_dir: Path, wp_id: str) -> None:
     """Seed WP markdown with approved-review frontmatter so the real
     ``approved -> done`` transition fires during merge bookkeeping."""
     (feature_dir / "tasks" / f"{wp_id}-work.md").write_text(
-        "---\n"
-        f"work_package_id: {wp_id}\n"
-        f"title: {wp_id} work\n"
-        "agent: implementer-bot\n"
-        "review_status: approved\n"
-        "reviewed_by: reviewer-renata\n"
-        "---\n"
-        f"# {wp_id}\n",
+        f"---\nwork_package_id: {wp_id}\ntitle: {wp_id} work\nagent: implementer-bot\nreview_status: approved\nreviewed_by: reviewer-renata\n---\n# {wp_id}\n",
         encoding="utf-8",
     )
 
@@ -288,9 +279,7 @@ def _bake_failure_on_second_wp() -> Iterator[list[str]]:
     real_mark = done_bookkeeping._mark_wp_merged_done
     calls: list[str] = []
 
-    def fake_mark(
-        repo_root: Path, mission_slug: str, wp_id: str, target_branch: str
-    ) -> None:
+    def fake_mark(repo_root: Path, mission_slug: str, wp_id: str, target_branch: str) -> None:
         calls.append(wp_id)
         if wp_id == COHERENT_WP:
             raise RuntimeError(_INJECTED_BAKE_FAILURE)
@@ -329,8 +318,7 @@ def _run_bake_failing_merge(repo: Path) -> tuple[BaseException, list[str]]:
         except BaseException as exc:  # noqa: BLE001 — the act under test raises by design
             return exc, calls
     raise AssertionError(
-        "precondition: the injected bake-mid-write-set failure did not propagate — "
-        "the merge unexpectedly succeeded, so the #2367-B rollback path never ran."
+        "precondition: the injected bake-mid-write-set failure did not propagate — the merge unexpectedly succeeded, so the #2367-B rollback path never ran."
     )
 
 
@@ -411,8 +399,7 @@ def test_bake_mid_write_set_failure_strands_committed_done(tmp_path: Path) -> No
     # byte-restore-without-revert branch, NOT a target-advance/squash-conflict
     # rollback (those are revert-covered and would repro vacuously green).
     assert isinstance(exc, RuntimeError) and _INJECTED_BAKE_FAILURE in str(exc), (
-        "precondition: the merge must fail via the injected bake-mid-write-set "
-        f"fault (RuntimeError, inside _record_merged_wps_done_for_merge); got {exc!r}"
+        f"precondition: the merge must fail via the injected bake-mid-write-set fault (RuntimeError, inside _record_merged_wps_done_for_merge); got {exc!r}"
     )
     assert calls == [STRANDED_WP, COHERENT_WP], (
         "precondition: the bake loop must mark the stranded WP (committing its "
@@ -426,12 +413,10 @@ def test_bake_mid_write_set_failure_strands_committed_done(tmp_path: Path) -> No
     # Preconditions: the working tree byte-restored BOTH WPs to ``approved`` (the
     # byte-restore leg runs), and the coherent WP was never marked anywhere.
     assert _lane_on(working_events, STRANDED_WP) == Lane.APPROVED, (
-        "precondition: the byte-restored working tree should reduce the stranded "
-        f"WP to ``approved``; got {_lane_on(working_events, STRANDED_WP)}"
+        f"precondition: the byte-restored working tree should reduce the stranded WP to ``approved``; got {_lane_on(working_events, STRANDED_WP)}"
     )
     assert _lane_on(committed_events, COHERENT_WP) == Lane.APPROVED, (
-        "precondition: the coherent WP is only ever ``approved`` (never marked), "
-        f"so it is NOT stranded; got committed {_lane_on(committed_events, COHERENT_WP)}"
+        f"precondition: the coherent WP is only ever ``approved`` (never marked), so it is NOT stranded; got committed {_lane_on(committed_events, COHERENT_WP)}"
     )
 
     # Pre-heal WITNESS (the strand exists + names exactly the stranded WP): the
@@ -458,9 +443,7 @@ def test_bake_mid_write_set_failure_strands_committed_done(tmp_path: Path) -> No
     # resume RAN into the bake write-set (not an AttributeError/infra early-abort).
     # The strand is left in place — the heal no-ops today.
     resume_exc, _resume_calls = _run_bake_failing_merge(repo)
-    assert isinstance(resume_exc, RuntimeError) and _INJECTED_BAKE_FAILURE in str(
-        resume_exc
-    ), (
+    assert isinstance(resume_exc, RuntimeError) and _INJECTED_BAKE_FAILURE in str(resume_exc), (
         "the ``merge --resume`` heal step must RUN through to the injected "
         "bake-mid-write-set fault (proving the resume reached the coord write-set, "
         f"not an infra/AttributeError early-abort); got {resume_exc!r}"

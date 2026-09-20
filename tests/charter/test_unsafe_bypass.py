@@ -39,6 +39,7 @@ def _read_provenance(path: Path) -> list[dict[str, object]]:
 def _patch_provenance_route(tmp_path: Path):
     """Context manager that patches provenance routing to write into tmp_path."""
     import charter.activation._io as _io_mod
+
     original = _io_mod._route_provenance_path
     provenance_file = tmp_path / "provenance.jsonl"
 
@@ -84,9 +85,7 @@ def test_unsafe_bypass_records_bypass_used_flag(tmp_path: Path) -> None:
 
     # The last record corresponds to this ingest.
     record = records[-1]
-    assert record["bypass_used"] is True, (
-        f"Expected bypass_used=True in provenance record, got: {record}"
-    )
+    assert record["bypass_used"] is True, f"Expected bypass_used=True in provenance record, got: {record}"
 
 
 def test_unsafe_false_raises_on_non_utf8_input_below_threshold(tmp_path: Path) -> None:
@@ -111,6 +110,7 @@ def test_unsafe_false_raises_on_non_utf8_input_below_threshold(tmp_path: Path) -
             assert content.normalization_applied is True
         except CharterEncodingError as exc:
             from charter.activation._diagnostics import CharterEncodingDiagnostic
+
             assert exc.code == CharterEncodingDiagnostic.AMBIGUOUS
             assert "ERROR: CHARTER_ENCODING_AMBIGUOUS" in exc.body
     finally:

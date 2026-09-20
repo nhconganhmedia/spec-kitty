@@ -228,9 +228,7 @@ def test_resolved_slots_carry_forward_across_transition() -> None:
         "model": "M1",
         "provider": "prov1",
     }
-    transition = _transition(
-        _ulid("T2"), Lane.CLAIMED, Lane.IN_PROGRESS, "2026-07-20T00:00:02+00:00"
-    )
+    transition = _transition(_ulid("T2"), Lane.CLAIMED, Lane.IN_PROGRESS, "2026-07-20T00:00:02+00:00")
 
     new_state = _wp_state_from_event(transition, previous)
 
@@ -339,9 +337,7 @@ def test_parity_roundtrip_existing_fields() -> None:
         tracker_refs_replace=["#9"],
         agent="claude",
         assignee="alice",
-        review=ReviewOverride(
-            at="2026-07-20T00:00:00+00:00", actor="bob", wp_id="WP01", reason="rework"
-        ),
+        review=ReviewOverride(at="2026-07-20T00:00:00+00:00", actor="bob", wp_id="WP01", reason="rework"),
     )
     assert WPInnerStateDelta.from_dict(delta.to_dict()) == delta
 
@@ -366,9 +362,7 @@ def test_parity_apply_annotation_delta_all_existing_slots() -> None:
         tracker_refs_replace=["#9", "#9", "#8"],
         agent="claude",
         assignee="alice",
-        review=ReviewOverride(
-            at="2026-07-20T00:00:00+00:00", actor="bob", wp_id="WP01", reason="rework"
-        ),
+        review=ReviewOverride(at="2026-07-20T00:00:00+00:00", actor="bob", wp_id="WP01", reason="rework"),
     )
 
     _apply_annotation_delta(state, delta)

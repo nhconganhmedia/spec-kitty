@@ -27,6 +27,5 @@ def test_command_templates_do_not_teach_bare_implement() -> None:
     for prompt in PROMPT_DIR.glob("*/prompt.md"):
         content = prompt.read_text(encoding="utf-8")
         assert "spec-kitty implement WP" not in content, (
-            f"{prompt} still teaches bare 'spec-kitty implement WP##'. "
-            f"Replace with 'spec-kitty agent action implement <WP> --agent <name>'."
+            f"{prompt} still teaches bare 'spec-kitty implement WP##'. Replace with 'spec-kitty agent action implement <WP> --agent <name>'."
         )

@@ -164,16 +164,8 @@ class TestImplementWPHappyPath:
         # The event log lives inside the coord worktree, NOT the
         # planning feature_dir on main. This is the FR-024 contract:
         # the coordination branch is the canonical writer.
-        coord_worktree = (
-            repo_root / ".worktrees"
-            / f"{mission['mission_slug']}-{mission['mid8']}-coord"
-        )
-        events_path = (
-            coord_worktree
-            / "kitty-specs"
-            / f"{mission['mission_slug']}-{mission['mid8']}"
-            / "status.events.jsonl"
-        )
+        coord_worktree = repo_root / ".worktrees" / f"{mission['mission_slug']}-{mission['mid8']}-coord"
+        events_path = coord_worktree / "kitty-specs" / f"{mission['mission_slug']}-{mission['mid8']}" / "status.events.jsonl"
 
         # Capture main HEAD before the transaction so we can prove the
         # bookkeeping commit did NOT land on main.
@@ -248,9 +240,7 @@ class TestImplementFromMainCheckout:
 
         # The commit lands on the coord branch, NOT main.
         main_head_after = _run(repo_root, "git", "rev-parse", "main").stdout.strip()
-        coord_head_after = _run(
-            repo_root, "git", "rev-parse", mission["coord_branch"]
-        ).stdout.strip()
+        coord_head_after = _run(repo_root, "git", "rev-parse", mission["coord_branch"]).stdout.strip()
 
         assert main_head_after == main_head_before, "main must not advance"
         assert coord_head_after != main_head_before, "coord branch must advance"
@@ -270,16 +260,8 @@ class TestForcedPreCommitHookFailure:
         mission: dict[str, Any],
     ) -> None:
         coord_branch = mission["coord_branch"]
-        coord_worktree = (
-            repo_root / ".worktrees"
-            / f"{mission['mission_slug']}-{mission['mid8']}-coord"
-        )
-        events_path = (
-            coord_worktree
-            / "kitty-specs"
-            / f"{mission['mission_slug']}-{mission['mid8']}"
-            / "status.events.jsonl"
-        )
+        coord_worktree = repo_root / ".worktrees" / f"{mission['mission_slug']}-{mission['mid8']}-coord"
+        events_path = coord_worktree / "kitty-specs" / f"{mission['mission_slug']}-{mission['mid8']}" / "status.events.jsonl"
 
         # First, run a successful transaction so the event log has
         # non-trivial pre-emit state to roll back to. The first
@@ -293,17 +275,20 @@ class TestForcedPreCommitHookFailure:
             destination_ref=coord_branch,
             operation="planned -> claimed for WP00",
         ) as txn:
-            txn.append_event(build_status_event(
-                mission_slug=mission["mission_slug"],
-                wp_id="WP00", from_lane="planned", to_lane="claimed",
-                actor="claude", mission_id=mission["mission_id"],
-            ))
+            txn.append_event(
+                build_status_event(
+                    mission_slug=mission["mission_slug"],
+                    wp_id="WP00",
+                    from_lane="planned",
+                    to_lane="claimed",
+                    actor="claude",
+                    mission_id=mission["mission_id"],
+                )
+            )
 
         assert events_path.exists()
         pre_sha = _sha256(events_path)
-        coord_head_before = _run(
-            repo_root, "git", "rev-parse", coord_branch
-        ).stdout.strip()
+        coord_head_before = _run(repo_root, "git", "rev-parse", coord_branch).stdout.strip()
         main_head_before = _run(repo_root, "git", "rev-parse", "main").stdout.strip()
 
         # Install a real pre-commit hook in the COORD worktree that
@@ -318,14 +303,17 @@ class TestForcedPreCommitHookFailure:
 
         # Second transaction: append + commit. The pre-commit hook
         # rejects the commit; rollback truncates the event log.
-        with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-            repo_root=repo_root,
-            mission_id=mission["mission_id"],
-            mission_slug=mission["mission_slug"],
-            mid8=mission["mid8"],
-            destination_ref=coord_branch,
-            operation="planned -> claimed for WP01",
-        ) as txn:
+        with (
+            pytest.raises(BookkeepingCommitFailed),
+            BookkeepingTransaction.acquire(
+                repo_root=repo_root,
+                mission_id=mission["mission_id"],
+                mission_slug=mission["mission_slug"],
+                mid8=mission["mid8"],
+                destination_ref=coord_branch,
+                operation="planned -> claimed for WP01",
+            ) as txn,
+        ):
             event = build_status_event(
                 mission_slug=mission["mission_slug"],
                 wp_id="WP01",
@@ -339,14 +327,10 @@ class TestForcedPreCommitHookFailure:
 
         # 1. The event log is byte-identical to the pre-emit state.
         post_sha = _sha256(events_path)
-        assert post_sha == pre_sha, (
-            f"event log SHA-256 changed: {pre_sha} -> {post_sha}"
-        )
+        assert post_sha == pre_sha, f"event log SHA-256 changed: {pre_sha} -> {post_sha}"
 
         # 2. No commits landed on the coord branch.
-        coord_head_after = _run(
-            repo_root, "git", "rev-parse", coord_branch
-        ).stdout.strip()
+        coord_head_after = _run(repo_root, "git", "rev-parse", coord_branch).stdout.strip()
         assert coord_head_after == coord_head_before, "coord branch must not advance"
 
         # 3. No commits landed on main.
@@ -415,16 +399,8 @@ class TestForcedPreCommitHookFailure:
         sample covers the end-to-end git layer.
         """
         coord_branch = mission["coord_branch"]
-        coord_worktree = (
-            repo_root / ".worktrees"
-            / f"{mission['mission_slug']}-{mission['mid8']}-coord"
-        )
-        events_path = (
-            coord_worktree
-            / "kitty-specs"
-            / f"{mission['mission_slug']}-{mission['mid8']}"
-            / "status.events.jsonl"
-        )
+        coord_worktree = repo_root / ".worktrees" / f"{mission['mission_slug']}-{mission['mid8']}-coord"
+        events_path = coord_worktree / "kitty-specs" / f"{mission['mission_slug']}-{mission['mid8']}" / "status.events.jsonl"
 
         # Seed with one successful transaction first to materialise the
         # coord worktree + non-trivial pre-emit state.
@@ -436,11 +412,16 @@ class TestForcedPreCommitHookFailure:
             destination_ref=coord_branch,
             operation=f"seed iter {iteration}",
         ) as seed_txn:
-            seed_txn.append_event(build_status_event(
-                mission_slug=mission["mission_slug"],
-                wp_id="WP00", from_lane="planned", to_lane="claimed",
-                actor="claude", mission_id=mission["mission_id"],
-            ))
+            seed_txn.append_event(
+                build_status_event(
+                    mission_slug=mission["mission_slug"],
+                    wp_id="WP00",
+                    from_lane="planned",
+                    to_lane="claimed",
+                    actor="claude",
+                    mission_id=mission["mission_id"],
+                )
+            )
 
         pre_sha = _sha256(events_path)
 
@@ -450,14 +431,17 @@ class TestForcedPreCommitHookFailure:
         hook.write_text("#!/bin/sh\nexit 1\n")
         hook.chmod(0o755)
 
-        with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-            repo_root=repo_root,
-            mission_id=mission["mission_id"],
-            mission_slug=mission["mission_slug"],
-            mid8=mission["mid8"],
-            destination_ref=coord_branch,
-            operation=f"iter {iteration}",
-        ) as txn:
+        with (
+            pytest.raises(BookkeepingCommitFailed),
+            BookkeepingTransaction.acquire(
+                repo_root=repo_root,
+                mission_id=mission["mission_id"],
+                mission_slug=mission["mission_slug"],
+                mid8=mission["mid8"],
+                destination_ref=coord_branch,
+                operation=f"iter {iteration}",
+            ) as txn,
+        ):
             event = build_status_event(
                 mission_slug=mission["mission_slug"],
                 wp_id="WP01",
@@ -484,16 +468,8 @@ class TestTwoLanesSerialised:
         mission: dict[str, Any],
     ) -> None:
         coord_branch = mission["coord_branch"]
-        coord_worktree = (
-            repo_root / ".worktrees"
-            / f"{mission['mission_slug']}-{mission['mid8']}-coord"
-        )
-        events_path = (
-            coord_worktree
-            / "kitty-specs"
-            / f"{mission['mission_slug']}-{mission['mid8']}"
-            / "status.events.jsonl"
-        )
+        coord_worktree = repo_root / ".worktrees" / f"{mission['mission_slug']}-{mission['mid8']}-coord"
+        events_path = coord_worktree / "kitty-specs" / f"{mission['mission_slug']}-{mission['mid8']}" / "status.events.jsonl"
 
         # Seed the coord worktree by running one transaction first so
         # both concurrent threads see a pre-existing worktree (no race
@@ -506,11 +482,16 @@ class TestTwoLanesSerialised:
             destination_ref=coord_branch,
             operation="seed coord worktree",
         ) as seed_txn:
-            seed_txn.append_event(build_status_event(
-                mission_slug=mission["mission_slug"],
-                wp_id="WP00", from_lane="planned", to_lane="claimed",
-                actor="claude", mission_id=mission["mission_id"],
-            ))
+            seed_txn.append_event(
+                build_status_event(
+                    mission_slug=mission["mission_slug"],
+                    wp_id="WP00",
+                    from_lane="planned",
+                    to_lane="claimed",
+                    actor="claude",
+                    mission_id=mission["mission_id"],
+                )
+            )
 
         results: list[str] = []
         errors: list[BaseException] = []

@@ -45,10 +45,7 @@ __all__ = [
 
 
 # Header comment for all emitted YAML files
-YAML_HEADER = (
-    "# Auto-generated from charter.md — do not edit directly.\n"
-    "# Run 'spec-kitty charter sync' to regenerate.\n\n"
-)
+YAML_HEADER = "# Auto-generated from charter.md — do not edit directly.\n# Run 'spec-kitty charter sync' to regenerate.\n\n"
 
 
 class CharterTestingConfig(BaseModel):
@@ -406,42 +403,44 @@ class CharterYaml(BaseModel):
 # fixtures and user charters stay byte-identical pre-/post-mission
 # (NFR-005). Anchored centrally so future "additive optional" fields can
 # join the same allow-list without touching the writer logic.
-_OPTIONAL_EMPTY_OMIT_KEYS: frozenset[str] = frozenset({
-    "references",                        # Directive.references (cross-link list)
-    "authority_paths",                   # DoctrineSelectionConfig.authority_paths
-    "governance_references",             # DoctrineSelectionConfig.governance_references
-    # WP01 (charter-mediated-doctrine-selection): additive `selected_<kind>`
-    # parity fields. Keep empty values out of emitted YAML so existing
-    # serialized fixtures and user charters stay byte-identical pre-/post-
-    # mission (NFR-005).
-    "selected_styleguides",
-    "selected_toolguides",
-    "selected_procedures",
-    "selected_agent_profiles",
-    "selected_mission_step_contracts",
-    # WP04 (glossary-pack-doctrine-kind): same additive-optional treatment for
-    # the glossary-pack selection field so a fresh project doesn't start
-    # emitting `selected_glossary_packs: []` into every charter (NFR-005).
-    "selected_glossary_packs",
-    # Wave B landing fold (write-side-seam-matrix-tracer): the ASSET kind's
-    # selection field gets the same additive-optional treatment so a fresh
-    # project doesn't start emitting `selected_assets: []` into every
-    # charter (NFR-005).
-    "selected_assets",
-    # WP01 T008 (charter-mediated-doctrine-selection): activation registry
-    # block on GovernanceConfig — empty list ⇒ omit from emitted YAML so
-    # the default-config fixture remains byte-stable (NFR-005).
-    "activations",
-    # WP05 (doctrine-charter-split-unification, FR-005a): the authored
-    # retrospective policy block on GovernanceConfig. This entry is the one
-    # that forced the allow-list to widen past "empty list" — the field is
-    # `RetrospectiveGovernance | None`, so an unset charter serializes it as
-    # `None` (and an explicitly empty block as an all-unclaimed mapping),
-    # neither of which the pre-WP05 list-only rule could drop. Without it a
-    # bare `retrospective:` key leaks into every emitted governance document
-    # (NFR-005).
-    "retrospective",
-})
+_OPTIONAL_EMPTY_OMIT_KEYS: frozenset[str] = frozenset(
+    {
+        "references",  # Directive.references (cross-link list)
+        "authority_paths",  # DoctrineSelectionConfig.authority_paths
+        "governance_references",  # DoctrineSelectionConfig.governance_references
+        # WP01 (charter-mediated-doctrine-selection): additive `selected_<kind>`
+        # parity fields. Keep empty values out of emitted YAML so existing
+        # serialized fixtures and user charters stay byte-identical pre-/post-
+        # mission (NFR-005).
+        "selected_styleguides",
+        "selected_toolguides",
+        "selected_procedures",
+        "selected_agent_profiles",
+        "selected_mission_step_contracts",
+        # WP04 (glossary-pack-doctrine-kind): same additive-optional treatment for
+        # the glossary-pack selection field so a fresh project doesn't start
+        # emitting `selected_glossary_packs: []` into every charter (NFR-005).
+        "selected_glossary_packs",
+        # Wave B landing fold (write-side-seam-matrix-tracer): the ASSET kind's
+        # selection field gets the same additive-optional treatment so a fresh
+        # project doesn't start emitting `selected_assets: []` into every
+        # charter (NFR-005).
+        "selected_assets",
+        # WP01 T008 (charter-mediated-doctrine-selection): activation registry
+        # block on GovernanceConfig — empty list ⇒ omit from emitted YAML so
+        # the default-config fixture remains byte-stable (NFR-005).
+        "activations",
+        # WP05 (doctrine-charter-split-unification, FR-005a): the authored
+        # retrospective policy block on GovernanceConfig. This entry is the one
+        # that forced the allow-list to widen past "empty list" — the field is
+        # `RetrospectiveGovernance | None`, so an unset charter serializes it as
+        # `None` (and an explicitly empty block as an all-unclaimed mapping),
+        # neither of which the pre-WP05 list-only rule could drop. Without it a
+        # bare `retrospective:` key leaks into every emitted governance document
+        # (NFR-005).
+        "retrospective",
+    }
+)
 
 
 def _is_omittable_empty(value: Any) -> bool:

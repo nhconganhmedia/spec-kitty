@@ -81,9 +81,7 @@ def _write_org_pack(repo_root: Path) -> Path:
     pack_root = repo_root / "org-packs" / _PACK_NAME
     profiles_dir = pack_root / "agent_profiles"
     profiles_dir.mkdir(parents=True, exist_ok=True)
-    (profiles_dir / f"{_ORG_ANALYST_ID}.agent.yaml").write_text(
-        _org_profile_yaml(), encoding="utf-8"
-    )
+    (profiles_dir / f"{_ORG_ANALYST_ID}.agent.yaml").write_text(_org_profile_yaml(), encoding="utf-8")
     return pack_root
 
 
@@ -157,9 +155,7 @@ class TestNoOrgPacksGovernanceRegression:
         # needs it, even on the no-org-packs path this test pins.
         kittify = repo / ".kittify"
         kittify.mkdir(parents=True, exist_ok=True)
-        (kittify / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
         first = _governance_text(repo, _BUILTIN_ID)
         _reset_agent_profile_cache()
@@ -263,9 +259,7 @@ def _register_activation_org_pack(repo_root: Path, pack_root: Path) -> None:
                 # not hard-fail on a genuinely absent key. This test targets
                 # mission_type="software-dev" (see _resolve_bootstrap).
                 "mission_type_activations": ["software-dev"],
-                "doctrine": {
-                    "org": {"packs": [{"name": _ACTIVATION_ORG_PACK_NAME, "local_path": str(pack_root)}]}
-                }
+                "doctrine": {"org": {"packs": [{"name": _ACTIVATION_ORG_PACK_NAME, "local_path": str(pack_root)}]}},
             },
             fh,
         )
@@ -282,7 +276,10 @@ def _resolve_bootstrap(repo_root: Path) -> CharterContextResult:
         patch("charter.activation.sync.ensure_charter_bundle_fresh", return_value=None),
     ):
         return build_charter_context(
-            repo_root, action="implement", depth=2, mark_loaded=False,
+            repo_root,
+            action="implement",
+            depth=2,
+            mark_loaded=False,
             mission_type="software-dev",
         )
 
@@ -290,9 +287,7 @@ def _resolve_bootstrap(repo_root: Path) -> CharterContextResult:
 class TestActivationUnionShadowPathAndByteIdentity:
     """WP01 NFR-002/NFR-003 — no shadow write; non-org repos unchanged."""
 
-    def test_org_only_activation_absent_from_governance_yaml_present_in_stanza(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_only_activation_absent_from_governance_yaml_present_in_stanza(self, tmp_path: Path) -> None:
         """NFR-002: the org-only activation reaches the rendered stanza
         without ever being written into the project's governance.yaml —
         the resolve-time union is read-only, never a generate-time fold."""
@@ -306,12 +301,9 @@ class TestActivationUnionShadowPathAndByteIdentity:
 
         assert _ORG_ONLY_ACTIVATION_ARTIFACT_ID in result.text
 
-        governance_on_disk = (repo / ".kittify" / "charter" / "governance.yaml").read_text(
-            encoding="utf-8"
-        )
+        governance_on_disk = (repo / ".kittify" / "charter" / "governance.yaml").read_text(encoding="utf-8")
         assert _ORG_ONLY_ACTIVATION_ARTIFACT_ID not in governance_on_disk, (
-            "the org-only activation leaked into governance.yaml — the union "
-            "must stay resolve-time only (NFR-002 no new shadow path)"
+            "the org-only activation leaked into governance.yaml — the union must stay resolve-time only (NFR-002 no new shadow path)"
         )
 
     def test_non_org_repo_activation_resolution_is_byte_identical(self, tmp_path: Path) -> None:
@@ -327,9 +319,7 @@ class TestActivationUnionShadowPathAndByteIdentity:
         # path the test pins.
         kittify = repo / ".kittify"
         kittify.mkdir(parents=True, exist_ok=True)
-        (kittify / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
         first = _resolve_bootstrap(repo)
         second = _resolve_bootstrap(repo)

@@ -33,6 +33,7 @@ import ast
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_first_assert(source: str) -> ast.AST:
     """Return the first Assert node from *source*."""
     tree = ast.parse(textwrap.dedent(source))
@@ -49,6 +50,7 @@ def _make_sym(name: str, source_file: Path, line: int = 1) -> _SourceSymbol:
 # ---------------------------------------------------------------------------
 # Unit tests: _is_message_capture_expr
 # ---------------------------------------------------------------------------
+
 
 class TestIsMessageCaptureExpr:
     """Unit tests for the _is_message_capture_expr helper."""
@@ -112,12 +114,11 @@ class TestIsMessageCaptureExpr:
 # Unit tests: _literal_findings_for_assertion — message-capture FP suppression
 # ---------------------------------------------------------------------------
 
+
 class TestMessageCaptureFPSuppression:
     """FR-009: message-capture in-operator findings → info grade."""
 
-    def _changed_literals(
-        self, literal: str, source_file: Path, line: int = 1
-    ) -> dict[str, list[_SourceSymbol]]:
+    def _changed_literals(self, literal: str, source_file: Path, line: int = 1) -> dict[str, list[_SourceSymbol]]:
         return {literal: [_make_sym(literal, source_file, line)]}
 
     def test_str_exc_in_assert_emits_info_not_low(self, tmp_path: Path) -> None:
@@ -201,16 +202,19 @@ class TestMessageCaptureFPSuppression:
 # T022/#3957: changed_literals multi-site — one collapsed finding, all sites named
 # ---------------------------------------------------------------------------
 
+
 class TestChangedLiteralsMultiSite:
     """T022/#3957: same literal removed from N source files → 1 collapsed finding."""
 
     def test_three_removal_sites_collapse_to_one_finding(self, tmp_path: Path) -> None:
         """A literal removed from 3 different source files produces 1 finding naming all 3."""
         test_file = tmp_path / "test_sample.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             def test_bad_request():
                 assert result == "bad request"
-        """))
+        """)
+        )
 
         syms = [
             _make_sym("bad request", tmp_path / "module_b.py", line=20),
@@ -220,9 +224,7 @@ class TestChangedLiteralsMultiSite:
         findings = _scan_test_file(test_file, syms)
 
         # One collapsed finding per (assertion, literal) — not one per site.
-        assert len(findings) == 1, (
-            f"Expected 1 collapsed finding, got {len(findings)}: {findings}"
-        )
+        assert len(findings) == 1, f"Expected 1 collapsed finding, got {len(findings)}: {findings}"
         finding = findings[0]
         # Primary site is the deterministically first (sorted) site.
         assert finding.source_file.name == "module_a.py"
@@ -237,11 +239,13 @@ class TestChangedLiteralsMultiSite:
     def test_two_different_literals_each_from_two_sites(self, tmp_path: Path) -> None:
         """Two different literals, each removed from 2 files → 2 collapsed findings."""
         test_file = tmp_path / "test_sample.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             def test_errors():
                 assert result == "error alpha"
                 assert result == "error beta"
-        """))
+        """)
+        )
 
         syms = [
             _make_sym("error alpha", tmp_path / "alpha_a.py", line=1),
@@ -251,9 +255,7 @@ class TestChangedLiteralsMultiSite:
         ]
         findings = _scan_test_file(test_file, syms)
 
-        assert len(findings) == 2, (
-            f"Expected 2 collapsed findings (one per literal), got {len(findings)}: {findings}"
-        )
+        assert len(findings) == 2, f"Expected 2 collapsed findings (one per literal), got {len(findings)}: {findings}"
         alpha_findings = [f for f in findings if f.changed_symbol == "error alpha"]
         beta_findings = [f for f in findings if f.changed_symbol == "error beta"]
         assert len(alpha_findings) == 1
@@ -266,15 +268,14 @@ class TestChangedLiteralsMultiSite:
     def test_many_sites_summarised_beyond_three_named(self, tmp_path: Path) -> None:
         """6 removal sites → primary + 3 named extras + '+2 more' (hint stays one line)."""
         test_file = tmp_path / "test_sample.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             def test_it():
                 assert result == "old value"
-        """))
+        """)
+        )
 
-        syms = [
-            _make_sym("old value", tmp_path / f"module_{i}.py", line=i)
-            for i in range(1, 7)
-        ]
+        syms = [_make_sym("old value", tmp_path / f"module_{i}.py", line=i) for i in range(1, 7)]
         findings = _scan_test_file(test_file, syms)
 
         assert len(findings) == 1
@@ -292,10 +293,12 @@ class TestChangedLiteralsMultiSite:
     def test_single_removal_site_still_works(self, tmp_path: Path) -> None:
         """Baseline: single removal site produces one plain finding (no collapse suffix)."""
         test_file = tmp_path / "test_sample.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             def test_it():
                 assert result == "old value"
-        """))
+        """)
+        )
 
         syms = [_make_sym("old value", tmp_path / "source.py", line=5)]
         findings = _scan_test_file(test_file, syms)
@@ -311,47 +314,44 @@ class TestChangedLiteralsMultiSite:
 # Integration: message-capture assertions in a full _scan_test_file call
 # ---------------------------------------------------------------------------
 
+
 class TestScanTestFileMessageCapture:
     """End-to-end: _scan_test_file demotes message-capture in-operator assertions."""
 
     def test_str_exc_in_assert_downgraded_to_info(self, tmp_path: Path) -> None:
         """Full scan: assert 'old msg' in str(exc) → info, not low."""
         test_file = tmp_path / "test_exc.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             import pytest
 
             def test_raises_with_old_message():
                 with pytest.raises(ValueError) as exc_info:
                     do_thing()
                 assert "old error message" in str(exc_info.value)
-        """))
+        """)
+        )
 
         sym = _make_sym("old error message", tmp_path / "module.py", line=3)
         findings = _scan_test_file(test_file, [sym])
 
         assert len(findings) >= 1
         info_findings = [f for f in findings if f.confidence == "info"]
-        assert len(info_findings) >= 1, (
-            f"Expected at least one info-grade finding for message-capture assertion, "
-            f"got: {findings}"
-        )
+        assert len(info_findings) >= 1, f"Expected at least one info-grade finding for message-capture assertion, got: {findings}"
         assert all(f.label == "message-content-check" for f in info_findings)
         # Must NOT have any high/medium findings for this literal.
-        high_or_medium = [
-            f for f in findings
-            if f.confidence in ("high", "medium") and f.changed_symbol == "old error message"
-        ]
-        assert high_or_medium == [], (
-            f"Message-capture assertion must not emit high/medium findings: {high_or_medium}"
-        )
+        high_or_medium = [f for f in findings if f.confidence in ("high", "medium") and f.changed_symbol == "old error message"]
+        assert high_or_medium == [], f"Message-capture assertion must not emit high/medium findings: {high_or_medium}"
 
     def test_plain_equality_check_still_low(self, tmp_path: Path) -> None:
         """Full scan: assert result == 'old value' still emits low confidence."""
         test_file = tmp_path / "test_eq.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             def test_value():
                 assert result == "old value"
-        """))
+        """)
+        )
 
         sym = _make_sym("old value", tmp_path / "module.py", line=1)
         findings = _scan_test_file(test_file, [sym])
@@ -362,13 +362,15 @@ class TestScanTestFileMessageCapture:
     def test_mixed_assertions_correct_grades(self, tmp_path: Path) -> None:
         """A test file with both kinds of assertions gets correct grades for each."""
         test_file = tmp_path / "test_mixed.py"
-        test_file.write_text(textwrap.dedent("""\
+        test_file.write_text(
+            textwrap.dedent("""\
             def test_eq():
                 assert result == "old literal"
 
             def test_msg():
                 assert "old literal" in str(exc)
-        """))
+        """)
+        )
 
         sym = _make_sym("old literal", tmp_path / "src.py", line=1)
         findings = _scan_test_file(test_file, [sym])

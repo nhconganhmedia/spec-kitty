@@ -76,15 +76,10 @@ def test_refresh_lock_posix_default_when_env_unset(monkeypatch, tmp_path: Path):
     monkeypatch.delenv("SPEC_KITTY_HOME", raising=False)
     monkeypatch.setattr(sys, "platform", "linux")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    assert (
-        tm_module._refresh_lock_path()
-        == tmp_path / ".spec-kitty" / "auth" / "refresh.lock"
-    )
+    assert tm_module._refresh_lock_path() == tmp_path / ".spec-kitty" / "auth" / "refresh.lock"
 
 
-def test_refresh_lock_windows_branch_honors_spec_kitty_home(
-    monkeypatch, tmp_path: Path
-):
+def test_refresh_lock_windows_branch_honors_spec_kitty_home(monkeypatch, tmp_path: Path):
     """Windows branch (``kernel.paths.is_windows()`` forced True): lock resolves under the env root.
 
     Setting SPEC_KITTY_HOME makes get_runtime_root() env-driven regardless of
@@ -114,9 +109,7 @@ def test_windows_storage_default_honors_spec_kitty_home(monkeypatch, tmp_path: P
     assert WindowsFileStorage().store_path == home / "auth"
 
 
-def test_windows_storage_default_uses_runtime_root_not_home(
-    monkeypatch, tmp_path: Path
-):
+def test_windows_storage_default_uses_runtime_root_not_home(monkeypatch, tmp_path: Path):
     """Normalization (DM-01KW1KDHVGWZ0QERDMV1CRJ15S): the win32 default is the
     runtime root's ``auth`` dir, not the previously hardcoded ``~/.spec-kitty``.
     """

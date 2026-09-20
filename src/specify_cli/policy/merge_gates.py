@@ -55,11 +55,7 @@ class MergeGateEvaluation:
 
     @property
     def warnings(self) -> list[str]:
-        return [
-            f"{g.gate_name}: {g.details}"
-            for g in self.gates
-            if g.verdict == GateVerdict.FAIL and not g.blocking
-        ]
+        return [f"{g.gate_name}: {g.details}" for g in self.gates if g.verdict == GateVerdict.FAIL and not g.blocking]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -108,11 +104,7 @@ def evaluate_merge_gates(
     )
     identity = resolve_mission_identity(feature_dir)
     evaluation.mission_slug = identity.mission_slug
-    evaluation.mission_number = (
-        str(identity.mission_number)
-        if identity.mission_number is not None
-        else None
-    )
+    evaluation.mission_number = str(identity.mission_number) if identity.mission_number is not None else None
     evaluation.mission_type = identity.mission_type
 
     if not policy.enabled or policy.mode == "off":
@@ -121,31 +113,23 @@ def evaluate_merge_gates(
     is_blocking = policy.mode == "block"
 
     if policy.require_review_approval:
-        evaluation.gates.append(
-            _evaluate_evidence_gate(feature_dir, wp_ids, is_blocking)
-        )
+        evaluation.gates.append(_evaluate_evidence_gate(feature_dir, wp_ids, is_blocking))
 
     if policy.require_risk_check:
-        evaluation.gates.append(
-            _evaluate_risk_gate(feature_dir, is_blocking, repo_root, mission_slug)
-        )
+        evaluation.gates.append(_evaluate_risk_gate(feature_dir, is_blocking, repo_root, mission_slug))
 
     if policy.require_deps_complete:
-        evaluation.gates.append(
-            _evaluate_dependency_gate(
-                feature_dir, wp_ids, is_blocking, repo_root, mission_slug
-            )
-        )
+        evaluation.gates.append(_evaluate_dependency_gate(feature_dir, wp_ids, is_blocking, repo_root, mission_slug))
 
-    evaluation.gates.append(
-        _evaluate_issue_matrix_completeness_gate(feature_dir, is_blocking)
-    )
+    evaluation.gates.append(_evaluate_issue_matrix_completeness_gate(feature_dir, is_blocking))
 
     return evaluation
 
 
 def _evaluate_evidence_gate(
-    feature_dir: Path, wp_ids: list[str], is_blocking: bool,
+    feature_dir: Path,
+    wp_ids: list[str],
+    is_blocking: bool,
 ) -> GateResult:
     """Report (informationally) whether every WP is at an acceptable mission ending.
 
@@ -215,7 +199,10 @@ def _evaluate_evidence_gate(
 
 
 def _evaluate_risk_gate(
-    feature_dir: Path, is_blocking: bool, repo_root: Path, mission_slug: str,
+    feature_dir: Path,
+    is_blocking: bool,
+    repo_root: Path,
+    mission_slug: str,
 ) -> GateResult:
     """Check that parallelization risk score is below threshold.
 
@@ -234,9 +221,7 @@ def _evaluate_risk_gate(
         from specify_cli.policy.config import load_policy_config
         from specify_cli.policy.risk_scorer import compute_risk_report
 
-        lane_state_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.LANE_STATE
-        )
+        lane_state_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.LANE_STATE)
         lanes_manifest = read_lanes_json(lane_state_dir)
         if lanes_manifest is None:
             return GateResult(
@@ -255,10 +240,7 @@ def _evaluate_risk_gate(
             return GateResult(
                 gate_name="risk",
                 verdict=GateVerdict.FAIL,
-                details=(
-                    f"Risk score {report.overall_score:.2f} exceeds "
-                    f"threshold {report.threshold:.2f}"
-                ),
+                details=(f"Risk score {report.overall_score:.2f} exceeds threshold {report.threshold:.2f}"),
                 blocking=is_blocking,
             )
         return GateResult(
@@ -277,8 +259,11 @@ def _evaluate_risk_gate(
 
 
 def _evaluate_dependency_gate(
-    feature_dir: Path, wp_ids: list[str], is_blocking: bool,
-    repo_root: Path, mission_slug: str,
+    feature_dir: Path,
+    wp_ids: list[str],
+    is_blocking: bool,
+    repo_root: Path,
+    mission_slug: str,
 ) -> GateResult:
     """Check that all WP dependencies are in done lane.
 
@@ -298,9 +283,7 @@ def _evaluate_dependency_gate(
         from specify_cli.status import reduce
         from specify_cli.status import read_events
 
-        work_package_task_dir = placement_seam(repo_root, mission_slug).read_dir(
-            MissionArtifactKind.WORK_PACKAGE_TASK
-        )
+        work_package_task_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
         graph = build_dependency_graph(work_package_task_dir)
         # Merge gate evaluation must remain read-only. Writing status.json here
         # dirties the repo and can block repeated merge attempts. STATUS_STATE
@@ -330,9 +313,7 @@ def _evaluate_dependency_gate(
         for wp_id in wp_ids:
             for dep_id in graph.get(wp_id, []):
                 dep_lane = wp_lanes.get(dep_id, "unknown")
-                if not is_acceptable_ending(
-                    dep_lane, has_provenance=wp_provenance.get(dep_id, False)
-                ):
+                if not is_acceptable_ending(dep_lane, has_provenance=wp_provenance.get(dep_id, False)):
                     incomplete_deps.append(f"{dep_id} (lane={dep_lane})")
 
         if incomplete_deps:
@@ -358,7 +339,8 @@ def _evaluate_dependency_gate(
 
 
 def _evaluate_issue_matrix_completeness_gate(
-    feature_dir: Path, is_blocking: bool,
+    feature_dir: Path,
+    is_blocking: bool,
 ) -> GateResult:
     """Check that every discovered issue reference has an issue-matrix row.
 
@@ -398,10 +380,7 @@ def _evaluate_issue_matrix_completeness_gate(
             return GateResult(
                 gate_name="issue_matrix_completeness",
                 verdict=GateVerdict.FAIL,
-                details=(
-                    "Issue-matrix is missing rows for referenced issue(s): "
-                    f"{', '.join(missing_issues)}"
-                ),
+                details=(f"Issue-matrix is missing rows for referenced issue(s): {', '.join(missing_issues)}"),
                 blocking=is_blocking,
             )
         return GateResult(

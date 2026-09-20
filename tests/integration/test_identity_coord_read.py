@@ -226,12 +226,9 @@ def test_issuance_lifecycle_record_fails_closed_without_mission_id(
 
     records = read_lifecycle_records(ctx.repo)
     assert [r for r in records if r.phase == "started"] == [], (
-        "fail-closed: no started lifecycle record may be written when the mission "
-        "has no canonical mission_id (the pre-fix code wrote one keyed on the slug)."
+        "fail-closed: no started lifecycle record may be written when the mission has no canonical mission_id (the pre-fix code wrote one keyed on the slug)."
     )
-    assert all(r.mission_id != ctx.slug for r in records), (
-        "the mission slug must never land in the ULID-typed mission_id field (#2278)."
-    )
+    assert all(r.mission_id != ctx.slug for r in records), "the mission slug must never land in the ULID-typed mission_id field (#2278)."
 
 
 def test_pairing_lifecycle_completion_fails_closed_without_mission_id(
@@ -263,8 +260,7 @@ def test_pairing_lifecycle_completion_fails_closed_without_mission_id(
 
     records = read_lifecycle_records(ctx.repo)
     assert [r for r in records if r.phase == "completed"] == [], (
-        "fail-closed: no completion may be written when the mission has no canonical "
-        "mission_id (the pre-fix code paired the slug-keyed started and stamped it)."
+        "fail-closed: no completion may be written when the mission has no canonical mission_id (the pre-fix code paired the slug-keyed started and stamped it)."
     )
 
 
@@ -300,9 +296,7 @@ def test_answer_flow_get_mission_type_reads_primary_type(
     ctx = coord_topology_mission_sentinel_meta
     captured: dict[str, str] = {}
 
-    def _fake_get_or_start_run(
-        mission_slug: str, repo_root: object, mission_type: str
-    ) -> NoReturn:
+    def _fake_get_or_start_run(mission_slug: str, repo_root: object, mission_type: str) -> NoReturn:
         captured["mission_type"] = mission_type
         raise _StopProbe
 

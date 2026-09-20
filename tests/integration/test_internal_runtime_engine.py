@@ -100,6 +100,7 @@ def _write_mission_yaml(base_dir: Path, yaml_content: str) -> Path:
 # Discovery hot paths
 # ---------------------------------------------------------------------------
 
+
 class TestDiscoverMissions:
     def test_discovers_mission_from_explicit_yaml_path(self, tmp_path: Path) -> None:
         """Arrange: mission.yaml at explicit path;
@@ -209,6 +210,7 @@ class TestLoadMissionTemplate:
 # ---------------------------------------------------------------------------
 # Engine hot paths: start_mission_run + next_step
 # ---------------------------------------------------------------------------
+
 
 class TestStartMissionRun:
     def test_start_creates_run_dir_with_state_json(self, tmp_path: Path) -> None:

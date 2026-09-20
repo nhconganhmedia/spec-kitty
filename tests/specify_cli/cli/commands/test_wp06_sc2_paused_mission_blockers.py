@@ -39,9 +39,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 _STATUS_STATE_BASENAMES: frozenset[str] = frozenset({"status.events.jsonl", "status.json"})
 
 
-def _patch_mission_topology(
-    monkeypatch: pytest.MonkeyPatch, *, coord: bool
-) -> None:
+def _patch_mission_topology(monkeypatch: pytest.MonkeyPatch, *, coord: bool) -> None:
     """Stub the record-analysis seam's stored-topology read (FR-001b routing reads topology).
 
     #2056 WP04 relocated record-analysis + its dirty-tree preflight into
@@ -55,9 +53,7 @@ def _patch_mission_topology(
     monkeypatch.setattr(_record_seam, "resolve_topology", lambda _root, _slug: topology)
 
 
-def _patch_implement_topology(
-    monkeypatch: pytest.MonkeyPatch, *, coord: bool
-) -> None:
+def _patch_implement_topology(monkeypatch: pytest.MonkeyPatch, *, coord: bool) -> None:
     """Stub the implement module's stored-topology read (FR-001b routing reads topology).
 
     coord-authority-trio-degod WP03 (#2173) relocated the placement family
@@ -72,12 +68,8 @@ def _patch_implement_topology(
     from specify_cli.cli.commands import implement_cores as _implement_cores_mod
 
     topology = MissionTopology.COORD if coord else MissionTopology.SINGLE_BRANCH
-    monkeypatch.setattr(
-        _implement_mod, "resolve_topology", lambda _root, _slug: topology
-    )
-    monkeypatch.setattr(
-        _implement_cores_mod, "resolve_topology", lambda _root, _slug: topology
-    )
+    monkeypatch.setattr(_implement_mod, "resolve_topology", lambda _root, _slug: topology)
+    monkeypatch.setattr(_implement_cores_mod, "resolve_topology", lambda _root, _slug: topology)
 
 
 # ---------------------------------------------------------------------------
@@ -93,9 +85,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
         repo.mkdir()
 
         def git(*args: str) -> None:
-            subprocess.run(
-                ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-            )
+            subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True)
 
         git("init", "-b", "kitty/mission-residue-lane-a")
         git("config", "user.email", "t@example.com")
@@ -133,9 +123,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
             (mission_dir / rel_path).write_text("stale primary residue\n", encoding="utf-8")
         return repo
 
-    def test_coord_residue_does_not_block_record_analysis(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_coord_residue_does_not_block_record_analysis(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.agent.mission import (
             _enforce_analysis_report_write_preflight,
         )
@@ -155,9 +143,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
             mission_slug="residue-01ABCDEF",
         )
 
-    def test_untracked_coord_residue_does_not_block_record_analysis(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_untracked_coord_residue_does_not_block_record_analysis(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """An UNTRACKED COORD-partition residue file does not block record-analysis.
 
         write-surface-coherence WP01-04 narrowing: the original fixture used an
@@ -192,10 +178,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
         git("add", "-A")
         git("commit", "-m", "seed mission")
         (mission_dir / "acceptance-matrix.json").write_text("{}\n", encoding="utf-8")
-        assert (
-            "?? kitty-specs/residue-01ABCDEF/acceptance-matrix.json"
-            in git("status", "--porcelain")
-        )
+        assert "?? kitty-specs/residue-01ABCDEF/acceptance-matrix.json" in git("status", "--porcelain")
         monkeypatch.chdir(repo)
         _patch_mission_topology(monkeypatch, coord=True)
 
@@ -206,9 +189,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
             mission_slug="residue-01ABCDEF",
         )
 
-    def test_regression_guard_without_context_still_blocks(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_regression_guard_without_context_still_blocks(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Without the context placement ref (legacy call), the coord residue is
         still treated as dirty — proving the test exercises a *real* dirty tree
         and the fix is the context-awareness, not a weakened check."""
@@ -222,9 +203,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
         with pytest.raises(typer.Exit):
             _enforce_analysis_report_write_preflight(repo, json_output=True)
 
-    def test_genuine_uncommitted_edit_still_blocks_under_coord(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_genuine_uncommitted_edit_still_blocks_under_coord(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A *genuine* uncommitted non-status edit must still block even under
         coordination topology — the fix only ignores coord-owned residue, never
         real planning-artifact churn (no over-broad escape hatch)."""
@@ -233,9 +212,7 @@ class TestRecordAnalysisCoordResidueNoDeadlock:
         )
 
         repo = self._repo_with_coord_residue(tmp_path)
-        (repo / "kitty-specs" / "residue-01ABCDEF" / "src_real_edit.py").write_text(
-            "dirty source edit\n", encoding="utf-8"
-        )
+        (repo / "kitty-specs" / "residue-01ABCDEF" / "src_real_edit.py").write_text("dirty source edit\n", encoding="utf-8")
         monkeypatch.chdir(repo)
         _patch_mission_topology(monkeypatch, coord=True)
 
@@ -261,18 +238,12 @@ class TestImplementClaimNoPlanningArtifactSplit:
         from specify_cli.cli.commands.implement import _PorcelainEntry
 
         return [
-            _PorcelainEntry(
-                xy=" M", path="kitty-specs/m/status.events.jsonl", is_structural=False
-            ),
-            _PorcelainEntry(
-                xy=" M", path="kitty-specs/m/status.json", is_structural=False
-            ),
+            _PorcelainEntry(xy=" M", path="kitty-specs/m/status.events.jsonl", is_structural=False),
+            _PorcelainEntry(xy=" M", path="kitty-specs/m/status.json", is_structural=False),
             _PorcelainEntry(xy=" M", path="kitty-specs/m/tasks.md", is_structural=False),
         ]
 
-    def test_flattened_placement_has_no_coord_split(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_flattened_placement_has_no_coord_split(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.implement import (
             _placement_coord_filter,
             _status_paths_for_commit,
@@ -293,9 +264,7 @@ class TestImplementClaimNoPlanningArtifactSplit:
         assert "kitty-specs/m/status.json" in paths
         assert "kitty-specs/m/tasks.md" in paths
 
-    def test_coordination_placement_routes_to_coord_ref(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_coordination_placement_routes_to_coord_ref(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.implement import (
             _placement_coord_filter,
             _status_paths_for_commit,
@@ -312,9 +281,7 @@ class TestImplementClaimNoPlanningArtifactSplit:
         assert "kitty-specs/m/status.json" not in paths
         assert "kitty-specs/m/tasks.md" in paths
 
-    def test_primary_placement_commits_status_files(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_primary_placement_commits_status_files(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.implement import (
             _placement_coord_filter,
             _status_paths_for_commit,
@@ -384,9 +351,7 @@ def _scaffold_residue_mission(repo: Path) -> str:
     # Real spec-kitty projects gitignore the worktree root and local sync
     # state; without this, fixture-environment noise (not stager residue)
     # would pollute the porcelain assertions.
-    (repo / ".gitignore").write_text(
-        ".worktrees/\n.kittify/sync-state.json\n", encoding="utf-8"
-    )
+    (repo / ".gitignore").write_text(".worktrees/\n.kittify/sync-state.json\n", encoding="utf-8")
     # The WP frontmatter is pre-enriched with the fields finalize-tasks
     # records on first run (WP07 branch recording et al.) so the finalize
     # under test performs no frontmatter write — the porcelain check then
@@ -493,9 +458,7 @@ class TestFinalizeLeavesNoPrimaryResidue:
         # imports (readiness coordinator, mission_type) must also see it disabled,
         # or environment-dependent writes leak into the porcelain assertions.
 
-    def test_finalize_leaves_porcelain_free_of_stager_residue(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_finalize_leaves_porcelain_free_of_stager_residue(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from tests.git.protected_target_fixtures import build_protected_target_repo
 
         repo = build_protected_target_repo(tmp_path).repo_root
@@ -510,24 +473,12 @@ class TestFinalizeLeavesNoPrimaryResidue:
         # tree must be clean — in particular the AC-A1 trio: lanes.json,
         # tasks/*, and the scaffolded matrices.
         porcelain = _porcelain_lines(repo)
-        residue = [
-            line
-            for line in porcelain
-            if "kitty-specs/" in line
-            and line.split("/")[-1] not in _STATUS_STATE_BASENAMES
-        ]
-        assert residue == [], (
-            "finalize left planning-artifact residue on the primary checkout "
-            f"(#1814 regression): {residue}"
-        )
+        residue = [line for line in porcelain if "kitty-specs/" in line and line.split("/")[-1] not in _STATUS_STATE_BASENAMES]
+        assert residue == [], f"finalize left planning-artifact residue on the primary checkout (#1814 regression): {residue}"
         for marker in ("lanes.json", "acceptance-matrix.json", "issue-matrix.md"):
-            assert not any(marker in line for line in porcelain), (
-                f"stager residue {marker!r} present in porcelain: {porcelain}"
-            )
+            assert not any(marker in line for line in porcelain), f"stager residue {marker!r} present in porcelain: {porcelain}"
 
-    def test_record_analysis_not_blocked_after_finalize(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_record_analysis_not_blocked_after_finalize(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from mission_runtime import (
             MissionArtifactKind,
             resolve_placement_only,
@@ -551,9 +502,7 @@ class TestFinalizeLeavesNoPrimaryResidue:
         # re-homed COORD->PRIMARY -- its placement resolves to the primary ref
         # even though this mission's topology routes other kinds through
         # coordination (checked separately below).
-        placement = resolve_placement_only(
-            repo, mission_slug, kind=MissionArtifactKind.ANALYSIS_REPORT
-        )
+        placement = resolve_placement_only(repo, mission_slug, kind=MissionArtifactKind.ANALYSIS_REPORT)
         # FR-001b: the coordination-topology mission routes through coordination —
         # read from the STORED topology, not a per-ref enum.
         assert routes_through_coordination(resolve_topology(repo, mission_slug)) is True
@@ -564,9 +513,7 @@ class TestFinalizeLeavesNoPrimaryResidue:
         # fixture). This is unrelated to the stager-residue class under test —
         # the kitty-specs/ tree is deliberately NOT committed here, so any
         # stager residue still trips the preflight below.
-        subprocess.run(
-            ["git", "add", ".kittify"], cwd=repo, check=True, capture_output=True
-        )
+        subprocess.run(["git", "add", ".kittify"], cwd=repo, check=True, capture_output=True)
         subprocess.run(
             ["git", "commit", "-q", "--allow-empty", "-m", "fixture: env noise"],
             cwd=repo,
@@ -585,13 +532,9 @@ class TestFinalizeLeavesNoPrimaryResidue:
         monkeypatch.chdir(repo)
         # FR-001b: the coord-residue filter reads the STORED topology, so the
         # mission_slug must be threaded for the coord-vs-primary decision.
-        _enforce_analysis_report_write_preflight(
-            repo, json_output=True, placement_ref=placement, mission_slug=mission_slug
-        )
+        _enforce_analysis_report_write_preflight(repo, json_output=True, placement_ref=placement, mission_slug=mission_slug)
 
-    def test_operator_authored_untracked_file_survives(
-        self, tmp_path: Path
-    ) -> None:
+    def test_operator_authored_untracked_file_survives(self, tmp_path: Path) -> None:
         """Negative control (R6 scoping): a pre-finalize operator file in the
         staged set is NEVER deleted by the residue cleanup."""
         from tests.git.protected_target_fixtures import build_protected_target_repo
@@ -599,19 +542,14 @@ class TestFinalizeLeavesNoPrimaryResidue:
         repo = build_protected_target_repo(tmp_path).repo_root
         mission_slug = _scaffold_residue_mission(repo)
 
-        operator_file = (
-            repo / "kitty-specs" / mission_slug / "tasks" / "operator-scratch.md"
-        )
+        operator_file = repo / "kitty-specs" / mission_slug / "tasks" / "operator-scratch.md"
         operator_content = "# operator notes — do not delete\n"
         operator_file.write_text(operator_content, encoding="utf-8")
 
         result = _run_real_finalize(repo, mission_slug)
         assert result.exit_code == 0, f"finalize failed:\n{result.output}"
 
-        assert operator_file.exists(), (
-            "R6 scoping violated: finalize residue cleanup deleted an "
-            "operator-authored pre-existing file"
-        )
+        assert operator_file.exists(), "R6 scoping violated: finalize residue cleanup deleted an operator-authored pre-existing file"
         assert operator_file.read_text(encoding="utf-8") == operator_content
 
     def test_coord_owned_status_files_not_widened(self) -> None:
@@ -633,11 +571,7 @@ class TestFinalizeLeavesNoPrimaryResidue:
             "acceptance-matrix.json",
             "issue-matrix.md",
         )
-        classified_status_state = {
-            name
-            for name in candidates
-            if kind_for_mission_file(f"kitty-specs/m/{name}") is MissionArtifactKind.STATUS_STATE
-        }
+        classified_status_state = {name for name in candidates if kind_for_mission_file(f"kitty-specs/m/{name}") is MissionArtifactKind.STATUS_STATE}
         assert classified_status_state == {"status.events.jsonl", "status.json"}
 
 
@@ -686,9 +620,7 @@ class TestStagerResidueCleanupScoping:
 
         assert src.exists(), "R6: a pre-existing path must never be deleted"
 
-    def test_diverged_primary_copy_is_skipped_with_warning(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_diverged_primary_copy_is_skipped_with_warning(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """If the primary bytes do not match the staged coord copy (e.g. a
         racing writer), cleanup skips the file instead of deleting it.
 

@@ -102,10 +102,7 @@ class VerdictProvenanceBackfillMigration(BaseMigration):
 
     def detect(self, project_path: Path) -> bool:
         """True while at least one mission still carries a stranded verdict."""
-        return any(
-            stranded_verdict_findings(mission)
-            for mission in _iter_mission_dirs(project_path)
-        )
+        return any(stranded_verdict_findings(mission) for mission in _iter_mission_dirs(project_path))
 
     def can_apply(self, project_path: Path) -> tuple[bool, str]:
         if self.detect(project_path):
@@ -132,23 +129,15 @@ class VerdictProvenanceBackfillMigration(BaseMigration):
         would_seed = sum(len(stranded_verdict_findings(mission)) for mission in missions)
         if would_seed == 0:
             return []
-        return [
-            f"dry-run: would backfill {would_seed} stranded verdict event(s) "
-            f"across {len(missions)} mission(s) scanned"
-        ]
+        return [f"dry-run: would backfill {would_seed} stranded verdict event(s) across {len(missions)} mission(s) scanned"]
 
     @staticmethod
     def _apply_backfill(missions: list[Path]) -> list[str]:
         """Run the idempotent backfill and summarise the seeded count."""
-        seeded = sum(
-            backfill_verdict_provenance(mission).appended_count for mission in missions
-        )
+        seeded = sum(backfill_verdict_provenance(mission).appended_count for mission in missions)
         if seeded == 0:
             return []
-        return [
-            f"Backfilled {seeded} stranded verdict event(s) across "
-            f"{len(missions)} mission(s) scanned"
-        ]
+        return [f"Backfilled {seeded} stranded verdict event(s) across {len(missions)} mission(s) scanned"]
 
 
 __all__ = ["VerdictProvenanceBackfillMigration"]

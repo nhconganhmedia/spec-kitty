@@ -166,8 +166,6 @@ def test_migration_is_auto_discovered_and_registered() -> None:
     auto_discover_migrations()
 
     migration = MigrationRegistry.get_by_id(_THIS_MIGRATION_ID)
-    assert migration is not None, (
-        "verdict_provenance_backfill must be auto-discovered and registered"
-    )
+    assert migration is not None, "verdict_provenance_backfill must be auto-discovered and registered"
     assert migration.target_version == "3.2.6rc1"
     assert migration.runs_on_worktrees is False

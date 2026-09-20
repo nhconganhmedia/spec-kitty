@@ -91,9 +91,7 @@ def _matrix_read_dir(repo_root: Path, mission_slug: str) -> Path:
     """
     from mission_runtime import MissionArtifactKind, placement_seam
 
-    return placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.ACCEPTANCE_MATRIX
-    )
+    return placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.ACCEPTANCE_MATRIX)
 
 
 def _resolve_criterion_update(
@@ -158,9 +156,7 @@ def _register_negative_invariant(
     matrix.negative_invariants.append(new_ni)
 
 
-def _emit_write_outcome(
-    write_result: WriteSeamResult, *, mission_slug: str, json_output: bool
-) -> None:
+def _emit_write_outcome(write_result: WriteSeamResult, *, mission_slug: str, json_output: bool) -> None:
     """Report a refused/error write outcome and exit; a no-op on success.
 
     Shared by both the criterion and the negative-invariant mode — the two
@@ -169,15 +165,13 @@ def _emit_write_outcome(
     """
     if write_result.status == "refused":
         _emit_error(
-            f"Could not route the acceptance-verdict write for {mission_slug!r}: "
-            f"{write_result.diagnostic or 'unroutable target'}",
+            f"Could not route the acceptance-verdict write for {mission_slug!r}: {write_result.diagnostic or 'unroutable target'}",
             json_output=json_output,
         )
         raise typer.Exit(1)
     if write_result.status == "error":
         _emit_error(
-            f"Failed to commit acceptance verdict for {mission_slug!r}: "
-            f"{write_result.diagnostic or 'unknown error'}",
+            f"Failed to commit acceptance verdict for {mission_slug!r}: {write_result.diagnostic or 'unknown error'}",
             json_output=json_output,
         )
         raise typer.Exit(1)
@@ -222,9 +216,7 @@ def _validate_mode_selection(
             raise typer.Exit(2)
     if negative_invariant is not None:
         if description is None:
-            _emit_error(
-                "--description is required with --negative-invariant", json_output=json_output
-            )
+            _emit_error("--description is required with --negative-invariant", json_output=json_output)
             raise typer.Exit(2)
         if verification_method is None:
             _emit_error(
@@ -251,8 +243,7 @@ def _run_criterion_mode(
     if criterion not in index_by_id:
         available = ", ".join(sorted(index_by_id)) or "(none)"
         _emit_error(
-            f"Unknown criterion {criterion!r} for mission {mission_slug!r}. "
-            f"Available criteria: {available}",
+            f"Unknown criterion {criterion!r} for mission {mission_slug!r}. Available criteria: {available}",
             json_output=json_output,
         )
         raise typer.Exit(1)
@@ -290,10 +281,7 @@ def _run_criterion_mode(
     if json_output:
         _emit_json(payload)
     else:
-        console.print(
-            f"[green]✓[/green] {criterion}={result} recorded for {mission_slug} "
-            f"(overall_verdict={matrix.overall_verdict}, write={write_result.status})"
-        )
+        console.print(f"[green]✓[/green] {criterion}={result} recorded for {mission_slug} (overall_verdict={matrix.overall_verdict}, write={write_result.status})")
 
 
 def _run_negative_invariant_mode(
@@ -326,9 +314,7 @@ def _run_negative_invariant_mode(
         # result on an unrelated invariant already in the matrix is preserved
         # by the engine's own NI-2 guard; only the just-registered (freshly
         # ``pending``) row is actually (re-)judged.
-        matrix.negative_invariants = enforce_negative_invariants(
-            repo_root, matrix.negative_invariants
-        )
+        matrix.negative_invariants = enforce_negative_invariants(repo_root, matrix.negative_invariants)
 
     judged = next(ni for ni in matrix.negative_invariants if ni.invariant_id == invariant_id)
 
@@ -370,9 +356,7 @@ def acceptance_verdict(
             help="Acceptance criterion id (e.g. FR-001); mutually exclusive with --negative-invariant",
         ),
     ] = None,
-    result: Annotated[
-        str | None, typer.Option("--result", help="pass | fail | pending (required with --criterion)")
-    ] = None,
+    result: Annotated[str | None, typer.Option("--result", help="pass | fail | pending (required with --criterion)")] = None,
     verification_method: Annotated[
         str | None,
         typer.Option(
@@ -399,9 +383,7 @@ def acceptance_verdict(
     ] = None,
     verification_command: Annotated[
         str | None,
-        typer.Option(
-            "--verification-command", help="grep pattern or command verifying the invariant's absence"
-        ),
+        typer.Option("--verification-command", help="grep pattern or command verifying the invariant's absence"),
     ] = None,
     scope: Annotated[
         str | None,
@@ -441,8 +423,7 @@ def acceptance_verdict(
     matrix = read_acceptance_matrix(matrix_dir)
     if matrix is None:
         _emit_error(
-            f"No acceptance-matrix.json found for mission {mission_slug!r}. "
-            "Run `spec-kitty agent mission finalize-tasks` to scaffold it first.",
+            f"No acceptance-matrix.json found for mission {mission_slug!r}. Run `spec-kitty agent mission finalize-tasks` to scaffold it first.",
             json_output=json_output,
         )
         raise typer.Exit(1)

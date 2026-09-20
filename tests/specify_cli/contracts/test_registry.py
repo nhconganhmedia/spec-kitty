@@ -88,9 +88,7 @@ def test_seeded_registry_loads_and_validates() -> None:
 
 
 def test_terminology_record_reconstructs_literals_and_consumer_set() -> None:
-    record = {r.id: r for r in load_registry(_repo_root())}[
-        "terminology.legacy-status-commit-terms"
-    ]
+    record = {r.id: r for r in load_registry(_repo_root())}["terminology.legacy-status-commit-terms"]
     # Fragments are joined by the loader back to the retired terms.
     assert set(record.anchor.literals) == {_TERM_PROCESS_NOUN, _TERM_HYPHENATED}
     assert record.anchor.symbol is None
@@ -101,9 +99,7 @@ def test_terminology_record_reconstructs_literals_and_consumer_set() -> None:
 
 
 def test_path_record_literals_and_scan_scope() -> None:
-    record = {r.id: r for r in load_registry(_repo_root())}[
-        "paths.legacy-home-literals-cli-tree"
-    ]
+    record = {r.id: r for r in load_registry(_repo_root())}["paths.legacy-home-literals-cli-tree"]
     assert set(record.anchor.literals) == {"~/.kittify", "~/.spec-kitty"}
     # The CLI-tree literal-grep half scopes to the command tree only.
     assert record.consumers.scan_roots == ("src/specify_cli/cli",)

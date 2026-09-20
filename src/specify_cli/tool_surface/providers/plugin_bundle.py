@@ -23,8 +23,14 @@ from ..bundles.claude import ClaudeCodeBundleProjector
 from ..bundles.copilot import CopilotBundleProjector
 from ..bundles.model import BundleEntry, BundleSources, BundleValidationResult, PluginBundle, StagedFile
 from ..bundles.projection import (
-    BUNDLE_SURFACE_KINDS, apply_staging, files_for_entries, json_bytes,
-    observe_confined, plugin_manifest_payload, prepare_staging, staging_guard,
+    BUNDLE_SURFACE_KINDS,
+    apply_staging,
+    files_for_entries,
+    json_bytes,
+    observe_confined,
+    plugin_manifest_payload,
+    prepare_staging,
+    staging_guard,
     supplied_entries,
 )
 from ..bundles.vscode import VsCodeBundleProjector
@@ -45,8 +51,13 @@ from ..findings import (
 )
 from ..model import SurfaceDefinition, SurfaceInstance, SurfacePlan, SurfaceSelection
 from ..operations import (
-    ApplyConsent, AssessmentInputs, Diagnostic, Disposition, OperationRoot,
-    OwnerApplyResult, OwnerAssessment,
+    ApplyConsent,
+    AssessmentInputs,
+    Diagnostic,
+    Disposition,
+    OperationRoot,
+    OwnerApplyResult,
+    OwnerAssessment,
 )
 from ..repair import RepairResult
 from ..status import (
@@ -131,9 +142,7 @@ class PluginBundleProvider:
         projectors: Sequence[BundleProjector] | None = None,
         output_subdir: str = _OUTPUT_SUBDIR,
     ) -> None:
-        self._projectors = list(projectors) if projectors is not None else (
-            default_projectors()
-        )
+        self._projectors = list(projectors) if projectors is not None else (default_projectors())
         self._output_subdir = output_subdir
 
     def can_handle(self, definition: SurfaceDefinition) -> bool:
@@ -158,10 +167,7 @@ class PluginBundleProvider:
             return []
         instances: list[SurfaceInstance] = []
         for projector in self._projectors:
-            manifest_path = (
-                self._output_dir(project_root, projector.distribution_target)
-                / projector.manifest_relative_path
-            )
+            manifest_path = self._output_dir(project_root, projector.distribution_target) / projector.manifest_relative_path
             instances.append(
                 SurfaceInstance(
                     definition=definition,
@@ -192,19 +198,20 @@ class PluginBundleProvider:
         for _part in Path(self._output_subdir).parts:
             root = root.parent
         assessment = self.assess(
-            AssessmentInputs(OperationRoot("project", "project", root),
-                             projected=BundleSources(selected_targets=(target,))),
-            (), selections=(),
+            AssessmentInputs(OperationRoot("project", "project", root), projected=BundleSources(selected_targets=(target,))),
+            (),
+            selections=(),
         )
         if assessment.complete and not assessment.effects and all(d.state == "unchanged" for d in assessment.dispositions):
             return SurfaceStatus(instance=instance, state=STATE_PRESENT)
-        finding = make_finding(BUNDLE_COMPONENT_MISSING, SEVERITY_ERROR,
-                               "Selected staged bundle has missing, drifted, or unavailable members.",
-                               path=instance.path)
+        finding = make_finding(BUNDLE_COMPONENT_MISSING, SEVERITY_ERROR, "Selected staged bundle has missing, drifted, or unavailable members.", path=instance.path)
         return self._incomplete_status(instance, (finding,))
 
     def assess(
-        self, inputs: AssessmentInputs, statuses: Sequence[SurfaceStatus], *,
+        self,
+        inputs: AssessmentInputs,
+        statuses: Sequence[SurfaceStatus],
+        *,
         selections: tuple[SurfaceSelection, ...],
     ) -> OwnerAssessment:
         """Prepare explicitly selected staging, never enable an advisory bundle."""
@@ -214,9 +221,12 @@ class PluginBundleProvider:
         if not selected and any(self.can_handle(s.definition) and s.definition.activation_mode != ActivationMode.DISABLED for s in selections):
             selected = tuple(p.distribution_target for p in self._projectors)
         if not selected:
-            return OwnerAssessment(PROVIDER_KEY, inputs.root, consent=inputs.consent,
-                                   dispositions=(Disposition(PROVIDER_KEY, inputs.root.root_id, self._output_subdir,
-                                                             "not_applicable", "Optional disabled staging was not selected"),))
+            return OwnerAssessment(
+                PROVIDER_KEY,
+                inputs.root,
+                consent=inputs.consent,
+                dispositions=(Disposition(PROVIDER_KEY, inputs.root.root_id, self._output_subdir, "not_applicable", "Optional disabled staging was not selected"),),
+            )
         try:
             observations = list(observe_confined(inputs.root.path, inputs.root.path / ".kittify/config.yaml"))
             if observations[-1].state.kind not in {"file", "absent"}:
@@ -239,8 +249,13 @@ class PluginBundleProvider:
                 directories.append(directory)
             return prepare_staging(inputs, tuple(files), tuple(directories), tuple(observations), suppliers=suppliers)
         except (OSError, ValueError, TypeError, AgentConfigError) as exc:
-            return OwnerAssessment(PROVIDER_KEY, inputs.root, complete=False, consent=inputs.consent,
-                                   diagnostics=(Diagnostic("bundle_input_invalid", PROVIDER_KEY, "error", str(exc)),))
+            return OwnerAssessment(
+                PROVIDER_KEY,
+                inputs.root,
+                complete=False,
+                consent=inputs.consent,
+                diagnostics=(Diagnostic("bundle_input_invalid", PROVIDER_KEY, "error", str(exc)),),
+            )
 
     def recheck(self, assessment: OwnerAssessment) -> AbstractContextManager[tuple[Diagnostic, ...]]:
         return staging_guard(assessment)
@@ -256,11 +271,18 @@ class PluginBundleProvider:
         from ..providers.protocol import AssessingSurfaceProvider
         from ..service import build_providers
 
-        selected = tuple(dict.fromkeys(
-            SurfaceSelection(plan.tool_key, instance.definition) for plan in plans for instance in plan.instances
-            if instance.path.is_absolute() and instance.path != inputs.root.path and instance.path.is_relative_to(inputs.root.path)
-            and instance.definition.kind in BUNDLE_SURFACE_KINDS and instance.definition.activation_mode != ActivationMode.DISABLED
-        ))
+        selected = tuple(
+            dict.fromkeys(
+                SurfaceSelection(plan.tool_key, instance.definition)
+                for plan in plans
+                for instance in plan.instances
+                if instance.path.is_absolute()
+                and instance.path != inputs.root.path
+                and instance.path.is_relative_to(inputs.root.path)
+                and instance.definition.kind in BUNDLE_SURFACE_KINDS
+                and instance.definition.activation_mode != ActivationMode.DISABLED
+            )
+        )
         result = []
         for provider in build_providers():
             selections = tuple(s for s in selected if s.definition.provider_key == provider.provider_key and provider.can_handle(s.definition))
@@ -268,8 +290,7 @@ class PluginBundleProvider:
                 continue
             owner_inputs = AssessmentInputs(inputs.root, consent=inputs.consent)
             if provider.provider_key == "managed_skills":
-                installation = assess_skill_installation(owner_inputs, SkillRegistry.from_package(),
-                                                        tuple(sorted({s.tool_key for s in selections})))
+                installation = assess_skill_installation(owner_inputs, SkillRegistry.from_package(), tuple(sorted({s.tool_key for s in selections})))
                 owner_inputs = AssessmentInputs(inputs.root, projected=installation, consent=inputs.consent)
             assessment = provider.assess(owner_inputs, (), selections=selections)
             if not assessment.complete:
@@ -302,9 +323,7 @@ class PluginBundleProvider:
             )
             for finding in missing
         )
-        return SurfaceStatus(
-            instance=instance, state=STATE_MISSING, findings=findings
-        )
+        return SurfaceStatus(instance=instance, state=STATE_MISSING, findings=findings)
 
     @staticmethod
     def _stale_status(instance: SurfaceInstance) -> SurfaceStatus:
@@ -315,10 +334,7 @@ class PluginBundleProvider:
                 make_finding(
                     PLUGIN_MANIFEST_STALE_PATH,
                     SEVERITY_WARNING,
-                    (
-                        "Plugin manifest references an unknown distribution "
-                        f"target: {instance.owner}"
-                    ),
+                    (f"Plugin manifest references an unknown distribution target: {instance.owner}"),
                     tool_key=instance.owner,
                     surface_id=_surface_id(instance),
                     path=instance.path,
@@ -334,29 +350,35 @@ class PluginBundleProvider:
         dry_run: bool = False,
     ) -> RepairResult:
         """Re-project staging bundles for missing/stale statuses."""
-        actionable = [
-            s for s in statuses if s.state in (STATE_MISSING, STATE_STALE)
-        ]
+        actionable = [s for s in statuses if s.state in (STATE_MISSING, STATE_STALE)]
         if not actionable:
             return RepairResult(dry_run=dry_run)
         consent = ApplyConsent(automatic=True)
         assessment = self.assess(
-            AssessmentInputs(OperationRoot("project", "project", project_root.resolve()),
-                             projected=BundleSources(selected_targets=tuple(s.instance.owner for s in actionable)),
-                             consent=consent), actionable, selections=(),
+            AssessmentInputs(
+                OperationRoot("project", "project", project_root.resolve()),
+                projected=BundleSources(selected_targets=tuple(s.instance.owner for s in actionable)),
+                consent=consent,
+            ),
+            actionable,
+            selections=(),
         )
         if not assessment.complete:
-            return RepairResult(failed=tuple(_surface_id(s.instance) for s in actionable), dry_run=dry_run,
-                                findings_after=tuple(make_finding(BUNDLE_COMPONENT_MISSING, SEVERITY_ERROR, d.message)
-                                                     for d in assessment.diagnostics))
+            return RepairResult(
+                failed=tuple(_surface_id(s.instance) for s in actionable),
+                dry_run=dry_run,
+                findings_after=tuple(make_finding(BUNDLE_COMPONENT_MISSING, SEVERITY_ERROR, d.message) for d in assessment.diagnostics),
+            )
         if dry_run:
             return RepairResult(repaired=tuple(e.id for e in assessment.effects), dry_run=True)
         result = self.apply(assessment, consent)
-        messages = tuple(d.message for d in result.diagnostics) + tuple(
-            d.reason for d in assessment.dispositions if d.state in {"preserve", "consent_required"})
-        return RepairResult(repaired=result.succeeded, failed=result.failed, skipped=result.skipped,
-                            findings_after=tuple(make_finding(BUNDLE_COMPONENT_MISSING, SEVERITY_ERROR, message)
-                                                 for message in messages))
+        messages = tuple(d.message for d in result.diagnostics) + tuple(d.reason for d in assessment.dispositions if d.state in {"preserve", "consent_required"})
+        return RepairResult(
+            repaired=result.succeeded,
+            failed=result.failed,
+            skipped=result.skipped,
+            findings_after=tuple(make_finding(BUNDLE_COMPONENT_MISSING, SEVERITY_ERROR, message) for message in messages),
+        )
 
     @staticmethod
     def _plans_for_projection(project_root: Path) -> list[SurfacePlan]:

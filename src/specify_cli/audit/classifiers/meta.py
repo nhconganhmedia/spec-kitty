@@ -57,6 +57,7 @@ def classify_meta_json(mission_dir: Path) -> list[MissionFinding]:
     # non-object-JSON branch and reports the wrong diagnosis (a decode
     # failure is not "top-level JSON value must be an object").
     from specify_cli.core.paths import load_meta_fail_closed, MissionMetaReadError
+
     try:
         obj = load_meta_fail_closed(mission_dir)
     except MissionMetaReadError as exc:

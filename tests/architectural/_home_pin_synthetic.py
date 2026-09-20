@@ -89,7 +89,7 @@ class SyntheticTree:
 
 #: A pin-bearing fixture: the ``(tmp_path, monkeypatch)`` silhouette on one def, value
 #: ``<tmp_path>/home``. The canonical member shape.
-_PINNING_FIXTURE = '''
+_PINNING_FIXTURE = """
 import pytest
 
 
@@ -97,14 +97,14 @@ import pytest
 def {name}(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))
     return tmp_path / "home"
-'''
+"""
 
 #: A pin-bearing test body — the same silhouette, a different ``kind``.
-_PINNING_TEST_BODY = '''
+_PINNING_TEST_BODY = """
 def {name}(tmp_path, monkeypatch):
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))
     assert (tmp_path / "home").parent == tmp_path
-'''
+"""
 
 #: **Not** a member, and deliberately so: the silhouette is unsatisfied (no ``monkeypatch``) and
 #: the value never resolves to ``<tmp_path>/home``. It keeps the base tree from being one in
@@ -151,7 +151,7 @@ def {name}(monkeypatch, canonical_home):
 #: T017 / C-012(5). The **keyed** def and the **innermost** def differ. The outer def carries the
 #: silhouette and is a ``fixture``; the inner def carries the write and is a ``helper``. Identity
 #: is taken at the innermost (``{name}._apply``), ``kind`` at the keyed (outermost satisfying) def.
-_OUTERMOST_VERSUS_INNERMOST = '''
+_OUTERMOST_VERSUS_INNERMOST = """
 import pytest
 
 
@@ -162,15 +162,15 @@ def {name}(tmp_path, monkeypatch):
 
     _apply()
     return tmp_path / "home"
-'''
+"""
 
 #: SC-013. A deliberate ``SyntaxError``: the ``def`` has no colon. ``parse_module`` propagates and
 #: nothing on the guard's call path catches it. Never checked in — ``ruff check`` would report
 #: ``invalid-syntax``, which is not a rule code and cannot be per-file-ignored.
-_DELIBERATE_SYNTAX_ERROR = '''
+_DELIBERATE_SYNTAX_ERROR = """
 def this_line_has_no_colon(tmp_path, monkeypatch)
     monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path / "home"))
-'''
+"""
 
 
 #: The two members that model ``E`` (FR-004): the canonical owner's own pin (FR-005) and FR-011's
@@ -216,9 +216,7 @@ def _write(root: Path, sources: dict[str, str]) -> None:
         target.write_text(textwrap.dedent(source).lstrip(), encoding="utf-8")
 
 
-def _extend(
-    tree: SyntheticTree, sources: dict[str, str], sites: frozenset[tuple[str, str]]
-) -> SyntheticTree:
+def _extend(tree: SyntheticTree, sources: dict[str, str], sites: frozenset[tuple[str, str]]) -> SyntheticTree:
     """Add files to an already-materialised tree, unioning both hand-enumerated descriptions."""
     _write(tree.root, sources)
     return SyntheticTree(
@@ -261,8 +259,7 @@ def extra_member_in_an_existing_file(root: Path) -> SyntheticTree:
     tree = census_frozen_tree(root)
     extra = root / "pkg" / "test_beta.py"
     extra.write_text(
-        extra.read_text(encoding="utf-8")
-        + textwrap.dedent(_PINNING_TEST_BODY.format(name="test_beta_pins_a_second_home")).lstrip(),
+        extra.read_text(encoding="utf-8") + textwrap.dedent(_PINNING_TEST_BODY.format(name="test_beta_pins_a_second_home")).lstrip(),
         encoding="utf-8",
     )
     return SyntheticTree(

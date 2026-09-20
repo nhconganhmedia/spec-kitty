@@ -254,11 +254,7 @@ def test_legacy_mission_forced_commit_failure_rolls_back(
     rollback works on a legacy lane worktree exactly as it does on a
     coord worktree.
     """
-    feature_dir_in_lane = (
-        lane_cwd
-        / "kitty-specs"
-        / f"{legacy_mission['mission_slug']}-{legacy_mission['mid8']}"
-    )
+    feature_dir_in_lane = lane_cwd / "kitty-specs" / f"{legacy_mission['mission_slug']}-{legacy_mission['mid8']}"
     feature_dir_in_lane.mkdir(parents=True, exist_ok=True)
     events_path = feature_dir_in_lane / "status.events.jsonl"
     # Pre-existing content to verify byte-identical rollback.  Use a
@@ -300,23 +296,23 @@ def test_legacy_mission_forced_commit_failure_rolls_back(
         actor="claude",
     )
 
-    with pytest.raises(BookkeepingCommitFailed), BookkeepingTransaction.acquire(
-        repo_root=repo_root,
-        mission_id=legacy_mission["mission_id"],
-        mission_slug=legacy_mission["mission_slug"],
-        mid8=legacy_mission["mid8"],
-        destination_ref="kitty/x",
-        operation="legacy_forced_failure",
-    ) as txn:
+    with (
+        pytest.raises(BookkeepingCommitFailed),
+        BookkeepingTransaction.acquire(
+            repo_root=repo_root,
+            mission_id=legacy_mission["mission_id"],
+            mission_slug=legacy_mission["mission_slug"],
+            mid8=legacy_mission["mid8"],
+            destination_ref="kitty/x",
+            operation="legacy_forced_failure",
+        ) as txn,
+    ):
         txn.append_event(event)
         txn.commit("chore: legacy rollback regression test")
 
     # SHA-256 must match pre-emit: rollback is byte-identical.
     post_digest = _sha256(events_path)
-    assert post_digest == pre_digest, (
-        f"SC-11 regression: legacy event log digest drifted "
-        f"({pre_digest!r} -> {post_digest!r})"
-    )
+    assert post_digest == pre_digest, f"SC-11 regression: legacy event log digest drifted ({pre_digest!r} -> {post_digest!r})"
 
 
 def test_legacy_mission_protected_lane_branch_refused(
@@ -517,17 +513,9 @@ def test_legacy_routing_unaffected_but_modern_coordinationless_routes_to_repo_ro
     # Write-contract selection now legitimately DIFFERS between the two
     # families (#2453) — never uniform across all three shapes as it was
     # pre-fix.
-    assert (
-        captured_targets["routing-genuine-legacy"]
-        == EventLogWriteTarget.COORDINATION_TRANSACTION_APPEND
-    )
-    assert (
-        captured_targets["routing-single-branch"]
-        == EventLogWriteTarget.PRIMARY_CHECKOUT_APPEND
-    )
-    assert (
-        captured_targets["routing-lanes"] == EventLogWriteTarget.PRIMARY_CHECKOUT_APPEND
-    )
+    assert captured_targets["routing-genuine-legacy"] == EventLogWriteTarget.COORDINATION_TRANSACTION_APPEND
+    assert captured_targets["routing-single-branch"] == EventLogWriteTarget.PRIMARY_CHECKOUT_APPEND
+    assert captured_targets["routing-lanes"] == EventLogWriteTarget.PRIMARY_CHECKOUT_APPEND
 
 
 def test_backfill_suppresses_future_legacy_warning(

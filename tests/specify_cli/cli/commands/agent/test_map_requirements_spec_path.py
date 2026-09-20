@@ -3,6 +3,7 @@
 map-requirements must resolve spec.md from the primary checkout even
 when a coordination worktree exists for the mission.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,14 +20,7 @@ pytestmark = [pytest.mark.fast]
 
 MISSION_SLUG = "my-mission-01ABCDEF"
 _SPEC_MD_TEXT = "# Spec\n\n| FR-001 | Do the thing. | Proposed |\n"
-_WP01_FRONTMATTER = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: Example\n"
-    "requirement_refs: []\n"
-    "---\n"
-    "# WP01\n"
-)
+_WP01_FRONTMATTER = "---\nwork_package_id: WP01\ntitle: Example\nrequirement_refs: []\n---\n# WP01\n"
 
 
 def test_primary_feature_dir_is_not_coord_worktree(tmp_path: Path) -> None:
@@ -52,17 +46,12 @@ def test_primary_feature_dir_is_not_coord_worktree(tmp_path: Path) -> None:
 
     # Result must be under the primary checkout, not the coord worktree
     assert ".worktrees" not in str(result), (
-        f"_compose_primary_feature_dir returned a path under .worktrees/: {result}. "
-        "map-requirements spec.md lookup will fail when the coord dir lacks spec.md."
+        f"_compose_primary_feature_dir returned a path under .worktrees/: {result}. map-requirements spec.md lookup will fail when the coord dir lacks spec.md."
     )
-    assert str(result).startswith(str(repo_root)), (
-        f"Expected path under {repo_root}, got {result}"
-    )
+    assert str(result).startswith(str(repo_root)), f"Expected path under {repo_root}, got {result}"
 
 
-def test_map_requirements_reads_spec_from_primary_when_coord_lacks_it(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_map_requirements_reads_spec_from_primary_when_coord_lacks_it(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-005: map-requirements succeeds when spec.md lives only in the primary checkout.
 
     This drives the real ``map_requirements`` command body (via CliRunner) so the
@@ -115,18 +104,14 @@ def test_map_requirements_reads_spec_from_primary_when_coord_lacks_it(
 
     # Mock the upstream infrastructure seams.
     monkeypatch.setattr(tasks_mod, "locate_project_root", lambda: primary_root)
-    monkeypatch.setattr(
-        tasks_mod, "_find_mission_slug", lambda **_kwargs: MISSION_SLUG
-    )
+    monkeypatch.setattr(tasks_mod, "_find_mission_slug", lambda **_kwargs: MISSION_SLUG)
     monkeypatch.setattr(
         tasks_mod,
         "_ensure_target_branch_checked_out",
         lambda *_args, **_kwargs: (primary_root, "main"),
     )
     monkeypatch.setattr(tasks_mod, "get_auto_commit_default", lambda *_a, **_k: False)
-    monkeypatch.setattr(
-        tasks_mod, "_emit_sparse_session_warning", lambda *_a, **_k: None
-    )
+    monkeypatch.setattr(tasks_mod, "_emit_sparse_session_warning", lambda *_a, **_k: None)
 
     # read-side-seam-primary-primitive-closure-01KYKMMT WP08 (T035): the
     # ``primary_feature_dir_for_mission`` patch this block used to install is
@@ -151,22 +136,16 @@ def test_map_requirements_reads_spec_from_primary_when_coord_lacks_it(
         ["--wp", "WP01", "--refs", "FR-001", "--mission", MISSION_SLUG, "--json", "--no-auto-commit"],
     )
 
-    assert result.exit_code == 0, (
-        f"map-requirements should exit 0 reading spec.md from the primary checkout; "
-        f"exit={result.exit_code}, output={result.output!r}"
-    )
+    assert result.exit_code == 0, f"map-requirements should exit 0 reading spec.md from the primary checkout; exit={result.exit_code}, output={result.output!r}"
     assert "spec.md not found" not in result.output, (
-        "map-requirements must not report 'spec.md not found' when spec.md is present "
-        f"in the primary checkout. Output: {result.output!r}"
+        f"map-requirements must not report 'spec.md not found' when spec.md is present in the primary checkout. Output: {result.output!r}"
     )
     payload = json.loads(result.output)
     assert payload["mission_type"] == "documentation"
     assert payload["mission_number"] == 17
 
 
-def test_map_requirements_auto_commit_uses_coord_placement_for_coord_files(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_map_requirements_auto_commit_uses_coord_placement_for_coord_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Auto-commit must commit coord-owned WP files from the coord worktree."""
     import typer
 
@@ -252,23 +231,17 @@ def test_map_requirements_auto_commit_uses_coord_placement_for_coord_files(
         )
 
     monkeypatch.setattr(tasks_mod, "locate_project_root", lambda: primary_root)
-    monkeypatch.setattr(
-        tasks_mod, "_find_mission_slug", lambda **_kwargs: MISSION_SLUG
-    )
+    monkeypatch.setattr(tasks_mod, "_find_mission_slug", lambda **_kwargs: MISSION_SLUG)
     monkeypatch.setattr(
         tasks_mod,
         "_ensure_target_branch_checked_out",
         lambda *_args, **_kwargs: (primary_root, "main"),
     )
-    monkeypatch.setattr(
-        tasks_mod, "_emit_sparse_session_warning", lambda *_args, **_kwargs: None
-    )
+    monkeypatch.setattr(tasks_mod, "_emit_sparse_session_warning", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(tasks_mod, "commit_for_mission", fake_commit_for_mission)
     # write-surface-coherence WP02 / T009: ``_resolve_planning_placement`` now takes
     # a required ``kind`` keyword; the stub accepts it (used only by the pre-check).
-    monkeypatch.setattr(
-        commit_router_mod, "_resolve_planning_placement", lambda *_args, **_kwargs: placement
-    )
+    monkeypatch.setattr(commit_router_mod, "_resolve_planning_placement", lambda *_args, **_kwargs: placement)
     # read-side-seam-primary-primitive-closure-01KYKMMT WP08 (T035): the
     # ``primary_feature_dir_for_mission`` patch this block used to install is
     # retired along with the deleted public wrapper -- see the sibling test

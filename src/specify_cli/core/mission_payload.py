@@ -47,10 +47,7 @@ def default_mission_display_name(mission_slug: str) -> str:
 
 def default_mission_purpose_context(display_name: str, target_branch: str) -> str:
     """Default purpose context, aligned across the local + sync payload paths."""
-    return (
-        f"This mission advances {display_name} on {target_branch} so stakeholders can "
-        "track the work from mission creation onward."
-    )
+    return f"This mission advances {display_name} on {target_branch} so stakeholders can track the work from mission creation onward."
 
 
 def build_mission_created_payload(

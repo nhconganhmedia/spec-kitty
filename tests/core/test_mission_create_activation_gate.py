@@ -35,9 +35,7 @@ def _init_git_repo(repo: Path) -> None:
     subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repo, check=True)
     subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, check=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, check=True)
-    subprocess.run(
-        ["git", "commit", "-q", "--allow-empty", "-m", "init"], cwd=repo, check=True
-    )
+    subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "init"], cwd=repo, check=True)
 
 
 def _write_activations(repo: Path, body: str) -> None:

@@ -28,9 +28,7 @@ from specify_cli.git.destructive_guard import (
 from specify_cli.merge._constants import LINEAR_HISTORY_REJECTION_TOKENS, logger
 
 
-def _lane_already_integrated(
-    repo_root: Path, lane_branch: str, mission_branch: str
-) -> bool:
+def _lane_already_integrated(repo_root: Path, lane_branch: str, mission_branch: str) -> bool:
     """Return True when ``lane_branch`` carries no commits absent from ``mission_branch``.
 
     FR-037 (#1772 Bug 3): the lane-skip decision must gate on the ACTUAL lane
@@ -204,9 +202,7 @@ def _emit_remediation_hint(hint_console: Console) -> None:
     )
 
 
-def _refresh_primary_checkout_after_merge(
-    repo_root: Path, expected_branch: str | None = None
-) -> None:
+def _refresh_primary_checkout_after_merge(repo_root: Path, expected_branch: str | None = None) -> None:
     """Force the primary checkout's tracked files to match HEAD.
 
     The target ref is advanced from a detached merge worktree, so the primary
@@ -229,10 +225,7 @@ def _refresh_primary_checkout_after_merge(
         try:
             assert_checkout_on_target(repo_root, expected_branch)
         except DestructiveOpRefused:
-            console.print(
-                "[yellow]Warning:[/yellow] skipping post-merge working-tree "
-                f"refresh: {repo_root} is not checked out on {expected_branch!r}."
-            )
+            console.print(f"[yellow]Warning:[/yellow] skipping post-merge working-tree refresh: {repo_root} is not checked out on {expected_branch!r}.")
             return
 
     ret_reset, out_reset, err_reset = run_command(
@@ -242,10 +235,7 @@ def _refresh_primary_checkout_after_merge(
         cwd=repo_root,
     )
     if ret_reset != 0:
-        console.print(
-            f"[yellow]Warning:[/yellow] post-merge working-tree refresh failed: "
-            f"{(err_reset or out_reset or '').strip()}"
-        )
+        console.print(f"[yellow]Warning:[/yellow] post-merge working-tree refresh failed: {(err_reset or out_reset or '').strip()}")
         return
 
     ret_refresh, out_refresh, err_refresh = run_command(
@@ -291,6 +281,7 @@ def _paths_have_status_changes(repo_root: Path, paths: list[Path]) -> bool:
 def _is_git_repo(path: Path) -> bool:
     """Return True when *path* is inside a git working tree."""
     import subprocess as _subprocess
+
     probe = _subprocess.run(
         ["git", "rev-parse", "--is-inside-work-tree"],
         cwd=str(path),

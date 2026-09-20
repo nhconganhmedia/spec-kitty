@@ -83,8 +83,7 @@ def _build_feature(tmp_path: Path, *, owned_file: str) -> Path:
     _write_meta(feature_dir)
     _write_lanes(feature_dir)
     (feature_dir / "spec.md").write_text(
-        "# Spec\n\n"
-        "This mission will bulk edit rename across the codebase and replace everywhere.\n",
+        "# Spec\n\nThis mission will bulk edit rename across the codebase and replace everywhere.\n",
         encoding="utf-8",
     )
     (tasks_dir / "WP01-plan.md").write_text(
@@ -117,9 +116,7 @@ def _build_feature(tmp_path: Path, *, owned_file: str) -> Path:
         "to_lane": "planned",
         "wp_id": "WP01",
     }
-    (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(seed_event, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text(json.dumps(seed_event, sort_keys=True) + "\n", encoding="utf-8")
     return feature_dir
 
 
@@ -191,9 +188,7 @@ def test_non_utf8_spec_without_bulk_edit_signal_does_not_block_implement(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     feature_dir = _build_feature(tmp_path, owned_file="src/runtime/**")
-    (feature_dir / "spec.md").write_bytes(
-        b"\xff\xfe# Spec\n\nRegular feature work with no occurrence-sensitive wording.\n"
-    )
+    (feature_dir / "spec.md").write_bytes(b"\xff\xfe# Spec\n\nRegular feature work with no occurrence-sensitive wording.\n")
 
     with _patched_implement(tmp_path, feature_dir) as create_workspace:
         implement("WP01", mission=feature_dir.name, recover=False, auto_commit=False)

@@ -24,14 +24,7 @@ import pytest
 pytestmark = [pytest.mark.integration]
 
 _REPO_ROOT: Path = Path(__file__).resolve().parents[2]
-_FIXTURE_ORG_PACK: Path = (
-    _REPO_ROOT
-    / "tests"
-    / "architectural"
-    / "_fixtures"
-    / "org_packs"
-    / "example_org"
-)
+_FIXTURE_ORG_PACK: Path = _REPO_ROOT / "tests" / "architectural" / "_fixtures" / "org_packs" / "example_org"
 
 
 @pytest.fixture
@@ -97,9 +90,7 @@ def test_org_drg_fragment_merges_through_three_layers_with_provenance(
     # threaded by the merge (renamed from ``source`` in P0 fix, 2026-05).
     sources = {getattr(n, "provenance", None) for n in merged.nodes}
     assert "built-in" in sources, "shipped layer must be tagged 'built-in'"
-    assert "org:example-org" in sources, (
-        "org layer must be tagged 'org:<pack_name>'"
-    )
+    assert "org:example-org" in sources, "org layer must be tagged 'org:<pack_name>'"
 
     # Edges from the org fragment are present and tagged.
     edge_sources = {getattr(e, "provenance", None) for e in merged.edges}
@@ -142,10 +133,5 @@ def test_charter_lint_lints_all_three_layers_with_provenance(
         edges=[],
     )
     merged = merge_three_layers(built_in=built_in, org_fragments=fragments, project=None)
-    org_tagged = [
-        n for n in merged.nodes if getattr(n, "provenance", None) == "org:example-org"
-    ]
-    assert org_tagged, (
-        "merge_three_layers must tag every org-contributed node with its "
-        "provenance so charter lint can attribute findings per layer"
-    )
+    org_tagged = [n for n in merged.nodes if getattr(n, "provenance", None) == "org:example-org"]
+    assert org_tagged, "merge_three_layers must tag every org-contributed node with its provenance so charter lint can attribute findings per layer"

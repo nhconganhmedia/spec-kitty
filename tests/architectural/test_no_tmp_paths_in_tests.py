@@ -74,9 +74,7 @@ def test_shared_tmp_scanner_has_two_sided_fault_bite(tmp_path: Path) -> None:
     assert _collect_violations(tests_root=tests_root, repo_root=tmp_path) == []
 
     source.write_text(f"value = '{_TMP_LITERAL}shared'\n", encoding="utf-8")
-    assert _collect_violations(tests_root=tests_root, repo_root=tmp_path) == [
-        ("tests/test_probe.py", [1])
-    ]
+    assert _collect_violations(tests_root=tests_root, repo_root=tmp_path) == [("tests/test_probe.py", [1])]
 
 
 def test_no_evasion_roots_in_live_test_corpus() -> None:
@@ -91,9 +89,7 @@ def test_no_evasion_roots_in_live_test_corpus() -> None:
         for lineno, line in enumerate(lines, start=1):
             literal = _line_has_evasion_root_literal(line)
             if literal is not None:
-                violations.append(
-                    (path.relative_to(_REPO_ROOT).as_posix(), literal, lineno)
-                )
+                violations.append((path.relative_to(_REPO_ROOT).as_posix(), literal, lineno))
     assert violations == []
 
 

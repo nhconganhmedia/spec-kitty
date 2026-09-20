@@ -49,6 +49,7 @@ def _graph_files(doctrine_dir: Path) -> list[Path]:
         return [single]
     return sorted(doctrine_dir.glob("*.graph.yaml"))
 
+
 #: WP05 / FR-009 / C-003 — orphan-count regression ceiling.
 #:
 #: After repairing the phantom ``java-implementer`` reference and wiring the
@@ -147,17 +148,13 @@ def test_check_reports_committed_graph_fresh() -> None:
     'graph.yaml')`` assertion would break the instant WP05 replaces the monolith
     with ``*.graph.yaml`` fragments.
     """
-    result = runner.invoke(
-        doctrine_app, ["regenerate-graph", "--check", "--json"]
-    )
+    result = runner.invoke(doctrine_app, ["regenerate-graph", "--check", "--json"])
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
     assert payload["status"] == "fresh"
 
 
-def test_regenerate_twice_is_byte_identical(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_regenerate_twice_is_byte_identical(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Write-mode regeneration is deterministic across two runs."""
     # Assemble a working-tree-shaped doctrine root and point the seam at it via
     # SPEC_KITTY_PACKS_ROOT (C1.5). Pre-WP03 this test relied on the CWD
@@ -187,9 +184,7 @@ def test_regenerate_twice_is_byte_identical(
     assert first == second, "regenerate-graph is not idempotent (per-file byte drift)"
 
 
-def test_check_detects_stale_graph(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_check_detects_stale_graph(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A corrupted committed graph is reported stale with exit code 1."""
     # See test_regenerate_twice_is_byte_identical: SPEC_KITTY_PACKS_ROOT (C1.5)
     # replaces the retired CWD ancestor-walk as the discovery override.
@@ -207,9 +202,7 @@ def test_check_detects_stale_graph(
         encoding="utf-8",
     )
 
-    result = runner.invoke(
-        doctrine_app, ["regenerate-graph", "--check", "--json"]
-    )
+    result = runner.invoke(doctrine_app, ["regenerate-graph", "--check", "--json"])
     assert result.exit_code == 1, result.output
     payload = json.loads(result.stdout)
     assert payload["status"] == "stale"

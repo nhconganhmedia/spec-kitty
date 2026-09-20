@@ -50,27 +50,21 @@ _PYTHON_STYLEGUIDE_ID = "STYLEGUIDE:python-conventions"
 
 
 def _git_init(repo: Path) -> None:
-    subprocess.run(
-        ["git", "init", "--initial-branch=main"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "init", "--initial-branch=main"], cwd=repo, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], cwd=repo, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "config", "commit.gpgsign", "false"], cwd=repo, check=True, capture_output=True
-    )
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=repo, check=True, capture_output=True)
 
 
 def _write_curated_charter_md(repo: Path) -> None:
     charter_dir = repo / ".kittify" / "charter"
     charter_dir.mkdir(parents=True, exist_ok=True)
-    (charter_dir / "charter.md").write_text(
-        "# Curated Charter\n\nHand-authored governance prose.\n", encoding="utf-8"
-    )
+    (charter_dir / "charter.md").write_text("# Curated Charter\n\nHand-authored governance prose.\n", encoding="utf-8")
 
 
 def _invoke_generate(repo: Path, *args: str) -> object:
@@ -137,12 +131,9 @@ def test_charter_generate_is_idempotent_for_language_agnostic_default_interview(
     assert len(catalog_1["references"]) == len(catalog_2["references"])
 
     # (b) no placeholder content on the second run.
-    placeholder_count = sum(
-        1 for reference in catalog_2["references"] if reference["summary"] == _PLACEHOLDER_SUMMARY
-    )
+    placeholder_count = sum(1 for reference in catalog_2["references"] if reference["summary"] == _PLACEHOLDER_SUMMARY)
     assert placeholder_count == 0, (
-        f"{placeholder_count} language-scoped reference(s) degraded to the "
-        "bundled-doctrine placeholder on the second `charter generate` run"
+        f"{placeholder_count} language-scoped reference(s) degraded to the bundled-doctrine placeholder on the second `charter generate` run"
     )
 
     # (c) a real, language-scoped styleguide keeps its genuine title/summary

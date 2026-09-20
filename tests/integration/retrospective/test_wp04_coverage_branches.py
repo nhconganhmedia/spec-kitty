@@ -24,11 +24,13 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir = tmp_path / "kitty-specs" / mission_slug
     feature_dir.mkdir(parents=True)
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text(
@@ -43,19 +45,28 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir()
     (tasks_dir / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\nlane: done\ndependencies: []\n"
-        "requirement_refs: [FR-001]\ntitle: WP01\n---\n# WP01\n",
+        "---\nwork_package_id: WP01\nlane: done\ndependencies: []\nrequirement_refs: [FR-001]\ntitle: WP01\n---\n# WP01\n",
         encoding="utf-8",
     )
     events_path = feature_dir / "status.events.jsonl"
     events_path.write_text(
-        json.dumps({
-            "actor": "test", "at": "2026-01-01T00:00:00+00:00",
-            "event_id": str(_ulid_mod.ULID()), "evidence": None,
-            "execution_mode": "worktree", "feature_slug": mission_slug,
-            "force": False, "from_lane": "planned", "reason": None,
-            "review_ref": None, "to_lane": "done", "wp_id": "WP01",
-        }) + "\n",
+        json.dumps(
+            {
+                "actor": "test",
+                "at": "2026-01-01T00:00:00+00:00",
+                "event_id": str(_ulid_mod.ULID()),
+                "evidence": None,
+                "execution_mode": "worktree",
+                "feature_slug": mission_slug,
+                "force": False,
+                "from_lane": "planned",
+                "reason": None,
+                "review_ref": None,
+                "to_lane": "done",
+                "wp_id": "WP01",
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
     return feature_dir, mission_id
@@ -155,9 +166,7 @@ def test_remediation_hint_empty_source_map() -> None:
 
 
 @pytest.mark.integration
-def test_record_exists_error_is_non_fatal(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_record_exists_error_is_non_fatal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """RecordExistsError on write is non-fatal: callback continues and emits Captured."""
     from runtime.next.runtime_bridge import _build_retrospective_facilitator_callback
     from specify_cli.retrospective.writer import RecordExistsError
@@ -187,15 +196,9 @@ def test_record_exists_error_is_non_fatal(
 
     # Captured event is still emitted even though write was skipped.
     events_path = feature_dir / "status.events.jsonl"
-    events = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     captured_events = [e for e in events if e.get("type") == "RetrospectiveCaptured"]
-    assert captured_events, (
-        "RetrospectiveCaptured must be emitted even when write is skipped (RecordExistsError)"
-    )
+    assert captured_events, "RetrospectiveCaptured must be emitted even when write is skipped (RecordExistsError)"
 
 
 # ---------------------------------------------------------------------------
@@ -204,9 +207,7 @@ def test_record_exists_error_is_non_fatal(
 
 
 @pytest.mark.integration
-def test_policy_resolution_error_is_re_raised(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_policy_resolution_error_is_re_raised(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """PolicyResolutionError from resolve_policy is re-raised by the callback."""
     from runtime.next.runtime_bridge import _build_retrospective_facilitator_callback
     from specify_cli.retrospective import policy as policy_mod
@@ -239,9 +240,7 @@ def test_policy_resolution_error_is_re_raised(
 
 
 @pytest.mark.integration
-def test_write_io_error_emits_failure_and_re_raises(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_io_error_emits_failure_and_re_raises(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Generic exception on write_gen_record: CaptureFailed emitted, exception re-raised."""
     from runtime.next.runtime_bridge import _build_retrospective_facilitator_callback
     from specify_cli.retrospective import writer as writer_mod
@@ -270,12 +269,6 @@ def test_write_io_error_emits_failure_and_re_raises(
     # RetrospectiveCaptureFailed must be emitted before re-raise.
     events_path = feature_dir / "status.events.jsonl"
     assert events_path.exists()
-    events = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     failed_events = [e for e in events if e.get("type") == "RetrospectiveCaptureFailed"]
-    assert failed_events, (
-        "RetrospectiveCaptureFailed must be emitted when write_gen_record raises OSError"
-    )
+    assert failed_events, "RetrospectiveCaptureFailed must be emitted when write_gen_record raises OSError"

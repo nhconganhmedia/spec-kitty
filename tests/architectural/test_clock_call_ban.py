@@ -73,8 +73,7 @@ def test_scanned_file_floor_is_met() -> None:
     scanned = scan.iter_python_files()
 
     assert len(scanned) > scan.MIN_SCANNED_FILES, (
-        f"only {len(scanned)} files scanned under {[str(r) for r in scan.SCAN_ROOTS]} -- "
-        "the call-ban gate would otherwise pass vacuously."
+        f"only {len(scanned)} files scanned under {[str(r) for r in scan.SCAN_ROOTS]} -- the call-ban gate would otherwise pass vacuously."
     )
 
 
@@ -89,11 +88,7 @@ def test_no_banned_wall_clock_call_outside_the_door() -> None:
     scanned = scan.iter_python_files()
     exemptions = load_call_exemptions()
 
-    violations = [
-        (relpath, violation)
-        for relpath, violation in collect_call_ban_violations(scanned)
-        if (relpath, violation.line) not in exemptions
-    ]
+    violations = [(relpath, violation) for relpath, violation in collect_call_ban_violations(scanned) if (relpath, violation.line) not in exemptions]
 
     assert violations == [], (
         "Raw wall-clock reads (`.now`/`.utcnow`/`.today`/`time.time()`) are "
@@ -102,10 +97,7 @@ def test_no_banned_wall_clock_call_outside_the_door() -> None:
         "CALL:<path>:<line> to your package's "
         "tests/architectural/_exemptions/<owner>.txt if this is a currently-"
         "tracked, not-yet-remediated site.\nViolations:\n"
-        + "\n".join(
-            f"  {relpath}:{violation.line}: {violation.call} -- use {violation.suggestion}"
-            for relpath, violation in violations
-        )
+        + "\n".join(f"  {relpath}:{violation.line}: {violation.call} -- use {violation.suggestion}" for relpath, violation in violations)
     )
 
 
@@ -154,9 +146,7 @@ def test_stale_exemption_removal_reds_the_gate(tmp_path: Path, monkeypatch: pyte
 
     isolated_dir = tmp_path / "_exemptions"
     isolated_dir.mkdir()
-    (isolated_dir / "isolated_owner.txt").write_text(
-        f"CALL:{sample_relpath}:{sample_violation.line}\n", encoding="utf-8"
-    )
+    (isolated_dir / "isolated_owner.txt").write_text(f"CALL:{sample_relpath}:{sample_violation.line}\n", encoding="utf-8")
 
     def _fake_iter_exemption_lines() -> list[str]:
         lines: list[str] = []
@@ -169,17 +159,11 @@ def test_stale_exemption_removal_reds_the_gate(tmp_path: Path, monkeypatch: pyte
     monkeypatch.setattr(exemptions_module, "_iter_exemption_lines", _fake_iter_exemption_lines)
     exempted_here = exemptions_module.load_call_exemptions()
     assert (sample_relpath, sample_violation.line) in exempted_here
-    with_exemption = [
-        (relpath, violation) for relpath, violation in all_violations if (relpath, violation.line) not in exempted_here
-    ]
+    with_exemption = [(relpath, violation) for relpath, violation in all_violations if (relpath, violation.line) not in exempted_here]
     assert (sample_relpath, sample_violation) not in with_exemption
 
     isolated_dir.joinpath("isolated_owner.txt").write_text("", encoding="utf-8")
-    without_exemption = [
-        (relpath, violation)
-        for relpath, violation in all_violations
-        if (relpath, violation.line) not in exemptions_module.load_call_exemptions()
-    ]
+    without_exemption = [(relpath, violation) for relpath, violation in all_violations if (relpath, violation.line) not in exemptions_module.load_call_exemptions()]
 
     assert (sample_relpath, sample_violation) in without_exemption
 
@@ -294,10 +278,7 @@ def test_utcnow_date_today_and_epoch_time_fire(tmp_path: Path) -> None:
     """The remaining banned spellings: ``utcnow()``, ``date.today()``, ``time.time()``."""
     module = tmp_path / "offender.py"
     module.write_text(
-        "import datetime\nimport time\n\n"
-        "datetime.datetime.utcnow()\n"
-        "datetime.date.today()\n"
-        "time.time()\n",
+        "import datetime\nimport time\n\ndatetime.datetime.utcnow()\ndatetime.date.today()\ntime.time()\n",
         encoding="utf-8",
     )
 
@@ -322,9 +303,7 @@ def test_allowed_timedelta_and_annotation_do_not_fire(tmp_path: Path) -> None:
     """Negative: ``timedelta(...)`` and a ``datetime`` type annotation are never banned calls."""
     module = tmp_path / "offender.py"
     module.write_text(
-        "from kernel.clock import datetime, timedelta\n\n"
-        "def schedule(when: datetime) -> timedelta:\n"
-        "    return timedelta(seconds=1)\n",
+        "from kernel.clock import datetime, timedelta\n\ndef schedule(when: datetime) -> timedelta:\n    return timedelta(seconds=1)\n",
         encoding="utf-8",
     )
 
@@ -409,6 +388,5 @@ def test_message_mapping_falls_back_to_generic_now_suggestion(tmp_path: Path) ->
     violations = _violations_for_file(module)
 
     assert [v.suggestion for v in violations] == [
-        "kernel.clock.now_utc() (or now_utc_iso()/now_utc_stamp()/"
-        "now_utc_compact_stamp()/now_utc_seconds() for a specific serialization contract)"
+        "kernel.clock.now_utc() (or now_utc_iso()/now_utc_stamp()/now_utc_compact_stamp()/now_utc_seconds() for a specific serialization contract)"
     ]

@@ -76,10 +76,7 @@ class TestRenderOpenOpsSection:
         section = render_open_ops_section(tmp_path, now=_NOW)
         assert "⚠ Open Ops (1): work that was dispatched but never closed" in section
         assert "01KTOPEN000000000000000001 (implementer-iris, 26h old)" in section
-        assert (
-            "close: spec-kitty profile-invocation complete "
-            "--invocation-id 01KTOPEN000000000000000001 --outcome <done|failed|abandoned>"
-        ) in section
+        assert ("close: spec-kitty profile-invocation complete --invocation-id 01KTOPEN000000000000000001 --outcome <done|failed|abandoned>") in section
         assert "Sweep stale ones: spec-kitty doctor ops --close-stale" in section
 
     def test_n_open_ops_renders_all(self, tmp_path: Path) -> None:
@@ -97,9 +94,7 @@ class TestRenderOpenOpsSection:
     def test_unparseable_first_line_still_lists_op(self, tmp_path: Path) -> None:
         ops_dir = tmp_path / EVENTS_DIR
         ops_dir.mkdir(parents=True)
-        (ops_dir / "01KTBROKEN0000000000000001.jsonl").write_text(
-            "not json\n", encoding="utf-8"
-        )
+        (ops_dir / "01KTBROKEN0000000000000001.jsonl").write_text("not json\n", encoding="utf-8")
         section = render_open_ops_section(tmp_path, now=_NOW)
         assert "01KTBROKEN0000000000000001 — close:" in section
 
@@ -138,9 +133,7 @@ class TestRenderOpenOpsReminder:
 class TestSessionStopCommand:
     """session-stop must always exit 0 and never block the host's stop flow."""
 
-    def test_silent_outside_project(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_silent_outside_project(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         from functools import partial
 
         from specify_cli.cli.commands import session_stop as session_stop_module
@@ -157,9 +150,7 @@ class TestSessionStopCommand:
         session_stop_module.session_stop()  # must not raise
         assert capsys.readouterr().out == ""
 
-    def test_silent_with_zero_open_ops(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_silent_with_zero_open_ops(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         from specify_cli.cli.commands.session_stop import session_stop
 
         (tmp_path / ".kittify").mkdir()
@@ -167,9 +158,7 @@ class TestSessionStopCommand:
         session_stop()
         assert capsys.readouterr().out == ""
 
-    def test_prints_reminder_with_open_ops(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_prints_reminder_with_open_ops(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         from specify_cli.cli.commands.session_stop import session_stop
 
         (tmp_path / ".kittify").mkdir()
@@ -180,9 +169,7 @@ class TestSessionStopCommand:
         assert "open Ops" in out
         assert "01KTOPEN000000000000000001" in out
 
-    def test_swallows_internal_errors(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_swallows_internal_errors(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         from specify_cli.cli.commands import session_stop as session_stop_module
 
         (tmp_path / ".kittify").mkdir()
@@ -218,18 +205,14 @@ class TestSessionStartOpenOps:
         ):
             session_start()
 
-    def test_no_open_ops_no_extra_output(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_no_open_ops_no_extra_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         (tmp_path / ".kittify").mkdir()
         self._run_session_start(tmp_path, monkeypatch)
         out = capsys.readouterr().out
         assert "Spec Kitty" in out
         assert "Open Ops" not in out
 
-    def test_open_ops_section_appended(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_open_ops_section_appended(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         (tmp_path / ".kittify").mkdir()
         _write_op(tmp_path / EVENTS_DIR, "01KTOPEN000000000000000001")
         self._run_session_start(tmp_path, monkeypatch)

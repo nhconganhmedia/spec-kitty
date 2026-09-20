@@ -294,9 +294,7 @@ def test_detector_flags_aliased_import_positional_call(tmp_path: Path) -> None:
     """
     planted = tmp_path / "planted_aliased_import.py"
     planted.write_text(
-        "from ...dossier.events import emit_artifact_indexed as ei\n"
-        "\n"
-        'result = ei("m", "k", "c", "p", "h", 1)\n',
+        'from ...dossier.events import emit_artifact_indexed as ei\n\nresult = ei("m", "k", "c", "p", "h", 1)\n',
         encoding="utf-8",
     )
 

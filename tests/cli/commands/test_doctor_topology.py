@@ -23,9 +23,7 @@ runner = CliRunner()
 
 def _write_meta(feature_dir: Path, meta: dict[str, Any]) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 @pytest.fixture()

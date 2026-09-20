@@ -46,14 +46,8 @@ AUTHORITY_PATHS_HEADER: str = "Project authority paths:"
 """The literal section header anchored by the ATDD self-sufficiency test."""
 
 
-_TERMINOLOGY_WHEN: str = (
-    "canonical terminology — when you encounter a domain term in the "
-    "diff, grep this directory"
-)
-_ADR_WHEN: str = (
-    "architectural intent — when you change a structural boundary, "
-    "read the relevant ADR"
-)
+_TERMINOLOGY_WHEN: str = "canonical terminology — when you encounter a domain term in the diff, grep this directory"
+_ADR_WHEN: str = "architectural intent — when you change a structural boundary, read the relevant ADR"
 
 
 DEFAULT_AUTHORITY_PATHS: dict[str, str] = {
@@ -75,9 +69,7 @@ directory is present.
 """
 
 
-DEFAULT_CHARTER_DECLARED_WHEN_CLAUSE: str = (
-    "consult when you change content under this directory"
-)
+DEFAULT_CHARTER_DECLARED_WHEN_CLAUSE: str = "consult when you change content under this directory"
 """Generic conditional for charter-declared (non-default) authority paths."""
 
 
@@ -154,9 +146,7 @@ def render_authority_paths(
         if not _directory_exists(repo_root, normalised):
             continue
         seen.add(normalised)
-        lines.append(
-            f"  - {normalised}    ({DEFAULT_CHARTER_DECLARED_WHEN_CLAUSE})"
-        )
+        lines.append(f"  - {normalised}    ({DEFAULT_CHARTER_DECLARED_WHEN_CLAUSE})")
 
     if not lines:
         return ""

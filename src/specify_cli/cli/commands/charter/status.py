@@ -6,6 +6,7 @@ reach for the ``_collect_*`` symbols via ``from specify_cli.cli.commands.charter
 import _collect_charter_sync_status`` etc., so the package ``__init__`` re-exports
 them.
 """
+
 from __future__ import annotations
 
 import json
@@ -83,9 +84,7 @@ def status(  # noqa: C901
         if sync_status["available"]:
             console.print(f"Charter: {sync_status['charter_path']}")
             if sync_status["status"] == "stale":
-                console.print(
-                    "Status: [yellow]STALE[/yellow] (modified since last sync)"
-                )
+                console.print("Status: [yellow]STALE[/yellow] (modified since last sync)")
                 if sync_status["stored_hash"]:
                     console.print(f"Expected hash: {sync_status['stored_hash']}")
                 console.print(f"Current hash:  {sync_status['current_hash']}")
@@ -124,9 +123,7 @@ def status(  # noqa: C901
 
             console.print(table)
         else:
-            console.print(
-                f"[yellow]Unavailable[/yellow]: {sync_status['error']}"
-            )
+            console.print(f"[yellow]Unavailable[/yellow]: {sync_status['error']}")
 
         synthesis = payload["synthesis"]
         manifest = synthesis["manifest"]
@@ -144,9 +141,7 @@ def status(  # noqa: C901
         state_style = state_styles.get(state, "white")
 
         console.print("\n[bold]Synthesis[/bold]")
-        console.print(
-            f"Generation state: [{state_style}]{state.upper()}[/{state_style}]"
-        )
+        console.print(f"Generation state: [{state_style}]{state.upper()}[/{state_style}]")
         console.print(
             "Generated inputs: "
             f"{generated_inputs['counts']['directive']} directive, "
@@ -161,19 +156,11 @@ def status(  # noqa: C901
             "partial": "yellow",
             "invalid": "red",
         }.get(manifest["state"], "white")
-        console.print(
-            f"Manifest: [{manifest_state_style}]{manifest['state'].upper()}[/{manifest_state_style}] "
-            f"({manifest['path']})"
-        )
+        console.print(f"Manifest: [{manifest_state_style}]{manifest['state'].upper()}[/{manifest_state_style}] ({manifest['path']})")
         if manifest["exists"]:
             if manifest["run_id"] and manifest["adapter_id"] and manifest["adapter_version"]:
-                console.print(
-                    f"  Run: {manifest['run_id']}  Adapter: {manifest['adapter_id']} v{manifest['adapter_version']}"
-                )
-            console.print(
-                f"  Artifacts: {manifest['artifact_count']} "
-                f"(live doctrine files: {manifest['live_artifact_count']})"
-            )
+                console.print(f"  Run: {manifest['run_id']}  Adapter: {manifest['adapter_id']} v{manifest['adapter_version']}")
+            console.print(f"  Artifacts: {manifest['artifact_count']} (live doctrine files: {manifest['live_artifact_count']})")
         if manifest["error"]:
             console.print(f"  [red]Error:[/red] {manifest['error']}")
         if manifest["missing_provenance_paths"]:
@@ -192,18 +179,12 @@ def status(  # noqa: C901
             )
         else:
             console.print("Evidence: code signals unavailable")
-        console.print(
-            f"  Configured URLs: {evidence['configured_url_count']}  "
-            f"Corpus snapshot: {evidence['corpus_snapshot_id'] or '(none)'}"
-        )
+        console.print(f"  Configured URLs: {evidence['configured_url_count']}  Corpus snapshot: {evidence['corpus_snapshot_id'] or '(none)'}")
         if evidence["warnings"]:
             for warning in evidence["warnings"]:
                 console.print(f"  [yellow]Warning:[/yellow] {warning}")
 
-        console.print(
-            "Provenance: "
-            f"{provenance_status['parsed_count']} visible sidecar(s)"
-        )
+        console.print(f"Provenance: {provenance_status['parsed_count']} visible sidecar(s)")
         if provenance_status["manifest_artifact_count"]:
             console.print(
                 "  Manifest coverage: "
@@ -211,10 +192,7 @@ def status(  # noqa: C901
                 f"{provenance_status['manifest_artifact_count']}"
             )
         if provenance_status["corpus_snapshot_ids"]:
-            console.print(
-                "  Corpus snapshots: "
-                + ", ".join(provenance_status["corpus_snapshot_ids"])
-            )
+            console.print("  Corpus snapshots: " + ", ".join(provenance_status["corpus_snapshot_ids"]))
         if provenance_status["warnings"]:
             for warning in provenance_status["warnings"]:
                 console.print(f"  [yellow]Warning:[/yellow] {warning}")
@@ -256,22 +234,12 @@ def status(  # noqa: C901
                 edge_count = pack.get("edge_count", 0)
                 fetched = pack.get("fetched", True)
                 if fetched:
-                    console.print(
-                        f"  [green]org:{pack_name}[/green]: "
-                        f"[dim]{source_ref}[/dim] "
-                        f"({node_count} nodes, {edge_count} edges)"
-                    )
+                    console.print(f"  [green]org:{pack_name}[/green]: [dim]{source_ref}[/dim] ({node_count} nodes, {edge_count} edges)")
                 else:
-                    console.print(
-                        f"  [red]org:{pack_name}[/red]: [red]MISSING[/red] — {source_ref}"
-                    )
+                    console.print(f"  [red]org:{pack_name}[/red]: [red]MISSING[/red] — {source_ref}")
             if org_layer.get("collision_warnings"):
                 for cw in org_layer["collision_warnings"]:
-                    console.print(
-                        f"  [yellow]collision[/yellow]: {cw.get('kind')} "
-                        f"target={cw.get('target_id')} "
-                        f"resolution={cw.get('resolution')}"
-                    )
+                    console.print(f"  [yellow]collision[/yellow]: {cw.get('kind')} target={cw.get('target_id')} resolution={cw.get('resolution')}")
         else:
             console.print("  org: [dim](no packs configured)[/dim]")
         if org_layer.get("errors"):
@@ -296,9 +264,7 @@ def status(  # noqa: C901
             sub = freshness[layer_key]
             state = sub["state"]
             colour = _freshness_style.get(state, "white")
-            line = (
-                f"  {layer_label}: [{colour}]{state.upper()}[/{colour}]"
-            )
+            line = f"  {layer_label}: [{colour}]{state.upper()}[/{colour}]"
             if sub.get("last_change"):
                 line += f"  [dim]last_change={sub['last_change']}[/dim]"
             console.print(line)

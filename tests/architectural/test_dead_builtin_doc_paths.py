@@ -76,6 +76,5 @@ def test_no_live_doc_names_a_pre_move_builtin_path() -> None:
         pytest.skip(f"git grep unavailable ({result.returncode}): {result.stderr.strip()}")
     # git grep exit status: 0 == matches found (dead refs present); 1 == clean.
     assert result.returncode == 1, (
-        "Live documentation still names a pre-move built-in path. Repoint each to "
-        "packs/built-in/ (drop the inner `built-in` segment):\n" + result.stdout
+        "Live documentation still names a pre-move built-in path. Repoint each to packs/built-in/ (drop the inner `built-in` segment):\n" + result.stdout
     )

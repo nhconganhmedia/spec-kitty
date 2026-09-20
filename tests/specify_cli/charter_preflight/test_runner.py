@@ -101,10 +101,7 @@ def test_missing_charter_in_fresh_project_is_advisory_not_blocking(tmp_path: Pat
     assert result.passed is True
     assert result.blocked_reason is None
     assert [c.state for c in result.checks] == ["skipped", "skipped", "skipped"]
-    assert result.warnings == [
-        "project charter is not initialized; run `spec-kitty charter generate` "
-        "when this project is ready for charter-governed workflows"
-    ]
+    assert result.warnings == ["project charter is not initialized; run `spec-kitty charter generate` when this project is ready for charter-governed workflows"]
 
 
 def test_missing_charter_blocks_mutation_gates_by_default(tmp_path: Path) -> None:
@@ -142,10 +139,7 @@ def test_legacy_charter_bundle_is_advisory_not_blocking(tmp_path: Path) -> None:
     assert result.passed is True
     assert result.blocked_reason is None
     assert [c.state for c in result.checks] == ["skipped", "skipped", "skipped"]
-    assert result.warnings != [
-        "project charter is not initialized; run `spec-kitty charter generate` "
-        "when this project is ready for charter-governed workflows"
-    ]
+    assert result.warnings != ["project charter is not initialized; run `spec-kitty charter generate` when this project is ready for charter-governed workflows"]
     assert len(result.warnings) == 1
     assert "charter.md" in result.warnings[0]
     assert "spec-kitty charter generate --no-from-interview" in result.warnings[0]
@@ -165,10 +159,7 @@ def test_charter_md_selects_legacy_copy_after_canonical_row2_passes(tmp_path: Pa
     # Layer states are identical to the fresh-project shape...
     assert [c.state for c in result.checks] == ["skipped", "skipped", "skipped"]
     # ...but the warning must be the legacy-bundle one, not fresh-project's.
-    fresh_project_warning = (
-        "project charter is not initialized; run `spec-kitty charter generate` "
-        "when this project is ready for charter-governed workflows"
-    )
+    fresh_project_warning = "project charter is not initialized; run `spec-kitty charter generate` when this project is ready for charter-governed workflows"
     assert fresh_project_warning not in result.warnings
 
 
@@ -336,10 +327,7 @@ def test_missing_charter_source_detail_costs_exactly_one_exists_call(
     detail = _missing_charter_source_detail(tmp_path)
 
     assert "charter.md" in detail, detail
-    assert call_count == 1, (
-        f"_missing_charter_source_detail probed charter.md {call_count} times; "
-        "NFR-001 budgets exactly one."
-    )
+    assert call_count == 1, f"_missing_charter_source_detail probed charter.md {call_count} times; NFR-001 budgets exactly one."
 
 
 def test_legacy_bundle_detection_costs_at_most_one_probe_per_consumer(
@@ -572,7 +560,8 @@ def test_auto_refresh_clean_worktree_runs_sequence(tmp_path: Path, monkeypatch: 
             seed_manifest(tmp_path, built_in_only=False)
             (tmp_path / ".kittify" / "doctrine" / "graph.yaml").parent.mkdir(parents=True, exist_ok=True)
             (tmp_path / ".kittify" / "doctrine" / "graph.yaml").write_text(
-                "schema_version: '1.0'\nnodes: []\nedges: []\n", encoding="utf-8",
+                "schema_version: '1.0'\nnodes: []\nedges: []\n",
+                encoding="utf-8",
             )
         return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
@@ -708,8 +697,7 @@ def test_auto_refresh_real_cli_from_f2_non_fresh_state_repairs_charter_source(
     assert result.auto_refresh_applied is True
     assert result.auto_refresh_actions, "expected at least one real refresh command to run"
     assert result.auto_refresh_actions[0] == "spec-kitty upgrade --yes", (
-        "H1 fix: step one must be the freshness-computed F2 remediation, never "
-        f"a hardcoded `charter sync`; got {result.auto_refresh_actions!r}"
+        f"H1 fix: step one must be the freshness-computed F2 remediation, never a hardcoded `charter sync`; got {result.auto_refresh_actions!r}"
     )
     assert "spec-kitty charter sync" not in result.auto_refresh_actions
 
@@ -727,12 +715,9 @@ def test_auto_refresh_real_cli_from_f2_non_fresh_state_repairs_charter_source(
 
     post_freshness = compute_freshness(tmp_path)
     assert post_freshness.charter_source.state == "fresh", (
-        "H1: the real F2 remediation must genuinely clear charter_source -- "
-        f"got {post_freshness.charter_source!r}"
+        f"H1: the real F2 remediation must genuinely clear charter_source -- got {post_freshness.charter_source!r}"
     )
-    assert post_freshness.synced_bundle.state == "fresh", (
-        f"H1: synced_bundle must clear alongside charter_source -- got {post_freshness.synced_bundle!r}"
-    )
+    assert post_freshness.synced_bundle.state == "fresh", f"H1: synced_bundle must clear alongside charter_source -- got {post_freshness.synced_bundle!r}"
 
 
 def test_auto_refresh_failure_captures_blocked_reason(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -802,8 +787,7 @@ def test_to_dict_includes_warnings_only_when_present(tmp_path: Path) -> None:
     as_dict = result.to_dict()
 
     assert as_dict["warnings"] == [
-        "project charter is not initialized; run `spec-kitty charter generate` "
-        "when this project is ready for charter-governed workflows"
+        "project charter is not initialized; run `spec-kitty charter generate` when this project is ready for charter-governed workflows"
     ]
 
 

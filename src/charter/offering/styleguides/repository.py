@@ -70,9 +70,7 @@ class StyleguideRepository(BaseDoctrineRepository[Styleguide]):
             ValueError: If project_dir is not configured.
         """
         if self._project_dir is None:
-            raise ValueError(
-                "Cannot save styleguide: project_dir not configured"
-            )
+            raise ValueError("Cannot save styleguide: project_dir not configured")
 
         self._project_dir.mkdir(parents=True, exist_ok=True)
 
@@ -82,9 +80,7 @@ class StyleguideRepository(BaseDoctrineRepository[Styleguide]):
         yaml.default_flow_style = False
         yaml_file = self._project_dir / filename
 
-        data = styleguide.model_dump(
-            mode="json", exclude_defaults=True, exclude_none=True
-        )
+        data = styleguide.model_dump(mode="json", exclude_defaults=True, exclude_none=True)
 
         with yaml_file.open("w") as f:
             yaml.dump(data, f)

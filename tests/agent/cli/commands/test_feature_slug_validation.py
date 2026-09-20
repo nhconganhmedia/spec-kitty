@@ -52,9 +52,7 @@ def test_mission_slug_starting_with_number_accepted(tmp_path, monkeypatch):
     # worktree context, etc.) but NOT for the slug format.
     result = runner.invoke(app, ["create", slug, "--json"])
     # Assert: error must NOT be about the slug format
-    assert "Invalid feature slug" not in result.stdout, (
-        "Digit-prefixed slug '123-test-feature' must no longer be rejected for slug format"
-    )
+    assert "Invalid feature slug" not in result.stdout, "Digit-prefixed slug '123-test-feature' must no longer be rejected for slug format"
 
 
 def test_mission_slug_with_uppercase_rejected():
@@ -85,9 +83,7 @@ def test_valid_kebab_case_slugs_accepted(tmp_path, monkeypatch):
     subprocess.run(["git", "checkout", "-b", "main"], cwd=tmp_path, check=True, capture_output=True)
     kittify_dir = tmp_path / ".kittify"
     kittify_dir.mkdir()
-    (kittify_dir / "config.yaml").write_text(
-        "agents:\n  available: []\nmission_type_activations:\n  - software-dev\n"
-    )
+    (kittify_dir / "config.yaml").write_text("agents:\n  available: []\nmission_type_activations:\n  - software-dev\n")
     (kittify_dir / "metadata.yaml").write_text("project_name: test\n")
     (tmp_path / "kitty-specs").mkdir()
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)

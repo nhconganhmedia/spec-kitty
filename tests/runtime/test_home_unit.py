@@ -55,38 +55,28 @@ class TestGetKittifyHomeWindows:
 class TestSpecKittyHomeEnvOverride:
     """``SPEC_KITTY_HOME`` overrides the platform default."""
 
-    def test_env_override(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_env_override(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         custom_path = str(tmp_path / "custom-kittify")
         monkeypatch.setenv("SPEC_KITTY_HOME", custom_path)
         assert get_kittify_home() == Path(custom_path)
 
-    def test_env_override_on_windows(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_env_override_on_windows(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         custom_path = str(tmp_path / "custom-kittify")
         monkeypatch.setenv("SPEC_KITTY_HOME", custom_path)
         monkeypatch.setattr("specify_cli.runtime.home.is_windows", lambda: True)
         assert get_kittify_home() == Path(custom_path)
 
-    def test_env_override_returns_path(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_env_override_returns_path(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.setenv("SPEC_KITTY_HOME", str(tmp_path))
         assert isinstance(get_kittify_home(), Path)
 
-    def test_empty_env_var_uses_default(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_empty_env_var_uses_default(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SPEC_KITTY_HOME", "")
         monkeypatch.setattr("specify_cli.runtime.home.is_windows", lambda: False)
         assert get_kittify_home() == Path.home() / ".kittify"
 
 
-def test_package_asset_root_compatibility_surface_delegates(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_package_asset_root_compatibility_surface_delegates(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The public legacy import delegates to the kernel authority by identity."""
     expected = tmp_path / "sentinel-missions"
     monkeypatch.setattr(

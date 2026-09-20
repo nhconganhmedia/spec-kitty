@@ -74,11 +74,7 @@ def test_init_pi_letta_installs_command_skills_and_prints_next_steps(
     for command in CANONICAL_COMMANDS:
         assert (skills_root / f"spec-kitty.{command}" / "SKILL.md").is_file()
 
-    manifest = json.loads(
-        (project_path / ".kittify" / "command-skills-manifest.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    manifest = json.loads((project_path / ".kittify" / "command-skills-manifest.json").read_text(encoding="utf-8"))
     assert len(manifest["entries"]) == len(CANONICAL_COMMANDS)
     for entry in manifest["entries"]:
         assert entry["agents"] == [agent_key]

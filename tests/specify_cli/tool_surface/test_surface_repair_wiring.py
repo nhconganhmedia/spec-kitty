@@ -27,18 +27,12 @@ pytestmark = [pytest.mark.integration, pytest.mark.non_sandbox]
 
 def _init_claude_project(root: Path) -> None:
     """Run ``init --ai claude --non-interactive`` in *root* (real CLI wiring)."""
-    result = run_spec_kitty(
-        "init", "--ai", "claude", "--non-interactive", cwd=root
-    )
-    assert result.returncode == 0, (
-        f"init failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
-    )
+    result = run_spec_kitty("init", "--ai", "claude", "--non-interactive", cwd=root)
+    assert result.returncode == 0, f"init failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
 
 
 def _agent_profile_states(root: Path) -> set[str]:
-    result = run_spec_kitty(
-        "doctor", "tool-surfaces", "--kind", "agent-profile", "--json", cwd=root
-    )
+    result = run_spec_kitty("doctor", "tool-surfaces", "--kind", "agent-profile", "--json", cwd=root)
     payload = result.json()
     return {surface["state"] for surface in payload["surfaces"]}
 
@@ -54,15 +48,11 @@ def test_init_creates_missing_profile_dirs(tmp_path: Path) -> None:
     profiles = list(agents_dir.glob("*.md"))
     assert profiles, ".claude/agents/ must contain at least one .md profile"
     for profile in profiles:
-        assert profile.read_text(encoding="utf-8").startswith("---"), (
-            f"{profile.name} must carry YAML frontmatter"
-        )
+        assert profile.read_text(encoding="utf-8").startswith("---"), f"{profile.name} must carry YAML frontmatter"
 
     # doctor reports no missing/stale/drifted agent profiles.
     states = _agent_profile_states(tmp_path)
-    assert states <= {"present", "not_applicable"}, (
-        f"unexpected agent-profile states after init: {states}"
-    )
+    assert states <= {"present", "not_applicable"}, f"unexpected agent-profile states after init: {states}"
 
 
 def test_upgrade_recreates_deleted_profile_dirs(tmp_path: Path) -> None:
@@ -99,9 +89,7 @@ def test_upgrade_repairs_stale_manifest(tmp_path: Path) -> None:
     import json
 
     # codex is a command-skill agent, so its config produces the manifest.
-    init_result = run_spec_kitty(
-        "init", "--ai", "claude,codex", "--non-interactive", cwd=tmp_path
-    )
+    init_result = run_spec_kitty("init", "--ai", "claude,codex", "--non-interactive", cwd=tmp_path)
     assert init_result.returncode == 0, init_result.stderr
     manifest_path = tmp_path / ".kittify" / "command-skills-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -116,9 +104,7 @@ def test_upgrade_repairs_stale_manifest(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
 
     repaired = json.loads(manifest_path.read_text(encoding="utf-8"))
-    assert len(repaired["entries"]) == canonical_count, (
-        "stale manifest must be repaired back to the canonical entry count"
-    )
+    assert len(repaired["entries"]) == canonical_count, "stale manifest must be repaired back to the canonical entry count"
 
 
 def test_upgrade_with_yes_does_not_overwrite_drifted(tmp_path: Path) -> None:
@@ -141,9 +127,7 @@ def test_upgrade_with_yes_does_not_overwrite_drifted(tmp_path: Path) -> None:
     # FR-006: non-interactive upgrade exits non-zero when unresolved drift exists.
     assert result.returncode != 0, "--yes must exit non-zero on unresolved drift"
     # NFR-007: the drifted file is preserved verbatim.
-    assert drifted_path.read_text(encoding="utf-8") == custom_content, (
-        "drifted file must not be overwritten by --yes"
-    )
+    assert drifted_path.read_text(encoding="utf-8") == custom_content, "drifted file must not be overwritten by --yes"
 
 
 def test_upgrade_refreshes_stale_orientation_block_same_version(tmp_path: Path) -> None:
@@ -188,18 +172,10 @@ def test_second_upgrade_is_idempotent(tmp_path: Path) -> None:
     first = run_spec_kitty("upgrade", "--yes", cwd=tmp_path)
     assert first.returncode == 0, first.stderr
 
-    before = {
-        path.relative_to(tmp_path): path.read_bytes()
-        for path in tmp_path.rglob("*")
-        if path.is_file()
-    }
+    before = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
     second = run_spec_kitty("upgrade", "--yes", cwd=tmp_path)
     assert second.returncode == 0, second.stderr
-    after = {
-        path.relative_to(tmp_path): path.read_bytes()
-        for path in tmp_path.rglob("*")
-        if path.is_file()
-    }
+    after = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
     assert after == before, "second upgrade must not change any file bytes"
 
 

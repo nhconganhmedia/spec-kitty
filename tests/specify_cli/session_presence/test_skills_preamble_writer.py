@@ -44,6 +44,7 @@ def _skills_writer(harness_key: str = "pi") -> SkillsPreambleWriter:
 # Inheritance
 # ---------------------------------------------------------------------------
 
+
 class TestSkillsPreambleWriterInheritance:
     def test_is_instance_of_markdown_rules_writer(self) -> None:
         assert isinstance(SkillsPreambleWriter("pi"), MarkdownRulesWriter)
@@ -61,6 +62,7 @@ class TestSkillsPreambleWriterInheritance:
 # can_write
 # ---------------------------------------------------------------------------
 
+
 class TestSkillsPreambleWriterCanWrite:
     def test_can_write_always_true(self, tmp_path: Path) -> None:
         assert _skills_writer().can_write(tmp_path) is True
@@ -72,6 +74,7 @@ class TestSkillsPreambleWriterCanWrite:
 # ---------------------------------------------------------------------------
 # has_presence
 # ---------------------------------------------------------------------------
+
 
 class TestSkillsPreambleWriterHasPresence:
     def test_false_when_agents_md_absent(self, tmp_path: Path) -> None:
@@ -90,6 +93,7 @@ class TestSkillsPreambleWriterHasPresence:
 # ---------------------------------------------------------------------------
 # write
 # ---------------------------------------------------------------------------
+
 
 class TestSkillsPreambleWriterWrite:
     def test_first_write_creates_agents_md(self, tmp_path: Path) -> None:
@@ -123,6 +127,7 @@ class TestSkillsPreambleWriterWrite:
 # remove
 # ---------------------------------------------------------------------------
 
+
 class TestSkillsPreambleWriterRemove:
     def test_remove_strips_section_preserves_other_content(self, tmp_path: Path) -> None:
         target = tmp_path / "AGENTS.md"
@@ -148,6 +153,7 @@ class TestSkillsPreambleWriterRemove:
 # ---------------------------------------------------------------------------
 # Registry checks for Pattern D keys
 # ---------------------------------------------------------------------------
+
 
 class TestSkillsPreambleWriterRegistry:
     def test_get_writer_pi_returns_skills_preamble_writer(self) -> None:

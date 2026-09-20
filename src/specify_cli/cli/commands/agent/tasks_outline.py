@@ -52,9 +52,7 @@ class TaskIdResult:
 # extension; the original token is returned unchanged when it does not match
 # a qualified shape so downstream "task not found" surfaces stay structured
 # for genuinely garbage input.
-_QUALIFIED_TASK_ID_RE = re.compile(
-    r"^[A-Za-z0-9][A-Za-z0-9._-]*[/:](?P<task>[A-Za-z]+\d+)$"
-)
+_QUALIFIED_TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*[/:](?P<task>[A-Za-z]+\d+)$")
 
 
 def _normalize_task_id_input(raw: str) -> str:
@@ -226,8 +224,5 @@ def _resolve_wp_id(
         id=normalized_wp_id,
         outcome=TaskIdResolutionOutcome.NOT_FOUND,
         format=TaskIdResolutionFormat.WP_ID,
-        message=(
-            f"{normalized_wp_id}: mark-status does not change work-package lanes. "
-            "Use `spec-kitty agent tasks move-task <WP_ID> --to <lane>`."
-        ),
+        message=(f"{normalized_wp_id}: mark-status does not change work-package lanes. Use `spec-kitty agent tasks move-task <WP_ID> --to <lane>`."),
     )

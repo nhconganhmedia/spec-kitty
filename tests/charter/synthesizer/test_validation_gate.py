@@ -30,15 +30,13 @@ from charter.offering.drg.models import DRGEdge, DRGGraph, DRGNode, NodeKind, Re
 
 pytestmark = [pytest.mark.unit]
 
+
 def _make_shipped_graph(
     nodes: list[tuple[str, NodeKind]] | None = None,
     edges: list[tuple[str, str, Relation]] | None = None,
 ) -> DRGGraph:
     drg_nodes = [DRGNode(urn=urn, kind=kind) for urn, kind in (nodes or [])]
-    drg_edges = [
-        DRGEdge(source=src, target=tgt, relation=rel)
-        for src, tgt, rel in (edges or [])
-    ]
+    drg_edges = [DRGEdge(source=src, target=tgt, relation=rel) for src, tgt, rel in (edges or [])]
     return DRGGraph(
         schema_version="1.0",
         generated_at="2026-04-17T00:00:00+00:00",
@@ -54,14 +52,8 @@ def _write_overlay(staging_dir: Path, graph: DRGGraph) -> None:
     doctrine_dir.mkdir(parents=True, exist_ok=True)
     graph_path = doctrine_dir / "graph.yaml"
 
-    nodes_data = [
-        {"urn": n.urn, "kind": n.kind.value, **({"label": n.label} if n.label else {})}
-        for n in graph.nodes
-    ]
-    edges_data = [
-        {"source": e.source, "target": e.target, "relation": e.relation.value}
-        for e in graph.edges
-    ]
+    nodes_data = [{"urn": n.urn, "kind": n.kind.value, **({"label": n.label} if n.label else {})} for n in graph.nodes]
+    edges_data = [{"source": e.source, "target": e.target, "relation": e.relation.value} for e in graph.edges]
     payload = {
         "schema_version": graph.schema_version,
         "generated_at": graph.generated_at,
@@ -81,10 +73,7 @@ def _make_overlay(
     edges: list[tuple[str, str, Relation]] | None = None,
 ) -> DRGGraph:
     drg_nodes = [DRGNode(urn=urn, kind=kind) for urn, kind in (nodes or [])]
-    drg_edges = [
-        DRGEdge(source=src, target=tgt, relation=rel)
-        for src, tgt, rel in (edges or [])
-    ]
+    drg_edges = [DRGEdge(source=src, target=tgt, relation=rel) for src, tgt, rel in (edges or [])]
     return DRGGraph(
         schema_version="1.0",
         generated_at="2026-04-17T12:00:00+00:00",
@@ -98,6 +87,7 @@ def _make_overlay(
 # 1. Accept valid overlay
 # ---------------------------------------------------------------------------
 
+
 class TestAcceptValidOverlay:
     """validate() must not raise when merged graph is valid."""
 
@@ -109,9 +99,7 @@ class TestAcceptValidOverlay:
         validate(tmp_path, shipped)
 
     def test_project_node_with_shipped_node(self, tmp_path: Path) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         overlay = _make_overlay(
             nodes=[("directive:PROJECT_001", NodeKind.DIRECTIVE)],
             edges=[("directive:PROJECT_001", "directive:DIRECTIVE_003", Relation.REQUIRES)],
@@ -135,13 +123,12 @@ class TestAcceptValidOverlay:
 # 2. Reject dangling source URN
 # ---------------------------------------------------------------------------
 
+
 class TestRejectDanglingSourceUrn:
     """Edge whose source does not exist → validation failure."""
 
     def test_dangling_source_raises_error(self, tmp_path: Path) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         # Overlay edge source "directive:PROJECT_999" is not in shipped or overlay nodes
         overlay = _make_overlay(
             nodes=[("directive:PROJECT_001", NodeKind.DIRECTIVE)],
@@ -171,6 +158,7 @@ class TestRejectDanglingSourceUrn:
 # ---------------------------------------------------------------------------
 # 3. Reject dangling target URN
 # ---------------------------------------------------------------------------
+
 
 class TestRejectDanglingTargetUrn:
     """Edge whose target does not exist → validation failure."""
@@ -207,13 +195,12 @@ class TestRejectDanglingTargetUrn:
 # 4. Reject duplicate edge
 # ---------------------------------------------------------------------------
 
+
 class TestRejectDuplicateEdge:
     """Same (source, target, relation) triple twice → validation failure."""
 
     def test_duplicate_edge_in_overlay_raises_error(self, tmp_path: Path) -> None:
-        shipped = _make_shipped_graph(
-            nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)]
-        )
+        shipped = _make_shipped_graph(nodes=[("directive:DIRECTIVE_003", NodeKind.DIRECTIVE)])
         overlay = _make_overlay(
             nodes=[("directive:PROJECT_001", NodeKind.DIRECTIVE)],
             edges=[
@@ -231,6 +218,7 @@ class TestRejectDuplicateEdge:
 # ---------------------------------------------------------------------------
 # 5. Reject cycle in requires
 # ---------------------------------------------------------------------------
+
 
 class TestRejectCycleInRequires:
     """Cycle among requires edges → validation failure."""
@@ -258,6 +246,7 @@ class TestRejectCycleInRequires:
 # 6. NFR-004: fail-closed within 5 seconds
 # ---------------------------------------------------------------------------
 
+
 class TestFailClosedTiming:
     """NFR-004: validation failure detected and raised within 5 seconds."""
 
@@ -275,9 +264,7 @@ class TestFailClosedTiming:
             validate(tmp_path, shipped)
         elapsed = time.monotonic() - start
 
-        assert elapsed < 5.0, (
-            f"validation_gate.validate took {elapsed:.2f}s — must be < 5s (NFR-004)"
-        )
+        assert elapsed < 5.0, f"validation_gate.validate took {elapsed:.2f}s — must be < 5s (NFR-004)"
 
     @pytest.mark.performance
     def test_valid_overlay_passes_within_5s(self, tmp_path: Path) -> None:
@@ -289,14 +276,13 @@ class TestFailClosedTiming:
         validate(tmp_path, shipped)  # no raise
         elapsed = time.monotonic() - start
 
-        assert elapsed < 5.0, (
-            f"validation_gate.validate took {elapsed:.2f}s — must be < 5s (NFR-004)"
-        )
+        assert elapsed < 5.0, f"validation_gate.validate took {elapsed:.2f}s — must be < 5s (NFR-004)"
 
 
 # ---------------------------------------------------------------------------
 # 7. Missing / malformed overlay file
 # ---------------------------------------------------------------------------
+
 
 class TestMissingOrMalformedOverlay:
     """validate() raises ProjectDRGValidationError on missing/malformed overlay."""
@@ -323,6 +309,7 @@ class TestMissingOrMalformedOverlay:
 # ---------------------------------------------------------------------------
 # 8. Structured error carries enough info for CLI panel (US-5)
 # ---------------------------------------------------------------------------
+
 
 class TestStructuredErrorForCliPanel:
     """ProjectDRGValidationError carries offending URN + summary."""
@@ -354,6 +341,7 @@ class TestStructuredErrorForCliPanel:
 # ---------------------------------------------------------------------------
 # 9. Org-aware base layer (#4121, squad MAJOR 2)
 # ---------------------------------------------------------------------------
+
 
 class TestOrgAwareBaseLayer:
     """``org_drg`` widens the universe below the project overlay.

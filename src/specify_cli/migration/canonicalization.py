@@ -120,9 +120,7 @@ class CanonicalRule(Protocol[State]):
       ``error`` set; the runner short-circuits immediately.
     """
 
-    def __call__(
-        self, state: State, ctx: MigrationContext
-    ) -> CanonicalStepResult[State]:
+    def __call__(self, state: State, ctx: MigrationContext) -> CanonicalStepResult[State]:
         """Apply this rule to *state* with *ctx*; return the step result."""
         ...  # pragma: no cover
 

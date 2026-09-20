@@ -62,22 +62,16 @@ class TestGlossarySeedTermValid:
         assert term.introduced_in_mission == "glossary-seed-file-schema-validation-01KSN752"
 
     def test_boundary_confidence_zero(self) -> None:
-        term = GlossarySeedTerm(
-            surface="edge", definition="A graph edge", confidence=0.0
-        )
+        term = GlossarySeedTerm(surface="edge", definition="A graph edge", confidence=0.0)
         assert term.confidence == 0.0
 
     def test_boundary_confidence_one(self) -> None:
-        term = GlossarySeedTerm(
-            surface="edge", definition="A graph edge", confidence=1.0
-        )
+        term = GlossarySeedTerm(surface="edge", definition="A graph edge", confidence=1.0)
         assert term.confidence == 1.0
 
     def test_all_status_values(self) -> None:
         for status in ("active", "draft", "deprecated"):
-            term = GlossarySeedTerm(
-                surface="term", definition="A term", status=status
-            )
+            term = GlossarySeedTerm(surface="term", definition="A term", status=status)
             assert term.status == status
 
     def test_frozen(self) -> None:
@@ -156,7 +150,9 @@ class TestGlossarySeedTermStatusValidation:
     def test_invalid_status_rejected(self) -> None:
         with pytest.raises(ValidationError):
             GlossarySeedTerm(
-                surface="term", definition="Def", status="archived"  # type: ignore[arg-type]
+                surface="term",
+                definition="Def",
+                status="archived",  # type: ignore[arg-type]
             )
 
 
@@ -218,7 +214,8 @@ class TestGlossarySeedFileValidation:
     def test_unknown_field_at_root_rejected(self) -> None:
         with pytest.raises(ValidationError, match="bogus"):
             GlossarySeedFile(
-                terms=[], bogus="nope"  # type: ignore[call-arg]
+                terms=[],
+                bogus="nope",  # type: ignore[call-arg]
             )
 
     def test_multiple_invalid_terms_collected(self) -> None:

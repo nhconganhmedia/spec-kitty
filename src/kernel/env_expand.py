@@ -91,9 +91,7 @@ class UnresolvedEnvTokenError(ValueError):
     def __init__(self, token: str, raw: str) -> None:
         self.token = token
         self.raw = raw
-        super().__init__(
-            f"Unresolved environment variable token {token!r} in template {raw!r}."
-        )
+        super().__init__(f"Unresolved environment variable token {token!r} in template {raw!r}.")
 
 
 def _token_var_name(token: str) -> str:

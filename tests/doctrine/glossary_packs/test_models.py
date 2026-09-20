@@ -73,9 +73,7 @@ class TestGlossaryPack:
         with pytest.raises(ValidationError):
             GlossaryPack.model_validate(sample_pack_data)
 
-    def test_duplicate_surface_within_pack_raises(
-        self, sample_pack_data: dict, minimal_term_data: dict
-    ) -> None:
+    def test_duplicate_surface_within_pack_raises(self, sample_pack_data: dict, minimal_term_data: dict) -> None:
         """A pack with two terms sharing the same surface is invalid as a whole."""
         duplicate = dict(minimal_term_data)
         sample_pack_data["terms"] = [minimal_term_data, duplicate]

@@ -71,9 +71,7 @@ __all__ = [
 ]
 
 DEFAULT_DOCS_ROOT: Final[str] = "docs"
-DEFAULT_STYLEGUIDE: Final[str] = (
-    "packs/built-in/styleguides/common-docs.styleguide.yaml"
-)
+DEFAULT_STYLEGUIDE: Final[str] = "packs/built-in/styleguides/common-docs.styleguide.yaml"
 DEFAULT_CATALOG_ROOT: Final[str] = "docs/context/audience"
 _CONFIG_KEY: Final[str] = "structural_lint_config"
 
@@ -138,9 +136,7 @@ def load_structural_config(styleguide_path: Path) -> dict[str, Any]:
     except (OSError, YAMLError) as exc:  # pragma: no cover - defensive
         raise ValueError(f"cannot read styleguide {styleguide_path}: {exc}") from exc
     if not isinstance(raw, dict) or not isinstance(raw.get(_CONFIG_KEY), dict):
-        raise ValueError(
-            f"{styleguide_path} has no '{_CONFIG_KEY}:' mapping block (FR-011)."
-        )
+        raise ValueError(f"{styleguide_path} has no '{_CONFIG_KEY}:' mapping block (FR-011).")
     return dict(raw[_CONFIG_KEY])
 
 
@@ -201,9 +197,7 @@ def _audience_values(frontmatter: dict[str, Any]) -> list[str]:
 # --- Gate 1: audience presence + resolvability (FR-018) ----------------------
 
 
-def check_audience_presence(
-    pages: list[Path], repo_root: Path, catalog_root: Path
-) -> list[Violation]:
+def check_audience_presence(pages: list[Path], repo_root: Path, catalog_root: Path) -> list[Violation]:
     """Flag touched pages lacking a resolvable ``audience:`` reference."""
     catalog = catalog_root.resolve()
     violations: list[Violation] = []
@@ -225,10 +219,7 @@ def check_audience_presence(
                     Violation(
                         rule_id="audience_presence",
                         path=page_rel,
-                        message=(
-                            f"{page_rel} audience '{value}' is not a persona "
-                            "reference (.md path)"
-                        ),
+                        message=(f"{page_rel} audience '{value}' is not a persona reference (.md path)"),
                     )
                 )
                 continue
@@ -242,10 +233,7 @@ def check_audience_presence(
                     Violation(
                         rule_id="audience_presence",
                         path=page_rel,
-                        message=(
-                            f"{page_rel} audience '{value}' does not resolve to a "
-                            f"persona under {_repo_relative(catalog, repo_root)}/"
-                        ),
+                        message=(f"{page_rel} audience '{value}' does not resolve to a persona under {_repo_relative(catalog, repo_root)}/"),
                     )
                 )
     return violations
@@ -275,10 +263,7 @@ def check_description_band(pages: list[Path], repo_root: Path) -> list[Violation
                 Violation(
                     rule_id="description_band",
                     path=page_rel,
-                    message=(
-                        f"{page_rel} description is {length} chars; must be "
-                        f"{_DESC_MIN}-{_DESC_MAX} inclusive"
-                    ),
+                    message=(f"{page_rel} description is {length} chars; must be {_DESC_MIN}-{_DESC_MAX} inclusive"),
                 )
             )
     return violations
@@ -316,15 +301,10 @@ def _audience_orientation(frontmatter: dict[str, Any]) -> str | None:
 
 
 def _is_how_to(frontmatter: dict[str, Any]) -> bool:
-    return any(
-        str(frontmatter.get(key, "")).strip().lower() == "how_to"
-        for key in ("type", "divio_type", "doc_type")
-    )
+    return any(str(frontmatter.get(key, "")).strip().lower() == "how_to" for key in ("type", "divio_type", "doc_type"))
 
 
-def check_audience_placement(
-    pages: list[Path], repo_root: Path, docs_root: Path, config: dict[str, Any]
-) -> list[Violation]:
+def check_audience_placement(pages: list[Path], repo_root: Path, docs_root: Path, config: dict[str, Any]) -> list[Violation]:
     """Flag touched how-to pages sitting outside their audience's section."""
     homes = _placement_homes(config)
     if homes is None:
@@ -346,10 +326,7 @@ def check_audience_placement(
             Violation(
                 rule_id="audience_placement",
                 path=page_rel,
-                message=(
-                    f"{page_rel} is an {orientation}-audience how_to but lives in "
-                    f"'{section}/'; its home is '{expected}/'"
-                ),
+                message=(f"{page_rel} is an {orientation}-audience how_to but lives in '{section}/'; its home is '{expected}/'"),
             )
         )
     return violations
@@ -369,9 +346,7 @@ def _doc_bearing_root_files(repo_root: Path) -> list[Path]:
     return found
 
 
-def check_root_allowlist(
-    repo_root: Path, config: dict[str, Any], *, min_files: int = 1
-) -> tuple[list[Violation], int]:
+def check_root_allowlist(repo_root: Path, config: dict[str, Any], *, min_files: int = 1) -> tuple[list[Violation], int]:
     """Flag doc-bearing root files not in the closed ``root_allowlist``.
 
     Returns the violations and the number of root files examined. Raises via
@@ -398,10 +373,7 @@ def check_root_allowlist(
             Violation(
                 rule_id="root_allowlist",
                 path=entry.name,
-                message=(
-                    f"{entry.name} is a documentation-bearing root file not in "
-                    "the sanctioned root_allowlist"
-                ),
+                message=(f"{entry.name} is a documentation-bearing root file not in the sanctioned root_allowlist"),
             )
         )
     return violations, len(root_files)
@@ -429,9 +401,7 @@ def run_gates(
     violations.extend(check_audience_presence(pages, repo_root, catalog))
     violations.extend(check_description_band(pages, repo_root))
     violations.extend(check_audience_placement(pages, repo_root, docs, config))
-    root_violations, root_examined = check_root_allowlist(
-        repo_root, config, min_files=min_root_files
-    )
+    root_violations, root_examined = check_root_allowlist(repo_root, config, min_files=min_root_files)
     violations.extend(root_violations)
     violations.sort(key=lambda v: (v.rule_id, v.path))
     return GateReport(
@@ -466,10 +436,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--styleguide",
         type=Path,
         default=Path(DEFAULT_STYLEGUIDE),
-        help=(
-            "Path to the common-docs styleguide carrying the "
-            f"'{_CONFIG_KEY}:' block (default: {DEFAULT_STYLEGUIDE})."
-        ),
+        help=(f"Path to the common-docs styleguide carrying the '{_CONFIG_KEY}:' block (default: {DEFAULT_STYLEGUIDE})."),
     )
     parser.add_argument(
         "--json",
@@ -509,9 +476,7 @@ def _emit(report: GateReport, *, as_json: bool) -> None:
         f"{len(report.violations)} finding(s).\n"
     )
     for violation in report.violations:
-        sys.stdout.write(
-            f"  [{violation.rule_id}] {violation.path}: {violation.message}\n"
-        )
+        sys.stdout.write(f"  [{violation.rule_id}] {violation.path}: {violation.message}\n")
 
 
 if __name__ == "__main__":  # pragma: no cover - module-level CLI guard

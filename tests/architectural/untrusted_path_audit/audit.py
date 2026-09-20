@@ -232,7 +232,7 @@ def _segment_name(node: ast.expr) -> str | None:
         and isinstance(node.args[0].value, str)
         and node.args[0].value in UNTRUSTED_ATTR_NAMES
     ):
-        return f'.get({node.args[0].value!r})'
+        return f".get({node.args[0].value!r})"
     return None
 
 
@@ -321,11 +321,7 @@ def _audit_file(path: Path) -> list[SinkRow]:
                 _record(node.lineno, src, "Path-join (/)")
 
         # (b) sink-method call on a receiver built from an untrusted segment.
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr in SINK_METHODS
-        ):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in SINK_METHODS:
             recv = node.func.value
             recv_names = _names_in(recv)
             hit = _join_taint(recv, tainted)
@@ -495,10 +491,7 @@ def build_inventory_key_map(
             continue
         key = _inventory_row_key(row)
         if key is None:
-            errors.append(
-                f"inventory row {row['locator']!r} has an unparseable stored "
-                f"identity (missing qualname/token column) -- fail-closed"
-            )
+            errors.append(f"inventory row {row['locator']!r} has an unparseable stored identity (missing qualname/token column) -- fail-closed")
             continue
         out[key] = row["locator"]
     return errors, out
@@ -565,9 +558,7 @@ def _check_dispositions(inventory_rows: list[dict[str, str]]) -> list[str]:
     for row in inventory_rows:
         disp = row["disposition"]
         if disp not in VALID_DISPOSITIONS:
-            errors.append(
-                f"row {row['locator']!r} has invalid/missing disposition {disp!r}"
-            )
+            errors.append(f"row {row['locator']!r} has invalid/missing disposition {disp!r}")
         # Named-untrusted rule: a named untrusted source may never be trusted-source.
         if disp == "trusted-source":
             src = row["source"]
@@ -576,25 +567,18 @@ def _check_dispositions(inventory_rows: list[dict[str, str]]) -> list[str]:
             # though the token ``mission`` appears; only a bare named segment trips.
             bare_named = {n for n in named if f"{n}.name" not in src and ".name" not in src}
             if bare_named:
-                errors.append(
-                    f"row {row['locator']!r} classifies named-untrusted "
-                    f"{sorted(bare_named)} as trusted-source (SC-003 violation)"
-                )
+                errors.append(f"row {row['locator']!r} classifies named-untrusted {sorted(bare_named)} as trusted-source (SC-003 violation)")
     return errors
 
 
-def _check_known_candidates(
-    discovered_files: set[str], inventory_rows: list[dict[str, str]]
-) -> list[str]:
+def _check_known_candidates(discovered_files: set[str], inventory_rows: list[dict[str, str]]) -> list[str]:
     """Check 3: known-candidate presence (path-level anti-undercount tripwire)."""
     errors: list[str] = []
     for cand in KNOWN_CANDIDATE_FILES:
         in_discovered = cand in discovered_files
         in_inventory = any(r["locator"].startswith(cand) for r in inventory_rows)
         if not (in_discovered or in_inventory):
-            errors.append(
-                f"known candidate {cand!r} absent from BOTH discovered rows and inventory"
-            )
+            errors.append(f"known candidate {cand!r} absent from BOTH discovered rows and inventory")
     return errors
 
 
@@ -603,15 +587,9 @@ def _check_fr009(inventory_rows: list[dict[str, str]]) -> list[str]:
     errors: list[str] = []
     fr009_rows = [r for r in inventory_rows if r["locator"].startswith(FR009_META_FILE)]
     if not fr009_rows:
-        errors.append(
-            f"FR-009 candidate {FR009_META_FILE!r} (meta.json slug source) "
-            f"absent from inventory"
-        )
+        errors.append(f"FR-009 candidate {FR009_META_FILE!r} (meta.json slug source) absent from inventory")
     elif not any(r["disposition"] == "routed-through-seam (TODO)" for r in fr009_rows):
-        errors.append(
-            f"FR-009 {FR009_META_FILE!r} row(s) must be tagged "
-            f"'routed-through-seam (TODO)' (the write-path bypass WP02 fixes)"
-        )
+        errors.append(f"FR-009 {FR009_META_FILE!r} row(s) must be tagged 'routed-through-seam (TODO)' (the write-path bypass WP02 fixes)")
     return errors
 
 

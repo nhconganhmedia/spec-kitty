@@ -120,9 +120,7 @@ def _seed_coord_mission(tmp_path: Path) -> tuple[Path, Path, str]:
     # PRIMARY-partition artifact (dirty, uncommitted).
     (feature_dir / "lanes.json").write_text('{"version": 1}\n', encoding="utf-8")
     # COORD-residue artifact (dirty, uncommitted).
-    (feature_dir / "status.events.jsonl").write_text(
-        '{"wp_id": "WP01", "to_lane": "claimed"}\n', encoding="utf-8"
-    )
+    (feature_dir / "status.events.jsonl").write_text('{"wp_id": "WP01", "to_lane": "claimed"}\n', encoding="utf-8")
     return repo, feature_dir, coord_branch
 
 
@@ -140,9 +138,7 @@ def _commit_batch(repo: Path, feature_dir: Path, coord_branch: str) -> None:
     )
 
 
-def test_crash_between_partition_commits_recovers_idempotently(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_crash_between_partition_commits_recovers_idempotently(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-001 / R5 / #2702: a crash after the PRIMARY commit and before the COORD
     commit is recovered by re-invoking the auto-commit path — no stranded residue,
     no error.
@@ -173,12 +169,8 @@ def test_crash_between_partition_commits_recovers_idempotently(
     # residue was stranded onto the PRIMARY target (the PRIMARY leg carried only
     # ``lanes.json``) -- the #2702 shape is absent even mid-crash.
     assert _PRIMARY_REL in _ls_tree_paths(repo, _TARGET_BRANCH)
-    assert _COORD_REL not in _ls_tree_paths(repo, _TARGET_BRANCH), (
-        "coord residue stranded on the PRIMARY target branch (#2702 shape)"
-    )
-    assert _COORD_REL not in _ls_tree_paths(repo, coord_branch), (
-        "the coord commit was supposed to have crashed before landing"
-    )
+    assert _COORD_REL not in _ls_tree_paths(repo, _TARGET_BRANCH), "coord residue stranded on the PRIMARY target branch (#2702 shape)"
+    assert _COORD_REL not in _ls_tree_paths(repo, coord_branch), "the coord commit was supposed to have crashed before landing"
 
     # --- Recovery: restore the real function and re-drive (re-invoke the
     # auto-commit path). The PRIMARY leg is byte-identical -> commit_idempotent

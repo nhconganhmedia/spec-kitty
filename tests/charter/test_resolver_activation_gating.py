@@ -51,9 +51,7 @@ def _provision_mission_type_activation(tmp_path: Path) -> None:
     """
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 @pytest.mark.parametrize("prop, activated_field", _NEW_MECHANICAL_KINDS)
@@ -66,9 +64,7 @@ def test_bare_project_precondition_is_none(tmp_path: Path, prop: str, activated_
 
 
 @pytest.mark.parametrize("prop, activated_field", _NEW_MECHANICAL_KINDS)
-def test_wrapped_equals_unwrapped_for_bare_project(
-    tmp_path: Path, prop: str, activated_field: str
-) -> None:
+def test_wrapped_equals_unwrapped_for_bare_project(tmp_path: Path, prop: str, activated_field: str) -> None:
     """``wrapped.<prop> == unwrapped_inner.<prop>`` for a bare PackContext.
 
     ``wrapped`` uses a real, bare ``PackContext`` (constructed the same way

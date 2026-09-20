@@ -19,6 +19,7 @@ written (read-only home, permissions, disk full), the operator still
 gets the notice every invocation, which is non-fatal noise. The CLI
 continues normally regardless.
 """
+
 from __future__ import annotations
 
 import os

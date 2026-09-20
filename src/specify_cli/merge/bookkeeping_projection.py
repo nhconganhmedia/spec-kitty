@@ -77,9 +77,7 @@ def _target_bookkeeping_status_paths(
     """
     safe_mission_slug = _validate_mission_slug_path_segment(mission_slug)
     target_feature_dir = (
-        placement_seam(main_repo, safe_mission_slug).read_dir(_TARGET_SURFACE_KIND)
-        if is_under_worktrees_segment(status_feature_dir)
-        else status_feature_dir
+        placement_seam(main_repo, safe_mission_slug).read_dir(_TARGET_SURFACE_KIND) if is_under_worktrees_segment(status_feature_dir) else status_feature_dir
     )
     safe_target_feature_dir = ensure_within_directory(target_feature_dir, main_repo)
     return (
@@ -111,9 +109,7 @@ def _assert_status_path_within_target_surface(
     """
     assert_safe_path_segment(mission_slug)
     repo_resolved = get_main_repo_root(repo_root).resolve(strict=False)
-    surface_root = placement_seam(repo_resolved, mission_slug).read_dir(
-        _TARGET_SURFACE_KIND
-    ).resolve(strict=False)
+    surface_root = placement_seam(repo_resolved, mission_slug).read_dir(_TARGET_SURFACE_KIND).resolve(strict=False)
     contained: Path = ensure_within_any(candidate, roots=[surface_root])
     return contained
 
@@ -148,11 +144,7 @@ def _assert_status_surface_path_is_trusted(
     # any containment check, then reject — pre-resolution — a path that escapes the
     # root its segment claims. Hardens the write path against a traversal/symlink
     # surface that would otherwise only be caught after ``.resolve()`` (#2043 Sonar).
-    status_candidate = (
-        status_feature_dir
-        if status_feature_dir.is_absolute()
-        else repo_resolved / status_feature_dir
-    ).absolute()
+    status_candidate = (status_feature_dir if status_feature_dir.is_absolute() else repo_resolved / status_feature_dir).absolute()
     segment_claims_worktrees = is_under_worktrees_segment(status_candidate)
     claimed_root = worktrees_root if segment_claims_worktrees else specs_root
     try:
@@ -337,11 +329,7 @@ def _project_status_bookkeeping_to_target(
     try:
         if union_events_bytes is not None:
             trusted_target_events_path.write_bytes(union_events_bytes)
-            trusted_target_status_path.write_bytes(
-                _rematerialize_status_snapshot(
-                    union_events_bytes, trusted_target_events_path.parent
-                )
-            )
+            trusted_target_status_path.write_bytes(_rematerialize_status_snapshot(union_events_bytes, trusted_target_events_path.parent))
         elif source_status_bytes is not None:
             trusted_target_status_path.write_bytes(source_status_bytes)
     except OSError:

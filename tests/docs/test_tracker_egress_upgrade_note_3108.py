@@ -68,8 +68,7 @@ _SUBSTANCE_PHRASES: Final[tuple[tuple[str, str], ...]] = (
     ),
     (
         "the Channel-2 grant is the only remedy needing no project identity",
-        "Record `tracker.egress: permitted` is the only remedy that works in every "
-        "one of these three states without a project identity.",
+        "Record `tracker.egress: permitted` is the only remedy that works in every one of these three states without a project identity.",
     ),
     (
         "C-016: `permitted` grants nothing at the hosted destination",
@@ -105,13 +104,11 @@ _SUBSTANCE_PHRASES: Final[tuple[tuple[str, str], ...]] = (
     # green -- exactly the vacuity shape this Mission exists to eliminate.
     (
         "What Changed -- the breaking-change sentence itself",
-        "a local tracker binding now requires a **recorded decision at one of "
-        "two consent channels**, and **absence of both channels denies**.",
+        "a local tracker binding now requires a **recorded decision at one of two consent channels**, and **absence of both channels denies**.",
     ),
     (
         "How to Tell -- why sync doctor, not a tracker-side command",
-        "the `spec-kitty tracker` command group is **conditionally registered** "
-        "and does not exist at all unless hosted SaaS sync is armed on the machine",
+        "the `spec-kitty tracker` command group is **conditionally registered** and does not exist at all unless hosted SaaS sync is armed on the machine",
     ),
     (
         "Which Commands Are Gated -- the four non-gated commands construct no connector",
@@ -119,8 +116,7 @@ _SUBSTANCE_PHRASES: Final[tuple[tuple[str, str], ...]] = (
     ),
     (
         "A Recorded Decision Outlives Its Binding -- both values survive unbind alike",
-        "both survive an `unbind` exactly the same way, so re-binding later does "
-        "not silently reset your decision back to absence.",
+        "both survive an `unbind` exactly the same way, so re-binding later does not silently reset your decision back to absence.",
     ),
 )
 
@@ -167,16 +163,14 @@ def test_index_links_note_in_frontmatter_related_and_in_body() -> None:
     frontmatter, body = parts[1], parts[2]
 
     assert "docs/migrations/tracker-egress-refusal.md" in frontmatter, (
-        "index.md frontmatter `related:` list must list the upgrade note "
-        "(docs/migrations/tracker-egress-refusal.md)"
+        "index.md frontmatter `related:` list must list the upgrade note (docs/migrations/tracker-egress-refusal.md)"
     )
     # Review LOW-7: a bare-filename substring is satisfied by prose that merely
     # *names* the file with no markdown link around it, and the repo-wide
     # relative-link-fixer gate only catches *dead* links, never *missing* ones.
     # Assert the markdown link form itself, `](tracker-egress-refusal.md)`.
     assert "](tracker-egress-refusal.md)" in body, (
-        "index.md body (Current 3.2 migrations) must link the upgrade note as a "
-        "markdown link, not merely mention its filename"
+        "index.md body (Current 3.2 migrations) must link the upgrade note as a markdown link, not merely mention its filename"
     )
 
 
@@ -190,9 +184,7 @@ def test_real_note_passes_the_full_substance_and_heading_check() -> None:
     byte_count = len(text.encode("utf-8"))
     assertion_count = len(_HEADINGS) + len(_SUBSTANCE_PHRASES)
     print(
-        f"INPUT COUNT: note is {byte_count} bytes; "
-        f"{len(_HEADINGS)} heading checks + {len(_SUBSTANCE_PHRASES)} substance checks "
-        f"= {assertion_count} assertions run"
+        f"INPUT COUNT: note is {byte_count} bytes; {len(_HEADINGS)} heading checks + {len(_SUBSTANCE_PHRASES)} substance checks = {assertion_count} assertions run"
     )
     assert byte_count > 0, "note file is empty -- a check against it would pass vacuously"
     assert assertion_count > 0, "no assertions configured -- a check against zero is vacuous"
@@ -225,10 +217,7 @@ def test_check_reds_when_a_heading_is_renamed() -> None:
     # substance axis stayed silent -- this mutant would still pass that `match=`
     # if the substance axis had *also* fired. Assert independence by measurement:
     # renaming a heading must not touch the body, so zero substance failures.
-    assert "missing substance" not in str(excinfo.value), (
-        "renaming a heading must not also trip a substance failure -- the two "
-        "axes are supposed to be independent"
-    )
+    assert "missing substance" not in str(excinfo.value), "renaming a heading must not also trip a substance failure -- the two axes are supposed to be independent"
 
 
 def test_check_reds_when_a_section_is_emptied() -> None:
@@ -244,9 +233,7 @@ def test_check_reds_when_a_section_is_emptied() -> None:
 
     mutated = real[:start] + "\n\nNothing to see here.\n\n" + real[end:]
     assert heading in mutated, "fixture must leave the heading itself untouched"
-    assert "the gate follows the destination, not the subcommand name" not in mutated, (
-        "fixture did not actually remove the section's load-bearing sentence"
-    )
+    assert "the gate follows the destination, not the subcommand name" not in mutated, "fixture did not actually remove the section's load-bearing sentence"
 
     with pytest.raises(AssertionError, match="missing substance") as excinfo:
         check_note_substance(mutated)
@@ -256,6 +243,5 @@ def test_check_reds_when_a_section_is_emptied() -> None:
     # axis must report zero failures even though the substance axis reports
     # several (the three map-list phrases living in this section's body).
     assert "missing or renamed heading" not in str(excinfo.value), (
-        "emptying a section's body must not also trip a heading failure -- its "
-        "own heading, and every other heading, is left in place"
+        "emptying a section's body must not also trip a heading failure -- its own heading, and every other heading, is left in place"
     )

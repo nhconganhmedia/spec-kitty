@@ -19,6 +19,7 @@ from specify_cli.bulk_edit.occurrence_map import OccurrenceMap
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_map(
     categories: dict[str, dict[str, str]],
     exceptions: list[dict[str, str]] | None = None,
@@ -99,17 +100,11 @@ class TestClassifyPath:
 
     def test_tests_wins_over_cli_commands(self) -> None:
         """A test file under cli/commands should still classify as tests."""
-        assert (
-            classify_path("tests/cli/commands/test_implement.py")
-            == "tests_fixtures"
-        )
+        assert classify_path("tests/cli/commands/test_implement.py") == "tests_fixtures"
 
     def test_cli_commands_wins_over_code(self) -> None:
         """A CLI command .py should classify as cli_commands, not code_symbols."""
-        assert (
-            classify_path("src/specify_cli/cli/commands/foo.py")
-            == "cli_commands"
-        )
+        assert classify_path("src/specify_cli/cli/commands/foo.py") == "cli_commands"
 
 
 # ---------------------------------------------------------------------------
@@ -240,9 +235,7 @@ class TestCheckDiffCompliance:
 
     def test_all_safe_files_pass(self) -> None:
         omap = _make_map(ALL_EIGHT_RENAME)
-        result = check_diff_compliance(
-            ["src/pkg/foo.py", "tests/test_foo.py", "README.md"], omap
-        )
+        result = check_diff_compliance(["src/pkg/foo.py", "tests/test_foo.py", "README.md"], omap)
         assert result.passed is True
 
     def test_any_forbidden_file_blocks(self) -> None:

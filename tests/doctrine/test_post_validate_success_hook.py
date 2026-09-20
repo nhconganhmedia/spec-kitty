@@ -111,9 +111,7 @@ class TestPostValidateFiresOnSuccess:
 
 
 class TestPostValidateNeverFiresOnFailure:
-    def test_never_fires_for_a_built_in_validation_failure(
-        self, tmp_path: Path
-    ) -> None:
+    def test_never_fires_for_a_built_in_validation_failure(self, tmp_path: Path) -> None:
         built_in = tmp_path / "built-in"
         _write_invalid_item(built_in / "broken.item.yaml")
 
@@ -123,9 +121,7 @@ class TestPostValidateNeverFiresOnFailure:
         assert repo.post_validate_calls == []
         assert repo.get("broken") is None
 
-    def test_never_fires_for_an_overlay_validation_failure(
-        self, tmp_path: Path
-    ) -> None:
+    def test_never_fires_for_an_overlay_validation_failure(self, tmp_path: Path) -> None:
         built_in = tmp_path / "built-in"
         built_in.mkdir(parents=True)
         project = tmp_path / "project"

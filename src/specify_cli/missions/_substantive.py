@@ -163,11 +163,7 @@ def _has_substantive_fr_row(body: str) -> bool:
         return True
 
     # Bullet-form rows: - **FR-###**: <description>
-    return any(
-        _is_substantive_text(desc)
-        for line in body.splitlines()
-        if (desc := _extract_fr_bullet_description(line)) is not None
-    )
+    return any(_is_substantive_text(desc) for line in body.splitlines() if (desc := _extract_fr_bullet_description(line)) is not None)
 
 
 def _extract_fr_bullet_description(line: str) -> str | None:
@@ -778,9 +774,7 @@ def _no_peer_gap_message(container: str, primary_name: str, peers: tuple[_FieldS
     return f"{container} has **{primary_name}** but no peer field with non-placeholder content{hint}. Checked peer(s): {peer_names}."
 
 
-def describe_technical_context_gap(
-    body: str, mission_type: str = "software-dev", *, project_dir: Path | None = None
-) -> str | None:
+def describe_technical_context_gap(body: str, mission_type: str = "software-dev", *, project_dir: Path | None = None) -> str | None:
     """Return a human reason when ``mission_type``'s primary+peer plan fields fail the gate.
 
     Decision 1/2 (#3832): generalized off the SAME per-type field declaration
@@ -818,9 +812,7 @@ def describe_technical_context_gap(
     return _no_peer_gap_message(container, primary_name, declaration.peers)
 
 
-def describe_plan_field_requirements(
-    mission_type: str, *, project_dir: Path | None = None
-) -> tuple[str, str, str] | None:
+def describe_plan_field_requirements(mission_type: str, *, project_dir: Path | None = None) -> tuple[str, str, str] | None:
     """Return ``(container_heading, primary_field_name, example_peer_name)``.
 
     T007: the single source ``mission_setup_plan.py``'s operator-facing
@@ -862,9 +854,7 @@ def is_pristine_scaffold(content: str, template_content: str) -> bool:
     return content == template_content
 
 
-def is_substantive(
-    file_path: Path, kind: Kind, *, mission_type: str = "software-dev", project_dir: Path | None = None
-) -> bool:
+def is_substantive(file_path: Path, kind: Kind, *, mission_type: str = "software-dev", project_dir: Path | None = None) -> bool:
     """Section-presence-only substantive-content gate.
 
     Args:

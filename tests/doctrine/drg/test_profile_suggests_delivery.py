@@ -53,10 +53,7 @@ _DISCIPLINED_REFACTORING = "directive:DISCIPLINED_REFACTORING"
 # The authored Family-B ``when`` on ``DISCIPLINED_REFACTORING -> move-method``
 # (``hand_authored_overlay.py``). Family B carries real ``when`` text today,
 # independent of WP02's Family-A backfill, so A2 may assert it verbatim.
-_MOVE_METHOD_WHEN = (
-    "a method uses more of another class's data and behaviour than its own "
-    "host's (feature envy)"
-)
+_MOVE_METHOD_WHEN = "a method uses more of another class's data and behaviour than its own host's (feature envy)"
 
 
 @pytest.fixture(scope="module")
@@ -153,18 +150,9 @@ class TestA3DefaultWhen:
         refs = _refs_for(graph, _ARCHITECT)
         # DDD is no longer the fixture — it now carries an authored ``when`` (T006).
         ddd = [r for r in refs if r["id"] == "domain-driven-design"]
-        assert ddd and ddd[0]["when"] and ddd[0]["when"] != STATED_DEFAULT_WHEN, (
-            "T006 must have given architect->DDD an authored, non-default when"
-        )
-        defaulted = [
-            r
-            for r in refs
-            if r["relation"] == "suggests" and r["when"] == STATED_DEFAULT_WHEN
-        ]
-        assert defaulted, (
-            "no delivered when-less suggests edge surfaced STATED_DEFAULT_WHEN — "
-            "the default-when substitution path regressed"
-        )
+        assert ddd and ddd[0]["when"] and ddd[0]["when"] != STATED_DEFAULT_WHEN, "T006 must have given architect->DDD an authored, non-default when"
+        defaulted = [r for r in refs if r["relation"] == "suggests" and r["when"] == STATED_DEFAULT_WHEN]
+        assert defaulted, "no delivered when-less suggests edge surfaced STATED_DEFAULT_WHEN — the default-when substitution path regressed"
 
 
 # ---------------------------------------------------------------------------
@@ -341,10 +329,7 @@ def test_channel_lookup_exception_renders_nothing() -> None:
         agent_profiles = _RaisingAgentProfiles()
 
     profile = _minimal_profile("synthetic-raising-channel")
-    assert (
-        render_profile_suggested_doctrine(profile, _ServiceWithRaisingAgentProfiles())
-        == []
-    )
+    assert render_profile_suggested_doctrine(profile, _ServiceWithRaisingAgentProfiles()) == []
 
 
 def test_delivered_kind_with_no_projectable_reference_is_skipped() -> None:

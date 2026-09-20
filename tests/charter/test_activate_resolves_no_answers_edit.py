@@ -154,9 +154,7 @@ class TestDeactivateDropsNoAnswersEdit:
         assert not answers_path.exists(), "charter deactivate must not write/edit answers.yaml"
 
         reference_ids = _compiled_reference_ids(project_root)
-        assert _TARGET_REFERENCE_ID not in reference_ids, (
-            "deactivated artefact must stop resolving in the compiled reference set"
-        )
+        assert _TARGET_REFERENCE_ID not in reference_ids, "deactivated artefact must stop resolving in the compiled reference set"
 
         # No dangling reference remains: the deactivated artefact's id is not
         # cited anywhere in the compiled markdown either (nothing left over
@@ -233,15 +231,9 @@ class TestSpddActivationDoesNotFlip:
         spdd_tactics = {"reasons-canvas-fill", "reasons-canvas-review"}
         spdd_directive = "DIRECTIVE_038"
 
-        selected_paradigms_no_spdd = [
-            p for p in interview.selected_paradigms if p != spdd_paradigm
-        ]
-        selected_directives_no_spdd = [
-            d for d in interview.selected_directives if d != spdd_directive
-        ]
-        selected_tactics_no_spdd = [
-            t for t in compiled.selected_tactics if t not in spdd_tactics
-        ]
+        selected_paradigms_no_spdd = [p for p in interview.selected_paradigms if p != spdd_paradigm]
+        selected_directives_no_spdd = [d for d in interview.selected_directives if d != spdd_directive]
+        selected_tactics_no_spdd = [t for t in compiled.selected_tactics if t not in spdd_tactics]
 
         governance = GovernanceConfig(
             charter=DoctrineSelectionConfig(
@@ -281,21 +273,9 @@ class TestSpddActivationDoesNotFlip:
         config_path = tmp_path / ".kittify" / "config.yaml"
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_document = {
-            "activated_paradigms": (
-                sorted(pack_context.activated_paradigms)
-                if pack_context.activated_paradigms is not None
-                else None
-            ),
-            "activated_directives": (
-                sorted(pack_context.activated_directives)
-                if pack_context.activated_directives is not None
-                else None
-            ),
-            "activated_tactics": (
-                sorted(pack_context.activated_tactics)
-                if pack_context.activated_tactics is not None
-                else None
-            ),
+            "activated_paradigms": (sorted(pack_context.activated_paradigms) if pack_context.activated_paradigms is not None else None),
+            "activated_directives": (sorted(pack_context.activated_directives) if pack_context.activated_directives is not None else None),
+            "activated_tactics": (sorted(pack_context.activated_tactics) if pack_context.activated_tactics is not None else None),
         }
         config_yaml = YAML()
         with config_path.open("w", encoding="utf-8") as fh:

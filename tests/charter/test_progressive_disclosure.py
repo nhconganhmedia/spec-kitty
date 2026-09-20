@@ -19,6 +19,7 @@ The properties under test:
   set (completeness by naming, no cap); a linked artefact is retrievable by its
   id via the existing ``--include`` verb; ``--include-all`` output ⊇ progressive.
 """
+
 from __future__ import annotations
 
 import shutil
@@ -121,9 +122,7 @@ def _json_payload(tmp_path: Path, *, include_all: bool = False) -> dict[str, obj
 
     repo = _project_root(tmp_path)
     # depth is state-driven; force the bootstrap depth without mutating state.
-    result = build_charter_context(
-        repo, action="implement", mark_loaded=False, mission_type="software-dev"
-    )
+    result = build_charter_context(repo, action="implement", mark_loaded=False, mission_type="software-dev")
     return build_charter_context_json(
         repo,
         action="implement",
@@ -284,12 +283,8 @@ class TestIncludeAllHatch:
                 return "builtin"
 
         inline = frozenset({"tactic:S"})  # deliberately treat S as *not* inline by default
-        progressive = pd.collect_typed_artifacts(
-            _Repo(), ["S"], kind="tactic", merged=graph, inline_urns=frozenset(), include_all=False
-        )
-        allof = pd.collect_typed_artifacts(
-            _Repo(), ["S"], kind="tactic", merged=graph, inline_urns=frozenset(), include_all=True
-        )
+        progressive = pd.collect_typed_artifacts(_Repo(), ["S"], kind="tactic", merged=graph, inline_urns=frozenset(), include_all=False)
+        allof = pd.collect_typed_artifacts(_Repo(), ["S"], kind="tactic", merged=graph, inline_urns=frozenset(), include_all=True)
         assert progressive[0]["delivery"] == pd.DELIVERY_LINK
         assert allof[0]["delivery"] == pd.DELIVERY_INLINE
         assert inline  # guard: the fixture stays meaningful

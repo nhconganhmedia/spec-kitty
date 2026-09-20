@@ -17,9 +17,11 @@ import typer
 
 from specify_cli.cli.commands import register_commands
 
+
 @pytest.fixture()
 def runner() -> CliRunner:
     return CliRunner()
+
 
 @pytest.fixture()
 def app() -> typer.Typer:
@@ -27,11 +29,13 @@ def app() -> typer.Typer:
     register_commands(_app)
     return _app
 
+
 def test_lint_file_not_found(runner: CliRunner, app: typer.Typer, tmp_path: Path) -> None:
     """Ensure we handle missing files gracefully."""
     result = runner.invoke(app, ["lint", str(tmp_path / "404.py")])
     assert result.exit_code == 1
     assert "Error" in result.output
+
 
 def test_lint_non_python_file(runner: CliRunner, app: typer.Typer, tmp_path: Path) -> None:
     """Ensure we skip non-python files."""
@@ -40,6 +44,7 @@ def test_lint_non_python_file(runner: CliRunner, app: typer.Typer, tmp_path: Pat
     result = runner.invoke(app, ["lint", str(test_file)])
     assert result.exit_code == 0
     assert "is not a Python file" in " ".join(result.output.split())
+
 
 @patch("subprocess.run")
 def test_lint_success_mock(mock_run: MagicMock, runner: CliRunner, app: typer.Typer, tmp_path: Path) -> None:
@@ -53,16 +58,14 @@ def test_lint_success_mock(mock_run: MagicMock, runner: CliRunner, app: typer.Ty
     assert result.exit_code == 0
     assert "passed all checks" in " ".join(result.output.split())
 
+
 @patch("subprocess.run")
 def test_lint_json_failure_mock(mock_run: MagicMock, runner: CliRunner, app: typer.Typer, tmp_path: Path) -> None:
     """Verify JSON error reporting."""
     test_file = tmp_path / "test.py"
     test_file.write_text("bad code")
 
-    mock_run.side_effect = [
-        MagicMock(returncode=1, stdout="ruff error", stderr=""),
-        MagicMock(returncode=1, stdout="mypy error", stderr="")
-    ]
+    mock_run.side_effect = [MagicMock(returncode=1, stdout="ruff error", stderr=""), MagicMock(returncode=1, stdout="mypy error", stderr="")]
 
     result = runner.invoke(app, ["lint", str(test_file), "--json"])
     assert result.exit_code == 1
@@ -72,9 +75,8 @@ def test_lint_json_failure_mock(mock_run: MagicMock, runner: CliRunner, app: typ
     assert data["ruff_errors"] == ["ruff error"]
     assert data["mypy_errors"] == ["mypy error"]
 
-def test_lint_uses_spec_repo_root_as_cwd(
-    runner: CliRunner, app: typer.Typer, tmp_path: Path, monkeypatch: MonkeyPatch
-) -> None:
+
+def test_lint_uses_spec_repo_root_as_cwd(runner: CliRunner, app: typer.Typer, tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """When SPECIFY_REPO_ROOT is set, lint_command uses it as cwd for subprocess calls.
 
     Regression guard for FR-007: locate_project_root() must honour the env-var
@@ -92,9 +94,7 @@ def test_lint_uses_spec_repo_root_as_cwd(
 
     captured_cwds: list[Path] = []
 
-    def fake_subprocess_run(
-        args: list[str], *, cwd: Path, capture_output: bool, text: bool, check: bool
-    ) -> MagicMock:
+    def fake_subprocess_run(args: list[str], *, cwd: Path, capture_output: bool, text: bool, check: bool) -> MagicMock:
         captured_cwds.append(Path(cwd))
         return MagicMock(returncode=0, stdout="", stderr="")
 
@@ -104,9 +104,7 @@ def test_lint_uses_spec_repo_root_as_cwd(
     assert result.exit_code == 0, result.output
     # Both ruff and mypy calls must have used the SPECIFY_REPO_ROOT path as cwd.
     assert len(captured_cwds) == 2
-    assert all(cwd == project_root for cwd in captured_cwds), (
-        f"Expected cwd={project_root!r} for all subprocess calls; got {captured_cwds!r}"
-    )
+    assert all(cwd == project_root for cwd in captured_cwds), f"Expected cwd={project_root!r} for all subprocess calls; got {captured_cwds!r}"
 
 
 def test_lint_config_sync_idempotency(runner: CliRunner, app: typer.Typer, tmp_path: Path, monkeypatch: MonkeyPatch) -> None:

@@ -29,6 +29,7 @@ from specify_cli.workspace.context import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 @pytest.fixture
 def kittify_project(tmp_path: Path) -> Path:
     (tmp_path / ".kittify" / "workspaces").mkdir(parents=True, exist_ok=True)
@@ -234,9 +235,7 @@ class TestContextIndexAndResolution:
             context_source="canonical_status",
             diagnostic_code=None,
             diagnostic_message=None,
-            warnings=[
-                "ACTIVE_WP_CONTEXT_STALE: workspace context current_wp=WP01, canonical active_wp=WP04; lane_id=lane-a"
-            ],
+            warnings=["ACTIVE_WP_CONTEXT_STALE: workspace context current_wp=WP01, canonical active_wp=WP04; lane_id=lane-a"],
         )
 
     def test_active_wp_resolution_diagnoses_ambiguous_status_context(self, kittify_project: Path) -> None:
@@ -305,9 +304,7 @@ class TestContextIndexAndResolution:
 
         assert refreshed["WP03"].metadata.execution_mode == "planning_artifact"
 
-    def test_build_normalized_wp_index_accepts_unrelated_legacy_unknown_base_commit(
-        self, kittify_project: Path
-    ) -> None:
+    def test_build_normalized_wp_index_accepts_unrelated_legacy_unknown_base_commit(self, kittify_project: Path) -> None:
         feature_dir = _seed_mission(kittify_project)
         tasks_dir = feature_dir / "tasks"
         (tasks_dir / "WP01-legacy-base.md").write_text(

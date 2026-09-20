@@ -301,9 +301,7 @@ def _apply_decision_effects(
         issued_step_id = decision.step_id
         _emit_step_issued(run_dir, snapshot, decision.step_id, agent, sync_emitter)
     elif decision.kind == DecisionKind.decision_required and decision.decision_id:
-        pending_decisions = _emit_decision_required(
-            run_dir, snapshot, decision, decision.decision_id, agent, pending_decisions, sync_emitter
-        )
+        pending_decisions = _emit_decision_required(run_dir, snapshot, decision, decision.decision_id, agent, pending_decisions, sync_emitter)
     elif decision.kind == DecisionKind.terminal and did_complete_step:
         _emit_terminal(run_dir, snapshot, agent, mission_slug, repo_root, feature_dir, sync_emitter)
 

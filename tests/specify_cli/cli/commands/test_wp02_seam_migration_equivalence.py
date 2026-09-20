@@ -57,12 +57,8 @@ def _seed_primary_mission(repo_root: Path) -> Path:
 def test_context_slug_mid8_equals_full_mission_id(tmp_path: Path) -> None:
     expected = _seed_primary_mission(tmp_path)
 
-    via_slug_mid8 = context_find_feature_directory(
-        tmp_path, tmp_path, explicit_mission=SLUG
-    )
-    via_full_id = context_find_feature_directory(
-        tmp_path, tmp_path, explicit_mission=MISSION_ID
-    )
+    via_slug_mid8 = context_find_feature_directory(tmp_path, tmp_path, explicit_mission=SLUG)
+    via_full_id = context_find_feature_directory(tmp_path, tmp_path, explicit_mission=MISSION_ID)
 
     assert via_slug_mid8 == expected
     assert via_full_id == expected
@@ -79,12 +75,8 @@ def test_mission_find_feature_directory_slug_mid8_equals_full_mission_id(
 ) -> None:
     expected = _seed_primary_mission(tmp_path)
 
-    via_slug_mid8 = mission_find_feature_directory(
-        tmp_path, tmp_path, explicit_feature=SLUG
-    )
-    via_full_id = mission_find_feature_directory(
-        tmp_path, tmp_path, explicit_feature=MISSION_ID
-    )
+    via_slug_mid8 = mission_find_feature_directory(tmp_path, tmp_path, explicit_feature=SLUG)
+    via_full_id = mission_find_feature_directory(tmp_path, tmp_path, explicit_feature=MISSION_ID)
 
     assert via_slug_mid8 == expected
     assert via_full_id == expected
@@ -100,13 +92,8 @@ def test_mission_primary_anchored_probe_resolves_via_seam_primitive(
     """
     _seed_primary_mission(tmp_path)
 
-    assert (
-        _resolve_mission_dir_name_primary_anchored(tmp_path, SLUG) == SLUG
-    )
-    assert (
-        _resolve_mission_dir_name_primary_anchored(tmp_path, "no-such-handle")
-        is None
-    )
+    assert _resolve_mission_dir_name_primary_anchored(tmp_path, SLUG) == SLUG
+    assert _resolve_mission_dir_name_primary_anchored(tmp_path, "no-such-handle") is None
 
 
 def test_mission_primary_anchored_probe_rejects_traversal(tmp_path: Path) -> None:
@@ -145,9 +132,7 @@ def _run_verify(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, handle: str) ->
         "specify_cli.cli.commands.decision.locate_project_root",
         lambda: tmp_path,
     )
-    monkeypatch.setattr(
-        "specify_cli.cli.commands.decision._verify_decisions", _fake_verify
-    )
+    monkeypatch.setattr("specify_cli.cli.commands.decision._verify_decisions", _fake_verify)
 
     cmd_verify(mission=handle, fail_on_stale=False, json_out=True)
     return captured["mission_dir"]
@@ -156,14 +141,10 @@ def _run_verify(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, handle: str) ->
 def _empty_result():  # type: ignore[no-untyped-def]
     from types import SimpleNamespace
 
-    return SimpleNamespace(
-        status="clean", deferred_count=0, marker_count=0, findings=[]
-    )
+    return SimpleNamespace(status="clean", deferred_count=0, marker_count=0, findings=[])
 
 
-def test_decision_verify_slug_mid8_equals_full_mission_id(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_decision_verify_slug_mid8_equals_full_mission_id(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     expected = _seed_primary_mission(tmp_path)
 
     via_slug_mid8 = _run_verify(monkeypatch, tmp_path, SLUG)

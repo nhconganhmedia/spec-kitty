@@ -137,9 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     rows = resolve(args.members, args.at_sha)
-    args.out.write_text(
-        render(rows, sha=args.at_sha, members=args.members.as_posix()), encoding="utf-8"
-    )
+    args.out.write_text(render(rows, sha=args.at_sha, members=args.members.as_posix()), encoding="utf-8")
     sys.stdout.write(f"ANCHOR-FROZEN rows={len(rows)} at={args.at_sha}\n")
     return 0
 

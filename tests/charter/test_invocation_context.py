@@ -29,9 +29,7 @@ def _provision_minimal_config(repo_root: Path) -> None:
     """
     kittify = repo_root / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -121,9 +119,7 @@ class TestProjectContextFromRepo:
         ctx = ProjectContext.from_repo(tmp_path)
         assert ctx.architecture_dir is None
 
-    def test_from_repo_without_kittify_returns_empty_mission_types(
-        self, tmp_path: Path
-    ) -> None:
+    def test_from_repo_without_kittify_returns_empty_mission_types(self, tmp_path: Path) -> None:
         """from_repo() succeeds (does not raise) when .kittify/ is absent.
 
         The WP04 re-architecture made ``PackContext.from_config()``

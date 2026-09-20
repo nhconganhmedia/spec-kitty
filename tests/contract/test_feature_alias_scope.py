@@ -112,9 +112,7 @@ def test_merge_rejects_feature_alias() -> None:
     )
 
     assert "No such option" in result.output, (
-        "WP01 regression: 'merge --feature' did not produce 'No such option' "
-        "parse error.  The alias must be fully removed.\n"
-        f"Output: {result.output!r}"
+        f"WP01 regression: 'merge --feature' did not produce 'No such option' parse error.  The alias must be fully removed.\nOutput: {result.output!r}"
     )
 
 
@@ -131,23 +129,13 @@ def test_merge_mission_accepted_feature_rejected() -> None:
     result_feature = runner.invoke(app, ["merge", "--feature", "some-mission-slug"])
 
     # --mission must be accepted (not a parse error / exit 2)
-    assert result_mission.exit_code != 2, (
-        "Canonical '--mission' flag rejected by merge parser (exit 2).\n"
-        f"Output: {result_mission.output!r}"
-    )
-    assert "No such option" not in result_mission.output, (
-        "Canonical '--mission' produced a parse-rejection message.\n"
-        f"Output: {result_mission.output!r}"
-    )
+    assert result_mission.exit_code != 2, f"Canonical '--mission' flag rejected by merge parser (exit 2).\nOutput: {result_mission.output!r}"
+    assert "No such option" not in result_mission.output, f"Canonical '--mission' produced a parse-rejection message.\nOutput: {result_mission.output!r}"
 
     # --feature must be rejected (exit 2 / "No such option")
-    assert result_feature.exit_code == 2, (
-        "WP01 regression: '--feature' was NOT rejected by merge parser (expected exit 2).\n"
-        f"Output: {result_feature.output!r}"
-    )
+    assert result_feature.exit_code == 2, f"WP01 regression: '--feature' was NOT rejected by merge parser (expected exit 2).\nOutput: {result_feature.output!r}"
     assert "No such option" in result_feature.output, (
-        "WP01 regression: '--feature' did not produce 'No such option' parse error.\n"
-        f"Output: {result_feature.output!r}"
+        f"WP01 regression: '--feature' did not produce 'No such option' parse error.\nOutput: {result_feature.output!r}"
     )
 
 
@@ -200,14 +188,11 @@ def test_no_doctrine_source_passes_feature_to_inscope_commands() -> None:
                 # "spec-kitty agent status" and bare "agent status")
                 if cmd_name in line or cmd_name.replace(" ", "-") in line:
                     rel = path.relative_to(REPO_ROOT).as_posix()
-                    offenders.append(
-                        f"{rel}:{lineno}: {line.strip()!r}  (in-scope command: {cmd_name!r})"
-                    )
+                    offenders.append(f"{rel}:{lineno}: {line.strip()!r}  (in-scope command: {cmd_name!r})")
 
     assert not offenders, (
         "FR-003 regression: src/charter/offering/ source passes '--feature' to an in-scope "
-        "command.  In-scope commands must be invoked without '--feature'.\n  "
-        + "\n  ".join(offenders)
+        "command.  In-scope commands must be invoked without '--feature'.\n  " + "\n  ".join(offenders)
     )
 
 
@@ -290,8 +275,7 @@ def test_doctrine_feature_hits_are_only_outofscope_commands() -> None:
         "src/charter/offering/ contains '--feature' lines that do not reference a known "
         "out-of-scope command and are not prose deprecation notes.  "
         "Review these lines and either remove '--feature' or add the relevant "
-        "out-of-scope command name so the gate recognises them:\n  "
-        + "\n  ".join(unexpected_without_known_context)
+        "out-of-scope command name so the gate recognises them:\n  " + "\n  ".join(unexpected_without_known_context)
     )
 
 
@@ -318,14 +302,10 @@ def test_merge_has_no_feature_param_in_cli_introspection() -> None:
     assert merge_cmd is not None, "merge command not found in CLI app"
 
     feature_params = [
-        param
-        for param in merge_cmd.params
-        if "--feature" in (list(getattr(param, "opts", []) or []) + list(getattr(param, "secondary_opts", []) or []))
+        param for param in merge_cmd.params if "--feature" in (list(getattr(param, "opts", []) or []) + list(getattr(param, "secondary_opts", []) or []))
     ]
     assert not feature_params, (
-        "WP01 regression: merge command still has a '--feature' parameter. "
-        "The alias must be fully removed (hard removal, not hidden).\n"
-        f"Found: {feature_params!r}"
+        f"WP01 regression: merge command still has a '--feature' parameter. The alias must be fully removed (hard removal, not hidden).\nFound: {feature_params!r}"
     )
 
 
@@ -344,9 +324,7 @@ def test_inscope_files_have_no_feature_param_in_cli_introspection() -> None:
     cli: click.Group = get_command(app)  # type: ignore[assignment]
 
     # Map normalised command path strings to their Click commands
-    def _walk(
-        group: click.Group, prefix: tuple[str, ...] = ()
-    ) -> list[tuple[str, click.Command]]:
+    def _walk(group: click.Group, prefix: tuple[str, ...] = ()) -> list[tuple[str, click.Command]]:
         found: list[tuple[str, click.Command]] = []
         for name, cmd in group.commands.items():
             path = prefix + (name,)
@@ -368,15 +346,11 @@ def test_inscope_files_have_no_feature_param_in_cli_introspection() -> None:
         for param in cmd.params:
             declared = list(getattr(param, "opts", []) or []) + list(getattr(param, "secondary_opts", []) or [])
             if "--feature" in declared:
-                offenders.append(
-                    f"command '{path_str}' still declares '--feature' param "
-                    f"(hidden={getattr(param, 'hidden', False)})"
-                )
+                offenders.append(f"command '{path_str}' still declares '--feature' param (hidden={getattr(param, 'hidden', False)})")
 
     assert not offenders, (
         "FR-003/FR-004 regression: in-scope commands still declare '--feature' "
-        "at the CLI introspection level.  Remove the alias from these commands:\n  "
-        + "\n  ".join(offenders)
+        "at the CLI introspection level.  Remove the alias from these commands:\n  " + "\n  ".join(offenders)
     )
 
 

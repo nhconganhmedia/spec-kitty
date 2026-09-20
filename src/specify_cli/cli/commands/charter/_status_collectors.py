@@ -4,6 +4,7 @@ These helpers are pure data collectors — they build dicts the command body
 serialises to JSON or renders to the console. Kept in their own module so
 ``status.py`` stays under the 500-line WP06 budget.
 """
+
 from __future__ import annotations
 
 from kernel.clock import date
@@ -77,11 +78,7 @@ def _collect_charter_sync_status(repo_root: Path) -> dict[str, Any]:
             # post-consolidation (SC-002); reporting a nonexistent
             # "Charter: .../charter.md" header while charter.yaml (the
             # authoritative bundle) sits right next to it is misleading.
-            charter_path = (
-                charter_md_path
-                if charter_md_path.exists()
-                else output_dir / CHARTER_YAML_FILENAME
-            )
+            charter_path = charter_md_path if charter_md_path.exists() else output_dir / CHARTER_YAML_FILENAME
         except TaskCliError:
             # FR-006 pre-consolidation migration-compat branch (spec Edge
             # Cases + C-001): ``_resolve_charter_bundle_path`` raised because
@@ -121,19 +118,11 @@ def _collect_charter_sync_status(repo_root: Path) -> dict[str, Any]:
             if file_path.exists():
                 size = file_path.stat().st_size
                 size_kb = size / 1024
-                files_info.append(
-                    {"name": filename, "exists": True, "size_kb": size_kb}
-                )
+                files_info.append({"name": filename, "exists": True, "size_kb": size_kb})
             else:
-                files_info.append(
-                    {"name": filename, "exists": False, "size_kb": 0.0}
-                )
+                files_info.append({"name": filename, "exists": False, "size_kb": 0.0})
 
-        library_count = (
-            len(list((output_dir / "library").glob("*.md")))
-            if (output_dir / "library").exists()
-            else 0
-        )
+        library_count = len(list((output_dir / "library").glob("*.md"))) if (output_dir / "library").exists() else 0
 
         last_sync = None
         if metadata_path.exists():
@@ -142,9 +131,7 @@ def _collect_charter_sync_status(repo_root: Path) -> dict[str, Any]:
             yaml = YAML(typ="safe")
             metadata = yaml.load(metadata_path.read_text(encoding="utf-8")) or {}
             if isinstance(metadata, dict):
-                last_sync = _normalize_last_sync(
-                    metadata.get("timestamp_utc") or metadata.get("extracted_at")
-                )
+                last_sync = _normalize_last_sync(metadata.get("timestamp_utc") or metadata.get("extracted_at"))
 
         return {
             "available": True,
@@ -214,8 +201,7 @@ def _collect_manifest_status(repo_root: Path) -> tuple[dict[str, Any], Any | Non
 
     live_artifact_count = sum(
         len(list((doctrine_root / PROJECT_KIND_DIRS[kind]).rglob(kind.glob_pattern)))
-        for kind in (ArtifactKind.DIRECTIVE, ArtifactKind.TACTIC, ArtifactKind.STYLEGUIDE,
-                     ArtifactKind.PROCEDURE, ArtifactKind.AGENT_PROFILE)
+        for kind in (ArtifactKind.DIRECTIVE, ArtifactKind.TACTIC, ArtifactKind.STYLEGUIDE, ArtifactKind.PROCEDURE, ArtifactKind.AGENT_PROFILE)
     )
     live_provenance_count = len(list(provenance_root.glob("*.yaml")))
 
@@ -267,11 +253,7 @@ def _collect_manifest_status(repo_root: Path) -> tuple[dict[str, Any], Any | Non
             None,
         )
 
-    missing_provenance_paths = [
-        entry.provenance_path
-        for entry in manifest.artifacts
-        if not (repo_root / entry.provenance_path).exists()
-    ]
+    missing_provenance_paths = [entry.provenance_path for entry in manifest.artifacts if not (repo_root / entry.provenance_path).exists()]
 
     return (
         {
@@ -305,11 +287,7 @@ def _collect_provenance_status(
     warnings: list[str] = []
     entries: list[dict[str, Any]] = []
     visible_paths = {_display_path(path, repo_root) for path in paths}
-    manifest_paths = (
-        {entry.provenance_path for entry in manifest.artifacts}
-        if manifest is not None
-        else set()
-    )
+    manifest_paths = {entry.provenance_path for entry in manifest.artifacts} if manifest is not None else set()
     corpus_snapshot_ids: set[str] = set()
     adapters: set[str] = set()
 
@@ -371,12 +349,8 @@ def _summarize_evidence(repo_root: Path) -> dict[str, Any]:
             "primary_language": bundle.code_signals.primary_language,
             "frameworks": list(bundle.code_signals.frameworks),
             "test_frameworks": list(bundle.code_signals.test_frameworks),
-            "representative_files_count": len(
-                bundle.code_signals.representative_files
-            ),
-            "representative_files_preview": list(
-                bundle.code_signals.representative_files[:5]
-            ),
+            "representative_files_count": len(bundle.code_signals.representative_files),
+            "representative_files_preview": list(bundle.code_signals.representative_files[:5]),
         }
 
     return {
@@ -384,16 +358,8 @@ def _summarize_evidence(repo_root: Path) -> dict[str, Any]:
         "code": code_summary,
         "configured_urls": list(bundle.url_list),
         "configured_url_count": len(bundle.url_list),
-        "corpus_snapshot_id": (
-            bundle.corpus_snapshot.snapshot_id
-            if bundle.corpus_snapshot is not None
-            else None
-        ),
-        "corpus_entry_count": (
-            len(bundle.corpus_snapshot.entries)
-            if bundle.corpus_snapshot is not None
-            else 0
-        ),
+        "corpus_snapshot_id": (bundle.corpus_snapshot.snapshot_id if bundle.corpus_snapshot is not None else None),
+        "corpus_entry_count": (len(bundle.corpus_snapshot.entries) if bundle.corpus_snapshot is not None else 0),
     }
 
 
@@ -411,17 +377,9 @@ def _collect_synthesis_status(
     )
     evidence_summary = _summarize_evidence(repo_root)
 
-    if (
-        manifest_status["state"] == "valid"
-        and provenance_status["missing_for_manifest_count"] == 0
-        and not provenance_status["warnings"]
-    ):
+    if manifest_status["state"] == "valid" and provenance_status["missing_for_manifest_count"] == 0 and not provenance_status["warnings"]:
         generation_state = "promoted"
-    elif (
-        manifest_status["state"] in {"invalid", "partial"}
-        or provenance_status["missing_for_manifest_count"] > 0
-        or provenance_status["warnings"]
-    ):
+    elif manifest_status["state"] in {"invalid", "partial"} or provenance_status["missing_for_manifest_count"] > 0 or provenance_status["warnings"]:
         generation_state = "needs_attention"
     elif generated_inputs["total"] > 0:
         generation_state = "ready_for_validation"
@@ -515,9 +473,7 @@ def _collect_org_layer_status(repo_root: Path) -> dict[str, Any]:
     merged = None
     try:
         built_in = load_built_in_graph()
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=fragments, project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=fragments, project=None)
     except OrgDRGConflictError as exc:
         # The typed records go to ``collision_warnings``; the subset that made
         # the merge REFUSE also goes to ``errors``. A conflict resolved by

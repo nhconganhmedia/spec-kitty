@@ -114,8 +114,7 @@ def _parse_structured_rows(
                 {
                     "diagnostic_code": str(MissionReviewDiagnostic.ISSUE_MATRIX_VERDICT_UNKNOWN),
                     "message": (
-                        f"Row for issue '{issue_ref}': verdict '{entry.get('verdict')}' is not "
-                        f"in the allowed set: {[v.value for v in IssueMatrixVerdict]}"
+                        f"Row for issue '{issue_ref}': verdict '{entry.get('verdict')}' is not in the allowed set: {[v.value for v in IssueMatrixVerdict]}"
                     ),
                 }
             )
@@ -126,9 +125,7 @@ def _parse_structured_rows(
             if not has_handle:
                 diagnostics.append(
                     {
-                        "diagnostic_code": str(
-                            MissionReviewDiagnostic.ISSUE_MATRIX_DEFERRED_WITHOUT_HANDLE
-                        ),
+                        "diagnostic_code": str(MissionReviewDiagnostic.ISSUE_MATRIX_DEFERRED_WITHOUT_HANDLE),
                         "message": (
                             f"Row for issue '{issue_ref}': verdict is 'deferred-with-followup' "
                             f"but evidence_ref contains no follow-up handle "
@@ -287,14 +284,10 @@ def _iter_primary_mission_dirs(repo_root: Path) -> list[Path]:
     specs_root = repo_root / KITTY_SPECS_DIR
     if not specs_root.is_dir():
         return []
-    return sorted(
-        p for p in specs_root.iterdir() if p.is_dir() and (p / "meta.json").exists()
-    )
+    return sorted(p for p in specs_root.iterdir() if p.is_dir() and (p / "meta.json").exists())
 
 
-def _migrate_one_mission(
-    feature_dir: Path, *, repo_root: Path, policy: ProtectionPolicyLike
-) -> tuple[str, bool]:
+def _migrate_one_mission(feature_dir: Path, *, repo_root: Path, policy: ProtectionPolicyLike) -> tuple[str, bool]:
     """Attempt migration for a single mission dir; returns ``(mission_slug, migrated)``."""
     mission_slug = feature_dir.name
     result = migrate_issue_matrix_to_json(

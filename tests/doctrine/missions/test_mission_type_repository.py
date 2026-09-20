@@ -61,9 +61,7 @@ class TestMissionTypeModel:
             )
 
     def test_duplicate_action_sequence_raises(self) -> None:
-        with pytest.raises(
-            ValidationError, match="action_sequence must contain unique step IDs"
-        ):
+        with pytest.raises(ValidationError, match="action_sequence must contain unique step IDs"):
             MissionType(
                 id="my-type",
                 display_name="My Type",
@@ -133,9 +131,7 @@ def _builtin_repo() -> MissionTypeRepository:
     ``src/charter/offering/missions/mission_types`` to
     ``packs/built-in/missions/mission_types``.
     """
-    mission_types_dir = (
-        Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "missions" / "mission_types"
-    )
+    mission_types_dir = Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "missions" / "mission_types"
     return MissionTypeRepository(mission_types_dir)
 
 
@@ -210,11 +206,7 @@ class TestBuiltinYamlFiles:
         from charter.offering.missions.mission_step_repository import MissionStepRepository
         from charter.offering.missions.step_projection import project_template_set
 
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type("software-dev", pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type("software-dev", pack_context=None).values())
         assert project_template_set(steps) == {
             "spec": "spec-template.md",
             "plan": "plan-template.md",
@@ -228,11 +220,7 @@ class TestBuiltinYamlFiles:
         from charter.offering.missions.mission_step_repository import MissionStepRepository
         from charter.offering.missions.step_projection import project_template_set
 
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type("research", pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type("research", pack_context=None).values())
         assert project_template_set(steps) == {
             "spec": "research-spec-template.md",
             "plan": "research-plan-template.md",
@@ -249,11 +237,7 @@ class TestBuiltinYamlFiles:
         from charter.offering.missions.mission_step_repository import MissionStepRepository
         from charter.offering.missions.step_projection import project_template_set
 
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type("documentation", pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type("documentation", pack_context=None).values())
         assert project_template_set(steps) == {
             "spec": "documentation-spec-template.md",
             "plan": "documentation-plan-template.md",
@@ -270,11 +254,7 @@ class TestBuiltinYamlFiles:
         from charter.offering.missions.mission_step_repository import MissionStepRepository
         from charter.offering.missions.step_projection import project_template_set
 
-        steps = list(
-            MissionStepRepository.default()
-            .resolve_all_for_mission_type("plan", pack_context=None)
-            .values()
-        )
+        steps = list(MissionStepRepository.default().resolve_all_for_mission_type("plan", pack_context=None).values())
         assert project_template_set(steps) == {
             "spec": "plan-spec-skeleton.md",
             "plan": "plan-plan-skeleton.md",
@@ -327,12 +307,7 @@ class TestMissionTypeRepositoryYamlLoading:
         self._write_yaml(
             tmp_path,
             "my-mission.yaml",
-            "schema_version: 1\n"
-            "id: my-mission\n"
-            "display_name: My Mission\n"
-            "action_sequence:\n"
-            "  - step-one\n"
-            "  - step-two\n",
+            "schema_version: 1\nid: my-mission\ndisplay_name: My Mission\naction_sequence:\n  - step-one\n  - step-two\n",
         )
         repo = MissionTypeRepository(tmp_path)
         mt = repo.get("my-mission")
@@ -343,11 +318,7 @@ class TestMissionTypeRepositoryYamlLoading:
         self._write_yaml(
             tmp_path,
             "correct-name.yaml",
-            "schema_version: 1\n"
-            "id: wrong-name\n"
-            "display_name: Wrong\n"
-            "action_sequence:\n"
-            "  - step-one\n",
+            "schema_version: 1\nid: wrong-name\ndisplay_name: Wrong\naction_sequence:\n  - step-one\n",
         )
         with pytest.raises(ValueError, match="does not match filename stem"):
             MissionTypeRepository(tmp_path)
@@ -361,10 +332,7 @@ class TestMissionTypeRepositoryYamlLoading:
         self._write_yaml(
             tmp_path,
             "bad-model.yaml",
-            "schema_version: 1\n"
-            "id: bad-model\n"
-            "display_name: Bad\n"
-            "action_sequence: []\n",  # empty — fails non-empty validator
+            "schema_version: 1\nid: bad-model\ndisplay_name: Bad\naction_sequence: []\n",  # empty — fails non-empty validator
         )
         with pytest.raises((ValueError, Exception)):
             MissionTypeRepository(tmp_path)
@@ -374,8 +342,7 @@ class TestMissionTypeRepositoryYamlLoading:
             self._write_yaml(
                 tmp_path,
                 f"{slug}.yaml",
-                f"schema_version: 1\nid: {slug}\ndisplay_name: {slug}\n"
-                f"action_sequence:\n  - {step}\n",
+                f"schema_version: 1\nid: {slug}\ndisplay_name: {slug}\naction_sequence:\n  - {step}\n",
             )
         repo = MissionTypeRepository(tmp_path)
         assert set(repo.ids()) == {"alpha-type", "beta-type"}
@@ -405,13 +372,7 @@ class TestTemplateSetAuthoringFailsLoudly:
         self._write_yaml(
             tmp_path,
             "rogue-type.yaml",
-            "schema_version: 1\n"
-            "id: rogue-type\n"
-            "display_name: Rogue\n"
-            "action_sequence:\n"
-            "  - step-one\n"
-            "template_set:\n"
-            "  spec: spec-template.md\n",
+            "schema_version: 1\nid: rogue-type\ndisplay_name: Rogue\naction_sequence:\n  - step-one\ntemplate_set:\n  spec: spec-template.md\n",
         )
         with pytest.raises(ValidationError, match="template_set"):
             MissionTypeRepository(tmp_path)
@@ -422,9 +383,7 @@ class TestTemplateSetAuthoringFailsLoudly:
 
 def _builtin_mission_types_dir() -> Path:
     """Return the doctrine-bundled mission_types dir (mirrors ``_builtin_repo``)."""
-    return (
-        Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "missions" / "mission_types"
-    )
+    return Path(__file__).parent.parent.parent.parent / "packs" / "built-in" / "missions" / "mission_types"
 
 
 @dataclass(frozen=True)
@@ -449,10 +408,7 @@ def _write_layered_yaml(directory: Path, filename: str, content: str) -> Path:
 
 def _mission_type_yaml(mission_type_id: str, *, action_sequence: list[str]) -> str:
     steps = "\n".join(f"  - {step}" for step in action_sequence)
-    return (
-        f"schema_version: 1\nid: {mission_type_id}\ndisplay_name: "
-        f"{mission_type_id.title()}\naction_sequence:\n{steps}\n"
-    )
+    return f"schema_version: 1\nid: {mission_type_id}\ndisplay_name: {mission_type_id.title()}\naction_sequence:\n{steps}\n"
 
 
 def _mission_type_yaml_steps_only(mission_type_id: str) -> str:
@@ -469,10 +425,7 @@ def _mission_type_yaml_steps_only(mission_type_id: str) -> str:
     file that depend on that exact behavior, so this is a new sibling
     helper rather than a repurposing of it.
     """
-    return (
-        f"schema_version: 1\nid: {mission_type_id}\ndisplay_name: "
-        f"{mission_type_id.title()}\n"
-    )
+    return f"schema_version: 1\nid: {mission_type_id}\ndisplay_name: {mission_type_id.title()}\n"
 
 
 def _write_step_with_sequence(
@@ -553,30 +506,22 @@ class TestLayeredProjectionThreadsPackContext:
         )
         step_root = org_root / "mission-steps"
         for index, step_id in enumerate(_STEPS_ONLY_FIXTURE_STEP_IDS):
-            _write_step_with_sequence(
-                step_root, mission_type_id, step_id, sequence_index=index
-            )
+            _write_step_with_sequence(step_root, mission_type_id, step_id, sequence_index=index)
 
-    def test_org_tier_steps_only_projection_resolves_non_empty_sequence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_tier_steps_only_projection_resolves_non_empty_sequence(self, tmp_path: Path) -> None:
         """Direct assertion against :func:`resolve_layered_mission_types` --
         the low-level function at the bottom of the four-function chain."""
         org_root = tmp_path / "org"
         self._write_steps_only_org_fixture(org_root, "qa")
 
         dirs = (tmp_path / "builtin" / "mission_types",)
-        ctx = _StubPackContext(
-            pack_roots=(dirs[0].parent, org_root), repo_root=tmp_path / "project"
-        )
+        ctx = _StubPackContext(pack_roots=(dirs[0].parent, org_root), repo_root=tmp_path / "project")
 
         result = resolve_layered_mission_types(dirs, ctx)
 
         assert result["qa"].action_sequence == list(_STEPS_ONLY_FIXTURE_STEP_IDS)
 
-    def test_governed_entry_point_does_not_raise_for_steps_only_org_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_governed_entry_point_does_not_raise_for_steps_only_org_type(self, tmp_path: Path) -> None:
         """Also closes Acceptance Scenario 2: the *governed* seam
         (``resolve_mission_type_context``) must succeed for a steps-only
         org type, not raise ``MissionTypeEmptyActionSequenceError``.
@@ -680,9 +625,7 @@ class TestLayeredMissionTypesCacheKeyAndClear:
         assert second is first
         assert second["custom"].action_sequence == ["step-a"]
 
-    def test_two_projects_same_process_return_distinct_correct_results(
-        self, tmp_path: Path
-    ) -> None:
+    def test_two_projects_same_process_return_distinct_correct_results(self, tmp_path: Path) -> None:
         """NFR-001: same-process, two-project regression -- the mission's
         own binding requirement for the new factory's cache key."""
         builtin_dirs = (tmp_path / "builtin" / "mission_types",)
@@ -818,9 +761,7 @@ class TestLayeredMissionTypesMalformedYamlLoudFail:
         bad_file.write_text("key: [unterminated\n  - a\n", encoding="utf-8")
 
         builtin_dirs = (tmp_path / "builtin" / "mission_types",)
-        ctx = _StubPackContext(
-            pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project"
-        )
+        ctx = _StubPackContext(pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project")
 
         with pytest.raises(Exception) as exc_info:  # noqa: PT011 - message content is the assertion
             resolve_layered_mission_types(builtin_dirs, ctx)
@@ -851,9 +792,7 @@ class TestLayeredMissionTypesMalformedYamlLoudFail:
         bad_file.write_text("- step-one\n- step-two\n", encoding="utf-8")
 
         builtin_dirs = (tmp_path / "builtin" / "mission_types",)
-        ctx = _StubPackContext(
-            pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project"
-        )
+        ctx = _StubPackContext(pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project")
 
         with pytest.raises(ValueError, match="Expected a YAML mapping"):
             resolve_layered_mission_types(builtin_dirs, ctx)
@@ -869,9 +808,7 @@ class TestLayeredMissionTypesMalformedYamlLoudFail:
         )
 
         builtin_dirs = (tmp_path / "builtin" / "mission_types",)
-        ctx = _StubPackContext(
-            pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project"
-        )
+        ctx = _StubPackContext(pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project")
 
         with pytest.raises(ValueError, match="does not match filename stem"):
             resolve_layered_mission_types(builtin_dirs, ctx)
@@ -903,22 +840,16 @@ class TestLayeredMissionTypesUnreadableDirectoryLoudFail:
     def teardown_method(self) -> None:
         resolve_layered_mission_types.cache_clear()
 
-    def test_unreadable_org_layer_directory_raises_naming_the_directory(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unreadable_org_layer_directory_raises_naming_the_directory(self, tmp_path: Path) -> None:
         if os.geteuid() == 0:
             pytest.skip("root bypasses directory permission bits; chmod 000 is a no-op")
 
         org_root = tmp_path / "org"
         mt_dir = org_root / "mission_types"
-        _write_layered_yaml(
-            mt_dir, "custom.yaml", _mission_type_yaml("custom", action_sequence=["step-a"])
-        )
+        _write_layered_yaml(mt_dir, "custom.yaml", _mission_type_yaml("custom", action_sequence=["step-a"]))
 
         builtin_dirs = (tmp_path / "builtin" / "mission_types",)
-        ctx = _StubPackContext(
-            pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project"
-        )
+        ctx = _StubPackContext(pack_roots=(builtin_dirs[0].parent, org_root), repo_root=tmp_path / "project")
 
         os.chmod(mt_dir, 0o000)
         try:

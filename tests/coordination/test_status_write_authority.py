@@ -43,9 +43,7 @@ def _git_show(repo_root: Path, ref: str, rel_path: str) -> str:
     return result.stdout if result.returncode == 0 else ""
 
 
-def _claim_request(
-    feature_dir: Path, repo_root: Path, mission_slug: str
-) -> TransitionRequest:
+def _claim_request(feature_dir: Path, repo_root: Path, mission_slug: str) -> TransitionRequest:
     return TransitionRequest(
         feature_dir=feature_dir,
         mission_slug=mission_slug,
@@ -64,9 +62,7 @@ def _claim_request(
 
 
 @pytest.mark.git_repo
-def test_fallback_commits_status_to_coord_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fallback_commits_status_to_coord_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-004 row 7: a coord-topology fallback write lands on the coord branch."""
     repo_root, mission_slug = _build_mission_repo(
         tmp_path,
@@ -98,9 +94,7 @@ def test_fallback_commits_status_to_coord_worktree(
     assert str(event.to_lane) == str(Lane.CLAIMED)
     # The event is COMMITTED to the coord branch (not merely written to a
     # primary-uncommitted working copy).
-    committed_log = _git_show(
-        repo_root, coord_branch, f"kitty-specs/{mission_slug}/status.events.jsonl"
-    )
+    committed_log = _git_show(repo_root, coord_branch, f"kitty-specs/{mission_slug}/status.events.jsonl")
     assert "claimed" in committed_log, committed_log
     assert event.event_id in committed_log, committed_log
 
@@ -111,9 +105,7 @@ def test_fallback_commits_status_to_coord_worktree(
 
 
 @pytest.mark.git_repo
-def test_fallback_preserves_primary_for_flat_topology(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fallback_preserves_primary_for_flat_topology(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-004 row 8: a coord-LESS (flat) mission keeps the primary write path."""
     repo_root, mission_slug = _build_mission_repo(
         tmp_path,
@@ -146,9 +138,7 @@ def test_fallback_preserves_primary_for_flat_topology(
 
 
 @pytest.mark.git_repo
-def test_fallback_fails_loud_for_stored_coord_when_worktree_unresolvable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fallback_fails_loud_for_stored_coord_when_worktree_unresolvable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """US1 Edge Case (was silent-primary): a stored-COORD mission whose coord
     worktree genuinely cannot be materialized must FAIL LOUD, NOT degrade to a
     primary-uncommitted write that would strand the coord event log.
@@ -178,9 +168,7 @@ def test_fallback_fails_loud_for_stored_coord_when_worktree_unresolvable(
     # failure (``git worktree add`` exit 128 — the "repo root is not a work tree"
     # class this fallback is reached under).
     def _boom(*_a: object, **_k: object) -> Path:
-        raise subprocess.CalledProcessError(
-            128, ["git", "worktree", "add"], stderr="fatal: not a working tree"
-        )
+        raise subprocess.CalledProcessError(128, ["git", "worktree", "add"], stderr="fatal: not a working tree")
 
     monkeypatch.setattr(CoordinationWorkspace, "resolve", staticmethod(_boom))
 
@@ -202,9 +190,7 @@ def test_fallback_fails_loud_for_stored_coord_when_worktree_unresolvable(
 
 
 @pytest.mark.git_repo
-def test_fallback_routes_coord_from_stored_topology_not_surface(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fallback_routes_coord_from_stored_topology_not_surface(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """SC-001 (remediation #1): the coord-vs-primary SHAPE is decided by the
     STORED-topology SSOT, NOT a ``coordination_branch is not None`` surface test.
 
@@ -240,9 +226,7 @@ def test_fallback_routes_coord_from_stored_topology_not_surface(
 
 
 @pytest.mark.git_repo
-def test_fallback_routes_coord_for_stored_lanes_with_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fallback_routes_coord_for_stored_lanes_with_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A stored ``lanes_with_coord`` topology routes through coordination — the
     coord worktree is targeted, not primary (``routes_through_coordination`` maps
     both ``COORD`` and ``LANES_WITH_COORD`` to the coordination surface).
@@ -275,9 +259,7 @@ def test_fallback_routes_coord_for_stored_lanes_with_coord(
 
 
 @pytest.mark.git_repo
-def test_coord_fallback_commit_failure_rolls_back_event(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coord_fallback_commit_failure_rolls_back_event(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Remediation #4: the coord fallback arm is rollback-symmetric — if the coord
     commit fails, the just-emitted event is truncated back rather than left
     stranded uncommitted on the coord worktree.
@@ -300,9 +282,7 @@ def test_coord_fallback_commit_failure_rolls_back_event(
     # identity, never recompute via ``derive_mission_id``.
     mission_dirname = st._transaction_dir_name(mission_slug, identity.mid8)
     coord_worktree = CoordinationWorkspace.worktree_path(repo_root, mission_slug, identity.mid8)
-    coord_events = (
-        coord_worktree / "kitty-specs" / mission_dirname / "status.events.jsonl"
-    )
+    coord_events = coord_worktree / "kitty-specs" / mission_dirname / "status.events.jsonl"
     before = coord_events.read_bytes() if coord_events.exists() else b""
 
     def _commit_boom(**_k: object) -> None:

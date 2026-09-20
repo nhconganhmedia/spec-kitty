@@ -46,11 +46,7 @@ app = typer.Typer(
 )
 
 # Reverse mapping: key to (dir, subdir)
-KEY_TO_AGENT_DIR = {
-    AGENT_DIR_TO_KEY[agent_dir]: (agent_dir, subdir)
-    for agent_dir, subdir in CompleteLaneMigration.AGENT_DIRS
-    if agent_dir in AGENT_DIR_TO_KEY
-}
+KEY_TO_AGENT_DIR = {AGENT_DIR_TO_KEY[agent_dir]: (agent_dir, subdir) for agent_dir, subdir in CompleteLaneMigration.AGENT_DIRS if agent_dir in AGENT_DIR_TO_KEY}
 #: Derived from the single roster authority (#1941); no standalone literal
 #: tool-universe lives here. Patching ``_agent_roster.SUPPORTED_AGENTS`` and
 #: reloading this module flows straight through to ``SKILL_ONLY_AGENTS`` and the
@@ -173,10 +169,7 @@ def _register_skill_agent(
         installed = len(report.added) + len(report.reused_shared)
         if update_config:
             config.available.append(agent_key)
-        console.print(
-            f"[green]✓[/green] Registered {agent_key} "
-            f"({installed} command skills in .agents/skills/)"
-        )
+        console.print(f"[green]✓[/green] Registered {agent_key} ({installed} command skills in .agents/skills/)")
         return True, None
     except Exception as exc:
         return False, f"Failed to install {agent_key} skills: {exc}"
@@ -186,10 +179,7 @@ def _register_global_command_agent(config: AgentConfig, agent_key: str) -> None:
     """Register a slash-command agent whose command files are global."""
     global_dir = get_global_command_dir(agent_key)
     config.available.append(agent_key)
-    console.print(
-        f"[green]✓[/green] Registered {agent_key} "
-        f"(global commands at {_display_path(global_dir)})"
-    )
+    console.print(f"[green]✓[/green] Registered {agent_key} (global commands at {_display_path(global_dir)})")
 
 
 def _create_project_agent_dir(repo_root: Path, config: AgentConfig, agent_key: str) -> tuple[bool, str | None]:
@@ -223,11 +213,7 @@ def _remove_orphaned_agent_dirs(repo_root: Path, config: AgentConfig) -> bool:
     changes_made = False
     all_agent_keys = set(AGENT_DIR_TO_KEY.values())
     orphaned = [
-        key
-        for key in all_agent_keys
-        if key not in config.available
-        and (surface := _project_agent_surface(repo_root, key)) is not None
-        and surface[1].exists()
+        key for key in all_agent_keys if key not in config.available and (surface := _project_agent_surface(repo_root, key)) is not None and surface[1].exists()
     ]
 
     for agent_key in orphaned:
@@ -253,13 +239,9 @@ def _check_or_create_configured_agent_dirs(repo_root: Path, config: AgentConfig)
         if agent_key in GLOBAL_COMMAND_AGENTS:
             global_dir = get_global_command_dir(agent_key)
             if global_dir.exists():
-                console.print(
-                    f"  [green]✓[/green] Global commands present for {agent_key} at {_display_path(global_dir)}"
-                )
+                console.print(f"  [green]✓[/green] Global commands present for {agent_key} at {_display_path(global_dir)}")
             else:
-                console.print(
-                    f"  [yellow]⚠[/yellow] Global commands missing for {agent_key} at {_display_path(global_dir)}"
-                )
+                console.print(f"  [yellow]⚠[/yellow] Global commands missing for {agent_key} at {_display_path(global_dir)}")
             continue
 
         if agent_key in SKILL_ONLY_AGENTS:
@@ -325,9 +307,7 @@ def list_agents():
 
     # Resolve install state through the surface contract (WP07): the plan is the
     # source of truth for "is this tool's managed surface present?".
-    presence = SurfacePresenceIndex.build(
-        repo_root, config.available, global_command_dir=get_global_command_dir
-    )
+    presence = SurfacePresenceIndex.build(repo_root, config.available, global_command_dir=get_global_command_dir)
 
     # Display configured agents
     console.print("[cyan]Configured agents:[/cyan]")
@@ -465,6 +445,7 @@ def remove_agents(
     for agent_key in agents:
         if agent_key in SKILL_ONLY_AGENTS:
             from specify_cli.skills import command_installer
+
             try:
                 report = command_installer.remove(repo_root, agent_key)
                 removed.append(agent_key)
@@ -530,9 +511,7 @@ def agent_status():
 
     # Resolve install state through the surface contract (WP07) for every known
     # tool, so the status table no longer recomputes existence per agent.
-    presence = SurfacePresenceIndex.build(
-        repo_root, all_agent_keys, global_command_dir=get_global_command_dir
-    )
+    presence = SurfacePresenceIndex.build(repo_root, all_agent_keys, global_command_dir=get_global_command_dir)
 
     for agent_key in all_agent_keys:
         _, location, exists_bool = _agent_location(repo_root, agent_key, presence)
@@ -543,11 +522,7 @@ def agent_status():
             status = "[green]OK[/green]"
         elif agent_key in config.available and not exists_bool:
             status = "[yellow]Missing[/yellow]"
-        elif (
-            agent_key not in config.available
-            and (surface := _project_agent_surface(repo_root, agent_key)) is not None
-            and surface[1].exists()
-        ):
+        elif agent_key not in config.available and (surface := _project_agent_surface(repo_root, agent_key)) is not None and surface[1].exists():
             status = "[red]Orphaned[/red]"
         else:
             status = "[dim]Not used[/dim]"
@@ -558,18 +533,11 @@ def agent_status():
 
     # Summary
     orphaned = [
-        key
-        for key in all_agent_keys
-        if key not in config.available
-        and (surface := _project_agent_surface(repo_root, key)) is not None
-        and surface[1].exists()
+        key for key in all_agent_keys if key not in config.available and (surface := _project_agent_surface(repo_root, key)) is not None and surface[1].exists()
     ]
 
     if orphaned:
-        console.print(
-            f"\n[yellow]⚠ {len(orphaned)} orphaned directories found[/yellow] "
-            f"(present but not configured)"
-        )
+        console.print(f"\n[yellow]⚠ {len(orphaned)} orphaned directories found[/yellow] (present but not configured)")
         console.print("Run 'spec-kitty agent config sync --remove-orphaned' to clean up")
 
 
@@ -690,10 +658,7 @@ def _load_cursor_hooks(path: Path) -> dict | None:
     try:
         loaded = json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as exc:
-        console.print(
-            f"  [yellow]![/yellow] Cursor hooks file is unreadable ({exc}); "
-            "leaving it untouched. Fix or remove it, then re-run."
-        )
+        console.print(f"  [yellow]![/yellow] Cursor hooks file is unreadable ({exc}); leaving it untouched. Fix or remove it, then re-run.")
         return None
     return loaded if isinstance(loaded, dict) else {"version": 1, "hooks": {}}
 

@@ -124,9 +124,7 @@ def canonicalize_feature_dir(feature_dir: Path) -> Path:
             return feature_dir
     except WorktreeRegistryUnavailable:
         for candidate in (feature_dir, *feature_dir.parents):
-            if candidate.parent.name == ".worktrees" and candidate.name.endswith(
-                "-coord"
-            ):
+            if candidate.parent.name == ".worktrees" and candidate.name.endswith("-coord"):
                 return feature_dir
 
     try:

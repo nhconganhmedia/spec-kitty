@@ -122,9 +122,7 @@ def _inject_legacy_overlay_content(tmp_path: Path) -> tuple[Path, Path]:
     doctrine_dir = tmp_path / ".kittify" / "doctrine"
     graph_path = doctrine_dir / "graph.yaml"
     graph = _load_graph(graph_path)
-    graph["nodes"].append(
-        {"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"}
-    )
+    graph["nodes"].append({"urn": _LEGACY_URN, "kind": "tactic", "label": "Legacy Preference Order Tactic (3270)"})
     graph.setdefault("edges", []).append(
         {
             "source": _LEGACY_URN,
@@ -221,9 +219,7 @@ def test_manifest_version_skew_is_reconciled_on_next_synthesize(
 
     # Strip the entry (simulate skew) — leave the artifact file + graph node
     # in place untouched.
-    skewed = manifest.model_copy(
-        update={"artifacts": [e for e in manifest.artifacts if e is not dropped]}
-    )
+    skewed = manifest.model_copy(update={"artifacts": [e for e in manifest.artifacts if e is not dropped]})
     manifest_path.write_text(
         canonical_yaml(skewed.model_dump(mode="python")).decode("utf-8"),
         encoding="utf-8",
@@ -239,16 +235,9 @@ def test_manifest_version_skew_is_reconciled_on_next_synthesize(
     synthesize(req_b, adapter=fixture_adapter, repo_root=tmp_path)
 
     healed = load_manifest(manifest_path)
-    healed_entry = next(
-        (e for e in healed.artifacts if e.kind == dropped.kind and e.slug == dropped.slug), None
-    )
-    assert healed_entry is not None, (
-        f"manifest version-skew was not reconciled: {dropped.kind}:{dropped.slug} "
-        "missing from the manifest after synthesize()"
-    )
-    assert healed_entry.content_hash == dropped.content_hash, (
-        "reconciled entry's content_hash must match the unchanged artifact body"
-    )
+    healed_entry = next((e for e in healed.artifacts if e.kind == dropped.kind and e.slug == dropped.slug), None)
+    assert healed_entry is not None, f"manifest version-skew was not reconciled: {dropped.kind}:{dropped.slug} missing from the manifest after synthesize()"
+    assert healed_entry.content_hash == dropped.content_hash, "reconciled entry's content_hash must match the unchanged artifact body"
 
 
 # ---------------------------------------------------------------------------
@@ -294,12 +283,10 @@ def test_delta_shape_reports_retained_and_removable_for_superset_overlay(
     removable_urns = {ref.urn for ref in delta.removable}
 
     assert _LEGACY_URN in retained_urns, f"expected {_LEGACY_URN!r} in delta.retained, got {retained_urns}"
-    assert _LEGACY_URN in removable_urns, (
-        f"expected {_LEGACY_URN!r} in delta.removable (preserve-mode candidate), got {removable_urns}"
+    assert _LEGACY_URN in removable_urns, f"expected {_LEGACY_URN!r} in delta.removable (preserve-mode candidate), got {removable_urns}"
+    assert any(ref.ref_kind == "edge" and ref.urn.startswith(_LEGACY_URN) for ref in delta.retained), (
+        "expected the legacy tactic's applies-edge in delta.retained too (FR-002 atomicity)"
     )
-    assert any(
-        ref.ref_kind == "edge" and ref.urn.startswith(_LEGACY_URN) for ref in delta.retained
-    ), "expected the legacy tactic's applies-edge in delta.retained too (FR-002 atomicity)"
 
 
 # ---------------------------------------------------------------------------
@@ -353,9 +340,7 @@ def test_zero_emit_reconciliation_does_not_unlink_preserved_graph(
             "generated_by": "test",
         }
     )
-    empty_fresh_overlay = DRGGraph(
-        schema_version="1.0", generated_at="1970-01-01T00:00:00+00:00", generated_by="test", nodes=[], edges=[]
-    )
+    empty_fresh_overlay = DRGGraph(schema_version="1.0", generated_at="1970-01-01T00:00:00+00:00", generated_by="test", nodes=[], edges=[])
 
     outcome = reconcile_synthesis(
         repo_root=tmp_path,
@@ -371,13 +356,8 @@ def test_zero_emit_reconciliation_does_not_unlink_preserved_graph(
 
     apply_post_condition(tmp_path, has_project_graph=bool(outcome.merged_overlay.nodes))
 
-    assert graph_path.exists(), (
-        "BLOCKER #1 regression: apply_post_condition unlinked the preserved "
-        "graph.yaml on a zero-emit reconciliation run"
-    )
-    assert load_manifest(manifest_path).built_in_only is False, (
-        "BLOCKER #1 regression: manifest flipped to built_in_only=True despite preserved content"
-    )
+    assert graph_path.exists(), "BLOCKER #1 regression: apply_post_condition unlinked the preserved graph.yaml on a zero-emit reconciliation run"
+    assert load_manifest(manifest_path).built_in_only is False, "BLOCKER #1 regression: manifest flipped to built_in_only=True despite preserved content"
 
 
 # ---------------------------------------------------------------------------
@@ -458,9 +438,7 @@ def test_dry_run_mode_computes_delta_without_writing(
     assert result.reconciliation is not None
     assert _LEGACY_URN in {ref.urn for ref in result.reconciliation.retained}
     assert (tmp_path / MANIFEST_PATH).read_bytes() == manifest_before, "dry_run must not write the manifest"
-    assert (tmp_path / ".kittify" / "doctrine" / "graph.yaml").read_bytes() == graph_before, (
-        "dry_run must not write graph.yaml"
-    )
+    assert (tmp_path / ".kittify" / "doctrine" / "graph.yaml").read_bytes() == graph_before, "dry_run must not write graph.yaml"
 
 
 def test_prune_mode_excises_removable_content(
@@ -552,9 +530,7 @@ def test_has_backed_removals_true_when_any_removable_is_backed() -> None:
 
 
 def test_has_backed_removals_false_when_all_orphaned() -> None:
-    delta = ReconciliationDelta(
-        removable=(NodeOrEdgeRef(ref_kind="node", urn="tactic:orphan", backing_artifact=None),)
-    )
+    delta = ReconciliationDelta(removable=(NodeOrEdgeRef(ref_kind="node", urn="tactic:orphan", backing_artifact=None),))
     assert delta.has_backed_removals is False
 
 
@@ -627,12 +603,18 @@ def test_apply_prune_excises_removable_nodes_edges_and_manifest_entries() -> Non
             manifest_hash="0" * 64,
             artifacts=[
                 ManifestArtifactEntry(
-                    kind="tactic", slug="keep", path=".kittify/doctrine/tactic/keep.tactic.yaml",
-                    provenance_path=".kittify/charter/provenance/tactic-keep.yaml", content_hash="a" * 64,
+                    kind="tactic",
+                    slug="keep",
+                    path=".kittify/doctrine/tactic/keep.tactic.yaml",
+                    provenance_path=".kittify/charter/provenance/tactic-keep.yaml",
+                    content_hash="a" * 64,
                 ),
                 ManifestArtifactEntry(
-                    kind="tactic", slug="prune-me", path=".kittify/doctrine/tactic/prune-me.tactic.yaml",
-                    provenance_path=".kittify/charter/provenance/tactic-prune-me.yaml", content_hash="b" * 64,
+                    kind="tactic",
+                    slug="prune-me",
+                    path=".kittify/doctrine/tactic/prune-me.tactic.yaml",
+                    provenance_path=".kittify/charter/provenance/tactic-prune-me.yaml",
+                    content_hash="b" * 64,
                 ),
             ],
         )
@@ -656,7 +638,6 @@ def test_apply_prune_excises_removable_nodes_edges_and_manifest_entries() -> Non
     assert pruned_manifest_keys == {("tactic", "keep")}
     # apply_prune preserves the delta as-is (WP03 owns reporting the CLI diff).
     assert pruned.delta is delta
-
 
 
 # ---------------------------------------------------------------------------

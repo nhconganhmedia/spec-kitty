@@ -261,24 +261,14 @@ def _locate_wp_file(feature_dir: Path, wp_id: str) -> Path:
     """
     tasks_dir = feature_dir / "tasks"
     if not tasks_dir.exists():
-        raise SubtaskRosterResolutionError(
-            f"Cannot resolve subtask roster for {wp_id}: tasks directory is missing"
-        )
+        raise SubtaskRosterResolutionError(f"Cannot resolve subtask roster for {wp_id}: tasks directory is missing")
     pattern = re.compile(rf"^{re.escape(wp_id)}{_WP_FILE_SEP}", re.IGNORECASE)
-    matches = [
-        path
-        for path in tasks_dir.glob("*.md")
-        if path.name.lower() != "readme.md" and pattern.match(path.name)
-    ]
+    matches = [path for path in tasks_dir.glob("*.md") if path.name.lower() != "readme.md" and pattern.match(path.name)]
     if not matches:
-        raise SubtaskRosterResolutionError(
-            f"Cannot resolve subtask roster for {wp_id}: work-package file is missing"
-        )
+        raise SubtaskRosterResolutionError(f"Cannot resolve subtask roster for {wp_id}: work-package file is missing")
     if len(matches) > 1:
         paths = ", ".join(path.name for path in sorted(matches))
-        raise SubtaskRosterResolutionError(
-            f"Cannot resolve subtask roster for {wp_id}: ambiguous files ({paths})"
-        )
+        raise SubtaskRosterResolutionError(f"Cannot resolve subtask roster for {wp_id}: ambiguous files ({paths})")
     return matches[0]
 
 
@@ -309,16 +299,12 @@ def authored_subtask_roster(feature_dir: Path, wp_id: str) -> list[str]:
     try:
         frontmatter, _body = FrontmatterManager().read(wp_file)
         if "subtasks" not in frontmatter:
-            raise SubtaskRosterResolutionError(
-                f"Cannot resolve subtask roster for {wp_id}: subtasks key is missing"
-            )
+            raise SubtaskRosterResolutionError(f"Cannot resolve subtask roster for {wp_id}: subtasks key is missing")
         metadata = WPMetadata.model_validate(frontmatter, strict=False)
     except SubtaskRosterResolutionError:
         raise
     except Exception as exc:
-        raise SubtaskRosterResolutionError(
-            f"Cannot resolve subtask roster for {wp_id}: {wp_file.name} is unreadable"
-        ) from exc
+        raise SubtaskRosterResolutionError(f"Cannot resolve subtask roster for {wp_id}: {wp_file.name} is unreadable") from exc
     return normalize_authored_subtask_roster(metadata.subtasks)
 
 
@@ -334,9 +320,7 @@ def normalize_authored_subtask_roster(raw_values: Iterable[object]) -> list[str]
     return roster
 
 
-def unchecked_subtask_ids_from_snapshot(
-    feature_dir: Path, wp_id: str, roster: Iterable[str]
-) -> list[str]:
+def unchecked_subtask_ids_from_snapshot(feature_dir: Path, wp_id: str, roster: Iterable[str]) -> list[str]:
     """Return the *roster* ids whose reduced-snapshot ``subtasks`` status is not DONE.
 
     The single, fail-closed completion resolver the lane-transition guard blocks

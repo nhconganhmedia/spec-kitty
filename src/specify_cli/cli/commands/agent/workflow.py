@@ -223,9 +223,7 @@ def _enforce_bulk_edit_diff_compliance(
 
         from specify_cli.lanes.persistence import read_lanes_json as _read_lanes_json
 
-        _lane_state_dir = placement_seam(main_repo_root, mission_slug).read_dir(
-            MissionArtifactKind.LANE_STATE
-        )
+        _lane_state_dir = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.LANE_STATE)
         _lanes_manifest = _read_lanes_json(_lane_state_dir)
         _base_ref = _lanes_manifest.mission_branch if _lanes_manifest is not None else target_branch
     except Exception:
@@ -273,13 +271,15 @@ def _record_receipt(
     wp_id: str | None = None,
 ) -> None:
     """Record a single workflow commit receipt for the T029 summary."""
-    _WORKFLOW_COMMIT_RECEIPTS.append({
-        "destination_ref": destination_ref,
-        "message": message,
-        "outcome": outcome,  # "committed" or "refused"
-        "sha": sha,
-        "wp_id": wp_id,
-    })
+    _WORKFLOW_COMMIT_RECEIPTS.append(
+        {
+            "destination_ref": destination_ref,
+            "message": message,
+            "outcome": outcome,  # "committed" or "refused"
+            "sha": sha,
+            "wp_id": wp_id,
+        }
+    )
 
 
 def _mark_receipt_refused(*, commit_sha: str) -> None:
@@ -336,9 +336,7 @@ def _transaction_path_for(
     try:
         relative_path = source_path.relative_to(repo_root.resolve())
     except ValueError as exc:
-        raise ValueError(
-            f"Refusing to mirror path outside repo/worktree scope: {source_path}"
-        ) from exc
+        raise ValueError(f"Refusing to mirror path outside repo/worktree scope: {source_path}") from exc
     return worktree_root / relative_path
 
 
@@ -361,11 +359,7 @@ def _load_coord_branch_meta(feature_dir: Path) -> tuple[str | None, str | None, 
     mid = meta.get("mission_id") or None
     # Route the mission_id truncation through the canonical resolver (FR-001);
     # the isinstance/>= 8 guard keeps the ``else None`` fallback byte-identical.
-    mid8 = meta.get("mid8") or (
-        resolve_mid8(feature_dir.name, mission_id=mid)
-        if isinstance(mid, str) and len(mid) >= 8
-        else None
-    )
+    mid8 = meta.get("mid8") or (resolve_mid8(feature_dir.name, mission_id=mid) if isinstance(mid, str) and len(mid) >= 8 else None)
     return (coord, mid, mid8)
 
 
@@ -448,9 +442,7 @@ def _commit_via_coordination_transaction(
                     # branch's lane history — union-merge instead so existing
                     # coord events always survive.
                     if path.name == _STATUS_EVENTS_FILENAME and txn_path.exists():
-                        incoming = _merge_event_log_bytes(
-                            txn_path.read_bytes(), incoming
-                        )
+                        incoming = _merge_event_log_bytes(txn_path.read_bytes(), incoming)
                     txn.write_artifact(txn_path, incoming)
             # WP04/T015 (FR-004, #2861): the transactional status emit already
             # committed this lane transition to the coord worktree, so the
@@ -465,10 +457,7 @@ def _commit_via_coordination_transaction(
             "refused",
             wp_id=wp_id,
         )
-        print(
-            f"Error: Bookkeeping policy refused {operation}: "
-            f"{policy_exc.verdict.error_code}: {policy_exc.verdict.message}"
-        )
+        print(f"Error: Bookkeeping policy refused {operation}: {policy_exc.verdict.error_code}: {policy_exc.verdict.message}")
         raise typer.Exit(1) from policy_exc
 
     _record_receipt(
@@ -533,15 +522,9 @@ def _revert_coordination_commit(receipt: CommitReceipt) -> None:
         check=False,
     )
     if head_result.returncode != 0:
-        raise RuntimeError(
-            "could not inspect coordination worktree HEAD before rollback: "
-            f"{(head_result.stderr or head_result.stdout).strip()}"
-        )
+        raise RuntimeError(f"could not inspect coordination worktree HEAD before rollback: {(head_result.stderr or head_result.stdout).strip()}")
     if head_result.stdout.strip() != receipt.commit_sha:
-        raise RuntimeError(
-            "refusing to rollback lifecycle commit because coordination branch "
-            f"advanced from {receipt.commit_sha} to {head_result.stdout.strip()}"
-        )
+        raise RuntimeError(f"refusing to rollback lifecycle commit because coordination branch advanced from {receipt.commit_sha} to {head_result.stdout.strip()}")
 
     revert_result = subprocess.run(
         [
@@ -558,10 +541,7 @@ def _revert_coordination_commit(receipt: CommitReceipt) -> None:
         check=False,
     )
     if revert_result.returncode != 0:
-        raise RuntimeError(
-            "failed to rollback lifecycle coordination commit after lane sync "
-            f"refusal: {(revert_result.stderr or revert_result.stdout).strip()}"
-        )
+        raise RuntimeError(f"failed to rollback lifecycle coordination commit after lane sync refusal: {(revert_result.stderr or revert_result.stdout).strip()}")
 
 
 def _workflow_placement_seam(repo_root: Path, mission_slug: str) -> PlacementSeam:
@@ -583,9 +563,7 @@ def _workflow_placement_seam(repo_root: Path, mission_slug: str) -> PlacementSea
     return placement_seam(repo_root, mission_slug)
 
 
-def _resolve_workflow_placement(
-    *, repo_root: Path, mission_slug: str, kind: MissionArtifactKind
-) -> CommitTarget:
+def _resolve_workflow_placement(*, repo_root: Path, mission_slug: str, kind: MissionArtifactKind) -> CommitTarget:
     """Resolve the write :class:`CommitTarget` for ``kind`` via the placement seam.
 
     The SINGLE choke point every workflow.py lifecycle/status write site
@@ -602,9 +580,7 @@ def _resolve_workflow_placement(
     return _workflow_placement_seam(repo_root, mission_slug).write_target(kind)
 
 
-def _resolve_workflow_read_dir(
-    *, repo_root: Path, mission_slug: str, kind: MissionArtifactKind
-) -> Path:
+def _resolve_workflow_read_dir(*, repo_root: Path, mission_slug: str, kind: MissionArtifactKind) -> Path:
     """Resolve the read directory for ``kind`` via the placement seam (IC-04/T017).
 
     The sibling READ-side choke point to :func:`_resolve_workflow_placement`:
@@ -619,9 +595,7 @@ def _resolve_workflow_read_dir(
     return read_dir
 
 
-def _resolve_legacy_porcelain_root(
-    repo_root: Path, mission_slug: str | None, mid8: str | None
-) -> Path:
+def _resolve_legacy_porcelain_root(repo_root: Path, mission_slug: str | None, mid8: str | None) -> Path:
     """Return the git worktree root the legacy porcelain pre-check must run in.
 
     coord-commit-integrity WP01/T004 (FR-002(b), #2684). A status file that
@@ -756,19 +730,16 @@ def _print_commit_summary(*, command_name: str, json_output: bool = False) -> No
         return
     if json_output:
         import json as _json
+
         print(_json.dumps({"commits": list(_WORKFLOW_COMMIT_RECEIPTS)}))
         return
     print(f"[{command_name}] Commits recorded:")
     for receipt in _WORKFLOW_COMMIT_RECEIPTS:
         glyph = "[ok]" if receipt.get("outcome") == "committed" else "[refused]"
-        print(
-            f"  - {receipt['destination_ref']}  {receipt['message']}  {glyph}"
-        )
+        print(f"  - {receipt['destination_ref']}  {receipt['message']}  {glyph}")
 
 
-def _render_charter_context(
-    repo_root: Path, action: str, *, mission_type: str | None = None
-) -> str:
+def _render_charter_context(repo_root: Path, action: str, *, mission_type: str | None = None) -> str:
     """Render charter context for workflow prompts.
 
     WP11 (T062/B-8/FR-012): ``mission_type`` is forwarded so the action
@@ -776,9 +747,7 @@ def _render_charter_context(
     typeless (empty) bundle.
     """
     try:
-        context = build_charter_context(
-            repo_root, action=action, mark_loaded=True, mission_type=mission_type
-        )
+        context = build_charter_context(repo_root, action=action, mark_loaded=True, mission_type=mission_type)
         return context.text
     except Exception as exc:
         return f"Governance: unavailable ({exc})"
@@ -890,8 +859,6 @@ def _find_mission_slug(
     return raw_handle
 
 
-
-
 def _preview_claimable_wp_for_mission(repo_root: Path, mission_slug: str):
     """Return the shared claimable preview for *mission_slug*, if tasks exist.
 
@@ -923,8 +890,6 @@ def _preview_claimable_wp_for_mission(repo_root: Path, mission_slug: str):
         kind=MissionArtifactKind.STATUS_STATE,
     )
     return preview_claimable_wp(planning_dir, status_dir=status_dir)
-
-
 
 
 def _analysis_report_gate_dir(main_repo_root: Path, mission_slug: str) -> Path:
@@ -984,17 +949,11 @@ def _require_current_analysis_report(feature_dir: Path, repo_root: Path, mission
             "          rather than via record-analysis. The implement gate requires the persisted\n"
             "          outer-wrapper format (artifact_type: spec-kitty.analysis-report)."
         )
-        print(
-            "  Recovery: spec-kitty agent mission record-analysis "
-            f"--mission {mission_slug} --input-file {analysis_freshness.path}"
-        )
+        print(f"  Recovery: spec-kitty agent mission record-analysis --mission {mission_slug} --input-file {analysis_freshness.path}")
     elif analysis_freshness.missing:
         print(f"  Missing: {analysis_freshness.path}")
         print("  Run step 1: /spec-kitty.analyze")
-        print(
-            "  Run step 2: spec-kitty agent mission record-analysis "
-            f"--mission {mission_slug} --input-file -"
-        )
+        print(f"  Run step 2: spec-kitty agent mission record-analysis --mission {mission_slug} --input-file -")
     elif analysis_freshness.mismatches:
         print(f"  Reason: {analysis_freshness.reason}")
         print("  Stale inputs:")
@@ -1045,21 +1004,14 @@ def _read_op_started_event(invocation_id: str, repo_root: Path) -> OpStartedEven
             raise ValueError(f"Op record is empty for invocation_id={invocation_id!r}")
         event = parse_op_event(json.loads(lines[0]))
         if not isinstance(event, OpStartedEvent):
-            raise ValueError(
-                f"First Op record is not a started event for invocation_id={invocation_id!r}"
-            )
+            raise ValueError(f"First Op record is not a started event for invocation_id={invocation_id!r}")
         if event.invocation_id != invocation_id:
-            raise ValueError(
-                "Op record invocation_id "
-                f"{event.invocation_id!r} does not match requested {invocation_id!r}"
-            )
+            raise ValueError(f"Op record invocation_id {event.invocation_id!r} does not match requested {invocation_id!r}")
         return event
     except ValueError:
         raise
     except Exception as exc:
-        raise ValueError(
-            f"Could not read Op record for invocation_id={invocation_id!r}: {exc}"
-        ) from exc
+        raise ValueError(f"Could not read Op record for invocation_id={invocation_id!r}: {exc}") from exc
 
 
 def _validate_op_claim_correlation(
@@ -1074,20 +1026,11 @@ def _validate_op_claim_correlation(
     recorded_wp_id = getattr(event, "wp_id", None)
     recorded_action = getattr(event, "action", None)
     if mission_id is None or recorded_mission_id != mission_id:
-        raise ValueError(
-            "Dispatch Op mission identity does not match claim target: "
-            f"recorded={recorded_mission_id!r}, target={mission_id!r}"
-        )
+        raise ValueError(f"Dispatch Op mission identity does not match claim target: recorded={recorded_mission_id!r}, target={mission_id!r}")
     if wp_id is None or recorded_wp_id != wp_id:
-        raise ValueError(
-            "Dispatch Op work package does not match claim target: "
-            f"recorded={recorded_wp_id!r}, target={wp_id!r}"
-        )
+        raise ValueError(f"Dispatch Op work package does not match claim target: recorded={recorded_wp_id!r}, target={wp_id!r}")
     if action is None or recorded_action != action:
-        raise ValueError(
-            "Dispatch Op action does not match claim target: "
-            f"recorded={recorded_action!r}, target={action!r}"
-        )
+        raise ValueError(f"Dispatch Op action does not match claim target: recorded={recorded_action!r}, target={action!r}")
 
 
 def _resolved_profile_version(profile_id: str | None, repo_root: Path) -> str | None:
@@ -1107,14 +1050,10 @@ def _resolved_profile_version(profile_id: str | None, repo_root: Path) -> str | 
     try:
         from specify_cli.invocation.registry import ProfileRegistry
 
-        return str(
-            ProfileRegistry(repo_root).resolve_local(profile_id).schema_version
-        )
+        return str(ProfileRegistry(repo_root).resolve_local(profile_id).schema_version)
     except Exception as exc:
         raise ValueError(
-            f"Could not resolve --profile {profile_id!r}: {exc}. "
-            "Omit --profile to use the work package's own frontmatter "
-            "agent_profile instead."
+            f"Could not resolve --profile {profile_id!r}: {exc}. Omit --profile to use the work package's own frontmatter agent_profile instead."
         ) from exc
 
 
@@ -1136,9 +1075,7 @@ def _resolved_model_provider(model_id: str | None) -> str | None:
             raise ValueError("model is absent from the canonical routing catalog")
         return str(model.provider)
     except Exception as exc:
-        raise ValueError(
-            f"Could not resolve dispatched model {model_id!r}: {exc}"
-        ) from exc
+        raise ValueError(f"Could not resolve dispatched model {model_id!r}: {exc}") from exc
 
 
 def _resolve_dispatch_binding(
@@ -1179,22 +1116,13 @@ def _resolve_dispatch_binding(
         op_profile = event.profile_id
         op_model = event.model_id
         if profile is not None and profile != op_profile:
-            raise ValueError(
-                "Dispatch Op profile does not match --profile: "
-                f"recorded={op_profile!r}, supplied={profile!r}"
-            )
+            raise ValueError(f"Dispatch Op profile does not match --profile: recorded={op_profile!r}, supplied={profile!r}")
         if model is not None and model != op_model:
-            raise ValueError(
-                "Dispatch Op model does not match --model: "
-                f"recorded={op_model!r}, supplied={model!r}"
-            )
+            raise ValueError(f"Dispatch Op model does not match --model: recorded={op_model!r}, supplied={model!r}")
         resolved_profile = op_profile
         resolved_model = op_model
     elif model is not None:
-        raise ValueError(
-            "--model cannot be recorded as resolved actual without correlated "
-            "durable dispatch evidence; pass --invocation-id"
-        )
+        raise ValueError("--model cannot be recorded as resolved actual without correlated durable dispatch evidence; pass --invocation-id")
     return ResolvedBinding(
         agent_profile=resolved_profile,
         agent_profile_version=_resolved_profile_version(resolved_profile, repo_root),
@@ -1215,11 +1143,7 @@ def implement(
         bool,
         typer.Option(
             "--allow-sparse-checkout",
-            help=(
-                "Proceed even if legacy sparse-checkout state is detected. "
-                "Use of this override is logged. Does not bypass the commit-time "
-                "data-loss backstop."
-            ),
+            help=("Proceed even if legacy sparse-checkout state is detected. Use of this override is logged. Does not bypass the commit-time data-loss backstop."),
         ),
     ] = False,
     acknowledge_not_bulk_edit: Annotated[
@@ -1355,14 +1279,9 @@ def implement(
         # (WORK_PACKAGE_TASK) for coord-topology missions -- reuse the same
         # coord-aware resolver ``implement_claim_transition`` below consults.
         status_feature_dir = _canonical_status_feature_dir(main_repo_root, mission_slug)
-        ancestry = resolve_claim_ancestry_gate(
-            main_repo_root, mission_slug, status_feature_dir, normalized_wp_id, workspace_path
-        )
+        ancestry = resolve_claim_ancestry_gate(main_repo_root, mission_slug, status_feature_dir, normalized_wp_id, workspace_path)
         if not ancestry.ok:
-            print(
-                f"Error: cannot claim {normalized_wp_id}: ancestry could not be "
-                f"established after self-heal for: {', '.join(ancestry.missing_refs)}"
-            )
+            print(f"Error: cannot claim {normalized_wp_id}: ancestry could not be established after self-heal for: {', '.join(ancestry.missing_refs)}")
             raise typer.Exit(1)
 
         subtask_ids = [str(item) for item in wp_meta.subtasks if isinstance(item, str)]
@@ -1373,11 +1292,7 @@ def implement(
             profile=profile,
             invocation_id=invocation_id,
             repo_root=main_repo_root,
-            mission_id=(
-                _mission_id_for_claim(main_repo_root, mission_slug)
-                if invocation_id is not None
-                else None
-            ),
+            mission_id=(_mission_id_for_claim(main_repo_root, mission_slug) if invocation_id is not None else None),
             wp_id=normalized_wp_id,
             action="implement",
         )
@@ -1543,9 +1458,7 @@ def _resolve_review_context(
     ctx["mission_branch"] = mission_branch
 
     if workspace.resolution_kind == "repo_root":
-        return _executor.review_context_for_repo_root_workspace(
-            repo_root=repo_root, feature_dir=feature_dir, wp_id=wp_id, ctx=ctx
-        )
+        return _executor.review_context_for_repo_root_workspace(repo_root=repo_root, feature_dir=feature_dir, wp_id=wp_id, ctx=ctx)
 
     return _executor.review_context_for_worktree_branch(
         repo_root=repo_root,
@@ -1691,10 +1604,7 @@ def _prepare_review_workspace(
         result = subprocess.run(worktree_cmd, cwd=main_repo_root, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
 
         if result.returncode != 0:
-            print(
-                f"Error: could not create review workspace {workspace_path} for {wp_id}: "
-                f"`{' '.join(worktree_cmd)}` failed: {result.stderr.strip()}"
-            )
+            print(f"Error: could not create review workspace {workspace_path} for {wp_id}: `{' '.join(worktree_cmd)}` failed: {result.stderr.strip()}")
             raise typer.Exit(1)
 
         print(f"✓ Created workspace: {workspace_path}")
@@ -1795,11 +1705,7 @@ def review(
             profile=profile,
             invocation_id=invocation_id,
             repo_root=main_repo_root,
-            mission_id=(
-                _mission_id_for_claim(main_repo_root, mission_slug)
-                if invocation_id is not None
-                else None
-            ),
+            mission_id=(_mission_id_for_claim(main_repo_root, mission_slug) if invocation_id is not None else None),
             wp_id=normalized_wp_id,
             action="review",
         )
@@ -1843,11 +1749,7 @@ def review(
         # therefore resolved via the read-side projection.
         wp_slug = wp.path.stem
         sub_artifact_dir = (
-            _resolve_workflow_read_dir(
-                repo_root=main_repo_root, mission_slug=mission_slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK
-            )
-            / "tasks"
-            / wp_slug
+            _resolve_workflow_read_dir(repo_root=main_repo_root, mission_slug=mission_slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK) / "tasks" / wp_slug
         )
         sub_artifact_dir.mkdir(parents=True, exist_ok=True)
         # #3243: the advertised feedback path is numbered by the SAME

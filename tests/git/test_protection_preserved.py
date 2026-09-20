@@ -159,8 +159,7 @@ def test_commit_helpers_module_performs_no_push() -> None:
     # after the ``git`` argv literal — which must never appear.)
     normalized = " ".join(source.split())
     assert '"git", "push"' not in normalized and "'git', 'push'" not in normalized, (
-        "commit_helpers must not invoke `git push`; direct-push protection is "
-        "structural — the guard only ever commits locally"
+        "commit_helpers must not invoke `git push`; direct-push protection is structural — the guard only ever commits locally"
     )
 
 
@@ -271,12 +270,8 @@ def test_channel4_op_record_file_content_grants_no_privilege(
 
     # The file-content privilege predicate is DELETED: the symbol is gone, so
     # file content can no longer be a privilege source on a protected branch.
-    grants_privilege = getattr(
-        commit_helpers, "_is_completed_op_record_exception", None
-    )
-    assert grants_privilege is None, (
-        "the op-record file-content privilege predicate must be deleted (WP03)"
-    )
+    grants_privilege = getattr(commit_helpers, "_is_completed_op_record_exception", None)
+    assert grants_privilege is None, "the op-record file-content privilege predicate must be deleted (WP03)"
 
 
 def test_channel5_env_hatch_grants_no_privilege(

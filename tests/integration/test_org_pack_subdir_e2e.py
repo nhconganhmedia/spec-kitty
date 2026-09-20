@@ -12,6 +12,7 @@ FR-007 fetch_pack reporting (added cycle-2 fix):
   fetch_pack_wrong_subdir_zero_count — wrong subdir → ``artifacts_written == 0``
     (SC-003 on the fetch reporting leg).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -92,17 +93,13 @@ def test_sc001_subdir_pack_loads_healthy(tmp_path: Path) -> None:
 
     # T007 coverage: _collect_org_layer_data calls load_org_drg → build_org_drg_fragments
     result = _collect_org_layer_data(repo_root)
-    assert result["errors"] == [], (
-        f"SC-001: doctor doctrine must be healthy for a subdir pack. errors={result['errors']!r}"
-    )
+    assert result["errors"] == [], f"SC-001: doctor doctrine must be healthy for a subdir pack. errors={result['errors']!r}"
 
     # T009 coverage: _build_pack_entries must resolve the effective root
     registry = load_pack_registry(repo_root)
     entries = _build_pack_entries(registry, repo_root)
     assert len(entries) == 1
-    assert entries[0]["snapshot_present"] is True, (
-        f"SC-001: _build_pack_entries must find the pack at its effective root. entry={entries[0]!r}"
-    )
+    assert entries[0]["snapshot_present"] is True, f"SC-001: _build_pack_entries must find the pack at its effective root. entry={entries[0]!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -124,16 +121,12 @@ def test_sc002_no_subdir_pack_unchanged(tmp_path: Path) -> None:
     _write_config(repo_root, local_path=local_path)  # no subdir
 
     result = _collect_org_layer_data(repo_root)
-    assert result["errors"] == [], (
-        f"SC-002: no-subdir pack must still load healthy. errors={result['errors']!r}"
-    )
+    assert result["errors"] == [], f"SC-002: no-subdir pack must still load healthy. errors={result['errors']!r}"
 
     registry = load_pack_registry(repo_root)
     entries = _build_pack_entries(registry, repo_root)
     assert len(entries) == 1
-    assert entries[0]["snapshot_present"] is True, (
-        f"SC-002: no-subdir pack must show snapshot_present=True. entry={entries[0]!r}"
-    )
+    assert entries[0]["snapshot_present"] is True, f"SC-002: no-subdir pack must show snapshot_present=True. entry={entries[0]!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -158,16 +151,12 @@ def test_sc003_wrong_subdir_reports_errors(tmp_path: Path) -> None:
     _write_config(repo_root, local_path=local_path, subdir="wrong-subdir")
 
     result = _collect_org_layer_data(repo_root)
-    assert result["errors"] != [], (
-        f"SC-003: wrong subdir must produce errors. result={result!r}"
-    )
+    assert result["errors"] != [], f"SC-003: wrong subdir must produce errors. result={result!r}"
 
     registry = load_pack_registry(repo_root)
     entries = _build_pack_entries(registry, repo_root)
     assert len(entries) == 1
-    assert entries[0]["snapshot_present"] is False, (
-        f"SC-003: wrong subdir → effective root doesn't exist → snapshot_present=False. entry={entries[0]!r}"
-    )
+    assert entries[0]["snapshot_present"] is False, f"SC-003: wrong subdir → effective root doesn't exist → snapshot_present=False. entry={entries[0]!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -186,9 +175,7 @@ def _make_fake_source(local_path: Path) -> MagicMock:
 
     def _fake_fetch(target_dir: Path) -> FetchResult:
         (target_dir / "directives").mkdir(parents=True, exist_ok=True)
-        (target_dir / "directives" / "sample.yaml").write_text(
-            "id: test\n", encoding="utf-8"
-        )
+        (target_dir / "directives" / "sample.yaml").write_text("id: test\n", encoding="utf-8")
         return FetchResult(ok=True, artifacts_written=1, pack_version="v0.0.1")
 
     fake = MagicMock()
@@ -219,19 +206,11 @@ def test_fetch_pack_int_contract(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     result = fetch_pack(pack, repo_root)
 
     assert result.ok, f"Expected fetch to succeed, got errors={result.errors!r}"
-    assert isinstance(result.artifacts_written, int), (
-        f"FR-007: artifacts_written must be int, got {type(result.artifacts_written)!r}: "
-        f"{result.artifacts_written!r}"
-    )
-    assert result.artifacts_written > 0, (
-        f"FR-007: artifacts_written must be > 0 when artifacts were written, "
-        f"got {result.artifacts_written!r}"
-    )
+    assert isinstance(result.artifacts_written, int), f"FR-007: artifacts_written must be int, got {type(result.artifacts_written)!r}: {result.artifacts_written!r}"
+    assert result.artifacts_written > 0, f"FR-007: artifacts_written must be > 0 when artifacts were written, got {result.artifacts_written!r}"
 
 
-def test_fetch_pack_wrong_subdir_fails_closed(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fetch_pack_wrong_subdir_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A configured effective root with no artifacts must not replace last-good."""
     from specify_cli.doctrine.config import load_pack_registry  # noqa: PLC0415
     from specify_cli.doctrine.snapshot import fetch_pack  # noqa: PLC0415
@@ -255,8 +234,7 @@ def test_fetch_pack_wrong_subdir_fails_closed(
 
     assert result.ok is False
     assert isinstance(result.artifacts_written, int), (
-        f"artifacts_written must be int even for wrong subdir, "
-        f"got {type(result.artifacts_written)!r}: {result.artifacts_written!r}"
+        f"artifacts_written must be int even for wrong subdir, got {type(result.artifacts_written)!r}: {result.artifacts_written!r}"
     )
     assert any("nonexistent-subdir" in error for error in result.errors)
     assert not local_path.exists()
@@ -274,13 +252,7 @@ def test_config_schema_contract_documents_subdir() -> None:
     import yaml as _yaml  # local import; stdlib-safe
 
     repo_root = Path(__file__).resolve().parents[2]
-    schema_path = (
-        repo_root
-        / "kitty-specs"
-        / "layered-doctrine-org-layer-01KRNPEE"
-        / "contracts"
-        / "config-schema.yaml"
-    )
+    schema_path = repo_root / "kitty-specs" / "layered-doctrine-org-layer-01KRNPEE" / "contracts" / "config-schema.yaml"
     assert schema_path.exists(), f"contract schema missing at {schema_path}"
     doc = _yaml.safe_load(schema_path.read_text(encoding="utf-8"))
 
@@ -306,21 +278,11 @@ def test_config_schema_accepts_every_runtime_source_type() -> None:
     from charter.offering.drg.org_pack_config import SourceType
 
     repo_root = Path(__file__).resolve().parents[2]
-    schema_path = (
-        repo_root
-        / "kitty-specs"
-        / "layered-doctrine-org-layer-01KRNPEE"
-        / "contracts"
-        / "config-schema.yaml"
-    )
+    schema_path = repo_root / "kitty-specs" / "layered-doctrine-org-layer-01KRNPEE" / "contracts" / "config-schema.yaml"
     schema = _yaml.safe_load(schema_path.read_text(encoding="utf-8"))
     forms = schema["properties"]["doctrine"]["properties"]["org"]["oneOf"]
     runtime_types = set(get_args(SourceType))
-    form_a_types = set(
-        forms[0]["properties"]["packs"]["items"]["properties"]["source_type"][
-            "enum"
-        ]
-    )
+    form_a_types = set(forms[0]["properties"]["packs"]["items"]["properties"]["source_type"]["enum"])
     form_b_types = set(forms[1]["properties"]["source_type"]["enum"])
 
     assert form_a_types == runtime_types
@@ -334,10 +296,7 @@ def test_config_schema_accepts_every_runtime_source_type() -> None:
                             "name": "release-doctrine",
                             "local_path": "/opt/doctrine/release",
                             "source_type": "artifactory",
-                            "url": (
-                                "https://jfrog.example.com/artifactory/"
-                                "doctrine-local/release.tar.gz"
-                            ),
+                            "url": ("https://jfrog.example.com/artifactory/doctrine-local/release.tar.gz"),
                         }
                     ]
                 }

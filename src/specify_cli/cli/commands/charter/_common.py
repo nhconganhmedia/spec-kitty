@@ -5,6 +5,7 @@ Keep these helpers behaviour-preserving; if you need to specialise behaviour
 for one subcommand, copy the helper into that subcommand module instead of
 forking this file.
 """
+
 from __future__ import annotations
 
 import json
@@ -36,9 +37,7 @@ def _resolve_charter_path(repo_root: Path) -> Path:
         return charter_path
 
     raise TaskCliError(
-        f"Charter not found at {charter_path}\n"
-        "  Run 'spec-kitty charter interview' to create one,\n"
-        "  or 'spec-kitty upgrade' if migrating from an older version."
+        f"Charter not found at {charter_path}\n  Run 'spec-kitty charter interview' to create one,\n  or 'spec-kitty upgrade' if migrating from an older version."
     )
 
 

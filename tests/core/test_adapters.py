@@ -316,9 +316,7 @@ def test_mission_creation_has_no_integration_imports() -> None:
         "specify_cli.saas_client",
     ]
     violations = [m for m in integration_markers if m in source]
-    assert not violations, (
-        f"Leak #1 still present in mission_creation.py — INTEGRATION imports found: {violations}"
-    )
+    assert not violations, f"Leak #1 still present in mission_creation.py — INTEGRATION imports found: {violations}"
 
     # Additionally verify via AST that no import node targets the INTEGRATION set
     tree = ast.parse(source)
@@ -333,6 +331,4 @@ def test_mission_creation_has_no_integration_imports() -> None:
             if any(module.startswith(m) for m in integration_markers):
                 bad_imports.append(module)
 
-    assert not bad_imports, (
-        f"AST scan: INTEGRATION imports remain in mission_creation.py: {bad_imports}"
-    )
+    assert not bad_imports, f"AST scan: INTEGRATION imports remain in mission_creation.py: {bad_imports}"

@@ -39,9 +39,7 @@ def _write_charter_yaml(repo_root: Path, *, languages: list[str] | None) -> None
 
 
 def test_extract_declared_languages_deduplicates_alias_hits() -> None:
-    languages = extract_declared_languages(
-        "Python services with pytest and ruff. TypeScript frontend built with tsc."
-    )
+    languages = extract_declared_languages("Python services with pytest and ruff. TypeScript frontend built with tsc.")
 
     assert languages == ["python", "typescript"]
 

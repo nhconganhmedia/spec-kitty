@@ -267,9 +267,7 @@ class TestClaimDualWriteParity:
         the "parity" WP04's T018 asks for: the log is authoritative and the
         static WP file carries no divergent runtime copy to go stale."""
         feature_dir, wp_path = _seed_mission(workflow_repo)
-        assert not json.loads((feature_dir / "meta.json").read_text(encoding="utf-8")).get(
-            "status_phase"
-        )
+        assert not json.loads((feature_dir / "meta.json").read_text(encoding="utf-8")).get("status_phase")
         before = wp_path.read_bytes()
 
         result = _claim_wp01()
@@ -289,9 +287,7 @@ class TestClaimDualWriteParity:
 
 
 class TestSubtaskCompletionIdempotent:
-    def test_recompleting_an_already_done_subtask_stays_done_in_the_snapshot(
-        self, workflow_repo: Path
-    ) -> None:
+    def test_recompleting_an_already_done_subtask_stays_done_in_the_snapshot(self, workflow_repo: Path) -> None:
         """The reduced snapshot converges to (and stays) DONE across a repeat
         ``mark-status ... --status done`` on an already-done subtask.
 
@@ -323,12 +319,9 @@ class TestSubtaskCompletionIdempotent:
         assert first.exit_code == 0, first.stdout
 
         stream_after_first = read_event_stream(feature_dir)
-        annotations_after_first = [
-            a for a in stream_after_first.annotations if a.wp_id == "WP01" and a.delta.subtasks
-        ]
+        annotations_after_first = [a for a in stream_after_first.annotations if a.wp_id == "WP01" and a.delta.subtasks]
         assert len(annotations_after_first) == 1, (
-            "exactly one subtask-completion annotation expected after the first "
-            f"mark-status done, got {annotations_after_first!r}"
+            f"exactly one subtask-completion annotation expected after the first mark-status done, got {annotations_after_first!r}"
         )
         snapshot_after_first = reduce(stream_after_first.transitions, stream_after_first.annotations)
         assert snapshot_after_first.work_packages["WP01"]["subtasks"]["T001"] == str(Lane.DONE)
@@ -341,8 +334,7 @@ class TestSubtaskCompletionIdempotent:
         stream_after_second = read_event_stream(feature_dir)
         snapshot_after_second = reduce(stream_after_second.transitions, stream_after_second.annotations)
         assert snapshot_after_second.work_packages["WP01"]["subtasks"]["T001"] == str(Lane.DONE), (
-            "the reduced snapshot's completion authority must remain DONE across "
-            "a repeat mark-status done call"
+            "the reduced snapshot's completion authority must remain DONE across a repeat mark-status done call"
         )
         # unchecked_subtask_ids_from_snapshot (the guard's actual read) reports
         # T001 as complete either way -- this is the property T016 protects.
@@ -371,9 +363,7 @@ class TestInProgressUserActorResume:
     the WP stays ``in_progress`` with no new transition events, and the
     mission-scoped prompt file is (re)written and its path printed."""
 
-    def test_implement_resumes_user_claimed_in_progress_and_rewrites_prompt(
-        self, workflow_repo: Path
-    ) -> None:
+    def test_implement_resumes_user_claimed_in_progress_and_rewrites_prompt(self, workflow_repo: Path) -> None:
         from runtime.next._tmp_namespace import prompt_tmp_dir
 
         feature_dir, _wp_path = _seed_mission(workflow_repo)
@@ -410,9 +400,7 @@ class TestInProgressUserActorResume:
 
         # F-67: the implementation prompt file is (re)generated at the
         # mission-scoped path and the path is emitted for the implementer.
-        prompt_file = (
-            prompt_tmp_dir(workflow_repo) / f"spec-kitty-implement-{_MISSION_SLUG}-WP01.md"
-        )
+        prompt_file = prompt_tmp_dir(workflow_repo) / f"spec-kitty-implement-{_MISSION_SLUG}-WP01.md"
         assert prompt_file.exists(), "resume must (re)write the implementation prompt file"
         assert "WP01" in prompt_file.read_text(encoding="utf-8")
         assert str(prompt_file) in result.stdout

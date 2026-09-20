@@ -97,9 +97,7 @@ _SUBSTANTIVE_PLAN = """\
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=True
-    )
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=True)
 
 
 def _init_git_repo(repo: Path, *, branch: str = "main") -> None:
@@ -109,9 +107,7 @@ def _init_git_repo(repo: Path, *, branch: str = "main") -> None:
     # WP04 fail-closed (C-A1): create_mission_core requires a non-empty
     # activated mission-type set; every mission this fixture creates is
     # software-dev (see _create_mission).
-    (kittify_dir / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify_dir / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
     subprocess.run(["git", "init", "-b", branch], cwd=repo, capture_output=True, check=True)
     _git(repo, "config", "user.email", "golden-path@spec-kitty.test")
     _git(repo, "config", "user.name", "Golden Path Fixture")
@@ -119,9 +115,7 @@ def _init_git_repo(repo: Path, *, branch: str = "main") -> None:
     _git(repo, "commit", "-m", "init: golden-path baseline", "--allow-empty")
 
 
-def _create_mission(
-    repo: Path, slug: str, topology: MissionTopology
-) -> MissionCreationResult:
+def _create_mission(repo: Path, slug: str, topology: MissionTopology) -> MissionCreationResult:
     """Create a mission via the SAME core the CLI ``mission create`` calls.
 
     Only ``is_worktree_context`` is patched — it inspects the actual OS
@@ -137,10 +131,7 @@ def _create_mission(
             slug,
             friendly_name=slug.replace("-", " ").title(),
             purpose_tldr=f"Deliver {slug} for the golden-path lock.",
-            purpose_context=(
-                f"This mission exercises the {slug} golden path end to end so "
-                "the placement partition stays proven under CI."
-            ),
+            purpose_context=(f"This mission exercises the {slug} golden path end to end so the placement partition stays proven under CI."),
             topology=topology,
         )
 
@@ -163,12 +154,7 @@ def _write_wp_and_lanes(feature_dir: Path, slug: str, mission_id: str, target_br
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(exist_ok=True)
     (tasks_dir / "WP01.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Golden path WP01\n"
-        "execution_mode: code_change\n"
-        "agent: testbot\n"
-        "---\n\n# WP01\n\n## Activity Log\n",
+        "---\nwork_package_id: WP01\ntitle: Golden path WP01\nexecution_mode: code_change\nagent: testbot\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
     (feature_dir / "tasks.md").write_text(
@@ -281,9 +267,7 @@ def _run_tasks_status(repo: Path, mission_handle: str, monkeypatch: pytest.Monke
     from specify_cli.cli.commands.agent import tasks as tasks_module
 
     monkeypatch.setenv("SPECIFY_REPO_ROOT", str(repo))
-    result = runner.invoke(
-        tasks_module.app, ["status", "--mission", mission_handle, "--json"], catch_exceptions=False
-    )
+    result = runner.invoke(tasks_module.app, ["status", "--mission", mission_handle, "--json"], catch_exceptions=False)
     assert result.exit_code == 0, result.output
     return _parse_json_output(result.output)
 
@@ -307,9 +291,7 @@ def _run_decision_verify(repo: Path, mission_handle: str, monkeypatch: pytest.Mo
 # ---------------------------------------------------------------------------
 
 
-def _build_golden_mission(
-    repo: Path, slug: str, topology: MissionTopology, *, branch: str = "main"
-) -> MissionCreationResult:
+def _build_golden_mission(repo: Path, slug: str, topology: MissionTopology, *, branch: str = "main") -> MissionCreationResult:
     """Create a mission, commit a substantive spec + plan, seed WP01 + lanes.json.
 
     Returns the ``MissionCreationResult`` from create-time; the caller reads
@@ -353,9 +335,7 @@ def _build_golden_mission(
 
 
 @pytest.mark.parametrize("topology", [MissionTopology.COORD, MissionTopology.SINGLE_BRANCH])
-def test_golden_path_resolves_partition_correct_authority(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, topology: MissionTopology
-) -> None:
+def test_golden_path_resolves_partition_correct_authority(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, topology: MissionTopology) -> None:
     """T038: walk create -> spec commit -> setup-plan -> status -> decision verify.
 
     Asserts each step resolves the same partition-correct authority: planning
@@ -371,14 +351,12 @@ def test_golden_path_resolves_partition_correct_authority(
 
     # Planning artifacts are PRIMARY for every topology (write-surface-coherence).
     spec_read_dir = resolve_planning_read_dir(tmp_path, result.mission_slug, kind=MissionArtifactKind.SPEC)
-    plan_read_dir = resolve_planning_read_dir(
-        tmp_path, result.mission_slug, kind=MissionArtifactKind.FINALIZED_EXECUTION_PLAN
-    )
+    plan_read_dir = resolve_planning_read_dir(tmp_path, result.mission_slug, kind=MissionArtifactKind.FINALIZED_EXECUTION_PLAN)
     assert spec_read_dir == result.feature_dir, "SPEC must resolve to the PRIMARY mission dir"
     assert plan_read_dir == result.feature_dir, "PLAN must resolve to the PRIMARY mission dir"
-    assert (plan_read_dir / "plan.md").read_text(encoding="utf-8") == _SUBSTANTIVE_PLAN.replace(
-        "Golden Path Mission", "Golden Path Mission"
-    ) or (plan_read_dir / "plan.md").exists()
+    assert (plan_read_dir / "plan.md").read_text(encoding="utf-8") == _SUBSTANTIVE_PLAN.replace("Golden Path Mission", "Golden Path Mission") or (
+        plan_read_dir / "plan.md"
+    ).exists()
 
     # Lifecycle status read: proof-of-life through the real seam (WP01 surfaces).
     status_payload = _run_tasks_status(tmp_path, result.mission_slug, monkeypatch)
@@ -396,9 +374,7 @@ def test_golden_path_resolves_partition_correct_authority(
 
 
 @pytest.mark.parametrize("topology", [MissionTopology.COORD, MissionTopology.SINGLE_BRANCH])
-def test_lifecycle_mutation_bookkeeping_lands_on_correct_surface(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, topology: MissionTopology
-) -> None:
+def test_lifecycle_mutation_bookkeeping_lands_on_correct_surface(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, topology: MissionTopology) -> None:
     """T039: a real ``move-task`` mutation's bookkeeping lands on the correct
     surface — the COORD worktree for a coord mission, PRIMARY for a
     non-coord one. This is the split-brain's real locus (#846/#2106 class):
@@ -444,9 +420,7 @@ def test_lifecycle_mutation_bookkeeping_lands_on_correct_surface(
     # the fixture repo so this test reproduces that real invocation shape
     # instead of resolving against the pytest process's own cwd.
     monkeypatch.chdir(tmp_path)
-    bootstrap_canonical_state(
-        result.feature_dir, result.mission_slug, capability=GuardCapability.TEST_MODE
-    )
+    bootstrap_canonical_state(result.feature_dir, result.mission_slug, capability=GuardCapability.TEST_MODE)
 
     # Snapshot AFTER bootstrap (the seed event itself is not the mutation
     # under test) — the move-task call below is the WRITE this test proves.
@@ -476,17 +450,14 @@ def test_lifecycle_mutation_bookkeeping_lands_on_correct_surface(
         assert coord_events is not None
         coord_events_after = coord_events.read_text(encoding="utf-8")
         assert coord_events_after != coord_events_before, (
-            "coord mission: move-task bookkeeping must append to the COORD "
-            f"worktree's events log ({coord_events}), but it did not change"
+            f"coord mission: move-task bookkeeping must append to the COORD worktree's events log ({coord_events}), but it did not change"
         )
         assert primary_events_after == primary_events_before, (
-            "coord mission: move-task bookkeeping must NOT also write the "
-            "primary decoy events log — the coord surface is authoritative"
+            "coord mission: move-task bookkeeping must NOT also write the primary decoy events log — the coord surface is authoritative"
         )
     else:
         assert primary_events_after != primary_events_before, (
-            "non-coord mission: move-task bookkeeping must append to the "
-            f"PRIMARY events log ({primary_events}), but it did not change"
+            f"non-coord mission: move-task bookkeeping must append to the PRIMARY events log ({primary_events}), but it did not change"
         )
 
 
@@ -526,12 +497,8 @@ def test_cwd_independence_resolves_identical_authority(
     status_elsewhere = _run_tasks_status(tmp_path, result.mission_slug, monkeypatch)
     verify_elsewhere = _run_decision_verify(tmp_path, result.mission_slug, monkeypatch)
 
-    assert status_at_root == status_elsewhere, (
-        "tasks status must resolve the SAME partition regardless of CWD"
-    )
-    assert verify_at_root == verify_elsewhere, (
-        "decision verify must resolve the SAME partition regardless of CWD"
-    )
+    assert status_at_root == status_elsewhere, "tasks status must resolve the SAME partition regardless of CWD"
+    assert verify_at_root == verify_elsewhere, "decision verify must resolve the SAME partition regardless of CWD"
     # Not a vacuous pass — the status payload really does carry the seeded WP.
     assert "WP01" in _wp_ids_from_status(status_at_root), status_at_root
 
@@ -573,9 +540,7 @@ def test_flatten_transition_resolves_stored_topology_not_stale_husk(tmp_path: Pa
         },
     )
     (feature_dir / "tasks").mkdir()
-    (feature_dir / "tasks" / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: Flatten fixture\n---\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks" / "WP01.md").write_text("---\nwork_package_id: WP01\ntitle: Flatten fixture\n---\n", encoding="utf-8")
 
     # Stale husk residue: a "-coord" worktree dir carrying its OWN meta.json
     # that still declares coord topology — exactly what a prior (unrelated)
@@ -590,15 +555,9 @@ def test_flatten_transition_resolves_stored_topology_not_stale_husk(tmp_path: Pa
     (husk / "tasks" / "WP01.md").write_text("STALE HUSK COPY — must not be read\n", encoding="utf-8")
 
     resolved = resolve_planning_read_dir(tmp_path, slug, kind=MissionArtifactKind.WORK_PACKAGE_TASK)
-    assert resolved == feature_dir, (
-        f"flattened mission must resolve PRIMARY ({feature_dir}), not the "
-        f"stale husk, got {resolved}"
-    )
+    assert resolved == feature_dir, f"flattened mission must resolve PRIMARY ({feature_dir}), not the stale husk, got {resolved}"
     candidate = candidate_feature_dir_for_mission(tmp_path, slug)
-    assert candidate == feature_dir, (
-        "candidate_feature_dir_for_mission must also honor the stored "
-        f"topology, not the on-disk husk residue, got {candidate}"
-    )
+    assert candidate == feature_dir, f"candidate_feature_dir_for_mission must also honor the stored topology, not the on-disk husk residue, got {candidate}"
 
 
 def test_unmaterialized_coord_resolves_via_branch_ref(tmp_path: Path) -> None:
@@ -617,9 +576,7 @@ def test_unmaterialized_coord_resolves_via_branch_ref(tmp_path: Path) -> None:
     _git(tmp_path, "branch", coord_branch)  # branch exists; worktree does NOT
 
     read_path = resolve_handle_to_read_path(tmp_path, slug, require_exists=True)
-    assert read_path == feature_dir, (
-        f"declared-but-unmaterialized coord must resolve PRIMARY, got {read_path}"
-    )
+    assert read_path == feature_dir, f"declared-but-unmaterialized coord must resolve PRIMARY, got {read_path}"
 
 
 def test_deleted_coord_branch_raises_actionable_error_not_stale_read(tmp_path: Path) -> None:
@@ -737,12 +694,8 @@ def test_2404_lite_accept_reads_acceptance_matrix_from_stale_coord_worktree(
         "negative_invariants": [],
         "marker": "COORD_STALE_TODO_2404",
     }
-    (ctx.primary_feature_dir / "acceptance-matrix.json").write_text(
-        json.dumps(primary_matrix), encoding="utf-8"
-    )
-    (ctx.coord_feature_dir / "acceptance-matrix.json").write_text(
-        json.dumps(coord_matrix), encoding="utf-8"
-    )
+    (ctx.primary_feature_dir / "acceptance-matrix.json").write_text(json.dumps(primary_matrix), encoding="utf-8")
+    (ctx.coord_feature_dir / "acceptance-matrix.json").write_text(json.dumps(coord_matrix), encoding="utf-8")
 
     # This is the SAME resolver ``_check_lane_gates`` (acceptance/__init__.py)
     # feeds into ``read_acceptance_matrix`` via ``read_feature_dir =

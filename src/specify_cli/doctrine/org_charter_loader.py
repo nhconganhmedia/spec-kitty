@@ -88,9 +88,7 @@ def load_org_charter_json_block(org_roots: list[Path] | None) -> dict[str, Any]:
             {
                 "pack_name": getattr(policy, "org_name", None) or org_root.name,
                 "governance_policies": governance_policies,
-                "required_directives": list(
-                    getattr(policy, "required_directives", []) or []
-                ),
+                "required_directives": list(getattr(policy, "required_directives", []) or []),
             }
         )
 

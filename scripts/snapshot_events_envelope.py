@@ -22,6 +22,7 @@ Usage::
     python scripts/snapshot_events_envelope.py --output-dir tests/contract/snapshots
     python scripts/snapshot_events_envelope.py --force  # overwrite existing snapshot
 """
+
 from __future__ import annotations
 
 import argparse
@@ -73,18 +74,14 @@ def resolve_events_version(repo_root: Path) -> tuple[str, str]:
         return locked, "uv.lock"
 
     warnings.warn(
-        f"Could not resolve {PACKAGE_NAME} version from {uv_lock_path}; "
-        "falling back to importlib.metadata.",
+        f"Could not resolve {PACKAGE_NAME} version from {uv_lock_path}; falling back to importlib.metadata.",
         RuntimeWarning,
         stacklevel=2,
     )
     meta = resolve_version_from_metadata()
     if meta:
         return meta, "importlib.metadata"
-    raise RuntimeError(
-        f"Unable to resolve {PACKAGE_NAME} version from uv.lock or "
-        "importlib.metadata. Is the package installed and pinned in uv.lock?"
-    )
+    raise RuntimeError(f"Unable to resolve {PACKAGE_NAME} version from uv.lock or importlib.metadata. Is the package installed and pinned in uv.lock?")
 
 
 def build_envelope_snapshot(version: str, source: str) -> dict[str, Any]:
@@ -120,10 +117,7 @@ def write_snapshot(snapshot: dict[str, Any], destination: Path) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Snapshot the resolved spec-kitty-events envelope to "
-            "tests/contract/snapshots/."
-        ),
+        description=("Snapshot the resolved spec-kitty-events envelope to tests/contract/snapshots/."),
     )
     parser.add_argument(
         "--output-dir",

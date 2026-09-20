@@ -14,6 +14,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 @pytest.mark.slow
 def test_wheel_contains_no_kittify_paths(build_artifacts: dict[str, Path]) -> None:
     """Verify wheel doesn't contain .kittify/ paths."""
@@ -38,9 +39,7 @@ def test_wheel_contains_no_filled_charter(build_artifacts: dict[str, Path]) -> N
 
     for const_file in charter_files:
         assert "memory/charter" not in const_file, f"Wheel contains filled charter from memory/: {const_file}"
-        assert "templates/" in const_file or "missions/" in const_file, (
-            f"Found non-template charter in wheel: {const_file}"
-        )
+        assert "templates/" in const_file or "missions/" in const_file, f"Found non-template charter in wheel: {const_file}"
 
 
 @pytest.mark.slow
@@ -92,16 +91,11 @@ def test_wheel_contains_only_known_packages(build_artifacts: dict[str, Path]) ->
         all_files = [f for f in zf.namelist() if ".dist-info/" not in f]
 
     for file_path in all_files:
-        assert any(file_path.startswith(p) for p in known_prefixes), (
-            f"File outside known package directories: {file_path}"
-        )
+        assert any(file_path.startswith(p) for p in known_prefixes), f"File outside known package directories: {file_path}"
 
     # Explicit boundary: the internal (maintainer-only) org pack must not ship.
     leaked_internal = [f for f in all_files if f.startswith("packs/internal/")]
-    assert not leaked_internal, (
-        "Maintainer-only packs/internal/ leaked into the consumer wheel: "
-        f"{leaked_internal}"
-    )
+    assert not leaked_internal, f"Maintainer-only packs/internal/ leaked into the consumer wheel: {leaked_internal}"
 
 
 @pytest.mark.slow

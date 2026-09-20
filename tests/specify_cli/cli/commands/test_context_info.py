@@ -13,9 +13,7 @@ from specify_cli.workspace.context import WorkspaceContext, save_context
 pytestmark = [pytest.mark.fast]
 
 
-def test_context_info_displays_unknown_when_base_commit_missing(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_context_info_displays_unknown_when_base_commit_missing(tmp_path: Path, monkeypatch) -> None:
     save_context(
         tmp_path,
         WorkspaceContext(

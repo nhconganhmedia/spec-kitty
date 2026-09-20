@@ -30,6 +30,7 @@ from specify_cli.cli.commands.init import register_init_command
 
 pytestmark = [pytest.mark.integration]
 
+
 def _make_app_with_buf() -> tuple[Typer, io.StringIO]:
     """Return a minimal Typer app and the buffer backing the injected console."""
     buf = io.StringIO()
@@ -61,6 +62,7 @@ def _fake_copy_package(project_path: Path) -> Path:
 # T1.4: Next-steps output names spec-kitty next + first workflow path
 # ---------------------------------------------------------------------------
 
+
 def test_init_next_steps_names_spec_kitty_next(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -83,15 +85,9 @@ def test_init_next_steps_names_spec_kitty_next(
     output = buf.getvalue()
 
     # The canonical loop entry must appear
-    assert "spec-kitty next" in output, (
-        "Expected 'spec-kitty next' in init console output, but it was absent.\n"
-        f"Actual console output:\n{output}"
-    )
+    assert "spec-kitty next" in output, f"Expected 'spec-kitty next' in init console output, but it was absent.\nActual console output:\n{output}"
 
-    assert "$spec-kitty.specify" in output, (
-        "Codex init next steps must use Codex skill invocation syntax.\n"
-        f"Actual console output:\n{output}"
-    )
+    assert "$spec-kitty.specify" in output, f"Codex init next steps must use Codex skill invocation syntax.\nActual console output:\n{output}"
     assert "$spec-kitty.plan" in output
     assert "$spec-kitty.tasks" in output
     assert "Required:" in output
@@ -105,22 +101,16 @@ def test_init_next_steps_names_spec_kitty_next(
     # next-steps panel's ``│`` borders are normalized out because Rich wraps
     # these long lines at console width.
     flat_output = " ".join(output.replace("│", " ").split())
-    assert "Target is not a git repository." in flat_output, (
-        "Expected the non-git VCS warning in init console output.\n"
-        f"Actual console output:\n{output}"
-    )
+    assert "Target is not a git repository." in flat_output, f"Expected the non-git VCS warning in init console output.\nActual console output:\n{output}"
     assert "`spec-kitty agent`, `dashboard`, `dispatch`, `next`, or `implement` commands" in flat_output, (
-        "The non-git VCS warning must name the full affected command set (#4123).\n"
-        f"Actual console output:\n{output}"
+        f"The non-git VCS warning must name the full affected command set (#4123).\nActual console output:\n{output}"
     )
     assert "agent, dashboard, dispatch, next, and implement commands" in flat_output, (
-        "The required next-step must name the full affected command set (#4123).\n"
-        f"Actual console output:\n{output}"
+        f"The required next-step must name the full affected command set (#4123).\nActual console output:\n{output}"
     )
 
     assert "/spec-kitty.dashboard" not in output, (
-        "Codex init next steps must not list slash commands that are not installed as command skills.\n"
-        f"Actual console output:\n{output}"
+        f"Codex init next steps must not list slash commands that are not installed as command skills.\nActual console output:\n{output}"
     )
 
     # The bare top-level CLI invocation must NOT appear
@@ -178,6 +168,7 @@ def test_init_vibe_next_steps_list_only_installed_command_skills(
 # ---------------------------------------------------------------------------
 # T1.4b: The literal commit string must be absent from src/
 # ---------------------------------------------------------------------------
+
 
 def test_init_commit_string_absent_from_source() -> None:
     """T1.4b: The literal string 'Initial commit from Specify template' must not exist in src/.

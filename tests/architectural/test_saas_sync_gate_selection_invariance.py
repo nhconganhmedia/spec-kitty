@@ -47,8 +47,7 @@ def test_flag_is_set_at_collection_time() -> None:
     import os
 
     assert os.environ.get(_FLAG) == "1", (
-        f"{_FLAG} must be set collection-wide by tests/conftest.py "
-        "pytest_configure so import-time skipif gates are selection-invariant."
+        f"{_FLAG} must be set collection-wide by tests/conftest.py pytest_configure so import-time skipif gates are selection-invariant."
     )
 
 
@@ -84,32 +83,17 @@ def _statement_writes_flag(node: ast.stmt) -> bool:
 
 def _is_environ_subscript_of_flag(target: ast.expr) -> bool:
     # os.environ["SPEC_KITTY_ENABLE_SAAS_SYNC"] = ...
-    return (
-        isinstance(target, ast.Subscript)
-        and _is_os_environ(target.value)
-        and _is_flag_constant(target.slice)
-    )
+    return isinstance(target, ast.Subscript) and _is_os_environ(target.value) and _is_flag_constant(target.slice)
 
 
 def _is_environ_setdefault_of_flag(call: ast.Call) -> bool:
     # os.environ.setdefault("SPEC_KITTY_ENABLE_SAAS_SYNC", ...)
     func = call.func
-    return (
-        isinstance(func, ast.Attribute)
-        and func.attr == "setdefault"
-        and _is_os_environ(func.value)
-        and bool(call.args)
-        and _is_flag_constant(call.args[0])
-    )
+    return isinstance(func, ast.Attribute) and func.attr == "setdefault" and _is_os_environ(func.value) and bool(call.args) and _is_flag_constant(call.args[0])
 
 
 def _is_os_environ(expr: ast.expr) -> bool:
-    return (
-        isinstance(expr, ast.Attribute)
-        and expr.attr == "environ"
-        and isinstance(expr.value, ast.Name)
-        and expr.value.id == "os"
-    )
+    return isinstance(expr, ast.Attribute) and expr.attr == "environ" and isinstance(expr.value, ast.Name) and expr.value.id == "os"
 
 
 def _is_flag_constant(expr: ast.expr) -> bool:
@@ -124,8 +108,7 @@ def test_no_test_module_sets_the_flag_at_import_time() -> None:
         f"These test modules set {_FLAG} at import time, which makes import-time "
         "skipif gates depend on the current selection (#3213). Remove the "
         "module-level write; the flag is set collection-wide in "
-        "tests/conftest.py pytest_configure:\n"
-        + "\n".join(f"    - {o}" for o in sorted(offenders))
+        "tests/conftest.py pytest_configure:\n" + "\n".join(f"    - {o}" for o in sorted(offenders))
     )
 
 

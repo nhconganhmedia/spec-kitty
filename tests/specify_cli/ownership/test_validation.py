@@ -21,6 +21,8 @@ from specify_cli.status.wp_metadata import WPMetadata
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 def _manifest(
     mode: WorkProductKind = WorkProductKind.CODE_CHANGE,
     owned: tuple[str, ...] = ("src/foo/**",),
@@ -399,12 +401,9 @@ class TestValidateGlobMatches:
         # Pre-fix: "add it to 'create_intent' in the WP frontmatter."
         # Post-fix: "declare it in the WP frontmatter:\n  create_intent:\n    - <path>"
         assert "  create_intent:\n    -" in error_text, (
-            f"Error must contain YAML snippet '  create_intent:\\n    -' (absent in pre-fix "
-            f"message). Got: {error_text!r}"
+            f"Error must contain YAML snippet '  create_intent:\\n    -' (absent in pre-fix message). Got: {error_text!r}"
         )
-        assert absent_path in error_text, (
-            f"Error message must include the offending path '{absent_path}'. Got: {error_text!r}"
-        )
+        assert absent_path in error_text, f"Error message must include the offending path '{absent_path}'. Got: {error_text!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -470,9 +469,7 @@ class TestBuildWpManifestsOverlap:
             build_wp_manifests(
                 {
                     "WP01": _wp("WP01", ("src/**",), "src/", scope="codebase-wide"),
-                    "WP02": _wp(
-                        "WP02", ("src/foo/bar.py",), "src/foo/bar.py", deps=("WP01",)
-                    ),
+                    "WP02": _wp("WP02", ("src/foo/bar.py",), "src/foo/bar.py", deps=("WP01",)),
                 }
             )
         )

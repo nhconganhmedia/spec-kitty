@@ -148,9 +148,7 @@ def test_implement_aborts_before_worktree_allocation_on_failure(
 
     def _create(*args, **kwargs):  # pragma: no cover — assertion is on non-call
         create_calls.append((args, kwargs))
-        raise AssertionError(
-            "create_lane_workspace must not be invoked when preflight fails"
-        )
+        raise AssertionError("create_lane_workspace must not be invoked when preflight fails")
 
     monkeypatch.setattr(implement_mod, "create_lane_workspace", _create)
 

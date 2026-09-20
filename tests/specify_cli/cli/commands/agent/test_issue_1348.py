@@ -69,7 +69,11 @@ FEATURE_DIRNAME = f"{MISSION_SLUG}-{MID8}"
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True,
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
@@ -122,12 +126,7 @@ def _coord_worktree_path(repo: Path) -> Path:
 
 
 def _events_path_under_coord(repo: Path) -> Path:
-    return (
-        _coord_worktree_path(repo)
-        / "kitty-specs"
-        / FEATURE_DIRNAME
-        / "status.events.jsonl"
-    )
+    return _coord_worktree_path(repo) / "kitty-specs" / FEATURE_DIRNAME / "status.events.jsonl"
 
 
 # ---------------------------------------------------------------------------
@@ -206,9 +205,7 @@ def _run_driver(
     # process sees it, but child interpreters need it explicitly.
     src_path = str(Path(__file__).resolve().parents[5] / "src")
     existing = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = (
-        f"{src_path}{os.pathsep}{existing}" if existing else src_path
-    )
+    env["PYTHONPATH"] = f"{src_path}{os.pathsep}{existing}" if existing else src_path
     if env_extra:
         env.update(env_extra)
     return subprocess.run(
@@ -266,23 +263,17 @@ def test_issue_1348_planning_artifact_does_not_land_on_main(
 
     result = _run_driver(repo, cwd=repo)
 
-    assert result.returncode == 0, (
-        f"driver exited {result.returncode}; stderr={result.stderr!r}"
-    )
+    assert result.returncode == 0, f"driver exited {result.returncode}; stderr={result.stderr!r}"
 
     # 1. main has NOT advanced (the primary regression assertion).
     main_sha_after = _git(repo, "rev-parse", "main").stdout.strip()
     assert main_sha_before == main_sha_after, (
-        f"Issue #1348 regression: main advanced from {main_sha_before} "
-        f"to {main_sha_after}. The planning artifact commit landed on main."
+        f"Issue #1348 regression: main advanced from {main_sha_before} to {main_sha_after}. The planning artifact commit landed on main."
     )
 
     # 2. The coord branch HAS advanced. The bookkeeping commit went there.
     coord_sha_after = _git(repo, "rev-parse", COORD_BRANCH).stdout.strip()
-    assert coord_sha_before != coord_sha_after, (
-        f"coordination branch {COORD_BRANCH} did not advance — the "
-        f"transaction did not commit on the expected ref."
-    )
+    assert coord_sha_before != coord_sha_after, f"coordination branch {COORD_BRANCH} did not advance — the transaction did not commit on the expected ref."
 
 
 # ---------------------------------------------------------------------------
@@ -325,14 +316,10 @@ def test_issue_1348_dangling_event_log_does_not_occur(
     # what a real operator sees: the coord worktree exists, then a
     # later commit fails inside it.
     bootstrap = _run_driver(repo, wp_id="WP00")
-    assert bootstrap.returncode == 0, (
-        f"bootstrap driver failed: {bootstrap.stderr!r}"
-    )
+    assert bootstrap.returncode == 0, f"bootstrap driver failed: {bootstrap.stderr!r}"
 
     events_path = _events_path_under_coord(repo)
-    assert events_path.exists(), (
-        f"event log not materialised at {events_path}"
-    )
+    assert events_path.exists(), f"event log not materialised at {events_path}"
     sha_before = _sha256(events_path)
     size_before = events_path.stat().st_size
 
@@ -341,13 +328,8 @@ def test_issue_1348_dangling_event_log_does_not_occur(
 
     # Drive a second emit — must fail loudly.
     result = _run_driver(repo, wp_id="WP01")
-    assert result.returncode != 0, (
-        f"forced commit failure expected, but driver succeeded; "
-        f"stdout={result.stdout!r} stderr={result.stderr!r}"
-    )
-    assert "BookkeepingCommitFailed" in result.stderr, (
-        f"expected BookkeepingCommitFailed in stderr; got {result.stderr!r}"
-    )
+    assert result.returncode != 0, f"forced commit failure expected, but driver succeeded; stdout={result.stdout!r} stderr={result.stderr!r}"
+    assert "BookkeepingCommitFailed" in result.stderr, f"expected BookkeepingCommitFailed in stderr; got {result.stderr!r}"
 
     # Critical assertion: the event log is byte-identical.
     sha_after = _sha256(events_path)
@@ -474,9 +456,7 @@ def test_issue_1348_legacy_mission_regression(
     src_path = str(Path(__file__).resolve().parents[5] / "src")
     legacy_env = os.environ.copy()
     existing = legacy_env.get("PYTHONPATH", "")
-    legacy_env["PYTHONPATH"] = (
-        f"{src_path}{os.pathsep}{existing}" if existing else src_path
-    )
+    legacy_env["PYTHONPATH"] = f"{src_path}{os.pathsep}{existing}" if existing else src_path
 
     # Bootstrap: succeed once so the event log exists.
     bootstrap = subprocess.run(
@@ -497,16 +477,9 @@ def test_issue_1348_legacy_mission_regression(
         text=True,
         check=False,
     )
-    assert bootstrap.returncode == 0, (
-        f"legacy bootstrap failed: stderr={bootstrap.stderr!r}"
-    )
+    assert bootstrap.returncode == 0, f"legacy bootstrap failed: stderr={bootstrap.stderr!r}"
 
-    events_path = (
-        lane_worktree
-        / "kitty-specs"
-        / f"{legacy_slug}-{legacy_mid8}"
-        / "status.events.jsonl"
-    )
+    events_path = lane_worktree / "kitty-specs" / f"{legacy_slug}-{legacy_mid8}" / "status.events.jsonl"
     assert events_path.exists()
     sha_before = _sha256(events_path)
 
@@ -532,12 +505,7 @@ def test_issue_1348_legacy_mission_regression(
         text=True,
         check=False,
     )
-    assert result.returncode != 0, (
-        f"forced commit failure expected; driver succeeded. stderr={result.stderr!r}"
-    )
+    assert result.returncode != 0, f"forced commit failure expected; driver succeeded. stderr={result.stderr!r}"
 
     sha_after = _sha256(events_path)
-    assert sha_after == sha_before, (
-        f"SC-11 violated: legacy event log changed under forced failure. "
-        f"before={sha_before!r} after={sha_after!r}"
-    )
+    assert sha_after == sha_before, f"SC-11 violated: legacy event log changed under forced failure. before={sha_before!r} after={sha_after!r}"

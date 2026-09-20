@@ -52,9 +52,7 @@ def _init_repo(tmp_path: Path) -> str:
 
     Returns the default branch name (``main``).
     """
-    subprocess.run(
-        ["git", "init", "-b", "main", str(tmp_path)], check=True, capture_output=True
-    )
+    subprocess.run(["git", "init", "-b", "main", str(tmp_path)], check=True, capture_output=True)
     subprocess.run(
         ["git", "-C", str(tmp_path), "config", "user.email", "test@test.com"],
         check=True,
@@ -338,9 +336,7 @@ def _envelope_meta(coordination_branch: str | None) -> dict[str, object]:
 
 def _write_envelope_meta(feature_dir: Path, coordination_branch: str | None) -> None:
     feature_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps(_envelope_meta(coordination_branch)), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(_envelope_meta(coordination_branch)), encoding="utf-8")
 
 
 def _git_q(root: Path, *args: str) -> None:
@@ -505,9 +501,7 @@ def _retired_placement_ref(repo_root: Path, handle: str) -> str | None:
         ("create-window-1718", True),
     ],
 )
-def test_is_committed_fr011_parity(
-    tmp_path: Path, row: str, expected_verdict: bool
-) -> None:
+def test_is_committed_fr011_parity(tmp_path: Path, row: str, expected_verdict: bool) -> None:
     """FR-011: single-surface verdict == retired 3-leg OR verdict, on the read surface.
 
     For each reachable cell, resolve the READ surface like the caller, then
@@ -533,13 +527,9 @@ def test_is_committed_fr011_parity(
     )
 
     assert single_surface is expected_verdict, (
-        f"[{row}] single-surface is_committed returned {single_surface}, "
-        f"expected {expected_verdict}; diagnostics={diagnostics}"
+        f"[{row}] single-surface is_committed returned {single_surface}, expected {expected_verdict}; diagnostics={diagnostics}"
     )
-    assert single_surface is retired, (
-        f"[{row}] PARITY FAILURE: single-surface={single_surface} but "
-        f"retired-OR={retired} on the read-resolved spec {spec}"
-    )
+    assert single_surface is retired, f"[{row}] PARITY FAILURE: single-surface={single_surface} but retired-OR={retired} on the read-resolved spec {spec}"
     assert diagnostics, f"[{row}] diagnostics sink must enumerate the checked surface(s)"
 
 

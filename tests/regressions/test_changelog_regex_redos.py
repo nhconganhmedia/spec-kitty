@@ -137,9 +137,7 @@ def test_parse_wp_frontmatter_status_on_adversarial_input(
 
     result = _parse_wp_frontmatter_status(wp_file)
 
-    assert result == "done", (
-        f"Expected 'done' but got {result!r} — rewrite changed match semantics."
-    )
+    assert result == "done", f"Expected 'done' but got {result!r} — rewrite changed match semantics."
 
 
 @pytest.mark.performance
@@ -180,9 +178,7 @@ def test_parse_wp_id_on_adversarial_input(
 
     result = _parse_wp_id(wp_file)
 
-    assert result == "WP99", (
-        f"Expected 'WP99' but got {result!r} — rewrite changed match semantics."
-    )
+    assert result == "WP99", f"Expected 'WP99' but got {result!r} — rewrite changed match semantics."
 
 
 @pytest.mark.performance
@@ -223,9 +219,7 @@ def test_parse_wp_title_on_adversarial_input(
 
     result = _parse_wp_title(wp_file)
 
-    assert result == "Real Title", (
-        f"Expected 'Real Title' but got {result!r} — rewrite changed match semantics."
-    )
+    assert result == "Real Title", f"Expected 'Real Title' but got {result!r} — rewrite changed match semantics."
 
 
 @pytest.mark.performance

@@ -186,6 +186,7 @@ class TestWriteGenRecordModeOverwrite:
 
         # Read back and verify only r2 content survives.
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
         assert data["findings_status"] == "ran_no_findings"
@@ -227,6 +228,7 @@ class TestWriteGenRecordModeUpdate:
         canonical = write_gen_record(r2, mode="update", repo_root=tmp_path)
 
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
         helped = data["helped"]
@@ -255,12 +257,13 @@ class TestWriteGenRecordModeUpdate:
             helped=[make_finding("h-002", "tooling", "New finding")],
             evidence_refs=[
                 make_evidence_ref("e-001dup", "src/foo.py"),  # same path/range → duplicate
-                make_evidence_ref("e-002", "src/bar.py"),     # new
+                make_evidence_ref("e-002", "src/bar.py"),  # new
             ],
         )
         canonical = write_gen_record(r2, mode="update", repo_root=tmp_path)
 
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
         evidence_paths = [(e["kind"], e["path"], e.get("range")) for e in data["evidence_refs"]]
@@ -278,6 +281,7 @@ class TestWriteGenRecordModeUpdate:
         canonical = write_gen_record(r2, mode="update", repo_root=tmp_path)
 
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
 
@@ -302,6 +306,7 @@ class TestWriteGenRecordModeUpdate:
         canonical = write_gen_record(r2, mode="update", repo_root=tmp_path)
 
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
         assert data["findings_status"] == "has_findings"
@@ -318,21 +323,19 @@ class TestWriteGenRecordModeUpdate:
         canonical = write_gen_record(r2, mode="update", repo_root=tmp_path)
 
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
         # Old policy_source keys are gone; only new one remains.
-        assert data["policy_source"] == {
-            "enabled": ".kittify/config.yaml#retrospective.enabled"
-        }
+        assert data["policy_source"] == {"enabled": ".kittify/config.yaml#retrospective.enabled"}
 
 
 class TestAtomicWriteErrorPaths:
     """Tests for _atomic_write_gen OSError and generic Exception recovery paths."""
 
-    def test_os_error_during_write_raises_writer_error(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_os_error_during_write_raises_writer_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """OSError during os.replace wraps into WriterError."""
+
         def fail_replace(src: str, dst: str) -> None:
             raise OSError("Disk full")
 
@@ -342,10 +345,9 @@ class TestAtomicWriteErrorPaths:
         with pytest.raises(WriterError, match="IO error writing retrospective record"):
             write_gen_record(record, mode="error", repo_root=tmp_path)
 
-    def test_generic_exception_during_write_raises_writer_error(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_generic_exception_during_write_raises_writer_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A non-OSError exception during write wraps into WriterError."""
+
         def exploding_replace(src: str, dst: str) -> None:
             raise RuntimeError("Unexpected runtime error")
 
@@ -362,9 +364,7 @@ class TestWriteGenRecordAtomicity:
     Simulates an interrupted rename via monkeypatching os.replace.
     """
 
-    def test_first_write_crash_leaves_no_canonical(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_first_write_crash_leaves_no_canonical(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Simulated crash on first write: canonical must not exist."""
         canonical = tmp_path / "kitty-specs" / MISSION_SLUG / "retrospective.yaml"
 
@@ -377,13 +377,9 @@ class TestWriteGenRecordAtomicity:
         with pytest.raises((WriterError, OSError)):
             write_gen_record(record, mode="error", repo_root=tmp_path)
 
-        assert not canonical.exists(), (
-            "Canonical file must not exist after a first-write crash"
-        )
+        assert not canonical.exists(), "Canonical file must not exist after a first-write crash"
 
-    def test_second_write_crash_leaves_prior_canonical(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_second_write_crash_leaves_prior_canonical(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Simulated crash on second write: canonical must still hold prior version."""
         record_v1 = make_record(findings_status="ran_no_findings")
         canonical = write_gen_record(record_v1, mode="error", repo_root=tmp_path)
@@ -414,9 +410,7 @@ class TestWriteGenRecordAtomicity:
         assert canonical.exists()
         assert canonical.read_bytes() == prior_content
 
-    def test_tempfile_in_same_directory(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tempfile_in_same_directory(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Tempfile must be created in the same directory as the canonical file."""
         captured_src: list[str] = []
         original_replace = os.replace
@@ -489,9 +483,7 @@ class TestWriteGenRecordEdgeCases:
         with pytest.raises(WriterError, match="Unknown write mode"):
             write_gen_record(record, mode="bogus", repo_root=tmp_path)  # type: ignore[arg-type]
 
-    def test_mode_update_with_invalid_yaml_in_existing_record(
-        self, tmp_path: Path
-    ) -> None:
+    def test_mode_update_with_invalid_yaml_in_existing_record(self, tmp_path: Path) -> None:
         """mode='update' with a non-mapping existing YAML raises WriterError."""
         canonical = tmp_path / "kitty-specs" / MISSION_SLUG / "retrospective.yaml"
         canonical.parent.mkdir(parents=True)
@@ -523,6 +515,7 @@ class TestWriteGenRecordEdgeCases:
         canonical = write_gen_record(r2, mode="update", repo_root=tmp_path)
 
         from ruamel.yaml import YAML
+
         yaml = YAML(typ="safe")
         data = yaml.load(canonical.read_text(encoding="utf-8"))
         proposal_summaries = [p["summary"] for p in data["proposals"]]
@@ -557,9 +550,7 @@ class TestWriteGenRecordEdgeCases:
         assert p.details == "See ADR-42."
         assert p.auto_applicable is True
 
-    def test_mkdir_failure_raises_writer_error(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mkdir_failure_raises_writer_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """mkdir failure before write raises WriterError."""
         original_mkdir = Path.mkdir
 
@@ -574,9 +565,7 @@ class TestWriteGenRecordEdgeCases:
         with pytest.raises(WriterError, match="Cannot create target directory"):
             write_gen_record(record, mode="error", repo_root=tmp_path)
 
-    def test_mode_update_load_exception_raises_writer_error(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mode_update_load_exception_raises_writer_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """mode='update' with read_text raising raises WriterError (exception load path)."""
         # First write succeeds.
         record = make_record()
@@ -596,9 +585,7 @@ class TestWriteGenRecordEdgeCases:
         with pytest.raises(WriterError, match="Cannot load existing record"):
             write_gen_record(record2, mode="update", repo_root=tmp_path)
 
-    def test_mode_update_with_existing_corrupt_record_raises_writer_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_mode_update_with_existing_corrupt_record_raises_writer_error(self, tmp_path: Path) -> None:
         """mode='update' with an existing record that fails validation raises WriterError."""
         # Write a YAML dict that is missing required fields so _dict_to_gen_record
         # produces something that fails validate_record.
@@ -607,6 +594,7 @@ class TestWriteGenRecordEdgeCases:
         # Write a minimal dict that won't fail _dict_to_gen_record (defaults fill in)
         # but sets synthesize_fabricate + has_findings to fail validation.
         from ruamel.yaml import YAML
+
         yaml = YAML()
         bad_data = {
             "schema_version": 1,
@@ -634,6 +622,7 @@ class TestWriteGenRecordEdgeCases:
             "provenance_history": [],
         }
         import io as _io
+
         buf = _io.StringIO()
         yaml.dump(bad_data, buf)
         canonical.write_text(buf.getvalue(), encoding="utf-8")
@@ -692,8 +681,8 @@ class TestGenRecordSerialisation:
                 make_finding("h-002", "tooling", "Different finding"),
             ],
             evidence_refs=[
-                make_evidence_ref("e-001x", "src/a.py"),   # duplicate by (kind, path, range, url)
-                make_evidence_ref("e-002", "src/b.py"),    # new
+                make_evidence_ref("e-001x", "src/a.py"),  # duplicate by (kind, path, range, url)
+                make_evidence_ref("e-002", "src/b.py"),  # new
             ],
         )
         merged = _merge_gen_records(existing, new_record)

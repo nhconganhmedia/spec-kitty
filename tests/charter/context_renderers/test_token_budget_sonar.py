@@ -218,11 +218,7 @@ class TestCollectSectionBlockCandidates:
         assert _collect_section_block_candidates("", action="implement") == []
 
     def test_headed_block_yields_one_candidate_per_heading(self) -> None:
-        section_block = (
-            "Action-Critical Charter Sections (implement):\n\n"
-            "### Terminology Canon\nBody one.\n\n"
-            "### Regression Vigilance\nBody two."
-        )
+        section_block = "Action-Critical Charter Sections (implement):\n\n### Terminology Canon\nBody one.\n\n### Regression Vigilance\nBody two."
 
         candidates = _collect_section_block_candidates(section_block, action="implement")
 
@@ -241,9 +237,7 @@ class TestCollectSectionBlockCandidates:
 
         candidates = _collect_section_block_candidates(section_block, action="implement")
 
-        assert [c.section_id for c in candidates] == [
-            "action-critical-sections:Real Heading"
-        ]
+        assert [c.section_id for c in candidates] == ["action-critical-sections:Real Heading"]
 
     def test_unheaded_block_falls_back_to_single_candidate(self) -> None:
         # No "### " sub-structure at all — single-blob fallback path.
@@ -369,16 +363,12 @@ class TestEnforceTokenBudgetIntegration:
 
     def test_under_budget_returns_text_unchanged(self) -> None:
         text = "short text"
-        result = _enforce_token_budget(
-            text, action="implement", profile_block="", section_block="", budget=1_000
-        )
+        result = _enforce_token_budget(text, action="implement", profile_block="", section_block="", budget=1_000)
         assert result == text
 
     def test_no_candidates_over_budget_returns_original_text(self) -> None:
         text = "x" * 100
-        result = _enforce_token_budget(
-            text, action="implement", profile_block="", section_block="", budget=10
-        )
+        result = _enforce_token_budget(text, action="implement", profile_block="", section_block="", budget=10)
         assert result == text
 
     def test_swaps_section_block_headings_and_profile_kinds_together(self) -> None:

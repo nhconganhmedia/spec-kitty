@@ -136,9 +136,7 @@ def repo_root(tmp_path: Path) -> Path:
     return root
 
 
-def test_specify_cli_entry_point_delegates_to_charter_builder(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_specify_cli_entry_point_delegates_to_charter_builder(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """C-001: a real behavioural proof that specify_cli holds a call-through.
 
     Patching the charter-layer canonical builder must be observed by the
@@ -311,6 +309,5 @@ def test_bare_project_admits_language_scoped_builtin_profiles(tmp_path: Path) ->
 
     missing = [pid for pid in _LANGUAGE_SCOPED_BUILTIN_PROFILE_IDS if pid not in catalog_ids]
     assert not missing, (
-        f"language-scoped built-in profiles dropped from a bare project's catalog: {missing} "
-        f"(catalog had {len(catalog_ids)} profiles: {sorted(catalog_ids)})"
+        f"language-scoped built-in profiles dropped from a bare project's catalog: {missing} (catalog had {len(catalog_ids)} profiles: {sorted(catalog_ids)})"
     )

@@ -12,6 +12,7 @@ retired with the sync transport (issue #5), so these tests drive clients in
 through the ``_get_saas_client`` seam alone; production wiring (no factory
 registered) makes propagation a silent no-op.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -101,9 +102,7 @@ def test_no_transport_registered_never_sends(tmp_path: Path, mode: str, event_na
         _propagate_one(record, tmp_path)
 
     mock_client_factory.assert_called_once_with(tmp_path)
-    assert not (tmp_path / PROPAGATION_ERRORS_PATH).exists(), (
-        "no error may be logged when there is no transport to send through"
-    )
+    assert not (tmp_path / PROPAGATION_ERRORS_PATH).exists(), "no error may be logged when there is no transport to send through"
 
 
 # ---------------------------------------------------------------------------
@@ -144,9 +143,7 @@ def test_advisory_started_omits_request_text(tmp_path: Path) -> None:
     assert len(mock_client._captured) == 1, "ADVISORY/started should produce one send_event call"
     envelope = mock_client._captured[0]
     assert envelope["event_type"] == "ProfileInvocationStarted"
-    assert "request_text" not in envelope, (
-        "ADVISORY/started must omit request_text key entirely (not empty string)"
-    )
+    assert "request_text" not in envelope, "ADVISORY/started must omit request_text key entirely (not empty string)"
 
 
 def test_query_started_does_not_project(tmp_path: Path) -> None:
@@ -264,10 +261,7 @@ def test_no_propagation_errors_without_a_transport(tmp_path: Path, mode: str) ->
     prop_errors_path = tmp_path / PROPAGATION_ERRORS_PATH
     if prop_errors_path.exists():
         content = prop_errors_path.read_text(encoding="utf-8").strip()
-        assert not content, (
-            f"Expected empty propagation-errors.jsonl when there is no transport, "
-            f"but got: {content!r}"
-        )
+        assert not content, f"Expected empty propagation-errors.jsonl when there is no transport, but got: {content!r}"
 
 
 # ---------------------------------------------------------------------------

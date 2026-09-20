@@ -128,10 +128,7 @@ def test_sc002_the_two_passes_agree_on_both_variables(
     """
     pre_members, unf_members, _pre, _unf, _a, _b = both_passes
     difference = full_output(pre_members) ^ full_output(unf_members)
-    assert difference == set(), (
-        f"the pre-filter changes the classifier's answer for {sorted(difference)} — FR-002's "
-        f"over-selection premise does not hold"
-    )
+    assert difference == set(), f"the pre-filter changes the classifier's answer for {sorted(difference)} — FR-002's over-selection premise does not hold"
 
 
 def test_sc002_the_two_passes_parsed_different_file_sets(
@@ -149,20 +146,13 @@ def test_sc002_the_two_passes_parsed_different_file_sets(
     _pre_members, _unf_members, pre_parsed, unf_parsed, _a, _b = both_passes
 
     assert pre_parsed < unf_parsed, (
-        "the two passes parsed the SAME file set — `prefilter` is not reaching the body, and the "
-        "empty symmetric difference above is true by construction"
+        "the two passes parsed the SAME file set — `prefilter` is not reaching the body, and the empty symmetric difference above is true by construction"
     )
-    inline_enumeration = {
-        path.relative_to(TESTS_ROOT).as_posix() for path in TESTS_ROOT.rglob("*.py")
-    }
+    inline_enumeration = {path.relative_to(TESTS_ROOT).as_posix() for path in TESTS_ROOT.rglob("*.py")}
     assert unf_parsed == inline_enumeration, (
-        "the unfiltered pass must parse every .py under the root — anything less is a narrowed "
-        "walk, which C-003 refuses and NFR-001 explicitly never permits"
+        "the unfiltered pass must parse every .py under the root — anything less is a narrowed walk, which C-003 refuses and NFR-001 explicitly never permits"
     )
-    print(
-        f"[reported, not asserted] parsed pre-filtered: {len(pre_parsed)}; "
-        f"unfiltered: {len(unf_parsed)}"
-    )
+    print(f"[reported, not asserted] parsed pre-filtered: {len(pre_parsed)}; unfiltered: {len(unf_parsed)}")
 
 
 def test_sc002_reports_the_cost_of_both_passes_without_asserting_a_wall_clock(
@@ -249,21 +239,16 @@ def test_sc002b_publishes_both_figures() -> None:
     publishes them too. (They previously went through ``capsys`` and were **drained by**
     ``readouterr()``, so pytest had nothing left to show and a green run surfaced nothing at all.)
     """
-    figures = {
-        label: (scan.inert_hits(SC002B_LIMB_ID, root), scan.literal_key_occurrences(root))
-        for label, root in (("tests", TESTS_ROOT), ("src", SRC_ROOT))
-    }
+    figures = {label: (scan.inert_hits(SC002B_LIMB_ID, root), scan.literal_key_occurrences(root)) for label, root in (("tests", TESTS_ROOT), ("src", SRC_ROOT))}
     summary = "; ".join(
-        f"{label}: {len(bound)} assignment-bound / {len(occ)} literal occurrences in "
-        f"{len({relpath for relpath, _ in occ})} files"
+        f"{label}: {len(bound)} assignment-bound / {len(occ)} literal occurrences in {len({relpath for relpath, _ in occ})} files"
         for label, (bound, occ) in sorted(figures.items())
     )
     total_occurrences = sum(len(occ) for _bound, occ in figures.values())
     print(f"[reported, not asserted] SC-002b over src/ u tests/ — {summary}")
 
     assert total_occurrences, (
-        f"a population of 0 with no denominator cannot be audited — it is indistinguishable from a "
-        f"matcher that sees nothing at all. Measured: {summary}"
+        f"a population of 0 with no denominator cannot be audited — it is indistinguishable from a matcher that sees nothing at all. Measured: {summary}"
     )
 
 

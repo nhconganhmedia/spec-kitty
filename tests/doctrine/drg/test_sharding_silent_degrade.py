@@ -66,11 +66,7 @@ def _lineage_children(graph: DRGGraph) -> list[str]:
     """
     from charter.offering.agent_profiles.repository import _profile_id_from_urn
 
-    children = {
-        _profile_id_from_urn(e.source)
-        for e in graph.edges
-        if e.relation == Relation.SPECIALIZES_FROM
-    }
+    children = {_profile_id_from_urn(e.source) for e in graph.edges if e.relation == Relation.SPECIALIZES_FROM}
     return sorted(children)
 
 
@@ -100,10 +96,7 @@ def test_profile_lineage_parents_identical_and_non_empty(
         ref_ancestors = ref_repo.get_ancestors(profile_id)
         sharded_ancestors = sharded_repo.get_ancestors(profile_id)
         assert ref_ancestors, f"{profile_id}: reference lineage unexpectedly empty"
-        assert sharded_ancestors == ref_ancestors, (
-            f"{profile_id}: lineage degraded under sharded layout — "
-            f"reference={ref_ancestors} sharded={sharded_ancestors}"
-        )
+        assert sharded_ancestors == ref_ancestors, f"{profile_id}: lineage degraded under sharded layout — reference={ref_ancestors} sharded={sharded_ancestors}"
 
 
 def test_resolve_profile_succeeds_against_sharded_layout(
@@ -143,8 +136,7 @@ def test_charter_lint_graph_state_is_healthy_not_missing() -> None:
         graph, state = load_merged_drg(Path(tmp))
 
     assert state is not GraphState.MISSING, (
-        "charter-lint reported MISSING against the sharded built-in layout — "
-        "the DRGLoadError-swallowing built-in read degraded silently"
+        "charter-lint reported MISSING against the sharded built-in layout — the DRGLoadError-swallowing built-in read degraded silently"
     )
     assert state is GraphState.BUILT_IN_ONLY
     assert graph is not None
@@ -177,9 +169,7 @@ def test_pack_validator_resolves_builtin_edge_targets(
     (``drg_dangling_edge``). No such error ⇒ the validator still sees the
     built-in universe end-to-end.
     """
-    built_in_target = min(
-        n.urn for n in reference_graph.nodes if n.kind == NodeKind.DIRECTIVE
-    )
+    built_in_target = min(n.urn for n in reference_graph.nodes if n.kind == NodeKind.DIRECTIVE)
 
     fragment = {
         "schema_version": "1.0",
@@ -204,12 +194,5 @@ def test_pack_validator_resolves_builtin_edge_targets(
 
         result = validate_pack(Path(tmp))
 
-    dangling = [
-        issue
-        for issue in result.errors
-        if getattr(issue, "category", "") == "drg_dangling_edge"
-    ]
-    assert not dangling, (
-        "pack-validator flagged a built-in edge target as dangling — the "
-        f"built-in URN universe degraded to empty: {[d.message for d in dangling]}"
-    )
+    dangling = [issue for issue in result.errors if getattr(issue, "category", "") == "drg_dangling_edge"]
+    assert not dangling, f"pack-validator flagged a built-in edge target as dangling — the built-in URN universe degraded to empty: {[d.message for d in dangling]}"

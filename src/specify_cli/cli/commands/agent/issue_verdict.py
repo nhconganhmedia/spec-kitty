@@ -250,9 +250,7 @@ def do_issue_verdict(
     mission_slug = resolved.mission_slug
     feature_dir = resolved.feature_dir
 
-    read_dir, migrated = _migrate_if_needed(
-        repo_root=root, mission_slug=mission_slug, feature_dir=feature_dir, actor=actor
-    )
+    read_dir, migrated = _migrate_if_needed(repo_root=root, mission_slug=mission_slug, feature_dir=feature_dir, actor=actor)
     rows = _load_raw_rows(read_dir / ISSUE_MATRIX_JSON_FILENAME)
     _upsert_row(rows, issue_ref, verdict=verdict, evidence_ref=evidence_ref, wp=wp)
 
@@ -299,9 +297,7 @@ def issue_verdict_command(
     ],
     actor: Annotated[str, typer.Option("--actor", help="Identity of the acting agent.")],
     wp: Annotated[str | None, typer.Option("--wp", help="Owning work-package id (e.g. WP01).")] = None,
-    evidence_ref: Annotated[
-        str | None, typer.Option("--evidence-ref", help="Evidence text or link for the verdict.")
-    ] = None,
+    evidence_ref: Annotated[str | None, typer.Option("--evidence-ref", help="Evidence text or link for the verdict.")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format.")] = False,
 ) -> None:
     """Set an issue-matrix row's verdict, routed via ``write_target(ISSUE_MATRIX)``."""
@@ -326,10 +322,7 @@ def issue_verdict_command(
     if json_output:
         console.emit_json(payload, indent=None, sort_keys=True)
     else:
-        console.print(
-            f"[green]OK[/green] {payload['row_or_entry_ref']} -> {verdict} "
-            f"({payload['status']}, surface={payload['destination_surface']})"
-        )
+        console.print(f"[green]OK[/green] {payload['row_or_entry_ref']} -> {verdict} ({payload['status']}, surface={payload['destination_surface']})")
 
     if not payload["ok"]:
         raise typer.Exit(1)

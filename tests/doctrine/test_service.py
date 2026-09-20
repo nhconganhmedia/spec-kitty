@@ -35,56 +35,59 @@ def _packs_root(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     return packs_root
 
 
-def test_service_loads_all_repositories_from_built_in_defaults(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_service_loads_all_repositories_from_built_in_defaults(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     packs_root = _packs_root(monkeypatch, tmp_path)
 
     _write_yaml(
         packs_root / "built-in" / "directives" / "001-test.directive.yaml",
-        {"schema_version": "1.0", "id": "DIRECTIVE_001", "title": "Test",
-         "intent": "Test intent.", "enforcement": "required"},
+        {"schema_version": "1.0", "id": "DIRECTIVE_001", "title": "Test", "intent": "Test intent.", "enforcement": "required"},
     )
     _write_yaml(
         packs_root / "built-in" / "tactics" / "test-tactic.tactic.yaml",
-        {"schema_version": "1.0", "id": "test-tactic", "name": "Test Tactic",
-         "steps": [{"title": "Step 1"}]},
+        {"schema_version": "1.0", "id": "test-tactic", "name": "Test Tactic", "steps": [{"title": "Step 1"}]},
     )
     _write_yaml(
         packs_root / "built-in" / "styleguides" / "test-style.styleguide.yaml",
-        {"schema_version": "1.0", "id": "test-style", "title": "Test Style",
-         "scope": "code", "principles": ["Be clear"]},
+        {"schema_version": "1.0", "id": "test-style", "title": "Test Style", "scope": "code", "principles": ["Be clear"]},
     )
     _write_yaml(
         packs_root / "built-in" / "toolguides" / "test-tool.toolguide.yaml",
-        {"schema_version": "1.0", "id": "test-tool", "tool": "bash",
-         "title": "Test Tool", "guide_path": "src/charter/offering/test-tool.md", "summary": "Test."},
+        {"schema_version": "1.0", "id": "test-tool", "tool": "bash", "title": "Test Tool", "guide_path": "src/charter/offering/test-tool.md", "summary": "Test."},
     )
     _write_yaml(
         packs_root / "built-in" / "paradigms" / "test-paradigm.paradigm.yaml",
-        {"schema_version": "1.0", "id": "test-paradigm", "name": "Test Paradigm",
-         "summary": "Test."},
+        {"schema_version": "1.0", "id": "test-paradigm", "name": "Test Paradigm", "summary": "Test."},
     )
     _write_yaml(
         packs_root / "built-in" / "procedures" / "test-proc.procedure.yaml",
-        {"schema_version": "1.0", "id": "test-proc", "name": "Test Procedure",
-         "purpose": "Test.", "entry_condition": "Always.",
-         "exit_condition": "Done.", "steps": [{"title": "Step 1"}]},
+        {
+            "schema_version": "1.0",
+            "id": "test-proc",
+            "name": "Test Procedure",
+            "purpose": "Test.",
+            "entry_condition": "Always.",
+            "exit_condition": "Done.",
+            "steps": [{"title": "Step 1"}],
+        },
     )
     _write_yaml(
         packs_root / "built-in" / "agent_profiles" / "test.agent.yaml",
         # ``personality-traits`` used to sit here. It is not an AgentProfile
         # field and never was — it loaded and was discarded, which is exactly
         # the silence WP04's ``extra="forbid"`` closes (FR-004).
-        {"profile-id": "test-agent", "name": "Test Agent", "roles": ["implementer"],
-         "directive-references": [],
-         "purpose": "Test agent for unit tests.",
-         "specialization": {
-             "primary-focus": "testing",
-             "secondary-awareness": "testing",
-             "avoidance-boundary": "none",
-             "success-definition": "tests pass",
-         }},
+        {
+            "profile-id": "test-agent",
+            "name": "Test Agent",
+            "roles": ["implementer"],
+            "directive-references": [],
+            "purpose": "Test agent for unit tests.",
+            "specialization": {
+                "primary-focus": "testing",
+                "secondary-awareness": "testing",
+                "avoidance-boundary": "none",
+                "success-definition": "tests pass",
+            },
+        },
     )
 
     service = DoctrineService()
@@ -113,9 +116,7 @@ def test_service_repositories_are_lazily_cached() -> None:
     assert "tactics" in service._cache
 
 
-def test_service_honors_custom_built_in_and_project_roots(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_service_honors_custom_built_in_and_project_roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     packs_root = _packs_root(monkeypatch, tmp_path)
     project_root = tmp_path / "project-root"
 
@@ -150,9 +151,7 @@ def test_service_honors_custom_built_in_and_project_roots(
     assert directive.enforcement.value == "advisory"
 
 
-def test_service_loads_synthesized_project_root_singular_kind_dirs(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_service_loads_synthesized_project_root_singular_kind_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _packs_root(monkeypatch, tmp_path)
     project_root = tmp_path / ".kittify" / "doctrine"
 
@@ -193,9 +192,7 @@ def test_service_loads_synthesized_project_root_singular_kind_dirs(
     assert service.styleguides.get("project-style") is not None
 
 
-def test_service_ignores_legacy_plural_dirs_for_synthesized_project_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_service_ignores_legacy_plural_dirs_for_synthesized_project_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _packs_root(monkeypatch, tmp_path)
     project_root = tmp_path / ".kittify" / "doctrine"
 
@@ -245,9 +242,7 @@ def test_service_ignores_legacy_plural_dirs_for_synthesized_project_root(
 # validated by the DRG cycle/shape tests.
 
 
-def test_service_filters_language_scoped_artifacts_when_active_languages_do_not_match(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_service_filters_language_scoped_artifacts_when_active_languages_do_not_match(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     packs_root = _packs_root(monkeypatch, tmp_path)
 
     _write_yaml(
@@ -336,9 +331,7 @@ def test_service_filters_language_scoped_artifacts_when_active_languages_do_not_
     assert service.agent_profiles.get("python-pedro") is None
 
 
-def test_service_keeps_language_scoped_artifacts_when_active_languages_are_unset(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_service_keeps_language_scoped_artifacts_when_active_languages_are_unset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     packs_root = _packs_root(monkeypatch, tmp_path)
 
     _write_yaml(
@@ -416,6 +409,7 @@ def test_service_exposes_specification_by_example_artifacts(built_in_graph: DRGG
     procedure_edges = {(edge.target, edge.relation) for edge in graph.edges_from("procedure:example-mapping-workshop")}
     assert ("tactic:usage-examples-sync", Relation.REQUIRES) in procedure_edges
 
+
 def test_service_has_no_local_project_kind_dirs_copy() -> None:
     """T023: the AST-invisible string-keyed copy is retired to the authority.
 
@@ -441,14 +435,8 @@ def test_service_project_dir_uses_hoisted_authority(tmp_path: Path) -> None:
 
     # A singular-mapped kind (directive -> "directive") proves the authority
     # is consulted rather than an identity fallback on the plural.
-    assert (
-        service._project_dir("directives")
-        == project_root / PROJECT_KIND_DIRS[ArtifactKind.DIRECTIVE]
-    )
-    assert (
-        service._project_dir("assets")
-        == project_root / PROJECT_KIND_DIRS[ArtifactKind.ASSET]
-    )
+    assert service._project_dir("directives") == project_root / PROJECT_KIND_DIRS[ArtifactKind.DIRECTIVE]
+    assert service._project_dir("assets") == project_root / PROJECT_KIND_DIRS[ArtifactKind.ASSET]
 
 
 def test_service_assets_resolves_shipped_asset() -> None:

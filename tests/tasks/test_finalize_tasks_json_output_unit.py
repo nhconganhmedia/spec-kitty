@@ -47,9 +47,7 @@ def _committed_router_result(*, commit_success: bool = True) -> CommitRouterResu
             commit_hash=_FAKE_SHA,
             commit_hashes=(("main", _FAKE_SHA),),
         )
-    return CommitRouterResult(
-        status="error", placement_ref="main", diagnostic="safe_commit: git commit failed"
-    )
+    return CommitRouterResult(status="error", placement_ref="main", diagnostic="safe_commit: git commit failed")
 
 
 _FAKE_COORD_SHA = "b" * 40
@@ -116,9 +114,7 @@ def _build_feature(tmp_path: Path) -> tuple[Path, Path]:
     return feature_dir, tasks_dir
 
 
-def _patch_context(
-    tmp_path: Path, feature_dir: Path, *, commit_success: bool = True, git_status_out: str = "M tasks.md"
-):
+def _patch_context(tmp_path: Path, feature_dir: Path, *, commit_success: bool = True, git_status_out: str = "M tasks.md"):
     """Return a context-manager stack that patches the infrastructure helpers."""
     return (
         patch(
@@ -163,9 +159,7 @@ def _make_run_command(git_status_out: str):
 class TestFinalizeTasks:
     """Unit tests for finalize-tasks JSON output schema."""
 
-    def test_missing_meta_warning_is_suppressed_in_json_mode(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_missing_meta_warning_is_suppressed_in_json_mode(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         """Missing-meta diagnostics must not precede the JSON payload."""
         feature_dir, _ = _build_feature(tmp_path)
         (feature_dir / "meta.json").unlink()
@@ -176,9 +170,7 @@ class TestFinalizeTasks:
         assert captured.out == ""
         assert captured.err == ""
 
-    def test_missing_meta_warning_still_emits_in_human_mode(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_missing_meta_warning_still_emits_in_human_mode(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         """Human mode keeps the operator-facing missing-meta warning."""
         feature_dir, _ = _build_feature(tmp_path)
         (feature_dir / "meta.json").unlink()
@@ -218,9 +210,7 @@ class TestFinalizeTasks:
         commit_hash = payload["commit_hash"]
         assert commit_hash is not None
         assert len(commit_hash) == 40, f"Expected 40-char SHA, got: {commit_hash!r}"
-        assert all(c in "0123456789abcdef" for c in commit_hash), (
-            f"commit_hash should be lowercase hex, got: {commit_hash!r}"
-        )
+        assert all(c in "0123456789abcdef" for c in commit_hash), f"commit_hash should be lowercase hex, got: {commit_hash!r}"
 
     def test_json_output_commit_created_true_when_changes_exist(self, tmp_path: Path) -> None:
         """commit_created should be True when relevant files have changes to commit."""
@@ -359,9 +349,7 @@ class TestFinalizeTasks:
         assert isinstance(payload["updated_wp_count"], int)
         assert isinstance(payload["tasks_dir"], str)
 
-    def test_json_output_commit_hashes_reports_both_branches_under_coord_topology(
-        self, tmp_path: Path
-    ) -> None:
+    def test_json_output_commit_hashes_reports_both_branches_under_coord_topology(self, tmp_path: Path) -> None:
         """#2549 facet B: under coord topology, JSON reports BOTH commit hashes.
 
         A coord-topology finalize issues two commits (feature branch + coord
@@ -405,8 +393,7 @@ class TestFinalizeTasks:
         assert hashes_by_branch[_COORD_BRANCH] == _FAKE_COORD_SHA
         assert hashes_by_branch[_COORD_BRANCH] is not None
         assert hashes_by_branch[_COORD_BRANCH] != hashes_by_branch["main"], (
-            "the coordination-branch commit hash must be reported and must "
-            "differ from the feature-branch commit hash"
+            "the coordination-branch commit hash must be reported and must differ from the feature-branch commit hash"
         )
 
     def test_json_output_commit_hashes_single_entry_for_flat_topology(self, tmp_path: Path) -> None:
@@ -439,9 +426,7 @@ class TestFinalizeTasks:
 
         commit_hashes = payload["commit_hashes"]
         assert isinstance(commit_hashes, list)
-        assert commit_hashes == [{"branch": "main", "hash": _FAKE_SHA}], (
-            f"flat topology must report exactly one branch commit, got {commit_hashes!r}"
-        )
+        assert commit_hashes == [{"branch": "main", "hash": _FAKE_SHA}], f"flat topology must report exactly one branch commit, got {commit_hashes!r}"
         assert payload["commit_hash"] == commit_hashes[0]["hash"]
 
     def test_json_reports_modified_unchanged_preserved(self, tmp_path: Path) -> None:

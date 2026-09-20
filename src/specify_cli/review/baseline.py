@@ -12,6 +12,7 @@ Design decisions:
 - Supported output formats are parser-specific; JUnit XML is supported today.
 - Artifact format: structured JSON with test name, status, one-line error for failures only.
 """
+
 from __future__ import annotations
 
 import json
@@ -67,9 +68,9 @@ class ReviewBaselineReadError(GuardedReadError, ValueError):
 class BaselineFailure:
     """A single test failure recorded in the baseline."""
 
-    test: str   # fully qualified test name
+    test: str  # fully qualified test name
     error: str  # one-line error summary (max 200 chars)
-    file: str   # file:line
+    file: str  # file:line
 
     def to_dict(self) -> dict[str, Any]:
         return {"test": self.test, "error": self.error, "file": self.file}
@@ -88,18 +89,18 @@ class BaselineTestResult:
     """Baseline test results captured at implement time."""
 
     wp_id: str
-    captured_at: str      # ISO 8601 UTC
+    captured_at: str  # ISO 8601 UTC
     base_branch: str
-    base_commit: str      # 7-40 hex chars
-    test_runner: str      # "pytest", "custom"
+    base_commit: str  # 7-40 hex chars
+    test_runner: str  # "pytest", "custom"
     total: int
     passed: int
-    failed: int           # -1 means capture failed (sentinel)
+    failed: int  # -1 means capture failed (sentinel)
     skipped: int
     failures: tuple[BaselineFailure, ...] = field(default_factory=tuple)
     source_identity: str = UNKNOWN_SOURCE_IDENTITY  # FR-009: "<ScopeSource class>/<parse-mode>",
-                                       # or UNKNOWN_SOURCE_IDENTITY for a straddling-upgrade
-                                       # artifact captured before this field existed.
+    # or UNKNOWN_SOURCE_IDENTITY for a straddling-upgrade
+    # artifact captured before this field existed.
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -177,6 +178,7 @@ def _get_test_command(repo_root: Path) -> tuple[str | None, str | None]:
     if config_path.exists():
         try:
             from ruamel.yaml import YAML
+
             yaml = YAML()
             config = yaml.load(config_path)
             if config:
@@ -221,11 +223,13 @@ def _parse_junit_xml(junit_xml_path: Path) -> tuple[int, int, int, int, list[Bas
             test_name = f"{classname}.{name}" if classname else name
             file_attr = testcase.get("file", "unknown") or "unknown"
             line_attr = testcase.get("line", "?") or "?"
-            failures.append(BaselineFailure(
-                test=test_name,
-                error=msg,
-                file=f"{file_attr}:{line_attr}",
-            ))
+            failures.append(
+                BaselineFailure(
+                    test=test_name,
+                    error=msg,
+                    file=f"{file_attr}:{line_attr}",
+                )
+            )
         elif skip_el is not None:
             skipped += 1
         else:
@@ -590,7 +594,8 @@ def _capture_baseline_via_scope_source(
     command = scope_source.test_command()
     if not command:
         logger.info(
-            "No test command resolved via the injected ScopeSource; skipping baseline capture for %s.", wp_id,
+            "No test command resolved via the injected ScopeSource; skipping baseline capture for %s.",
+            wp_id,
         )
         return None
 
@@ -690,9 +695,7 @@ def diff_baseline(
         else:
             new_failures.append(failure)
 
-    fixed: list[str] = [
-        f.test for f in baseline.failures if f.test not in current_test_names
-    ]
+    fixed: list[str] = [f.test for f in baseline.failures if f.test not in current_test_names]
 
     return pre_existing, new_failures, fixed
 
@@ -700,6 +703,7 @@ def diff_baseline(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _find_repo_root(start: Path) -> Path | None:
     """Walk up from start until we find a .git directory or file."""

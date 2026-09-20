@@ -76,10 +76,7 @@ class TestInvokeWithProfileHint:
 
         events_dir = tmp_path / EVENTS_DIR
         # Filter out ops-index.jsonl — it is the O(n) index aide, not an invocation file.
-        invocation_files = [
-            f for f in events_dir.glob("*.jsonl")
-            if f.name != "ops-index.jsonl"
-        ]
+        invocation_files = [f for f in events_dir.glob("*.jsonl") if f.name != "ops-index.jsonl"]
         assert len(invocation_files) == 1
         assert invocation_files[0].name == f"{payload.invocation_id}.jsonl"
 
@@ -117,12 +114,15 @@ class TestInvokeWithProfileHint:
                 ),
             ),
         )
-        with patch(
-            "specify_cli.invocation.executor.build_charter_context",
-            return_value=_COMPACT_CTX,
-        ), patch(
-            "specify_cli.invocation.executor._compute_recommendation",
-            return_value=recommendation,
+        with (
+            patch(
+                "specify_cli.invocation.executor.build_charter_context",
+                return_value=_COMPACT_CTX,
+            ),
+            patch(
+                "specify_cli.invocation.executor._compute_recommendation",
+                return_value=recommendation,
+            ),
         ):
             payload = ProfileInvocationExecutor(tmp_path).invoke(
                 "implement WP01",
@@ -132,11 +132,7 @@ class TestInvokeWithProfileHint:
                 wp_id="WP01",
             )
 
-        record = json.loads(
-            (tmp_path / EVENTS_DIR / f"{payload.invocation_id}.jsonl")
-            .read_text(encoding="utf-8")
-            .splitlines()[0]
-        )
+        record = json.loads((tmp_path / EVENTS_DIR / f"{payload.invocation_id}.jsonl").read_text(encoding="utf-8").splitlines()[0])
         assert record["model_id"] == "claude-opus-4-6"
 
 
@@ -149,9 +145,7 @@ class TestInvokeNoRouterNoHintRaises:
 
 
 class TestInvokeMissingProfileHintRaises:
-    def test_invoke_with_unknown_profile_hint_raises_profile_not_found_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_invoke_with_unknown_profile_hint_raises_profile_not_found_error(self, tmp_path: Path) -> None:
         executor = ProfileInvocationExecutor(tmp_path)
         with patch(
             "specify_cli.invocation.executor.build_charter_context",
@@ -176,10 +170,7 @@ class TestInvokeDegradedCharter:
         # JSONL must still be written even when charter is missing
         events_dir = tmp_path / EVENTS_DIR
         # Filter out ops-index.jsonl — it is the O(n) index aide, not an invocation file.
-        invocation_files = [
-            f for f in events_dir.glob("*.jsonl")
-            if f.name != "ops-index.jsonl"
-        ]
+        invocation_files = [f for f in events_dir.glob("*.jsonl") if f.name != "ops-index.jsonl"]
         assert len(invocation_files) == 1
 
 
@@ -213,12 +204,15 @@ class TestInvokeMarkLoadedFalse:
 class TestInvokeWriteFailureRaises:
     def test_invoke_propagates_invocation_write_error(self, tmp_path: Path) -> None:
         _setup_fixture_profiles(tmp_path)
-        with patch(
-            "specify_cli.invocation.executor.build_charter_context",
-            return_value=_COMPACT_CTX,
-        ), patch(
-            "specify_cli.invocation.executor.InvocationWriter.write_started",
-            side_effect=InvocationWriteError("disk full"),
+        with (
+            patch(
+                "specify_cli.invocation.executor.build_charter_context",
+                return_value=_COMPACT_CTX,
+            ),
+            patch(
+                "specify_cli.invocation.executor.InvocationWriter.write_started",
+                side_effect=InvocationWriteError("disk full"),
+            ),
         ):
             executor = ProfileInvocationExecutor(tmp_path)
             with pytest.raises(InvocationWriteError):
@@ -235,22 +229,26 @@ def _init_git_repo(path: Path) -> None:
     subprocess.run(["git", "init", str(path)], check=True, capture_output=True)
     subprocess.run(
         ["git", "-C", str(path), "config", "user.email", "test@example.com"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "-C", str(path), "config", "user.name", "Test"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     # Create an initial commit so HEAD exists (required for git add + commit).
     readme = path / "README.md"
     readme.write_text("test repo\n", encoding="utf-8")
     subprocess.run(
         ["git", "-C", str(path), "add", "README.md"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "-C", str(path), "commit", "--no-verify", "-m", "init"],
-        check=True, capture_output=True,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -262,9 +260,7 @@ def _init_git_repo(path: Path) -> None:
 class TestAutoCommitOnCompleteInvocation:
     """T-003: commit appears in git log after complete_invocation()."""
 
-    def test_commit_appears_after_complete_invocation(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_commit_appears_after_complete_invocation(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("SPEC_KITTY_TEST_MODE", raising=False)
         # The fixture repo's branch is protected main/master; landing the
         # op-record commit there requires the ONE documented operator hatch
@@ -283,7 +279,9 @@ class TestAutoCommitOnCompleteInvocation:
 
         result = subprocess.run(
             ["git", "-C", str(tmp_path), "log", "--oneline"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         log_lines = result.stdout.strip().splitlines()
         # At least 2 commits: init + op commit
@@ -291,9 +289,7 @@ class TestAutoCommitOnCompleteInvocation:
         # Most recent commit should mention the op
         assert "op(" in log_lines[0]
 
-    def test_op_file_restorable_after_git_clean(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_op_file_restorable_after_git_clean(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """T-004: op file is in git and can be restored after deletion."""
         monkeypatch.delenv("SPEC_KITTY_TEST_MODE", raising=False)
         # Operator hatch: the commit must land on the fixture's protected
@@ -318,9 +314,9 @@ class TestAutoCommitOnCompleteInvocation:
         assert not op_file.exists()
 
         subprocess.run(
-            ["git", "-C", str(tmp_path), "checkout", "HEAD", "--",
-             f"{EVENTS_DIR}/{payload.invocation_id}.jsonl"],
-            check=True, capture_output=True,
+            ["git", "-C", str(tmp_path), "checkout", "HEAD", "--", f"{EVENTS_DIR}/{payload.invocation_id}.jsonl"],
+            check=True,
+            capture_output=True,
         )
         assert op_file.exists()
 
@@ -353,9 +349,7 @@ class TestAutoCommitOnCompleteInvocation:
 
         assert call_kwargs["capability"] is GuardCapability.STANDARD
 
-    def test_complete_invocation_refused_on_protected_branch_without_hatch(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_complete_invocation_refused_on_protected_branch_without_hatch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Env-clean op-record close on a protected branch: no commit, no crash.
 
         ``STANDARD`` authorizes no protected-branch flow, so the auto-commit is
@@ -380,17 +374,19 @@ class TestAutoCommitOnCompleteInvocation:
         # The close succeeded and the Op record is on disk...
         assert (tmp_path / EVENTS_DIR / f"{payload.invocation_id}.jsonl").exists()
         # ...but nothing landed on the protected branch (init commit only).
-        log_lines = subprocess.run(
-            ["git", "-C", str(tmp_path), "log", "--oneline"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip().splitlines()
-        assert len(log_lines) == 1, (
-            f"op-record commit landed on a protected branch: {log_lines}"
+        log_lines = (
+            subprocess.run(
+                ["git", "-C", str(tmp_path), "log", "--oneline"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            .stdout.strip()
+            .splitlines()
         )
+        assert len(log_lines) == 1, f"op-record commit landed on a protected branch: {log_lines}"
 
-    def test_complete_invocation_on_protected_branch_preserves_unrelated_staging(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_complete_invocation_on_protected_branch_preserves_unrelated_staging(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("SPEC_KITTY_TEST_MODE", raising=False)
         # Operator hatch: this test verifies staging preservation when the
         # commit DOES land on the operator-owned protected branch.
@@ -431,9 +427,7 @@ class TestAutoCommitOnCompleteInvocation:
         ).stdout.splitlines()
         assert "unrelated.txt" in staged_files
 
-    def test_completed_commit_excludes_ops_index_and_orphan_metadata(
-        self, tmp_path: Path
-    ) -> None:
+    def test_completed_commit_excludes_ops_index_and_orphan_metadata(self, tmp_path: Path) -> None:
         _init_git_repo(tmp_path)
         subprocess.run(
             ["git", "-C", str(tmp_path), "checkout", "-b", "ops-work"],
@@ -477,7 +471,9 @@ class TestAutoCommitOnCompleteInvocation:
 
         result = subprocess.run(
             ["git", "-C", str(tmp_path), "log", "--oneline"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         log_lines = result.stdout.strip().splitlines()
         # Only the init commit should be present
@@ -523,9 +519,7 @@ class TestAutoCommitOnCompleteInvocation:
         assert data["mission_id"] == "01KTB49KJKRJ71YR8KERVDMHHA"
         assert data["wp_id"] == "WP01"
 
-    def test_commit_failure_does_not_raise(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_commit_failure_does_not_raise(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         """Best-effort: git failure must not block the invocation response."""
         import logging
 

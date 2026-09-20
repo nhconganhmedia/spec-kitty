@@ -125,9 +125,7 @@ def _write_activation_config(repo_root: Path, *, activated: list[str]) -> None:
 
 
 class TestAgentProfileActivationGate:
-    def test_activated_profile_renders(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_activated_profile_renders(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_activation_config(tmp_path, activated=["python-pedro"])
         profile = _DummyAgentProfile(profile_id="python-pedro", name="Python Pedro")
         _patch_service(
@@ -139,9 +137,7 @@ class TestAgentProfileActivationGate:
 
         assert "Agent profile python-pedro: Python Pedro" in text
 
-    def test_non_activated_profile_is_gated(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_non_activated_profile_is_gated(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # The profile exists in doctrine but is NOT in the activated list, so
         # the activation gate filters it out -> structured miss (ValueError),
         # never silently rendered.
@@ -157,16 +153,12 @@ class TestAgentProfileActivationGate:
 
         # And the gated render never leaks the profile's name into output.
         try:
-            text = build_charter_context_include(
-                tmp_path, "agent-profile:python-pedro"
-            )
+            text = build_charter_context_include(tmp_path, "agent-profile:python-pedro")
         except ValueError:
             text = ""
         assert "Python Pedro" not in text
 
-    def test_empty_activation_list_gates_all_profiles(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_empty_activation_list_gates_all_profiles(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # Explicit empty list (opt-out) -> no profile is activated.
         _write_activation_config(tmp_path, activated=[])
         profile = _DummyAgentProfile(profile_id="python-pedro", name="Python Pedro")
@@ -178,9 +170,7 @@ class TestAgentProfileActivationGate:
         with pytest.raises(ValueError, match="No agent_profile found"):
             build_charter_context_include(tmp_path, "agent-profile:python-pedro")
 
-    def test_no_activation_config_renders_unrestricted(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_activation_config_renders_unrestricted(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # No activated_agent_profiles key => it resolves to None => no
         # restriction => the gate is a no-op and the profile renders
         # (pre-#1636 parity). This is also the path the existing
@@ -191,9 +181,7 @@ class TestAgentProfileActivationGate:
         # even when no agent-profile restriction is configured.
         kittify = tmp_path / ".kittify"
         kittify.mkdir(parents=True, exist_ok=True)
-        (kittify / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
         profile = _DummyAgentProfile(profile_id="python-pedro", name="Python Pedro")
         _patch_service(
             monkeypatch,
@@ -211,20 +199,14 @@ class TestAgentProfileActivationGate:
 
 
 class TestScopedToAgentProfileOnly:
-    def test_helper_always_returns_wrapped_service(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_helper_always_returns_wrapped_service(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # R5 single builder contract: the helper ALWAYS returns the
         # activation-aware wrapper, whether or not a restriction is configured.
         # The unrestricted (``None``) case stays byte-identical in *behaviour*
         # because the wrapper's None branch admits every profile.
         from charter.activation.resolver import DoctrineService as ActivationAwareDoctrineService
 
-        stub = _StubService(
-            agent_profiles=_StubRepo(
-                {"python-pedro": _DummyAgentProfile(profile_id="python-pedro", name="P")}
-            )
-        )
+        stub = _StubService(agent_profiles=_StubRepo({"python-pedro": _DummyAgentProfile(profile_id="python-pedro", name="P")}))
         _patch_service(monkeypatch, stub)
 
         # Restriction present -> wrapped (activation-aware) service.
@@ -237,17 +219,13 @@ class TestScopedToAgentProfileOnly:
         # ``mission_type_activations`` must stay provisioned even with the
         # ``activated_agent_profiles`` key gone (WP04, C-A1) -- otherwise
         # ``PackContext.from_config`` hard-fails on the now-fully-absent key.
-        (tmp_path / ".kittify" / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
         unrestricted = context_module._build_activation_aware_doctrine_service(tmp_path)
         assert isinstance(unrestricted, ActivationAwareDoctrineService)
         assert object.__getattribute__(unrestricted, "_inner") is stub
         assert "python-pedro" in unrestricted.agent_profiles
 
-    def test_other_kinds_use_unwrapped_service(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_other_kinds_use_unwrapped_service(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # Even with an agent-profile activation restriction in place, the
         # non-profile include branches (e.g. paradigm) must continue to use the
         # plain ``_build_doctrine_service`` and render without any activation
@@ -263,9 +241,7 @@ class TestScopedToAgentProfileOnly:
 
         assert "Paradigm tdd: Test Driven Development" in text
 
-    def test_other_kinds_observe_build_doctrine_service_calls(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_other_kinds_observe_build_doctrine_service_calls(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # Regression guard: the non-profile branches call the *unwrapped*
         # ``_build_doctrine_service`` exactly once and never construct an
         # activation-aware wrapper (the helper must not be invoked).
@@ -282,13 +258,9 @@ class TestScopedToAgentProfileOnly:
         monkeypatch.setattr(context_module, "_build_doctrine_service", _record)
 
         def _explode(*_args: Any, **_kwargs: Any) -> Any:
-            raise AssertionError(
-                "non-profile include must not build the activation-aware service"
-            )
+            raise AssertionError("non-profile include must not build the activation-aware service")
 
-        monkeypatch.setattr(
-            context_module, "_build_activation_aware_doctrine_service", _explode
-        )
+        monkeypatch.setattr(context_module, "_build_activation_aware_doctrine_service", _explode)
 
         build_charter_context_include(tmp_path, "paradigm:tdd")
 

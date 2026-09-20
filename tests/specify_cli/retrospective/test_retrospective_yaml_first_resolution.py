@@ -79,9 +79,7 @@ class TestYamlOnlyResolution:
     def test_yaml_only_project_resolves_policy(self, tmp_path: Path) -> None:
         write_charter_yaml_with_retrospective(
             tmp_path,
-            "    enabled: false\n"
-            "    timing: before_completion\n"
-            "    failure_policy: block\n",
+            "    enabled: false\n    timing: before_completion\n    failure_policy: block\n",
         )
         # NFR-001: the presence fixture seeds charter.yaml ONLY.
         assert not (tmp_path / ".kittify" / "charter" / "charter.md").exists()
@@ -106,14 +104,10 @@ class TestYamlOnlyResolution:
         assert policy.permissions.apply_low_risk_changes is True
         # Unclaimed permission keys keep their built-in default (C-005).
         assert policy.permissions.apply_structural_changes is False
-        assert source_map["permissions.apply_low_risk_changes"].startswith(
-            _CHARTER_YAML_SOURCE
-        )
+        assert source_map["permissions.apply_low_risk_changes"].startswith(_CHARTER_YAML_SOURCE)
         assert source_map["permissions.apply_structural_changes"] == "<default>"
 
-    def test_charter_yaml_without_retrospective_block_is_silent(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_yaml_without_retrospective_block_is_silent(self, tmp_path: Path) -> None:
         """A charter.yaml with no retrospective block falls through to defaults."""
         write_charter_yaml(tmp_path, "schema_version: 2.0.0\ngovernance:\n  quality: {}\n")
 
@@ -142,9 +136,7 @@ class TestYamlWinsOverMarkdown:
         )
         write_charter_yaml_with_retrospective(
             tmp_path,
-            "    enabled: false\n"
-            "    timing: before_completion\n"
-            "    failure_policy: block\n",
+            "    enabled: false\n    timing: before_completion\n    failure_policy: block\n",
         )
 
         policy, source_map = resolve_policy(tmp_path, env={})
@@ -191,13 +183,9 @@ class TestYamlWinsOverMarkdown:
         policy, source_map = resolve_policy(tmp_path, env={})
 
         assert policy.permissions.apply_low_risk_changes is False
-        assert source_map["permissions.apply_low_risk_changes"].startswith(
-            _CHARTER_YAML_SOURCE
-        )
+        assert source_map["permissions.apply_low_risk_changes"].startswith(_CHARTER_YAML_SOURCE)
         assert policy.permissions.propose_drg_changes is False
-        assert source_map["permissions.propose_drg_changes"].startswith(
-            _CHARTER_MD_SOURCE
-        )
+        assert source_map["permissions.propose_drg_changes"].startswith(_CHARTER_MD_SOURCE)
 
 
 # =============================================================================
@@ -227,9 +215,7 @@ class TestLegacyMarkdownOnly:
         assert policy.failure_policy == "block"
         assert policy.permissions.apply_low_risk_changes is True
         assert source_map["enabled"].startswith(_CHARTER_MD_SOURCE)
-        assert source_map["permissions.apply_low_risk_changes"].startswith(
-            _CHARTER_MD_SOURCE
-        )
+        assert source_map["permissions.apply_low_risk_changes"].startswith(_CHARTER_MD_SOURCE)
 
     def test_no_charter_at_all_falls_back_to_defaults(self, tmp_path: Path) -> None:
         policy, source_map = resolve_policy(tmp_path, env={})
@@ -246,9 +232,7 @@ class TestLegacyMarkdownOnly:
 class TestYamlVsConfigPrecedence:
     """The authority block gates `.kittify/config.yaml` like the md block does."""
 
-    def test_config_cannot_override_a_key_claimed_by_charter_yaml(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_cannot_override_a_key_claimed_by_charter_yaml(self, tmp_path: Path) -> None:
         write_charter_yaml_with_retrospective(tmp_path, "    failure_policy: block\n")
         write_config_with_retrospective(tmp_path, {"failure_policy": "warn"})
 
@@ -257,9 +241,7 @@ class TestYamlVsConfigPrecedence:
         assert policy.failure_policy == "block"
         assert source_map["failure_policy"].startswith(_CHARTER_YAML_SOURCE)
 
-    def test_config_still_fills_keys_the_authority_does_not_claim(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_still_fills_keys_the_authority_does_not_claim(self, tmp_path: Path) -> None:
         write_charter_yaml_with_retrospective(tmp_path, "    failure_policy: block\n")
         write_config_with_retrospective(tmp_path, {"timing": "before_completion"})
 
@@ -269,9 +251,7 @@ class TestYamlVsConfigPrecedence:
         assert policy.timing == "before_completion"
         assert source_map["timing"].startswith(".kittify/config.yaml")
 
-    def test_charter_yaml_precedence_config_delegates_to_config(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_yaml_precedence_config_delegates_to_config(self, tmp_path: Path) -> None:
         """``precedence: config`` authored in the AUTHORITY is honoured."""
         write_charter_yaml_with_retrospective(
             tmp_path,
@@ -332,9 +312,7 @@ class TestStrictKeysPrecedence:
         assert policy.failure_policy == "warn"
         assert source_map["failure_policy"].startswith(_CHARTER_MD_SOURCE)
 
-    def test_both_sources_agree_strict_true_raises_on_unknown_key(
-        self, tmp_path: Path
-    ) -> None:
+    def test_both_sources_agree_strict_true_raises_on_unknown_key(self, tmp_path: Path) -> None:
         """Both yaml and md set ``strict_keys: true`` -> unknown key still raises."""
         write_charter_with_retrospective(
             tmp_path,
@@ -350,9 +328,7 @@ class TestStrictKeysPrecedence:
 
         assert excinfo.value.reason == "unknown_key"
 
-    def test_only_md_sets_strict_keys_true_raises_on_unknown_key(
-        self, tmp_path: Path
-    ) -> None:
+    def test_only_md_sets_strict_keys_true_raises_on_unknown_key(self, tmp_path: Path) -> None:
         """No yaml block at all -- md's ``strict_keys: true`` is the sole source."""
         write_charter_with_retrospective(
             tmp_path,
@@ -364,9 +340,7 @@ class TestStrictKeysPrecedence:
 
         assert excinfo.value.reason == "unknown_key"
 
-    def test_higher_precedence_non_bool_falls_through_to_lower_bool(
-        self, tmp_path: Path
-    ) -> None:
+    def test_higher_precedence_non_bool_falls_through_to_lower_bool(self, tmp_path: Path) -> None:
         """A malformed non-bool ``strict_keys`` must not suppress a lower source.
 
         Regression for the fold-``601696913`` follow-up bug: the ordered-source
@@ -410,9 +384,7 @@ class TestStrictKeysPrecedence:
 class TestMalformedCharterYaml:
     """A bad authority block must not leak ``pydantic.ValidationError``."""
 
-    def test_invalid_literal_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_invalid_literal_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         write_charter_yaml_with_retrospective(tmp_path, "    failure_policy: explode\n")
 
         with pytest.raises(PolicyResolutionError) as excinfo:
@@ -423,9 +395,7 @@ class TestMalformedCharterYaml:
         assert err.reason == "invalid_enum"
         assert "failure_policy" in err.detail
 
-    def test_field_type_error_raises_different_reason_than_enum_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_field_type_error_raises_different_reason_than_enum_error(self, tmp_path: Path) -> None:
         """A structural type error (list where a bool is expected) must NOT
         be reported with the same reason code as a genuine bad-enum-value
         error (#3163) -- callers/UIs branch on ``reason``.
@@ -444,9 +414,7 @@ class TestMalformedCharterYaml:
         assert err.reason != "invalid_enum"
         assert "enabled" in err.detail
 
-    def test_non_mapping_retrospective_block_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_mapping_retrospective_block_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         write_charter_yaml(
             tmp_path,
             "schema_version: 2.0.0\ngovernance:\n  retrospective: not-a-mapping\n",
@@ -458,9 +426,7 @@ class TestMalformedCharterYaml:
         assert excinfo.value.source == _CHARTER_YAML_SOURCE
         assert excinfo.value.reason == "invalid_type_for_retrospective_block"
 
-    def test_unparseable_charter_yaml_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unparseable_charter_yaml_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         write_charter_yaml(tmp_path, "governance:\n  retrospective:\n   - [unclosed\n")
 
         with pytest.raises(PolicyResolutionError) as excinfo:
@@ -469,9 +435,7 @@ class TestMalformedCharterYaml:
         assert excinfo.value.source == _CHARTER_YAML_SOURCE
         assert excinfo.value.reason == "invalid_yaml"
 
-    def test_unrelated_malformed_yaml_falls_through_to_md_only_config(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unrelated_malformed_yaml_falls_through_to_md_only_config(self, tmp_path: Path) -> None:
         """A malformed charter.yaml with NO retrospective content must not
         block a project that configures retrospective ONLY via charter.md
         frontmatter (#3163).
@@ -499,9 +463,7 @@ class TestMalformedCharterYaml:
         assert source_map["enabled"].startswith(_CHARTER_MD_SOURCE)
         assert source_map["failure_policy"].startswith(_CHARTER_MD_SOURCE)
 
-    def test_malformed_yaml_mentioning_retrospective_still_raises(
-        self, tmp_path: Path
-    ) -> None:
+    def test_malformed_yaml_mentioning_retrospective_still_raises(self, tmp_path: Path) -> None:
         """The fall-through guard must NOT swallow a malformed charter.yaml
         that actually attempts a retrospective block -- only a charter.yaml
         that is provably unrelated to retrospective config falls through.
@@ -521,9 +483,7 @@ class TestMalformedCharterYaml:
         assert excinfo.value.source == _CHARTER_YAML_SOURCE
         assert excinfo.value.reason == "invalid_yaml"
 
-    def test_non_utf8_charter_yaml_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_utf8_charter_yaml_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """Invalid UTF-8 bytes must surface as PolicyResolutionError, not crash.
 
         Regression for #3163: ``load_charter_yaml`` opens ``charter.yaml``
@@ -535,10 +495,7 @@ class TestMalformedCharterYaml:
         """
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True, exist_ok=True)
-        (charter_dir / "charter.yaml").write_bytes(
-            b"schema_version: 2.0.0\ngovernance:\n  retrospective:\n"
-            b"    failure_policy: \xff\xfe warn\n"
-        )
+        (charter_dir / "charter.yaml").write_bytes(b"schema_version: 2.0.0\ngovernance:\n  retrospective:\n    failure_policy: \xff\xfe warn\n")
 
         with pytest.raises(PolicyResolutionError) as excinfo:
             resolve_policy(tmp_path, env={})
@@ -546,9 +503,7 @@ class TestMalformedCharterYaml:
         assert excinfo.value.source == _CHARTER_YAML_SOURCE
         assert excinfo.value.reason == "invalid_yaml"
 
-    def test_utf16_charter_yaml_with_retrospective_block_still_raises(
-        self, tmp_path: Path
-    ) -> None:
+    def test_utf16_charter_yaml_with_retrospective_block_still_raises(self, tmp_path: Path) -> None:
         """A UTF-16-encoded charter.yaml carrying a real retrospective block
         must still raise -- never be silently discarded as "provably
         unrelated" (landing-fold regression on top of #3163, found by
@@ -569,12 +524,7 @@ class TestMalformedCharterYaml:
         """
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True, exist_ok=True)
-        yaml_body = (
-            "schema_version: 2.0.0\n"
-            "governance:\n"
-            "  retrospective:\n"
-            "    failure_policy: block\n"
-        )
+        yaml_body = "schema_version: 2.0.0\ngovernance:\n  retrospective:\n    failure_policy: block\n"
         (charter_dir / "charter.yaml").write_bytes(yaml_body.encode("utf-16"))
         write_charter_with_retrospective(
             tmp_path,

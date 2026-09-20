@@ -29,6 +29,7 @@ def test_lint_report_path_is_canonical(tmp_path: Path) -> None:
     assert result.name == "lint-report.json"
     assert result.parent.name == ".kittify"
 
+
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 
@@ -38,9 +39,7 @@ def _init_git_repo(root: Path) -> None:
     (root / ".git").mkdir(parents=True, exist_ok=True)
 
 
-def test_env_root_authoritative_without_kittify(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_env_root_authoritative_without_kittify(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """#1965: an existing ``SPECIFY_REPO_ROOT`` with no ``.kittify/`` is honoured.
 
     Determinism here comes from the resolver: even when the *current* checkout
@@ -67,9 +66,7 @@ def test_env_root_authoritative_without_kittify(
     assert resolved != ambient.resolve()
 
 
-def test_env_root_ignored_when_path_missing(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_env_root_ignored_when_path_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A non-existent ``SPECIFY_REPO_ROOT`` still falls through."""
     ambient = tmp_path / "ambient-checkout"
     (ambient / ".kittify").mkdir(parents=True)
@@ -83,9 +80,7 @@ def test_env_root_ignored_when_path_missing(
     assert resolved == ambient.resolve()
 
 
-def test_env_root_ignored_when_path_is_file(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_env_root_ignored_when_path_is_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A file-valued ``SPECIFY_REPO_ROOT`` is not accepted as a project root."""
     ambient = tmp_path / "ambient-checkout"
     (ambient / ".kittify").mkdir(parents=True)
@@ -100,9 +95,7 @@ def test_env_root_ignored_when_path_is_file(
     assert resolved == ambient.resolve()
 
 
-def test_c003_real_kittify_resolves_same_with_and_without_env(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_c003_real_kittify_resolves_same_with_and_without_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """C-003: a real ``.kittify/`` project resolves identically with/without env.
 
     Honouring ``SPECIFY_REPO_ROOT`` must not change resolution for projects that

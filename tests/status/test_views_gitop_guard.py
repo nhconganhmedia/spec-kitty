@@ -296,10 +296,7 @@ def test_sc5_real_rebase_no_status_clobber(tmp_path: Path) -> None:
     # thing preventing a write.
     sentinel.unlink()
     materialize_if_stale(feature_dir, repo_root)
-    assert not sentinel.exists(), (
-        "materialize_if_stale clobbered tracked status during an active rebase "
-        "(FR-005 / SC-5 violation)"
-    )
+    assert not sentinel.exists(), "materialize_if_stale clobbered tracked status during an active rebase (FR-005 / SC-5 violation)"
 
     # Resolve the conflict and complete the rebase.
     conflict.write_text("resolved\n", encoding="utf-8")
@@ -330,6 +327,4 @@ def test_sc5_real_rebase_no_status_clobber(tmp_path: Path) -> None:
     # After the op clears, materialization resumes and regenerates the view.
     materialize_if_stale(feature_dir, repo_root)
     assert sentinel.exists()
-    assert sentinel.read_text(encoding="utf-8") == sentinel_before, (
-        "regenerated status content diverged from the pre-rebase snapshot"
-    )
+    assert sentinel.read_text(encoding="utf-8") == sentinel_before, "regenerated status content diverged from the pre-rebase snapshot"

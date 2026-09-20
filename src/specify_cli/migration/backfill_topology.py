@@ -102,6 +102,7 @@ def read_topology(feature_dir: Path) -> MissionTopology:
     # MissionMetaReadError instead of raw ValueError. Missing files still raise
     # FileNotFoundError to preserve documented contract.
     from specify_cli.core.paths import load_meta_fail_closed
+
     meta_result = load_meta_fail_closed(feature_dir)
     if meta_result is None:
         raise FileNotFoundError(feature_dir / "meta.json")
@@ -146,9 +147,7 @@ class TopologyBackfillResult:
     reason: str | None = None
 
 
-def backfill_mission_topology(
-    feature_dir: Path, *, dry_run: bool = False
-) -> TopologyBackfillResult:
+def backfill_mission_topology(feature_dir: Path, *, dry_run: bool = False) -> TopologyBackfillResult:
     """Idempotently persist ``topology`` into ``<feature_dir>/meta.json``.
 
     A mission whose ``meta.json`` already carries a valid ``topology`` is a no-op
@@ -176,6 +175,7 @@ def backfill_mission_topology(
         )
 
     from specify_cli.core.paths import load_meta_fail_closed, MissionMetaReadError
+
     try:
         meta_result = load_meta_fail_closed(feature_dir)
         meta: dict[str, Any] = meta_result or {}
@@ -270,18 +270,12 @@ def backfill_topology_repo(
         return results
 
     if mission_slug is not None:
-        candidates = [
-            entry
-            for entry in kitty_specs.iterdir()
-            if entry.is_dir() and entry.name == mission_slug
-        ]
+        candidates = [entry for entry in kitty_specs.iterdir() if entry.is_dir() and entry.name == mission_slug]
         if not candidates:
             logger.warning("No mission directory found for slug %r", mission_slug)
             return results
     else:
-        candidates = sorted(
-            entry for entry in kitty_specs.iterdir() if entry.is_dir()
-        )
+        candidates = sorted(entry for entry in kitty_specs.iterdir() if entry.is_dir())
 
     for feature_dir in candidates:
         results.append(backfill_mission_topology(feature_dir, dry_run=dry_run))

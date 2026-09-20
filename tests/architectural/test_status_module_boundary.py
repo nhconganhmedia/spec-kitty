@@ -71,6 +71,7 @@ See also:
   - ADR ``docs/adr/3.x/2026-06-03-1-execution-state-domain-model.md``
   - Contract: ``kitty-specs/execution-state-canonical-surface-01KTG6P9/contracts/status_boundary.md``
 """
+
 from __future__ import annotations
 
 import ast
@@ -163,11 +164,7 @@ _WP10_DEFERRED_FILES: frozenset[Path] = frozenset(
         # module's filename, or teach the SR-2 AST scanner to consult
         # status/__init__.__all__ as an override for names that
         # legitimately collide with a submodule filename.
-        _SRC
-        / "specify_cli"
-        / "upgrade"
-        / "migrations"
-        / "m_3_2_9_migrate_lifecycle_envelope.py",
+        _SRC / "specify_cli" / "upgrade" / "migrations" / "m_3_2_9_migrate_lifecycle_envelope.py",
         # TEMPORARY (convergence port PR #1066, 2026-09-03): the verbatim
         # upstream pick of next-committed-state-authority WP01
         # (committed_authority.py) imports
@@ -206,7 +203,6 @@ class TestStatusModuleBoundary:
     The WP03 packages are fully fixed and NOT in the allow-list; their absence
     from the allow-list is what makes this rule bite for those packages.
     """
-
 
 
 # ---------------------------------------------------------------------------
@@ -262,9 +258,7 @@ def scan_for_bypass_imports(
     return violations
 
 
-def _bypass_violations_for_node(
-    node: ast.Import | ast.ImportFrom, py_file: pathlib.Path, node_lineno: int | None
-) -> list[str]:
+def _bypass_violations_for_node(node: ast.Import | ast.ImportFrom, py_file: pathlib.Path, node_lineno: int | None) -> list[str]:
     """Return the (zero or more) bypass-violation strings a single import
     node produces. Extracted (WP02, T009/NFR-004) so the caller's per-file /
     per-node walk stays under the complexity ceiling once the alias-name
@@ -273,17 +267,11 @@ def _bypass_violations_for_node(
     if isinstance(node, ast.ImportFrom) and node.module:
         return _bypass_violations_for_import_from(node, py_file, node_lineno)
     if isinstance(node, ast.Import):
-        return [
-            f"{py_file}:{node_lineno}: {alias.name}"
-            for alias in node.names
-            if _is_bypass_import(alias.name)
-        ]
+        return [f"{py_file}:{node_lineno}: {alias.name}" for alias in node.names if _is_bypass_import(alias.name)]
     return []
 
 
-def _bypass_violations_for_import_from(
-    node: ast.ImportFrom, py_file: pathlib.Path, node_lineno: int | None
-) -> list[str]:
+def _bypass_violations_for_import_from(node: ast.ImportFrom, py_file: pathlib.Path, node_lineno: int | None) -> list[str]:
     """The ``ImportFrom``-specific half of :func:`_bypass_violations_for_node`.
 
     Two independent bypass shapes:
@@ -300,11 +288,7 @@ def _bypass_violations_for_import_from(
         return [f"{py_file}:{node_lineno}: {node.module}"]
     if node.module != "specify_cli.status":
         return []
-    return [
-        f"{py_file}:{node_lineno}: {node.module}.{alias.name}"
-        for alias in node.names
-        if _is_status_submodule_name(alias.name)
-    ]
+    return [f"{py_file}:{node_lineno}: {node.module}.{alias.name}" for alias in node.names if _is_status_submodule_name(alias.name)]
 
 
 def _is_status_submodule_name(name: str) -> bool:
@@ -335,10 +319,7 @@ def _collect_type_checking_linenos(tree: ast.AST) -> set[int]:
         # Detect `if TYPE_CHECKING:` — the test is `Name(id='TYPE_CHECKING')`
         # or `Attribute(attr='TYPE_CHECKING')`.
         test = node.test
-        is_type_checking = (
-            (isinstance(test, ast.Name) and test.id == "TYPE_CHECKING")
-            or (isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING")
-        )
+        is_type_checking = (isinstance(test, ast.Name) and test.id == "TYPE_CHECKING") or (isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING")
         if is_type_checking:
             for child in ast.walk(node):
                 if hasattr(child, "lineno"):
@@ -357,10 +338,7 @@ def _is_bypass_import(module_name: str) -> bool:
     bypass here would force each allowed writer onto ``_ALL_EXEMPT_FILES``
     and widen THIS gate's exemption ledger for a door another gate owns.
     """
-    return (
-        module_name.startswith("specify_cli.status.")
-        and module_name not in {"specify_cli.status", _UNSAFE_DOOR_MODULE}
-    )
+    return module_name.startswith("specify_cli.status.") and module_name not in {"specify_cli.status", _UNSAFE_DOOR_MODULE}
 
 
 def _collect_all_src_files() -> list[pathlib.Path]:
@@ -457,12 +435,8 @@ def test_ast_scan_catches_injected_violation(tmp_path: pathlib.Path) -> None:
         encoding="utf-8",
     )
     violations = scan_for_bypass_imports([bad_file], exempt_files=set())
-    assert len(violations) == 1, (
-        f"Expected exactly 1 violation, got {len(violations)}: {violations}"
-    )
-    assert "status.emit" in violations[0], (
-        f"Expected 'status.emit' in violation string, got: {violations[0]}"
-    )
+    assert len(violations) == 1, f"Expected exactly 1 violation, got {len(violations)}: {violations}"
+    assert "status.emit" in violations[0], f"Expected 'status.emit' in violation string, got: {violations[0]}"
 
 
 def test_ast_scan_catches_submodule_object_import(tmp_path: pathlib.Path) -> None:
@@ -485,13 +459,8 @@ def test_ast_scan_catches_submodule_object_import(tmp_path: pathlib.Path) -> Non
         encoding="utf-8",
     )
     violations = scan_for_bypass_imports([bad_file], exempt_files=set())
-    assert len(violations) == 1, (
-        f"Expected exactly 1 violation, got {len(violations)}: {violations}"
-    )
-    assert "specify_cli.status.verdict_vocab" in violations[0], (
-        f"Expected 'specify_cli.status.verdict_vocab' in violation string, "
-        f"got: {violations[0]}"
-    )
+    assert len(violations) == 1, f"Expected exactly 1 violation, got {len(violations)}: {violations}"
+    assert "specify_cli.status.verdict_vocab" in violations[0], f"Expected 'specify_cli.status.verdict_vocab' in violation string, got: {violations[0]}"
 
 
 def test_ast_scan_does_not_flag_facade_symbol_import(tmp_path: pathlib.Path) -> None:
@@ -518,9 +487,7 @@ def test_ast_scan_does_not_flag_facade_symbol_import(tmp_path: pathlib.Path) -> 
         encoding="utf-8",
     )
     violations = scan_for_bypass_imports([good_file], exempt_files=set())
-    assert not violations, (
-        f"Facade-symbol import must not be flagged as a bypass, got: {violations}"
-    )
+    assert not violations, f"Facade-symbol import must not be flagged as a bypass, got: {violations}"
 
 
 def test_ast_scan_does_not_flag_the_sanctioned_unsafe_door(tmp_path: pathlib.Path) -> None:
@@ -543,9 +510,7 @@ def test_ast_scan_does_not_flag_the_sanctioned_unsafe_door(tmp_path: pathlib.Pat
         encoding="utf-8",
     )
     violations = scan_for_bypass_imports([door_file], exempt_files=set())
-    assert not violations, (
-        f"The sanctioned _unsafe door must not be flagged as a bypass, got: {violations}"
-    )
+    assert not violations, f"The sanctioned _unsafe door must not be flagged as a bypass, got: {violations}"
 
 
 def test_ast_scan_ignores_type_checking_imports(tmp_path: pathlib.Path) -> None:
@@ -572,6 +537,4 @@ def test_ast_scan_ignores_type_checking_imports(tmp_path: pathlib.Path) -> None:
         encoding="utf-8",
     )
     violations = scan_for_bypass_imports([safe_file], exempt_files=set())
-    assert not violations, (
-        f"TYPE_CHECKING imports should not be flagged as violations, got: {violations}"
-    )
+    assert not violations, f"TYPE_CHECKING imports should not be flagged as violations, got: {violations}"

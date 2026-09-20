@@ -206,9 +206,7 @@ class TestResolveMissionTypeGovernanceValidation:
         feature_dir = tmp_path / "kitty-specs" / "unknown-001"
         feature_dir.mkdir(parents=True)
         (feature_dir / "meta.json").write_text(
-            json.dumps(
-                {"mission_type": "totally-custom-type", "mission_slug": "unknown-001"}
-            ),
+            json.dumps({"mission_type": "totally-custom-type", "mission_slug": "unknown-001"}),
             encoding="utf-8",
         )
 
@@ -234,9 +232,7 @@ class TestResolveMissionTypeGovernanceValidation:
         feature_dir = tmp_path / "kitty-specs" / "unknown-001"
         feature_dir.mkdir(parents=True)
         (feature_dir / "meta.json").write_text(
-            json.dumps(
-                {"mission_type": "compliance-audit", "mission_slug": "unknown-001"}
-            ),
+            json.dumps({"mission_type": "compliance-audit", "mission_slug": "unknown-001"}),
             encoding="utf-8",
         )
 
@@ -257,9 +253,7 @@ class TestResolveMissionTypeGovernanceValidation:
         err = exc_info.value
         assert err.registered_ids == activated
 
-    def test_project_with_overrides_does_not_hard_fail_for_unknown_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_with_overrides_does_not_hard_fail_for_unknown_type(self, tmp_path: Path) -> None:
         """When project has doctrine overrides, unknown type skips the profile
         (no hard fail) — the governance grain's *tolerant* policy.
         """
@@ -267,9 +261,7 @@ class TestResolveMissionTypeGovernanceValidation:
         feature_dir = tmp_path / "kitty-specs" / "custom-mission-001"
         feature_dir.mkdir(parents=True)
         (feature_dir / "meta.json").write_text(
-            json.dumps(
-                {"mission_type": "custom-type", "mission_slug": "custom-mission-001"}
-            ),
+            json.dumps({"mission_type": "custom-type", "mission_slug": "custom-mission-001"}),
             encoding="utf-8",
         )
 
@@ -290,9 +282,7 @@ class TestResolveMissionTypeGovernanceValidation:
         # An unregistered-but-tolerated type has no built-in action sequence.
         assert bundle.action_sequence == []
 
-    def test_activated_but_unresolvable_profile_message_is_not_contradictory(
-        self, tmp_path: Path
-    ) -> None:
+    def test_activated_but_unresolvable_profile_message_is_not_contradictory(self, tmp_path: Path) -> None:
         """An activated custom type with no loadable profile must not be told,
         in the same breath, that it is both unknown and registered (#3183,
         FR-006 / SC-003).
@@ -332,18 +322,13 @@ class TestResolveMissionTypeGovernanceValidation:
         # exact prose.
         if "Registered types:" in msg:
             registered_clause = msg.split("Registered types:", 1)[1]
-            assert "my-custom" not in registered_clause, (
-                "Message calls 'my-custom' unknown while also listing it "
-                f"among the registered types: {msg!r}"
-            )
+            assert "my-custom" not in registered_clause, f"Message calls 'my-custom' unknown while also listing it among the registered types: {msg!r}"
 
         # Positive shape: the message must separately state the two real
         # facts -- the id is activated, and it has no loadable profile.
         lowered = msg.lower()
         assert "activated" in lowered, f"Message does not mention activation: {msg!r}"
-        assert "no loadable profile" in lowered, (
-            f"Message does not state the profile-loadability fact: {msg!r}"
-        )
+        assert "no loadable profile" in lowered, f"Message does not state the profile-loadability fact: {msg!r}"
 
     def test_other_activated_types_clause_excludes_self(self, tmp_path: Path) -> None:
         """When multiple types are activated, the "Other activated mission
@@ -382,9 +367,7 @@ class TestResolveMissionTypeGovernanceValidation:
             resolve_mission_type_context(tmp_path, feature_dir=feature_dir)
 
         msg = str(exc_info.value)
-        assert "Other activated mission types:" in msg, (
-            f"Expected the multi-activated clause to render: {msg!r}"
-        )
+        assert "Other activated mission types:" in msg, f"Expected the multi-activated clause to render: {msg!r}"
         assert msg.count("my-custom") == 1, (
             "'my-custom' must appear exactly once in the message -- once "
             "as the failing id, and NOT again inside the 'Other activated "
@@ -486,11 +469,7 @@ def _write_org_mission_step_yaml(
         f"sequence_index: {sequence_index}\n"
     )
     if artifact_key is not None and template_file is not None:
-        content += (
-            "template:\n"
-            f"  artifact_key: {artifact_key}\n"
-            f"  template_file: {template_file}\n"
-        )
+        content += f"template:\n  artifact_key: {artifact_key}\n  template_file: {template_file}\n"
     (step_dir / "step.yaml").write_text(content, encoding="utf-8")
 
 
@@ -525,9 +504,7 @@ class TestPackContextProjection:
     def teardown_method(self) -> None:
         MissionTypeRepository.cache_clear()
 
-    def test_org_pack_type_projects_real_action_sequence_and_template_set(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_pack_type_projects_real_action_sequence_and_template_set(self, tmp_path: Path) -> None:
         """An org-pack type with a populated action_sequence, activated in a
         test project, resolves through ``resolve_mission_type_context`` with
         real, non-empty projected fields matching the org-pack's declared
@@ -563,18 +540,14 @@ class TestPackContextProjection:
             repo_root=tmp_path,
         )
 
-        with patch(
-            "charter.activation.pack_context.PackContext.from_config", return_value=pack_context
-        ):
+        with patch("charter.activation.pack_context.PackContext.from_config", return_value=pack_context):
             bundle = resolve_mission_type_context(tmp_path, mission_type="qa")
 
         assert bundle.action_sequence == ["design", "implement"]
         assert bundle.template_set is not None
         assert dict(bundle.template_set) == {"spec": "qa-spec-template.md"}
 
-    def test_project_layer_omitting_action_sequence_raises_named_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_layer_omitting_action_sequence_raises_named_error(self, tmp_path: Path) -> None:
         """A project-layer file overriding an org-layer entry with the same
         ``id``, where the project-layer file omits ``action_sequence``, must
         raise :class:`MissionTypeEmptyActionSequenceError` naming the
@@ -659,9 +632,7 @@ class TestResolveActionSequenceLayerHelper:
     ``test_action_sequence_dispatch.py``.
     """
 
-    def test_protected_pack_root_is_skipped_and_falls_through_to_builtin(
-        self, tmp_path: Path
-    ) -> None:
+    def test_protected_pack_root_is_skipped_and_falls_through_to_builtin(self, tmp_path: Path) -> None:
         """A ``pack_root`` equal to the built-in-equivalent directory's
         parent is skipped (already covered by that layer), and when no
         other layer has the file either, the helper falls through to the
@@ -704,9 +675,7 @@ class TestEmptyActionSequenceLoudFail:
     def teardown_method(self) -> None:
         MissionTypeRepository.cache_clear()
 
-    def test_org_layer_type_with_no_action_sequence_raises_named_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_layer_type_with_no_action_sequence_raises_named_error(self, tmp_path: Path) -> None:
         """The canonical CL-003 example: an org-pack mission-type YAML with
         no ``action_sequence`` key at all resolves loudly, naming the id and
         the ``org`` layer it resolved from -- not a clean resolve to ``[]``.
@@ -814,10 +783,7 @@ class TestMissionCreatePropagatesEmptyActionSequenceError:
                 mission="qa",
                 friendly_name="QA Mission",
                 purpose_tldr="Exercise the misconfigured qa type.",
-                purpose_context=(
-                    "Confirms create_mission_core propagates FR-004's exception "
-                    "type end to end, not a re-wrapped generic error."
-                ),
+                purpose_context=("Confirms create_mission_core propagates FR-004's exception type end to end, not a re-wrapped generic error."),
                 # This test asserts exception-type propagation, not worktree
                 # policy — allow_worktree_context=True keeps it from tripping
                 # the unrelated is_worktree_context guard when the ambient cwd
@@ -901,13 +867,9 @@ class TestOrgTierGovernanceProfileThreading:
     a before/after measurement (NFR-001), not a bare assertion.
     """
 
-    def test_org_override_becomes_visible_after_configuring_org_pack(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_override_becomes_visible_after_configuring_org_pack(self, tmp_path: Path) -> None:
         _git_init_minimal(tmp_path)
-        _write_org_pack_config(
-            tmp_path, packs=[], activated_mission_types=["software-dev"]
-        )
+        _write_org_pack_config(tmp_path, packs=[], activated_mission_types=["software-dev"])
 
         # BEFORE: no org pack configured at all — shipped baseline only.
         before = resolve_mission_type_context(tmp_path, mission_type="software-dev")
@@ -1023,9 +985,7 @@ class TestOrgTierExpectedArtifactsThreading:
 
     def test_org_override_changes_required_always_count(self, tmp_path: Path) -> None:
         _git_init_minimal(tmp_path)
-        _write_org_pack_config(
-            tmp_path, packs=[], activated_mission_types=["software-dev"]
-        )
+        _write_org_pack_config(tmp_path, packs=[], activated_mission_types=["software-dev"])
 
         # BEFORE: no org pack configured — built-in manifest only.
         before = resolve_mission_type_context(tmp_path, mission_type="software-dev")
@@ -1068,14 +1028,9 @@ class TestOrgTierExpectedArtifactsThreading:
         # actually changed relative to the built-in-only baseline.
         assert after_count == before_count + 1
         assert after_manifest["manifest_version"] == "org-1"
-        assert any(
-            spec["artifact_key"] == "policy.org-required"
-            for spec in after_manifest["required_always"]
-        )
+        assert any(spec["artifact_key"] == "policy.org-required" for spec in after_manifest["required_always"])
 
-    def test_org_file_fully_replaces_builtin_not_field_merged(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_file_fully_replaces_builtin_not_field_merged(self, tmp_path: Path) -> None:
         """SC-005 Given #3: whole-file precedence. The org file's content is
         what's returned — the built-in file's `required_by_step.plan`
         entries (`output.plan.main`, `output.tasks.list`) must NOT survive,
@@ -1107,9 +1062,7 @@ class TestOrgTierExpectedArtifactsThreading:
 
         assert manifest is not None
         assert manifest["manifest_version"] == "org-only"
-        assert "required_by_step" not in manifest or not manifest.get(
-            "required_by_step", {}
-        ).get("plan")
+        assert "required_by_step" not in manifest or not manifest.get("required_by_step", {}).get("plan")
 
 
 # ---------------------------------------------------------------------------
@@ -1166,9 +1119,7 @@ class TestExpectedArtifactsSlotSchemaValidation:
 
 
 class TestExpectedArtifactsSlotRoutesThroughAuthority:
-    def test_delegates_to_manifest_loader_load_manifest(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_delegates_to_manifest_loader_load_manifest(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         import charter.activation.manifest_loader as manifest_loader_module
 
         _git_init_minimal(tmp_path)
@@ -1202,9 +1153,7 @@ class TestActionGrainBuiltinOnlyPathUnaffected:
     is expected to break it today.
     """
 
-    def test_builtin_only_lookup_ignores_org_override_present_on_disk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_builtin_only_lookup_ignores_org_override_present_on_disk(self, tmp_path: Path) -> None:
         _git_init_minimal(tmp_path)
         org_root = tmp_path / "org-pack"
         _write_org_governance_profile(
@@ -1237,9 +1186,7 @@ class TestActionGrainBuiltinOnlyPathUnaffected:
         assert builtin_only.template_set == "software-dev-default"
         assert builtin_only.template_set != _ORG_OVERRIDE_TEMPLATE_SET
 
-    def test_scan_builtin_cross_grain_duplicates_unaffected_by_org_override(
-        self, tmp_path: Path
-    ) -> None:
+    def test_scan_builtin_cross_grain_duplicates_unaffected_by_org_override(self, tmp_path: Path) -> None:
         """The real `action_grain.py:220`-adjacent call path — exercised via
         its own public entry point — completes without raising and without
         picking up the org override, confirming the guard holds at the

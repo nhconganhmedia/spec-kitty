@@ -40,9 +40,7 @@ def test_new_styleguide_writes_stub_under_project_doctrine_root(tmp_path: Path) 
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        result = runner.invoke(
-            doctrine_app, ["new", "styleguide", "foo"], catch_exceptions=False
-        )
+        result = runner.invoke(doctrine_app, ["new", "styleguide", "foo"], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 
@@ -64,19 +62,13 @@ def test_new_validates_stub_against_schema_so_validate_passes(tmp_path: Path) ->
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        result_new = runner.invoke(
-            doctrine_app, ["new", "tactic", "my-tactic"], catch_exceptions=False
-        )
+        result_new = runner.invoke(doctrine_app, ["new", "tactic", "my-tactic"], catch_exceptions=False)
         assert result_new.exit_code == 0, result_new.stdout
 
-        target = (
-            project / ".kittify" / "doctrine" / "tactic" / "my-tactic.tactic.yaml"
-        )
+        target = project / ".kittify" / "doctrine" / "tactic" / "my-tactic.tactic.yaml"
         assert target.exists()
 
-        result_validate = runner.invoke(
-            doctrine_app, ["validate", str(target)], catch_exceptions=False
-        )
+        result_validate = runner.invoke(doctrine_app, ["validate", str(target)], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 
@@ -109,17 +101,13 @@ def test_new_special_kind_suffixes_validate_on_first_emit(
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        result_new = runner.invoke(
-            doctrine_app, ["new", kind, artifact_id], catch_exceptions=False
-        )
+        result_new = runner.invoke(doctrine_app, ["new", kind, artifact_id], catch_exceptions=False)
         assert result_new.exit_code == 0, result_new.stdout
 
         target = project / ".kittify" / "doctrine" / plural / filename
         assert target.exists()
 
-        result_validate = runner.invoke(
-            doctrine_app, ["validate", str(target)], catch_exceptions=False
-        )
+        result_validate = runner.invoke(doctrine_app, ["validate", str(target)], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 
@@ -145,9 +133,7 @@ def test_new_asset_scaffolds_where_project_resolver_reads(tmp_path: Path) -> Non
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        result = runner.invoke(
-            doctrine_app, ["new", "asset", "my-logo"], catch_exceptions=False
-        )
+        result = runner.invoke(doctrine_app, ["new", "asset", "my-logo"], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 
@@ -169,17 +155,11 @@ def test_new_asset_stub_validates_on_first_emit(tmp_path: Path) -> None:
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        result_new = runner.invoke(
-            doctrine_app, ["new", "asset", "sample-blob"], catch_exceptions=False
-        )
+        result_new = runner.invoke(doctrine_app, ["new", "asset", "sample-blob"], catch_exceptions=False)
         assert result_new.exit_code == 0, result_new.stdout
-        target = (
-            project / ".kittify" / "doctrine" / "assets" / "sample-blob.asset.yaml"
-        )
+        target = project / ".kittify" / "doctrine" / "assets" / "sample-blob.asset.yaml"
         assert target.exists()
-        result_validate = runner.invoke(
-            doctrine_app, ["validate", str(target)], catch_exceptions=False
-        )
+        result_validate = runner.invoke(doctrine_app, ["validate", str(target)], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 
@@ -194,14 +174,10 @@ def test_new_refuses_to_overwrite_existing_file(tmp_path: Path) -> None:
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        first = runner.invoke(
-            doctrine_app, ["new", "directive", "MY_DIRECTIVE"], catch_exceptions=False
-        )
+        first = runner.invoke(doctrine_app, ["new", "directive", "MY_DIRECTIVE"], catch_exceptions=False)
         assert first.exit_code == 0, first.stdout
 
-        second = runner.invoke(
-            doctrine_app, ["new", "directive", "MY_DIRECTIVE"], catch_exceptions=False
-        )
+        second = runner.invoke(doctrine_app, ["new", "directive", "MY_DIRECTIVE"], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 
@@ -216,9 +192,7 @@ def test_new_rejects_unknown_kind(tmp_path: Path) -> None:
     old_cwd = os.getcwd()
     try:
         os.chdir(project)
-        result = runner.invoke(
-            doctrine_app, ["new", "guideline", "foo"], catch_exceptions=False
-        )
+        result = runner.invoke(doctrine_app, ["new", "guideline", "foo"], catch_exceptions=False)
     finally:
         os.chdir(old_cwd)
 

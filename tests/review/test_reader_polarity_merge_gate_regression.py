@@ -102,9 +102,7 @@ def test_merge_gate_returns_structured_finding_for_non_utf8_verdict_record(
         event_id="01KZ1CGFWP14MERGEGATE00001",
         # WP05: the pure-event gate's ONLY signal -- a genuine, current
         # rejection recorded on the event authority, not on-disk frontmatter.
-        review_result=ReviewResult(
-            reviewer="reviewer-renata", verdict="changes_requested", reference="x"
-        ),
+        review_result=ReviewResult(reviewer="reviewer-renata", verdict="changes_requested", reference="x"),
     )
     artifact_dir = mission.tasks_dir / "WP01-regression-harness"
     artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -112,9 +110,7 @@ def test_merge_gate_returns_structured_finding_for_non_utf8_verdict_record(
     # on a naive ``.read_text(encoding="utf-8")``. Written to prove the gate
     # never attempts that read at all (it would raise if it did); left on
     # disk deliberately, not asserted against.
-    (artifact_dir / "review-cycle-1.md").write_bytes(
-        b"---\n\xffverdict: approved\n---\n# Review\n"
-    )
+    (artifact_dir / "review-cycle-1.md").write_bytes(b"---\n\xffverdict: approved\n---\n# Review\n")
 
     findings = find_rejected_review_artifact_conflicts(
         mission.mission_dir,
@@ -134,9 +130,7 @@ def test_merge_gate_returns_structured_finding_for_non_utf8_verdict_record(
 # ---------------------------------------------------------------------------
 
 
-def test_arbiter_override_reader_refuses_a_malformed_event_sourced_slot(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_arbiter_override_reader_refuses_a_malformed_event_sourced_slot(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A ``review`` snapshot slot present but missing a required
     ``ReviewOverride`` field (the event-sourced successor to the retired
     frontmatter/JSON representations) is silently skipped -- never an
@@ -161,9 +155,7 @@ def test_arbiter_override_reader_refuses_a_malformed_event_sourced_slot(
     assert result == []
 
 
-def test_arbiter_override_reader_does_not_swallow_an_unrelated_bug(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_arbiter_override_reader_does_not_swallow_an_unrelated_bug(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """The narrow catch must stay narrow: an exception type OUTSIDE
     ``(KeyError, TypeError, ValueError)`` -- standing in for a genuine
     programming error, not a parse failure -- must propagate uncaught, not

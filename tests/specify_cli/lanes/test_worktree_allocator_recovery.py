@@ -49,14 +49,16 @@ def _make_manifest(*, lane_id: str = "lane-1", wp_id: str = "WP03") -> LanesMani
         mission_id=None,
         mission_branch=MISSION_BRANCH,
         target_branch="main",
-        lanes=[ExecutionLane(
-            lane_id=lane_id,
-            wp_ids=(wp_id,),
-            write_scope=(),
-            predicted_surfaces=(),
-            depends_on_lanes=(),
-            parallel_group=0,
-        )],
+        lanes=[
+            ExecutionLane(
+                lane_id=lane_id,
+                wp_ids=(wp_id,),
+                write_scope=(),
+                predicted_surfaces=(),
+                depends_on_lanes=(),
+                parallel_group=0,
+            )
+        ],
         computed_at=now_utc_iso(),
         computed_from="test",
     )
@@ -106,6 +108,7 @@ def test_crash_recovery_reattaches_when_worktree_gone(git_repo: Path) -> None:
 
     # Simulate the directory being lost (OS kill during sleep, manual rm, etc.).
     import shutil
+
     shutil.rmtree(worktree_path)
     assert not worktree_path.exists(), "pre-condition: worktree gone"
 
@@ -132,6 +135,7 @@ def test_crash_recovery_worktree_is_clean_after_reattach(git_repo: Path) -> None
     _git(worktree_path, "commit", "-m", "wip work")
 
     import shutil
+
     shutil.rmtree(worktree_path)
 
     recovered_path, _ = allocate_lane_worktree(
@@ -163,15 +167,17 @@ def coord_git_repo(tmp_path: Path) -> Path:
     spec_dir = repo / "kitty-specs" / COORD_MISSION_SLUG
     spec_dir.mkdir(parents=True)
     (spec_dir / "spec.md").write_text("# spec\n")
-    (spec_dir / "status.events.jsonl").write_text(
-        '{"actor":"test","wp_id":"WP01"}\n'
-    )
+    (spec_dir / "status.events.jsonl").write_text('{"actor":"test","wp_id":"WP01"}\n')
     (spec_dir / "status.json").write_text("{}\n")
-    (spec_dir / "meta.json").write_text(json.dumps({
-        "mission_id": COORD_MISSION_ID,
-        "mission_slug": COORD_MISSION_SLUG,
-        "coordination_branch": COORD_BRANCH,
-    }))
+    (spec_dir / "meta.json").write_text(
+        json.dumps(
+            {
+                "mission_id": COORD_MISSION_ID,
+                "mission_slug": COORD_MISSION_SLUG,
+                "coordination_branch": COORD_BRANCH,
+            }
+        )
+    )
     _git(repo, "add", ".")
     _git(repo, "commit", "-m", "seed")
     _git(repo, "branch", COORD_BRANCH)
@@ -185,14 +191,16 @@ def _make_coord_manifest(*, lane_id: str = "lane-1", wp_id: str = "WP01") -> Lan
         mission_id=COORD_MISSION_ID,
         mission_branch=COORD_BRANCH,
         target_branch="main",
-        lanes=[ExecutionLane(
-            lane_id=lane_id,
-            wp_ids=(wp_id,),
-            write_scope=(),
-            predicted_surfaces=(),
-            depends_on_lanes=(),
-            parallel_group=0,
-        )],
+        lanes=[
+            ExecutionLane(
+                lane_id=lane_id,
+                wp_ids=(wp_id,),
+                write_scope=(),
+                predicted_surfaces=(),
+                depends_on_lanes=(),
+                parallel_group=0,
+            )
+        ],
         computed_at=now_utc_iso(),
         computed_from="test",
     )
@@ -224,6 +232,7 @@ def test_crash_recovery_reregisters_sparse_checkout_for_coord_lane(
     # Simulate the directory being lost (OS kill during sleep, manual rm, etc.)
     # while the branch survives — the crash-recovery path.
     import shutil
+
     shutil.rmtree(worktree_path)
     assert not worktree_path.exists(), "pre-condition: worktree gone"
 
@@ -242,12 +251,8 @@ def test_crash_recovery_reregisters_sparse_checkout_for_coord_lane(
     # helper was invoked.
     recovered_spec_dir = recovered_path / "kitty-specs" / COORD_MISSION_SLUG
     assert (recovered_spec_dir / "spec.md").exists(), "non-excluded files still present"
-    assert not (recovered_spec_dir / "status.events.jsonl").exists(), (
-        "recovered coord lane re-leaked status.events.jsonl"
-    )
-    assert not (recovered_spec_dir / "status.json").exists(), (
-        "recovered coord lane re-leaked status.json"
-    )
+    assert not (recovered_spec_dir / "status.events.jsonl").exists(), "recovered coord lane re-leaked status.events.jsonl"
+    assert not (recovered_spec_dir / "status.json").exists(), "recovered coord lane re-leaked status.json"
 
 
 def test_crash_recovery_noncoord_lane_is_noop(git_repo: Path) -> None:
@@ -262,6 +267,7 @@ def test_crash_recovery_noncoord_lane_is_noop(git_repo: Path) -> None:
     worktree_path, _ = _first_allocation(git_repo, manifest)
 
     import shutil
+
     shutil.rmtree(worktree_path)
 
     recovered_path, _ = allocate_lane_worktree(
@@ -275,9 +281,9 @@ def test_crash_recovery_noncoord_lane_is_noop(git_repo: Path) -> None:
     # No sparse-checkout was applied — legacy/non-coord recovery must remain
     # byte-identical to the pre-WP04 behaviour: no `core.sparseCheckout` set.
     result = subprocess.run(
-        ["git", "-C", str(recovered_path), "config",
-         "--get", "core.sparseCheckout"],
-        capture_output=True, text=True,
+        ["git", "-C", str(recovered_path), "config", "--get", "core.sparseCheckout"],
+        capture_output=True,
+        text=True,
     )
     # config --get returns 1 when unset.
     assert result.returncode != 0 or result.stdout.strip() != "true"

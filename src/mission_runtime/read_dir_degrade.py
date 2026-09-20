@@ -81,13 +81,9 @@ def _degrade(
     if strategy not in _DEGRADE_TO_TARGET:
         raise ValueError(f"Unsupported read degrade strategy: {strategy!r}")
     if degrade_target is None:
-        raise ValueError(
-            f"resolve_read_dir_or_degrade: strategy {strategy.name} requires a "
-            f"degrade_target, but none was supplied for mission {mission_slug!r}."
-        )
+        raise ValueError(f"resolve_read_dir_or_degrade: strategy {strategy.name} requires a degrade_target, but none was supplied for mission {mission_slug!r}.")
     _LOGGER.warning(
-        "Read surface for mission %s (kind=%s) unreachable: %s. Degrading via %s to %s "
-        "(this omission may hide real content; see #1848).",
+        "Read surface for mission %s (kind=%s) unreachable: %s. Degrading via %s to %s (this omission may hide real content; see #1848).",
         mission_slug,
         kind.name,
         exc,

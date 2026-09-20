@@ -84,7 +84,8 @@ def _git(cwd: Path, *args: str) -> None:
 
 
 def _build_coord_mission_with_drifted_husk(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> tuple[Path, str, str, str]:
     """Build a coord-topology mission whose MATERIALIZED coord worktree's
     ``meta.json`` does not carry the mission identity triple.
@@ -161,7 +162,10 @@ def _build_coord_mission_with_drifted_husk(
     (feature_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
     write_single_lane_manifest(
-        feature_dir, wp_ids=("WP01",), target_branch=target_branch, mission_id=mission_id,
+        feature_dir,
+        wp_ids=("WP01",),
+        target_branch=target_branch,
+        mission_id=mission_id,
     )
     write_wp(repo_root, mission_dirname, "planned", "WP01")
 
@@ -224,10 +228,13 @@ class TestIssue2508IdentityReadAnchorsOnPrimary:
     never on a coord worktree's possibly-drifted ``meta.json`` snapshot."""
 
     def test_claim_succeeds_through_coordination_transaction_despite_drifted_coord_husk(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         repo_root, mission_dirname, coord_branch, target_branch = _build_coord_mission_with_drifted_husk(
-            tmp_path, monkeypatch,
+            tmp_path,
+            monkeypatch,
         )
 
         # Sanity: the primary checkout's own HEAD is on target_branch, not
@@ -235,7 +242,9 @@ class TestIssue2508IdentityReadAnchorsOnPrimary:
         # legacy fallback's worktree-HEAD mismatch manifest.
         head = subprocess.run(
             ["git", "-C", str(repo_root), "symbolic-ref", "--short", "HEAD"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
         assert head == target_branch
 
@@ -258,12 +267,16 @@ class TestIssue2508IdentityReadAnchorsOnPrimary:
         # branch must be untouched by this write.
         coord_log = subprocess.run(
             ["git", "-C", str(repo_root), "log", "--oneline", coord_branch],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
         assert "Start WP01 implementation" in coord_log
 
         target_log = subprocess.run(
             ["git", "-C", str(repo_root), "log", "--oneline", target_branch],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
         assert "Start WP01 implementation" not in target_log

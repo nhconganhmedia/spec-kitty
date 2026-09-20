@@ -56,27 +56,21 @@ def test_resolve_merge_actor_unknown_when_all_empty(monkeypatch: pytest.MonkeyPa
 
 
 def test_planned_fallback_returns_coord_lane_when_not_planned() -> None:
-    lane, force = db._resolve_lane_with_planned_fallback(
-        coord_lane=Lane.APPROVED, primary_feature_dir=Path("/r"), wp_id="WP01"
-    )
+    lane, force = db._resolve_lane_with_planned_fallback(coord_lane=Lane.APPROVED, primary_feature_dir=Path("/r"), wp_id="WP01")
     assert lane == Lane.APPROVED
     assert force is False
 
 
 def test_planned_fallback_reads_primary_and_forces_done() -> None:
     with patch("specify_cli.status.get_wp_lane", return_value="approved"):
-        lane, force = db._resolve_lane_with_planned_fallback(
-            coord_lane=Lane.PLANNED, primary_feature_dir=Path("/r"), wp_id="WP01"
-        )
+        lane, force = db._resolve_lane_with_planned_fallback(coord_lane=Lane.PLANNED, primary_feature_dir=Path("/r"), wp_id="WP01")
     assert lane == Lane.APPROVED
     assert force is True
 
 
 def test_planned_fallback_unparseable_primary_keeps_planned() -> None:
     with patch("specify_cli.status.get_wp_lane", return_value="uninitialized"):
-        lane, force = db._resolve_lane_with_planned_fallback(
-            coord_lane=Lane.PLANNED, primary_feature_dir=Path("/r"), wp_id="WP01"
-        )
+        lane, force = db._resolve_lane_with_planned_fallback(coord_lane=Lane.PLANNED, primary_feature_dir=Path("/r"), wp_id="WP01")
     assert lane == Lane.PLANNED
     assert force is False
 
@@ -108,9 +102,7 @@ def test_parse_target_lanes_by_wp_keeps_latest() -> None:
 
 def test_assert_done_on_target_noop_without_mission_id(tmp_path: Path) -> None:
     # mission_id None -> early return, no git invoked.
-    db._assert_merged_wps_done_on_target(
-        tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path, mission_id=None
-    )
+    db._assert_merged_wps_done_on_target(tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path, mission_id=None)
 
 
 def test_assert_done_on_target_raises_when_git_show_fails(tmp_path: Path) -> None:
@@ -118,9 +110,7 @@ def test_assert_done_on_target_raises_when_git_show_fails(tmp_path: Path) -> Non
         patch.object(db, "run_command", return_value=(1, "", "no such path")),
         pytest.raises(typer.Exit) as exc,
     ):
-        db._assert_merged_wps_done_on_target(
-            tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path / "kitty-specs" / "m", mission_id="01ID"
-        )
+        db._assert_merged_wps_done_on_target(tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path / "kitty-specs" / "m", mission_id="01ID")
     assert exc.value.exit_code == 1
 
 
@@ -132,9 +122,7 @@ def test_assert_done_on_target_raises_when_wp_not_done(tmp_path: Path) -> None:
         patch.object(db, "run_command", return_value=(0, events, "")),
         pytest.raises(typer.Exit) as exc,
     ):
-        db._assert_merged_wps_done_on_target(
-            tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path / "kitty-specs" / "m", mission_id="01ID"
-        )
+        db._assert_merged_wps_done_on_target(tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path / "kitty-specs" / "m", mission_id="01ID")
     assert exc.value.exit_code == 1
 
 
@@ -143,9 +131,7 @@ def test_assert_done_on_target_passes_when_all_done(tmp_path: Path) -> None:
 
     events = json.dumps({"wp_id": "WP01", "to_lane": "done"})
     with patch.object(db, "run_command", return_value=(0, events, "")):
-        db._assert_merged_wps_done_on_target(
-            tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path / "kitty-specs" / "m", mission_id="01ID"
-        )
+        db._assert_merged_wps_done_on_target(tmp_path, "m", "main", ["WP01"], feature_dir=tmp_path / "kitty-specs" / "m", mission_id="01ID")
 
 
 # --- _reconcile_completed_wps_for_resume ------------------------------------
@@ -162,9 +148,7 @@ def test_reconcile_drops_stale_completions(tmp_path: Path) -> None:
         patch.object(db, "_has_transition_to", side_effect=lambda *a, **k: a[2] == "WP01"),
         patch.object(db, "save_state", side_effect=lambda s, _r: saved.append(s)),
     ):
-        confirmed = db._reconcile_completed_wps_for_resume(
-            feature_dir=tmp_path, mission_slug="m", merge_state=state, repo_root=tmp_path
-        )
+        confirmed = db._reconcile_completed_wps_for_resume(feature_dir=tmp_path, mission_slug="m", merge_state=state, repo_root=tmp_path)
     assert confirmed == {"WP01"}
     assert state.completed_wps == ["WP01"]
     assert saved == [state]
@@ -174,9 +158,7 @@ def test_reconcile_empty_when_no_completions(tmp_path: Path) -> None:
     from specify_cli.merge.state import MergeState
 
     state = MergeState(mission_id="01ID", mission_slug="m", target_branch="main", wp_order=["WP01"])
-    assert db._reconcile_completed_wps_for_resume(
-        feature_dir=tmp_path, mission_slug="m", merge_state=state, repo_root=tmp_path
-    ) == set()
+    assert db._reconcile_completed_wps_for_resume(feature_dir=tmp_path, mission_slug="m", merge_state=state, repo_root=tmp_path) == set()
 
 
 # --- _durable_done_wps_on_coordination_ref (#2711 FR-007) -------------------
@@ -186,12 +168,7 @@ def test_durable_done_empty_when_placement_unresolvable(tmp_path: Path) -> None:
     # An unresolvable placement (non-coord / legacy) yields no durable-done set,
     # so the caller falls back to the transactional on-disk check.
     with patch.object(db, "resolve_placement_only", side_effect=RuntimeError("no mission")):
-        assert (
-            db._durable_done_wps_on_coordination_ref(
-                repo_root=tmp_path, mission_slug="m", candidate_wps=["WP01"]
-            )
-            == set()
-        )
+        assert db._durable_done_wps_on_coordination_ref(repo_root=tmp_path, mission_slug="m", candidate_wps=["WP01"]) == set()
 
 
 def test_durable_done_reduces_committed_coordination_ref(tmp_path: Path) -> None:
@@ -199,9 +176,7 @@ def test_durable_done_reduces_committed_coordination_ref(tmp_path: Path) -> None
 
     lanes = {"WP01": Lane.DONE, "WP02": Lane.APPROVED}
     with (
-        patch.object(
-            db, "resolve_placement_only", return_value=SimpleNamespace(ref="kitty/mission-m")
-        ),
+        patch.object(db, "resolve_placement_only", return_value=SimpleNamespace(ref="kitty/mission-m")),
         patch(
             "specify_cli.coordination.status_service.read_event_log",
             return_value=[object()],
@@ -211,26 +186,17 @@ def test_durable_done_reduces_committed_coordination_ref(tmp_path: Path) -> None
             side_effect=lambda _events, wp_id: CurrentWpState(lanes[wp_id], None, None),
         ),
     ):
-        assert db._durable_done_wps_on_coordination_ref(
-            repo_root=tmp_path, mission_slug="m", candidate_wps=["WP01", "WP02"]
-        ) == {"WP01"}
+        assert db._durable_done_wps_on_coordination_ref(repo_root=tmp_path, mission_slug="m", candidate_wps=["WP01", "WP02"]) == {"WP01"}
 
 
 def test_durable_done_empty_when_committed_log_empty(tmp_path: Path) -> None:
     from types import SimpleNamespace
 
     with (
-        patch.object(
-            db, "resolve_placement_only", return_value=SimpleNamespace(ref="kitty/mission-m")
-        ),
+        patch.object(db, "resolve_placement_only", return_value=SimpleNamespace(ref="kitty/mission-m")),
         patch("specify_cli.coordination.status_service.read_event_log", return_value=[]),
     ):
-        assert (
-            db._durable_done_wps_on_coordination_ref(
-                repo_root=tmp_path, mission_slug="m", candidate_wps=["WP01"]
-            )
-            == set()
-        )
+        assert db._durable_done_wps_on_coordination_ref(repo_root=tmp_path, mission_slug="m", candidate_wps=["WP01"]) == set()
 
 
 def test_reconcile_confirms_via_durable_log_when_on_disk_absent(tmp_path: Path) -> None:
@@ -238,21 +204,15 @@ def test_reconcile_confirms_via_durable_log_when_on_disk_absent(tmp_path: Path) 
     # there survives even when the transactional on-disk check would drop it.
     from specify_cli.merge.state import MergeState
 
-    state = MergeState(
-        mission_id="01ID", mission_slug="m", target_branch="main", wp_order=["WP01", "WP02"]
-    )
+    state = MergeState(mission_id="01ID", mission_slug="m", target_branch="main", wp_order=["WP01", "WP02"])
     state.completed_wps = ["WP01", "WP02"]
     saved: list[MergeState] = []
     with (
-        patch.object(
-            db, "_durable_done_wps_on_coordination_ref", return_value={"WP01"}
-        ),
+        patch.object(db, "_durable_done_wps_on_coordination_ref", return_value={"WP01"}),
         patch.object(db, "_has_transition_to", return_value=False),
         patch.object(db, "save_state", side_effect=lambda s, _r: saved.append(s)),
     ):
-        confirmed = db._reconcile_completed_wps_for_resume(
-            feature_dir=tmp_path, mission_slug="m", merge_state=state, repo_root=tmp_path
-        )
+        confirmed = db._reconcile_completed_wps_for_resume(feature_dir=tmp_path, mission_slug="m", merge_state=state, repo_root=tmp_path)
     assert confirmed == {"WP01"}
     assert state.completed_wps == ["WP01"]
     assert saved == [state]
@@ -314,9 +274,7 @@ def test_planned_fallback_status_not_found_keeps_planned() -> None:
         "specify_cli.status.get_wp_lane",
         side_effect=CanonicalStatusNotFoundError("no log"),
     ):
-        lane, force = db._resolve_lane_with_planned_fallback(
-            coord_lane=Lane.PLANNED, primary_feature_dir=Path("/r"), wp_id="WP01"
-        )
+        lane, force = db._resolve_lane_with_planned_fallback(coord_lane=Lane.PLANNED, primary_feature_dir=Path("/r"), wp_id="WP01")
     # "uninitialized" sentinel is unparseable -> keeps coord PLANNED, no force.
     assert lane == Lane.PLANNED
     assert force is False
@@ -328,9 +286,7 @@ def test_planned_fallback_status_not_found_keeps_planned() -> None:
 def _evidence() -> object:
     from specify_cli.status import DoneEvidence, ReviewApproval
 
-    return DoneEvidence(
-        review=ReviewApproval(reviewer="r", verdict="approved", reference="x")
-    )
+    return DoneEvidence(review=ReviewApproval(reviewer="r", verdict="approved", reference="x"))
 
 
 def test_approved_replay_skipped_when_not_pre_approved() -> None:
@@ -368,9 +324,7 @@ def test_approved_replay_dedup_skips_emit() -> None:
 def test_approved_replay_emits_transition() -> None:
     with (
         patch.object(db, "_has_transition_to", return_value=False),
-        patch(
-            "specify_cli.coordination.status_transition.emit_status_transition_transactional"
-        ) as emit_mock,
+        patch("specify_cli.coordination.status_transition.emit_status_transition_transactional") as emit_mock,
     ):
         result = db._emit_approved_replay_if_needed(
             feature_dir=Path("/r"),
@@ -494,12 +448,8 @@ def test_mark_wp_merged_done_warns_on_final_transition_error(tmp_path: Path) -> 
             return_value=CurrentWpState(Lane.APPROVED, "merge", None),
         ),
         patch.object(db, "_has_transition_to", return_value=False),
-        patch.object(
-            db, "_resolve_lane_with_planned_fallback", return_value=(Lane.APPROVED, False)
-        ),
-        patch.object(
-            db, "_emit_approved_replay_if_needed", return_value=(Lane.APPROVED, False)
-        ),
+        patch.object(db, "_resolve_lane_with_planned_fallback", return_value=(Lane.APPROVED, False)),
+        patch.object(db, "_emit_approved_replay_if_needed", return_value=(Lane.APPROVED, False)),
         patch(
             "specify_cli.coordination.status_transition.emit_status_transition_transactional",
             side_effect=TransitionError("rejected done jump"),
@@ -529,12 +479,8 @@ def test_mark_wp_merged_done_warns_when_lane_not_approved(tmp_path: Path) -> Non
             return_value=CurrentWpState(Lane.IN_REVIEW, "merge", None),
         ),
         patch.object(db, "_has_transition_to", return_value=False),
-        patch.object(
-            db, "_resolve_lane_with_planned_fallback", return_value=(Lane.IN_REVIEW, False)
-        ),
-        patch.object(
-            db, "_emit_approved_replay_if_needed", return_value=(Lane.IN_REVIEW, False)
-        ),
+        patch.object(db, "_resolve_lane_with_planned_fallback", return_value=(Lane.IN_REVIEW, False)),
+        patch.object(db, "_emit_approved_replay_if_needed", return_value=(Lane.IN_REVIEW, False)),
     ):
         db._mark_wp_merged_done(tmp_path, "m", "WP01", "main")
 
@@ -559,9 +505,7 @@ def test_mark_wp_merged_done_aborts_when_replay_returns_none(tmp_path: Path) -> 
             return_value=CurrentWpState(Lane.FOR_REVIEW, "merge", None),
         ),
         patch.object(db, "_has_transition_to", return_value=False),
-        patch.object(
-            db, "_resolve_lane_with_planned_fallback", return_value=(Lane.FOR_REVIEW, False)
-        ),
+        patch.object(db, "_resolve_lane_with_planned_fallback", return_value=(Lane.FOR_REVIEW, False)),
         patch.object(db, "_emit_approved_replay_if_needed", return_value=None),
     ):
         db._mark_wp_merged_done(tmp_path, "m", "WP01", "main")
@@ -638,25 +582,19 @@ def test_assert_reached_done_raises_on_store_error(tmp_path: Path) -> None:
 
 def test_resolve_in_branch_path_under_repo(tmp_path: Path) -> None:
     feature_dir = tmp_path / "kitty-specs" / "m"
-    rel = db._resolve_in_branch_status_events_path(
-        repo_root=tmp_path, feature_dir=feature_dir, mission_slug="m"
-    )
+    rel = db._resolve_in_branch_status_events_path(repo_root=tmp_path, feature_dir=feature_dir, mission_slug="m")
     assert rel == Path("kitty-specs") / "m" / "status.events.jsonl"
 
 
 def test_resolve_in_branch_path_outside_repo_falls_back(tmp_path: Path) -> None:
     # feature_dir not under repo_root -> ValueError branch -> canonical fallback.
-    rel = db._resolve_in_branch_status_events_path(
-        repo_root=tmp_path, feature_dir=Path("/somewhere/else/m"), mission_slug="m"
-    )
+    rel = db._resolve_in_branch_status_events_path(repo_root=tmp_path, feature_dir=Path("/somewhere/else/m"), mission_slug="m")
     assert rel == Path("kitty-specs") / "m" / "status.events.jsonl"
 
 
 def test_resolve_in_branch_path_under_worktrees_falls_back(tmp_path: Path) -> None:
     feature_dir = tmp_path / ".worktrees" / "m-coord" / "kitty-specs" / "m"
-    rel = db._resolve_in_branch_status_events_path(
-        repo_root=tmp_path, feature_dir=feature_dir, mission_slug="m"
-    )
+    rel = db._resolve_in_branch_status_events_path(repo_root=tmp_path, feature_dir=feature_dir, mission_slug="m")
     assert rel == Path("kitty-specs") / "m" / "status.events.jsonl"
 
 
@@ -669,12 +607,12 @@ def test_record_merged_wps_skips_completed_and_marks_rest(tmp_path: Path) -> Non
     from specify_cli.merge.state import MergeState
 
     state = MergeState(
-        mission_id="01ID", mission_slug="m", target_branch="main",
+        mission_id="01ID",
+        mission_slug="m",
+        target_branch="main",
         wp_order=["WP01", "WP02"],
     )
-    lanes_manifest = SimpleNamespace(
-        lanes=[SimpleNamespace(wp_ids=["WP01", "WP02"])]
-    )
+    lanes_manifest = SimpleNamespace(lanes=[SimpleNamespace(wp_ids=["WP01", "WP02"])])
     marked: list[str] = []
     with (
         patch.object(db, "_reconcile_completed_wps_for_resume", return_value={"WP01"}),

@@ -55,9 +55,7 @@ def _get_installed_version() -> str:
         )
 
         profile = resolve_distribution_profile()
-        return resolve_installed_distribution_version(
-            profile.package_name, profile.package_aliases, default="unknown"
-        )
+        return resolve_installed_distribution_version(profile.package_name, profile.package_aliases, default="unknown")
     except Exception:  # noqa: BLE001
         return "unknown"
 
@@ -314,11 +312,7 @@ class FakeLatestVersionProvider:
         """
         if self._error is not None:
             return LatestVersionResult(version=None, source="none", error=self._error)
-        effective_version = (
-            self._prerelease_version
-            if prerelease and self._prerelease_version is not None
-            else self._version
-        )
+        effective_version = self._prerelease_version if prerelease and self._prerelease_version is not None else self._version
         if effective_version is not None:
             return LatestVersionResult(version=effective_version, source="pypi", error=None)
         return LatestVersionResult(version=None, source="none", error=None)

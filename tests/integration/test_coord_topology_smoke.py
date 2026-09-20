@@ -48,15 +48,9 @@ class TestCoordTopologyFixtureSmoke:
     ) -> None:
         """(a) Primary checkout carries meta.json, tasks/WP01.md, lanes.json."""
         ctx = coord_topology_mission
-        assert (ctx.primary_feature_dir / "meta.json").exists(), (
-            "meta.json absent from primary dir"
-        )
-        assert (ctx.primary_feature_dir / "tasks" / "WP01.md").exists(), (
-            "tasks/WP01.md absent from primary dir"
-        )
-        assert (ctx.primary_feature_dir / "lanes.json").exists(), (
-            "lanes.json absent from primary dir"
-        )
+        assert (ctx.primary_feature_dir / "meta.json").exists(), "meta.json absent from primary dir"
+        assert (ctx.primary_feature_dir / "tasks" / "WP01.md").exists(), "tasks/WP01.md absent from primary dir"
+        assert (ctx.primary_feature_dir / "lanes.json").exists(), "lanes.json absent from primary dir"
 
     def test_coord_topology_husk_is_status_only(
         self,
@@ -66,16 +60,9 @@ class TestCoordTopologyFixtureSmoke:
         ctx = coord_topology_mission
         assert ctx.coord_feature_dir.exists(), "coord husk dir must exist"
         assert ctx.status_events_path.exists(), "status.events.jsonl must exist on coord husk"
-        assert not (ctx.coord_feature_dir / "tasks").exists(), (
-            "coord husk must NOT carry tasks/ (STATUS-only husk invariant)"
-        )
-        assert not (ctx.coord_feature_dir / "lanes.json").exists(), (
-            "coord husk must NOT carry lanes.json (STATUS-only husk invariant)"
-        )
-        assert not (ctx.coord_feature_dir / "meta.json").exists(), (
-            "coord husk must NOT carry meta.json (STATUS-only husk invariant; "
-            "see implement.py:1020-1028)"
-        )
+        assert not (ctx.coord_feature_dir / "tasks").exists(), "coord husk must NOT carry tasks/ (STATUS-only husk invariant)"
+        assert not (ctx.coord_feature_dir / "lanes.json").exists(), "coord husk must NOT carry lanes.json (STATUS-only husk invariant)"
+        assert not (ctx.coord_feature_dir / "meta.json").exists(), "coord husk must NOT carry meta.json (STATUS-only husk invariant; see implement.py:1020-1028)"
 
     def test_flat_topology_primary_has_all_artifacts(
         self,
@@ -91,9 +78,7 @@ class TestCoordTopologyFixtureSmoke:
         coord_worktree_parent = ctx.repo / ".worktrees"
         if coord_worktree_parent.exists():
             coord_dirs = list(coord_worktree_parent.iterdir())
-            assert not coord_dirs, (
-                f"Unexpected coord worktree dirs for flat topology: {coord_dirs}"
-            )
+            assert not coord_dirs, f"Unexpected coord worktree dirs for flat topology: {coord_dirs}"
 
 
 class TestCoordTopologyResolverRouting:
@@ -111,15 +96,10 @@ class TestCoordTopologyResolverRouting:
 
         # The topology-unaware resolver returns the coord husk, not primary.
         assert resolved == ctx.coord_feature_dir, (
-            f"Expected coord husk dir from topology-unaware resolver.\n"
-            f"  Expected : {ctx.coord_feature_dir}\n"
-            f"  Got      : {resolved}"
+            f"Expected coord husk dir from topology-unaware resolver.\n  Expected : {ctx.coord_feature_dir}\n  Got      : {resolved}"
         )
         # Demonstrate the routing divergence: tasks/ is absent on the husk.
-        assert not (resolved / "tasks").exists(), (
-            "tasks/ should be absent from the coord husk — "
-            "this is the WORK_PACKAGE_TASK routing bug that downstream WPs fix."
-        )
+        assert not (resolved / "tasks").exists(), "tasks/ should be absent from the coord husk — this is the WORK_PACKAGE_TASK routing bug that downstream WPs fix."
 
     def test_resolve_planning_read_dir_returns_primary_for_work_package_task(
         self,
@@ -198,18 +178,10 @@ class TestNoResolverPatchedInFixture:
 
         source = inspect.getsource(coord_topology_fixture)
         # Check for actual mock usage patterns (not the word in comments).
-        assert "monkeypatch." not in source, (
-            "coord_topology_fixture.py must not CALL monkeypatch (e.g. monkeypatch.setattr)"
-        )
-        assert "from unittest.mock import patch" not in source, (
-            "coord_topology_fixture.py must not import unittest.mock.patch"
-        )
-        assert "@patch(" not in source, (
-            "coord_topology_fixture.py must not use @patch decorators"
-        )
-        assert "mock.patch(" not in source, (
-            "coord_topology_fixture.py must not use mock.patch()"
-        )
+        assert "monkeypatch." not in source, "coord_topology_fixture.py must not CALL monkeypatch (e.g. monkeypatch.setattr)"
+        assert "from unittest.mock import patch" not in source, "coord_topology_fixture.py must not import unittest.mock.patch"
+        assert "@patch(" not in source, "coord_topology_fixture.py must not use @patch decorators"
+        assert "mock.patch(" not in source, "coord_topology_fixture.py must not use mock.patch()"
 
 
 class TestDualLegAsserterSelfProof:

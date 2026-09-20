@@ -91,11 +91,7 @@ def evaluate(*, documented: set[str], registry: Iterable[str]) -> list[Finding]:
             Finding(
                 rule_id="SLASH-MISSING",
                 command=command,
-                detail=(
-                    f"`/spec-kitty.{command}` is a consumer command in the "
-                    "registry but has no `## /spec-kitty."
-                    f"{command}` heading in the reference."
-                ),
+                detail=(f"`/spec-kitty.{command}` is a consumer command in the registry but has no `## /spec-kitty.{command}` heading in the reference."),
             )
         )
     for command in sorted(documented - registry_set):
@@ -103,10 +99,7 @@ def evaluate(*, documented: set[str], registry: Iterable[str]) -> list[Finding]:
             Finding(
                 rule_id="SLASH-EXTRA",
                 command=command,
-                detail=(
-                    f"`/spec-kitty.{command}` is documented but is not a "
-                    "consumer command in the registry (retired or unknown)."
-                ),
+                detail=(f"`/spec-kitty.{command}` is documented but is not a consumer command in the registry (retired or unknown)."),
             )
         )
     return findings
@@ -122,10 +115,7 @@ def _load_registry() -> set[str]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="check_slash_command_freshness",
-        description=(
-            "Validate docs/api/slash-commands.md against the canonical "
-            "consumer slash-command registry (CONSUMER_SKILLS)."
-        ),
+        description=("Validate docs/api/slash-commands.md against the canonical consumer slash-command registry (CONSUMER_SKILLS)."),
     )
     parser.add_argument(
         "--reference",
@@ -156,14 +146,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if not args.reference.exists():
-        sys.stderr.write(
-            f"SLASH-INPUT-MISSING  reference file not found: {args.reference}\n"
-        )
+        sys.stderr.write(f"SLASH-INPUT-MISSING  reference file not found: {args.reference}\n")
         return 2
 
-    documented = extract_documented_commands(
-        args.reference.read_text(encoding="utf-8")
-    )
+    documented = extract_documented_commands(args.reference.read_text(encoding="utf-8"))
     findings = evaluate(documented=documented, registry=_load_registry())
     _emit_findings(findings, ci=args.ci)
     return 1 if findings else 0

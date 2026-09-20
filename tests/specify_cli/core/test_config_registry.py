@@ -32,6 +32,8 @@ from specify_cli.core.config import (
 import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 def test_vibe_in_ai_choices() -> None:
     assert "vibe" in AI_CHOICES
     assert AI_CHOICES["vibe"] == "Mistral Vibe"
@@ -128,10 +130,7 @@ def test_eleven_agents_still_in_command_config() -> None:
 def test_command_agent_directory_registry_is_consistent() -> None:
     """Command-layer directory roots, keys, and config rows must stay aligned."""
     agent_dir_roots = {root for root, _ in AGENT_DIRS}
-    command_config_roots = {
-        config["dir"].split("/", 1)[0]
-        for config in AGENT_COMMAND_CONFIG.values()
-    }
+    command_config_roots = {config["dir"].split("/", 1)[0] for config in AGENT_COMMAND_CONFIG.values()}
 
     assert agent_dir_roots == set(AGENT_DIR_TO_KEY)
     assert set(AGENT_DIR_TO_KEY.values()) == set(AGENT_COMMAND_CONFIG)
@@ -147,13 +146,9 @@ def test_command_skill_agents_are_shared_skill_roots() -> None:
     for key in ("codex", "vibe", "pi", "letta"):
         assert key in AGENT_SKILL_CONFIG, f"{key!r} missing from AGENT_SKILL_CONFIG"
         entry = AGENT_SKILL_CONFIG[key]
-        assert entry["class"] == SKILL_CLASS_SHARED, (
-            f"{key!r} should have class SKILL_CLASS_SHARED, got {entry['class']!r}"
-        )
+        assert entry["class"] == SKILL_CLASS_SHARED, f"{key!r} should have class SKILL_CLASS_SHARED, got {entry['class']!r}"
         roots: list[str] = entry["skill_roots"]
-        assert ".agents/skills/" in roots, (
-            f"{key!r} skill_roots should contain '.agents/skills/', got {roots!r}"
-        )
+        assert ".agents/skills/" in roots, f"{key!r} skill_roots should contain '.agents/skills/', got {roots!r}"
 
 
 def test_llxprt_declares_shared_and_agent_specific_skill_roots() -> None:

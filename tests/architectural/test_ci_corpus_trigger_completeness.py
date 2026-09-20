@@ -56,6 +56,7 @@ def test_corpus_changes_trigger_reduced_ci_quality_live() -> None:
     for event in ("pull_request", "push"):
         assert "paths" not in on_section[event]
 
+
 # The authoritative corpus glob set (T001 on.paths / T002 dorny filter) --
 # discrete lines only: GitHub `on.paths` does not support `{a,b}` brace
 # expansion, so both trigger surfaces enumerate every glob individually.
@@ -191,14 +192,6 @@ _CORPUS_MARKED_MODULES = frozenset(
 )
 
 
-
-
-
-
-
-
-
-
 def test_every_corpus_data_root_is_covered_by_a_trigger_glob() -> None:
     """Reader-root coverage (decidable proxy for M4): every declared corpus
     data root must be the prefix of at least one corpus trigger glob."""
@@ -260,12 +253,6 @@ def test_corpus_marked_registry_is_non_empty() -> None:
     """Defense-in-depth floor: a healthy registry is never empty -- catches
     the whole registry being silently emptied out from under the gate."""
     assert len(_CORPUS_MARKED_MODULES) > 0
-
-
-
-
-
-
 
 
 def test_corpus_marker_is_registered_in_pytest_ini() -> None:

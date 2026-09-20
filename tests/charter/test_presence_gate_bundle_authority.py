@@ -47,9 +47,7 @@ runner = CliRunner()
 
 
 class TestJourney4ContextBundleAuthority:
-    def test_context_renders_activated_bundle_and_survives_charter_md_deletion(
-        self, tmp_path: Path
-    ) -> None:
+    def test_context_renders_activated_bundle_and_survives_charter_md_deletion(self, tmp_path: Path) -> None:
         _setup_fixture_repo(tmp_path)
 
         from charter.offering.drg.models import DRGGraph
@@ -64,9 +62,7 @@ class TestJourney4ContextBundleAuthority:
             patch("charter.activation.catalog.resolve_doctrine_root", return_value=tmp_path),
             patch("charter.offering.drg.validator.assert_valid"),
         ):
-            before = build_charter_context(
-                tmp_path, action="implement", depth=2, mission_type="software-dev"
-            )
+            before = build_charter_context(tmp_path, action="implement", depth=2, mission_type="software-dev")
 
         assert before.mode == "bootstrap"
         assert "Charter file not found" not in before.text
@@ -79,9 +75,7 @@ class TestJourney4ContextBundleAuthority:
             patch("charter.activation.catalog.resolve_doctrine_root", return_value=tmp_path),
             patch("charter.offering.drg.validator.assert_valid"),
         ):
-            after = build_charter_context(
-                tmp_path, action="implement", depth=2, mission_type="software-dev"
-            )
+            after = build_charter_context(tmp_path, action="implement", depth=2, mission_type="software-dev")
 
         # Bundle authority proven: the same activated directive still
         # renders -- this is NOT the "not found" dead-end the mission
@@ -99,9 +93,7 @@ class TestJourney4ContextBundleAuthority:
 
 
 class TestJourney5StatusBundleAuthority:
-    def test_status_reports_synced_on_charter_yaml_and_survives_charter_md_deletion(
-        self, tmp_path: Path
-    ) -> None:
+    def test_status_reports_synced_on_charter_yaml_and_survives_charter_md_deletion(self, tmp_path: Path) -> None:
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
         (charter_dir / "charter.yaml").write_text(
@@ -147,9 +139,7 @@ def _git_init(repo_root: Path) -> None:
 
 
 class TestFR006JsonPresentSignalFlip:
-    def test_build_charter_context_json_present_keys_on_charter_yaml(
-        self, tmp_path: Path
-    ) -> None:
+    def test_build_charter_context_json_present_keys_on_charter_yaml(self, tmp_path: Path) -> None:
         """Direct producer-level pin: charter.yaml present, charter.md absent."""
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
@@ -158,9 +148,7 @@ class TestFR006JsonPresentSignalFlip:
         # flip this test pins, but WP04 (C-A1) made it a hard construction
         # precondition for ``PackContext.from_config`` (invoked internally by
         # ``build_charter_context_json``'s action-bundle resolution).
-        (tmp_path / ".kittify" / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
         from charter.activation.sync import SyncResult
 
@@ -196,9 +184,7 @@ class TestFR006JsonPresentSignalFlip:
 
     @pytest.mark.integration
     @pytest.mark.git_repo
-    def test_cli_context_json_present_survives_charter_md_deletion(
-        self, tmp_path: Path
-    ) -> None:
+    def test_cli_context_json_present_survives_charter_md_deletion(self, tmp_path: Path) -> None:
         """End-to-end pin through the real ``charter context --json`` CLI surface.
 
         Exercises both FR-006 sites at once: the producer
@@ -220,9 +206,7 @@ class TestFR006JsonPresentSignalFlip:
         # flip this test pins, but WP04 (C-A1) made it a hard construction
         # precondition for ``PackContext.from_config`` -- provision it so both
         # the ``generate`` and ``context`` CLI invocations below can construct.
-        (repo_root / ".kittify" / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (repo_root / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
         with patch("specify_cli.cli.commands.charter.find_repo_root", return_value=repo_root):
             generate_result = runner.invoke(app, ["generate", "--json", "--no-from-interview"])
@@ -259,9 +243,7 @@ class TestFR006JsonPresentSignalFlip:
 
 
 class TestFoldCLegacyCharterMdOnlyPresentFlipCell:
-    def test_charter_md_present_yaml_absent_json_present_is_false(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_md_present_yaml_absent_json_present_is_false(self, tmp_path: Path) -> None:
         """Direct producer-level pin: charter.md present, charter.yaml
         ABSENT ⇒ ``project_charter.present`` is ``False``. A pre-FR-006
         (or a future "aligned to the text renderer") producer that ORs in
@@ -270,18 +252,14 @@ class TestFoldCLegacyCharterMdOnlyPresentFlipCell:
         """
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
-        (charter_dir / "charter.md").write_text(
-            "# Legacy Curated Charter\n", encoding="utf-8"
-        )
+        (charter_dir / "charter.md").write_text("# Legacy Curated Charter\n", encoding="utf-8")
         assert not (charter_dir / "charter.yaml").exists()
         # ``mission_type_activations`` is unrelated to the present-signal
         # divergence this test pins, but WP04 (C-A1) made it a hard
         # construction precondition for ``PackContext.from_config``. A
         # separate file from ``charter.yaml`` (whose absence is the fixture
         # precondition under test), so this does not disturb that assertion.
-        (tmp_path / ".kittify" / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
         from charter.activation.sync import SyncResult
 
@@ -310,9 +288,7 @@ class TestFoldCLegacyCharterMdOnlyPresentFlipCell:
         assert project_charter["present"] is False
         assert project_charter["charter_md_present"] is True
 
-    def test_text_renderer_still_renders_for_the_same_charter_md_only_project(
-        self, tmp_path: Path
-    ) -> None:
+    def test_text_renderer_still_renders_for_the_same_charter_md_only_project(self, tmp_path: Path) -> None:
         """Documents the intended divergence for the SAME legacy layout: the
         text renderer's ``mode`` never regresses to ``"missing"`` for a
         charter.md-only project, even though the JSON producer above
@@ -322,16 +298,12 @@ class TestFoldCLegacyCharterMdOnlyPresentFlipCell:
         """
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
-        (charter_dir / "charter.md").write_text(
-            "# Legacy Curated Charter\n", encoding="utf-8"
-        )
+        (charter_dir / "charter.md").write_text("# Legacy Curated Charter\n", encoding="utf-8")
         assert not (charter_dir / "charter.yaml").exists()
         # ``mission_type_activations`` is unrelated to the text-renderer
         # divergence this test pins, but WP04 (C-A1) made it a hard
         # construction precondition for ``PackContext.from_config``.
-        (tmp_path / ".kittify" / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (tmp_path / ".kittify" / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
         from charter.offering.drg.models import DRGGraph
         from ruamel.yaml import YAML
@@ -345,9 +317,7 @@ class TestFoldCLegacyCharterMdOnlyPresentFlipCell:
             patch("charter.activation.catalog.resolve_doctrine_root", return_value=tmp_path),
             patch("charter.offering.drg.validator.assert_valid"),
         ):
-            result = build_charter_context(
-                tmp_path, action="implement", depth=2, mission_type="software-dev"
-            )
+            result = build_charter_context(tmp_path, action="implement", depth=2, mission_type="software-dev")
 
         assert result.mode != "missing"
         assert "Charter file not found" not in result.text

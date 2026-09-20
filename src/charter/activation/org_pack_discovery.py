@@ -75,8 +75,7 @@ def _enumerate_org_pack_paths(repo_root: Path) -> list[tuple[str, Path]]:
         registry = load_pack_registry(repo_root)
     except Exception:  # noqa: BLE001 - context rendering stays best-effort
         _LOGGER.debug(
-            "load_pack_registry raised while enumerating org pack paths for %s; "
-            "treating as no configured packs.",
+            "load_pack_registry raised while enumerating org pack paths for %s; treating as no configured packs.",
             repo_root,
             exc_info=True,
         )
@@ -109,10 +108,7 @@ def _missing_pack_diagnostic(repo_root: Path) -> str | None:
     ]
     for name, local_path in missing:
         lines.append(f"    - pack `{name}`: local_path `{local_path}` does not exist")
-    lines.append(
-        "  - Run `spec-kitty doctrine fetch --pack <name>` to populate the pack, "
-        "or remove the entry from .kittify/config.yaml."
-    )
+    lines.append("  - Run `spec-kitty doctrine fetch --pack <name>` to populate the pack, or remove the entry from .kittify/config.yaml.")
     return "\n".join(lines)
 
 

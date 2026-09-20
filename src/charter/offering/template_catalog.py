@@ -133,11 +133,7 @@ def _iter_mission_dirs(missions_root: Path) -> list[tuple[str, Path]]:
     """
     if not missions_root.is_dir():
         return []
-    return sorted(
-        (child.name, child)
-        for child in missions_root.iterdir()
-        if child.is_dir()
-    )
+    return sorted((child.name, child) for child in missions_root.iterdir() if child.is_dir())
 
 
 def _iter_template_files(mission_dir: Path) -> list[Path]:
@@ -262,14 +258,10 @@ def resolve_template_by_id(
         FileNotFoundError: If the template is not found at any tier.
     """
     if "/" not in template_id:
-        raise ValueError(
-            f"template_id {template_id!r} is not of the form '<mission>/<name>'"
-        )
+        raise ValueError(f"template_id {template_id!r} is not of the form '<mission>/<name>'")
     mission, name = template_id.split("/", 1)
     if not mission or not name:
-        raise ValueError(
-            f"template_id {template_id!r} is not of the form '<mission>/<name>'"
-        )
+        raise ValueError(f"template_id {template_id!r} is not of the form '<mission>/<name>'")
 
     project_dir = next(
         (root.project_dir for root in tier_roots if root.project_dir is not None),

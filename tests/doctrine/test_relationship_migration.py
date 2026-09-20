@@ -110,11 +110,7 @@ def _merged_relationship_edges() -> set[tuple[str, str, Relation]]:
     built_in = load_built_in_graph()
     merged = merge_three_layers(built_in=built_in, org_fragments=[], project=None)
     relations = set(_FIELD_TO_RELATION.values())
-    return {
-        (e.source, e.target, e.relation)
-        for e in merged.edges
-        if e.relation in relations
-    }
+    return {(e.source, e.target, e.relation) for e in merged.edges if e.relation in relations}
 
 
 # ---------------------------------------------------------------------------
@@ -133,14 +129,10 @@ class TestZeroLossMigration:
         relationship edges (e.g. the four ``specializes_from`` profile-lineage
         edges authored directly in ``graph.yaml``)."""
         assert not _discover_field_authored_relations(), (
-            "Found field-authored relationships in built-in doctrine; the WP06 "
-            "hard cutover requires lineage/augmentation to be DRG edges only."
+            "Found field-authored relationships in built-in doctrine; the WP06 hard cutover requires lineage/augmentation to be DRG edges only."
         )
         merged = _merged_relationship_edges()
-        assert merged, (
-            "No relationship edges in the shipped DRG; lineage authoring is "
-            "vacuous. Check graph.yaml / the extractor curated edges."
-        )
+        assert merged, "No relationship edges in the shipped DRG; lineage authoring is vacuous. Check graph.yaml / the extractor curated edges."
 
     def test_every_field_relationship_has_exactly_one_merged_edge(self) -> None:
         """NFR-007: each field-authored relationship maps to exactly one merged
@@ -149,28 +141,16 @@ class TestZeroLossMigration:
         merged_edges = _merged_relationship_edges()
 
         missing = baseline - merged_edges
-        assert not missing, (
-            "Zero-loss violation — these field-authored relationships have no "
-            f"corresponding merged DRG edge: {sorted(map(str, missing))}"
-        )
+        assert not missing, f"Zero-loss violation — these field-authored relationships have no corresponding merged DRG edge: {sorted(map(str, missing))}"
 
     def test_no_duplicate_relationship_edges_in_merged_graph(self) -> None:
         """Each migrated relationship appears at most once (identity, not count
         inflation). Asserts the merged edge multiset has no duplicate triple."""
         built_in = load_built_in_graph()
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[], project=None)
         relations = set(_FIELD_TO_RELATION.values())
-        triples = [
-            (e.source, e.target, e.relation)
-            for e in merged.edges
-            if e.relation in relations
-        ]
-        assert len(triples) == len(set(triples)), (
-            "Duplicate relationship edges in merged graph: "
-            f"{sorted(str(t) for t in triples if triples.count(t) > 1)}"
-        )
+        triples = [(e.source, e.target, e.relation) for e in merged.edges if e.relation in relations]
+        assert len(triples) == len(set(triples)), f"Duplicate relationship edges in merged graph: {sorted(str(t) for t in triples if triples.count(t) > 1)}"
 
 
 # ---------------------------------------------------------------------------
@@ -186,9 +166,7 @@ class TestShippedGraphLoadsClean:
 
     def test_merge_of_shipped_graph_is_lossless_and_clean(self) -> None:
         built_in = load_built_in_graph()
-        merged = merge_three_layers(
-            built_in=built_in, org_fragments=[], project=None
-        )
+        merged = merge_three_layers(built_in=built_in, org_fragments=[], project=None)
         # Every built-in edge survives the (no-op) merge.
         assert len(merged.edges) == len(built_in.edges)
 
@@ -208,13 +186,9 @@ class TestRelationshipPackFixtures:
         assert isinstance(fragment, OrgDRGFragment)
         from tests.doctrine._relationship_graph import empty_built_in  # noqa: PLC0415
 
-        merged = merge_three_layers(
-            built_in=empty_built_in(), org_fragments=[fragment], project=None
-        )
+        merged = merge_three_layers(built_in=empty_built_in(), org_fragments=[fragment], project=None)
         assert any(
-            e.relation is Relation.SPECIALIZES_FROM
-            and e.source == "agent_profile:specialist-implementer"
-            and e.target == "agent_profile:base-implementer"
+            e.relation is Relation.SPECIALIZES_FROM and e.source == "agent_profile:specialist-implementer" and e.target == "agent_profile:base-implementer"
             for e in merged.edges
         )
 
@@ -224,9 +198,7 @@ class TestRelationshipPackFixtures:
         DRG-fragment level. This is the property WP07 owns — the fragment is the
         single authoring surface for augmentation on every topology-bearing kind.
         """
-        fragment = load_org_pack(
-            "augment-all-kinds-pack", _FIXTURES / "augment-all-kinds-pack", 1
-        )
+        fragment = load_org_pack("augment-all-kinds-pack", _FIXTURES / "augment-all-kinds-pack", 1)
         # The org_pack_loader aliases ``mission_step_contracts`` -> ``mission_steps``.
         node_kinds = {n.kind for n in fragment.nodes}
         assert node_kinds == {
@@ -251,9 +223,7 @@ class TestRelationshipPackFixtures:
         """
         from tests.doctrine._relationship_graph import empty_built_in  # noqa: PLC0415
 
-        fragment = load_org_pack(
-            "augment-all-kinds-pack", _FIXTURES / "augment-all-kinds-pack", 1
-        )
+        fragment = load_org_pack("augment-all-kinds-pack", _FIXTURES / "augment-all-kinds-pack", 1)
         bridge_supported = OrgDRGFragment.model_validate(
             {
                 "pack_name": fragment.pack_name,
@@ -261,26 +231,12 @@ class TestRelationshipPackFixtures:
                 "source_ref": fragment.source_ref,
                 "layer_index": fragment.layer_index,
                 "provenance_marker": fragment.provenance_marker,
-                "nodes": [
-                    n.model_dump()
-                    for n in fragment.nodes
-                    if n.kind != "mission_types"
-                ],
-                "edges": [
-                    e.model_dump()
-                    for e in fragment.edges
-                    if e.source != "org-mission-type"
-                ],
+                "nodes": [n.model_dump() for n in fragment.nodes if n.kind != "mission_types"],
+                "edges": [e.model_dump() for e in fragment.edges if e.source != "org-mission-type"],
             }
         )
-        merged = merge_three_layers(
-            built_in=empty_built_in(), org_fragments=[bridge_supported], project=None
-        )
-        augment = {
-            (e.source, e.relation)
-            for e in merged.edges
-            if e.relation in (Relation.ENHANCES, Relation.OVERRIDES)
-        }
+        merged = merge_three_layers(built_in=empty_built_in(), org_fragments=[bridge_supported], project=None)
+        augment = {(e.source, e.relation) for e in merged.edges if e.relation in (Relation.ENHANCES, Relation.OVERRIDES)}
         assert ("directive:org-directive", Relation.ENHANCES) in augment
         assert ("toolguide:org-toolguide", Relation.ENHANCES) in augment
         assert (
@@ -293,24 +249,16 @@ class TestRelationshipPackFixtures:
         deprecated `specializes-from:` FIELD (the WP06 rejection target). If this
         ever flips to an edge, WP06's rejection test loses its subject."""
         yaml = YAML(typ="safe")
-        artifact = (
-            _FIXTURES
-            / "legacy-field-pack"
-            / "profiles"
-            / "legacy-specialist.agent.yaml"
-        )
+        artifact = _FIXTURES / "legacy-field-pack" / "profiles" / "legacy-specialist.agent.yaml"
         data = yaml.load(artifact)
         assert data.get("specializes-from") == "legacy-base", (
-            "legacy-field-pack artifact must retain the deprecated field form "
-            "so WP06's rejection test has a concrete target"
+            "legacy-field-pack artifact must retain the deprecated field form so WP06's rejection test has a concrete target"
         )
 
     def test_legacy_field_pack_fragment_loads(self) -> None:
         """The pack's fragment itself is edge-only and loads cleanly — the
         rejection in WP06 is keyed on the artifact field, not the fragment."""
-        fragment = load_org_pack(
-            "legacy-field-pack", _FIXTURES / "legacy-field-pack", 1
-        )
+        fragment = load_org_pack("legacy-field-pack", _FIXTURES / "legacy-field-pack", 1)
         assert isinstance(fragment, OrgDRGFragment)
         assert fragment.edges == []
 

@@ -65,12 +65,18 @@ class TestBuildStatusEvent:
 
     def test_each_call_produces_a_distinct_event_id(self) -> None:
         event_a = build_status_event(
-            mission_slug="m", wp_id="WP01", from_lane="planned",
-            to_lane="claimed", actor="claude",
+            mission_slug="m",
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="claude",
         )
         event_b = build_status_event(
-            mission_slug="m", wp_id="WP01", from_lane="planned",
-            to_lane="claimed", actor="claude",
+            mission_slug="m",
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="claude",
         )
         assert event_a.event_id != event_b.event_id
 
@@ -78,8 +84,11 @@ class TestBuildStatusEvent:
         # Building an event must not touch the filesystem under tmp_path.
         before = set(tmp_path.iterdir())
         build_status_event(
-            mission_slug="m", wp_id="WP01", from_lane="planned",
-            to_lane="claimed", actor="claude",
+            mission_slug="m",
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="claude",
         )
         after = set(tmp_path.iterdir())
         assert before == after
@@ -88,13 +97,14 @@ class TestBuildStatusEvent:
 class TestAppendEventJsonl:
     """``append_event_jsonl`` is a pure single-line append with no commit."""
 
-    def test_appends_a_single_line_with_canonical_keys(
-        self, tmp_path: Path
-    ) -> None:
+    def test_appends_a_single_line_with_canonical_keys(self, tmp_path: Path) -> None:
         events_path = tmp_path / "status.events.jsonl"
         event = build_status_event(
-            mission_slug="034-feature", wp_id="WP01",
-            from_lane="planned", to_lane="claimed", actor="claude",
+            mission_slug="034-feature",
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="claude",
         )
 
         append_event_jsonl(events_path, event)
@@ -110,8 +120,11 @@ class TestAppendEventJsonl:
     def test_creates_parent_directories(self, tmp_path: Path) -> None:
         deep_path = tmp_path / "kitty-specs" / "feat" / "status.events.jsonl"
         event = build_status_event(
-            mission_slug="m", wp_id="WP01",
-            from_lane="planned", to_lane="claimed", actor="claude",
+            mission_slug="m",
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="claude",
         )
         append_event_jsonl(deep_path, event)
         assert deep_path.exists()
@@ -119,12 +132,18 @@ class TestAppendEventJsonl:
     def test_appends_preserve_prior_content(self, tmp_path: Path) -> None:
         events_path = tmp_path / "status.events.jsonl"
         first = build_status_event(
-            mission_slug="m", wp_id="WP01",
-            from_lane="planned", to_lane="claimed", actor="claude",
+            mission_slug="m",
+            wp_id="WP01",
+            from_lane="planned",
+            to_lane="claimed",
+            actor="claude",
         )
         second = build_status_event(
-            mission_slug="m", wp_id="WP01",
-            from_lane="claimed", to_lane="in_progress", actor="claude",
+            mission_slug="m",
+            wp_id="WP01",
+            from_lane="claimed",
+            to_lane="in_progress",
+            actor="claude",
         )
         append_event_jsonl(events_path, first)
         append_event_jsonl(events_path, second)

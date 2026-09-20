@@ -113,7 +113,4 @@ def _stale_remediation(lane: ExecutionLane, lane_branch: str, mission_branch: st
             f"spec-kitty agent status materialize --mission <id> && "
             f"git add kitty-specs/<id>/status.json"
         )
-    return (
-        f"Lane {lane.lane_id} must incorporate mission changes before merging. "
-        f"Run: cd .worktrees/*-{lane.lane_id} && git merge {mission_branch}"
-    )
+    return f"Lane {lane.lane_id} must incorporate mission changes before merging. Run: cd .worktrees/*-{lane.lane_id} && git merge {mission_branch}"

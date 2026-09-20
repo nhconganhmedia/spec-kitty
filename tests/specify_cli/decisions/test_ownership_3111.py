@@ -137,9 +137,7 @@ def test_outcome_is_an_explicit_verdict_not_a_bare_bool(tmp_path: Path) -> None:
     assert isinstance(outcome, DecisionOwnership)
     assert outcome.repo_root == tmp_path.resolve()
     assert outcome.missions_searched == ("mission-alpha",)
-    assert outcome.owning_mission_slug is None, (
-        "the search answers owns-it / not-established — it can never identify project B"
-    )
+    assert outcome.owning_mission_slug is None, "the search answers owns-it / not-established — it can never identify project B"
 
 
 def test_refusal_names_the_operator_action(tmp_path: Path) -> None:
@@ -187,8 +185,7 @@ def test_missing_ledger_is_a_mission_that_owns_nothing_not_an_unreadable_one(
     assert outcome.owned is True
     assert "mission-empty" in outcome.missions_searched
     assert outcome.unreadable_ledgers == (), (
-        "missing != unreadable: lumping them would make an ordinary mission "
-        "look like a corruption and would arm the refuse half of clause (c)"
+        "missing != unreadable: lumping them would make an ordinary mission look like a corruption and would arm the refuse half of clause (c)"
     )
 
 
@@ -295,9 +292,7 @@ def test_unreadable_index_file_is_also_handled(tmp_path: Path) -> None:
     os.chmod(index_file, 0o000)
     try:
         if not mode_bits_enforced(index_file):
-            pytest.skip(
-                "SKIPPED HONESTLY, not passed: this process can read a 0o000 file."
-            )
+            pytest.skip("SKIPPED HONESTLY, not passed: this process can read a 0o000 file.")
         outcome = resolve_decision_ownership(tmp_path, DECISION_OWNED)
     finally:
         os.chmod(index_file, 0o644)
@@ -334,9 +329,7 @@ def test_unreadable_ledger_does_not_veto_a_hit_elsewhere(tmp_path: Path) -> None
 # ---------------------------------------------------------------------------
 
 
-def test_every_path_fed_to_load_index_is_a_member_of_the_globs_own_result_set(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_every_path_fed_to_load_index_is_a_member_of_the_globs_own_result_set(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """SC-018 under discharge (ii) — containment holds by construction, so this is the substitute.
 
     **ANTI-VACUITY.** "Every path fed to ``load_index`` is a member of the glob's
@@ -378,8 +371,7 @@ def test_every_path_fed_to_load_index_is_a_member_of_the_globs_own_result_set(
         f"consulting the ledger, which is the vacuous green this assertion exists to catch"
     )
     assert {p.resolve() for p in recorded} <= globbed, (
-        f"a path outside the glob's own result set reached load_index: "
-        f"{[str(p) for p in recorded]} vs {[str(p) for p in sorted(globbed)]}"
+        f"a path outside the glob's own result set reached load_index: {[str(p) for p in recorded]} vs {[str(p) for p in sorted(globbed)]}"
     )
 
 
@@ -449,12 +441,8 @@ def test_mission_slug_narrows_within_the_checkout(tmp_path: Path) -> None:
     write_ledger(tmp_path, "mission-alpha", DECISION_OWNED)
     write_ledger(tmp_path, "mission-beta", DECISION_ABSENT)
 
-    assert resolve_decision_ownership(
-        tmp_path, DECISION_OWNED, mission_slug="mission-alpha"
-    ).owned is True
-    assert resolve_decision_ownership(
-        tmp_path, DECISION_OWNED, mission_slug="mission-beta"
-    ).owned is False
+    assert resolve_decision_ownership(tmp_path, DECISION_OWNED, mission_slug="mission-alpha").owned is True
+    assert resolve_decision_ownership(tmp_path, DECISION_OWNED, mission_slug="mission-beta").owned is False
 
 
 def test_slug_naming_a_mission_this_checkout_lacks_is_an_ownership_failure(
@@ -463,9 +451,7 @@ def test_slug_naming_a_mission_this_checkout_lacks_is_an_ownership_failure(
     """Not a redirection. The slug selects among the missions already enumerated."""
     write_ledger(tmp_path, "mission-alpha", DECISION_OWNED)
 
-    outcome = resolve_decision_ownership(
-        tmp_path, DECISION_OWNED, mission_slug="mission-owned-by-someone-else"
-    )
+    outcome = resolve_decision_ownership(tmp_path, DECISION_OWNED, mission_slug="mission-owned-by-someone-else")
 
     assert outcome.owned is False
     assert outcome.missions_searched == ()
@@ -542,18 +528,17 @@ def test_unreadable_specs_root_is_flagged_not_reported_as_empty(tmp_path: Path) 
     try:
         if not mode_bits_enforced(canary):
             pytest.skip(
-            "SKIPPED HONESTLY, not passed: this process can read through a "
-            "0o000 directory (running as root, or a filesystem that ignores "
-            "mode bits), so the branch cannot be constructed here."
-        )
+                "SKIPPED HONESTLY, not passed: this process can read through a "
+                "0o000 directory (running as root, or a filesystem that ignores "
+                "mode bits), so the branch cannot be constructed here."
+            )
         outcome = resolve_decision_ownership(tmp_path, DECISION_OWNED)
     finally:
         os.chmod(specs, 0o700)
 
     assert outcome.owned is False, "an unlistable specs root must never permit"
     assert outcome.unreadable_ledgers == ("kitty-specs",), (
-        "the specs root was unlistable and must be FLAGGED; reporting it as "
-        f"'no missions found' misdiagnoses a permission denial: {outcome!r}"
+        f"the specs root was unlistable and must be FLAGGED; reporting it as 'no missions found' misdiagnoses a permission denial: {outcome!r}"
     )
     # LOW-7's PAIRED CONTROL, and it lives here rather than in a test of its own
     # because the property is a DISCRIMINATION between two messages and half a
@@ -561,17 +546,11 @@ def test_unreadable_specs_root_is_flagged_not_reported_as_empty(tmp_path: Path) 
     # must keep the permission diagnosis and must NOT drift onto LOW-7's
     # shape-shaped prose. `test_kitty_specs_that_is_a_regular_file_is_a_shape_error`
     # asserts the exact converse of both lines.
-    assert outcome.specs_root_fault == "unlistable", (
-        f"EACCES on the specs root is the 'unlistable' fault, not a shape error: {outcome!r}"
-    )
+    assert outcome.specs_root_fault == "unlistable", f"EACCES on the specs root is the 'unlistable' fault, not a shape error: {outcome!r}"
     refusal = ownership_refusal(outcome)
     assert refusal is not None
-    assert "PERMISSION problem" in refusal, (
-        f"an EACCES specs root must still be diagnosed as a permission problem: {refusal}"
-    )
-    assert "is not a directory" not in refusal, (
-        f"an unlistable DIRECTORY must not be reported as the wrong kind of object: {refusal}"
-    )
+    assert "PERMISSION problem" in refusal, f"an EACCES specs root must still be diagnosed as a permission problem: {refusal}"
+    assert "is not a directory" not in refusal, f"an unlistable DIRECTORY must not be reported as the wrong kind of object: {refusal}"
 
 
 def test_unreadable_ANCESTOR_of_specs_root_refuses_without_raising(tmp_path: Path) -> None:
@@ -595,10 +574,10 @@ def test_unreadable_ANCESTOR_of_specs_root_refuses_without_raising(tmp_path: Pat
     try:
         if not mode_bits_enforced(canary):
             pytest.skip(
-            "SKIPPED HONESTLY, not passed: this process can read through a "
-            "0o000 directory (running as root, or a filesystem that ignores "
-            "mode bits), so the branch cannot be constructed here."
-        )
+                "SKIPPED HONESTLY, not passed: this process can read through a "
+                "0o000 directory (running as root, or a filesystem that ignores "
+                "mode bits), so the branch cannot be constructed here."
+            )
         # Must not raise. The assertion is the absence of an escaping OSError as
         # much as the verdict itself.
         outcome = resolve_decision_ownership(repo_root, DECISION_OWNED)
@@ -607,8 +586,7 @@ def test_unreadable_ANCESTOR_of_specs_root_refuses_without_raising(tmp_path: Pat
 
     assert outcome.owned is False
     assert outcome.unreadable_ledgers == ("kitty-specs",), (
-        "an unreadable ancestor must yield a flagged refusal, not a traceback "
-        f"and not a silent empty search: {outcome!r}"
+        f"an unreadable ancestor must yield a flagged refusal, not a traceback and not a silent empty search: {outcome!r}"
     )
 
 
@@ -622,8 +600,7 @@ def test_probe_does_not_over_fire_on_a_readable_empty_specs_root(tmp_path: Path)
 
     assert outcome.owned is False, "an empty checkout owns nothing"
     assert outcome.unreadable_ledgers == (), (
-        "a readable, empty specs root is MISSING-shaped, not unreadable-shaped; "
-        f"flagging it would conflate the two: {outcome!r}"
+        f"a readable, empty specs root is MISSING-shaped, not unreadable-shaped; flagging it would conflate the two: {outcome!r}"
     )
 
 
@@ -650,10 +627,7 @@ def test_symlinked_SPECS_ROOT_pointing_outside_is_refused(tmp_path: Path) -> Non
 
     outcome = resolve_decision_ownership(acting, DECISION_OWNED)
 
-    assert outcome.owned is False, (
-        "a kitty-specs/ symlinked OUT of the acting root must not confer "
-        f"ownership of the target checkout's decisions: {outcome!r}"
-    )
+    assert outcome.owned is False, f"a kitty-specs/ symlinked OUT of the acting root must not confer ownership of the target checkout's decisions: {outcome!r}"
     assert ownership_refusal(outcome) is not None, "and it must refuse"
 
 
@@ -672,10 +646,7 @@ def test_symlinked_specs_root_INSIDE_the_root_still_works(tmp_path: Path) -> Non
 
     outcome = resolve_decision_ownership(root, DECISION_OWNED)
 
-    assert outcome.owned is True, (
-        "a kitty-specs/ symlink that stays WITHIN the acting root is a legitimate "
-        f"layout and must still resolve ownership: {outcome!r}"
-    )
+    assert outcome.owned is True, f"a kitty-specs/ symlink that stays WITHIN the acting root is a legitimate layout and must still resolve ownership: {outcome!r}"
 
 
 def test_mission_symlink_into_an_unsearchable_location_refuses_without_raising(
@@ -782,10 +753,7 @@ def test_symlinked_decisions_dir_INSIDE_the_root_still_works(tmp_path: Path) -> 
 
     outcome = resolve_decision_ownership(root, DECISION_OWNED)
 
-    assert outcome.owned is True, (
-        "a decisions/ symlink that stays WITHIN the acting root is a legitimate "
-        f"layout and must still resolve ownership: {outcome!r}"
-    )
+    assert outcome.owned is True, f"a decisions/ symlink that stays WITHIN the acting root is a legitimate layout and must still resolve ownership: {outcome!r}"
     # ANTI-VACUITY, and this line is the whole control.
     #
     # `mission-real` is inside the search space, so under a symlink-phobic
@@ -848,36 +816,26 @@ def test_kitty_specs_that_is_a_regular_file_is_a_shape_error_not_a_permission_er
     assert outcome.owned is False, "a kitty-specs of the wrong shape must never permit"
     assert outcome.missions_searched == ()
     # Cause: recorded as its own fault, not lumped with EACCES.
-    assert outcome.specs_root_fault == "not-a-directory", (
-        f"a non-directory kitty-specs is a SHAPE fault, not an EACCES one: {outcome!r}"
-    )
+    assert outcome.specs_root_fault == "not-a-directory", f"a non-directory kitty-specs is a SHAPE fault, not an EACCES one: {outcome!r}"
     assert outcome.unreadable_ledgers == ("kitty-specs",), (
-        "it still could not answer, so the flag stays set — the fix separates the "
-        f"CAUSE from the flag, it does not drop the flag: {outcome!r}"
+        f"it still could not answer, so the flag stays set — the fix separates the CAUSE from the flag, it does not drop the flag: {outcome!r}"
     )
 
     refusal = ownership_refusal(outcome)
     assert refusal is not None, "and it must refuse"
-    assert "is not a directory" in refusal, (
-        f"the refusal must name the real cause — the wrong kind of object: {refusal}"
-    )
+    assert "is not a directory" in refusal, f"the refusal must name the real cause — the wrong kind of object: {refusal}"
     # The converse of the paired control in
     # `test_unreadable_specs_root_is_flagged_not_reported_as_empty`. Asserting the
     # absence of the permission prose is the whole point of LOW-7: the pre-fix
     # message contained exactly this phrase, which is what establishes that this
     # absence would otherwise have happened.
-    assert "PERMISSION problem" not in refusal, (
-        f"a shape error must not be diagnosed as a permission problem: {refusal}"
-    )
+    assert "PERMISSION problem" not in refusal, f"a shape error must not be diagnosed as a permission problem: {refusal}"
     # `chmod u+rx`, the permission branch's *instruction* — not the bare word
     # `chmod`. A first cut asserted the bare word and red on the message's own
     # "neither `chmod` nor `git pull` will fix it", which is the message
     # PREEMPTING the wrong action and is exactly what LOW-7 wants. The contract is
     # "does not INSTRUCT a chmod", so that is what is pinned.
-    assert "chmod u+rx" not in refusal, (
-        f"`chmod` cannot fix an object of the wrong kind and must not be offered "
-        f"as the remedy: {refusal}"
-    )
+    assert "chmod u+rx" not in refusal, f"`chmod` cannot fix an object of the wrong kind and must not be offered as the remedy: {refusal}"
     assert "neither `chmod` nor `git pull` will fix it" in refusal, (
         "and the two wrong actions must be ruled OUT by name: an operator holding "
         "this refusal has already been told `chmod u+rx` (LOW-6's branch) and "
@@ -933,33 +891,25 @@ def test_unstattable_mission_candidate_is_flagged_not_reported_as_no_missions(
     # FAIL-CLOSED, first. The flag must not have turned a skip into a permit.
     assert outcome.owned is False, "an unstattable candidate must never confer ownership"
     assert outcome.missions_searched == (), (
-        "it was dropped from the search, which is the fail-closed half and is "
-        f"unchanged: a candidate can only ever be removed, never added: {outcome!r}"
+        f"it was dropped from the search, which is the fail-closed half and is unchanged: a candidate can only ever be removed, never added: {outcome!r}"
     )
     assert outcome.unreadable_ledgers == ("m-link",), (
-        "and the drop must be RECORDED: an unstattable mission that leaves no "
-        f"trace is indistinguishable from a checkout with no missions: {outcome!r}"
+        f"and the drop must be RECORDED: an unstattable mission that leaves no trace is indistinguishable from a checkout with no missions: {outcome!r}"
     )
     # This is not a specs-root fault — the specs root listed fine.
-    assert outcome.specs_root_fault is None, (
-        f"the specs root was listable; only one candidate under it was not: {outcome!r}"
-    )
+    assert outcome.specs_root_fault is None, f"the specs root was listable; only one candidate under it was not: {outcome!r}"
 
     assert refusal is not None
     assert "m-link" in refusal, "the refusal must name what could not answer"
     assert "no missions were found" not in refusal, (
-        "a mission WAS found — it could not be looked at. That sentence is the "
-        f"misdiagnosis this residual quotes, verbatim: {refusal}"
+        f"a mission WAS found — it could not be looked at. That sentence is the misdiagnosis this residual quotes, verbatim: {refusal}"
     )
     # LOW-1: the remedy must match the diagnosis. `git pull` does not fix a
     # permission denial, and this assertion is what stopped that half of the
     # misdiagnosis surviving unpinned.
     refusal = ownership_refusal(outcome)
     assert refusal is not None
-    assert "To fix: run `git pull`" not in refusal, (
-        f"a candidate that could not be stat'ed is not a missing checkout: {refusal}"
-    )
-
+    assert "To fix: run `git pull`" not in refusal, f"a candidate that could not be stat'ed is not a missing checkout: {refusal}"
 
 
 def test_unstattable_mission_candidate_does_not_veto_a_hit_elsewhere(
@@ -1001,32 +951,18 @@ def test_unstattable_mission_candidate_does_not_veto_a_hit_elsewhere(
     # implementation where the flag never fires at all, which is the very state
     # LOW-8 exists to leave behind. "It did not veto" is only meaningful once the
     # thing that could have vetoed is proved to have happened.
-    assert outcome.unreadable_ledgers == ("m-link",), (
-        f"the unstattable candidate was never flagged, so this test proves "
-        f"nothing about not-vetoing: {outcome!r}"
-    )
-    assert outcome.owned is True, (
-        "an unstattable mission candidate must never veto a positive membership "
-        f"hit elsewhere — that is R12's rule: {outcome!r}"
-    )
+    assert outcome.unreadable_ledgers == ("m-link",), f"the unstattable candidate was never flagged, so this test proves nothing about not-vetoing: {outcome!r}"
+    assert outcome.owned is True, f"an unstattable mission candidate must never veto a positive membership hit elsewhere — that is R12's rule: {outcome!r}"
     assert outcome.owning_mission_slug == "mission-owner"
     assert ownership_refusal(outcome) is None, "and a hit must still PERMIT"
 
 
 def _attr_calls(node_tree: ast.AST, names: set[str]) -> list[tuple[int, str]]:
     """Every ``x.<name>()`` call in *node_tree* whose attribute is in *names*."""
-    return [
-        (n.lineno, n.func.attr)
-        for n in ast.walk(node_tree)
-        if isinstance(n, ast.Call)
-        and isinstance(n.func, ast.Attribute)
-        and n.func.attr in names
-    ]
+    return [(n.lineno, n.func.attr) for n in ast.walk(node_tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr in names]
 
 
-def _eacces_offenders(
-    tree: ast.AST, banned_anywhere: set[str], banned_unguarded: set[str]
-) -> list[tuple[int, str]]:
+def _eacces_offenders(tree: ast.AST, banned_anywhere: set[str], banned_unguarded: set[str]) -> list[tuple[int, str]]:
     """Banned EACCES-divergent probe calls in *tree*, as ``(lineno, attr)``.
 
     Extracted to module level so the standing guard below and its **paired
@@ -1035,18 +971,8 @@ def _eacces_offenders(
     pass on the defect while reading as though it covered the family. A rule with no
     control is an assertion about itself.
     """
-    guarded = {
-        id(n)
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Try)
-        for stmt in node.body
-        for n in ast.walk(stmt)
-    }
-    by_site = {
-        (n.lineno, n.func.attr): n
-        for n in ast.walk(tree)
-        if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
-    }
+    guarded = {id(n) for node in ast.walk(tree) if isinstance(node, ast.Try) for stmt in node.body for n in ast.walk(stmt)}
+    by_site = {(n.lineno, n.func.attr): n for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
     return [
         (lineno, attr)
         for lineno, attr in _attr_calls(tree, banned_anywhere | banned_unguarded)
@@ -1181,9 +1107,7 @@ def test_dangling_mission_symlink_is_absent_not_unreadable(tmp_path: Path) -> No
     root = tmp_path / "checkout"
     (root / "kitty-specs").mkdir(parents=True)
     # Target never existed -> stat raises ENOENT through the link.
-    (root / "kitty-specs" / "m-dangling").symlink_to(
-        tmp_path / "never-existed", target_is_directory=True
-    )
+    (root / "kitty-specs" / "m-dangling").symlink_to(tmp_path / "never-existed", target_is_directory=True)
 
     outcome = resolve_decision_ownership(root, DECISION_OWNED)
     refusal = ownership_refusal(outcome)
@@ -1191,16 +1115,11 @@ def test_dangling_mission_symlink_is_absent_not_unreadable(tmp_path: Path) -> No
     # HALF 1 — ABSENT: dropped, and NOT recorded.
     assert outcome.owned is False, "a dangling candidate must never confer ownership"
     assert outcome.unreadable_ledgers == (), (
-        "a dangling symlink is ABSENT, not unreadable. Recording it here produces a "
-        f"'could not read it' refusal for something that is not there: {outcome!r}"
+        f"a dangling symlink is ABSENT, not unreadable. Recording it here produces a 'could not read it' refusal for something that is not there: {outcome!r}"
     )
-    assert outcome.specs_root_fault is None, (
-        f"the specs root listed fine; only a candidate under it was dangling: {outcome!r}"
-    )
+    assert outcome.specs_root_fault is None, f"the specs root listed fine; only a candidate under it was dangling: {outcome!r}"
     assert refusal is not None
-    assert "m-dangling" not in refusal, (
-        f"the refusal must not name a candidate that was merely absent: {refusal}"
-    )
+    assert "m-dangling" not in refusal, f"the refusal must not name a candidate that was merely absent: {refusal}"
 
     # HALF 2 — the CONTROL that stops this test being satisfiable by simply never
     # recording anything. The same shape with EACCES instead of ENOENT MUST record.
@@ -1208,23 +1127,17 @@ def test_dangling_mission_symlink_is_absent_not_unreadable(tmp_path: Path) -> No
     (vault / "m-target").mkdir(parents=True)
     canary = vault / "canary"
     canary.write_text("{}", encoding="utf-8")
-    (root / "kitty-specs" / "m-locked").symlink_to(
-        vault / "m-target", target_is_directory=True
-    )
+    (root / "kitty-specs" / "m-locked").symlink_to(vault / "m-target", target_is_directory=True)
     os.chmod(vault, 0o000)
     try:
         if not mode_bits_enforced(canary):
-            pytest.skip(
-                "SKIPPED HONESTLY, not passed: this process can stat through a 0o000 "
-                "directory, so the EACCES half of the discrimination cannot be built."
-            )
+            pytest.skip("SKIPPED HONESTLY, not passed: this process can stat through a 0o000 directory, so the EACCES half of the discrimination cannot be built.")
         locked = resolve_decision_ownership(root, DECISION_OWNED)
     finally:
         os.chmod(vault, 0o700)
 
     assert locked.unreadable_ledgers == ("m-locked",), (
-        "EACCES must still be RECORDED — otherwise this test would pass just as well "
-        f"against code that records nothing at all, and #3177 would be back: {locked!r}"
+        f"EACCES must still be RECORDED — otherwise this test would pass just as well against code that records nothing at all, and #3177 would be back: {locked!r}"
     )
 
 
@@ -1253,40 +1166,27 @@ def test_eacces_guard_rule_catches_the_shape_that_shipped_the_defect() -> None:
 
     # KNOWN-BAD 1 — the exact shape that shipped: a predicate inside a `try`, whose
     # False branch drops silently and never reaches the handler below it.
-    assert offenders(
-        "try:\n"
-        "    if not resolved.is_dir():\n"
-        "        pass\n"
-        "except OSError:\n"
-        "    record()\n"
-    ) == ["is_dir"], (
-        "the try-wrapped predicate is the FU-Q/#3177 shape and MUST be flagged; if it "
-        "is not, this guard has regressed to the form that passed on the live defect"
+    assert offenders("try:\n    if not resolved.is_dir():\n        pass\nexcept OSError:\n    record()\n") == ["is_dir"], (
+        "the try-wrapped predicate is the FU-Q/#3177 shape and MUST be flagged; if it is not, this guard has regressed to the form that passed on the live defect"
     )
 
     # KNOWN-BAD 2 — the rest of the predicate family, same reasoning, also in a `try`.
     for attr in ("exists", "is_file", "is_symlink"):
         assert offenders(f"try:\n    p.{attr}()\nexcept OSError:\n    pass\n") == [attr], (
-            f"`{attr}` returns False on EACCES on 3.14 exactly as `is_dir` does, so a "
-            "`try` cannot redeem it either"
+            f"`{attr}` returns False on EACCES on 3.14 exactly as `is_dir` does, so a `try` cannot redeem it either"
         )
 
     # KNOWN-BAD 3 — an UNGUARDED stat. It raises on every interpreter, which is why it
     # is permitted in a `try`; outside one it escapes as a traceback.
     assert offenders("p.stat()\n") == ["stat"], (
-        "an unguarded stat must still be flagged — the try-context rule is what makes "
-        "the permission conditional, and dropping it would permit a bare stat anywhere"
+        "an unguarded stat must still be flagged — the try-context rule is what makes the permission conditional, and dropping it would permit a bare stat anywhere"
     )
 
     # KNOWN-GOOD — the module's own idiom: a guarded stat, which is how it legitimately
     # probes. This case is last on purpose; on its own it would prove nothing.
-    assert offenders(
-        "try:\n"
-        "    if not S_ISDIR(resolved.stat().st_mode):\n"
-        "        pass\n"
-        "except OSError:\n"
-        "    record()\n"
-    ) == [], "the guarded stat is the prescribed remedy and must not be flagged"
+    assert offenders("try:\n    if not S_ISDIR(resolved.stat().st_mode):\n        pass\nexcept OSError:\n    record()\n") == [], (
+        "the guarded stat is the prescribed remedy and must not be flagged"
+    )
 
 
 def test_kitty_specs_resolving_out_of_the_root_is_containment_not_permission(
@@ -1342,8 +1242,6 @@ def test_kitty_specs_symlinked_WITHIN_the_root_sets_no_fault(tmp_path: Path) -> 
 
     outcome = resolve_decision_ownership(root, DECISION_OWNED)
 
-    assert outcome.specs_root_fault is None, (
-        f"an in-root symlink is a legitimate layout and must set no fault: {outcome!r}"
-    )
+    assert outcome.specs_root_fault is None, f"an in-root symlink is a legitimate layout and must set no fault: {outcome!r}"
     assert outcome.owned is True
     assert ownership_refusal(outcome) is None

@@ -141,9 +141,7 @@ def _mid8(mission_id: str) -> str:
             programming error (mission_id from meta.json is always a full ULID).
     """
     if len(mission_id) < 8:
-        raise ValueError(
-            f"mission_id must be at least 8 characters to derive mid8, got {len(mission_id)!r}: {mission_id!r}"
-        )
+        raise ValueError(f"mission_id must be at least 8 characters to derive mid8, got {len(mission_id)!r}: {mission_id!r}")
     return mission_id[:8]
 
 
@@ -242,9 +240,7 @@ class BranchIdentityUnresolved(StructuredError):
             "legacy mission missing one."
         )
         super().__init__(
-            f"cannot compose a canonical mission branch for {mission_handle!r}: "
-            f"mission_id is absent and the slug carries no mid8 disambiguator. "
-            f"{self.next_step}"
+            f"cannot compose a canonical mission branch for {mission_handle!r}: mission_id is absent and the slug carries no mid8 disambiguator. {self.next_step}"
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -670,16 +666,13 @@ def is_mission_branch(branch_name: str) -> bool:
     # Must not be a lane branch
     if is_lane_branch(branch_name):
         return False
-    body = branch_name[len(_MISSION_PREFIX):]
+    body = branch_name[len(_MISSION_PREFIX) :]
     return bool(body)
 
 
 def is_lane_branch(branch_name: str) -> bool:
     """Return True if branch matches a lane branch pattern (legacy or new)."""
-    return (
-        _LEGACY_LANE_RE.match(branch_name) is not None
-        or _NEW_LANE_RE.match(branch_name) is not None
-    )
+    return _LEGACY_LANE_RE.match(branch_name) is not None or _NEW_LANE_RE.match(branch_name) is not None
 
 
 def is_legacy_branch(branch_name: str) -> bool:

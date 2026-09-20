@@ -329,9 +329,7 @@ def coord_repo_planned(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple
     -- implement's status-claim read has no lenient not-exists fallback
     (see ``test_trio_transitions.py``), so this fixture proves the
     coord-materialized path instead of the degrade path."""
-    return _build_mission_repo(
-        tmp_path, monkeypatch, coord=True, mission_slug="trio-coord-implement", wp_lane="planned", materialize_coord=True
-    )
+    return _build_mission_repo(tmp_path, monkeypatch, coord=True, mission_slug="trio-coord-implement", wp_lane="planned", materialize_coord=True)
 
 
 @pytest.fixture()
@@ -344,9 +342,7 @@ def flat_repo_for_review(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tup
 def coord_repo_for_review(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, str]:
     """Coord-topology mission, WP01 ``for_review``, coord worktree MATERIALIZED
     (see ``coord_repo_planned`` docstring for why)."""
-    return _build_mission_repo(
-        tmp_path, monkeypatch, coord=True, mission_slug="trio-coord-review", wp_lane="for_review", materialize_coord=True
-    )
+    return _build_mission_repo(tmp_path, monkeypatch, coord=True, mission_slug="trio-coord-review", wp_lane="for_review", materialize_coord=True)
 
 
 # ---------------------------------------------------------------------------
@@ -414,12 +410,8 @@ class TestAcceptJsonDiagnose:
         assert payload["mission_slug"] == mission_slug
         # The matrix gate refuses the un-materialized coord surface (GEC-5 / C2).
         assert payload["ok"] is False
-        assert any(
-            c["check"] == "acceptance_matrix_cannot_evaluate" for c in payload["blocked_checks"]
-        ), payload["blocked_checks"]
-        assert any(
-            "SURFACE_CANNOT_HOLD_FACT" in c["detail"] for c in payload["blocked_checks"]
-        ), payload["blocked_checks"]
+        assert any(c["check"] == "acceptance_matrix_cannot_evaluate" for c in payload["blocked_checks"]), payload["blocked_checks"]
+        assert any("SURFACE_CANNOT_HOLD_FACT" in c["detail"] for c in payload["blocked_checks"]), payload["blocked_checks"]
 
 
 # ---------------------------------------------------------------------------

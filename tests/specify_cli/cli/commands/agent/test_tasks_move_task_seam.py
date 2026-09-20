@@ -122,9 +122,7 @@ def test_c001_pre_gate_intercepts_through_tasks_namespace(tmp_path: Path) -> Non
             f"{_TASKS}._ensure_target_branch_checked_out",
             return_value=(tmp_path, "main"),
         ) as branch_mock,
-        patch(
-            f"{_TASKS}._skip_target_branch_commit", side_effect=_SentinelHit
-        ) as skip_mock,
+        patch(f"{_TASKS}._skip_target_branch_commit", side_effect=_SentinelHit) as skip_mock,
         pytest.raises(_SentinelHit),
     ):
         tasks_move_task._mt_resolve_targets(st, ports=MagicMock())
@@ -172,9 +170,7 @@ def test_c001_pre_gate_not_consulted_when_auto_commit_resolves_false(
         ("done", "review"),
     ],
 )
-def test_mt_resolve_targets_dispatch_binding_action_by_target(
-    tmp_path: Path, to: str, expected_action: str
-) -> None:
+def test_mt_resolve_targets_dispatch_binding_action_by_target(tmp_path: Path, to: str, expected_action: str) -> None:
     """FR-006 (red-first, T1): the dispatch-binding ``action`` resolution
     table. Brownfield gap: an APPROVED (or DONE) target used to resolve
     ``action="implement"`` (only ``IN_REVIEW`` resolved ``"review"``), so the
@@ -193,9 +189,7 @@ def test_mt_resolve_targets_dispatch_binding_action_by_target(
             f"{_TASKS}._ensure_target_branch_checked_out",
             return_value=(tmp_path, "main"),
         ),
-        patch(
-            "specify_cli.cli.commands.agent.workflow._resolve_dispatch_binding"
-        ) as binding_mock,
+        patch("specify_cli.cli.commands.agent.workflow._resolve_dispatch_binding") as binding_mock,
         pytest.raises(_StopFlow),
     ):
         tasks_move_task._mt_resolve_targets(st, ports=ports)
@@ -224,12 +218,8 @@ def test_patched_review_gates_intercept_gather_review_facts() -> None:
     st.target_lane = Lane.FOR_REVIEW
     st.wp = cast(Any, SimpleNamespace(path=Path("WP01-x.md"), frontmatter=""))
     with (
-        patch(
-            f"{_TASKS}._check_unchecked_subtasks", return_value=["T9"]
-        ) as unchecked_mock,
-        patch(
-            f"{_TASKS}._validate_ready_for_review", return_value=(False, ["fix it"])
-        ) as ready_mock,
+        patch(f"{_TASKS}._check_unchecked_subtasks", return_value=["T9"]) as unchecked_mock,
+        patch(f"{_TASKS}._validate_ready_for_review", return_value=(False, ["fix it"])) as ready_mock,
     ):
         tasks_move_task._mt_gather_review_facts(st)
     unchecked_mock.assert_called_once()
@@ -269,9 +259,7 @@ def test_patched_detect_reviewer_intercepts_approval_facts() -> None:
     ``_mt_approval_facts`` when no ``--reviewer`` is given."""
     st = _make_state(to="approved")
     st.target_lane = Lane.APPROVED
-    with patch(
-        f"{_TASKS}._detect_reviewer_name", return_value="sentinel-reviewer"
-    ) as detect_mock:
+    with patch(f"{_TASKS}._detect_reviewer_name", return_value="sentinel-reviewer") as detect_mock:
         reviewer, approval_ref = tasks_move_task._mt_approval_facts(st)
     detect_mock.assert_called_once()
     assert reviewer == "sentinel-reviewer"
@@ -297,9 +285,7 @@ def test_seam_read_dir_intercepts_issue_matrix_facts(tmp_path: Path) -> None:
     st.mission_slug = "034-feature"
     st.feature_dir = tmp_path
     with (
-        patch(
-            f"{tasks_move_task.__name__}.placement_seam", side_effect=_SentinelHit
-        ) as seam_mock,
+        patch(f"{tasks_move_task.__name__}.placement_seam", side_effect=_SentinelHit) as seam_mock,
         pytest.raises(_SentinelHit),
     ):
         tasks_move_task._mt_issue_matrix_facts(st)
@@ -313,9 +299,7 @@ def test_patched_read_events_intercepts_current_event_lane(tmp_path: Path) -> No
     st.main_repo_root = tmp_path
     st.mission_slug = "034-feature"
     fake_events = [SimpleNamespace(wp_id="WP01", to_lane="in_progress")]
-    with patch(
-        f"{_TASKS}.read_events_transactional", return_value=fake_events
-    ) as events_mock:
+    with patch(f"{_TASKS}.read_events_transactional", return_value=fake_events) as events_mock:
         lane = tasks_move_task._mt_current_event_lane(st)
     events_mock.assert_called_once()
     assert lane == "in_progress"
@@ -359,9 +343,7 @@ def test_patched_output_helpers_intercept_mt_output(tmp_path: Path) -> None:
             f"{_TASKS}._status_event_result_fields",
             return_value={"event_id": "01H", "to_lane": "in_progress"},
         ) as fields_mock,
-        patch(
-            f"{_TASKS}._coord_status_events_path", return_value=coord_events
-        ) as coord_mock,
+        patch(f"{_TASKS}._coord_status_events_path", return_value=coord_events) as coord_mock,
         patch(f"{_TASKS}._output_result") as output_mock,
         patch(f"{_TASKS}._check_dependent_warnings") as warn_mock,
     ):
@@ -438,9 +420,7 @@ def _write_review_cycle_artifact(wp_dir: Path, cycle_n: int, verdict: str) -> Pa
 def test_resolve_review_verdict_facts_no_artifacts(tmp_path: Path) -> None:
     """No review-cycle artifacts under the WP dir -> all-``None`` facts."""
     wp_path = tmp_path / "WP01-do-a-thing.md"
-    verdict, artifact_path, artifact_name = tasks_verdict_persistence.resolve_review_verdict_facts(
-        wp_path
-    )
+    verdict, artifact_path, artifact_name = tasks_verdict_persistence.resolve_review_verdict_facts(wp_path)
     assert (verdict, artifact_path, artifact_name) == (None, None, None)
 
 
@@ -484,9 +464,7 @@ def test_resolve_review_verdict_facts_picks_highest_cycle(tmp_path: Path) -> Non
         ),
     )
 
-    verdict, artifact_path, artifact_name = tasks_verdict_persistence.resolve_review_verdict_facts(
-        wp_path
-    )
+    verdict, artifact_path, artifact_name = tasks_verdict_persistence.resolve_review_verdict_facts(wp_path)
     assert verdict == "approved"
     assert artifact_path == cycle2
     assert artifact_name == cycle2.name
@@ -556,9 +534,7 @@ def test_mt_fire_override_persist_forwards_to_verdict_seam() -> None:
     """``_mt_fire_override_persist`` (frozen compat symbol) is a thin
     forwarder onto :func:`persist_review_override_before_guard`."""
     st = _make_state()
-    with patch(
-        f"{tasks_move_task.__name__}.persist_review_override_before_guard"
-    ) as forward_mock:
+    with patch(f"{tasks_move_task.__name__}.persist_review_override_before_guard") as forward_mock:
         tasks_move_task._mt_fire_override_persist(st)
     forward_mock.assert_called_once_with(st)
 
@@ -701,9 +677,7 @@ def test_persist_rejected_review_cycle_for_rollback_writes_and_updates_state(
         artifact=SimpleNamespace(cycle_number=1),
     )
     ports = MagicMock()
-    with patch(
-        f"{_VERDICT_SEAM}.create_rejected_review_cycle", return_value=fake_cycle
-    ) as create_mock:
+    with patch(f"{_VERDICT_SEAM}.create_rejected_review_cycle", return_value=fake_cycle) as create_mock:
         tasks_verdict_persistence.persist_rejected_review_cycle_for_rollback(st, ports)
     create_mock.assert_called_once()
     assert create_mock.call_args.kwargs["feedback_source"] == st.resolved_feedback_source
@@ -741,9 +715,7 @@ def test_finalize_plan_delegates_approved_persist() -> None:
     )
     ports = MagicMock()
     with (
-        patch(
-            f"{tasks_move_task.__name__}.persist_rejected_review_cycle_for_rollback"
-        ) as rollback_mock,
+        patch(f"{tasks_move_task.__name__}.persist_rejected_review_cycle_for_rollback") as rollback_mock,
         patch(f"{tasks_move_task.__name__}._persist_approved_review_cycle") as approved_mock,
     ):
         tasks_move_task._mt_finalize_plan(st, ports)
@@ -806,18 +778,11 @@ class TestMtHopReviewRef:
         """A backward/rollback hop's plan-level ``emit_review_ref`` always
         wins, unchanged from the pre-WP04 behavior."""
         rr = ReviewResult(reviewer="claude", verdict="rejected", reference="other-ref")
-        assert (
-            tasks_move_task._mt_hop_review_ref("plan-ref", Lane.PLANNED, rr)
-            == "plan-ref"
-        )
+        assert tasks_move_task._mt_hop_review_ref("plan-ref", Lane.PLANNED, rr) == "plan-ref"
 
     def test_derives_from_hop_review_result_for_approved(self) -> None:
-        rr = ReviewResult(
-            reviewer="reviewer-renata", verdict="approved", reference="approval:WP01"
-        )
-        assert (
-            tasks_move_task._mt_hop_review_ref(None, Lane.APPROVED, rr) == "approval:WP01"
-        )
+        rr = ReviewResult(reviewer="reviewer-renata", verdict="approved", reference="approval:WP01")
+        assert tasks_move_task._mt_hop_review_ref(None, Lane.APPROVED, rr) == "approval:WP01"
 
     def test_derives_from_hop_review_result_for_done(self) -> None:
         rr = ReviewResult(reviewer="claude", verdict="approved", reference="done:WP01")
@@ -858,9 +823,7 @@ class TestApprovalPolicyMetadata:
     def test_populates_tool_profile_model_shell_pid(self) -> None:
         st = _make_state(to="approved", shell_pid="4242")
         st.request = cast(Any, SimpleNamespace(effective_reviewer="reviewer-renata"))
-        st.resolved_binding = ResolvedBinding(
-            agent_profile="reviewer-renata", model="claude-sonnet-5"
-        )
+        st.resolved_binding = ResolvedBinding(agent_profile="reviewer-renata", model="claude-sonnet-5")
         metadata = _mt_approval_policy_metadata(st)
         assert metadata == {
             "tool": "reviewer-renata",
@@ -927,9 +890,7 @@ def test_finalize_plan_delegates_rollback_persist(tmp_path: Path) -> None:
     ports = MagicMock()
     with (
         patch(f"{tasks_move_task.__name__}.build_transition_plan") as build_mock,
-        patch(
-            f"{tasks_move_task.__name__}.persist_rejected_review_cycle_for_rollback"
-        ) as rollback_mock,
+        patch(f"{tasks_move_task.__name__}.persist_rejected_review_cycle_for_rollback") as rollback_mock,
         patch(f"{tasks_move_task.__name__}._persist_approved_review_cycle") as approved_mock,
     ):
         tasks_move_task._mt_finalize_plan(st, ports)
@@ -948,9 +909,7 @@ def test_persist_arbiter_override_decision_success_prints_and_persists(
     matching the incumbent inline try block exactly."""
     from specify_cli.review.arbiter import ArbiterCategory, create_arbiter_decision
 
-    decision = create_arbiter_decision(
-        arbiter_name="claude", category="wrong_context", explanation="wrong WP"
-    )
+    decision = create_arbiter_decision(arbiter_name="claude", category="wrong_context", explanation="wrong WP")
     feature_dir = tmp_path / "feature"
     persisted_path = tmp_path / "arbiter-override-1.json"
     with (
@@ -986,9 +945,7 @@ def test_persist_arbiter_override_decision_json_output_suppresses_console(
     """``json_output=True`` never prints, but the persist call still fires."""
     from specify_cli.review.arbiter import ArbiterCategory, create_arbiter_decision
 
-    decision = create_arbiter_decision(
-        arbiter_name="claude", category="custom", explanation="custom reason"
-    )
+    decision = create_arbiter_decision(arbiter_name="claude", category="custom", explanation="custom reason")
     with (
         patch(f"{_TASKS}.console") as console_mock,
         patch(
@@ -1030,9 +987,7 @@ def test_persist_arbiter_override_decision_propagates_persist_error(
     """
     from specify_cli.review.arbiter import ArbiterCategory, create_arbiter_decision
 
-    decision = create_arbiter_decision(
-        arbiter_name="claude", category="custom", explanation="custom reason"
-    )
+    decision = create_arbiter_decision(arbiter_name="claude", category="custom", explanation="custom reason")
     with (
         patch(f"{_TASKS}.console") as console_mock,
         patch(
@@ -1070,9 +1025,7 @@ def test_run_arbiter_override_delegates_persist_to_verdict_seam(tmp_path: Path) 
     fake_event = SimpleNamespace(wp_id="WP01", review_ref="review-cycle://034-feature/WP01/1")
     with (
         patch(f"{_TASKS}.read_events_transactional", return_value=[fake_event]),
-        patch(
-            f"{tasks_move_task.__name__}.persist_arbiter_override_decision"
-        ) as persist_mock,
+        patch(f"{tasks_move_task.__name__}.persist_arbiter_override_decision") as persist_mock,
     ):
         result = tasks_move_task._run_arbiter_override(
             feature_dir=tmp_path,

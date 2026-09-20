@@ -63,9 +63,7 @@ _AUTHORED_FILENAMES = frozenset({"pack.yaml", "pack.md"})
 # must carry exactly these keys, no more (a generated-manifest field like
 # ``constituents``/``schema_version``/``manifest_hash`` leaking in would be a
 # split-boundary violation) and no fewer.
-_PACK_DESCRIPTOR_FIELDS = frozenset(
-    {"pack_id", "pack_version", "parent_pack", "accompanies_doctrine_pack", "name"}
-)
+_PACK_DESCRIPTOR_FIELDS = frozenset({"pack_id", "pack_version", "parent_pack", "accompanies_doctrine_pack", "name"})
 
 
 def test_authored_pack_yaml_exists_and_is_shaped_as_a_pack_descriptor() -> None:
@@ -130,11 +128,7 @@ def _write_calls(tree: ast.AST) -> list[ast.Call]:
             calls.append(node)
             continue
         if isinstance(func, ast.Name) and func.id == "open":
-            mode_literals = {
-                arg.value
-                for arg in (*node.args, *(kw.value for kw in node.keywords))
-                if isinstance(arg, ast.Constant) and isinstance(arg.value, str)
-            }
+            mode_literals = {arg.value for arg in (*node.args, *(kw.value for kw in node.keywords)) if isinstance(arg, ast.Constant) and isinstance(arg.value, str)}
             if any(_is_write_mode(m) for m in mode_literals):
                 calls.append(node)
     return calls
@@ -164,11 +158,7 @@ def test_owned_scope_modules_have_no_write_call_targeting_the_authored_files() -
 
 def _snapshot_tree(root: Path) -> dict[str, bytes]:
     """Return ``{relative_posix_path: file_bytes}`` for every file under *root*."""
-    return {
-        path.relative_to(root).as_posix(): path.read_bytes()
-        for path in root.rglob("*")
-        if path.is_file()
-    }
+    return {path.relative_to(root).as_posix(): path.read_bytes() for path in root.rglob("*") if path.is_file()}
 
 
 def test_regenerate_leaves_authored_files_byte_unchanged() -> None:
@@ -205,21 +195,16 @@ def test_regenerate_leaves_authored_files_byte_unchanged() -> None:
     # (a) the authored pair is byte-unchanged by regeneration.
     for authored in ("pack.yaml", "pack.md"):
         assert after[authored] == before[authored], (
-            f"regenerating the manifest mutated authored file {authored!r} -- "
-            "NFR-004 forbids the generator from touching the authored pair"
+            f"regenerating the manifest mutated authored file {authored!r} -- NFR-004 forbids the generator from touching the authored pair"
         )
 
     # (b) the generator writes ONLY pack-manifest.yaml.
     changed = {rel for rel in before if before[rel] != after.get(rel)}
     created = set(after) - set(before)
-    assert changed <= {MANIFEST_FILENAME}, (
-        "generator mutated files other than pack-manifest.yaml: "
-        f"{sorted(changed - {MANIFEST_FILENAME})}"
-    )
+    assert changed <= {MANIFEST_FILENAME}, f"generator mutated files other than pack-manifest.yaml: {sorted(changed - {MANIFEST_FILENAME})}"
     assert not created, f"generator created unexpected files: {sorted(created)}"
 
     # (c) the committed manifest is already fresh (stale => FIX-1-class drift).
     assert after[MANIFEST_FILENAME] == before[MANIFEST_FILENAME], (
-        "committed packs/built-in/pack-manifest.yaml is stale; run "
-        "`spec-kitty doctrine regenerate-graph` and commit the result"
+        "committed packs/built-in/pack-manifest.yaml is stale; run `spec-kitty doctrine regenerate-graph` and commit the result"
     )

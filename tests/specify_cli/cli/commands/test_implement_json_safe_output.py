@@ -208,9 +208,7 @@ def _state(*, recovery_action: str, wp_id: str = "WP04") -> RecoveryState:
 class TestRecoverErrorPath:
     """Branch 1: context resolution fails (TaskCliError/typer.Exit)."""
 
-    def test_json_output_emits_error_payload_and_exits_1(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_output_emits_error_payload_and_exits_1(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         monkeypatch.setattr(implement_module, "find_repo_root", lambda: tmp_path)
 
         def _raise(_mission: str | None, repo_root: Path | None = None) -> tuple[str | None, str]:
@@ -225,9 +223,7 @@ class TestRecoverErrorPath:
         payload = json.loads(capsys.readouterr().out.strip())
         assert payload == {"status": "error", "error": "mission not found"}
 
-    def test_console_output_raises_without_json_payload(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_console_output_raises_without_json_payload(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         monkeypatch.setattr(implement_module, "find_repo_root", lambda: tmp_path)
 
         def _raise(_mission: str | None, repo_root: Path | None = None) -> tuple[str | None, str]:
@@ -245,9 +241,7 @@ class TestRecoverErrorPath:
 class TestRecoverNoActionNeeded:
     """Branch 2: scan finds no crashed sessions (needs_recovery empty)."""
 
-    def test_json_output_ok_payload(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_output_ok_payload(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _patch_context(monkeypatch, tmp_path, "my-mission")
         monkeypatch.setattr(
             recovery_module,
@@ -272,9 +266,7 @@ class TestRecoverNoActionNeeded:
             "errors": [],
         }
 
-    def test_console_output_message(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_console_output_message(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _patch_context(monkeypatch, tmp_path, "my-mission")
         monkeypatch.setattr(recovery_module, "scan_recovery_state", lambda repo_root, mission_slug: [])
 
@@ -304,9 +296,7 @@ class TestRecoverNeedsRecovery:
             errors=errors or [],
         )
 
-    def test_json_output_final_payload_omits_contexts_recreated(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_output_final_payload_omits_contexts_recreated(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _patch_context(monkeypatch, tmp_path, "my-mission")
         monkeypatch.setattr(
             recovery_module,
@@ -351,9 +341,7 @@ class TestRecoverNeedsRecovery:
         assert "Contexts recreated: 2" in out
         assert "Status transitions emitted: 3" in out
 
-    def test_console_output_renders_errors_block_when_present(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_console_output_renders_errors_block_when_present(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _patch_context(monkeypatch, tmp_path, "my-mission")
         monkeypatch.setattr(
             recovery_module,
@@ -372,9 +360,7 @@ class TestRecoverNeedsRecovery:
         assert "Errors:" in out
         assert "worktree lock held" in out
 
-    def test_json_output_includes_errors_list(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_json_output_includes_errors_list(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _patch_context(monkeypatch, tmp_path, "my-mission")
         monkeypatch.setattr(
             recovery_module,

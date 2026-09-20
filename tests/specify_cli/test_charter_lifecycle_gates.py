@@ -46,9 +46,7 @@ def _make_project_context(
 ) -> MagicMock:
     """Build a mock ProjectContext whose require_pack_context() returns a PackContext."""
     proj_ctx = MagicMock()
-    proj_ctx.require_pack_context.return_value = _make_pack_context(
-        activated_agent_profiles=activated_agent_profiles
-    )
+    proj_ctx.require_pack_context.return_value = _make_pack_context(activated_agent_profiles=activated_agent_profiles)
     return proj_ctx
 
 
@@ -188,17 +186,13 @@ class TestFinalizatTasksProfileGate:
             tmp_path,
             agent_profile="researcher-robbie",
         )
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro", "reviewer-renata"})
-        )
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro", "reviewer-renata"}))
 
         with _finalize_tasks_context(tmp_path, feature_dir, mock_proj_ctx):
             result = runner.invoke(mission_app, ["finalize-tasks", "--mission", "099-test"])
 
         # Assert: exits non-zero
-        assert result.exit_code != 0, (
-            f"Expected exit code != 0, got: {result.exit_code}\n{result.stdout}"
-        )
+        assert result.exit_code != 0, f"Expected exit code != 0, got: {result.exit_code}\n{result.stdout}"
         # Assert: error message contains the profile name
         assert "researcher-robbie" in result.stdout
 
@@ -212,9 +206,7 @@ class TestFinalizatTasksProfileGate:
             tmp_path,
             agent_profile="researcher-robbie",
         )
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro", "researcher-robbie"})
-        )
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro", "researcher-robbie"}))
 
         with _finalize_tasks_context(tmp_path, feature_dir, mock_proj_ctx):
             result = runner.invoke(mission_app, ["finalize-tasks", "--mission", "099-test"])
@@ -256,11 +248,7 @@ class TestImplementProfileGate:
         """Create a mock WorkPackage with the given agent_profile in frontmatter."""
         wp = MagicMock()
         if agent_profile:
-            wp.frontmatter = (
-                f"work_package_id: WP01\n"
-                f"agent_profile: {agent_profile}\n"
-                f"title: Test WP\n"
-            )
+            wp.frontmatter = f"work_package_id: WP01\nagent_profile: {agent_profile}\ntitle: Test WP\n"
         else:
             wp.frontmatter = "work_package_id: WP01\ntitle: Test WP\n"
         return wp
@@ -271,9 +259,7 @@ class TestImplementProfileGate:
     ) -> None:
         """agent action implement exits 1 when WP profile not in activated set."""
         mock_wp = self._make_mock_wp("researcher-robbie")
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro", "reviewer-renata"})
-        )
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro", "reviewer-renata"}))
 
         with _implement_context(tmp_path, mock_wp, mock_proj_ctx):
             result = runner.invoke(
@@ -282,13 +268,9 @@ class TestImplementProfileGate:
             )
 
         # Assert: exits non-zero
-        assert result.exit_code != 0, (
-            f"Expected exit code != 0, got: {result.exit_code}\n{result.stdout}"
-        )
+        assert result.exit_code != 0, f"Expected exit code != 0, got: {result.exit_code}\n{result.stdout}"
         # Assert: no worktree created
-        assert not (tmp_path / ".worktrees").exists(), (
-            ".worktrees directory must NOT be created when gate fires"
-        )
+        assert not (tmp_path / ".worktrees").exists(), ".worktrees directory must NOT be created when gate fires"
 
     def test_skips_check_when_no_explicit_activation(
         self,
@@ -327,9 +309,7 @@ class TestResolutionCommandInErrorMessage:
             tmp_path,
             agent_profile="researcher-robbie",
         )
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro"})
-        )
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro"}))
 
         with _finalize_tasks_context(tmp_path, feature_dir, mock_proj_ctx):
             result = runner.invoke(mission_app, ["finalize-tasks", "--mission", "099-test"])
@@ -343,14 +323,8 @@ class TestResolutionCommandInErrorMessage:
     ) -> None:
         """Error message from implement contains 'charter activate agent-profile'."""
         mock_wp = MagicMock()
-        mock_wp.frontmatter = (
-            "work_package_id: WP01\n"
-            "agent_profile: researcher-robbie\n"
-            "title: Test WP\n"
-        )
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro"})
-        )
+        mock_wp.frontmatter = "work_package_id: WP01\nagent_profile: researcher-robbie\ntitle: Test WP\n"
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro"}))
 
         with _implement_context(tmp_path, mock_wp, mock_proj_ctx):
             result = runner.invoke(
@@ -383,9 +357,7 @@ class TestCharterActivationErrorRaised:
             tmp_path,
             agent_profile="researcher-robbie",
         )
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro"})
-        )
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro"}))
 
         instances_raised: list[CharterActivationError] = []
 
@@ -400,13 +372,8 @@ class TestCharterActivationErrorRaised:
         ):
             result = runner.invoke(mission_app, ["finalize-tasks", "--mission", "099-test"])
 
-        assert result.exit_code != 0, (
-            f"Expected non-zero exit, got {result.exit_code}\n{result.stdout}"
-        )
-        assert instances_raised, (
-            "CharterActivationError was never raised by the finalize-tasks gate; "
-            "the gate must raise it (FR-019), not just call typer.Exit(1)"
-        )
+        assert result.exit_code != 0, f"Expected non-zero exit, got {result.exit_code}\n{result.stdout}"
+        assert instances_raised, "CharterActivationError was never raised by the finalize-tasks gate; the gate must raise it (FR-019), not just call typer.Exit(1)"
 
     def test_implement_raises_charter_activation_error(
         self,
@@ -414,14 +381,8 @@ class TestCharterActivationErrorRaised:
     ) -> None:
         """agent action implement gate raises CharterActivationError for deactivated profile."""
         mock_wp = MagicMock()
-        mock_wp.frontmatter = (
-            "work_package_id: WP01\n"
-            "agent_profile: researcher-robbie\n"
-            "title: Test WP\n"
-        )
-        mock_proj_ctx = _make_project_context(
-            activated_agent_profiles=frozenset({"python-pedro"})
-        )
+        mock_wp.frontmatter = "work_package_id: WP01\nagent_profile: researcher-robbie\ntitle: Test WP\n"
+        mock_proj_ctx = _make_project_context(activated_agent_profiles=frozenset({"python-pedro"}))
 
         instances_raised: list[CharterActivationError] = []
 
@@ -439,10 +400,5 @@ class TestCharterActivationErrorRaised:
                 ["implement", "WP01", "--agent", "claude", "--mission", "099-test"],
             )
 
-        assert result.exit_code != 0, (
-            f"Expected non-zero exit, got {result.exit_code}\n{result.stdout}"
-        )
-        assert instances_raised, (
-            "CharterActivationError was never raised by the implement gate; "
-            "the gate must raise it (FR-019), not just call typer.Exit(1)"
-        )
+        assert result.exit_code != 0, f"Expected non-zero exit, got {result.exit_code}\n{result.stdout}"
+        assert instances_raised, "CharterActivationError was never raised by the implement gate; the gate must raise it (FR-019), not just call typer.Exit(1)"

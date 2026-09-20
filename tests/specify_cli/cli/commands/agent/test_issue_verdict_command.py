@@ -34,9 +34,7 @@ def _make_mission(tmp_path: Path, *, slug: str = _MISSION_SLUG) -> Path:
     """Create ``kitty-specs/<slug>/`` with a resolvable ``meta.json``."""
     feature_dir = tmp_path / "kitty-specs" / slug
     feature_dir.mkdir(parents=True)
-    (feature_dir / "meta.json").write_text(
-        json.dumps({"mission_id": _MISSION_ID, "mission_slug": slug}), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps({"mission_id": _MISSION_ID, "mission_slug": slug}), encoding="utf-8")
     return feature_dir
 
 
@@ -123,9 +121,7 @@ def _read_json(path: Path) -> dict[str, object]:
 
 
 class TestDoIssueVerdictSetsVerdict:
-    def test_creates_a_new_row_when_none_existed(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_creates_a_new_row_when_none_existed(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         feature_dir = _make_mission(tmp_path)
@@ -154,9 +150,7 @@ class TestDoIssueVerdictSetsVerdict:
         assert row["wp"] == "WP01"
         assert len(write_artifact_fake.calls) == 1
 
-    def test_updates_an_existing_row_preserving_other_fields(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_updates_an_existing_row_preserving_other_fields(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         feature_dir = _make_mission(tmp_path)
@@ -198,9 +192,7 @@ class TestDoIssueVerdictSetsVerdict:
         # --wp omitted on this call -> preserves the prior value.
         assert row["wp"] == "WP03"
 
-    def test_bare_digits_issue_ref_is_normalized_with_hash_prefix(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_bare_digits_issue_ref_is_normalized_with_hash_prefix(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         _make_mission(tmp_path)
@@ -215,9 +207,7 @@ class TestDoIssueVerdictSetsVerdict:
 
         assert result["row_or_entry_ref"] == "#1726"
 
-    def test_preserves_unrelated_rows_including_scaffold_placeholder(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_preserves_unrelated_rows_including_scaffold_placeholder(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         """Regression: the raw-rows reader must NOT drop a placeholder row.
 
         ``load_issue_matrix`` (the validated/filtered reader) silently
@@ -263,9 +253,7 @@ class TestDoIssueVerdictSetsVerdict:
 
 
 class TestIdempotence:
-    def test_rerun_with_identical_inputs_is_a_noop(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_rerun_with_identical_inputs_is_a_noop(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         _make_mission(tmp_path)
@@ -287,18 +275,12 @@ class TestIdempotence:
         assert second["ok"] is True
         assert len(write_artifact_fake.calls) == 2
 
-    def test_rerun_with_a_different_verdict_commits_again(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_rerun_with_a_different_verdict_commits_again(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         _make_mission(tmp_path)
-        do_issue_verdict(
-            mission=_MISSION_SLUG, issue="#1726", verdict="in-mission", actor="claude", repo_root=tmp_path
-        )
-        second = do_issue_verdict(
-            mission=_MISSION_SLUG, issue="#1726", verdict="fixed", actor="claude", repo_root=tmp_path
-        )
+        do_issue_verdict(mission=_MISSION_SLUG, issue="#1726", verdict="in-mission", actor="claude", repo_root=tmp_path)
+        second = do_issue_verdict(mission=_MISSION_SLUG, issue="#1726", verdict="fixed", actor="claude", repo_root=tmp_path)
 
         assert second["status"] == "committed"
 
@@ -309,9 +291,7 @@ class TestIdempotence:
 
 
 class TestMigrateOnWrite:
-    def test_legacy_markdown_mission_migrates_on_first_write(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_legacy_markdown_mission_migrates_on_first_write(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         feature_dir = _make_mission(tmp_path)
@@ -341,33 +321,23 @@ class TestMigrateOnWrite:
         # migrate-on-write commits once, the verdict mutation commits again.
         assert len(write_artifact_fake.calls) == 2
 
-    def test_no_migration_flag_when_json_already_present(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_no_migration_flag_when_json_already_present(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         feature_dir = _make_mission(tmp_path)
-        (feature_dir / "issue-matrix.json").write_text(
-            json.dumps({"schema_version": 1, "rows": {}}), encoding="utf-8"
-        )
+        (feature_dir / "issue-matrix.json").write_text(json.dumps({"schema_version": 1, "rows": {}}), encoding="utf-8")
 
-        result = do_issue_verdict(
-            mission=_MISSION_SLUG, issue="#1", verdict="fixed", actor="claude", repo_root=tmp_path
-        )
+        result = do_issue_verdict(mission=_MISSION_SLUG, issue="#1", verdict="fixed", actor="claude", repo_root=tmp_path)
 
         assert result["migrated"] is False
         assert len(write_artifact_fake.calls) == 1
 
-    def test_no_migration_when_neither_artifact_present(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake
-    ) -> None:
+    def test_no_migration_when_neither_artifact_present(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         _make_mission(tmp_path)
 
-        result = do_issue_verdict(
-            mission=_MISSION_SLUG, issue="#1", verdict="fixed", actor="claude", repo_root=tmp_path
-        )
+        result = do_issue_verdict(mission=_MISSION_SLUG, issue="#1", verdict="fixed", actor="claude", repo_root=tmp_path)
 
         assert result["migrated"] is False
 
@@ -388,16 +358,12 @@ class TestCoordAwareReadSurface:
         coord_dir = tmp_path / "coord-worktree" / _MISSION_SLUG
         coord_dir.mkdir(parents=True)
         (coord_dir / "issue-matrix.json").write_text(
-            json.dumps(
-                {"schema_version": 1, "rows": {"#1": {"verdict": "fixed", "evidence_ref": "already done"}}}
-            ),
+            json.dumps({"schema_version": 1, "rows": {"#1": {"verdict": "fixed", "evidence_ref": "already done"}}}),
             encoding="utf-8",
         )
         monkeypatch.setattr(issue_verdict, "coord_read_dir_for", lambda *a, **k: coord_dir)
 
-        result = issue_verdict.do_issue_verdict(
-            mission=_MISSION_SLUG, issue="#99", verdict="fixed", actor="claude", repo_root=tmp_path
-        )
+        result = issue_verdict.do_issue_verdict(mission=_MISSION_SLUG, issue="#99", verdict="fixed", actor="claude", repo_root=tmp_path)
 
         assert result["ok"] is True
         # write_issue_matrix always writes the LOCAL primary copy first (the
@@ -442,25 +408,19 @@ class TestValidationErrors:
         _make_mission(tmp_path)
 
         with pytest.raises(IssueVerdictError) as exc_info:
-            do_issue_verdict(
-                mission=_MISSION_SLUG, issue="#1726", verdict="fixed", actor="   ", repo_root=tmp_path
-            )
+            do_issue_verdict(mission=_MISSION_SLUG, issue="#1726", verdict="fixed", actor="   ", repo_root=tmp_path)
         assert exc_info.value.code == "empty_actor"
 
     @pytest.mark.parametrize(
         "verdict",
         ["fixed", "verified-already-fixed", "deferred-with-followup", "in-mission"],
     )
-    def test_every_closed_set_member_is_accepted(
-        self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake, verdict: str
-    ) -> None:
+    def test_every_closed_set_member_is_accepted(self, tmp_path: Path, write_artifact_fake: _StatefulWriteArtifactFake, verdict: str) -> None:
         from specify_cli.cli.commands.agent.issue_verdict import do_issue_verdict
 
         _make_mission(tmp_path)
 
-        result = do_issue_verdict(
-            mission=_MISSION_SLUG, issue="#1", verdict=verdict, actor="claude", repo_root=tmp_path
-        )
+        result = do_issue_verdict(mission=_MISSION_SLUG, issue="#1", verdict=verdict, actor="claude", repo_root=tmp_path)
 
         assert result["ok"] is True
 

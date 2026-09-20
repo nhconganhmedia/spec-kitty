@@ -51,13 +51,7 @@ def template_path() -> Path:
         return Path(str(resource))
     except (ModuleNotFoundError, TypeError):
         # Development fallback for non-resource contexts.
-        return (
-            Path(__file__).resolve().parents[2]
-            / "charter"
-            / "offering"
-            / "templates"
-            / TEMPLATE_FILENAME
-        )
+        return Path(__file__).resolve().parents[2] / "charter" / "offering" / "templates" / TEMPLATE_FILENAME
 
 
 def load_template_text() -> str:
@@ -88,9 +82,7 @@ def _valid_operations() -> frozenset[str]:
 
 @cache
 def _standard_categories() -> frozenset[str]:
-    return frozenset(
-        _schema_definitions().get("standard_category", {}).get("enum", [])
-    )
+    return frozenset(_schema_definitions().get("standard_category", {}).get("enum", []))
 
 
 # The 8 standard occurrence categories required by FR-004 — sourced from the
@@ -101,15 +93,11 @@ VALID_ACTIONS: frozenset[str] = _valid_actions()
 VALID_OPERATIONS: frozenset[str] = _valid_operations()
 STANDARD_CATEGORIES: frozenset[str] = _standard_categories()
 
-PLACEHOLDER_TERMS: frozenset[str] = frozenset(
-    {"TODO", "TBD", "FIXME", "XXX", "PLACEHOLDER", ""}
-)
+PLACEHOLDER_TERMS: frozenset[str] = frozenset({"TODO", "TBD", "FIXME", "XXX", "PLACEHOLDER", ""})
 
 MIN_ADMISSIBLE_CATEGORIES: int = 3
 
-_KNOWN_TOP_LEVEL_KEYS: frozenset[str] = frozenset(
-    {"target", "categories", "exceptions", "moves", "structural_targets", "status"}
-)
+_KNOWN_TOP_LEVEL_KEYS: frozenset[str] = frozenset({"target", "categories", "exceptions", "moves", "structural_targets", "status"})
 
 # ---------------------------------------------------------------------------
 # Dataclasses
@@ -295,16 +283,12 @@ def _parse_moves(raw_moves: Any) -> list[MoveEntry]:
         if not isinstance(entry, dict):
             continue
         sources_raw = entry.get("from")
-        sources = (
-            [str(s) for s in sources_raw] if isinstance(sources_raw, list) else []
-        )
+        sources = [str(s) for s in sources_raw] if isinstance(sources_raw, list) else []
         destination_raw = entry.get("to")
         destination = destination_raw if isinstance(destination_raw, str) else ""
         reason_raw = entry.get("reason")
         reason = reason_raw if isinstance(reason_raw, str) else None
-        parsed.append(
-            MoveEntry(sources=sources, destination=destination, reason=reason)
-        )
+        parsed.append(MoveEntry(sources=sources, destination=destination, reason=reason))
     return parsed
 
 
@@ -389,10 +373,7 @@ def _validate_target(target: Any) -> list[str]:
 
     operation = target.get("operation")
     if operation is not None and operation not in VALID_OPERATIONS:
-        errors.append(
-            f"Invalid target.operation '{operation}'; "
-            f"must be one of {sorted(VALID_OPERATIONS)}"
-        )
+        errors.append(f"Invalid target.operation '{operation}'; must be one of {sorted(VALID_OPERATIONS)}")
     return errors
 
 
@@ -412,10 +393,7 @@ def _validate_categories(cats: Any) -> list[str]:
         if action is None:
             errors.append(f"Category '{cat_name}' missing required 'action' key")
         elif action not in VALID_ACTIONS:
-            errors.append(
-                f"Category '{cat_name}' has invalid action '{action}'; "
-                f"must be one of {sorted(VALID_ACTIONS)}"
-            )
+            errors.append(f"Category '{cat_name}' has invalid action '{action}'; must be one of {sorted(VALID_ACTIONS)}")
     return errors
 
 
@@ -454,15 +432,10 @@ def _validate_exception_entry(index: int, entry: Any) -> list[str]:
     if action is None:
         errors.append(f"{label} missing required 'action' key")
     elif action not in VALID_ACTIONS:
-        errors.append(
-            f"{label} has invalid action '{action}'; "
-            f"must be one of {sorted(VALID_ACTIONS)}"
-        )
+        errors.append(f"{label} has invalid action '{action}'; must be one of {sorted(VALID_ACTIONS)}")
 
     field_path = entry.get("field_path")
-    if field_path is not None and (
-        not isinstance(field_path, str) or field_path.strip() == ""
-    ):
+    if field_path is not None and (not isinstance(field_path, str) or field_path.strip() == ""):
         errors.append(f"{label}.field_path must be a non-empty string when present")
 
     return errors
@@ -678,17 +651,11 @@ def check_admissibility(omap: OccurrenceMap) -> ValidationResult:
 
     term = omap.target_term.strip()
     if term.upper() in {p.upper() for p in PLACEHOLDER_TERMS}:
-        errors.append(
-            f"target.term '{omap.target_term}' is a placeholder; "
-            "provide a real term before execution"
-        )
+        errors.append(f"target.term '{omap.target_term}' is a placeholder; provide a real term before execution")
 
     num_categories = len(omap.categories)
     if num_categories < MIN_ADMISSIBLE_CATEGORIES:
-        errors.append(
-            f"Need at least {MIN_ADMISSIBLE_CATEGORIES} categories, "
-            f"got {num_categories}"
-        )
+        errors.append(f"Need at least {MIN_ADMISSIBLE_CATEGORIES} categories, got {num_categories}")
 
     # FR-004: every standard category must be explicitly classified.
     missing = sorted(STANDARD_CATEGORIES - set(omap.categories.keys()))

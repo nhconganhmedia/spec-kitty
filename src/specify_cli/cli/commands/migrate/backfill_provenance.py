@@ -175,9 +175,7 @@ def _stamped_invariant_dict(raw_invariant: dict[str, Any]) -> dict[str, Any] | N
     stamped = replace(invariant, provenance_origin=PROVENANCE_LEGACY_UNRECORDED)
     canonical = stamped.to_dict()
     updated = dict(raw_invariant)
-    updated[_PROVENANCE_ORIGIN_KEY] = canonical.get(
-        _PROVENANCE_ORIGIN_KEY, PROVENANCE_LEGACY_UNRECORDED
-    )
+    updated[_PROVENANCE_ORIGIN_KEY] = canonical.get(_PROVENANCE_ORIGIN_KEY, PROVENANCE_LEGACY_UNRECORDED)
     return updated
 
 
@@ -248,9 +246,7 @@ def _collect_matrix_paths(repo_root: Path) -> list[Path]:
     paths: list[Path] = []
     for mission_dir in sorted(p for p in specs_dir.iterdir() if safe_is_dir(p)):
         try:
-            matrix_dir = placement_seam(repo_root, mission_dir.name).read_dir(
-                MissionArtifactKind.ACCEPTANCE_MATRIX
-            )
+            matrix_dir = placement_seam(repo_root, mission_dir.name).read_dir(MissionArtifactKind.ACCEPTANCE_MATRIX)
         except (ActionContextError, StatusReadPathNotFound, FileNotFoundError):
             # An unroutable mission (e.g. a deleted coordination branch) has no
             # resolvable matrix home. AM-4 already treats a per-file parse
@@ -264,9 +260,7 @@ def _collect_matrix_paths(repo_root: Path) -> list[Path]:
     return paths
 
 
-def _plan_migration(
-    matrix_paths: list[Path], summary: BackfillSummary
-) -> list[tuple[Path, str, int]]:
+def _plan_migration(matrix_paths: list[Path], summary: BackfillSummary) -> list[tuple[Path, str, int]]:
     """Read + compute every file's migration in memory (no writes yet).
 
     A parse failure here is recorded as an error and the file is skipped —
@@ -318,10 +312,7 @@ def run_backfill_provenance_migration(
     plan = _plan_migration(matrix_paths, summary)
 
     if dry_run:
-        summary.migrated = [
-            MatrixMigrationRecord(path=path, invariants_stamped=stamped_count)
-            for path, _new_text, stamped_count in plan
-        ]
+        summary.migrated = [MatrixMigrationRecord(path=path, invariants_stamped=stamped_count) for path, _new_text, stamped_count in plan]
         return summary
 
     txn = _CorpusWriteTransaction()
@@ -333,8 +324,5 @@ def run_backfill_provenance_migration(
         raise
     txn.commit()
 
-    summary.migrated = [
-        MatrixMigrationRecord(path=path, invariants_stamped=stamped_count)
-        for path, _new_text, stamped_count in plan
-    ]
+    summary.migrated = [MatrixMigrationRecord(path=path, invariants_stamped=stamped_count) for path, _new_text, stamped_count in plan]
     return summary

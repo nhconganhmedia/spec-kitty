@@ -10,6 +10,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 def _snapshot_modules(*prefixes: str) -> dict[str, object]:
     """Return a copy of sys.modules for all keys matching any prefix."""
     return {k: v for k, v in sys.modules.items() if any(k.startswith(p) for p in prefixes)}
@@ -54,9 +55,7 @@ def test_from_environment_windows_returns_windows_file_storage(monkeypatch):
 
         from specify_cli.auth.secure_storage.windows_storage import WindowsFileStorage
 
-        assert isinstance(storage, WindowsFileStorage), (
-            f"Expected WindowsFileStorage on win32, got {type(storage).__name__}"
-        )
+        assert isinstance(storage, WindowsFileStorage), f"Expected WindowsFileStorage on win32, got {type(storage).__name__}"
         # WP03 / DM-01KW1KDHVGWZ0QERDMV1CRJ15S: the Windows store is no longer
         # hardcoded to ``~/.spec-kitty/auth``; it now resolves through the
         # unified runtime root (platformdirs base on real Windows,
@@ -65,9 +64,7 @@ def test_from_environment_windows_returns_windows_file_storage(monkeypatch):
         from specify_cli.paths import get_runtime_root
 
         assert storage.store_path == get_runtime_root().auth_dir
-        assert "specify_cli.auth.secure_storage.keychain" not in sys.modules, (
-            "keychain module must never be imported in the file-only storage model"
-        )
+        assert "specify_cli.auth.secure_storage.keychain" not in sys.modules, "keychain module must never be imported in the file-only storage model"
     finally:
         _restore_modules(snapshot, *prefixes)
 
@@ -96,11 +93,7 @@ def test_from_environment_posix_returns_encrypted_file_storage(monkeypatch):
 
         from specify_cli.auth.secure_storage.file_fallback import FileFallbackStorage
 
-        assert isinstance(storage, FileFallbackStorage), (
-            f"Expected FileFallbackStorage on linux, got {type(storage).__name__}"
-        )
-        assert "specify_cli.auth.secure_storage.keychain" not in sys.modules, (
-            "keychain module must never be imported in the file-only storage model"
-        )
+        assert isinstance(storage, FileFallbackStorage), f"Expected FileFallbackStorage on linux, got {type(storage).__name__}"
+        assert "specify_cli.auth.secure_storage.keychain" not in sys.modules, "keychain module must never be imported in the file-only storage model"
     finally:
         _restore_modules(snapshot, *prefixes)

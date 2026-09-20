@@ -17,9 +17,7 @@ import pytest
 pytestmark = [pytest.mark.contract, pytest.mark.fast]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-TASKS_PACKAGES_PROMPT = (
-    REPO_ROOT / "packs/built-in/missions/mission-steps/software-dev/tasks-packages/prompt.md"
-)
+TASKS_PACKAGES_PROMPT = REPO_ROOT / "packs/built-in/missions/mission-steps/software-dev/tasks-packages/prompt.md"
 
 # Marker that identifies a WP prompt frontmatter template block (vs a wps.yaml example block)
 _WP_FRONTMATTER_MARKER = "work_package_id:"
@@ -34,9 +32,7 @@ class TestFR009Guard:
     """plan_concern_refs must never appear in the WP prompt frontmatter template."""
 
     def test_prompt_file_exists(self) -> None:
-        assert TASKS_PACKAGES_PROMPT.exists(), (
-            f"tasks-packages/prompt.md not found at {TASKS_PACKAGES_PROMPT}"
-        )
+        assert TASKS_PACKAGES_PROMPT.exists(), f"tasks-packages/prompt.md not found at {TASKS_PACKAGES_PROMPT}"
 
     def test_wp_frontmatter_template_has_no_plan_concern_refs(self) -> None:
         """The WP prompt frontmatter template block must not contain plan_concern_refs.
@@ -77,6 +73,5 @@ class TestFR009Guard:
             "Check whether the prompt was accidentally truncated."
         )
         assert "wps.yaml" in content, (
-            "tasks-packages/prompt.md no longer mentions wps.yaml. "
-            "The prompt should guide agents to populate plan_concern_refs in wps.yaml."
+            "tasks-packages/prompt.md no longer mentions wps.yaml. The prompt should guide agents to populate plan_concern_refs in wps.yaml."
         )

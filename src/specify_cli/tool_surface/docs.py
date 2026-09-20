@@ -195,9 +195,7 @@ class DocsLinter:
             findings.extend(self._lint_line(doc_path, line_number, line))
         return findings
 
-    def lint_directory(
-        self, docs_dir: Path, patterns: list[str] | None = None
-    ) -> list[DocsLintFinding]:
+    def lint_directory(self, docs_dir: Path, patterns: list[str] | None = None) -> list[DocsLintFinding]:
         """Lint every matching file under ``docs_dir`` (recursively)."""
         globs = patterns if patterns is not None else list(_DEFAULT_DOC_GLOBS)
         findings: list[DocsLintFinding] = []
@@ -216,9 +214,7 @@ class DocsLinter:
                     ordered.append(path)
         return ordered
 
-    def _lint_line(
-        self, doc_path: Path, line_number: int, line: str
-    ) -> list[DocsLintFinding]:
+    def _lint_line(self, doc_path: Path, line_number: int, line: str) -> list[DocsLintFinding]:
         findings: list[DocsLintFinding] = []
         for token in _BACKTICK_TOKEN.findall(line):
             candidate = token.strip()
@@ -256,8 +252,5 @@ class DocsLinter:
 
 def format_findings(findings: Iterable[DocsLintFinding]) -> str:
     """Render findings as a human-readable, multi-line report block."""
-    lines = [
-        f"{f.doc_path}:{f.line_number}: {f.finding} {f.referenced_path} -- {f.detail}"
-        for f in findings
-    ]
+    lines = [f"{f.doc_path}:{f.line_number}: {f.finding} {f.referenced_path} -- {f.detail}" for f in findings]
     return "\n".join(lines)

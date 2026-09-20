@@ -99,9 +99,7 @@ def _provision_mission_type_activation(repo_root: Path) -> None:
     """
     kittify = repo_root / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
-    (kittify / "config.yaml").write_text(
-        "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -122,9 +120,7 @@ class TestSoftwareDevDispatchNFR002:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
-            assert _should_dispatch_via_composition(
-                "software-dev", "specify", repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", "specify", repo_root=tmp_path) is True
 
     def test_plan_step_dispatches_via_composition(self, tmp_path: Path) -> None:
         """software-dev at 'plan' lane dispatches via composition."""
@@ -132,9 +128,7 @@ class TestSoftwareDevDispatchNFR002:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
-            assert _should_dispatch_via_composition(
-                "software-dev", "plan", repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", "plan", repo_root=tmp_path) is True
 
     def test_tasks_step_dispatches_via_composition(self, tmp_path: Path) -> None:
         """software-dev at 'tasks' lane dispatches via composition."""
@@ -142,9 +136,7 @@ class TestSoftwareDevDispatchNFR002:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
-            assert _should_dispatch_via_composition(
-                "software-dev", "tasks", repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", "tasks", repo_root=tmp_path) is True
 
     def test_implement_step_dispatches_via_composition(self, tmp_path: Path) -> None:
         """software-dev at 'implement' lane dispatches via composition."""
@@ -152,9 +144,7 @@ class TestSoftwareDevDispatchNFR002:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
-            assert _should_dispatch_via_composition(
-                "software-dev", "implement", repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", "implement", repo_root=tmp_path) is True
 
     def test_review_step_dispatches_via_composition(self, tmp_path: Path) -> None:
         """software-dev at 'review' lane dispatches via composition."""
@@ -162,22 +152,16 @@ class TestSoftwareDevDispatchNFR002:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
-            assert _should_dispatch_via_composition(
-                "software-dev", "review", repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", "review", repo_root=tmp_path) is True
 
     @pytest.mark.parametrize("action", _SW_DEV_ACTIONS)
-    def test_all_software_dev_steps_dispatch_via_composition(
-        self, action: str, tmp_path: Path
-    ) -> None:
+    def test_all_software_dev_steps_dispatch_via_composition(self, action: str, tmp_path: Path) -> None:
         """Parametrized gate: all five software-dev actions return True."""
         with patch(
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
-            assert _should_dispatch_via_composition(
-                "software-dev", action, repo_root=tmp_path
-            ) is True
+            assert _should_dispatch_via_composition("software-dev", action, repo_root=tmp_path) is True
 
 
 # ---------------------------------------------------------------------------
@@ -192,17 +176,13 @@ class TestFrozensetsDeletion:
         """_COMPOSED_ACTIONS_BY_MISSION MUST NOT be importable from runtime_bridge."""
         import runtime.next.runtime_bridge as bridge
 
-        assert not hasattr(bridge, "_COMPOSED_ACTIONS_BY_MISSION"), (
-            "_COMPOSED_ACTIONS_BY_MISSION still exists in runtime_bridge — FR-007 violated"
-        )
+        assert not hasattr(bridge, "_COMPOSED_ACTIONS_BY_MISSION"), "_COMPOSED_ACTIONS_BY_MISSION still exists in runtime_bridge — FR-007 violated"
 
     def test_charter_call_site_reached(self, tmp_path: Path) -> None:
         """_should_dispatch_via_composition calls charter, not a static table."""
         call_log: list[str] = []
 
-        def _record_call(
-            repo_root: object, *, mission_type: str | None = None, feature_dir: object = None
-        ) -> types.SimpleNamespace:
+        def _record_call(repo_root: object, *, mission_type: str | None = None, feature_dir: object = None) -> types.SimpleNamespace:
             call_log.append(mission_type)
             return types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS)
 
@@ -210,14 +190,10 @@ class TestFrozensetsDeletion:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             side_effect=_record_call,
         ):
-            result = _should_dispatch_via_composition(
-                "software-dev", "specify", repo_root=tmp_path
-            )
+            result = _should_dispatch_via_composition("software-dev", "specify", repo_root=tmp_path)
 
         assert result is True
-        assert "software-dev" in call_log, (
-            "_should_dispatch_via_composition did not call charter.resolve_mission_type_context"
-        )
+        assert "software-dev" in call_log, "_should_dispatch_via_composition did not call charter.resolve_mission_type_context"
 
 
 # ---------------------------------------------------------------------------
@@ -232,9 +208,7 @@ class TestLegacyTasksNormalization:
     def test_legacy_step_collapses_to_tasks(self, step_id: str) -> None:
         assert _normalize_action_for_composition(step_id) == "tasks"
 
-    @pytest.mark.parametrize(
-        "step_id", ["specify", "plan", "tasks", "implement", "review", "accept"]
-    )
+    @pytest.mark.parametrize("step_id", ["specify", "plan", "tasks", "implement", "review", "accept"])
     def test_non_legacy_steps_pass_through(self, step_id: str) -> None:
         assert _normalize_action_for_composition(step_id) == step_id
 
@@ -245,9 +219,9 @@ class TestLegacyTasksNormalization:
             return_value=types.SimpleNamespace(action_sequence=_SW_DEV_ACTIONS),
         ):
             for legacy_id in ("tasks_outline", "tasks_packages", "tasks_finalize"):
-                assert _should_dispatch_via_composition(
-                    "software-dev", legacy_id, repo_root=tmp_path
-                ) is True, f"{legacy_id} should dispatch via composition after normalization"
+                assert _should_dispatch_via_composition("software-dev", legacy_id, repo_root=tmp_path) is True, (
+                    f"{legacy_id} should dispatch via composition after normalization"
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -266,9 +240,7 @@ class TestGracefulDegradation:
             "charter.activation.mission_type_profiles.resolve_mission_type_context",
             side_effect=UnknownMissionTypeError("unknown-type"),
         ):
-            result = _should_dispatch_via_composition(
-                "unknown-type", "some-action", repo_root=tmp_path
-            )
+            result = _should_dispatch_via_composition("unknown-type", "some-action", repo_root=tmp_path)
 
         assert result is False
 
@@ -310,9 +282,7 @@ class TestPerformance:
                 # Warm the import cache.
                 resolve_mission_type_context(tmp_path, mission_type="software-dev")
 
-                result = resolve_mission_type_context(
-                    tmp_path, mission_type="software-dev"
-                ).action_sequence
+                result = resolve_mission_type_context(tmp_path, mission_type="software-dev").action_sequence
         finally:
             _restore_modules(saved)
 
@@ -343,9 +313,7 @@ class TestPerformance:
 
                 # Time the second (warm) call.
                 start = time.monotonic()
-                resolve_mission_type_context(
-                    tmp_path, mission_type="software-dev"
-                )
+                resolve_mission_type_context(tmp_path, mission_type="software-dev")
                 elapsed_ms = (time.monotonic() - start) * 1000
         finally:
             _restore_modules(saved)
@@ -376,16 +344,12 @@ class TestNFR001LazyGovernanceBoundary:
     stronger, environment-independent guarantee than a millisecond budget.
     """
 
-    def test_action_sequence_only_path_never_triggers_action_grain(
-        self, tmp_path: Path
-    ) -> None:
+    def test_action_sequence_only_path_never_triggers_action_grain(self, tmp_path: Path) -> None:
         """The real production hot path (``.action_sequence`` only) does zero action-grain I/O."""
         from charter.activation.mission_type_profiles import resolve_mission_type_context
 
         _provision_mission_type_activation(tmp_path)
-        with patch(
-            "charter.activation.mission_type_profiles.aggregate_action_grain"
-        ) as spy_aggregate:
+        with patch("charter.activation.mission_type_profiles.aggregate_action_grain") as spy_aggregate:
             bundle = resolve_mission_type_context(tmp_path, mission_type="software-dev")
             # This is the real hot path: runtime-next's FSM reads only
             # `.action_sequence`, never `.governance`.
@@ -393,9 +357,7 @@ class TestNFR001LazyGovernanceBoundary:
 
         spy_aggregate.assert_not_called()
 
-    def test_first_governance_access_triggers_action_grain_aggregation(
-        self, tmp_path: Path
-    ) -> None:
+    def test_first_governance_access_triggers_action_grain_aggregation(self, tmp_path: Path) -> None:
         """Proves the lazy boundary is real: first ``.governance`` read DOES call it."""
         from charter.activation.mission_type_profiles import resolve_mission_type_context
 

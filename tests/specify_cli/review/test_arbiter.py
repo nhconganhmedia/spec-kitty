@@ -5,6 +5,7 @@ Tests verify that:
 - Arbiter override detection logic is unchanged after migration
 - All lane comparison scenarios work correctly with typed Lane enum
 """
+
 from __future__ import annotations
 
 import json

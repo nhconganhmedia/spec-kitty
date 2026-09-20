@@ -76,19 +76,16 @@ class ProtectedTargetRepo:
         vacuous — the guard would short-circuit at ``_is_spec_kitty_project``.
         """
         assert (self.repo_root / ".kittify").is_dir(), (
-            "fixture precondition violated: .kittify/ missing, so the commit "
-            "guard would be skipped entirely (debugger-debby RISK-5)"
+            "fixture precondition violated: .kittify/ missing, so the commit guard would be skipped entirely (debugger-debby RISK-5)"
         )
         assert commit_helpers._is_spec_kitty_project(self.repo_root), (
-            "fixture precondition violated: commit_helpers does not recognize "
-            "the repo as a spec-kitty project"
+            "fixture precondition violated: commit_helpers does not recognize the repo as a spec-kitty project"
         )
 
     def assert_target_is_protected(self) -> None:
         """Self-check that the target branch is in the guard's protected set."""
         assert self.target_branch in commit_helpers.protected_branches(self.repo_root), (
-            f"fixture precondition violated: {self.target_branch!r} is not in "
-            f"the guard's protected set {commit_helpers.protected_branches(self.repo_root)}"
+            f"fixture precondition violated: {self.target_branch!r} is not in the guard's protected set {commit_helpers.protected_branches(self.repo_root)}"
         )
 
     def write(self, relative_path: str, content: str) -> Path:

@@ -86,9 +86,7 @@ def _make_status(
 
 
 def _empty_summary() -> SurfaceSummary:
-    return SurfaceSummary(
-        surfaces=0, present=0, missing=0, drifted=0, warnings=0, errors=0
-    )
+    return SurfaceSummary(surfaces=0, present=0, missing=0, drifted=0, warnings=0, errors=0)
 
 
 def _empty_report(surfaces: tuple[SurfaceStatus, ...] = ()) -> SurfaceReport:
@@ -244,9 +242,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert len(summary.created) == 1
         assert summary.created[0] == Path("/proj/m.md")
@@ -284,9 +280,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.created == []
         assert recorder.received == []
@@ -297,11 +291,7 @@ class TestRunSurfaceRepairRules:
         missing = SurfaceStatus(
             instance=SurfaceInstance(
                 definition=profile_def,
-                path=Path.home()
-                / ".aws"
-                / "amazonq"
-                / "cli-agents"
-                / "analyst-alex.json",
+                path=Path.home() / ".aws" / "amazonq" / "cli-agents" / "analyst-alex.json",
                 exists=False,
                 file_hash=None,
                 owner="q",
@@ -312,9 +302,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.created == []
         assert recorder.received == []
@@ -326,9 +314,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.repaired == [Path("/proj/s.md")]
         assert summary.created == []
@@ -345,9 +331,7 @@ class TestRunSurfaceRepairRules:
             _patch_surface_layer(report, recorder),
             patch("builtins.input", return_value="y"),
         ):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.drifted_overwritten == [Path("/proj/d.md")]
         assert summary.drifted_reported == []
@@ -362,9 +346,7 @@ class TestRunSurfaceRepairRules:
             _patch_surface_layer(report, recorder),
             patch("builtins.input", return_value="N"),
         ):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.drifted_reported == [Path("/proj/d.md")]
         assert summary.drifted_overwritten == []
@@ -379,9 +361,7 @@ class TestRunSurfaceRepairRules:
 
         with _patch_surface_layer(report, recorder):
             # Simulate --yes: interactive=False, repair_drift=False
-            summary = run_surface_repair(
-                Path("/proj"), interactive=False, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=False, repair_drift=False)
 
         assert summary.drifted_reported == [Path("/proj/d.md")]
         assert summary.drifted_overwritten == []
@@ -394,9 +374,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=False, repair_drift=True
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=False, repair_drift=True)
 
         assert summary.drifted_overwritten == [Path("/proj/d.md")]
         assert summary.drifted_reported == []
@@ -409,9 +387,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.skipped == [Path("/proj/na.md")]
         assert recorder.received == []
@@ -424,9 +400,7 @@ class TestRunSurfaceRepairRules:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
 
         assert summary.created == []
         assert summary.repaired == []
@@ -444,9 +418,7 @@ class TestRunSurfaceRepairEdgeCases:
             "specify_cli.core.agent_config.get_configured_agents",
             return_value=[],
         ):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
         assert summary == DriftPolicySummary()
 
     def test_get_configured_agents_exception_falls_back(self) -> None:
@@ -462,9 +434,7 @@ class TestRunSurfaceRepairEdgeCases:
             ),
         ):
             # Should not raise; returns empty summary (no surfaces in report)
-            summary = run_surface_repair(
-                Path("/proj"), interactive=True, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=True, repair_drift=False)
         # If fallback tools are used, we may get an empty or non-empty summary
         # depending on mock. The critical invariant: no exception raised.
         assert isinstance(summary, DriftPolicySummary)
@@ -480,9 +450,7 @@ class TestRunSurfaceRepairEdgeCases:
 
         with _patch_surface_layer(report, recorder):
             # Non-interactive: drifted goes to reported, not overwritten
-            summary = run_surface_repair(
-                Path("/proj"), interactive=False, repair_drift=False
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=False, repair_drift=False)
 
         assert len(summary.created) == 1
         assert len(summary.repaired) == 1
@@ -497,9 +465,7 @@ class TestRunSurfaceRepairEdgeCases:
         recorder = _RepairRecorder()
 
         with _patch_surface_layer(report, recorder):
-            summary = run_surface_repair(
-                Path("/proj"), interactive=False, repair_drift=True
-            )
+            summary = run_surface_repair(Path("/proj"), interactive=False, repair_drift=True)
 
         assert summary.drifted_overwritten == [Path("/proj/d.md")]
 
@@ -530,9 +496,7 @@ class TestDriftPolicyViaCli:
     def _init(root: Path) -> None:
         from .integration._compat_support import run_spec_kitty
 
-        result = run_spec_kitty(
-            "init", "--ai", "claude", "--non-interactive", cwd=root
-        )
+        result = run_spec_kitty("init", "--ai", "claude", "--non-interactive", cwd=root)
         assert result.returncode == 0, result.stderr
 
     def test_rule1_missing_created_via_upgrade(self, tmp_path: Path) -> None:
@@ -565,9 +529,7 @@ class TestDriftPolicyViaCli:
 
         result = run_spec_kitty("upgrade", "--yes", cwd=tmp_path)
         assert result.returncode != 0, "--yes must exit non-zero on unresolved drift"
-        assert target.read_text(encoding="utf-8") == custom, (
-            "drifted file must be preserved verbatim under --yes"
-        )
+        assert target.read_text(encoding="utf-8") == custom, "drifted file must be preserved verbatim under --yes"
 
     def test_rule4_drifted_reported_only_under_yes_json(
         self,
@@ -585,9 +547,7 @@ class TestDriftPolicyViaCli:
         target.write_text(custom, encoding="utf-8")
 
         result = run_spec_kitty("upgrade", "--yes", "--json", cwd=tmp_path)
-        assert result.returncode != 0, (
-            "--yes --json must exit non-zero on unresolved drift"
-        )
+        assert result.returncode != 0, "--yes --json must exit non-zero on unresolved drift"
         payload = result.json()
         assert payload["status"] == "failed"
         assert payload["success"] is False
@@ -595,9 +555,7 @@ class TestDriftPolicyViaCli:
         assert "Unresolved tool-surface drift" in payload["errors"][0]
         drifted = payload["surface_repair"]["drifted_reported"]
         assert any(Path(path).name == target.name for path in drifted)
-        assert target.read_text(encoding="utf-8") == custom, (
-            "drifted file must be preserved verbatim under --yes --json"
-        )
+        assert target.read_text(encoding="utf-8") == custom, "drifted file must be preserved verbatim under --yes --json"
 
 
 class TestPromptOverwrite:
@@ -630,9 +588,7 @@ class TestRenderSurfaceSummaryLines:
     """
 
     def test_skipped_line_shows_count_not_list_repr(self) -> None:
-        summary = DriftPolicySummary(
-            skipped=[Path("/a/b.md"), Path("/c/d.md"), Path("/e/f.md")]
-        )
+        summary = DriftPolicySummary(skipped=[Path("/a/b.md"), Path("/c/d.md"), Path("/e/f.md")])
         lines = render_surface_summary_lines(summary)
         assert lines == ["  3 surface(s) not applicable, skipped."]
         # The raw Path repr must never leak into the rendered text.
@@ -656,7 +612,6 @@ class TestRenderSurfaceSummaryLines:
             "[dim]Created 1 tool surface(s)[/dim]",
             "[dim]Repaired 2 stale tool surface(s)[/dim]",
             "[dim]Overwrote 1 drifted tool surface(s)[/dim]",
-            "[dim]Note: 3 tool surface(s) have local edits "
-            "— run 'spec-kitty doctor tool-surfaces' to review[/dim]",
+            "[dim]Note: 3 tool surface(s) have local edits — run 'spec-kitty doctor tool-surfaces' to review[/dim]",
             "  1 surface(s) not applicable, skipped.",
         ]

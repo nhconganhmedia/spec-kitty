@@ -188,9 +188,7 @@ def _build_accept_ready_mission(repo: Path) -> Path:
     _drive_claimed_through_approved(repo, _SLUG, "WP01")
 
     _git(repo, "add", "-A")
-    diff_check = subprocess.run(
-        ["git", "-C", str(repo), "diff", "--cached", "--quiet"], capture_output=True
-    )
+    diff_check = subprocess.run(["git", "-C", str(repo), "diff", "--cached", "--quiet"], capture_output=True)
     if diff_check.returncode != 0:
         _git(repo, "commit", "-q", "-m", f"chore({_SLUG}): WP01 runtime bookkeeping residue")
 
@@ -221,16 +219,12 @@ def _run_accept(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 def _assert_cut_over(feature_dir: Path) -> None:
     """The data-model.md ``status_phase``/event-log slice of "cut over"."""
     meta = _read_meta(feature_dir)
-    assert meta.get("status_phase") == "1", (
-        f"expected status_phase == '1' post-stamp, got {meta.get('status_phase')!r}"
-    )
+    assert meta.get("status_phase") == "1", f"expected status_phase == '1' post-stamp, got {meta.get('status_phase')!r}"
     events_text = _read_events(feature_dir)
     assert events_text.strip(), "expected a non-empty status.events.jsonl post-stamp"
 
 
-def test_squash_merge_after_accept_lands_cut_over_corpus(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_squash_merge_after_accept_lands_cut_over_corpus(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """US1: accept stamps + commits the cutover on the mission branch; a plain
     ``git merge --squash`` (NO ``spec-kitty merge`` anywhere) into a fresh
     target branch lands an already-cut-over corpus, with no post-merge step.
@@ -262,8 +256,7 @@ def test_squash_merge_after_accept_lands_cut_over_corpus(
     # exactly what the squash commit landed.
     _assert_cut_over(feature_dir)
     assert _read_events(feature_dir) == mission_branch_events, (
-        "the squash-merged target branch's event log must be byte-identical "
-        "to what accept already stamped on the mission branch"
+        "the squash-merged target branch's event log must be byte-identical to what accept already stamped on the mission branch"
     )
 
 
@@ -276,8 +269,7 @@ def test_accept_stamp_idempotent_rerun_is_byte_identical(tmp_path: Path) -> None
 
     first = stamp_accept_cutover(feature_dir)
     assert first.flipped and first.seeded_count > 0, (
-        "precondition: the legacy fixture must actually seed real events, or "
-        "this test proves nothing about idempotency"
+        "precondition: the legacy fixture must actually seed real events, or this test proves nothing about idempotency"
     )
     events_after_first = _read_events(feature_dir)
     meta_after_first = (feature_dir / "meta.json").read_text(encoding="utf-8")
@@ -286,9 +278,7 @@ def test_accept_stamp_idempotent_rerun_is_byte_identical(tmp_path: Path) -> None
 
     assert second.seeded_count == 0, "resume/idempotent re-run must seed nothing new"
     assert second.error is None
-    assert _read_events(feature_dir) == events_after_first, (
-        "a second stamp over an already-cut-over mission must be byte-stable"
-    )
+    assert _read_events(feature_dir) == events_after_first, "a second stamp over an already-cut-over mission must be byte-stable"
     assert (feature_dir / "meta.json").read_text(encoding="utf-8") == meta_after_first
 
 
@@ -305,14 +295,7 @@ def test_accept_stamp_fails_closed_when_mission_id_absent(tmp_path: Path) -> Non
         encoding="utf-8",
     )
     (tasks_dir / "WP01-work.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: WP01 legacy work\n"
-        "agent: implementer-ivan\n"
-        'shell_pid: "4242"\n'
-        'shell_pid_created_at: "1735689600.0"\n'
-        "---\n"
-        "# WP01\n",
+        '---\nwork_package_id: WP01\ntitle: WP01 legacy work\nagent: implementer-ivan\nshell_pid: "4242"\nshell_pid_created_at: "1735689600.0"\n---\n# WP01\n',
         encoding="utf-8",
     )
     (feature_dir / "tasks.md").write_text(
@@ -323,10 +306,6 @@ def test_accept_stamp_fails_closed_when_mission_id_absent(tmp_path: Path) -> Non
     with pytest.raises(MissingMissionIdError):
         stamp_accept_cutover(feature_dir)
 
-    assert not (feature_dir / "status.events.jsonl").exists(), (
-        "fail-closed on absent mission_id must write NO seed events"
-    )
+    assert not (feature_dir / "status.events.jsonl").exists(), "fail-closed on absent mission_id must write NO seed events"
     meta_after = json.loads((feature_dir / "meta.json").read_text(encoding="utf-8"))
-    assert meta_after.get("status_phase") is None, (
-        "fail-closed on absent mission_id must never flip status_phase"
-    )
+    assert meta_after.get("status_phase") is None, "fail-closed on absent mission_id must never flip status_phase"

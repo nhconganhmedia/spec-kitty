@@ -17,6 +17,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit]
 
+
 def _meta() -> MissionMeta:
     return MissionMeta(key="demo", name="Demo", version="1.0.0")
 

@@ -113,10 +113,7 @@ def test_ambiguous_mid8_does_not_resolve_to_a_directory(tmp_path: Path) -> None:
     except MissionSelectorAmbiguous:
         resolved = None
 
-    assert resolved is None, (
-        "ambiguous mid8 must not resolve to a MissionStatus pointing at "
-        f"{dir_a} or {dir_b} (FR-008 no silent first-match)"
-    )
+    assert resolved is None, f"ambiguous mid8 must not resolve to a MissionStatus pointing at {dir_a} or {dir_b} (FR-008 no silent first-match)"
 
 
 def test_find_meta_path_propagates_ambiguous_selector(tmp_path: Path) -> None:
@@ -160,8 +157,7 @@ def test_create_window_no_coord_resolves_primary(tmp_path: Path) -> None:
     ms = MissionStatus.load(repo_root=tmp_path, mission_slug=SLUG_WITH_MID8)
 
     assert ms.read_dir.resolve() == primary_dir.resolve(), (
-        "create→first-write window must resolve to the primary checkout, not a "
-        "coord path or a hard-fail (WP04 T016)"
+        "create→first-write window must resolve to the primary checkout, not a coord path or a hard-fail (WP04 T016)"
     )
     assert ms.topology == "legacy"
     assert ms.mission_id == MISSION_ID
@@ -234,9 +230,7 @@ def test_missing_mission_dir_resolves_primary_via_on_missing_meta(
     assert ms.mid8 == ""
 
 
-def test_coord_empty_resolves_primary_with_warning(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_coord_empty_resolves_primary_with_warning(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """coord-empty (materialised coord worktree, no mission dir) → PRIMARY (Option B).
 
     Inverted by mission 01KVN754 WP04 (out-of-map linearized edit: this file is
@@ -268,17 +262,13 @@ def test_coord_empty_resolves_primary_with_warning(
     coord_root = CoordinationWorkspace.worktree_path(tmp_path, SLUG_WITH_MID8, MID8)
     coord_root.mkdir(parents=True)
 
-    with caplog.at_level(
-        logging.WARNING, logger="specify_cli.coordination.surface_resolver"
-    ):
+    with caplog.at_level(logging.WARNING, logger="specify_cli.coordination.surface_resolver"):
         ms = MissionStatus.load(repo_root=tmp_path, mission_slug=SLUG_WITH_MID8)
 
     assert ms.read_dir.resolve() == primary_dir.resolve()
-    assert any(
-        r.name == "specify_cli.coordination.surface_resolver"
-        and r.levelno == logging.WARNING
-        for r in caplog.records
-    ), "coord-empty Option B must emit a logging.WARNING (no silent fallback)"
+    assert any(r.name == "specify_cli.coordination.surface_resolver" and r.levelno == logging.WARNING for r in caplog.records), (
+        "coord-empty Option B must emit a logging.WARNING (no silent fallback)"
+    )
 
 
 def test_unmaterialized_coord_create_window_resolves_primary(tmp_path: Path) -> None:
@@ -319,8 +309,7 @@ def test_unmaterialized_coord_create_window_resolves_primary(tmp_path: Path) -> 
     ms = MissionStatus.load(repo_root=tmp_path, mission_slug=SLUG_WITH_MID8)
 
     assert ms.read_dir.resolve() == primary_dir.resolve(), (
-        "declared-but-unmaterialised coord must keep the primary checkout "
-        "authoritative until the worktree exists (create→first-write window)"
+        "declared-but-unmaterialised coord must keep the primary checkout authoritative until the worktree exists (create→first-write window)"
     )
 
 
@@ -413,8 +402,6 @@ def test_coord_deleted_hard_fails_with_coordination_branch_deleted(
 # ---------------------------------------------------------------------------
 
 
-
-
 # ---------------------------------------------------------------------------
 # WP01 raw-bypass — save() diagnostic path routes through the blessed
 # path-constructor (no raw ``repo_root / KITTY_SPECS_DIR / <slug>`` even on
@@ -439,9 +426,7 @@ def test_save_without_identity_raises_via_blessed_path_constructor(
     path here (or dropping the guard) makes the payload diverge or the call not
     raise → this test fails.
     """
-    expected_primary = placement_seam(tmp_path, MISSION_SLUG).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    expected_primary = placement_seam(tmp_path, MISSION_SLUG).read_dir(MissionArtifactKind.PRIMARY_METADATA)
 
     aggregate = MissionStatus(
         mission_slug=MISSION_SLUG,
@@ -473,9 +458,7 @@ def test_save_with_blank_mid8_raises_via_blessed_path_constructor(
     blessed-path diagnostic branch. Covering this second disjunct arm keeps the
     guard from silently narrowing to ``mission_id is None`` alone.
     """
-    expected_primary = placement_seam(tmp_path, MISSION_SLUG).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    expected_primary = placement_seam(tmp_path, MISSION_SLUG).read_dir(MissionArtifactKind.PRIMARY_METADATA)
 
     aggregate = MissionStatus(
         mission_slug=MISSION_SLUG,

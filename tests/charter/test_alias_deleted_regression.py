@@ -93,7 +93,5 @@ def test_no_test_fixture_still_imports_legacy_alias() -> None:
                 violations.append(f"{py_file.relative_to(_TESTS_CHARTER_DIR)}:{lineno}: {line.strip()}")
 
     assert not violations, (
-        "Found lingering resolve_governance alias usage(s) in tests/charter/ — "
-        "migrate each call-site to resolve_project_governance:\n"
-        + "\n".join(violations)
+        "Found lingering resolve_governance alias usage(s) in tests/charter/ — migrate each call-site to resolve_project_governance:\n" + "\n".join(violations)
     )

@@ -24,6 +24,7 @@ Git/mission scaffolding is reused verbatim from ``test_placement_partition_
 golden_path`` (do NOT duplicate the git primitives), mirroring
 ``tests/mission_runtime/test_coord_read_seam.py``.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -92,9 +93,7 @@ def test_every_surface_member_translates_to_a_real_location(tmp_path: Path) -> N
         assert resolved == expected[member]
         assert resolved.exists()
     # Non-vacuity: the members mapped to DISTINCT locations, not one shared dir.
-    assert len({expected[member] for member in TopologySurface}) == len(
-        list(TopologySurface)
-    )
+    assert len({expected[member] for member in TopologySurface}) == len(list(TopologySurface))
 
 
 def test_planned_members_are_declared_not_phantom(tmp_path: Path) -> None:
@@ -136,9 +135,7 @@ def test_materialized_coord_resolves_coord_and_stamps_coord(tmp_path: Path) -> N
     coord_dir.mkdir(parents=True, exist_ok=True)
     (coord_dir / "issue-matrix.md").write_text("# issues\n", encoding="utf-8")
 
-    resolved = resolve_artifact_surface(
-        repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX
-    )
+    resolved = resolve_artifact_surface(repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX)
     assert isinstance(resolved, ResolvedSurface)
     assert resolved.surface_kind is TopologySurface.COORD
     assert resolved.path.resolve() == coord_dir.resolve()
@@ -153,9 +150,7 @@ def test_empty_coord_resolves_primary_and_stamps_primary(tmp_path: Path) -> None
     # Materialise the coord root but leave its mission dir absent → EMPTY.
     _materialize_coord_worktree(repo, result)
 
-    resolved = resolve_artifact_surface(
-        repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX
-    )
+    resolved = resolve_artifact_surface(repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX)
     assert resolved.surface_kind is TopologySurface.PRIMARY
     assert resolved.path.resolve() == result.feature_dir.resolve()
 
@@ -168,9 +163,7 @@ def test_unmaterialized_coord_resolves_primary_and_stamps_primary(
     result = _create_mission(repo, "seam-unmaterialized", MissionTopology.COORD)
     # Do NOT materialise the coord worktree → coord root absent, branch present.
 
-    resolved = resolve_artifact_surface(
-        repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX
-    )
+    resolved = resolve_artifact_surface(repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX)
     assert resolved.surface_kind is TopologySurface.PRIMARY
     assert resolved.path.resolve() == result.feature_dir.resolve()
 
@@ -188,9 +181,7 @@ def test_deleted_coord_branch_raises_fail_loud(tmp_path: Path) -> None:
     )
 
     with pytest.raises(CoordinationBranchDeleted) as exc_info:
-        resolve_artifact_surface(
-            repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX
-        )
+        resolve_artifact_surface(repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX)
     assert exc_info.value.error_code == "COORDINATION_BRANCH_DELETED"
 
 
@@ -199,9 +190,7 @@ def test_flat_topology_resolves_primary_affirmatively(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
     result = _create_mission(repo, "seam-flat", MissionTopology.SINGLE_BRANCH)
 
-    resolved = resolve_artifact_surface(
-        repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX
-    )
+    resolved = resolve_artifact_surface(repo, result.mission_slug, MissionArtifactKind.ISSUE_MATRIX)
     assert resolved.surface_kind is TopologySurface.PRIMARY
     assert resolved.path.resolve() == result.feature_dir.resolve()
 
@@ -218,9 +207,7 @@ def test_primary_kind_ignores_deleted_coord_branch(tmp_path: Path) -> None:
         check=True,
     )
 
-    resolved = resolve_artifact_surface(
-        repo, result.mission_slug, MissionArtifactKind.SPEC
-    )
+    resolved = resolve_artifact_surface(repo, result.mission_slug, MissionArtifactKind.SPEC)
     assert resolved.surface_kind is TopologySurface.PRIMARY
     assert resolved.path.resolve() == result.feature_dir.resolve()
 

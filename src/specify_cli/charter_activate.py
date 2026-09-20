@@ -245,12 +245,7 @@ def emit_step_removal_warnings(
     for warning in warnings:
         if not warning.affected_missions:
             continue
-        console.print(
-            f"[yellow]⚠ Step '{warning.removed_step_id}' removed by mission-type override.[/yellow]"
-        )
+        console.print(f"[yellow]⚠ Step '{warning.removed_step_id}' removed by mission-type override.[/yellow]")
         console.print("  Affected missions:")
         for mission in warning.affected_missions:
-            console.print(
-                f"  - {mission.mission_slug} "
-                f"({mission.wp_id}, currently in lane '{mission.current_lane}')"
-            )
+            console.print(f"  - {mission.mission_slug} ({mission.wp_id}, currently in lane '{mission.current_lane}')")

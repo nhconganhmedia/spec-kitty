@@ -87,9 +87,7 @@ def _bootstrap(tmp_path: Path) -> tuple[Path, Path]:
     )
 
     coord_dir_name = f"{_SLUG}-{mid8}"
-    coord_specs = (
-        tmp_path / ".worktrees" / f"{coord_dir_name}-coord" / "kitty-specs" / coord_dir_name
-    )
+    coord_specs = tmp_path / ".worktrees" / f"{coord_dir_name}-coord" / "kitty-specs" / coord_dir_name
     coord_specs.mkdir(parents=True)
     return primary_dir, coord_specs
 
@@ -119,10 +117,7 @@ def test_projection_unions_target_newer_event_and_rematerializes_snapshot(
 
     coord_events_text = (coord_specs / "status.events.jsonl").read_text(encoding="utf-8")
     target_events_text = (primary_dir / "status.events.jsonl").read_text(encoding="utf-8")
-    assert "WP02" in target_events_text, (
-        "fixture precondition: the target-newer WP02 event must be on the primary "
-        "checkout before the projection"
-    )
+    assert "WP02" in target_events_text, "fixture precondition: the target-newer WP02 event must be on the primary checkout before the projection"
 
     target_events_path, target_status_path = _project_status_bookkeeping_to_target(
         main_repo=tmp_path,
@@ -133,17 +128,13 @@ def test_projection_unions_target_newer_event_and_rematerializes_snapshot(
     merged_events = target_events_path.read_text(encoding="utf-8")
     # --- Contract assertion #1 (union): the target-newer event survives. ---
     assert "WP02" in merged_events, (
-        "#2709 FR-005 regression: the coord->target projection blind-overwrote the "
-        "target event log with the coord copy, dropping the target-newer WP02 event."
+        "#2709 FR-005 regression: the coord->target projection blind-overwrote the target event log with the coord copy, dropping the target-newer WP02 event."
     )
     assert "WP01" in merged_events, "coord-side WP01 event must also survive the union"
 
     # --- Contract assertion #2: status.json == reduce(union events). ---
     expected_events_text = merge_event_log_texts(coord_events_text, target_events_text)
-    expected_snapshot = materialize_to_json(
-        reduce(read_events_from_text(primary_dir, expected_events_text))
-    )
+    expected_snapshot = materialize_to_json(reduce(read_events_from_text(primary_dir, expected_events_text)))
     assert target_status_path.read_text(encoding="utf-8") == expected_snapshot, (
-        "#2709 FR-005 regression: status.json was not rematerialized from the "
-        "unioned event log (reduce(union)); it contradicts the merged log."
+        "#2709 FR-005 regression: status.json was not rematerialized from the unioned event log (reduce(union)); it contradicts the merged log."
     )

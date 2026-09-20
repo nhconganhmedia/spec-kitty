@@ -27,9 +27,7 @@ class TestMissionBranchNameRequiredResolves:
 
     def test_mid8_era_with_mission_id(self):
         # Modern mission: mission_id present → mid8-era branch.
-        branch = mission_branch_name_required(
-            "083-my-feature", "01KNXQS9ATWWFXS3K5ZJ9E5008"
-        )
+        branch = mission_branch_name_required("083-my-feature", "01KNXQS9ATWWFXS3K5ZJ9E5008")
         assert branch == "kitty/mission-my-feature-01KNXQS9"
 
     def test_legacy_nnn_slug_without_mission_id(self):
@@ -46,9 +44,7 @@ class TestMissionBranchNameRequiredResolves:
     def test_mission_id_takes_precedence_over_legacy_prefix(self):
         # A legacy-shaped slug WITH a mission_id still produces a mid8 branch
         # (the numeric prefix is stripped, mid8 appended).
-        branch = mission_branch_name_required(
-            "057-my-feature", "01KNXQS9ATWWFXS3K5ZJ9E5008"
-        )
+        branch = mission_branch_name_required("057-my-feature", "01KNXQS9ATWWFXS3K5ZJ9E5008")
         assert branch == "kitty/mission-my-feature-01KNXQS9"
 
 
@@ -107,10 +103,7 @@ class TestResolveTransactionMid8DualEra:
             == ""
         )
         # Cross-check the sibling resolves the same legacy handle (no raise).
-        assert (
-            mission_branch_name_required("083-legacy-feature", None)
-            == "kitty/mission-083-legacy-feature"
-        )
+        assert mission_branch_name_required("083-legacy-feature", None) == "kitty/mission-083-legacy-feature"
 
     def test_legacy_nnn_slug_no_coord_branch_resolves(self):
         # Legacy slug, no coordination topology → bare-slug surface (unchanged).

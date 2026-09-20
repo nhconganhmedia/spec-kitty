@@ -59,9 +59,7 @@ def _write_mission_dir(base: Path, *, coordination: bool) -> Path:
         meta["coordination_branch"] = f"kitty/mission-{_SLUG}"
     (feature_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
     (feature_dir / "spec.md").write_text(
-        "# Spec\n## Functional Requirements\n"
-        "| ID | Requirement | Acceptance | Status |\n| - | - | - | - |\n"
-        "| FR-001 | x | y | proposed |\n",
+        "# Spec\n## Functional Requirements\n| ID | Requirement | Acceptance | Status |\n| - | - | - | - |\n| FR-001 | x | y | proposed |\n",
         encoding="utf-8",
     )
     (feature_dir / "tasks.md").write_text("## WP01\n**Requirement Refs**: FR-001\n", encoding="utf-8")

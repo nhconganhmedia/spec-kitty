@@ -68,9 +68,7 @@ _CANONICAL_MODULE = (_SRC / "doctrine" / "drg" / "migration" / "extractor.py").r
 #: All five of ``DRGGraph``'s declared fields (``src/charter/offering/drg/models.py``).
 #: See the module docstring's "Precision-vs-recall scoping note" for why this
 #: is the full 5-key set rather than a 3-key subset.
-_DOCUMENT_KEYS: frozenset[str] = frozenset(
-    {"schema_version", "generated_at", "generated_by", "nodes", "edges"}
-)
+_DOCUMENT_KEYS: frozenset[str] = frozenset({"schema_version", "generated_at", "generated_by", "nodes", "edges"})
 
 
 # ---------------------------------------------------------------------------
@@ -165,11 +163,7 @@ def _is_excluded(path: Path, qualname: str | None, module_dotted: str, registere
 
 def _dict_literal_keys(node: ast.Dict) -> set[str]:
     """Literal string keys of *node*; dynamic/spread keys are ignored (not restatements)."""
-    return {
-        key.value
-        for key in node.keys
-        if isinstance(key, ast.Constant) and isinstance(key.value, str)
-    }
+    return {key.value for key in node.keys if isinstance(key, ast.Constant) and isinstance(key.value, str)}
 
 
 def find_dict_literal_document_emitters(
@@ -198,9 +192,7 @@ def find_dict_literal_document_emitters(
             if _is_excluded(path, qualname, module_dotted, registered):
                 continue
             offenders.append(
-                f"{path}:{node.lineno}: dict literal restates DRGGraph's document "
-                f"keys {sorted(_DOCUMENT_KEYS)} instead of delegating to "
-                "graph_document_to_dict"
+                f"{path}:{node.lineno}: dict literal restates DRGGraph's document keys {sorted(_DOCUMENT_KEYS)} instead of delegating to graph_document_to_dict"
             )
     return offenders
 
@@ -211,11 +203,7 @@ def find_dict_literal_document_emitters(
 
 
 def _is_model_dump_call(expr: ast.expr) -> bool:
-    return (
-        isinstance(expr, ast.Call)
-        and isinstance(expr.func, ast.Attribute)
-        and expr.func.attr == "model_dump"
-    )
+    return isinstance(expr, ast.Call) and isinstance(expr.func, ast.Attribute) and expr.func.attr == "model_dump"
 
 
 def _comprehension_looks_node_or_edge_shaped(comp: ast.comprehension) -> bool:
@@ -258,17 +246,13 @@ def find_model_dump_document_emitters(
                 continue
             if not _is_model_dump_call(node.elt):
                 continue
-            if not any(
-                _comprehension_looks_node_or_edge_shaped(gen) for gen in node.generators
-            ):
+            if not any(_comprehension_looks_node_or_edge_shaped(gen) for gen in node.generators):
                 continue
             qualname = _enclosing_qualname(node, parents.parents)
             if _is_excluded(path, qualname, module_dotted, registered):
                 continue
             offenders.append(
-                f"{path}:{node.lineno}: raw .model_dump() comprehension over a "
-                "node/edge-shaped collection instead of delegating through "
-                "model_to_graph_dict"
+                f"{path}:{node.lineno}: raw .model_dump() comprehension over a node/edge-shaped collection instead of delegating through model_to_graph_dict"
             )
     return offenders
 
@@ -283,9 +267,7 @@ def test_dict_literal_gate_is_green_against_the_real_src_tree(
 ) -> None:
     """A1: after T020/T021, no ``src/`` site hand-restates the document dict."""
     sources = [(path, sf.tree) for path, sf in src_source_tree.items()]  # type: ignore[attr-defined]
-    offenders = find_dict_literal_document_emitters(
-        sources, module_root=_SRC, registered=registered_writer_qualnames()
-    )
+    offenders = find_dict_literal_document_emitters(sources, module_root=_SRC, registered=registered_writer_qualnames())
     assert offenders == [], (
         "graph-document dict-literal bypass(es) found -- route through "
         "graph_document_to_dict and register the site as a DocumentWriter in "
@@ -298,9 +280,7 @@ def test_model_dump_gate_is_green_against_the_real_src_tree(
 ) -> None:
     """A1: after T020/T021, no ``src/`` site raw-``model_dump()``s a node/edge collection."""
     sources = [(path, sf.tree) for path, sf in src_source_tree.items()]  # type: ignore[attr-defined]
-    offenders = find_model_dump_document_emitters(
-        sources, module_root=_SRC, registered=registered_writer_qualnames()
-    )
+    offenders = find_model_dump_document_emitters(sources, module_root=_SRC, registered=registered_writer_qualnames())
     assert offenders == [], (
         "raw .model_dump() graph-document bypass(es) found -- route through "
         "graph_document_to_dict/model_to_graph_dict and register the site as "
@@ -367,22 +347,15 @@ def _write_fixture_tree(tmp_path: Path, filename: str, content: str) -> Path:
 def test_self_mutation_dict_literal_writer_reds_independently(tmp_path: Path) -> None:
     """NFR-006/A2 (a): an unregistered shape-(i) writer reds -- and ONLY via
     the dict-literal detector, proving the two detectors are independent."""
-    fixture_root = _write_fixture_tree(
-        tmp_path, "unregistered_document_writer.py", _UNREGISTERED_DICT_LITERAL_FIXTURE
-    )
+    fixture_root = _write_fixture_tree(tmp_path, "unregistered_document_writer.py", _UNREGISTERED_DICT_LITERAL_FIXTURE)
     sources = _iter_python_sources(fixture_root)
 
-    dict_offenders = find_dict_literal_document_emitters(
-        sources, module_root=fixture_root, registered=frozenset()
-    )
+    dict_offenders = find_dict_literal_document_emitters(sources, module_root=fixture_root, registered=frozenset())
     assert dict_offenders, "shape (i) fixture did not red the dict-literal detector"
 
-    model_dump_offenders = find_model_dump_document_emitters(
-        sources, module_root=fixture_root, registered=frozenset()
-    )
+    model_dump_offenders = find_model_dump_document_emitters(sources, module_root=fixture_root, registered=frozenset())
     assert not model_dump_offenders, (
-        "shape (i) fixture unexpectedly tripped the model_dump detector too -- "
-        f"the two detectors are not independent: {model_dump_offenders}"
+        f"shape (i) fixture unexpectedly tripped the model_dump detector too -- the two detectors are not independent: {model_dump_offenders}"
     )
 
 
@@ -394,23 +367,14 @@ def test_self_mutation_model_dump_writer_reds_independently(tmp_path: Path) -> N
     #3075) -- D-M5 requires this fixture to be proven separately from shape
     (i), not merely implied by it.
     """
-    fixture_root = _write_fixture_tree(
-        tmp_path, "unregistered_pack_writer.py", _UNREGISTERED_MODEL_DUMP_FIXTURE
-    )
+    fixture_root = _write_fixture_tree(tmp_path, "unregistered_pack_writer.py", _UNREGISTERED_MODEL_DUMP_FIXTURE)
     sources = _iter_python_sources(fixture_root)
 
-    model_dump_offenders = find_model_dump_document_emitters(
-        sources, module_root=fixture_root, registered=frozenset()
-    )
+    model_dump_offenders = find_model_dump_document_emitters(sources, module_root=fixture_root, registered=frozenset())
     assert model_dump_offenders, "shape (ii) fixture did not red the model_dump detector"
 
-    dict_offenders = find_dict_literal_document_emitters(
-        sources, module_root=fixture_root, registered=frozenset()
-    )
-    assert not dict_offenders, (
-        "shape (ii) fixture unexpectedly tripped the dict-literal detector too -- "
-        f"the two detectors are not independent: {dict_offenders}"
-    )
+    dict_offenders = find_dict_literal_document_emitters(sources, module_root=fixture_root, registered=frozenset())
+    assert not dict_offenders, f"shape (ii) fixture unexpectedly tripped the dict-literal detector too -- the two detectors are not independent: {dict_offenders}"
 
 
 def test_self_mutation_writers_green_once_delegating(tmp_path: Path) -> None:
@@ -429,9 +393,5 @@ def good_write_graph(graph):
     fixture_root = _write_fixture_tree(tmp_path, "fixed_document_writer.py", fixed_source)
     sources = _iter_python_sources(fixture_root)
 
-    assert not find_dict_literal_document_emitters(
-        sources, module_root=fixture_root, registered=frozenset()
-    )
-    assert not find_model_dump_document_emitters(
-        sources, module_root=fixture_root, registered=frozenset()
-    )
+    assert not find_dict_literal_document_emitters(sources, module_root=fixture_root, registered=frozenset())
+    assert not find_model_dump_document_emitters(sources, module_root=fixture_root, registered=frozenset())

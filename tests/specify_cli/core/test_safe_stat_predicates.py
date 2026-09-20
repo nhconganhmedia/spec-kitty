@@ -101,9 +101,7 @@ def test_safe_is_dir_false_when_a_path_segment_is_not_a_directory(tmp_path: Path
     "target_errno",
     [errno.ENOENT, errno.ENOTDIR, errno.EBADF, errno.ELOOP],
 )
-def test_safe_is_dir_swallows_every_absent_errno(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, target_errno: int
-) -> None:
+def test_safe_is_dir_swallows_every_absent_errno(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, target_errno: int) -> None:
     """Errno-mocked, interpreter-independent: pins the exact ``_ABSENT_ERRNOS`` set."""
 
     def _raise(self: Path) -> os.stat_result:  # type: ignore[no-untyped-def]
@@ -122,9 +120,7 @@ def test_safe_is_dir_swallows_every_absent_errno(
 # ---------------------------------------------------------------------------
 
 
-def test_safe_is_dir_raises_for_a_non_absent_errno(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_safe_is_dir_raises_for_a_non_absent_errno(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def _raise(self: Path) -> os.stat_result:  # type: ignore[no-untyped-def]
         raise PermissionError(errno.EACCES, "Permission denied")
 
@@ -135,9 +131,7 @@ def test_safe_is_dir_raises_for_a_non_absent_errno(
     assert excinfo.value.errno == errno.EACCES
 
 
-def test_safe_is_file_raises_for_a_non_absent_errno(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_safe_is_file_raises_for_a_non_absent_errno(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def _raise(self: Path) -> os.stat_result:  # type: ignore[no-untyped-def]
         raise PermissionError(errno.EACCES, "Permission denied")
 

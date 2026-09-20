@@ -97,13 +97,21 @@ class TestPolicyDefaults:
         """_default_source_map() covers every leaf key of RetrospectivePolicy."""
         sm = _default_source_map()
         expected = {
-            "enabled", "timing", "failure_policy", "write_record",
-            "generate_proposals", "apply_proposals",
-            "permissions.write_record", "permissions.inspect_mission_artifacts",
-            "permissions.propose_glossary_changes", "permissions.propose_drg_changes",
-            "permissions.propose_doctrine_changes", "permissions.apply_low_risk_changes",
+            "enabled",
+            "timing",
+            "failure_policy",
+            "write_record",
+            "generate_proposals",
+            "apply_proposals",
+            "permissions.write_record",
+            "permissions.inspect_mission_artifacts",
+            "permissions.propose_glossary_changes",
+            "permissions.propose_drg_changes",
+            "permissions.propose_doctrine_changes",
+            "permissions.apply_low_risk_changes",
             "permissions.apply_structural_changes",
-            "precedence", "generator",
+            "precedence",
+            "generator",
         }
         assert set(sm.keys()) == expected
 
@@ -172,9 +180,7 @@ class TestResolver:
 
     def test_config_only_overrides_permissions(self, tmp_path: Path) -> None:
         """Config sets a permission sub-field; source_map reflects it."""
-        write_config_with_retrospective(
-            tmp_path, {"permissions": {"apply_low_risk_changes": True}}
-        )
+        write_config_with_retrospective(tmp_path, {"permissions": {"apply_low_risk_changes": True}})
         policy, source_map = resolve_policy(tmp_path)
         assert policy.permissions.apply_low_risk_changes is True
         assert "permissions.apply_low_risk_changes" in source_map
@@ -220,13 +226,21 @@ class TestResolver:
         write_charter_with_retrospective(tmp_path, {"enabled": False})
         _, source_map = resolve_policy(tmp_path)
         required_keys = {
-            "enabled", "timing", "failure_policy", "write_record",
-            "generate_proposals", "apply_proposals",
-            "permissions.write_record", "permissions.inspect_mission_artifacts",
-            "permissions.propose_glossary_changes", "permissions.propose_drg_changes",
-            "permissions.propose_doctrine_changes", "permissions.apply_low_risk_changes",
+            "enabled",
+            "timing",
+            "failure_policy",
+            "write_record",
+            "generate_proposals",
+            "apply_proposals",
+            "permissions.write_record",
+            "permissions.inspect_mission_artifacts",
+            "permissions.propose_glossary_changes",
+            "permissions.propose_drg_changes",
+            "permissions.propose_doctrine_changes",
+            "permissions.apply_low_risk_changes",
             "permissions.apply_structural_changes",
-            "precedence", "generator",
+            "precedence",
+            "generator",
         }
         missing = required_keys - set(source_map.keys())
         assert not missing, f"source_map missing keys: {missing}"
@@ -247,23 +261,17 @@ class TestResolver:
 class TestPrecedenceDelegation:
     """Verify charter retrospective.precedence: config delegation semantics."""
 
-    def test_charter_explicit_field_preserved_under_config_precedence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_explicit_field_preserved_under_config_precedence(self, tmp_path: Path) -> None:
         """Charter says enabled=false + precedence=config; config says enabled=true.
         Charter's explicit enabled=false is preserved.
         """
-        write_charter_with_retrospective(
-            tmp_path, {"enabled": False, "precedence": "config"}
-        )
+        write_charter_with_retrospective(tmp_path, {"enabled": False, "precedence": "config"})
         write_config_with_retrospective(tmp_path, {"enabled": True})
         policy, source_map = resolve_policy(tmp_path)
         assert policy.enabled is False
         assert ".kittify/charter/charter.md" in source_map["enabled"]
 
-    def test_config_wins_for_unset_charter_field_under_config_precedence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_wins_for_unset_charter_field_under_config_precedence(self, tmp_path: Path) -> None:
         """Charter sets precedence=config but not failure_policy; config sets block.
         Config wins for the gap field.
         """
@@ -292,32 +300,22 @@ class TestPrecedenceDelegation:
         policy, _ = resolve_policy(tmp_path)
         assert policy.precedence == "config"
 
-    def test_config_fills_all_defaults_when_charter_sets_only_precedence(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_fills_all_defaults_when_charter_sets_only_precedence(self, tmp_path: Path) -> None:
         """Charter only sets precedence=config; config sets timing and failure_policy.
         Both config fields should win over defaults.
         """
         write_charter_with_retrospective(tmp_path, {"precedence": "config"})
-        write_config_with_retrospective(
-            tmp_path, {"timing": "before_completion", "failure_policy": "block"}
-        )
+        write_config_with_retrospective(tmp_path, {"timing": "before_completion", "failure_policy": "block"})
         policy, source_map = resolve_policy(tmp_path)
         assert policy.timing == "before_completion"
         assert policy.failure_policy == "block"
         assert ".kittify/config.yaml" in source_map["timing"]
         assert ".kittify/config.yaml" in source_map["failure_policy"]
 
-    def test_source_map_reflects_winning_source_per_field_under_delegation(
-        self, tmp_path: Path
-    ) -> None:
+    def test_source_map_reflects_winning_source_per_field_under_delegation(self, tmp_path: Path) -> None:
         """Under precedence=config, source_map accurately reflects winner per field."""
-        write_charter_with_retrospective(
-            tmp_path, {"enabled": False, "timing": "before_completion", "precedence": "config"}
-        )
-        write_config_with_retrospective(
-            tmp_path, {"failure_policy": "block", "timing": "post_completion"}
-        )
+        write_charter_with_retrospective(tmp_path, {"enabled": False, "timing": "before_completion", "precedence": "config"})
+        write_config_with_retrospective(tmp_path, {"failure_policy": "block", "timing": "post_completion"})
         policy, source_map = resolve_policy(tmp_path)
         # Charter set timing explicitly → charter wins
         assert policy.timing == "before_completion"
@@ -337,9 +335,7 @@ class TestMalformedInput:
 
     # --- Invalid YAML ---
 
-    def test_invalid_yaml_config_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_invalid_yaml_config_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """Config with invalid YAML raises PolicyResolutionError(reason='invalid_yaml')."""
         write_config(tmp_path, "retrospective:\n  timing: [\nunot closed")
         with pytest.raises(PolicyResolutionError) as exc_info:
@@ -356,9 +352,7 @@ class TestMalformedInput:
             resolve_policy(tmp_path)
         assert exc_info.value.detail  # non-empty
 
-    def test_invalid_yaml_charter_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_invalid_yaml_charter_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """Charter with invalid YAML frontmatter raises PolicyResolutionError."""
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
@@ -373,27 +367,21 @@ class TestMalformedInput:
 
     # --- Wrong type for retrospective block ---
 
-    def test_config_retrospective_not_dict_raises_invalid_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_retrospective_not_dict_raises_invalid_type(self, tmp_path: Path) -> None:
         """retrospective: 'not_a_dict' → reason='invalid_type_for_retrospective_block'."""
         write_config(tmp_path, "retrospective: not_a_dict\n")
         with pytest.raises(PolicyResolutionError) as exc_info:
             resolve_policy(tmp_path)
         assert exc_info.value.reason == "invalid_type_for_retrospective_block"
 
-    def test_config_retrospective_list_raises_invalid_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_retrospective_list_raises_invalid_type(self, tmp_path: Path) -> None:
         """retrospective: [list] → reason='invalid_type_for_retrospective_block'."""
         write_config(tmp_path, "retrospective:\n  - item\n  - item2\n")
         with pytest.raises(PolicyResolutionError) as exc_info:
             resolve_policy(tmp_path)
         assert exc_info.value.reason == "invalid_type_for_retrospective_block"
 
-    def test_charter_retrospective_not_dict_raises_invalid_type(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_retrospective_not_dict_raises_invalid_type(self, tmp_path: Path) -> None:
         """Charter retrospective: 42 → reason='invalid_type_for_retrospective_block'."""
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
@@ -407,9 +395,7 @@ class TestMalformedInput:
 
     # --- Invalid enum value ---
 
-    def test_invalid_enum_timing_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_invalid_enum_timing_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """retrospective.timing: foo → reason='invalid_enum' with helpful detail."""
         write_config_with_retrospective(tmp_path, {"timing": "foo"})
         with pytest.raises(PolicyResolutionError) as exc_info:
@@ -436,9 +422,7 @@ class TestMalformedInput:
 
     # --- Unknown keys ---
 
-    def test_unknown_key_strict_mode_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unknown_key_strict_mode_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """Unknown key with strict_keys=true → reason='unknown_key'."""
         write_config(
             tmp_path,
@@ -459,9 +443,7 @@ class TestMalformedInput:
         policy, source_map = resolve_policy(tmp_path)  # must NOT raise
         assert policy.timing == "post_completion"
 
-    def test_unknown_key_lenient_mode_known_fields_still_apply(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unknown_key_lenient_mode_known_fields_still_apply(self, tmp_path: Path) -> None:
         """Lenient mode: unknown keys are skipped but known keys are applied."""
         write_config(
             tmp_path,
@@ -490,9 +472,7 @@ class TestMalformedInput:
         err = PolicyResolutionError(source="x", reason="invalid_yaml", detail="msg")
         assert isinstance(err, Exception)
 
-    def test_resolver_does_not_raise_non_policy_resolution_errors(
-        self, tmp_path: Path
-    ) -> None:
+    def test_resolver_does_not_raise_non_policy_resolution_errors(self, tmp_path: Path) -> None:
         """Resolver never raises non-PolicyResolutionError exceptions."""
         # Valid config — should work without any error
         write_config_with_retrospective(tmp_path, {"enabled": True})
@@ -520,9 +500,7 @@ class TestMalformedInput:
     # missed these two sibling frontmatter readers with the identical defect
     # shape) ---
 
-    def test_non_utf8_charter_md_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_utf8_charter_md_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """Non-UTF-8 charter.md bytes must surface as PolicyResolutionError,
         not crash.
 
@@ -534,18 +512,14 @@ class TestMalformedInput:
         """
         charter_dir = tmp_path / ".kittify" / "charter"
         charter_dir.mkdir(parents=True)
-        (charter_dir / "charter.md").write_bytes(
-            b"---\nretrospective:\n  failure_policy: \xff\xfe warn\n---\n# body\n"
-        )
+        (charter_dir / "charter.md").write_bytes(b"---\nretrospective:\n  failure_policy: \xff\xfe warn\n---\n# body\n")
         with pytest.raises(PolicyResolutionError) as exc_info:
             resolve_policy(tmp_path)
         err = exc_info.value
         assert err.reason == "invalid_yaml"
         assert ".kittify/charter/charter.md" in err.source
 
-    def test_non_utf8_config_yaml_raises_policy_resolution_error(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_utf8_config_yaml_raises_policy_resolution_error(self, tmp_path: Path) -> None:
         """Non-UTF-8 config.yaml bytes must surface as PolicyResolutionError,
         not crash.
 
@@ -558,9 +532,7 @@ class TestMalformedInput:
         """
         config_dir = tmp_path / ".kittify"
         config_dir.mkdir(parents=True)
-        (config_dir / "config.yaml").write_bytes(
-            b"retrospective:\n  failure_policy: \xff\xfe warn\n"
-        )
+        (config_dir / "config.yaml").write_bytes(b"retrospective:\n  failure_policy: \xff\xfe warn\n")
         with pytest.raises(PolicyResolutionError) as exc_info:
             resolve_policy(tmp_path)
         err = exc_info.value
@@ -583,39 +555,27 @@ class TestEnvObservation:
     No ``monkeypatch.setenv`` or direct os.environ mutation is used here.
     """
 
-    def test_retro_env_set_and_no_charter_config_records_in_source_map(
-        self, tmp_path: Path
-    ) -> None:
+    def test_retro_env_set_and_no_charter_config_records_in_source_map(self, tmp_path: Path) -> None:
         """SPEC_KITTY_RETROSPECTIVE=1 with no charter/config → source_map records env."""
-        policy, source_map = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "1"}
-        )
+        policy, source_map = resolve_policy(tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "1"})
         assert source_map["enabled"] == "<env:SPEC_KITTY_RETROSPECTIVE>"
         # Policy is NOT changed — built-in default is already True
         assert policy.enabled is True
 
-    def test_retro_env_zero_records_in_source_map_policy_unchanged(
-        self, tmp_path: Path
-    ) -> None:
+    def test_retro_env_zero_records_in_source_map_policy_unchanged(self, tmp_path: Path) -> None:
         """SPEC_KITTY_RETROSPECTIVE=0 with no charter/config → source_map records env.
         Resolved enabled stays True (env never wins; default is True).
         """
-        policy, source_map = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "0"}
-        )
+        policy, source_map = resolve_policy(tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "0"})
         assert source_map["enabled"] == "<env:SPEC_KITTY_RETROSPECTIVE>"
         assert policy.enabled is True  # env never wins
 
-    def test_charter_enabled_false_env_retro_set_charter_wins(
-        self, tmp_path: Path
-    ) -> None:
+    def test_charter_enabled_false_env_retro_set_charter_wins(self, tmp_path: Path) -> None:
         """Charter enabled=false + SPEC_KITTY_RETROSPECTIVE=1 → charter wins.
         source_map shows charter, not env.
         """
         write_charter_with_retrospective(tmp_path, {"enabled": False})
-        policy, source_map = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "1"}
-        )
+        policy, source_map = resolve_policy(tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "1"})
         assert policy.enabled is False
         assert ".kittify/charter/charter.md" in source_map["enabled"]
         # Env observation does NOT appear — charter is authoritative
@@ -623,9 +583,7 @@ class TestEnvObservation:
 
     def test_mode_env_set_records_in_source_map(self, tmp_path: Path) -> None:
         """SPEC_KITTY_MODE set with no charter/config → timing + failure_policy observe env."""
-        policy, source_map = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_MODE": "autonomous"}
-        )
+        policy, source_map = resolve_policy(tmp_path, env={"SPEC_KITTY_MODE": "autonomous"})
         assert source_map["timing"] == "<env:SPEC_KITTY_MODE>"
         assert source_map["failure_policy"] == "<env:SPEC_KITTY_MODE>"
         # Policy fields still at defaults
@@ -635,9 +593,7 @@ class TestEnvObservation:
     def test_charter_timing_set_env_mode_no_observation(self, tmp_path: Path) -> None:
         """Charter sets timing; SPEC_KITTY_MODE set → charter wins; no env in source_map for timing."""
         write_charter_with_retrospective(tmp_path, {"timing": "before_completion"})
-        policy, source_map = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_MODE": "autonomous"}
-        )
+        policy, source_map = resolve_policy(tmp_path, env={"SPEC_KITTY_MODE": "autonomous"})
         assert policy.timing == "before_completion"
         assert "<env:" not in source_map["timing"]
         # failure_policy was not set by charter → env observation appears
@@ -649,26 +605,18 @@ class TestEnvObservation:
         for key, val in source_map.items():
             assert val == "<default>", f"{key!r}: expected '<default>', got {val!r}"
 
-    def test_env_observation_does_not_mutate_policy_values(
-        self, tmp_path: Path
-    ) -> None:
+    def test_env_observation_does_not_mutate_policy_values(self, tmp_path: Path) -> None:
         """Env vars never change the resolved policy field values."""
         policy_no_env, _ = resolve_policy(tmp_path, env={})
-        policy_with_env, _ = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "0", "SPEC_KITTY_MODE": "autonomous"}
-        )
+        policy_with_env, _ = resolve_policy(tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "0", "SPEC_KITTY_MODE": "autonomous"})
         assert policy_no_env.enabled == policy_with_env.enabled
         assert policy_no_env.timing == policy_with_env.timing
         assert policy_no_env.failure_policy == policy_with_env.failure_policy
 
-    def test_config_field_set_env_no_observation_for_that_field(
-        self, tmp_path: Path
-    ) -> None:
+    def test_config_field_set_env_no_observation_for_that_field(self, tmp_path: Path) -> None:
         """Config sets enabled=false; SPEC_KITTY_RETROSPECTIVE set → config wins, no env in source_map."""
         write_config_with_retrospective(tmp_path, {"enabled": False})
-        policy, source_map = resolve_policy(
-            tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "1"}
-        )
+        policy, source_map = resolve_policy(tmp_path, env={"SPEC_KITTY_RETROSPECTIVE": "1"})
         assert policy.enabled is False
         assert ".kittify/config.yaml" in source_map["enabled"]
         assert "<env:" not in source_map["enabled"]

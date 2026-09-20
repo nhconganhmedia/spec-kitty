@@ -86,10 +86,7 @@ class TestEnumeration:
         _write(lf / "directives" / "001-a.directive.yaml", "id: DIRECTIVE_001\nlabel: A\n")
         (crlf / "directives").mkdir(parents=True)
         (crlf / "directives" / "001-a.directive.yaml").write_bytes(b"id: DIRECTIVE_001\r\nlabel: A\r\n")
-        assert (
-            enumerate_constituents(lf)[0].content_hash
-            == enumerate_constituents(crlf)[0].content_hash
-        )
+        assert enumerate_constituents(lf)[0].content_hash == enumerate_constituents(crlf)[0].content_hash
 
 
 class TestDeterminism:
@@ -137,9 +134,7 @@ class TestWriterBoundary:
     def test_freshness_gate_detects_drift(self, pack_root) -> None:
         generate_builtin_manifest(pack_root)
         assert builtin_manifest_is_fresh(pack_root) is True
-        (pack_root / "tactics" / "analysis" / "gamma.tactic.yaml").write_text(
-            "id: gamma\n", encoding="utf-8"
-        )
+        (pack_root / "tactics" / "analysis" / "gamma.tactic.yaml").write_text("id: gamma\n", encoding="utf-8")
         assert builtin_manifest_is_fresh(pack_root) is False
 
 

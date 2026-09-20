@@ -213,9 +213,7 @@ def verify_retention(created_at: str, retention_uri: str, expires_at: str) -> di
     created_epoch = _timestamp_to_epoch(created_at, "--created-at")
     expires_epoch = _timestamp_to_epoch(expires_at, "--retention-expires-at")
     if expires_epoch - created_epoch < RETENTION_MINIMUM_DAYS * _SECONDS_PER_DAY:
-        raise ManifestInputError(
-            f"retention expiry {expires_at} does not cover the {RETENTION_MINIMUM_DAYS}-day minimum from creation time {created_at}"
-        )
+        raise ManifestInputError(f"retention expiry {expires_at} does not cover the {RETENTION_MINIMUM_DAYS}-day minimum from creation time {created_at}")
     return {"uri": retention_uri, "expires_at": expires_at, "minimum_days": RETENTION_MINIMUM_DAYS}
 
 
@@ -310,12 +308,8 @@ def build_manifest(namespace: argparse.Namespace) -> tuple[Path, str]:
                 "evidence_sha256": wp08_sha256,
             },
         ],
-        "commands": [
-            {"name": record.name, "exit_code": record.exit_code, "command": record.command, "status": "passed"} for record in commands
-        ],
-        "artifacts": [
-            {"owner": artifact.owner, "claim": artifact.claim, "path": artifact.path, "sha256": artifact.sha256} for artifact in artifacts
-        ],
+        "commands": [{"name": record.name, "exit_code": record.exit_code, "command": record.command, "status": "passed"} for record in commands],
+        "artifacts": [{"owner": artifact.owner, "claim": artifact.claim, "path": artifact.path, "sha256": artifact.sha256} for artifact in artifacts],
         "retention": retention,
     }
     rendered = json.dumps(manifest, sort_keys=True, indent=2) + "\n"

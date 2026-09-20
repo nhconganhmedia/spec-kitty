@@ -87,9 +87,7 @@ class TestResolveMissionUlid:
         ):
             result = _resolve_mission_ulid(_SLUG, tmp_path)
 
-        assert result is None, (
-            f"Expected None (fail-closed, no slug fallback) but got {result!r}"
-        )
+        assert result is None, f"Expected None (fail-closed, no slug fallback) but got {result!r}"
 
     def test_returns_none_when_meta_json_missing(self, tmp_path: Path) -> None:
         """When meta.json is absent entirely, return None (fail-closed).
@@ -105,9 +103,7 @@ class TestResolveMissionUlid:
         ):
             result = _resolve_mission_ulid(_SLUG, tmp_path)
 
-        assert result is None, (
-            f"Expected None when meta.json absent but got {result!r}"
-        )
+        assert result is None, f"Expected None when meta.json absent but got {result!r}"
 
     def test_returns_ulid_when_mission_id_in_meta(self, tmp_path: Path) -> None:
         """When meta.json has a mission_id, return it (regression guard).
@@ -123,9 +119,7 @@ class TestResolveMissionUlid:
         ):
             result = _resolve_mission_ulid(_SLUG, tmp_path)
 
-        assert result == _ULID, (
-            f"Expected ULID {_ULID!r} but got {result!r}"
-        )
+        assert result == _ULID, f"Expected ULID {_ULID!r} but got {result!r}"
         assert result != _SLUG, "ULID must not equal the slug"
 
 
@@ -137,9 +131,7 @@ class TestResolveMissionUlid:
 class TestWrapWithDecisionGitLogIdentityContract:
     """Integration tests for _wrap_with_decision_git_log identity sourcing."""
 
-    def test_flat_mission_with_ulid_passes_ulid_to_decision_git_log(
-        self, tmp_path: Path
-    ) -> None:
+    def test_flat_mission_with_ulid_passes_ulid_to_decision_git_log(self, tmp_path: Path) -> None:
         """Flat mission with ULID in meta: DecisionGitLog receives ULID (regression).
 
         GREEN on both pre-fix and post-fix code — regression guard for the happy path.
@@ -166,16 +158,12 @@ class TestWrapWithDecisionGitLogIdentityContract:
 
         from specify_cli.events.decision_log import DecisionGitLog
 
-        assert isinstance(result, DecisionGitLog), (
-            "Expected DecisionGitLog wrapper for flat mission with ULID"
-        )
+        assert isinstance(result, DecisionGitLog), "Expected DecisionGitLog wrapper for flat mission with ULID"
         assert result._mission_id == _ULID, (  # type: ignore[attr-defined]
             f"DecisionGitLog must use ULID {_ULID!r}, got {result._mission_id!r}"
         )
 
-    def test_flat_mission_without_ulid_mission_id_is_none_not_slug(
-        self, tmp_path: Path
-    ) -> None:
+    def test_flat_mission_without_ulid_mission_id_is_none_not_slug(self, tmp_path: Path) -> None:
         """Flat mission with no ULID in meta: DecisionGitLog._mission_id is None.
 
         RED on pre-fix code: the old _resolve_mission_ulid returns slug, which
@@ -204,12 +192,9 @@ class TestWrapWithDecisionGitLogIdentityContract:
 
         from specify_cli.events.decision_log import DecisionGitLog
 
-        assert isinstance(result, DecisionGitLog), (
-            "Expected DecisionGitLog wrapper for flat mission"
-        )
+        assert isinstance(result, DecisionGitLog), "Expected DecisionGitLog wrapper for flat mission"
         assert result._mission_id is None, (  # type: ignore[attr-defined]
-            f"DecisionGitLog._mission_id must be None (not slug) when no ULID "
-            f"available; got {result._mission_id!r}"
+            f"DecisionGitLog._mission_id must be None (not slug) when no ULID available; got {result._mission_id!r}"
         )
 
     def test_coord_mission_without_ulid_fails_closed(self, tmp_path: Path) -> None:

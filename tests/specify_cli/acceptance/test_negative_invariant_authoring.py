@@ -114,9 +114,7 @@ def _seed_commit(repo_root: Path) -> None:
 
 
 class TestNegativeInvariantRegisterAndExecute:
-    def test_register_and_execute_confirmed_absent_zero_hand_edited_json(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_register_and_execute_confirmed_absent_zero_hand_edited_json(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-007/FR-008/SC-006: registering a negative invariant through the
         CLI persists a well-shaped ``NegativeInvariant`` (no hand-edited
         JSON), and T020 executes it via the real
@@ -169,9 +167,7 @@ class TestNegativeInvariantRegisterAndExecute:
         assert ni.result == "confirmed_absent", "T020: executed via the real engine, not just registered"
         assert reloaded.overall_verdict == "pass"
 
-    def test_execute_records_still_present_when_pattern_matches(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_execute_records_still_present_when_pattern_matches(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A well-formed-but-FAILING invariant is judged ``still_present``
         (distinct from the malformed case T021 covers) -- proves T020
         genuinely runs the check, it does not just stamp a happy default."""
@@ -205,9 +201,7 @@ class TestNegativeInvariantRegisterAndExecute:
         assert ni.result == "still_present"
         assert reloaded.overall_verdict == "fail"
 
-    def test_register_without_execute_leaves_result_pending(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_register_without_execute_leaves_result_pending(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """``--no-execute`` registers the row without judging it (FR-007
         without FR-008) -- the row is well-shaped but stays ``pending``."""
         slug = "ni-register-only-mission"
@@ -239,9 +233,7 @@ class TestNegativeInvariantRegisterAndExecute:
         ni = next(n for n in reloaded.negative_invariants if n.invariant_id == "NI-003")
         assert ni.result == "pending"
 
-    def test_re_register_same_id_replaces_row_not_duplicates(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_re_register_same_id_replaces_row_not_duplicates(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         slug = "ni-reregister-mission"
         repo_root, feature_dir = _init_flat_mission(tmp_path, slug)
         _seed_matrix(feature_dir, slug)
@@ -363,9 +355,7 @@ class TestDiagnoseHardening:
         data = {
             "mission_slug": "malformed-ni-mission",
             "criteria": [],
-            "negative_invariants": [
-                {"description": "missing invariant_id and verification_method"}
-            ],
+            "negative_invariants": [{"description": "missing invariant_id and verification_method"}],
         }
         with pytest.raises(AcceptanceMatrixParseError) as exc_info:
             AcceptanceMatrix.from_dict(data)
@@ -393,16 +383,8 @@ class TestDiagnoseHardening:
         is not weakened by this hardening."""
         matrix = AcceptanceMatrix(
             mission_slug="well-formed-mission",
-            criteria=[
-                AcceptanceCriterion(
-                    criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass"
-                )
-            ],
-            negative_invariants=[
-                NegativeInvariant(
-                    invariant_id="NI-001", description="y", verification_method="grep_absence"
-                )
-            ],
+            criteria=[AcceptanceCriterion(criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass")],
+            negative_invariants=[NegativeInvariant(invariant_id="NI-001", description="y", verification_method="grep_absence")],
         )
         reloaded = AcceptanceMatrix.from_dict(matrix.to_dict())
         assert reloaded.criteria[0].criterion_id == "FR-001"
@@ -498,9 +480,7 @@ class TestDiagnoseHardening:
 
 
 class TestFreshVerdictPersistPin:
-    def test_all_pass_no_invariants_persists_fresh_pass_not_stale_pending(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_all_pass_no_invariants_persists_fresh_pass_not_stale_pending(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """SC-007 (samuelgoff): an all-pass / no-negative-invariant accept
         persists ``overall_verdict: pass``, never a stale ``pending``. This
         PINS a fix already landed upstream of this mission's base commit
@@ -513,22 +493,14 @@ class TestFreshVerdictPersistPin:
 
         stale = AcceptanceMatrix(
             mission_slug=slug,
-            criteria=[
-                AcceptanceCriterion(
-                    criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pending"
-                )
-            ],
+            criteria=[AcceptanceCriterion(criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pending")],
         )
         write_acceptance_matrix(feature_dir, stale)
         assert json.loads((feature_dir / "acceptance-matrix.json").read_text())["overall_verdict"] == "pending"
 
         fresh = AcceptanceMatrix(
             mission_slug=slug,
-            criteria=[
-                AcceptanceCriterion(
-                    criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass"
-                )
-            ],
+            criteria=[AcceptanceCriterion(criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass")],
             negative_invariants=[],
         )
         monkeypatch.setattr("specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: fresh)
@@ -547,22 +519,10 @@ class TestFreshVerdictPersistPin:
 
 
 class TestAcceptPromptDrivesAcceptanceVerdict:
-    _PROMPT_PATH = (
-        _REPO_ROOT
-        / "packs"
-        / "built-in"
-        / "missions"
-        / "mission-steps"
-        / "software-dev"
-        / "accept"
-        / "prompt.md"
-    )
+    _PROMPT_PATH = _REPO_ROOT / "packs" / "built-in" / "missions" / "mission-steps" / "software-dev" / "accept" / "prompt.md"
 
     def test_prompt_source_exists_at_the_canonical_path(self) -> None:
-        assert self._PROMPT_PATH.is_file(), (
-            f"expected the accept mission-step prompt SOURCE at {self._PROMPT_PATH} "
-            "(never a generated agent copy)"
-        )
+        assert self._PROMPT_PATH.is_file(), f"expected the accept mission-step prompt SOURCE at {self._PROMPT_PATH} (never a generated agent copy)"
 
     def test_prompt_source_contains_executable_acceptance_verdict_invocation(self) -> None:
         """priti M2: the prompt must DRIVE the CLI -- an executable
@@ -573,9 +533,9 @@ class TestAcceptPromptDrivesAcceptanceVerdict:
         steps_section = text.split("## Steps", 1)[1]
         code_blocks = re.findall(r"```bash\n(.*?)```", steps_section, re.DOTALL)
         assert code_blocks, "expected at least one fenced bash block in the Steps section"
-        assert any(
-            "spec-kitty agent mission acceptance-verdict" in block for block in code_blocks
-        ), "accept prompt SOURCE must DRIVE acceptance-verdict via an executable invocation"
+        assert any("spec-kitty agent mission acceptance-verdict" in block for block in code_blocks), (
+            "accept prompt SOURCE must DRIVE acceptance-verdict via an executable invocation"
+        )
         # Both modes (criterion + negative-invariant) must be driven, not just
         # mentioned -- the "zero hand-edited JSON" guarantee covers both.
         assert any("--criterion" in block for block in code_blocks)
@@ -592,9 +552,7 @@ class TestAcceptPromptDrivesAcceptanceVerdict:
 
 
 class TestWriteAndCommitUsesStagingThunk:
-    def test_write_and_commit_passes_stage_not_files(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_write_and_commit_passes_stage_not_files(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """T024: the write must go through ``write_artifact``'s ``stage=``
         thunk (WP04's no-residue contract) -- never the historical
         pre-staged ``files=`` contract, and the file must not exist on disk
@@ -612,19 +570,13 @@ class TestWriteAndCommitUsesStagingThunk:
                 commit_hash="deadbee",
             )
 
-        monkeypatch.setattr(
-            "specify_cli.coordination.write_seam.write_artifact", _fake_write_artifact
-        )
+        monkeypatch.setattr("specify_cli.coordination.write_seam.write_artifact", _fake_write_artifact)
 
         matrix_dir = tmp_path / "kitty-specs" / "thunk-mission"
         matrix_dir.mkdir(parents=True)
         matrix = AcceptanceMatrix(
             mission_slug="thunk-mission",
-            criteria=[
-                AcceptanceCriterion(
-                    criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass"
-                )
-            ],
+            criteria=[AcceptanceCriterion(criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass")],
         )
         policy = ProtectionPolicy.resolve(tmp_path)
 
@@ -640,9 +592,7 @@ class TestWriteAndCommitUsesStagingThunk:
 
         assert result.status == "committed"
         assert "files" not in captured, "matrix.py must pass stage=, not the historical files= contract"
-        assert not (matrix_dir / "acceptance-matrix.json").exists(), (
-            "must not pre-stage before write_artifact's routability probe"
-        )
+        assert not (matrix_dir / "acceptance-matrix.json").exists(), "must not pre-stage before write_artifact's routability probe"
 
         stage = captured["stage"]
         assert callable(stage)
@@ -668,11 +618,7 @@ class TestRefusedWriteLeavesNoResidue:
 
         matrix = AcceptanceMatrix(
             mission_slug=mission_slug,
-            criteria=[
-                AcceptanceCriterion(
-                    criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass"
-                )
-            ],
+            criteria=[AcceptanceCriterion(criterion_id="FR-001", description="x", proof_type="automated_test", pass_fail="pass")],
         )
 
         result = write_and_commit_acceptance_matrix(
@@ -686,9 +632,7 @@ class TestRefusedWriteLeavesNoResidue:
         )
 
         assert result.status == "refused", result
-        assert not (matrix_dir / "acceptance-matrix.json").exists(), (
-            "a refused write must leave zero untracked residue"
-        )
+        assert not (matrix_dir / "acceptance-matrix.json").exists(), "a refused write must leave zero untracked residue"
         status = _git(repo, "status", "--porcelain", "--untracked-files=all")
         assert status.stdout.strip() == "", f"expected a clean tree, got: {status.stdout!r}"
 
@@ -699,9 +643,7 @@ class TestRefusedWriteLeavesNoResidue:
 
 
 class TestFullAcceptPassWithNegativeInvariantSC006:
-    def test_full_accept_pass_registers_ni_via_cli_and_persists_pass(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_full_accept_pass_registers_ni_via_cli_and_persists_pass(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """SC-006: an agent completes a full accept pass including a
         negative invariant with ZERO hand-edited JSON -- the invariant is
         registered/executed purely through ``acceptance-verdict`` (never
@@ -796,8 +738,7 @@ class TestFullAcceptPassWithNegativeInvariantSC006:
         reloaded_after_accept = read_acceptance_matrix(feature_dir)
         assert reloaded_after_accept is not None
         assert reloaded_after_accept.overall_verdict == "pass", (
-            "SC-006/SC-007: the full pass (incl. the CLI-registered negative "
-            "invariant) must converge to a fresh 'pass', not a stale value"
+            "SC-006/SC-007: the full pass (incl. the CLI-registered negative invariant) must converge to a fresh 'pass', not a stale value"
         )
         assert reloaded_after_accept.negative_invariants[0].invariant_id == "NI-SC006"
         assert reloaded_after_accept.negative_invariants[0].result == "confirmed_absent"

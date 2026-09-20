@@ -74,7 +74,7 @@ def _make_manifest(slug: str, lane_count: int = 10) -> MagicMock:
     for i in range(lane_count):
         lane = MagicMock()
         lane.lane_id = f"lane-{chr(ord('a') + i)}"
-        lane.wp_ids = [f"WP{i+1:02d}"]
+        lane.wp_ids = [f"WP{i + 1:02d}"]
         lanes.append(lane)
     manifest.lanes = lanes
     return manifest
@@ -295,9 +295,7 @@ class TestMergeResumeAfterInterruption:
         manifest = _make_manifest(slug, lane_count=3)
         # WP01 already done; WP02/WP03 approved (real pre-merge shape) so the
         # merge-ready precondition (#4764/T007) lets the resume proceed.
-        _write_status_events(
-            feature_dir, {"WP01": "done", "WP02": "approved", "WP03": "approved"}
-        )
+        _write_status_events(feature_dir, {"WP01": "done", "WP02": "approved", "WP03": "approved"})
         # WP01 completed; WP02 and WP03 remaining.
         existing = MergeState(
             mission_id=slug,
@@ -346,18 +344,12 @@ class TestMergeResumeAfterInterruption:
             )
 
         # WP01 already done — must not be re-marked.
-        assert "WP01" not in mark_done_calls, (
-            f"Resume re-marked already-completed WP01: {mark_done_calls!r}"
-        )
+        assert "WP01" not in mark_done_calls, f"Resume re-marked already-completed WP01: {mark_done_calls!r}"
         # WP02 + WP03 must be marked.
-        assert "WP02" in mark_done_calls and "WP03" in mark_done_calls, (
-            f"Resume failed to finish remaining WPs: {mark_done_calls!r}"
-        )
+        assert "WP02" in mark_done_calls and "WP03" in mark_done_calls, f"Resume failed to finish remaining WPs: {mark_done_calls!r}"
 
         # Lane-a already integrated (rev-list "0") — must not be re-merged.
-        assert "lane-a" not in lane_merge_calls, (
-            f"Resume re-merged already-integrated lane-a: {lane_merge_calls!r}"
-        )
+        assert "lane-a" not in lane_merge_calls, f"Resume re-merged already-integrated lane-a: {lane_merge_calls!r}"
         # Lane-b and lane-c have unintegrated code — must be merged.
         assert "lane-b" in lane_merge_calls and "lane-c" in lane_merge_calls
 
@@ -379,7 +371,7 @@ def _run_bounded_merge_fixture(tmp_path: Path) -> tuple[float, list[str], list[s
     write_mission_meta(feature_dir)
 
     manifest = _make_manifest(slug, lane_count=10)
-    wp_ids = [f"WP{i+1:02d}" for i in range(10)]
+    wp_ids = [f"WP{i + 1:02d}" for i in range(10)]
     # #4764/T007: seed every WP approved so the merge-ready precondition
     # lets this full-resume fixture proceed to the code under test.
     _write_status_events(feature_dir, dict.fromkeys(wp_ids, "approved"))

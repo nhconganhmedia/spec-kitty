@@ -76,9 +76,7 @@ class OrgOverridesBuiltinChecker:
 
         findings: list[LintFinding] = []
         for artifact_type in _OVERRIDABLE_ARTIFACT_TYPES:
-            findings.extend(
-                _scan_artifact_type_for_overrides(artifact_type, service, built_in_only)
-            )
+            findings.extend(_scan_artifact_type_for_overrides(artifact_type, service, built_in_only))
         return findings
 
 
@@ -147,14 +145,8 @@ class OrgCharterDeviationChecker:
                     type="org_charter_deviation",
                     id=f"governance:{field}",
                     severity="low",
-                    message=(
-                        f"project charter field {field!r} = {project_val!r}; "
-                        f"org charter recommends {expected!r}"
-                    ),
-                    remediation_hint=(
-                        "Reconcile via charter interview, or document an explicit "
-                        "deviation in the project charter."
-                    ),
+                    message=(f"project charter field {field!r} = {project_val!r}; org charter recommends {expected!r}"),
+                    remediation_hint=("Reconcile via charter interview, or document an explicit deviation in the project charter."),
                 )
             )
         return findings
@@ -194,9 +186,7 @@ def _resolve_override_scan_services(repo_root: Path) -> tuple[Any, Any] | None:
     return service, built_in_only
 
 
-def _scan_artifact_type_for_overrides(
-    artifact_type: str, service: Any, built_in_only: Any
-) -> list[LintFinding]:
+def _scan_artifact_type_for_overrides(artifact_type: str, service: Any, built_in_only: Any) -> list[LintFinding]:
     """Return org-overrides-builtin findings for a single artifact type."""
     org_repo = service.raw_repository(artifact_type)
     built_in_repo = built_in_only.raw_repository(artifact_type)
@@ -216,9 +206,7 @@ def _scan_artifact_type_for_overrides(
     return findings
 
 
-def _check_item_overrides_builtin(
-    artifact_type: str, item: Any, org_repo: Any, built_in_repo: Any
-) -> LintFinding | None:
+def _check_item_overrides_builtin(artifact_type: str, item: Any, org_repo: Any, built_in_repo: Any) -> LintFinding | None:
     """Return a finding if *item* is org-provenanced and shadows a built-in artifact."""
     item_id = getattr(item, "id", None)
     if not isinstance(item_id, str):
@@ -241,10 +229,7 @@ def _check_item_overrides_builtin(
         id=f"{artifact_type}:{item_id}",
         severity="low",
         message=f"org layer overrides built-in {artifact_type[:-1]} {item_id!r}",
-        remediation_hint=(
-            "Verify the override is intentional; remove the org pack "
-            "copy if the built-in artifact already meets policy."
-        ),
+        remediation_hint=("Verify the override is intentional; remove the org pack copy if the built-in artifact already meets policy."),
     )
 
 
@@ -324,11 +309,7 @@ def _build_service_with_org_layer(repo_root: Path, registry: Any) -> Any:
     See :func:`_build_scan_service` for the wrapped, unfiltered-diagnostic
     construction this returns.
     """
-    org_roots = [
-        effective_root
-        for pack in registry.packs
-        if (effective_root := pack.effective_root(repo_root)).exists()
-    ]
+    org_roots = [effective_root for pack in registry.packs if (effective_root := pack.effective_root(repo_root)).exists()]
     if not org_roots:
         return None
     return _build_scan_service(repo_root, org_roots=org_roots)

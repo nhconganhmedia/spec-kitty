@@ -2,8 +2,8 @@
 
 from charter.offering.directives.validation import validate_directive
 import pytest
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 class TestValidateDirective:

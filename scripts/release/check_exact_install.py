@@ -45,10 +45,7 @@ def parse_args() -> argparse.Namespace:
         "--console-arg",
         action="append",
         default=None,
-        help=(
-            "Argument passed to --console-script. May be repeated. Defaults to "
-            "--version when --console-script is set."
-        ),
+        help=("Argument passed to --console-script. May be repeated. Defaults to --version when --console-script is set."),
     )
     return parser.parse_args()
 
@@ -58,28 +55,17 @@ def package_prefix(package_name: str) -> str:
 
 
 def locate_wheel(dist_dir: Path, package_name: str) -> Path:
-    wheels = sorted(
-        wheel
-        for wheel in dist_dir.glob("*.whl")
-        if wheel.name.startswith(package_prefix(package_name))
-    )
+    wheels = sorted(wheel for wheel in dist_dir.glob("*.whl") if wheel.name.startswith(package_prefix(package_name)))
     if not wheels:
-        raise SystemExit(
-            f"No wheel found for {package_name!r} in distribution directory {dist_dir}"
-        )
+        raise SystemExit(f"No wheel found for {package_name!r} in distribution directory {dist_dir}")
     if len(wheels) > 1:
-        raise SystemExit(
-            f"Expected exactly one wheel for {package_name!r}, found: "
-            + ", ".join(wheel.name for wheel in wheels)
-        )
+        raise SystemExit(f"Expected exactly one wheel for {package_name!r}, found: " + ", ".join(wheel.name for wheel in wheels))
     return wheels[0]
 
 
 def read_wheel_metadata(wheel_path: Path) -> email.message.Message:
     with zipfile.ZipFile(wheel_path) as zf:
-        metadata_files = [
-            name for name in zf.namelist() if name.endswith(".dist-info/METADATA")
-        ]
+        metadata_files = [name for name in zf.namelist() if name.endswith(".dist-info/METADATA")]
         if not metadata_files:
             raise SystemExit(f"No METADATA file found in wheel {wheel_path}")
         payload = zf.read(metadata_files[0]).decode("utf-8", errors="replace")
@@ -95,9 +81,7 @@ def console_script_path(venv_dir: Path, script_name: str) -> Path:
     return venv_bin_dir(venv_dir) / f"{script_name}{suffix}"
 
 
-def run(
-    cmd: Sequence[str], *, env: dict[str, str] | None = None
-) -> subprocess.CompletedProcess[str]:
+def run(cmd: Sequence[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         list(cmd),
         text=True,
@@ -109,11 +93,7 @@ def run(
 def require_success(result: subprocess.CompletedProcess[str], label: str) -> None:
     if result.returncode == 0:
         return
-    raise SystemExit(
-        f"{label} failed with exit code {result.returncode}\n"
-        f"stdout:\n{result.stdout}\n"
-        f"stderr:\n{result.stderr}"
-    )
+    raise SystemExit(f"{label} failed with exit code {result.returncode}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
 
 
 def main() -> int:
@@ -146,9 +126,7 @@ def main() -> int:
         create_venv = run([args.python, "-m", "venv", str(venv_dir)])
         require_success(create_venv, "virtualenv creation")
 
-        python_bin = venv_bin_dir(venv_dir) / (
-            "python.exe" if os.name == "nt" else "python"
-        )
+        python_bin = venv_bin_dir(venv_dir) / ("python.exe" if os.name == "nt" else "python")
         pip_cmd = [str(python_bin), "-m", "pip"]
 
         upgrade_pip = run([*pip_cmd, "install", "--upgrade", "pip"])
@@ -166,20 +144,14 @@ def main() -> int:
             [
                 str(python_bin),
                 "-c",
-                (
-                    "from importlib.metadata import version; "
-                    f"print(version({args.package!r}))"
-                ),
+                (f"from importlib.metadata import version; print(version({args.package!r}))"),
             ]
         )
         require_success(verify, "installed version verification")
 
         installed_version = verify.stdout.strip()
         if installed_version != expected_version:
-            raise SystemExit(
-                f"Installed version mismatch for {args.package}: "
-                f"expected {expected_version}, got {installed_version}"
-            )
+            raise SystemExit(f"Installed version mismatch for {args.package}: expected {expected_version}, got {installed_version}")
 
         console_args = args.console_arg
         if args.console_script:
@@ -204,10 +176,7 @@ def main() -> int:
         print(f"- package: {args.package}")
         print(f"- version: {installed_version}")
         if args.console_script:
-            print(
-                "- console-smoke: "
-                + " ".join([args.console_script, *(console_args or [])])
-            )
+            print("- console-smoke: " + " ".join([args.console_script, *(console_args or [])]))
         if requires_dist:
             print("- requires-dist:")
             for requirement in requires_dist:

@@ -24,6 +24,7 @@ from specify_cli.migration.rewrite_shims import RewriteResult, rewrite_agent_shi
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _setup_project(tmp_path: Path, agents: list[str] | None = None) -> None:
     """Create a minimal project with .kittify/config.yaml and agent directories."""
     if agents is None:
@@ -63,9 +64,7 @@ class TestRewriteAgentShims:
 
         claude_dir = _get_claude_cmd_dir(tmp_path)
         command_files = list(claude_dir.glob("spec-kitty.*.md"))
-        assert len(command_files) == len(CONSUMER_SKILLS), (
-            f"Expected {len(CONSUMER_SKILLS)} command files, got {len(command_files)}"
-        )
+        assert len(command_files) == len(CONSUMER_SKILLS), f"Expected {len(CONSUMER_SKILLS)} command files, got {len(command_files)}"
 
     def test_cli_shim_content_is_thin(self, tmp_path: Path) -> None:
         """T063-1: CLI-driven shim files have the canonical 3-line format."""
@@ -150,13 +149,10 @@ class TestRewriteAgentShims:
 
         # Place a legacy template file that matches a known consumer skill
         from specify_cli.shims.registry import CONSUMER_SKILLS
+
         a_skill = sorted(CONSUMER_SKILLS)[0]
         legacy_file = claude_dir / f"spec-kitty.{a_skill}.md"
-        legacy_file.write_text(
-            "# Old Workflow\n\n"
-            "## Steps\n\n"
-            "1. Do this\n2. Do that\n3. Do everything\n"
-        )
+        legacy_file.write_text("# Old Workflow\n\n## Steps\n\n1. Do this\n2. Do that\n3. Do everything\n")
 
         rewrite_agent_shims(tmp_path)
 

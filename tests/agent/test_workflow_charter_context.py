@@ -243,34 +243,25 @@ class TestPromptBuilderGovernanceContext:
         text = _governance_context(tmp_path, action=None)
         assert "Governance:" in text
 
-    def test_governance_context_forwards_profile_kwarg_to_charter_context(
-        self, tmp_path: Path
-    ) -> None:
+    def test_governance_context_forwards_profile_kwarg_to_charter_context(self, tmp_path: Path) -> None:
         """WP06 (FR-004): ``_governance_context(..., profile=<id>)`` MUST
         forward the profile to ``build_charter_context``.
         """
         _make_charter_bundle(tmp_path)
-        with patch(
-            "runtime.next.prompt_builder.build_charter_context"
-        ) as build:
+        with patch("runtime.next.prompt_builder.build_charter_context") as build:
             build.return_value.mode = "bootstrap"
             build.return_value.text = "stub"
             _governance_context(tmp_path, action="implement", profile="python-pedro")
         assert build.called, "build_charter_context must be invoked"
         call_kwargs = build.call_args.kwargs
-        assert call_kwargs.get("profile") == "python-pedro", (
-            "profile kwarg MUST be forwarded so the resolver renders profile-cited "
-            "directives and tactics"
-        )
+        assert call_kwargs.get("profile") == "python-pedro", "profile kwarg MUST be forwarded so the resolver renders profile-cited directives and tactics"
 
     def test_governance_context_default_profile_is_none(self, tmp_path: Path) -> None:
         """Calling without profile preserves the prior NFR-005 byte-identical
         behaviour (profile=None -> resolver behaves as before WP03).
         """
         _make_charter_bundle(tmp_path)
-        with patch(
-            "runtime.next.prompt_builder.build_charter_context"
-        ) as build:
+        with patch("runtime.next.prompt_builder.build_charter_context") as build:
             build.return_value.mode = "bootstrap"
             build.return_value.text = "stub"
             _governance_context(tmp_path, action="implement")
@@ -340,20 +331,14 @@ class TestBuildWpPromptForwardsAgentProfile:
         # software-dev so the gate resolves instead of hard-failing.
         kittify = tmp_path / ".kittify"
         kittify.mkdir(exist_ok=True)
-        (kittify / "config.yaml").write_text(
-            "mission_type_activations:\n  - software-dev\n", encoding="utf-8"
-        )
+        (kittify / "config.yaml").write_text("mission_type_activations:\n  - software-dev\n", encoding="utf-8")
         return feature_dir
 
-    def test_implement_forwards_agent_profile_from_wp_frontmatter(
-        self, tmp_path: Path
-    ) -> None:
+    def test_implement_forwards_agent_profile_from_wp_frontmatter(self, tmp_path: Path) -> None:
         mission_slug = "999-test"
         feature_dir = self._make_feature(tmp_path, mission_slug, _WP_WITH_PROFILE)
         _make_charter_bundle(tmp_path)
-        with patch(
-            "runtime.next.prompt_builder._governance_context"
-        ) as gov:
+        with patch("runtime.next.prompt_builder._governance_context") as gov:
             gov.return_value = "stub"
             _build_wp_prompt(
                 action="implement",
@@ -372,15 +357,11 @@ class TestBuildWpPromptForwardsAgentProfile:
             "agent's prompt."
         )
 
-    def test_implement_passes_none_when_frontmatter_lacks_agent_profile(
-        self, tmp_path: Path
-    ) -> None:
+    def test_implement_passes_none_when_frontmatter_lacks_agent_profile(self, tmp_path: Path) -> None:
         mission_slug = "999-noprofile"
         feature_dir = self._make_feature(tmp_path, mission_slug, _WP_WITHOUT_PROFILE)
         _make_charter_bundle(tmp_path)
-        with patch(
-            "runtime.next.prompt_builder._governance_context"
-        ) as gov:
+        with patch("runtime.next.prompt_builder._governance_context") as gov:
             gov.return_value = "stub"
             _build_wp_prompt(
                 action="implement",
@@ -392,6 +373,5 @@ class TestBuildWpPromptForwardsAgentProfile:
                 mission_type="software-dev",
             )
         assert gov.call_args.kwargs.get("profile") is None, (
-            "When WP frontmatter has no agent_profile field, the profile kwarg "
-            "MUST be None (NFR-005 byte-identical fallback)."
+            "When WP frontmatter has no agent_profile field, the profile kwarg MUST be None (NFR-005 byte-identical fallback)."
         )

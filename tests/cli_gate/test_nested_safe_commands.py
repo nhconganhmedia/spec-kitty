@@ -27,6 +27,7 @@ from specify_cli.migration.gate import _build_command_path, check_schema_version
 
 pytestmark = [pytest.mark.integration]
 
+
 class TestBuildCommandPath:
     def test_nested_command_with_flag(self) -> None:
         """Nested command path stops at first flag; argv agrees with invoked_subcommand."""
@@ -136,9 +137,7 @@ def test_setup_plan_blocked_by_too_new_project(
     monkeypatch.setattr(sys, "argv", ["spec-kitty", "agent", "mission", "setup-plan"])
     with pytest.raises(SystemExit) as exc_info:
         check_schema_version(fixture_project_too_new, invoked_subcommand="agent")
-    assert exc_info.value.code == 5, (
-        f"Expected exit 5 (BLOCK_CLI_UPGRADE) for setup-plan, got {exc_info.value.code!r}"
-    )
+    assert exc_info.value.code == 5, f"Expected exit 5 (BLOCK_CLI_UPGRADE) for setup-plan, got {exc_info.value.code!r}"
 
 
 def test_setup_plan_blocked_by_stale_project(
@@ -149,7 +148,4 @@ def test_setup_plan_blocked_by_stale_project(
     monkeypatch.setattr(sys, "argv", ["spec-kitty", "agent", "mission", "setup-plan"])
     with pytest.raises(SystemExit) as exc_info:
         check_schema_version(fixture_project_stale, invoked_subcommand="agent")
-    assert exc_info.value.code == 4, (
-        f"Expected exit 4 (BLOCK_PROJECT_MIGRATION) for setup-plan on stale project, "
-        f"got {exc_info.value.code!r}"
-    )
+    assert exc_info.value.code == 4, f"Expected exit 4 (BLOCK_PROJECT_MIGRATION) for setup-plan on stale project, got {exc_info.value.code!r}"

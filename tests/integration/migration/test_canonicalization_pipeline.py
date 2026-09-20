@@ -58,9 +58,7 @@ def _load_fixture(name: str) -> dict[str, Any]:
 def _run_fixture(fixture: dict[str, Any]) -> dict[str, Any]:
     """Call _canonicalize_status_row with fixture inputs; return comparable output."""
     inp = fixture["input"]
-    generated_ids: list[str] | None = (
-        list(inp["generated_ids"]) if inp["generated_ids"] is not None else None
-    )
+    generated_ids: list[str] | None = list(inp["generated_ids"]) if inp["generated_ids"] is not None else None
     result = _canonicalize_status_row(
         inp["data"],
         mission_slug=inp["mission_slug"],
@@ -276,10 +274,7 @@ def test_derive_migration_timestamp_collects_from_events_jsonl() -> None:
     """Latest 'at' timestamp from status.events.jsonl is selected and bumped by 1 second."""
     with tempfile.TemporaryDirectory() as td:
         p = Path(td)
-        (p / "status.events.jsonl").write_text(
-            '{"at": "2025-06-01T10:00:00+00:00", "wp_id": "WP01"}\n'
-            '{"at": "2025-07-01T12:00:00+00:00", "wp_id": "WP02"}\n'
-        )
+        (p / "status.events.jsonl").write_text('{"at": "2025-06-01T10:00:00+00:00", "wp_id": "WP01"}\n{"at": "2025-07-01T12:00:00+00:00", "wp_id": "WP02"}\n')
         result = _derive_migration_timestamp(p)
     # Latest is 2025-07-01T12:00:00+00:00; bumped by 1 second
     assert result == "2025-07-01T12:00:01+00:00"
@@ -311,9 +306,7 @@ def test_derive_migration_timestamp_picks_latest_across_all_sources() -> None:
         (p / "status.events.jsonl").write_text('{"at": "2025-06-01T10:00:00+00:00"}\n')
         status = {
             "materialized_at": "2025-09-15T12:00:00+00:00",
-            "work_packages": {
-                "WP01": {"last_transition_at": "2025-10-01T00:00:00+00:00"}
-            },
+            "work_packages": {"WP01": {"last_transition_at": "2025-10-01T00:00:00+00:00"}},
         }
         (p / "status.json").write_text(json.dumps(status))
         result = _derive_migration_timestamp(p)

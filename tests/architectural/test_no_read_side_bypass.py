@@ -297,11 +297,7 @@ def _read_side_scan_scope() -> list[Path]:
     Reuses (never forks) the shared whole-tree walker -- see the module
     docstring's "Scope" section.
     """
-    return [
-        module
-        for module in _whole_tree_scan_scope()
-        if not _is_read_sanctioned(_placement_rel_path(module))
-    ]
+    return [module for module in _whole_tree_scan_scope() if not _is_read_sanctioned(_placement_rel_path(module))]
 
 
 def _import_alias_map(tree: ast.Module) -> dict[str, str]:
@@ -569,10 +565,7 @@ _ALLOW_LIST_SEED: tuple[ContentDescriptor, ...] = (
         qualname="_resolve_planning_dir_primary_first",
         token_substring="candidate = resolve_planning_read_dir (",
         occurrence=None,
-        rationale=(
-            "Ledger :461: same dashboard/scanner.py module-wide leniency "
-            "doctrine as :423 above."
-        ),
+        rationale=("Ledger :461: same dashboard/scanner.py module-wide leniency doctrine as :423 above."),
     ),
     ContentDescriptor(
         rel_path="src/specify_cli/dossier/api.py",
@@ -594,21 +587,14 @@ _ALLOW_LIST_SEED: tuple[ContentDescriptor, ...] = (
         qualname="DossierAPIHandler.handle_dossier_snapshot_export",
         token_substring="candidate_feature_dir_for_mission ( self . repo_root , mission_slug )",
         occurrence=None,
-        rationale=(
-            "Ledger :397: same dossier/api.py leniency doctrine as :227 above "
-            "-- feeds the identical snapshot cache read."
-        ),
+        rationale=("Ledger :397: same dossier/api.py leniency doctrine as :227 above -- feeds the identical snapshot cache read."),
     ),
     ContentDescriptor(
         rel_path="src/specify_cli/dossier/api.py",
         qualname="DossierAPIHandler._load_dossier",
         token_substring="candidate_feature_dir_for_mission ( self . repo_root , mission_slug )",
         occurrence=None,
-        rationale=(
-            "Ledger :435: same dossier/api.py leniency doctrine as :227/:397 "
-            "above -- the shared internal loader all three public handlers "
-            "route through."
-        ),
+        rationale=("Ledger :435: same dossier/api.py leniency doctrine as :227/:397 above -- the shared internal loader all three public handlers route through."),
     ),
     ContentDescriptor(
         rel_path="src/specify_cli/retrospective/summary.py",
@@ -796,8 +782,7 @@ _ALLOW_LIST_SEED: tuple[ContentDescriptor, ...] = (
 #: Composite key resolved LIVE for each ``_ALLOW_LIST_SEED`` entry (parallel,
 #: order-preserving with the seed tuple).
 _ALLOW_LIST_KEYS: tuple[CompositeKey, ...] = tuple(
-    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor)
-    for descriptor in _ALLOW_LIST_SEED
+    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor) for descriptor in _ALLOW_LIST_SEED
 )
 
 #: Composite-keyed allow-list: ``frozenset[(rel_path, qualname, token_line)]``.
@@ -930,8 +915,7 @@ _FOUNDATION_SANCTION_SEED: tuple[ContentDescriptor, ...] = (
 
 #: Composite key resolved LIVE for each ``_FOUNDATION_SANCTION_SEED`` entry.
 _FOUNDATION_SANCTION_KEYS: tuple[CompositeKey, ...] = tuple(
-    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor)
-    for descriptor in _FOUNDATION_SANCTION_SEED
+    resolve_descriptor((_REPO_ROOT / descriptor.rel_path).read_text(encoding="utf-8"), descriptor) for descriptor in _FOUNDATION_SANCTION_SEED
 )
 
 #: Composite-keyed foundation-sanction set: ``frozenset[(rel_path, qualname, token_line)]``.
@@ -987,10 +971,7 @@ def test_no_read_side_bypass_outside_sanctioned_and_allow_listed() -> None:
                 "add a tracked, ledger-backed allow-list entry"
             )
 
-    assert not offenders, (
-        "Read-side placement-seam bypass found outside the sanctioned + "
-        "allow-listed sets (FR-005 / IC-06). Offenders:\n" + "\n".join(offenders)
-    )
+    assert not offenders, "Read-side placement-seam bypass found outside the sanctioned + allow-listed sets (FR-005 / IC-06). Offenders:\n" + "\n".join(offenders)
 
 
 def test_ratchet_bites_on_a_planted_kind_blind_read_call() -> None:
@@ -1001,18 +982,10 @@ def test_ratchet_bites_on_a_planted_kind_blind_read_call() -> None:
     detector a fixture source string carrying a planted call and assert it is
     flagged.
     """
-    fixture_source = (
-        "def _new_bypass_site(root, slug):\n"
-        "    feature_dir = candidate_feature_dir_for_mission(root, slug)\n"
-        "    return feature_dir\n"
-    )
-    findings = _scan_read_bypass(
-        fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py"
-    )
+    fixture_source = "def _new_bypass_site(root, slug):\n    feature_dir = candidate_feature_dir_for_mission(root, slug)\n    return feature_dir\n"
+    findings = _scan_read_bypass(fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py")
     callees = {f.callee for f in findings}
-    assert "candidate_feature_dir_for_mission" in callees, (
-        f"ratchet failed to flag a planted kind-blind read call; found {callees}"
-    )
+    assert "candidate_feature_dir_for_mission" in callees, f"ratchet failed to flag a planted kind-blind read call; found {callees}"
 
 
 def test_ratchet_bites_on_a_planted_kind_aware_lenient_read_call() -> None:
@@ -1022,18 +995,10 @@ def test_ratchet_bites_on_a_planted_kind_aware_lenient_read_call() -> None:
     ``CoordinationBranchDeleted``) must be caught by the same grammar, not
     just the kind-blind one.
     """
-    fixture_source = (
-        "def _new_lenient_bypass_site(root, slug, kind):\n"
-        "    feature_dir = resolve_planning_read_dir(root, slug, kind=kind)\n"
-        "    return feature_dir\n"
-    )
-    findings = _scan_read_bypass(
-        fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py"
-    )
+    fixture_source = "def _new_lenient_bypass_site(root, slug, kind):\n    feature_dir = resolve_planning_read_dir(root, slug, kind=kind)\n    return feature_dir\n"
+    findings = _scan_read_bypass(fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py")
     callees = {f.callee for f in findings}
-    assert "resolve_planning_read_dir" in callees, (
-        f"ratchet failed to flag a planted kind-aware-lenient read call; found {callees}"
-    )
+    assert "resolve_planning_read_dir" in callees, f"ratchet failed to flag a planted kind-aware-lenient read call; found {callees}"
 
 
 def test_ratchet_bites_on_an_import_aliased_bypass() -> None:
@@ -1055,9 +1020,7 @@ def test_ratchet_bites_on_an_import_aliased_bypass() -> None:
         "    b = _rpd(root, slug, kind=kind)\n"
         "    return a, b\n"
     )
-    findings = _scan_read_bypass(
-        fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py"
-    )
+    findings = _scan_read_bypass(fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py")
     callees = sorted(f.callee for f in findings)
     assert callees == ["candidate_feature_dir_for_mission", "resolve_planning_read_dir"], (
         f"the gate failed to resolve import-aliased read bypasses; found {callees}"
@@ -1078,12 +1041,8 @@ def test_ratchet_does_not_flag_an_alias_that_shadows_a_target_name() -> None:
         "def _not_a_bypass(root, slug):\n"
         "    return candidate_feature_dir_for_mission(root, slug)\n"
     )
-    findings = _scan_read_bypass(
-        fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py"
-    )
-    assert findings == [], (
-        f"an alias bound to a NON-target origin symbol was flagged: {findings!r}"
-    )
+    findings = _scan_read_bypass(fixture_source, _REPO_ROOT / "src" / "specify_cli" / "manifest.py")
+    assert findings == [], f"an alias bound to a NON-target origin symbol was flagged: {findings!r}"
 
 
 def test_ratchet_ignores_a_prose_only_mention() -> None:
@@ -1105,12 +1064,8 @@ def test_ratchet_ignores_a_prose_only_mention() -> None:
         "    # historical: resolve_planning_read_dir(root, slug, kind=kind)\n"
         "    return placement_seam(root, slug).read_dir(kind)\n"
     )
-    findings = _scan_read_bypass(
-        prose_only, _REPO_ROOT / "src" / "specify_cli" / "manifest.py"
-    )
-    assert findings == [], (
-        f"a prose-only mention of a read-bypass primitive was flagged: {findings!r}"
-    )
+    findings = _scan_read_bypass(prose_only, _REPO_ROOT / "src" / "specify_cli" / "manifest.py")
+    assert findings == [], f"a prose-only mention of a read-bypass primitive was flagged: {findings!r}"
 
 
 def test_ratchet_bites_on_a_planted_leaf_primitive_call_outside_sanctioned_modules() -> None:
@@ -1139,16 +1094,12 @@ def test_ratchet_bites_on_a_planted_leaf_primitive_call_outside_sanctioned_modul
     ``test_no_read_side_bypass_outside_sanctioned_and_allow_listed`` performs
     against every real scanned module.
     """
-    fixture_source = (
-        "def _rogue_leaf_bypass_site(root, slug):\n"
-        "    return _compose_primary_feature_dir(root, slug)\n"
-    )
+    fixture_source = "def _rogue_leaf_bypass_site(root, slug):\n    return _compose_primary_feature_dir(root, slug)\n"
     rogue_path = _REPO_ROOT / "src" / "specify_cli" / "manifest.py"  # scanned, unsanctioned
     findings = _scan_read_bypass(fixture_source, rogue_path)
     callees = {f.callee for f in findings}
     assert "_compose_primary_feature_dir" in callees, (
-        "ratchet failed to flag a planted call to the leaf primitive itself "
-        f"(the exact census gap this closeout fixes); found {callees}"
+        f"ratchet failed to flag a planted call to the leaf primitive itself (the exact census gap this closeout fixes); found {callees}"
     )
 
     finding = next(f for f in findings if f.callee == "_compose_primary_feature_dir")
@@ -1220,10 +1171,7 @@ def test_read_sanctioned_modules_are_excluded_from_the_read_scan_scope() -> None
     """
     scanned_rel = {_placement_rel_path(p) for p in _read_side_scan_scope()}
     for sanctioned in _READ_SANCTIONED_MODULES:
-        assert sanctioned not in scanned_rel, (
-            f"{sanctioned} is a read-sanctioned infra module and must never "
-            "enter the read-side bypass scan scope"
-        )
+        assert sanctioned not in scanned_rel, f"{sanctioned} is a read-sanctioned infra module and must never enter the read-side bypass scan scope"
 
 
 def test_read_sanctioned_modules_have_real_findings_that_would_otherwise_red() -> None:
@@ -1238,9 +1186,7 @@ def test_read_sanctioned_modules_have_real_findings_that_would_otherwise_red() -
         assert module.exists(), f"read-sanctioned module missing: {module}"
         findings = _scan_read_bypass_module(module)
         assert findings, (
-            f"{rel} is read-sanctioned but has ZERO real read-bypass call "
-            "sites -- the sanction is vacuous; confirm this module still "
-            "needs the exclusion."
+            f"{rel} is read-sanctioned but has ZERO real read-bypass call sites -- the sanction is vacuous; confirm this module still needs the exclusion."
         )
 
 

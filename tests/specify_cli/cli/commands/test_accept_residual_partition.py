@@ -194,8 +194,7 @@ def test_dirty_scan_detects_coord_worktree_residue(tmp_path: Path) -> None:
     dirty = _spec_artifact_dirty_paths(repo_root, _HANDLE)
 
     assert f"kitty-specs/{_HANDLE}/acceptance-matrix.json" in dirty, (
-        "coord-worktree dirt (where write_acceptance_matrix actually writes "
-        "under coord topology) was not detected — M2 gap"
+        "coord-worktree dirt (where write_acceptance_matrix actually writes under coord topology) was not detected — M2 gap"
     )
 
 

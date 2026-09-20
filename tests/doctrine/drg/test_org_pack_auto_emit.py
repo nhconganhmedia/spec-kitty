@@ -91,25 +91,12 @@ def test_enhances_auto_emits_drg_edge(tmp_path: Path) -> None:
     )
     _write_fragment_yaml(
         pack_root,
-        body=(
-            'pack_name: testpack\n'
-            'source_kind: local_path\n'
-            'source_ref: "/nonexistent/pack"\n'
-            "layer_index: 1\n"
-            "nodes: []\n"
-            "edges: []\n"
-        ),
+        body=('pack_name: testpack\nsource_kind: local_path\nsource_ref: "/nonexistent/pack"\nlayer_index: 1\nnodes: []\nedges: []\n'),
     )
 
     fragment = load_org_pack("testpack", pack_root, layer_index=1)
 
-    matching = [
-        e
-        for e in fragment.edges
-        if e.source == "tactic:pack-tactic"
-        and e.target == "tactic:builtin-tactic-id"
-        and e.relation == Relation.ENHANCES.value
-    ]
+    matching = [e for e in fragment.edges if e.source == "tactic:pack-tactic" and e.target == "tactic:builtin-tactic-id" and e.relation == Relation.ENHANCES.value]
     assert matching, f"Auto-emitted ENHANCES edge missing. edges={fragment.edges}"
     assert matching[0].generated_reason == "declared via tactic.enhances field"
     assert matching[0].reason is None, _REASON_IS_AUTHORED_ONLY
@@ -125,25 +112,12 @@ def test_overrides_auto_emits_drg_edge(tmp_path: Path) -> None:
     )
     _write_fragment_yaml(
         pack_root,
-        body=(
-            'pack_name: testpack\n'
-            'source_kind: local_path\n'
-            'source_ref: "/nonexistent/pack"\n'
-            "layer_index: 1\n"
-            "nodes: []\n"
-            "edges: []\n"
-        ),
+        body=('pack_name: testpack\nsource_kind: local_path\nsource_ref: "/nonexistent/pack"\nlayer_index: 1\nnodes: []\nedges: []\n'),
     )
 
     fragment = load_org_pack("testpack", pack_root, layer_index=1)
 
-    matching = [
-        e
-        for e in fragment.edges
-        if e.source == "tactic:pack-tactic"
-        and e.target == "tactic:builtin-tactic-id"
-        and e.relation == Relation.OVERRIDES.value
-    ]
+    matching = [e for e in fragment.edges if e.source == "tactic:pack-tactic" and e.target == "tactic:builtin-tactic-id" and e.relation == Relation.OVERRIDES.value]
     assert matching, f"Auto-emitted OVERRIDES edge missing. edges={fragment.edges}"
     assert matching[0].generated_reason == "declared via tactic.overrides field"
     assert matching[0].reason is None, _REASON_IS_AUTHORED_ONLY
@@ -190,8 +164,8 @@ def test_auto_emit_deduplicates_hand_authored_edge(tmp_path: Path) -> None:
     _write_fragment_yaml(
         pack_root,
         body=(
-            'pack_name: testpack\n'
-            'source_kind: local_path\n'
+            "pack_name: testpack\n"
+            "source_kind: local_path\n"
             'source_ref: "/nonexistent/pack"\n'
             "layer_index: 1\n"
             "nodes: []\n"
@@ -205,17 +179,8 @@ def test_auto_emit_deduplicates_hand_authored_edge(tmp_path: Path) -> None:
     fragment = load_org_pack("testpack", pack_root, layer_index=1)
     merged = merge_three_layers(_empty_built_in(), [fragment], None)
 
-    matching = [
-        e
-        for e in merged.edges
-        if e.source == "tactic:pack-tactic"
-        and e.target == "tactic:builtin-tactic-id"
-        and e.relation == Relation.ENHANCES
-    ]
-    assert len(matching) == 1, (
-        f"Hand-authored + auto-emitted edge should collapse to one. "
-        f"Found {len(matching)}: {matching}"
-    )
+    matching = [e for e in merged.edges if e.source == "tactic:pack-tactic" and e.target == "tactic:builtin-tactic-id" and e.relation == Relation.ENHANCES]
+    assert len(matching) == 1, f"Hand-authored + auto-emitted edge should collapse to one. Found {len(matching)}: {matching}"
 
 
 def test_no_augmentation_fields_emits_no_extra_edges(tmp_path: Path) -> None:
@@ -224,14 +189,7 @@ def test_no_augmentation_fields_emits_no_extra_edges(tmp_path: Path) -> None:
     _write_tactic_yaml(pack_root, artifact_id="pack-tactic")
     _write_fragment_yaml(
         pack_root,
-        body=(
-            'pack_name: testpack\n'
-            'source_kind: local_path\n'
-            'source_ref: "/nonexistent/pack"\n'
-            "layer_index: 1\n"
-            "nodes: []\n"
-            "edges: []\n"
-        ),
+        body=('pack_name: testpack\nsource_kind: local_path\nsource_ref: "/nonexistent/pack"\nlayer_index: 1\nnodes: []\nedges: []\n'),
     )
 
     fragment = load_org_pack("testpack", pack_root, layer_index=1)
@@ -253,8 +211,8 @@ def test_a_fragment_cannot_forge_machine_provenance(tmp_path: Path) -> None:
     _write_fragment_yaml(
         pack_root,
         body=(
-            'pack_name: testpack\n'
-            'source_kind: local_path\n'
+            "pack_name: testpack\n"
+            "source_kind: local_path\n"
             'source_ref: "/nonexistent/pack"\n'
             "layer_index: 1\n"
             "nodes: []\n"
@@ -269,9 +227,7 @@ def test_a_fragment_cannot_forge_machine_provenance(tmp_path: Path) -> None:
     with pytest.raises(OrgPackSchemaError) as excinfo:
         load_org_pack("testpack", pack_root, layer_index=1)
 
-    assert "generated_reason" in str(excinfo.value), (
-        f"the refusal must name the offending key; got {excinfo.value}"
-    )
+    assert "generated_reason" in str(excinfo.value), f"the refusal must name the offending key; got {excinfo.value}"
 
 
 def test_relation_enum_includes_enhances_and_overrides() -> None:

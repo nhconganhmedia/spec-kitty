@@ -251,9 +251,7 @@ class VerdictRevertCompoundFailure(RuntimeError):
         super().__init__(message)
 
 
-def _resolve_verdict_commit_router(
-    st: _MoveTaskState, ports: TasksPorts
-) -> tuple[CoordCommitRouter | None, str | None]:
+def _resolve_verdict_commit_router(st: _MoveTaskState, ports: TasksPorts) -> tuple[CoordCommitRouter | None, str | None]:
     """Resolve the review-cycle artifact's ``commit_router`` + skip reason.
 
     T050: mirrors ``tasks_move_task.py``'s own status-event gate EXACTLY
@@ -274,7 +272,10 @@ def _resolve_verdict_commit_router(
 
 
 def _resolve_revert_commit_worktree(
-    st: _MoveTaskState, *, target_ref: str, original_path: Path,
+    st: _MoveTaskState,
+    *,
+    target_ref: str,
+    original_path: Path,
 ) -> tuple[Path, Path | None]:
     """Resolve the worktree :func:`~specify_cli.git.safe_commit` must run FROM
     for T048's revert (WP13 companion fix, DM-01KZ75GBNXC73Q38M43GBH38W7).
@@ -313,16 +314,10 @@ def _resolve_revert_commit_worktree(
     from specify_cli.coordination.workspace import CoordinationWorkspace
     from specify_cli.mission_metadata import load_meta
 
-    primary_dir = placement_seam(st.main_repo_root, st.mission_slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    primary_dir = placement_seam(st.main_repo_root, st.mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     meta = load_meta(primary_dir, allow_missing=True, on_malformed="none")
     raw_mission_id = meta.get("mission_id") if meta else None
-    mid8 = (
-        resolve_mid8(st.mission_slug, mission_id=raw_mission_id)
-        if isinstance(raw_mission_id, str)
-        else ""
-    )
+    mid8 = resolve_mid8(st.mission_slug, mission_id=raw_mission_id) if isinstance(raw_mission_id, str) else ""
     if not mid8:
         raise VerdictRevertError(
             f"Cannot resolve the coordination worktree for {st.mission_slug!r} "
@@ -338,9 +333,7 @@ def _resolve_revert_commit_worktree(
     return coord_worktree, coord_copy
 
 
-def revert_committed_verdict_write(
-    st: _MoveTaskState, signal: VerdictDurabilitySignal
-) -> None:
+def revert_committed_verdict_write(st: _MoveTaskState, signal: VerdictDurabilitySignal) -> None:
     """Serialize compensation through the same checkout-wide verdict queue."""
     if not signal.durably_persisted or signal.artifact_path is None:
         return
@@ -349,15 +342,10 @@ def revert_committed_verdict_write(
         with acquire_verdict_save_queue(queue_root):
             _revert_committed_verdict_write_held(st, signal)
     except VerdictSaveBusy as exc:
-        raise VerdictRevertError(
-            "The transition failed and verdict compensation could not acquire "
-            f"the checkout-wide queue: {exc}"
-        ) from exc
+        raise VerdictRevertError(f"The transition failed and verdict compensation could not acquire the checkout-wide queue: {exc}") from exc
 
 
-def _revert_committed_verdict_write_held(
-    st: _MoveTaskState, signal: VerdictDurabilitySignal
-) -> None:
+def _revert_committed_verdict_write_held(st: _MoveTaskState, signal: VerdictDurabilitySignal) -> None:
     """T048: undo an already-committed verdict write after the transition
     emit that was supposed to follow it has failed.
 
@@ -428,18 +416,13 @@ def _revert_committed_verdict_write_held(
     from specify_cli.core.commit_guard import GuardCapability
     from specify_cli.git import safe_commit
 
-    message = (
-        f"revert: undo review-cycle-{signal.cycle_number} verdict for "
-        f"{st.task_id} on {st.mission_slug} (transition emit failed, FR-002)"
-    )
+    message = f"revert: undo review-cycle-{signal.cycle_number} verdict for {st.task_id} on {st.mission_slug} (transition emit failed, FR-002)"
     target = placement_seam(
         st.main_repo_root,
         st.mission_slug,
         effective_root=st.owned.root if st.owned else None,
     ).write_target(kind=MissionArtifactKind.REVIEW_CYCLE)
-    worktree_root, commit_path = _resolve_revert_commit_worktree(
-        st, target_ref=target.ref, original_path=original_path
-    )
+    worktree_root, commit_path = _resolve_revert_commit_worktree(st, target_ref=target.ref, original_path=original_path)
     if commit_path is None:
         return  # coord-staged copy already reverted (or never landed) -- idempotent no-op
     try:
@@ -536,10 +519,7 @@ def _persist_review_cycle_with_queue(
         # Frozen seam tests inject the pre-WP03 writer double directly.  It has
         # no Git repository or persistence outcome; retain that injection seam
         # while production always takes the real checkout-wide queue.
-        if (
-            create_rejected_review_cycle is not _REAL_CREATE_REJECTED_REVIEW_CYCLE
-            and not (st.main_repo_root / ".git").exists()
-        ):
+        if create_rejected_review_cycle is not _REAL_CREATE_REJECTED_REVIEW_CYCLE and not (st.main_repo_root / ".git").exists():
             review_cycle = create(None if st.skip_target_branch_commit else ports.coord)
         else:
             queue_root = st.owned.root if st.owned is not None else st.main_repo_root
@@ -555,9 +535,7 @@ def _persist_review_cycle_with_queue(
         # uncaught past the queue's own ``VerdictSaveBusy`` handling above --
         # an unhandled crash, not the truthful non-durable failure every
         # OTHER busy path here produces.
-        _raise_verdict_busy_failure(
-            reason=_DURABILITY_REASON_FEATURE_STATUS_LOCK_BUSY, cause=exc
-        )
+        _raise_verdict_busy_failure(reason=_DURABILITY_REASON_FEATURE_STATUS_LOCK_BUSY, cause=exc)
 
     if st.skip_target_branch_commit:
         local = review_cycle.persistence
@@ -596,15 +574,11 @@ def _persist_review_cycle_with_queue(
 
 _DURABILITY_NOTICE_BY_REASON = {
     _DURABILITY_REASON_NO_AUTO_COMMIT: "--no-auto-commit",
-    _DURABILITY_REASON_PROTECTED_TARGET_BRANCH: (
-        "protected target branch under coordination topology"
-    ),
+    _DURABILITY_REASON_PROTECTED_TARGET_BRANCH: ("protected target branch under coordination topology"),
 }
 
 
-def _announce_verdict_durability_gap(
-    st: _MoveTaskState, signal: VerdictDurabilitySignal
-) -> None:
+def _announce_verdict_durability_gap(st: _MoveTaskState, signal: VerdictDurabilitySignal) -> None:
     """Print the human-readable half of the durability signal (T049/T050).
 
     Guarded by ``json_output`` following this module's established pattern
@@ -617,10 +591,7 @@ def _announce_verdict_durability_gap(
     from specify_cli.cli.commands.agent import tasks as _tasks
 
     reason_text = _DURABILITY_NOTICE_BY_REASON[signal.skip_reason]
-    _tasks.console.print(
-        f"[yellow]Note:[/yellow] review-cycle verdict for {st.task_id} was "
-        f"written but NOT committed ({reason_text})."
-    )
+    _tasks.console.print(f"[yellow]Note:[/yellow] review-cycle verdict for {st.task_id} was written but NOT committed ({reason_text}).")
 
 
 def resolve_review_verdict_facts(
@@ -682,11 +653,7 @@ def resolve_review_verdict_facts(
         synthetic_path = verdict_wp_dir / "review-cycle-damaged-event-record.md"
         return None, synthetic_path, synthetic_path.name
     review_verdict = to_artifact_verdict(lookup.result.verdict)
-    artifact_path = (
-        Path(lookup.result.feedback_path)
-        if lookup.result.feedback_path
-        else verdict_wp_dir / "review-cycle-event-recorded.md"
-    )
+    artifact_path = Path(lookup.result.feedback_path) if lookup.result.feedback_path else verdict_wp_dir / "review-cycle-event-recorded.md"
     return review_verdict, artifact_path, artifact_path.name
 
 
@@ -718,9 +685,7 @@ def _resolve_verdict_read_feature_dir(wp_path: Path) -> Path:
         return feature_dir
 
     mission_slug = feature_dir.name
-    resolved: Path = placement_seam(main_repo_root, mission_slug).read_dir(
-        MissionArtifactKind.STATUS_STATE
-    )
+    resolved: Path = placement_seam(main_repo_root, mission_slug).read_dir(MissionArtifactKind.STATUS_STATE)
     return resolved
 
 
@@ -793,9 +758,7 @@ def persist_review_override_before_guard(st: _MoveTaskState) -> None:
     )
 
 
-def _persist_approved_review_cycle(
-    st: _MoveTaskState, ports: TasksPorts
-) -> VerdictDurabilitySignal | None:
+def _persist_approved_review_cycle(st: _MoveTaskState, ports: TasksPorts) -> VerdictDurabilitySignal | None:
     """T005: fire the generalized writer on the ordinary approval path.
 
     Only when the WP's current highest-numbered review-cycle artifact is
@@ -851,11 +814,7 @@ def _persist_approved_review_cycle(
     """
     if st.request is not None and st.request.is_arbiter_override:
         return None
-    wp_slug = (
-        st.wp.path.stem
-        if st.owned is not None and st.wp is not None
-        else _resolve_wp_slug(st.main_repo_root, st.mission_slug, st.task_id)
-    )
+    wp_slug = st.wp.path.stem if st.owned is not None and st.wp is not None else _resolve_wp_slug(st.main_repo_root, st.mission_slug, st.task_id)
     lookup = event_sourced_review_result(st.feature_dir, st.task_id)
     # FR-007 (T2 / IC-04): a malformed/damaged event-sourced slot
     # (``slot_present=True, result=None``) stays a no-op, UNCHANGED — the
@@ -882,9 +841,7 @@ def _persist_approved_review_cycle(
     # fallback chain) — never the literal "unknown" for a genuine
     # approval.
     reviewer_agent = (st.reviewer or st.agent or st.actor or "unknown").strip() or "unknown"
-    approval_reference = (
-        st.approval_ref or st.note_text or f"approval:{st.task_id}"
-    ).strip() or f"approval:{st.task_id}"
+    approval_reference = (st.approval_ref or st.note_text or f"approval:{st.task_id}").strip() or f"approval:{st.task_id}"
     # SC-006: the artifact carries at least a reproduction_command —
     # auto-derived from the decision already made (NFR-005), never a new
     # hand-filled field: the exact ``move-task`` invocation that reproduces
@@ -892,10 +849,8 @@ def _persist_approved_review_cycle(
     # (the same identity this write already attributes the approval to)
     # so a replay of this exact command reproduces the SAME attribution
     # instead of silently falling back to whoever re-runs it.
-    reproduction_command = (
-        f"spec-kitty agent tasks move-task {st.task_id} --to approved "
-        f"--mission {st.mission_slug} --agent {reviewer_agent}"
-    )
+    reproduction_command = f"spec-kitty agent tasks move-task {st.task_id} --to approved --mission {st.mission_slug} --agent {reviewer_agent}"
+
     # M1 (adversarial squad, PR #3156): the approval body is synthesized
     # by THIS caller, not supplied by a reviewer — pass it via ``body=``
     # rather than a throwaway ``feedback_source`` file. This both drops
@@ -925,9 +880,7 @@ def _persist_approved_review_cycle(
     return durability_signal
 
 
-def persist_rejected_review_cycle_for_rollback(
-    st: _MoveTaskState, ports: TasksPorts
-) -> VerdictDurabilitySignal:
+def persist_rejected_review_cycle_for_rollback(st: _MoveTaskState, ports: TasksPorts) -> VerdictDurabilitySignal:
     """Persist the rejection review cycle for a planned-rollback transition.
 
     Extracted (site 3b) from the ``if decision.planned_rollback and
@@ -946,11 +899,7 @@ def persist_rejected_review_cycle_for_rollback(
             main_repo_root=st.main_repo_root,
             mission_slug=st.mission_slug,
             wp_id=st.task_id,
-            wp_slug=(
-                st.wp.path.stem
-                if st.owned is not None and st.wp is not None
-                else _resolve_wp_slug(st.main_repo_root, st.mission_slug, st.task_id)
-            ),
+            wp_slug=(st.wp.path.stem if st.owned is not None and st.wp is not None else _resolve_wp_slug(st.main_repo_root, st.mission_slug, st.task_id)),
             feedback_source=st.resolved_feedback_source,
             reviewer_agent=st.agent or "unknown",
             commit_router=commit_router,
@@ -1033,7 +982,5 @@ def persist_arbiter_override_decision(
         repo_root=main_repo_root,
     )
     if not json_output:
-        _tasks.console.print(
-            f"[yellow]Arbiter override recorded:[/yellow] [bold]{category}[/bold] — {explanation}"
-        )
+        _tasks.console.print(f"[yellow]Arbiter override recorded:[/yellow] [bold]{category}[/bold] — {explanation}")
         _tasks.console.print(f"[dim]  Decision persisted: {arb_path}[/dim]")

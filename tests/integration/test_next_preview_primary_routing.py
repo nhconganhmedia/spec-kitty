@@ -200,18 +200,11 @@ class TestNextPreviewRoutesToPrimary:
         # Husk invariant guard: the wrong leg must genuinely lack tasks/ so the
         # emptiness is a real wrong-leg read, not an accident of the fixture.
         assert not (ctx.coord_feature_dir / "tasks").is_dir(), (
-            "Coord husk must be STATUS-only (no tasks/) for the revert proof to "
-            "exercise the real #2197 wrong-leg behaviour."
+            "Coord husk must be STATUS-only (no tasks/) for the revert proof to exercise the real #2197 wrong-leg behaviour."
         )
 
-        assert unrouted.wp_id is None, (
-            "Pre-fix wrong-leg preview (coord husk, no tasks/) must yield no "
-            f"claimable WP; got {unrouted.wp_id!r}."
-        )
-        assert unrouted.selection_reason == "no_tasks_dir", (
-            "Coord-husk preview must report 'no_tasks_dir'; got "
-            f"{unrouted.selection_reason!r}."
-        )
+        assert unrouted.wp_id is None, f"Pre-fix wrong-leg preview (coord husk, no tasks/) must yield no claimable WP; got {unrouted.wp_id!r}."
+        assert unrouted.selection_reason == "no_tasks_dir", f"Coord-husk preview must report 'no_tasks_dir'; got {unrouted.selection_reason!r}."
 
         # The routed and unrouted outcomes MUST differ — this is the behavioural
         # delta the routing fix creates.  Reverting T011 makes them equal (both

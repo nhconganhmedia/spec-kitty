@@ -179,20 +179,14 @@ def evaluate(
         return GuardVerdict(
             allowed=True,
             resolved_destination=destination,
-            reason=(
-                f"destination {destination!r} is the resolved placement and is "
-                f"not a protected branch"
-            ),
+            reason=(f"destination {destination!r} is the resolved placement and is not a protected branch"),
         )
 
     if capability in _PROTECTED_FLOW_CAPABILITIES:
         return GuardVerdict(
             allowed=True,
             resolved_destination=destination,
-            reason=(
-                f"capability {capability.value!r} authorizes the bookkeeping "
-                f"flow onto protected branch {destination!r}"
-            ),
+            reason=(f"capability {capability.value!r} authorizes the bookkeeping flow onto protected branch {destination!r}"),
         )
 
     return GuardVerdict(

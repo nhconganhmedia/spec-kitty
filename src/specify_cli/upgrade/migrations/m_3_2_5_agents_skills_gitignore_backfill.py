@@ -37,29 +37,19 @@ _MANIFEST_ENTRY = ".kittify/skills-manifest.json"
 # of them as present so the backfill stays idempotent and never appends a
 # duplicate beside a user's own entry.
 _EQUIVALENT_ENTRIES: dict[str, frozenset[str]] = {
-    _SKILLS_ROOT_ENTRY: frozenset(
-        {".agents/skills/", ".agents/skills", ".agents/", ".agents"}
-    ),
+    _SKILLS_ROOT_ENTRY: frozenset({".agents/skills/", ".agents/skills", ".agents/", ".agents"}),
     _MANIFEST_ENTRY: frozenset({".kittify/skills-manifest.json"}),
 }
 
 
 def _read_gitignore_entries(project_path: Path) -> set[str]:
     content = read_ignore_file_text(project_path / ".gitignore")
-    return {
-        line.strip()
-        for line in content.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    }
+    return {line.strip() for line in content.splitlines() if line.strip() and not line.lstrip().startswith("#")}
 
 
 def _missing_entries(project_path: Path) -> list[str]:
     present = _read_gitignore_entries(project_path)
-    return [
-        entry
-        for entry, equivalents in _EQUIVALENT_ENTRIES.items()
-        if equivalents.isdisjoint(present)
-    ]
+    return [entry for entry, equivalents in _EQUIVALENT_ENTRIES.items() if equivalents.isdisjoint(present)]
 
 
 def _untrack_tracked_paths(project_path: Path, entries: list[str]) -> list[str]:
@@ -127,9 +117,7 @@ class AgentsSkillsGitignoreBackfillMigration(BaseMigration):
             return MigrationResult(success=True, changes_made=changes)
 
         if not missing:
-            return MigrationResult(
-                success=True, changes_made=["gitignore entries already present"]
-            )
+            return MigrationResult(success=True, changes_made=["gitignore entries already present"])
 
         GitignoreManager(project_path).ensure_entries(missing)
         untracked = _untrack_tracked_paths(project_path, missing)

@@ -32,10 +32,7 @@ class FixRuntimeNextSkillMigration(BaseMigration):
     """Expand runtime-next skill with decision algorithm and WP iteration docs."""
 
     migration_id = "2.1.2_fix_runtime_next_skill"
-    description = (
-        "Expand runtime-next skill with decision algorithm, WP iteration logic, "
-        "guard primitives, prompt generation, and agent loop pattern"
-    )
+    description = "Expand runtime-next skill with decision algorithm, WP iteration logic, guard primitives, prompt generation, and agent loop pattern"
     target_version = "2.1.2"
 
     def detect(self, project_path: Path) -> bool:
@@ -59,18 +56,10 @@ class FixRuntimeNextSkillMigration(BaseMigration):
 
         try:
             doctrine_root = files("charter.offering")
-            canonical_path = doctrine_root.joinpath(
-                "skills", _SKILL_NAME, "SKILL.md"
-            )
+            canonical_path = doctrine_root.joinpath("skills", _SKILL_NAME, "SKILL.md")
             new_content = canonical_path.read_text(encoding="utf-8")
         except Exception:
-            fallback = (
-                Path(__file__).resolve().parents[3]
-                / "doctrine"
-                / "skills"
-                / _SKILL_NAME
-                / "SKILL.md"
-            )
+            fallback = Path(__file__).resolve().parents[3] / "doctrine" / "skills" / _SKILL_NAME / "SKILL.md"
             if fallback.is_file():
                 new_content = fallback.read_text(encoding="utf-8")
             else:
@@ -87,9 +76,7 @@ class FixRuntimeNextSkillMigration(BaseMigration):
                 changes.append(f"Would replace {rel}")
             else:
                 try:
-                    wrote, warning = write_skill_text(
-                        info.path, new_content, project_path
-                    )
+                    wrote, warning = write_skill_text(info.path, new_content, project_path)
                     if wrote:
                         changes.append(f"Replaced {rel}")
                     elif warning is not None:

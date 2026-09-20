@@ -112,11 +112,7 @@ def built_artifacts(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Pat
 
 def _wheel_pack_paths(wheel: Path) -> set[str]:
     with zipfile.ZipFile(wheel) as zf:
-        return {
-            name
-            for name in zf.namelist()
-            if name.startswith(_PACKS_PREFIX) and not name.endswith("/")
-        }
+        return {name for name in zf.namelist() if name.startswith(_PACKS_PREFIX) and not name.endswith("/")}
 
 
 def _sdist_pack_paths(sdist: Path) -> set[str]:
@@ -146,10 +142,7 @@ def test_wheel_ships_built_in_packs_at_exact_parity(
     actual = _wheel_pack_paths(wheel)
     missing = expected - actual
     extra = actual - expected
-    assert actual == expected, (
-        f"wheel packs/built-in mismatch — missing: {sorted(missing)}, "
-        f"extra: {sorted(extra)}"
-    )
+    assert actual == expected, f"wheel packs/built-in mismatch — missing: {sorted(missing)}, extra: {sorted(extra)}"
 
 
 def test_sdist_ships_built_in_packs_at_exact_parity(
@@ -160,10 +153,7 @@ def test_sdist_ships_built_in_packs_at_exact_parity(
     actual = _sdist_pack_paths(sdist)
     missing = expected - actual
     extra = actual - expected
-    assert actual == expected, (
-        f"sdist packs/built-in mismatch — missing: {sorted(missing)}, "
-        f"extra: {sorted(extra)}"
-    )
+    assert actual == expected, f"sdist packs/built-in mismatch — missing: {sorted(missing)}, extra: {sorted(extra)}"
 
 
 # --------------------------------------------------------------------------- #
@@ -241,10 +231,7 @@ def test_clean_venv_install_imports_and_resolves_built_in(
         text=True,
         env=child_env,
     )
-    assert result.returncode == 0, (
-        "clean-venv import/resolve failed.\n"
-        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"clean-venv import/resolve failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     payload = json.loads(result.stdout.strip().splitlines()[-1])
     assert payload["checked"] == len(rel_under_root)
     assert _PACKS_PREFIX.rstrip("/") in payload["root"]

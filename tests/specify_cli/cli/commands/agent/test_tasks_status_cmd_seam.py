@@ -118,18 +118,14 @@ def test_patched_resolution_seams_intercept_resolve_dirs(tmp_path: Path) -> None
             f"{_TASKS}._ensure_target_branch_checked_out",
             return_value=(tmp_path, "main"),
         ) as branch_mock,
-        patch(
-            f"{_TASKS}.get_status_read_root", return_value=missing_root
-        ) as read_root_mock,
+        patch(f"{_TASKS}.get_status_read_root", return_value=missing_root) as read_root_mock,
         patch(f"{_TASKS}.console") as console_mock,
         pytest.raises(typer.Exit) as exc_info,
     ):
         tasks_status_cmd._st_resolve_dirs(st)
     assert exc_info.value.exit_code == 1
     locate_mock.assert_called_once()
-    slug_mock.assert_called_once_with(
-        explicit_mission="034-feature", json_output=True, repo_root=tmp_path, error_handler=tasks_status_cmd._status_selector_error
-    )
+    slug_mock.assert_called_once_with(explicit_mission="034-feature", json_output=True, repo_root=tmp_path, error_handler=tasks_status_cmd._status_selector_error)
     branch_mock.assert_called_once_with(tmp_path, "034-feature", True)
     read_root_mock.assert_called_once_with(st.cwd)
     payload = console_mock.emit_json.call_args.args[0]
@@ -143,12 +139,8 @@ def test_patched_workspace_resolver_intercepts_resolve_execution_mode(
     """``tasks.resolve_workspace_for_wp`` (D7 ×3, the mocked-env fixture seam)
     bites through ``_st_resolve_execution_mode``'s primary arm."""
     workspace = SimpleNamespace(execution_mode="worktree", resolution_kind="lane_workspace")
-    with patch(
-        f"{_TASKS}.resolve_workspace_for_wp", return_value=workspace
-    ) as resolver_mock:
-        result = tasks_status_cmd._st_resolve_execution_mode(
-            "execution_mode: ignored", tmp_path, "034-feature", "WP01"
-        )
+    with patch(f"{_TASKS}.resolve_workspace_for_wp", return_value=workspace) as resolver_mock:
+        result = tasks_status_cmd._st_resolve_execution_mode("execution_mode: ignored", tmp_path, "034-feature", "WP01")
     resolver_mock.assert_called_once_with(tmp_path, "034-feature", "WP01")
     assert result == ("worktree", "lane_workspace")
 
@@ -176,9 +168,7 @@ def test_patched_stall_threshold_intercepts_apply_review_flags(
     st.main_repo_root = tmp_path
     st.tasks_dir = tmp_path
     st.work_packages = []
-    with patch(
-        f"{_TASKS}._review_stall_threshold_minutes", return_value=77
-    ) as threshold_mock:
+    with patch(f"{_TASKS}._review_stall_threshold_minutes", return_value=77) as threshold_mock:
         tasks_status_cmd._st_apply_review_flags(st)
     threshold_mock.assert_called_once_with(tmp_path)
     assert st.review_stall_threshold == 77
@@ -240,18 +230,12 @@ def test_patched_stale_label_intercepts_render_active(tmp_path: Path) -> None:
     ports = MagicMock()
     with (
         patch(f"{_TASKS}._get_hic_marker", return_value="") as marker_mock,
-        patch(
-            f"{_TASKS}._render_stale_status", return_value="stale: 42m"
-        ) as label_mock,
+        patch(f"{_TASKS}._render_stale_status", return_value="stale: 42m") as label_mock,
     ):
         tasks_status_cmd._st_render_active(ports, st, view, {}, None)
     marker_mock.assert_called_once()
     label_mock.assert_called_once_with(None)
-    rendered = [
-        call.args[0]
-        for call in ports.render.human.call_args_list
-        if isinstance(call.args[0], str)
-    ]
+    rendered = [call.args[0] for call in ports.render.human.call_args_list if isinstance(call.args[0], str)]
     assert any("stale: 42m" in line for line in rendered)
 
 
@@ -262,9 +246,7 @@ def test_patched_auto_commit_intercepts_render_summary(tmp_path: Path) -> None:
     st.main_repo_root = tmp_path
     st.mission_slug = "034-feature"
     ports = MagicMock()
-    with patch(
-        f"{_TASKS}.get_auto_commit_default", return_value=False
-    ) as auto_mock:
+    with patch(f"{_TASKS}.get_auto_commit_default", return_value=False) as auto_mock:
         tasks_status_cmd._st_render_summary(ports, st, _view())
     auto_mock.assert_called_once_with(tmp_path)
     assert ports.render.human.call_count >= 4

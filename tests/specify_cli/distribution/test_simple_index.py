@@ -250,7 +250,5 @@ def test_sdist_version_parsed_without_package_prefix(monkeypatch: pytest.MonkeyP
     # No package_prefix: the version is the trailing segment of <name>-<version>.
     client = _FakeClient(_FakeResponse(_HTML_SDIST_NO_PREFIX.encode("utf-8")))
     monkeypatch.setattr(httpx, "Client", lambda **kwargs: client)
-    result = SimpleIndexProvider("https://example.invalid/simple/").get_latest(
-        "acme-spec-kitty-cli"
-    )
+    result = SimpleIndexProvider("https://example.invalid/simple/").get_latest("acme-spec-kitty-cli")
     assert result.version == "1.3.0"

@@ -5,6 +5,7 @@ consulted for lane values. When the event log file is absent the feature has
 not been finalized and callers must surface a hard-fail with actionable
 guidance.
 """
+
 from __future__ import annotations
 from pathlib import Path
 from typing import Any
@@ -44,9 +45,7 @@ def _require_event_log(feature_dir: Path) -> None:
     if not has_event_log(feature_dir):
         from .uninitialized_hint import feature_event_log_missing_error
 
-        raise CanonicalStatusNotFoundError(
-            feature_event_log_missing_error(feature_dir)
-        )
+        raise CanonicalStatusNotFoundError(feature_event_log_missing_error(feature_dir))
 
 
 def get_wp_lane(feature_dir: Path, wp_id: str) -> Lane:
@@ -64,6 +63,7 @@ def get_wp_lane(feature_dir: Path, wp_id: str) -> Lane:
     _require_event_log(feature_dir)
     from .store import read_events
     from .reducer import reduce
+
     events = read_events(feature_dir)
     if not events:
         # File exists but is empty — treat WP as uninitialized.
@@ -89,6 +89,7 @@ def get_all_wp_lanes(feature_dir: Path) -> dict[str, Lane]:
     _require_event_log(feature_dir)
     from .store import read_events
     from .reducer import reduce
+
     events = read_events(feature_dir)
     if not events:
         return {}

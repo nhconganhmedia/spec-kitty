@@ -69,11 +69,7 @@ def _emit_review_artifact_block(
         repo_root=main_repo_for_diag,
     )
     if json_output:
-        diagnostic_code = (
-            diagnostics[0]["diagnostic_code"]
-            if diagnostics
-            else REJECTED_REVIEW_ARTIFACT_CONFLICT
-        )
+        diagnostic_code = diagnostics[0]["diagnostic_code"] if diagnostics else REJECTED_REVIEW_ARTIFACT_CONFLICT
         print(
             json.dumps(
                 {
@@ -94,17 +90,13 @@ def _emit_review_artifact_block(
             finding,
             repo_root=main_repo_for_diag,
         )
-        console.print(
-            f"  - {format_review_artifact_finding(finding, repo_root=main_repo_for_diag)}"
-        )
+        console.print(f"  - {format_review_artifact_finding(finding, repo_root=main_repo_for_diag)}")
         console.print(f"    diagnostic_code: {diagnostic['diagnostic_code']}")
         console.print(f"    branch_or_work_package: {diagnostic['branch_or_work_package']}")
         console.print(f"    violated_invariant: {diagnostic['violated_invariant']}")
         console.print(f"    latest_review_cycle_path: {diagnostic['latest_review_cycle_path']}")
         if "latest_review_cycle_verdict" in diagnostic:
-            console.print(
-                f"    latest_review_cycle_verdict: {diagnostic['latest_review_cycle_verdict']}"
-            )
+            console.print(f"    latest_review_cycle_verdict: {diagnostic['latest_review_cycle_verdict']}")
         remediation = diagnostic.get("remediation", [])
         if not isinstance(remediation, list):
             remediation = [str(remediation)]
@@ -171,9 +163,7 @@ def run_dry_run_forecast(
         # ``-coord`` husk for a coord-topology mission, where ``lanes.json`` is
         # absent → the forecast spuriously reports missing lanes. Route by kind so
         # the dry-run reads the real PRIMARY lane manifest.
-        lanes_manifest = require_lanes_json(
-            seam.read_dir(MissionArtifactKind.LANE_STATE)
-        )
+        lanes_manifest = require_lanes_json(seam.read_dir(MissionArtifactKind.LANE_STATE))
     except (MissingLanesError, CorruptLanesError) as exc:
         _emit_dry_run_error(error_msg=str(exc), json_output=json_output)
         raise typer.Exit(1) from exc
@@ -204,9 +194,7 @@ def run_dry_run_forecast(
     # REJECTED_REVIEW_ARTIFACT_CONFLICT — dry-run must surface the same
     # blocker in both human and JSON output, so operators can trust the
     # preview as a readiness signal.
-    dry_run_all_wp_ids: list[str] = [
-        wp for lane in lanes_manifest.lanes for wp in lane.wp_ids
-    ]
+    dry_run_all_wp_ids: list[str] = [wp for lane in lanes_manifest.lanes for wp in lane.wp_ids]
     review_artifact_preflight = run_review_artifact_consistency_preflight(
         feature_dir_for_preview,
         wp_ids=dry_run_all_wp_ids,
@@ -259,9 +247,7 @@ def run_dry_run_forecast(
         },
     }
     if would_assign_number is not None and not json_output:
-        console.print(
-            f"[cyan]would assign[/cyan] mission_number={would_assign_number} to mission {resolved_feature}"
-        )
+        console.print(f"[cyan]would assign[/cyan] mission_number={would_assign_number} to mission {resolved_feature}")
     if json_output:
         print(json.dumps(payload))
     else:

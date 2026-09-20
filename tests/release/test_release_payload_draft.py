@@ -19,6 +19,7 @@ from specify_cli.release.payload import ReleasePrepPayload, build_release_prep_p
 
 pytestmark = [pytest.mark.integration]
 
+
 def _write_pyproject(tmp_path: Path, version: str = "3.1.0a7") -> None:
     (tmp_path / "pyproject.toml").write_text(
         dedent(
@@ -54,12 +55,8 @@ def _write_mission(
         "mission_number": mission_slug.split("-")[0],
         "created_at": "2026-01-01T00:00:00+00:00",
     }
-    (mission_dir / "meta.json").write_text(
-        _json.dumps(meta, indent=2), encoding="utf-8"
-    )
-    (mission_dir / "spec.md").write_text(
-        f"# {friendly_name}\n\nDescription.\n", encoding="utf-8"
-    )
+    (mission_dir / "meta.json").write_text(_json.dumps(meta, indent=2), encoding="utf-8")
+    (mission_dir / "spec.md").write_text(f"# {friendly_name}\n\nDescription.\n", encoding="utf-8")
 
     wp_content = dedent(
         """\
@@ -96,12 +93,8 @@ def _write_mission_with_event_log(
         "mission_number": mission_slug.split("-")[0],
         "created_at": "2026-01-01T00:00:00+00:00",
     }
-    (mission_dir / "meta.json").write_text(
-        _json.dumps(meta, indent=2), encoding="utf-8"
-    )
-    (mission_dir / "spec.md").write_text(
-        f"# {friendly_name}\n\nDescription.\n", encoding="utf-8"
-    )
+    (mission_dir / "meta.json").write_text(_json.dumps(meta, indent=2), encoding="utf-8")
+    (mission_dir / "spec.md").write_text(f"# {friendly_name}\n\nDescription.\n", encoding="utf-8")
 
     # WP file has NO status frontmatter — 3.x format
     wp_content = dedent(
@@ -132,9 +125,7 @@ def _write_mission_with_event_log(
         "to_lane": wp_lane,
         "wp_id": "WP01",
     }
-    (mission_dir / "status.events.jsonl").write_text(
-        _json.dumps(event) + "\n", encoding="utf-8"
-    )
+    (mission_dir / "status.events.jsonl").write_text(_json.dumps(event) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +161,9 @@ def test_proposed_changelog_block_non_empty_when_missions_present(
     payload = build_release_prep_payload("stable", tmp_path)
 
     assert len(payload.proposed_changelog_block) > 0
-    assert "## [" in payload.proposed_changelog_block or "079-test-mission" in payload.proposed_changelog_block or "Test Mission" in payload.proposed_changelog_block
+    assert (
+        "## [" in payload.proposed_changelog_block or "079-test-mission" in payload.proposed_changelog_block or "Test Mission" in payload.proposed_changelog_block
+    )
 
 
 def test_proposed_changelog_block_matches_changelog_block(tmp_path: Path) -> None:
@@ -274,9 +267,7 @@ def test_changelog_block_event_log_takes_precedence_over_frontmatter(
         "to_lane": "planned",
         "wp_id": "WP01",
     }
-    (mission_dir / "status.events.jsonl").write_text(
-        _json.dumps(event) + "\n", encoding="utf-8"
-    )
+    (mission_dir / "status.events.jsonl").write_text(_json.dumps(event) + "\n", encoding="utf-8")
     _write_pyproject(tmp_path)
 
     payload = build_release_prep_payload("stable", tmp_path)

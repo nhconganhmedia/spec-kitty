@@ -33,6 +33,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_cp1252_file(path: Path, text: str | None = None) -> None:
     """Write a file in cp1252 encoding (bytes that are not valid UTF-8).
 
@@ -308,8 +309,7 @@ def test_idempotency_second_run_is_noop(tmp_path: Path) -> None:
     # No new provenance records written on second run.
     records_after_second_run = _count_provenance_records(provenance_path)
     assert records_after_second_run == records_after_first_run, (
-        f"Second run wrote {records_after_second_run - records_after_first_run} extra "
-        "provenance record(s); idempotency contract violated (NFR-006)."
+        f"Second run wrote {records_after_second_run - records_after_first_run} extra provenance record(s); idempotency contract violated (NFR-006)."
     )
 
 
@@ -356,9 +356,7 @@ def test_json_summary_schema_stability(tmp_path: Path) -> None:
     payload = _extract_json(result.output)
 
     required_keys = {"result", "files_inspected", "already_utf8", "normalized", "ambiguous", "dry_run"}
-    assert required_keys <= set(payload.keys()), (
-        f"Missing keys: {required_keys - set(payload.keys())}"
-    )
+    assert required_keys <= set(payload.keys()), f"Missing keys: {required_keys - set(payload.keys())}"
 
 
 def test_json_dry_run_flag_reflected_in_output(tmp_path: Path) -> None:

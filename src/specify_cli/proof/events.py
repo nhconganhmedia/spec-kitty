@@ -151,10 +151,7 @@ class BaseProofPayload(_StrictModel):
     def _validate_bounded_summary(self) -> BaseProofPayload:
         summary_size = _json_size(self.summary)
         if summary_size > MAX_PROOF_SUMMARY_BYTES:
-            raise ValueError(
-                "summary must be artifact-backed when larger than "
-                f"{MAX_PROOF_SUMMARY_BYTES} bytes"
-            )
+            raise ValueError(f"summary must be artifact-backed when larger than {MAX_PROOF_SUMMARY_BYTES} bytes")
         return self
 
 
@@ -288,9 +285,7 @@ def build_proof_payload(event_type: str, payload: BaseProofPayload | dict[str, A
 
     model = payload if isinstance(payload, BaseProofPayload) else model_cls(**payload)
     if model.event_type != event_type:
-        raise ValueError(
-            f"Payload model {model.__class__.__name__} cannot be emitted as {event_type}"
-        )
+        raise ValueError(f"Payload model {model.__class__.__name__} cannot be emitted as {event_type}")
 
     data = model.model_dump(mode="json", exclude_none=True)
     _lift_subject_identity_fields(data)
@@ -302,19 +297,13 @@ def build_proof_payload(event_type: str, payload: BaseProofPayload | dict[str, A
     data["idempotency_key"] = expected_idempotency_key
 
     if _json_size(data) > MAX_PROOF_PAYLOAD_BYTES:
-        raise ValueError(
-            "proof payload exceeds bounded sync envelope; attach large data as artifact_refs"
-        )
+        raise ValueError("proof payload exceeds bounded sync envelope; attach large data as artifact_refs")
     return data
 
 
 def proof_idempotency_key(event_type: str, payload: dict[str, Any]) -> str:
     """Return the deterministic idempotency key for a proof payload."""
-    canonical = {
-        key: value
-        for key, value in payload.items()
-        if key not in {"idempotency_key", "observed_at"}
-    }
+    canonical = {key: value for key, value in payload.items() if key not in {"idempotency_key", "observed_at"}}
     canonical_event: dict[str, Any] = {"event_type": event_type}
     canonical_event["payload"] = canonical
     encoded = json.dumps(
@@ -350,13 +339,7 @@ def infer_proof_aggregate(payload: dict[str, Any]) -> tuple[str, str]:
 
     return (
         "Mission",
-        str(
-            subject.get("mission_id")
-            or subject.get("mission_slug")
-            or subject.get("run_id")
-            or subject.get("subject_id")
-            or "proof"
-        ),
+        str(subject.get("mission_id") or subject.get("mission_slug") or subject.get("run_id") or subject.get("subject_id") or "proof"),
     )
 
 
@@ -378,8 +361,4 @@ def _lift_subject_identity_fields(payload: dict[str, Any]) -> None:
 
 
 def _json_size(value: Any) -> int:
-    return len(
-        json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode(
-            "utf-8"
-        )
-    )
+    return len(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8"))

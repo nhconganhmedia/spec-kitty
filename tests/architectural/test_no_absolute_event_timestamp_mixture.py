@@ -191,11 +191,7 @@ def _joined_string_literal(node: ast.AST) -> str | None:
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         return node.value
     if isinstance(node, ast.JoinedStr):
-        parts = [
-            part.value
-            for part in node.values
-            if isinstance(part, ast.Constant) and isinstance(part.value, str)
-        ]
+        parts = [part.value for part in node.values if isinstance(part, ast.Constant) and isinstance(part.value, str)]
         return "".join(parts)
     return None
 
@@ -208,9 +204,7 @@ def _is_hardcoded_iso_literal(expr: ast.expr) -> bool:
 
 
 def _expr_contains_now_call(expr: ast.expr) -> bool:
-    return any(
-        isinstance(node, ast.Call) and _call_name(node) in _NOW_CALL_NAMES for node in ast.walk(expr)
-    )
+    return any(isinstance(node, ast.Call) and _call_name(node) in _NOW_CALL_NAMES for node in ast.walk(expr))
 
 
 def _at_kwarg(call: ast.Call) -> ast.expr | None:
@@ -231,11 +225,7 @@ def _at_kwarg(call: ast.Call) -> ast.expr | None:
 def _local_helper_defs(tree: ast.Module) -> dict[str, ast.FunctionDef | ast.AsyncFunctionDef]:
     """Module-level, non-``test_*`` function defs in one file -- candidate
     same-file event-construction helpers (e.g. ``_event``)."""
-    return {
-        node.name: node
-        for node in tree.body
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("test_")
-    }
+    return {node.name: node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("test_")}
 
 
 def _has_named_param(func_def: ast.FunctionDef | ast.AsyncFunctionDef, name: str) -> bool:
@@ -244,9 +234,7 @@ def _has_named_param(func_def: ast.FunctionDef | ast.AsyncFunctionDef, name: str
     return name in names
 
 
-def _or_fallback_for_param(
-    func_def: ast.FunctionDef | ast.AsyncFunctionDef, param_name: str
-) -> ast.expr | None:
+def _or_fallback_for_param(func_def: ast.FunctionDef | ast.AsyncFunctionDef, param_name: str) -> ast.expr | None:
     """Find a ``<param_name> or <fallback>`` shape anywhere in *func_def*'s
     body and return ``<fallback>`` -- the runtime-default idiom both
     ``_event(...)`` (hard-coded fallback) and ``status/emit.py``'s
@@ -330,9 +318,7 @@ def _iter_test_functions(
         for child in ast.iter_child_nodes(node):
             if isinstance(child, ast.ClassDef):
                 yield from walk(child, child.name)
-            elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name.startswith(
-                "test_"
-            ):
+            elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name.startswith("test_"):
                 qualname = f"{cls_name}.{child.name}" if cls_name else child.name
                 yield qualname, child
 
@@ -433,10 +419,7 @@ def test_derived_mixture_matches_recorded_baseline() -> None:
     growth = derived - _MIXTURE_FUNCTION_PAIRS
     shrinkage = _MIXTURE_FUNCTION_PAIRS - derived
     assert not growth, f"new absolute-event-timestamp mixture(s) not yet recorded in this file: {sorted(growth)}"
-    assert not shrinkage, (
-        f"recorded mixture(s) no longer found (fixed, renamed, or deleted) -- "
-        f"update _MIXTURE_FUNCTION_PAIRS: {sorted(shrinkage)}"
-    )
+    assert not shrinkage, f"recorded mixture(s) no longer found (fixed, renamed, or deleted) -- update _MIXTURE_FUNCTION_PAIRS: {sorted(shrinkage)}"
 
 
 def test_real_2646_fixture_is_not_flagged() -> None:
@@ -463,8 +446,7 @@ def test_real_fixed_3157_test_is_no_longer_flagged() -> None:
     derived = _derive_mixtures(root)
     offending = ("tests/status/test_work_package_lifecycle.py", "test_real_implement_and_review_claims_persist_structured_latest_binding")
     assert offending not in derived, (
-        "T006's fixed test must not be re-flagged as a mixture -- if it is, the "
-        "fixture regressed back to a hard-coded absolute literal"
+        "T006's fixed test must not be re-flagged as a mixture -- if it is, the fixture regressed back to a hard-coded absolute literal"
     )
 
 
@@ -472,7 +454,7 @@ def test_real_fixed_3157_test_is_no_longer_flagged() -> None:
 #: not the live file (which T006 already fixed), so this fixture is the only
 #: standing proof the rule catches the real, historical defect rather than
 #: only a fixture hand-authored to satisfy the rule after the fact.
-_HISTORICAL_3157_SHAPE = '''
+_HISTORICAL_3157_SHAPE = """
 from specify_cli.status.work_package_lifecycle import start_implementation_status, start_review_status
 from specify_cli.status.store import append_event
 from specify_cli.status.models import Lane, StatusEvent
@@ -523,7 +505,7 @@ def test_real_implement_and_review_claims_persist_structured_latest_binding(tmp_
         execution_mode="worktree",
         repo_root=tmp_path,
     )
-'''
+"""
 
 
 def test_historical_3157_shape_is_flagged() -> None:
@@ -538,9 +520,7 @@ def test_historical_3157_shape_is_flagged() -> None:
     local_helpers = _local_helper_defs(tree)
     ((qualname, func_node),) = list(_iter_test_functions(tree))
     has_hardcoded, has_now = _classify_test_function(func_node, local_helpers)
-    assert has_hardcoded and has_now, (
-        f"the historical #3157 shape must be flagged as a mixture (qualname={qualname})"
-    )
+    assert has_hardcoded and has_now, f"the historical #3157 shape must be flagged as a mixture (qualname={qualname})"
 
 
 def test_indirect_now_via_production_helper_is_flagged() -> None:
@@ -551,7 +531,7 @@ def test_indirect_now_via_production_helper_is_flagged() -> None:
     body. A rule matching only the inline call-site shape would miss #3157
     entirely, since its now() events are produced several frames away inside
     the helper's own implementation."""
-    source = '''
+    source = """
 from specify_cli.status.work_package_lifecycle import start_implementation_status
 from specify_cli.status.models import StatusEvent
 
@@ -577,7 +557,7 @@ def test_indirect_now_leg(tmp_path):
         execution_mode="worktree",
         repo_root=tmp_path,
     )
-'''
+"""
     tree = ast.parse(source)
     local_helpers = _local_helper_defs(tree)
     ((_qualname, func_node),) = list(_iter_test_functions(tree))
@@ -592,7 +572,7 @@ def test_deliberately_mixed_synthetic_fixture_reds() -> None:
     detected as a mixture -- proving the check actually fires on a new
     violation, not only on the two already-recorded historical shapes above.
     Permanent (parsed fresh every run), not a manual add-confirm-remove step."""
-    source = '''
+    source = """
 from datetime import UTC, datetime
 from specify_cli.status.models import StatusEvent
 
@@ -620,7 +600,7 @@ def test_synthetic_new_mixture():
         force=False,
         execution_mode="worktree",
     )
-'''
+"""
     tree = ast.parse(source)
     local_helpers = _local_helper_defs(tree)
     ((_qualname, func_node),) = list(_iter_test_functions(tree))
@@ -633,7 +613,7 @@ def test_all_hard_coded_synthetic_fixture_is_not_flagged() -> None:
     is entirely hard-coded literals (no now()-signal at all, matching
     ``_event(...)``'s own default-only usage or test_2646's shape) must not
     be flagged, however many hard-coded events it appends."""
-    source = '''
+    source = """
 from specify_cli.status.models import StatusEvent
 
 
@@ -660,7 +640,7 @@ def test_synthetic_all_hard_coded():
         force=False,
         execution_mode="worktree",
     )
-'''
+"""
     tree = ast.parse(source)
     local_helpers = _local_helper_defs(tree)
     ((_qualname, func_node),) = list(_iter_test_functions(tree))
@@ -675,7 +655,7 @@ def test_event_helper_default_only_usage_is_not_flagged() -> None:
     is "all-hard-coded within any one test that uses only _event(...)
     defaults" and must not be flagged, matching the module docstring's own
     framing of this exact case."""
-    source = '''
+    source = """
 from specify_cli.status.models import StatusEvent
 from specify_cli.status.store import append_event
 
@@ -697,7 +677,7 @@ def _event(event_id, *, from_lane, to_lane, actor="claude", wp_id="WP01", at=Non
 def test_default_only(tmp_path):
     append_event(tmp_path, _event("01AAAA0000000000000000001A", from_lane="planned", to_lane="claimed"))
     append_event(tmp_path, _event("01BBBB0000000000000000002B", from_lane="claimed", to_lane="in_progress"))
-'''
+"""
     tree = ast.parse(source)
     local_helpers = _local_helper_defs(tree)
     ((_qualname, func_node),) = list(_iter_test_functions(tree))
@@ -710,7 +690,7 @@ def test_two_independent_tests_one_hardcoded_one_now_are_each_unflagged() -> Non
     test functions, one entirely hard-coded and one entirely now()-based, is
     NOT a mixture -- each function is classified independently, and neither
     individually satisfies both signals."""
-    source = '''
+    source = """
 from datetime import UTC, datetime
 from specify_cli.status.models import StatusEvent
 
@@ -741,7 +721,7 @@ def test_all_now_case():
         force=False,
         execution_mode="worktree",
     )
-'''
+"""
     tree = ast.parse(source)
     local_helpers = _local_helper_defs(tree)
     for qualname, func_node in _iter_test_functions(tree):

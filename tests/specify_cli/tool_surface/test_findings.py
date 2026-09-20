@@ -77,9 +77,7 @@ def test_make_finding_full_and_to_json() -> None:
 
 
 def test_to_json_null_path() -> None:
-    finding = make_finding(
-        findings.RESEARCH_GAP_SURFACE, findings.SEVERITY_INFO, "gap"
-    )
+    finding = make_finding(findings.RESEARCH_GAP_SURFACE, findings.SEVERITY_INFO, "gap")
     assert finding.to_json()["path"] is None
 
 

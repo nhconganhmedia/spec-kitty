@@ -38,10 +38,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
 def test_resolve_commit_worktree_for_kind_is_the_real_name() -> None:
     """The renamed function is the canonical, DEFINED symbol."""
     assert callable(commit_router._resolve_commit_worktree_for_kind)
-    assert (
-        commit_router._resolve_commit_worktree_for_kind.__module__
-        == commit_router.__name__
-    )
+    assert commit_router._resolve_commit_worktree_for_kind.__module__ == commit_router.__name__
 
 
 def test_planning_commit_worktree_alias_is_the_same_object() -> None:
@@ -54,15 +51,10 @@ def test_planning_commit_worktree_alias_is_the_same_object() -> None:
     _planning_commit_worktree`` directly — the alias MUST be the identical
     object, not a re-implementation that could drift.
     """
-    assert (
-        commit_router._planning_commit_worktree
-        is commit_router._resolve_commit_worktree_for_kind
-    )
+    assert commit_router._planning_commit_worktree is commit_router._resolve_commit_worktree_for_kind
 
 
-def test_primary_kind_guard_survives_the_rename(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_primary_kind_guard_survives_the_rename(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A PRIMARY-partition kind never transits coordination, under either name.
 
     Real invariant (not incidental): this is what "keep the guard" means for
@@ -72,9 +64,7 @@ def test_primary_kind_guard_survives_the_rename(
     ``_resolve_mid8`` (only reached PAST the PRIMARY short-circuit) is never
     consulted, under COORD topology, via BOTH the new name and the alias.
     """
-    monkeypatch.setattr(
-        commit_router, "resolve_topology", lambda _root, _slug: MissionTopology.COORD
-    )
+    monkeypatch.setattr(commit_router, "resolve_topology", lambda _root, _slug: MissionTopology.COORD)
     consulted: list[str] = []
 
     def _spy_resolve_mid8(_root: object, slug: str) -> None:
@@ -92,9 +82,7 @@ def test_primary_kind_guard_survives_the_rename(
         commit_router._planning_commit_worktree,
     ):
         consulted.clear()
-        worktree, paths = callee(
-            tmp_path, "001-demo", (artifact,), kind=MissionArtifactKind.TASKS_INDEX
-        )
+        worktree, paths = callee(tmp_path, "001-demo", (artifact,), kind=MissionArtifactKind.TASKS_INDEX)
         assert consulted == [], (
             f"{callee!r}: a PRIMARY kind reached the coord-staging body "
             "(_resolve_mid8 consulted) under coord topology — the T019 guard "
@@ -122,21 +110,15 @@ def _make_policy(*, protected: bool) -> ProtectionPolicy:
     return ProtectionPolicy(protected_branches=branches, operator_hatch_active=False)
 
 
-def test_commit_for_mission_no_op_wrong_surface_uses_the_named_constant(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_commit_for_mission_no_op_wrong_surface_uses_the_named_constant(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An absent artifact at the resolved placement yields the named constant."""
     monkeypatch.setattr(
         commit_router,
         "resolve_placement_only",
         lambda _root, _slug, *, kind: CommitTarget(ref="main"),
     )
-    monkeypatch.setattr(
-        commit_router, "resolve_topology", lambda _root, _slug: MissionTopology.SINGLE_BRANCH
-    )
-    monkeypatch.setattr(
-        commit_router, "_resolve_mission_target_branch", lambda _root, _slug: "main"
-    )
+    monkeypatch.setattr(commit_router, "resolve_topology", lambda _root, _slug: MissionTopology.SINGLE_BRANCH)
+    monkeypatch.setattr(commit_router, "_resolve_mission_target_branch", lambda _root, _slug: "main")
 
     missing_artifact = tmp_path / "kitty-specs" / "001-demo" / "spec.md"
     result = commit_router.commit_for_mission(
@@ -151,21 +133,15 @@ def test_commit_for_mission_no_op_wrong_surface_uses_the_named_constant(
     assert result.status == commit_router._STATUS_NO_OP_WRONG_SURFACE
 
 
-def test_commit_for_mission_unchanged_uses_the_named_constant(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_commit_for_mission_unchanged_uses_the_named_constant(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """No committable paths (already-committed artifact) yields the named constant."""
     monkeypatch.setattr(
         commit_router,
         "resolve_placement_only",
         lambda _root, _slug, *, kind: CommitTarget(ref="main"),
     )
-    monkeypatch.setattr(
-        commit_router, "resolve_topology", lambda _root, _slug: MissionTopology.SINGLE_BRANCH
-    )
-    monkeypatch.setattr(
-        commit_router, "_resolve_mission_target_branch", lambda _root, _slug: "main"
-    )
+    monkeypatch.setattr(commit_router, "resolve_topology", lambda _root, _slug: MissionTopology.SINGLE_BRANCH)
+    monkeypatch.setattr(commit_router, "_resolve_mission_target_branch", lambda _root, _slug: "main")
 
     result = commit_router.commit_for_mission(
         tmp_path,

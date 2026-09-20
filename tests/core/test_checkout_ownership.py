@@ -144,9 +144,7 @@ def test_managed_linked_worktree_under_primary_is_owned(git_repo: Path) -> None:
     assert claim.validation_result is OwnershipValidationResult.OWNED
 
 
-def test_public_worktree_comparator_reuses_safe_commit_topology(
-    git_repo: Path, tmp_path: Path
-) -> None:
+def test_public_worktree_comparator_reuses_safe_commit_topology(git_repo: Path, tmp_path: Path) -> None:
     worktree = _add_worktree(git_repo, tmp_path / "comparator-wt", "feature-compare")
 
     assert is_worktree_of(git_repo, worktree) is True
@@ -165,9 +163,7 @@ def test_primary_subdirectory_is_not_an_owned_checkout_root(git_repo: Path) -> N
     assert str(git_repo.resolve()) in claim.detail
 
 
-def test_linked_worktree_subdirectory_is_not_an_owned_checkout_root(
-    git_repo: Path, tmp_path: Path
-) -> None:
+def test_linked_worktree_subdirectory_is_not_an_owned_checkout_root(git_repo: Path, tmp_path: Path) -> None:
     worktree = _add_worktree(git_repo, tmp_path / "linked-root", "root-check")
     subdirectory = worktree / "package" / "nested"
     subdirectory.mkdir(parents=True)
@@ -207,9 +203,7 @@ def test_nested_worktree_is_nested(git_repo: Path, tmp_path: Path) -> None:
     assert err.validation_result is OwnershipValidationResult.NESTED
 
 
-def test_nested_worktree_uses_generic_registry_not_dot_worktrees_literal(
-    git_repo: Path, tmp_path: Path
-) -> None:
+def test_nested_worktree_uses_generic_registry_not_dot_worktrees_literal(git_repo: Path, tmp_path: Path) -> None:
     """C-006: nested detection must work for paths with NO ``.worktrees`` segment.
 
     ``outer``/``inner`` below live under a plain ``tmp_path`` tree — neither
@@ -285,9 +279,7 @@ def test_broken_gitdir_pointer_is_broken_pointer(git_repo: Path, tmp_path: Path)
     assert err.validation_result is OwnershipValidationResult.BROKEN_POINTER
 
 
-def test_missing_git_binary_is_broken_pointer(
-    git_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_missing_git_binary_is_broken_pointer(git_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A missing/unexecutable git binary must fold into BROKEN_POINTER, never raise."""
     worktree = _add_worktree(git_repo, tmp_path / "no-git-binary-wt", "feature-no-git")
 
@@ -304,9 +296,7 @@ def test_missing_git_binary_is_broken_pointer(
     assert str(git_repo.resolve()) in claim.detail
 
 
-def test_unavailable_worktree_registry_is_broken_pointer(
-    git_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_unavailable_worktree_registry_is_broken_pointer(git_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     worktree = _add_worktree(git_repo, tmp_path / "registry-wt", "feature-registry")
 
     def _raise_registry_unavailable(repo_root: Path) -> frozenset[Path]:

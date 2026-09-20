@@ -164,10 +164,9 @@ class TestImplementBodyNoteLaneFree:
         assert "test-agent" not in body, f"WP body carries a retired history row: {body}"
         assert "lane=" not in body, f"WP body carries a retired lane= segment: {body}"
         # Attribution moved to the event log — the runtime transition records the agent.
-        assert any(
-            e.wp_id == "WP01" and actor_identity_str(e.actor) == "test-agent"
-            for e in read_events(feature_dir)
-        ), "expected an event-log transition attributed to test-agent"
+        assert any(e.wp_id == "WP01" and actor_identity_str(e.actor) == "test-agent" for e in read_events(feature_dir)), (
+            "expected an event-log transition attributed to test-agent"
+        )
 
     def test_implement_body_note_no_lane_from_doing(self, workflow_repo: Path) -> None:
         """When re-entering doing, body note should not contain lane=."""
@@ -199,9 +198,7 @@ class TestImplementBodyNoteLaneFree:
         assert "test-agent" not in body, f"WP body carries a retired history row: {body}"
         assert "lane=" not in body, f"WP body carries a retired lane= segment: {body}"
         # Attribution lives in the event log — the WP was seeded in_progress by test-agent.
-        assert any(
-            e.wp_id == "WP01" and e.actor == "test-agent" for e in read_events(feature_dir)
-        ), "expected an event-log transition attributed to test-agent"
+        assert any(e.wp_id == "WP01" and e.actor == "test-agent" for e in read_events(feature_dir)), "expected an event-log transition attributed to test-agent"
 
 
 # ---------------------------------------------------------------------------
@@ -493,7 +490,7 @@ class TestPlanningArtifactWorkflowPrompt:
         assert f"Workspace: {workflow_repo}" in prompt
         assert "Workspace contract: lane lane-planning" in prompt
         assert f"cd {workflow_repo}" in prompt
-        assert "workspace_kind\": \"repo_root" in prompt
+        assert 'workspace_kind": "repo_root' in prompt
         assert "<!-- WORKTREE_TOPOLOGY -->" in prompt
         assert "runs in the repository root planning workspace" in prompt
 
@@ -612,9 +609,7 @@ class TestImplementDependencyGate:
             encoding="utf-8",
         )
 
-    def test_implement_blocks_dep_unsatisfied_planned_wp_with_existing_workspace(
-        self, workflow_repo: Path
-    ) -> None:
+    def test_implement_blocks_dep_unsatisfied_planned_wp_with_existing_workspace(self, workflow_repo: Path) -> None:
         """Explicit dep-blocked planned WP is rejected at the workflow.py gate even
         when its workspace already exists (so top_level_implement is not called)."""
         mission_slug = "060-test-feature"
@@ -635,9 +630,7 @@ class TestImplementDependencyGate:
         assert "dependencies_not_satisfied" in result.stdout
         assert "all dependencies must be approved or done" in result.stdout
 
-    def test_implement_resumes_in_progress_wp_with_unsatisfied_dependency(
-        self, workflow_repo: Path
-    ) -> None:
+    def test_implement_resumes_in_progress_wp_with_unsatisfied_dependency(self, workflow_repo: Path) -> None:
         """An already in_progress WP resumes without re-gating, even if its
         dependency later regressed out of approved/done."""
         mission_slug = "060-test-feature"

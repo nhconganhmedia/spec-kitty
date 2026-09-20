@@ -53,16 +53,12 @@ def test_matrix_has_no_extra_keys_beyond_ai_choices() -> None:
 
 def test_matrix_values_are_harness_capability_records() -> None:
     for key, record in HARNESS_CAPABILITY_MATRIX.items():
-        assert isinstance(record, HarnessCapabilityRecord), (
-            f"{key!r} entry is not a HarnessCapabilityRecord"
-        )
+        assert isinstance(record, HarnessCapabilityRecord), f"{key!r} entry is not a HarnessCapabilityRecord"
 
 
 def test_matrix_key_matches_record_harness_key() -> None:
     for key, record in HARNESS_CAPABILITY_MATRIX.items():
-        assert record.harness_key == key, (
-            f"Matrix entry {key!r} has mismatched harness_key={record.harness_key!r}"
-        )
+        assert record.harness_key == key, f"Matrix entry {key!r} has mismatched harness_key={record.harness_key!r}"
 
 
 def test_matrix_reasons_are_non_empty() -> None:
@@ -81,9 +77,7 @@ def test_matrix_reasons_are_non_empty() -> None:
 )
 def test_supported_harnesses_have_native_primitive(harness_key: str) -> None:
     record = HARNESS_CAPABILITY_MATRIX[harness_key]
-    assert record.has_native_agent_primitive is True, (
-        f"{harness_key!r} should have has_native_agent_primitive=True"
-    )
+    assert record.has_native_agent_primitive is True, f"{harness_key!r} should have has_native_agent_primitive=True"
 
 
 @pytest.mark.parametrize(
@@ -91,9 +85,7 @@ def test_supported_harnesses_have_native_primitive(harness_key: str) -> None:
     ["claude", "copilot", "codex", "auggie", "q"],
 )
 def test_supported_harnesses_are_not_research_gaps(harness_key: str) -> None:
-    assert is_research_gap(harness_key) is False, (
-        f"{harness_key!r} should not be a research gap"
-    )
+    assert is_research_gap(harness_key) is False, f"{harness_key!r} should not be a research gap"
 
 
 # ---------------------------------------------------------------------------
@@ -120,9 +112,7 @@ def test_supported_harnesses_are_not_research_gaps(harness_key: str) -> None:
 )
 def test_not_applicable_harnesses_lack_native_primitive(harness_key: str) -> None:
     record = HARNESS_CAPABILITY_MATRIX[harness_key]
-    assert record.has_native_agent_primitive is False, (
-        f"{harness_key!r} should have has_native_agent_primitive=False"
-    )
+    assert record.has_native_agent_primitive is False, f"{harness_key!r} should have has_native_agent_primitive=False"
 
 
 @pytest.mark.parametrize(
@@ -142,9 +132,7 @@ def test_not_applicable_harnesses_lack_native_primitive(harness_key: str) -> Non
     ],
 )
 def test_not_applicable_harnesses_are_not_research_gaps(harness_key: str) -> None:
-    assert is_research_gap(harness_key) is False, (
-        f"{harness_key!r} should not be a research gap (it has been assessed)"
-    )
+    assert is_research_gap(harness_key) is False, f"{harness_key!r} should not be a research gap (it has been assessed)"
 
 
 # ---------------------------------------------------------------------------
@@ -171,9 +159,7 @@ def test_is_research_gap_returns_false_for_assessed_not_applicable() -> None:
 
 def test_amazon_q_harness_record_mentions_user_global_path() -> None:
     record = HARNESS_CAPABILITY_MATRIX["q"]
-    assert "~/.aws" in record.reason or "user-global" in record.reason.lower(), (
-        "Amazon Q reason should reference the user-global path"
-    )
+    assert "~/.aws" in record.reason or "user-global" in record.reason.lower(), "Amazon Q reason should reference the user-global path"
 
 
 # ---------------------------------------------------------------------------
@@ -187,9 +173,7 @@ def test_reasons_do_not_contain_home_directory_expansion() -> None:
 
     home = os.path.expanduser("~")
     for key, record in HARNESS_CAPABILITY_MATRIX.items():
-        assert home not in record.reason, (
-            f"{key!r} reason contains an expanded home path: {record.reason!r}"
-        )
+        assert home not in record.reason, f"{key!r} reason contains an expanded home path: {record.reason!r}"
 
 
 # ---------------------------------------------------------------------------

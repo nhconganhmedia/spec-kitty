@@ -53,12 +53,8 @@ def _instance(kind: ToolSurfaceKind, path: Path, owner: str) -> SurfaceInstance:
 
 def full_plans(project_root: Path) -> list[SurfacePlan]:
     """Build plans carrying every bundleable surface kind, all on disk."""
-    skill = _write(
-        project_root / ".agents/skills/spec-kitty.plan/SKILL.md", "# plan skill\n"
-    )
-    doctrine = _write(
-        project_root / ".agents/skills/spec-kitty.charter/SKILL.md", "# charter\n"
-    )
+    skill = _write(project_root / ".agents/skills/spec-kitty.plan/SKILL.md", "# plan skill\n")
+    doctrine = _write(project_root / ".agents/skills/spec-kitty.charter/SKILL.md", "# charter\n")
     agent = _write(project_root / ".claude/agents/architect-alphonso.md", "# arch\n")
     hook = _write(project_root / ".kittify/hooks/hooks.json", "{}\n")
     mcp = _write(project_root / ".mcp.json", "{}\n")
@@ -74,8 +70,6 @@ def full_plans(project_root: Path) -> list[SurfacePlan]:
 
 def skills_only_plans(project_root: Path) -> list[SurfacePlan]:
     """Build plans with command skills but NO agent profiles (incomplete)."""
-    skill = _write(
-        project_root / ".agents/skills/spec-kitty.plan/SKILL.md", "# plan skill\n"
-    )
+    skill = _write(project_root / ".agents/skills/spec-kitty.plan/SKILL.md", "# plan skill\n")
     instances = (_instance(ToolSurfaceKind.COMMAND_SKILL, skill, "codex"),)
     return [SurfacePlan(tool_key="all", instances=instances, computed_at="t")]

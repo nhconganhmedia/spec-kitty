@@ -76,9 +76,7 @@ def bare_repo_root(tmp_path: Path) -> Path:
     project_root = tmp_path / "project"
     kittify = project_root / ".kittify"
     kittify.mkdir(parents=True)
-    (kittify / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return project_root
 
 
@@ -113,9 +111,7 @@ class TestGlossaryPackHealthModel:
         }
 
     def test_unhealthy_with_one_invalid_pack(self) -> None:
-        skipped = SkippedGlossaryPack(
-            layer="project", path="broken.glossary-pack.yaml", error_summary="boom"
-        )
+        skipped = SkippedGlossaryPack(layer="project", path="broken.glossary-pack.yaml", error_summary="boom")
         health = GlossaryPackHealth(pack_count=1, term_count=104, invalid_packs=[skipped])
 
         assert health.healthy is False
@@ -130,9 +126,7 @@ class TestGlossaryPackHealthModel:
         ]
 
     def test_report_nests_glossary_pack_health_and_folds_into_healthy(self) -> None:
-        agent_pack = PackHealth(
-            pack_id="builtin", layer="builtin", discovered_count=1, valid_count=1
-        )
+        agent_pack = PackHealth(pack_id="builtin", layer="builtin", discovered_count=1, valid_count=1)
 
         healthy_report = DoctrineHealthReport(
             packs=[agent_pack],
@@ -148,11 +142,7 @@ class TestGlossaryPackHealthModel:
             glossary_packs=GlossaryPackHealth(
                 pack_count=1,
                 term_count=104,
-                invalid_packs=[
-                    SkippedGlossaryPack(
-                        layer="project", path="bad.glossary-pack.yaml", error_summary="x"
-                    )
-                ],
+                invalid_packs=[SkippedGlossaryPack(layer="project", path="bad.glossary-pack.yaml", error_summary="x")],
             ),
         )
         # An invalid glossary pack degrades the AGGREGATE report — not just
@@ -166,13 +156,7 @@ class TestGlossaryPackHealthModel:
         must not spuriously flip unhealthy just because they never attached
         glossary-pack health.
         """
-        report = DoctrineHealthReport(
-            packs=[
-                PackHealth(
-                    pack_id="builtin", layer="builtin", discovered_count=1, valid_count=1
-                )
-            ]
-        )
+        report = DoctrineHealthReport(packs=[PackHealth(pack_id="builtin", layer="builtin", discovered_count=1, valid_count=1)])
         assert report.healthy is True
         assert report.to_dict()["glossary_packs"]["pack_count"] == 0
 
@@ -185,8 +169,7 @@ class TestGlossaryPackHealthModel:
 class TestParseSkippedGlossaryPackWarning:
     def test_parses_the_pinned_base_repository_warning_shape(self) -> None:
         skipped = _parse_skipped_glossary_pack_warning(
-            "Skipping invalid project glossarypack broken.glossary-pack.yaml: "
-            "1 validation error for GlossaryPack\nterms.0.definition\n  Field required"
+            "Skipping invalid project glossarypack broken.glossary-pack.yaml: 1 validation error for GlossaryPack\nterms.0.definition\n  Field required"
         )
 
         assert skipped.layer == "project"
@@ -205,9 +188,7 @@ class TestParseSkippedGlossaryPackWarning:
 
 
 class TestCollectGlossaryPackHealth:
-    def test_valid_builtin_pack_reports_healthy_with_term_count(
-        self, bare_repo_root: Path, expected_builtin_term_count: int
-    ) -> None:
+    def test_valid_builtin_pack_reports_healthy_with_term_count(self, bare_repo_root: Path, expected_builtin_term_count: int) -> None:
         health = _collect_glossary_pack_health(bare_repo_root)
 
         assert health.healthy is True
@@ -215,9 +196,7 @@ class TestCollectGlossaryPackHealth:
         assert health.term_count == expected_builtin_term_count
         assert health.invalid_packs == []
 
-    def test_synthetic_missing_definition_pack_degrades_to_unhealthy(
-        self, bare_repo_root: Path
-    ) -> None:
+    def test_synthetic_missing_definition_pack_degrades_to_unhealthy(self, bare_repo_root: Path) -> None:
         """INVALID arm (T024): a term missing ``definition`` fails schema validation."""
         project_glossary_dir = bare_repo_root / ".kittify" / "doctrine" / "glossary_packs"
         _write_glossary_pack(
@@ -226,9 +205,7 @@ class TestCollectGlossaryPackHealth:
             {
                 "id": "broken-pack",
                 "provenance": "project",
-                "terms": [
-                    {"surface": "broken term", "confidence": 0.9, "status": "active"}
-                ],
+                "terms": [{"surface": "broken term", "confidence": 0.9, "status": "active"}],
             },
         )
 
@@ -243,9 +220,7 @@ class TestCollectGlossaryPackHealth:
         assert "broken.glossary-pack.yaml" in invalid.path
         assert "definition" in invalid.error_summary
 
-    def test_synthetic_duplicate_surface_pack_degrades_to_unhealthy(
-        self, bare_repo_root: Path
-    ) -> None:
+    def test_synthetic_duplicate_surface_pack_degrades_to_unhealthy(self, bare_repo_root: Path) -> None:
         """INVALID arm (T024): a duplicate ``surface`` fails the pack's own validator."""
         term = {
             "surface": "dup term",
@@ -283,9 +258,7 @@ def _invoke_doctrine_json(project_root: Path) -> tuple[int, dict[str, object]]:
 
 
 class TestDoctorDoctrineGlossaryPackJson:
-    def test_builtin_pack_loaded_healthy_with_term_count(
-        self, bare_repo_root: Path, expected_builtin_term_count: int
-    ) -> None:
+    def test_builtin_pack_loaded_healthy_with_term_count(self, bare_repo_root: Path, expected_builtin_term_count: int) -> None:
         """VALID arm (T024): built-in spec-kitty-core pack loads healthy."""
         exit_code, payload = _invoke_doctrine_json(bare_repo_root)
 
@@ -295,9 +268,7 @@ class TestDoctorDoctrineGlossaryPackJson:
         assert glossary_health["term_count"] == expected_builtin_term_count
         assert exit_code == 0
 
-    def test_synthetic_invalid_pack_flips_doctor_unhealthy(
-        self, bare_repo_root: Path
-    ) -> None:
+    def test_synthetic_invalid_pack_flips_doctor_unhealthy(self, bare_repo_root: Path) -> None:
         """INVALID arm (T024): a malformed pack flips RC=1, never silently healthy."""
         project_glossary_dir = bare_repo_root / ".kittify" / "doctrine" / "glossary_packs"
         _write_glossary_pack(
@@ -349,9 +320,7 @@ class TestDoctorDoctrinePerformance:
     TestDoctorDoctrineFunctional, above.
     """
 
-    def test_doctor_doctrine_json_completes_under_two_seconds(
-        self, bare_repo_root: Path
-    ) -> None:
+    def test_doctor_doctrine_json_completes_under_two_seconds(self, bare_repo_root: Path) -> None:
         start = time.perf_counter()
         _invoke_doctrine_json(bare_repo_root)
         elapsed = time.perf_counter() - start

@@ -97,13 +97,17 @@ def test_seam_defines_every_relocated_symbol() -> None:
     literal ``_load_feature_runs`` name on ``runtime_bridge_io`` -- only the
     residual keeps that exact repo_root-keyed compat name.
     """
-    seam_names = (_COMPAT_GUARDED_NAMES - {"_load_feature_runs"}) | _PUBLIC_RELOCATED_NAMES | {
-        "resolve_commit_target",
-        "gather_artifact_presence",
-        "load_feature_runs",
-        "save_feature_runs",
-        "_feature_runs_path",
-    }
+    seam_names = (
+        (_COMPAT_GUARDED_NAMES - {"_load_feature_runs"})
+        | _PUBLIC_RELOCATED_NAMES
+        | {
+            "resolve_commit_target",
+            "gather_artifact_presence",
+            "load_feature_runs",
+            "save_feature_runs",
+            "_feature_runs_path",
+        }
+    )
     for name in sorted(seam_names):
         assert hasattr(io_seam, name), f"seam is missing relocated symbol {name!r}"
 
@@ -232,9 +236,7 @@ def test_candidate_templates_for_root_rejects_unrelated_file(tmp_path: Path) -> 
     assert io_seam._candidate_templates_for_root(other, "software-dev") == []
 
 
-def test_template_key_for_file_returns_none_on_load_failure(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_template_key_for_file_returns_none_on_load_failure(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """T032 (FR-010): the return-value contract is unchanged (still `None`
     on a load failure -- callers that depend on `None` meaning "skip this
     candidate" keep working exactly as before), but the failure is no
@@ -249,10 +251,7 @@ def test_template_key_for_file_returns_none_on_load_failure(
         result = io_seam._template_key_for_file(bogus)
 
     assert result is None
-    assert any(str(bogus) in record.getMessage() for record in caplog.records), (
-        f"expected a named warning identifying {bogus}, found none in "
-        f"{caplog.records!r}"
-    )
+    assert any(str(bogus) in record.getMessage() for record in caplog.records), f"expected a named warning identifying {bogus}, found none in {caplog.records!r}"
 
 
 def test_split_env_paths_blank_is_empty() -> None:
@@ -273,9 +272,7 @@ def test_project_config_pack_paths_missing_config_is_empty(tmp_path: Path) -> No
 def test_project_config_pack_paths_reads_mission_packs(tmp_path: Path) -> None:
     kittify = tmp_path / ".kittify"
     kittify.mkdir()
-    (kittify / "config.yaml").write_text(
-        "mission_packs:\n  - packs/one\n  - packs/two\n", encoding="utf-8"
-    )
+    (kittify / "config.yaml").write_text("mission_packs:\n  - packs/one\n  - packs/two\n", encoding="utf-8")
     assert io_seam._project_config_pack_paths(tmp_path) == [
         tmp_path / "packs/one",
         tmp_path / "packs/two",
@@ -303,11 +300,7 @@ def _write_org_pack_config(repo_root: Path, *, pack_name: str, local_path: Path)
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        f"      - name: {pack_name}\n"
-        f"        local_path: {local_path}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: {pack_name}\n        local_path: {local_path}\n",
         encoding="utf-8",
     )
 
@@ -316,14 +309,7 @@ def _write_runtime_mission_yaml(path: Path, *, key: str) -> None:
     """Write a minimal, schema-valid runtime mission.yaml at ``path``."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        "mission:\n"
-        f"  key: {key}\n"
-        f"  name: {key.title()}\n"
-        '  version: "1.0.0"\n'
-        "steps:\n"
-        "  - id: discover\n"
-        "    title: Discover\n"
-        "    prompt: Run discovery.\n",
+        f'mission:\n  key: {key}\n  name: {key.title()}\n  version: "1.0.0"\nsteps:\n  - id: discover\n    title: Discover\n    prompt: Run discovery.\n',
         encoding="utf-8",
     )
 
@@ -378,12 +364,7 @@ def test_build_discovery_context_propagates_org_pack_subdir_escape_error(
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True)
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: acme\n"
-        f"        local_path: {pack_root}\n"
-        "        subdir: escape\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: acme\n        local_path: {pack_root}\n        subdir: escape\n",
         encoding="utf-8",
     )
 
@@ -412,9 +393,7 @@ def test_build_discovery_context_malformed_config_still_resolves_with_zero_org_r
     repo_root = tmp_path / "repo"
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True)
-    (config_dir / "config.yaml").write_text(
-        "not: [valid, doctrine.org.packs shape\n", encoding="utf-8"
-    )
+    (config_dir / "config.yaml").write_text("not: [valid, doctrine.org.packs shape\n", encoding="utf-8")
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -442,9 +421,7 @@ def test_runtime_template_key_malformed_config_still_resolves_project_legacy(
     repo_root = tmp_path / "repo"
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True)
-    (config_dir / "config.yaml").write_text(
-        "not: [valid, doctrine.org.packs shape\n", encoding="utf-8"
-    )
+    (config_dir / "config.yaml").write_text("not: [valid, doctrine.org.packs shape\n", encoding="utf-8")
     legacy_mission = repo_root / ".kittify" / "missions" / "software-dev" / "mission.yaml"
     _write_runtime_mission_yaml(legacy_mission, key="software-dev")
 
@@ -473,13 +450,7 @@ def test_build_discovery_context_declared_but_broken_org_pack_still_warns(
     acme_one = tmp_path / "acme-one"
     acme_two = tmp_path / "acme-two"
     (config_dir / "config.yaml").write_text(
-        "doctrine:\n"
-        "  org:\n"
-        "    packs:\n"
-        "      - name: acme\n"
-        f"        local_path: {acme_one}\n"
-        "      - name: acme\n"
-        f"        local_path: {acme_two}\n",
+        f"doctrine:\n  org:\n    packs:\n      - name: acme\n        local_path: {acme_one}\n      - name: acme\n        local_path: {acme_two}\n",
         encoding="utf-8",
     )
 
@@ -652,9 +623,7 @@ def test_org_tier_position_parity_org_wins_over_global_across_four_sites(
 # ---------------------------------------------------------------------------
 
 
-def test_runtime_template_key_org_tier_malformed_mission_yaml_warns(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_runtime_template_key_org_tier_malformed_mission_yaml_warns(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """FR-010, User Story 4 Acceptance Scenario 1 / SC-005: a malformed
     ``mission.yaml`` at the org tier produces a named warning identifying
     the offending path and tier (not silence). Before this WP,
@@ -680,19 +649,11 @@ def test_runtime_template_key_org_tier_malformed_mission_yaml_warns(
 
     assert resolved == mission_type
     matches = [record for record in caplog.records if str(malformed) in record.getMessage()]
-    assert matches, (
-        f"expected a named warning identifying the malformed org-tier file "
-        f"{malformed}, found none in {caplog.records!r}"
-    )
-    assert str(org_root) in matches[0].getMessage(), (
-        "expected the warning to also identify the offending tier/root, "
-        f"got: {matches[0].getMessage()!r}"
-    )
+    assert matches, f"expected a named warning identifying the malformed org-tier file {malformed}, found none in {caplog.records!r}"
+    assert str(org_root) in matches[0].getMessage(), f"expected the warning to also identify the offending tier/root, got: {matches[0].getMessage()!r}"
 
 
-def test_non_builtin_tier_sidecar_pair_warns(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_non_builtin_tier_sidecar_pair_warns(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """FR-011, User Story 4 Acceptance Scenario 2 (positive half, T033/T034):
     a non-built-in tier (here, an org pack) shipping both ``mission.yaml``
     and ``mission-runtime.yaml`` for the same mission key produces a named
@@ -714,15 +675,10 @@ def test_non_builtin_tier_sidecar_pair_warns(
     # C-005: sidecar preference is unchanged -- mission-runtime.yaml wins.
     assert resolved == str((mission_dir / "mission-runtime.yaml").resolve())
     matches = [record for record in caplog.records if str(mission_dir) in record.getMessage()]
-    assert matches, (
-        f"expected a named diagnostic for the non-built-in sidecar pair at "
-        f"{mission_dir}, found none in {caplog.records!r}"
-    )
+    assert matches, f"expected a named diagnostic for the non-built-in sidecar pair at {mission_dir}, found none in {caplog.records!r}"
 
 
-@pytest.mark.parametrize(
-    "mission_type", ["plan", "research", "documentation", MISSION_TYPE_SOFTWARE_DEV]
-)
+@pytest.mark.parametrize("mission_type", ["plan", "research", "documentation", MISSION_TYPE_SOFTWARE_DEV])
 def test_builtin_sidecar_pairs_stay_silent(
     mission_type: str,
     tmp_path: Path,
@@ -762,18 +718,11 @@ def test_builtin_sidecar_pairs_stay_silent(
     with caplog.at_level(logging.WARNING, logger=_IO_SEAM_LOGGER_NAME):
         io_seam._runtime_template_key(mission_type, repo_root)
 
-    sidecar_diagnostics = [
-        record for record in caplog.records if "ships both" in record.getMessage()
-    ]
-    assert sidecar_diagnostics == [], (
-        f"built-in mission {mission_type!r} must not trigger the "
-        f"non-built-in sidecar diagnostic; got {sidecar_diagnostics!r}"
-    )
+    sidecar_diagnostics = [record for record in caplog.records if "ships both" in record.getMessage()]
+    assert sidecar_diagnostics == [], f"built-in mission {mission_type!r} must not trigger the non-built-in sidecar diagnostic; got {sidecar_diagnostics!r}"
 
 
-def test_runtime_template_key_no_org_pack_configured_emits_no_new_warnings(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_runtime_template_key_no_org_pack_configured_emits_no_new_warnings(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """NFR-005/SC-007 regression safety: a project with no org pack
     configured (the overwhelmingly common case) resolves the project-legacy
     mission byte-identically to before this WP, including emitting NO new
@@ -789,10 +738,7 @@ def test_runtime_template_key_no_org_pack_configured_emits_no_new_warnings(
         resolved = io_seam._runtime_template_key("software-dev", repo_root)
 
     assert resolved == str(legacy_mission.resolve())
-    assert caplog.records == [], (
-        "no org pack configured -- expected zero warnings on the common "
-        f"path, got {caplog.records!r}"
-    )
+    assert caplog.records == [], f"no org pack configured -- expected zero warnings on the common path, got {caplog.records!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -835,9 +781,7 @@ def test_existing_run_ref_builds_ref_when_state_file_present(tmp_path: Path, mon
     monkeypatch.setattr(
         rb,
         "_load_feature_runs",
-        lambda repo_root: {
-            "042-mission": {"run_id": "r1", "run_dir": str(run_dir), "mission_key": "software-dev"}
-        },
+        lambda repo_root: {"042-mission": {"run_id": "r1", "run_dir": str(run_dir), "mission_key": "software-dev"}},
     )
     ref = io_seam._existing_run_ref("042-mission", tmp_path, "software-dev")
     assert ref is not None
@@ -845,9 +789,7 @@ def test_existing_run_ref_builds_ref_when_state_file_present(tmp_path: Path, mon
     assert ref.mission_key == "software-dev"
 
 
-def test_get_or_start_run_returns_existing_ref_without_starting_new_run(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_get_or_start_run_returns_existing_ref_without_starting_new_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """get_or_start_run must not call start_mission_run when a valid existing
     run is on record (mirrors the pre-extraction inline behavior)."""
     from runtime.next import runtime_bridge as rb
@@ -858,9 +800,7 @@ def test_get_or_start_run_returns_existing_ref_without_starting_new_run(
     monkeypatch.setattr(
         rb,
         "_load_feature_runs",
-        lambda repo_root: {
-            "042-mission": {"run_id": "r1", "run_dir": str(run_dir), "mission_key": "software-dev"}
-        },
+        lambda repo_root: {"042-mission": {"run_id": "r1", "run_dir": str(run_dir), "mission_key": "software-dev"}},
     )
 
     def _should_not_start(**_kwargs: Any) -> Any:
@@ -931,9 +871,7 @@ def test_resolve_tech_stack_for_profile_bare_repo_resolves_python_pedro(tmp_path
     assert result == frozenset({"python"})
 
 
-def test_build_operational_context_for_claim_resolves_profile_from_run_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_build_operational_context_for_claim_resolves_profile_from_run_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from runtime.next import runtime_bridge as rb
 
     monkeypatch.setattr(rb, "_resolve_run_dir_for_mission", lambda repo_root, mission_slug: tmp_path)
@@ -955,9 +893,7 @@ def test_build_operational_context_for_claim_resolves_profile_from_run_dir(
     assert oc.active_role == "claude"
 
 
-def test_build_operational_context_for_claim_explicit_profile_skips_resolution(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_build_operational_context_for_claim_explicit_profile_skips_resolution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from runtime.next import runtime_bridge as rb
 
     def _should_not_resolve(*_a: Any, **_k: Any) -> Any:
@@ -1020,9 +956,7 @@ def test_gather_artifact_presence_reads_file_presence(tmp_path: Path, monkeypatc
     (tmp_path / "spec.md").write_text("# Spec\n", encoding="utf-8")
     (tmp_path / "plan.md").write_text("# Plan\n", encoding="utf-8")
 
-    snapshot = io_seam.gather_artifact_presence(
-        tmp_path, mission_family="software-dev", step_id="tasks_outline"
-    )
+    snapshot = io_seam.gather_artifact_presence(tmp_path, mission_family="software-dev", step_id="tasks_outline")
     assert snapshot.present_artifacts == {"spec.md", "plan.md"}
     assert snapshot.mission_family == "software-dev"
     assert snapshot.step_id == "tasks_outline"
@@ -1031,9 +965,7 @@ def test_gather_artifact_presence_reads_file_presence(tmp_path: Path, monkeypatc
     assert snapshot.status_facts["wp_ids"] == ()
 
 
-def test_gather_artifact_presence_reads_research_md_presence(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_gather_artifact_presence_reads_research_md_presence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Disk-backed revert-discipline pin (T001 step 4 / T004): exercises the
     real ``gather_artifact_presence`` function (not a hand-constructed
     ``ArtifactPresenceSnapshot``), so a revert of "research.md" from
@@ -1047,9 +979,7 @@ def test_gather_artifact_presence_reads_research_md_presence(
     assert "research.md" in snapshot.present_artifacts
 
 
-def test_gather_artifact_presence_reads_wp_lane_and_dependencies(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_gather_artifact_presence_reads_wp_lane_and_dependencies(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _stub_guard_helpers(monkeypatch, has_raw_dependencies_field=False)
     monkeypatch.setattr(io_seam, "get_wp_lane", lambda feature_dir, wp_id: "for_review")
 
@@ -1057,9 +987,7 @@ def test_gather_artifact_presence_reads_wp_lane_and_dependencies(
     tasks_dir.mkdir()
     (tasks_dir / "WP01-writeside.md").write_text("# WP01\n", encoding="utf-8")
 
-    snapshot = io_seam.gather_artifact_presence(
-        tmp_path, mission_family="software-dev", step_id="implement", legacy_step_id="tasks_finalize"
-    )
+    snapshot = io_seam.gather_artifact_presence(tmp_path, mission_family="software-dev", step_id="implement", legacy_step_id="tasks_finalize")
     assert "tasks_wp_files" in snapshot.present_artifacts
     assert snapshot.status_facts["tasks_dir_is_dir"] is True
     assert snapshot.status_facts["wp_ids"] == ("WP01",)
@@ -1153,9 +1081,7 @@ def test_resolve_commit_target_raises_when_coord_topology_has_no_resolvable_mid8
 # ---------------------------------------------------------------------------
 
 
-def test_runtime_template_key_uses_live_lookup_for_build_discovery_context(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_runtime_template_key_uses_live_lookup_for_build_discovery_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The grounded 🔴 high-risk case research.md §Compat names explicitly:
     ``_build_discovery_context`` is patched in production tests
     (``test_query_mode_unit.py:751``) and reached only via intra-seam movers
@@ -1178,9 +1104,7 @@ def test_runtime_template_key_uses_live_lookup_for_build_discovery_context(
     assert calls == [tmp_path]
 
 
-def test_runtime_template_key_uses_live_lookup_for_resolve_runtime_template_in_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_runtime_template_key_uses_live_lookup_for_resolve_runtime_template_in_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Same false-green risk for ``_resolve_runtime_template_in_root`` --
     both it and its caller ``_runtime_template_key`` moved into this same
     seam module."""
@@ -1201,9 +1125,7 @@ def test_runtime_template_key_uses_live_lookup_for_resolve_runtime_template_in_r
     assert result == str(resolved)
 
 
-def test_existing_run_ref_uses_live_lookup_for_load_feature_runs_and_build_run_ref(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_existing_run_ref_uses_live_lookup_for_load_feature_runs_and_build_run_ref(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from runtime.next import runtime_bridge as rb
 
     run_dir = tmp_path / "runs" / "r1"
@@ -1234,9 +1156,7 @@ def test_existing_run_ref_uses_live_lookup_for_load_feature_runs_and_build_run_r
     assert ref is not None
 
 
-def test_get_or_start_run_uses_live_lookup_for_resolve_mission_ulid(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_get_or_start_run_uses_live_lookup_for_resolve_mission_ulid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Cross-seam-to-residual risk: ``_resolve_mission_ulid`` stays on the
     identity cluster in the residual (not moved by this WP); ``get_or_start_run``
     (moved) must still reach it via a live lookup, not a stale cached import."""
@@ -1267,9 +1187,7 @@ def test_get_or_start_run_uses_live_lookup_for_resolve_mission_ulid(
     assert calls == ["042-mission"]
 
 
-def test_build_operational_context_for_claim_uses_live_lookup_for_resolve_tech_stack(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_build_operational_context_for_claim_uses_live_lookup_for_resolve_tech_stack(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Intra-seam risk: ``build_operational_context_for_claim`` and
     ``_resolve_tech_stack_for_profile`` both moved into this seam module."""
     from runtime.next import runtime_bridge as rb

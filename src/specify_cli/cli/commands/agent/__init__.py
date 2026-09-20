@@ -12,11 +12,7 @@ from .acceptance_verdict import acceptance_verdict
 from .issue_verdict import issue_verdict_command
 from .tracer_append import tracer_append
 
-app = typer.Typer(
-    name="agent",
-    help="Commands for AI agents to execute spec-kitty mission actions programmatically",
-    no_args_is_help=True
-)
+app = typer.Typer(name="agent", help="Commands for AI agents to execute spec-kitty mission actions programmatically", no_args_is_help=True)
 
 # Register sub-apps for each command module.
 # `mission` and `action` are the canonical command namespaces.
@@ -49,10 +45,7 @@ app.command(name="acceptance-verdict")(acceptance_verdict)
 
 @app.command(name="check-prerequisites", hidden=True)
 def check_prerequisites_alias(
-    mission_slug: Annotated[
-        str | None,
-        typer.Option("--mission", help="Mission slug")
-    ] = None,
+    mission_slug: Annotated[str | None, typer.Option("--mission", help="Mission slug")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output JSON format")] = False,
     paths_only: Annotated[bool, typer.Option("--paths-only", help="Only output path variables")] = False,
     include_tasks: Annotated[bool, typer.Option("--include-tasks", help="Include tasks.md in validation")] = False,

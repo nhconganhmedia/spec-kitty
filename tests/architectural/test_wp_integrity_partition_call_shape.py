@@ -78,11 +78,7 @@ def _is_primary_target_ref(node: ast.expr | None) -> bool:
     That is ``_commit_target_ref_for(...)`` — the only destination a raw,
     un-partitioned batch may legally reach (the flat/legacy arm; FR-011 carve-out).
     """
-    return (
-        isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == _PRIMARY_TARGET_HELPER
-    )
+    return isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == _PRIMARY_TARGET_HELPER
 
 
 def _iter_commit_calls(tree: ast.AST) -> list[ast.Call]:
@@ -115,9 +111,7 @@ def find_unpartitioned_coord_commits(source: str) -> list[Violation]:
                 Violation(
                     lineno=call.lineno,
                     files_repr=ast.unparse(files) if files is not None else "<missing>",
-                    destination_repr=(
-                        ast.unparse(destination) if destination is not None else "<missing>"
-                    ),
+                    destination_repr=(ast.unparse(destination) if destination is not None else "<missing>"),
                 )
             )
     return violations

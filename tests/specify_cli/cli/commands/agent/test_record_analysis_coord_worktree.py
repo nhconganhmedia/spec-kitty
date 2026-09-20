@@ -64,9 +64,7 @@ def _patch_resolution(monkeypatch: pytest.MonkeyPatch, repo_root: Path, coord_fe
     )
 
 
-def test_record_analysis_writes_to_primary_when_coord_lacks_spec(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_record_analysis_writes_to_primary_when_coord_lacks_spec(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     slug = "sample-01KS"
     repo_root = tmp_path
     primary_feature_dir = repo_root / "kitty-specs" / slug
@@ -98,9 +96,7 @@ def test_record_analysis_writes_to_primary_when_coord_lacks_spec(
     assert not (coord_feature_dir / ANALYSIS_REPORT_FILENAME).exists()
 
 
-def test_record_analysis_writes_to_primary_without_coord_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_record_analysis_writes_to_primary_without_coord_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Regression: the no-coord-worktree path is unchanged (write still lands in primary)."""
     slug = "sample-01KS"
     repo_root = tmp_path
@@ -179,18 +175,14 @@ def test_implement_gate_finds_report_in_primary_not_coord(tmp_path: Path) -> Non
 # consequence of the mandated routing change.
 
 
-def test_analysis_report_gate_dir_uses_primary_not_candidate(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_analysis_report_gate_dir_uses_primary_not_candidate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from mission_runtime import MissionArtifactKind
     from specify_cli.cli.commands.agent import workflow as workflow_mod
 
     primary_sentinel = tmp_path / "PRIMARY" / "mission"
     captured_kinds: list[MissionArtifactKind] = []
 
-    def _fake_resolve_workflow_read_dir(
-        *, repo_root: Path, mission_slug: str, kind: MissionArtifactKind
-    ) -> Path:
+    def _fake_resolve_workflow_read_dir(*, repo_root: Path, mission_slug: str, kind: MissionArtifactKind) -> Path:
         captured_kinds.append(kind)
         return primary_sentinel
 
@@ -211,9 +203,7 @@ def test_analysis_report_gate_dir_uses_primary_not_candidate(
 # assert its frontmatter identity directly.
 
 
-def test_record_analysis_persists_outer_wrapper_format_under_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_record_analysis_persists_outer_wrapper_format_under_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.analysis_report import ANALYSIS_REPORT_ARTIFACT_TYPE
     from specify_cli.frontmatter import FrontmatterManager
 
@@ -247,9 +237,7 @@ def test_record_analysis_persists_outer_wrapper_format_under_coord(
     assert frontmatter.get("schema") != "analysis-findings/v1"
 
 
-def test_record_analysis_materialise_then_retry_when_invoked_from_coord_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_record_analysis_materialise_then_retry_when_invoked_from_coord_worktree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """T014 / WP02: protected primary + coord topology → materialize-then-retry (exit 0).
 
     Previously (#1989 guard) the command refused with PROTECTED_BRANCH_REFUSED (exit 1).

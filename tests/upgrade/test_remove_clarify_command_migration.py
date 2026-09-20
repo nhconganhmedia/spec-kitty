@@ -14,6 +14,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_project(tmp_path: Path) -> Path:
     project = tmp_path / "project"
     project.mkdir()

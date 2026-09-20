@@ -208,9 +208,7 @@ class TestMainExitCodes:
 
 
 class TestNi7AssignmentTimeDisclosure:
-    def test_deferral_emits_a_skipped_check_naming_the_gate(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_deferral_emits_a_skipped_check_naming_the_gate(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Driving the REAL WP04 deferral logic (no mock of
         ``enforce_negative_invariants``): a scoped ``grep_absence`` invariant
         whose scope does not exist under *repo_root* defers, and the SAME
@@ -229,9 +227,7 @@ class TestNi7AssignmentTimeDisclosure:
             mission_slug="lifecycle-gate-execution-context-01KY72GQ",
             negative_invariants=[ni],
         )
-        monkeypatch.setattr(
-            "specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: matrix
-        )
+        monkeypatch.setattr("specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: matrix)
         written: list[Any] = []
         monkeypatch.setattr(
             "specify_cli.acceptance.matrix.write_acceptance_matrix",
@@ -240,9 +236,7 @@ class TestNi7AssignmentTimeDisclosure:
 
         activity_issues: list[str] = []
         skipped: list[AcceptanceCheckDiagnostic] = []
-        _evaluate_acceptance_matrix(
-            tmp_path, tmp_path, activity_issues, skipped, [], mutate_matrix=True
-        )
+        _evaluate_acceptance_matrix(tmp_path, tmp_path, activity_issues, skipped, [], mutate_matrix=True)
 
         # WP04 half: the invariant was actually deferred (not silently left
         # pending, and not a false still_present — NI-3/FR-003).
@@ -263,26 +257,20 @@ class TestNi7AssignmentTimeDisclosure:
     def test_no_deferral_no_disclosure(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A clean matrix (no negative invariants) never emits the FR-017 disclosure."""
         matrix = AcceptanceMatrix(mission_slug="clean-mission-01KY0006", negative_invariants=[])
-        monkeypatch.setattr(
-            "specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: matrix
-        )
+        monkeypatch.setattr("specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: matrix)
         # WP04 / T016 (#2318): the gate now persists the recomputed verdict
         # unconditionally when mutate_matrix=True, even with zero negative
         # invariants (this test's exact scenario). The write itself is not
         # under test here (see test_acceptance_verdict_command.py for that);
         # stub it out rather than materialize the resolved surface directory.
-        monkeypatch.setattr(
-            "specify_cli.acceptance.matrix.write_acceptance_matrix", lambda _fd, _m: None
-        )
+        monkeypatch.setattr("specify_cli.acceptance.matrix.write_acceptance_matrix", lambda _fd, _m: None)
 
         skipped: list[AcceptanceCheckDiagnostic] = []
         _evaluate_acceptance_matrix(tmp_path, tmp_path, [], skipped, [], mutate_matrix=True)
 
         assert not any(item.check == "negative_invariants_deferred" for item in skipped)
 
-    def test_already_deferred_invariant_re_discloses_on_every_read(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_already_deferred_invariant_re_discloses_on_every_read(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A matrix already carrying a recorded deferral (e.g. a diagnose-mode
         read, ``mutate_matrix=False``) still discloses on every subsequent
         read — the operator is never left to assume a stale deferral was
@@ -297,9 +285,7 @@ class TestNi7AssignmentTimeDisclosure:
             deferred_reason="recorded on a prior accept run",
         )
         matrix = AcceptanceMatrix(mission_slug="demo-01KY0007", negative_invariants=[ni])
-        monkeypatch.setattr(
-            "specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: matrix
-        )
+        monkeypatch.setattr("specify_cli.acceptance.matrix.read_acceptance_matrix", lambda _fd: matrix)
 
         skipped: list[AcceptanceCheckDiagnostic] = []
         _evaluate_acceptance_matrix(tmp_path, tmp_path, [], skipped, [], mutate_matrix=False)

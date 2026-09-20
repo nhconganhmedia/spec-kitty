@@ -157,10 +157,7 @@ class TmpRepoFactory:
         """
         src = _FIXTURES_DIR / fixture_name
         if not src.is_dir():
-            raise FileNotFoundError(
-                f"Fixture directory not found: {src}. "
-                f"Available fixtures: {[d.name for d in _FIXTURES_DIR.iterdir() if d.is_dir()]}"
-            )
+            raise FileNotFoundError(f"Fixture directory not found: {src}. Available fixtures: {[d.name for d in _FIXTURES_DIR.iterdir() if d.is_dir()]}")
 
         self._counter += 1
         dest_name = f"repo-{self._counter}-{fixture_name}"
@@ -183,10 +180,7 @@ class TmpRepoFactory:
                 feature_dir = mission_dir
                 return repo_root, feature_dir, mission_id
 
-        raise RuntimeError(
-            f"Fixture '{fixture_name}' has no kitty-specs/<slug>/meta.json. "
-            "Please add a meta.json to the fixture."
-        )
+        raise RuntimeError(f"Fixture '{fixture_name}' has no kitty-specs/<slug>/meta.json. Please add a meta.json to the fixture.")
 
 
 # ---------------------------------------------------------------------------
@@ -199,11 +193,7 @@ def read_events(feature_dir: Path) -> list[dict[str, Any]]:
     events_path = feature_dir / "status.events.jsonl"
     if not events_path.exists():
         return []
-    return [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    return [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def event_names(feature_dir: Path) -> list[str]:

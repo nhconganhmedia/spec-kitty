@@ -145,12 +145,7 @@ def dead_filter_globs(
     tracked: set[str],
 ) -> list[tuple[str, str, str]]:
     """FR-003c: ``(workflow, group, glob)`` rows matching no tracked path."""
-    return [
-        (name, group, glob)
-        for group, globs in model.filter_groups.items()
-        for glob in globs
-        if not glob_is_live(glob, tracked)
-    ]
+    return [(name, group, glob) for group, globs in model.filter_groups.items() for glob in globs if not glob_is_live(glob, tracked)]
 
 
 def test_every_restored_filter_glob_is_live() -> None:
@@ -158,11 +153,7 @@ def test_every_restored_filter_glob_is_live() -> None:
     tracked = _tracked_paths()
     for name in gc.WORKFLOW_FILES:
         model = gc.load_workflow_model(gc.WORKFLOWS_DIR / name)
-        dead = [
-            row
-            for row in dead_filter_globs(name, model, tracked)
-            if row not in VESTIGIAL_FILTER_GLOBS
-        ]
+        dead = [row for row in dead_filter_globs(name, model, tracked) if row not in VESTIGIAL_FILTER_GLOBS]
         assert not dead, f"{name}: dead filter globs {dead}"
 
 
@@ -179,14 +170,15 @@ def test_vestigial_glob_rows_stay_earned() -> None:
         row
         for name in gc.WORKFLOW_FILES
         for row in dead_filter_globs(
-            name, gc.load_workflow_model(gc.WORKFLOWS_DIR / name), tracked,
+            name,
+            gc.load_workflow_model(gc.WORKFLOWS_DIR / name),
+            tracked,
         )
     }
 
     stale = sorted(row for row in VESTIGIAL_FILTER_GLOBS if row not in dead)
     assert not stale, (
-        "VESTIGIAL_FILTER_GLOBS rows no longer describe a dead declared glob "
-        f"(the workflow was fixed, or the path became tracked) — delete them: {stale}"
+        f"VESTIGIAL_FILTER_GLOBS rows no longer describe a dead declared glob (the workflow was fixed, or the path became tracked) — delete them: {stale}"
     )
     unreasoned = sorted(row for row, why in VESTIGIAL_FILTER_GLOBS.items() if not why.strip())
     assert not unreasoned, f"VESTIGIAL_FILTER_GLOBS rows with an empty rationale: {unreasoned}"
@@ -221,9 +213,7 @@ def test_no_live_workflow_reaches_the_suite_through_an_indirection() -> None:
     :func:`test_faultinjection_make_target_without_pytest_is_not_a_gate`, both
     fixture-driven.
     """
-    indirect = {
-        (gate.workflow, gate.job, gate.via) for gate in gc.load_gates() if gate.via is not None
-    }
+    indirect = {(gate.workflow, gate.job, gate.via) for gate in gc.load_gates() if gate.via is not None}
     assert indirect == set(), (
         "a live workflow now reaches the test suite through an indirection "
         f"(make target or in-repo script): {sorted(indirect)}. That is not forbidden, but it is the "
@@ -361,7 +351,6 @@ def parse_job_groups(quality_gate_run_text: str) -> dict[str, set[str]]:
     match = re.search(r"JOB_GROUPS\s*=\s*\{(.*?)\}\s*\n", quality_gate_run_text, re.DOTALL)
     assert match, "JOB_GROUPS table not found in the quality-gate decision step"
     return {row.group(1): set(_QUOTED_RE.findall(row.group(2))) for row in _JOB_GROUPS_ROW_RE.finditer(match.group(1))}
-
 
 
 # ---------------------------------------------------------------------------

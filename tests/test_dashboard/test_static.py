@@ -23,8 +23,8 @@ def test_dashboard_template_references_static_assets():
 
 def test_dashboard_template_omits_mission_badge():
     html = get_dashboard_html()
-    assert 'mission-display' not in html
-    assert 'Mission:' not in html
+    assert "mission-display" not in html
+    assert "Mission:" not in html
 
 
 def test_static_assets_exist():
@@ -66,12 +66,8 @@ def test_render_kanban_escapes_card_fields_and_normalizes_avatar_fallback():
         pytest.skip("node is required for dashboard.js behavior validation")
 
     source = DASHBOARD_JS.read_text(encoding="utf-8")
-    render = source[
-        source.index("function renderKanban") : source.index("\nfunction formatLaneName")
-    ]
-    avatar_helpers = source[
-        source.index("function escapeHtml") : source.index("\nfunction showCharter")
-    ]
+    render = source[source.index("function renderKanban") : source.index("\nfunction formatLaneName")]
+    avatar_helpers = source[source.index("function escapeHtml") : source.index("\nfunction showCharter")]
     script = f"""
 const elements = new Map();
 global.document = {{
@@ -118,9 +114,7 @@ process.stdout.write(JSON.stringify({{
 }}));
 """
 
-    result = subprocess.run(
-        ["node", "-e", script], capture_output=True, text=True, check=False
-    )
+    result = subprocess.run(["node", "-e", script], capture_output=True, text=True, check=False)
 
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)

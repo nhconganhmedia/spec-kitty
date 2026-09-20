@@ -165,11 +165,7 @@ def _build_qualname_map(tree: ast.AST) -> dict[tuple[int, int], str]:
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 name: str = child.name
                 qualname = f"{prefix}.{name}" if prefix else name
-                if (
-                    hasattr(child, "lineno")
-                    and hasattr(child, "end_lineno")
-                    and child.end_lineno is not None
-                ):
+                if hasattr(child, "lineno") and hasattr(child, "end_lineno") and child.end_lineno is not None:
                     entries[(child.lineno, child.end_lineno)] = qualname
                 _walk(child, qualname)
             else:
@@ -214,11 +210,7 @@ def enclosing_qualname(source: str, lineno: int) -> str:
 
     # Among all spans that contain lineno, the innermost has the smallest
     # (end - start) difference.
-    candidates = [
-        (end - start, qn)
-        for (start, end), qn in qualname_map.items()
-        if start <= lineno <= end
-    ]
+    candidates = [(end - start, qn) for (start, end), qn in qualname_map.items() if start <= lineno <= end]
     if not candidates:
         return "<module>"
 
@@ -282,9 +274,7 @@ def composite_key_from_file(path: Path, lineno: int) -> tuple[str, str]:
 #: appearing anywhere in a Contract Record is rejected by the registry
 #: validator: the whole point of the registry is to anchor on content, never on
 #: a line number that benign edits move (DIR-041 validation criterion 33).
-FORBIDDEN_POSITIONAL_FIELDS: frozenset[str] = frozenset(
-    {"file", "line", "lineno", "line_no", "file_line", "fileline"}
-)
+FORBIDDEN_POSITIONAL_FIELDS: frozenset[str] = frozenset({"file", "line", "lineno", "line_no", "file_line", "fileline"})
 
 #: A trailing ``:<int>`` — the tell-tale of a ``file:line`` positional anchor.
 _TRAILING_LINE_RE = re.compile(r":(\d+)$")

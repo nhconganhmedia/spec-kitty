@@ -15,6 +15,7 @@ target), coordination (declared coordination branch), and protected-main
 If the projection ever re-derived a destination independently of the resolver,
 this parity would drift — which is exactly the #1784 split-brain it kills.
 """
+
 from __future__ import annotations
 
 import json
@@ -80,9 +81,7 @@ def repo(tmp_path: Path) -> Path:
     _git(r, "config", "user.name", "Test")
     _git(r, "config", "commit.gpgsign", "false")
     (r / ".kittify").mkdir()
-    (r / ".kittify" / "config.yaml").write_text(
-        "agents:\n  available:\n    - claude\n", encoding="utf-8"
-    )
+    (r / ".kittify" / "config.yaml").write_text("agents:\n  available:\n    - claude\n", encoding="utf-8")
     return r
 
 

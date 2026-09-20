@@ -56,9 +56,7 @@ def _write_graph(path: Path, *, nodes: list[dict[str, object]], edges: list[dict
     if edges:
         lines.append("edges:")
         for edge in edges:
-            lines.append(
-                f"- {{source: '{edge['source']}', target: '{edge['target']}', relation: {edge['relation']}}}"
-            )
+            lines.append(f"- {{source: '{edge['source']}', target: '{edge['target']}', relation: {edge['relation']}}}")
     else:
         lines.append("edges: []")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")

@@ -109,9 +109,7 @@ def test_current_invocation_never_pruned_even_if_oldest(review_prompts_root: Pat
     assert "future-4.md" in remaining
 
 
-def test_prune_failure_on_scandir_is_swallowed(
-    review_prompts_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_prune_failure_on_scandir_is_swallowed(review_prompts_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     meta = _build_meta(review_prompts_root)
 
     def _boom(*_args: object, **_kwargs: object) -> object:
@@ -125,9 +123,7 @@ def test_prune_failure_on_scandir_is_swallowed(
     assert meta.prompt_path.exists()
 
 
-def test_prune_failure_on_unlink_is_swallowed(
-    review_prompts_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_prune_failure_on_unlink_is_swallowed(review_prompts_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     meta = _build_meta(review_prompts_root)
     wp_dir = meta.prompt_path.parent
     wp_dir.mkdir(parents=True, exist_ok=True)

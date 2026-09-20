@@ -19,6 +19,7 @@ the review gate) carry ``write_intent=True``, while the audited read vehicle
 (``_resolve_placement_ref``) does not — guarding against both over-marking
 (false-refused reads) and under-marking (#3128 stays live for review).
 """
+
 from __future__ import annotations
 
 import json
@@ -56,9 +57,7 @@ class _Registry:
 
 
 def _git(repo: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True)
 
 
 def _write_mission(repo: Path, human: str, mid8: str) -> str:
@@ -84,13 +83,11 @@ def _write_mission(repo: Path, human: str, mid8: str) -> str:
         encoding="utf-8",
     )
     (feature_dir / "tasks" / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: code change\n"
-        "execution_mode: code_change\nsubtasks: []\nowned_files:\n- src/x.py\n---\n# WP01\n",
+        "---\nwork_package_id: WP01\ntitle: code change\nexecution_mode: code_change\nsubtasks: []\nowned_files:\n- src/x.py\n---\n# WP01\n",
         encoding="utf-8",
     )
     (feature_dir / "tasks" / "WP00.md").write_text(
-        "---\nwork_package_id: WP00\ntitle: planning\n"
-        "execution_mode: planning_artifact\nsubtasks: []\n---\n# WP00\n",
+        "---\nwork_package_id: WP00\ntitle: planning\nexecution_mode: planning_artifact\nsubtasks: []\n---\n# WP00\n",
         encoding="utf-8",
     )
     (feature_dir / "lanes.json").write_text(
@@ -126,9 +123,7 @@ def registry(tmp_path: Path) -> _Registry:
     """Two missions (alpha, beta) sharing one git repo, each with a distinct lane."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    subprocess.run(
-        ["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True, text=True
-    )
+    subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True, text=True)
     _git(repo, "config", "user.email", "wp03@spec-kitty.test")
     _git(repo, "config", "user.name", "WP03 Fixture")
     _git(repo, "config", "commit.gpgsign", "false")
@@ -303,10 +298,7 @@ def test_true_wp_write_sites_carry_write_intent() -> None:
     # compat `spec-kitty implement` CLI
     assert "resolve_workspace_for_wp(repo_root, mission_slug, wp_id, write_intent=True)" in implement_cli
     # canonical `agent action implement`
-    assert (
-        "resolve_workspace_for_wp(main_repo_root, mission_slug, normalized_wp_id, write_intent=True)"
-        in agent_workflow
-    )
+    assert "resolve_workspace_for_wp(main_repo_root, mission_slug, normalized_wp_id, write_intent=True)" in agent_workflow
     # review gate (pre-claim) — the review write path
     assert "write_intent=True" in review_executor
     assert "resolve_workspace_for_wp(" in review_executor

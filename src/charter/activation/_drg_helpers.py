@@ -173,11 +173,7 @@ def load_validated_graph(
         # pre-probe — get their only signal here.
         fragment_exists = bool(root) and root.exists() and (root / "drg" / "fragment.yaml").exists()
         if root and root.exists() and (not fragment_exists or org_fragments is None):
-            missing_shape = (
-                "and no drg/fragment.yaml"
-                if not fragment_exists
-                else "but this call supplied no org_fragments layer"
-            )
+            missing_shape = "and no drg/fragment.yaml" if not fragment_exists else "but this call supplied no org_fragments layer"
             _LOGGER.warning(
                 "Org pack at %s ships no root-level DRG graph "
                 "(graph.yaml / *.graph.yaml) %s; it contributes no dependency "
@@ -191,20 +187,14 @@ def load_validated_graph(
     project = None
     if include_project:
         project_dir = repo_root / ".kittify" / "doctrine"
-        project = (
-            load_graph_or_dir(project_dir)
-            if has_graph_files(project_dir)
-            else None
-        )
+        project = load_graph_or_dir(project_dir) if has_graph_files(project_dir) else None
 
     merged = _fold_final_layers(root_merged, org_fragments, project)
     try:
         assert_valid(merged)
     except DRGValidationError as exc:
         if project_degrade and project is not None:
-            base_errors = validate_graph(
-                _fold_final_layers(root_merged, org_fragments, None)
-            )
+            base_errors = validate_graph(_fold_final_layers(root_merged, org_fragments, None))
             if not any(error in base_errors for error in exc.errors):
                 raise DRGProjectValidationError(exc.errors) from exc
         raise
@@ -266,9 +256,7 @@ def _fold_final_layers(
     callers are unaffected (FR-003).
     """
     if org_fragments:
-        merged = merge_three_layers(
-            built_in=root_merged, org_fragments=org_fragments, project=project
-        )
+        merged = merge_three_layers(built_in=root_merged, org_fragments=org_fragments, project=project)
         return _collapse_duplicate_edge_triples(merged)
     return merge_layers(root_merged, project)
 

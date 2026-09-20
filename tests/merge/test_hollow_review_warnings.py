@@ -54,9 +54,7 @@ def test_warn_or_confirm_hollow_reviews_assume_yes_does_not_prompt(tmp_path: Pat
     assert "Proceeding without interactive confirmation" in out
 
 
-def test_warn_or_confirm_hollow_reviews_non_interactive_env_does_not_prompt(
-    tmp_path: Path, capsys, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_warn_or_confirm_hollow_reviews_non_interactive_env_does_not_prompt(tmp_path: Path, capsys, monkeypatch: pytest.MonkeyPatch) -> None:
     """#2912: with SPEC_KITTY_NON_INTERACTIVE set the hollow-review gate
     auto-proceeds without a confirm prompt even without --yes. Before routing
     through is_interactive(), the bare ``sys.stdin.isatty()`` check would prompt

@@ -107,9 +107,7 @@ def _write_events(feature_dir: Path, events: list[dict[str, object]]) -> None:
     )
 
 
-def _seed_committed_coord_ref(
-    repo: Path, events: list[dict[str, object]], *, branch: str = "coord"
-) -> Path:
+def _seed_committed_coord_ref(repo: Path, events: list[dict[str, object]], *, branch: str = "coord") -> Path:
     """Commit ``events`` onto ``branch`` and return the primary feature_dir."""
     _init_repo(repo)
     feature_dir = repo / "kitty-specs" / MISSION_SLUG
@@ -140,9 +138,7 @@ def test_returns_only_the_stranded_done_wp_not_the_approved_one(tmp_path: Path) 
         ],
     )
 
-    result = coord_incoherent_done_wps(
-        "coord", ["WP-A", "WP-B"], repo_root=repo, feature_dir=feature_dir
-    )
+    result = coord_incoherent_done_wps("coord", ["WP-A", "WP-B"], repo_root=repo, feature_dir=feature_dir)
 
     assert result == ["WP-A"]
     # Anti-fakeability: neither a hardcoded literal nor the raw candidate list.
@@ -174,15 +170,11 @@ def test_pre_existing_done_wp_outside_write_set_is_excluded(tmp_path: Path) -> N
 
     # Sanity: WP-C really is done-on-ref (so exclusion is by write-set, not by
     # absence of the done event).
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-C"], repo_root=repo, feature_dir=feature_dir
-    ) == ["WP-C"]
+    assert coord_incoherent_done_wps("coord", ["WP-C"], repo_root=repo, feature_dir=feature_dir) == ["WP-C"]
 
     # The write-set for THIS merge excludes WP-C -> it is not healed.
     write_set = ["WP-A", "WP-B"]
-    result = coord_incoherent_done_wps(
-        "coord", write_set, repo_root=repo, feature_dir=feature_dir
-    )
+    result = coord_incoherent_done_wps("coord", write_set, repo_root=repo, feature_dir=feature_dir)
     assert result == ["WP-A"]
     assert "WP-C" not in result
 
@@ -196,12 +188,7 @@ def test_empty_candidate_and_unresolvable_ref_return_empty(tmp_path: Path) -> No
     # Empty write-set short-circuits.
     assert coord_incoherent_done_wps("coord", [], repo_root=repo, feature_dir=feature_dir) == []
     # A ref that does not exist -> no events -> empty (non-coord/legacy fallback).
-    assert (
-        coord_incoherent_done_wps(
-            "does-not-exist", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-        )
-        == []
-    )
+    assert coord_incoherent_done_wps("does-not-exist", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == []
 
 
 # ---------------------------------------------------------------------------
@@ -244,9 +231,7 @@ def test_repair_reverts_strand_then_is_a_byte_stable_noop_on_reapply(tmp_path: P
     _git(worktree, "commit", "-m", "bake WP-A done (strands on rollback)")
 
     # Pre-condition: WP-A is stranded done on the committed ref.
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == ["WP-A"]
+    assert coord_incoherent_done_wps("coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == ["WP-A"]
 
     # First repair: performs the git revert.
     first = repair_coord_strand(
@@ -263,9 +248,7 @@ def test_repair_reverts_strand_then_is_a_byte_stable_noop_on_reapply(tmp_path: P
     assert first.error is None
 
     # The committed ref is now coherent again (WP-A back to approved).
-    assert coord_incoherent_done_wps(
-        "coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == []
+    assert coord_incoherent_done_wps("coord", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == []
     bytes_after_first = _committed_events_bytes(repo, "coord")
 
     # Second + third repair: strand-gate short-circuits -> no-op, byte-stable.
@@ -353,13 +336,9 @@ def test_repair_refuses_when_head_already_reverted(tmp_path: Path) -> None:
     head_before = _git(worktree, "rev-parse", "HEAD").stdout.strip()
 
     # Sanity: the stale ref STILL reduces WP-A to done (gate would pass) …
-    assert coord_incoherent_done_wps(
-        "coord_done", ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == ["WP-A"]
+    assert coord_incoherent_done_wps("coord_done", ["WP-A"], repo_root=repo, feature_dir=feature_dir) == ["WP-A"]
     # … while the worktree HEAD is already coherent (approved).
-    assert coord_incoherent_done_wps(
-        head_before, ["WP-A"], repo_root=repo, feature_dir=feature_dir
-    ) == []
+    assert coord_incoherent_done_wps(head_before, ["WP-A"], repo_root=repo, feature_dir=feature_dir) == []
 
     outcome = repair_coord_strand(
         coord_ref="coord_done",  # stale: still reduces to done → gate passes

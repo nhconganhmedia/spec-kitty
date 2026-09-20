@@ -73,10 +73,7 @@ def _regenerate_graph_check() -> subprocess.CompletedProcess[str]:
 def test_committed_golden_fragments_present() -> None:
     """The committed golden fragments exist — the round-trip has something to lock."""
     fragments = list(_GOLDEN_ROOT.rglob("*.graph.yaml"))
-    assert fragments, (
-        f"No committed golden `*.graph.yaml` fragments under {_GOLDEN_ROOT}. "
-        "The behavior-lock has nothing to compare against."
-    )
+    assert fragments, f"No committed golden `*.graph.yaml` fragments under {_GOLDEN_ROOT}. The behavior-lock has nothing to compare against."
 
 
 def test_regenerate_graph_check_is_byte_identical() -> None:

@@ -58,9 +58,7 @@ def test_mission_topology_excludes_flattened_member() -> None:
         (MissionTopology.LANES_WITH_COORD, "lanes_with_coord"),
     ],
 )
-def test_mission_topology_serialized_values_are_pinned(
-    member: MissionTopology, expected_value: str
-) -> None:
+def test_mission_topology_serialized_values_are_pinned(member: MissionTopology, expected_value: str) -> None:
     """FR-001 / R4: the wire form WP02/WP03 round-trip against is fixed."""
     assert member.value == expected_value
 
@@ -74,9 +72,7 @@ def test_mission_topology_serialized_values_are_pinned(
         (MissionTopology.LANES, False),
     ],
 )
-def test_routes_through_coordination_topology_truth_table(
-    topology: MissionTopology, expected: bool
-) -> None:
+def test_routes_through_coordination_topology_truth_table(topology: MissionTopology, expected: bool) -> None:
     """FR-005 / FR-001b: the predicate routes from the STORED topology.
 
     True only for the two coord-routing cells (COORD / LANES_WITH_COORD); the two
@@ -117,11 +113,7 @@ def test_classify_topology_never_returns_flattened() -> None:
     classify_topology has no flattened input or output; exhausting the 2×2 grid
     must only ever yield the four shape cells.
     """
-    results = {
-        classify_topology(coordination_branch, has_lanes)
-        for coordination_branch in (None, COORD_BRANCH_REF)
-        for has_lanes in (False, True)
-    }
+    results = {classify_topology(coordination_branch, has_lanes) for coordination_branch in (None, COORD_BRANCH_REF) for has_lanes in (False, True)}
     assert results == {
         MissionTopology.SINGLE_BRANCH,
         MissionTopology.LANES,

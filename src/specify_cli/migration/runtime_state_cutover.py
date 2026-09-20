@@ -125,7 +125,10 @@ class CutoverResult:
 
 
 def _seed_phase(
-    feature_dir: Path, *, read_dir: Path | None = None, dry_run: bool,
+    feature_dir: Path,
+    *,
+    read_dir: Path | None = None,
+    dry_run: bool,
     owned: OwnedMission | None = None,
 ) -> BackfillResult:
     """Phase 1 — idempotently seed the mission's legacy runtime state as events.
@@ -136,7 +139,9 @@ def _seed_phase(
     see :func:`backfill_runtime_state`'s docstring).
     """
     return backfill_runtime_state(
-        feature_dir, read_dir=read_dir, dry_run=dry_run,
+        feature_dir,
+        read_dir=read_dir,
+        dry_run=dry_run,
         **({"owned": owned} if owned is not None else {}),
     )
 
@@ -162,7 +167,9 @@ def _verify_phase(
     target is unchanged — only the guard becomes invoking-checkout-aware.
     """
     return verify_backfill(
-        feature_dir, read_dir=read_dir, intent=intent,
+        feature_dir,
+        read_dir=read_dir,
+        intent=intent,
         **({"owned": owned} if owned is not None else {}),
     )
 
@@ -226,15 +233,15 @@ def _resolve_primary_home_or_degrade(feature_dir: Path, *, owned: OwnedMission |
     if owned is not None:
         _runtime_feature_dir(feature_dir, owned)
         return resolve_artifact_surface(
-            owned.primary, owned.slug, MissionArtifactKind.PRIMARY_METADATA,
+            owned.primary,
+            owned.slug,
+            MissionArtifactKind.PRIMARY_METADATA,
             effective_root=owned.root,
         ).path
 
     try:
         repo_root = resolve_canonical_root(feature_dir)
-        return resolve_artifact_surface(
-            repo_root, feature_dir.name, MissionArtifactKind.PRIMARY_METADATA
-        ).path
+        return resolve_artifact_surface(repo_root, feature_dir.name, MissionArtifactKind.PRIMARY_METADATA).path
     except (
         WorkspaceRootNotFound,
         MissionSelectorAmbiguous,
@@ -242,8 +249,7 @@ def _resolve_primary_home_or_degrade(feature_dir: Path, *, owned: OwnedMission |
         ActionContextError,
     ) as exc:
         logger.debug(
-            "Placement-port resolution degraded for %s (%s); falling back to "
-            "the canonicalized write target.",
+            "Placement-port resolution degraded for %s (%s); falling back to the canonicalized write target.",
             feature_dir,
             exc,
         )
@@ -267,9 +273,7 @@ def _flip_target(feature_dir: Path, *, owned: OwnedMission | None = None) -> Pat
     return resolved
 
 
-def _already_at_snapshot_authority(
-    feature_dir: Path, *, owned: OwnedMission | None = None
-) -> bool:
+def _already_at_snapshot_authority(feature_dir: Path, *, owned: OwnedMission | None = None) -> bool:
     """Read-only probe: is the flip target's ``meta.json`` already authoritative?
 
     Answers, BEFORE any write, exactly the question :func:`_flip_phase`'s own
@@ -282,9 +286,7 @@ def _already_at_snapshot_authority(
     seams. ``False`` on a missing/malformed meta is "not yet migrated", which
     is the truthful pre-write answer.
     """
-    meta = load_meta(
-        _flip_target(feature_dir, owned=owned), allow_missing=True, on_malformed="none"
-    )
+    meta = load_meta(_flip_target(feature_dir, owned=owned), allow_missing=True, on_malformed="none")
     return _is_snapshot_authority(meta or {})
 
 
@@ -314,7 +316,8 @@ def _flip_phase(feature_dir: Path, *, owned: OwnedMission | None = None) -> None
     """
     target = _flip_target(feature_dir, owned=owned)
     resolved_home = _resolve_primary_home_or_degrade(
-        feature_dir, **({"owned": owned} if owned is not None else {}),
+        feature_dir,
+        **({"owned": owned} if owned is not None else {}),
     )
     if resolved_home is not None and resolved_home != target:
         raise PlacementMismatchError(
@@ -323,6 +326,7 @@ def _flip_phase(feature_dir: Path, *, owned: OwnedMission | None = None) -> None
             f"which does not match the write target {target} (fail-closed, FR-001)."
         )
     from specify_cli.core.paths import load_meta_fail_closed
+
     meta = load_meta_fail_closed(target) or {}
     if _is_snapshot_authority(meta):
         return
@@ -482,7 +486,9 @@ class MissingMissionIdError(RuntimeError):
 
 
 def stamp_accept_cutover(
-    feature_dir: Path, *, status_feature_dir: Path | None = None,
+    feature_dir: Path,
+    *,
+    status_feature_dir: Path | None = None,
     owned: OwnedMission | None = None,
 ) -> CutoverResult:
     """Terminal-lifecycle accept-time stamp (IC-01 / contracts/stamp-seam.md).
@@ -521,7 +527,9 @@ def stamp_accept_cutover(
             "slug-namespaced seed fallback)."
         )
     return cutover_mission(
-        feature_dir, status_feature_dir=status_feature_dir, dry_run=False,
+        feature_dir,
+        status_feature_dir=status_feature_dir,
+        dry_run=False,
         **({"owned": owned} if owned is not None else {}),
     )
 
@@ -570,9 +578,7 @@ def cutover_repo(
         try:
             candidates = [ensure_within_any(candidate, roots=[kitty_specs])]
         except ValueError as exc:
-            raise ValueError(
-                f"Mission directory resolves outside kitty-specs: {candidate}"
-            ) from exc
+            raise ValueError(f"Mission directory resolves outside kitty-specs: {candidate}") from exc
     else:
         candidates = []
         for entry in sorted(kitty_specs.iterdir()):

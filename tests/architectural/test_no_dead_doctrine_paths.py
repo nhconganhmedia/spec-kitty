@@ -150,9 +150,7 @@ def _classify_link(
     return ("unresolved", site)
 
 
-def scan_doctrine_cross_links(
-    root: Path, boundary_roots: tuple[Path, ...] | None = None
-) -> CrossLinkScan:
+def scan_doctrine_cross_links(root: Path, boundary_roots: tuple[Path, ...] | None = None) -> CrossLinkScan:
     """Resolve every relative markdown cross-link under *root*.
 
     Discriminator C1 drops links that live inside a fenced code block or an
@@ -303,12 +301,11 @@ def test_boundary_escaping_link_would_false_red_without_its_discriminator(tmp_pa
     )
     scan = scan_doctrine_cross_links(root)
     assert scan.boundary_escapes, (
-        "C3 excludes nothing, so it cannot be proven. Either the escaping-link "
-        "case no longer applies (delete C3) or the pattern stopped matching it."
+        "C3 excludes nothing, so it cannot be proven. Either the escaping-link case no longer applies (delete C3) or the pattern stopped matching it."
     )
-    assert [site.text for site in scan.boundary_escapes] == [
-        "../../docs/context/charter.md#term"
-    ], f"C3's effect set moved -- widening it needs a reason: {_render(scan.boundary_escapes)}"
+    assert [site.text for site in scan.boundary_escapes] == ["../../docs/context/charter.md#term"], (
+        f"C3's effect set moved -- widening it needs a reason: {_render(scan.boundary_escapes)}"
+    )
     assert not scan.unresolved, "A legitimately escaping link must not become a false unresolved-link red."
 
 
@@ -321,9 +318,7 @@ def test_gate_c_boundary_discriminator_does_not_swallow_an_in_boundary_violation
     (root / "sibling.md").write_text("ok\n", encoding="utf-8")
     planted = root / "page.md"
     planted.write_text(
-        "See [outside](../../docs/context/charter.md#term).\n"
-        "See [gone](./missing.md).\n"
-        "See [here](./sibling.md).\n",
+        "See [outside](../../docs/context/charter.md#term).\nSee [gone](./missing.md).\nSee [here](./sibling.md).\n",
         encoding="utf-8",
     )
     scan = scan_doctrine_cross_links(root)
@@ -357,9 +352,7 @@ def test_gate_c_boundary_discriminator_treats_sibling_shipped_roots_as_in_bounda
     (root_b / "real.md").write_text("ok\n", encoding="utf-8")
     (tmp_path / "outside.md").write_text("ok\n", encoding="utf-8")
     (root_a / "page.md").write_text(
-        "See [real sibling](../root_b/real.md).\n"
-        "See [broken sibling](../root_b/missing.md).\n"
-        "See [truly outside](../outside.md).\n",
+        "See [real sibling](../root_b/real.md).\nSee [broken sibling](../root_b/missing.md).\nSee [truly outside](../outside.md).\n",
         encoding="utf-8",
     )
     scan = scan_doctrine_cross_links(root_a, boundary_roots=(root_a, root_b))
@@ -368,9 +361,7 @@ def test_gate_c_boundary_discriminator_treats_sibling_shipped_roots_as_in_bounda
         "it must not be exempted as a boundary_escape just because it was scanned "
         "under a different single root."
     )
-    assert [site.text for site in scan.boundary_escapes] == ["../outside.md"], (
-        "A link genuinely outside every shipped root must still escape the boundary."
-    )
+    assert [site.text for site in scan.boundary_escapes] == ["../outside.md"], "A link genuinely outside every shipped root must still escape the boundary."
 
 
 def test_boundary_escape_live_count_has_a_floor() -> None:
@@ -432,11 +423,7 @@ def test_cross_link_scope_is_pinned() -> None:
     in_scope: set[str] = set()
     for root in (_DOCTRINE_ROOT, _PACKS_ROOT):
         skipped = root / _DEPLOYMENT_RELATIVE_SUBTREE
-        in_scope |= {
-            _rel(path, root)
-            for path in root.rglob("*.md")
-            if skipped not in path.parents
-        }
+        in_scope |= {_rel(path, root) for path in root.rglob("*.md") if skipped not in path.parents}
     assert _DOCTRINE_ROOT.is_dir() and _PACKS_ROOT.is_dir()
     assert not any(path.startswith("src/charter/offering/missions/") for path in in_scope)
     # Pinned near the live combined count (159 = 141 under src/doctrine + 18 under

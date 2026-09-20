@@ -38,9 +38,7 @@ def _init_git(repo: Path) -> None:
     subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, check=True)
 
 
-def _install_with_doomed_interpreter(
-    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> Path:
+def _install_with_doomed_interpreter(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Install the hook pinned to a copy of the interpreter, then delete the copy.
 
     Mirrors the real bug: the interpreter existed at install time (e.g. under
@@ -69,21 +67,12 @@ def _write_fake_spec_kitty(bin_dir: Path, *, marker: Path) -> None:
     touches ``marker`` to prove the fallback branch actually ran, then exits 0.
     """
     shim = bin_dir / "spec-kitty"
-    shim.write_text(
-        "#!/bin/sh\n"
-        f'if [ "$1" = "commit-guard-hook" ]; then\n'
-        f'    touch "{marker}"\n'
-        "    exit 0\n"
-        "fi\n"
-        "exit 1\n"
-    )
+    shim.write_text(f'#!/bin/sh\nif [ "$1" = "commit-guard-hook" ]; then\n    touch "{marker}"\n    exit 0\nfi\nexit 1\n')
     shim.chmod(shim.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX shell fallback; bug is POSIX-surfaced")
-def test_hook_falls_back_to_path_spec_kitty_when_interpreter_gone(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_hook_falls_back_to_path_spec_kitty_when_interpreter_gone(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
     _init_git(repo)
@@ -105,17 +94,12 @@ def test_hook_falls_back_to_path_spec_kitty_when_interpreter_gone(
         env=os.environ.copy(),
     )
 
-    assert proc.returncode == 0, (
-        f"Commit should succeed via the PATH fallback.\n"
-        f"stdout={proc.stdout}\nstderr={proc.stderr}"
-    )
+    assert proc.returncode == 0, f"Commit should succeed via the PATH fallback.\nstdout={proc.stdout}\nstderr={proc.stderr}"
     assert marker.exists(), "Fallback branch must actually invoke 'spec-kitty commit-guard-hook'"
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX shell fallback; bug is POSIX-surfaced")
-def test_hook_fails_with_named_remedy_when_neither_available(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_hook_fails_with_named_remedy_when_neither_available(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
     _init_git(repo)
@@ -125,9 +109,7 @@ def test_hook_fails_with_named_remedy_when_neither_available(
     # PATH" without breaking the 'git'/'sh' lookups the test harness needs.
     empty_bin = tmp_path / "empty-bin"
     empty_bin.mkdir()
-    real_path_dirs = [
-        d for d in os.environ["PATH"].split(os.pathsep) if not (Path(d) / "spec-kitty").exists()
-    ]
+    real_path_dirs = [d for d in os.environ["PATH"].split(os.pathsep) if not (Path(d) / "spec-kitty").exists()]
     monkeypatch.setenv("PATH", os.pathsep.join([str(empty_bin), *real_path_dirs]))
 
     (repo / "file.txt").write_text("hello")
@@ -142,17 +124,12 @@ def test_hook_fails_with_named_remedy_when_neither_available(
 
     assert proc.returncode != 0, "Commit must be blocked when no entrypoint is reachable"
     assert proc.returncode not in (126, 127), (
-        "Failure must come from the hook's own named exit 1, not a shell-level "
-        f"not-executable/not-found error. rc={proc.returncode}, stderr={proc.stderr}"
+        f"Failure must come from the hook's own named exit 1, not a shell-level not-executable/not-found error. rc={proc.returncode}, stderr={proc.stderr}"
     )
-    assert "spec-kitty migrate repin-hooks" in proc.stderr, (
-        f"Failure message must name the concrete remedy. stderr={proc.stderr}"
-    )
+    assert "spec-kitty migrate repin-hooks" in proc.stderr, f"Failure message must name the concrete remedy. stderr={proc.stderr}"
 
 
-def test_run_repin_hooks_migration_repins_to_current_interpreter(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_repin_hooks_migration_repins_to_current_interpreter(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.cli.commands.migrate.repin_hooks import run_repin_hooks_migration
 
     repo = tmp_path / "repo"
@@ -179,9 +156,7 @@ def _without_installed_at_line(hook_body: str) -> str:
     install time), so the idempotency guarantee is about the rest of the
     hook — same interpreter, same fallback wiring — not byte-identical files.
     """
-    return "\n".join(
-        line for line in hook_body.splitlines() if not line.startswith("# Installed:")
-    )
+    return "\n".join(line for line in hook_body.splitlines() if not line.startswith("# Installed:"))
 
 
 def test_run_repin_hooks_migration_is_idempotent(tmp_path: Path) -> None:
@@ -199,6 +174,5 @@ def test_run_repin_hooks_migration_is_idempotent(tmp_path: Path) -> None:
 
     assert first.interpreter == second.interpreter
     assert _without_installed_at_line(first_body) == _without_installed_at_line(second_body), (
-        "Re-running against an already-current hook must produce the same effective "
-        "hook (only the '# Installed:' timestamp comment may legitimately differ)."
+        "Re-running against an already-current hook must produce the same effective hook (only the '# Installed:' timestamp comment may legitimately differ)."
     )

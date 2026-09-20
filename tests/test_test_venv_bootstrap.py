@@ -53,16 +53,10 @@ def _blocking_build(venv_dir: Path, source_version: str) -> None:
 
 def _fake_valid(venv_dir: Path, source_version: str) -> bool:
     marker = venv_dir / "VERSION"
-    return (
-        _fake_python_path(venv_dir).is_file()
-        and marker.is_file()
-        and marker.read_text(encoding="utf-8").strip() == source_version
-    )
+    return _fake_python_path(venv_dir).is_file() and marker.is_file() and marker.read_text(encoding="utf-8").strip() == source_version
 
 
-def test_existing_executables_win_over_spoofed_platform(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_existing_executables_win_over_spoofed_platform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Platform-spoof tests must not redirect a published POSIX venv."""
     python = tmp_path / "bin" / "python"
     pip = tmp_path / "bin" / "pip"
@@ -287,9 +281,7 @@ def test_pid_reuse_or_crash_state_is_rebuilt(tmp_path: Path, state: str) -> None
                 "lease_seconds": 30.0,
                 "temp_path": str(abandoned),
                 "source_version": _SOURCE_VERSION,
-                "environment_hash": root_conftest._test_venv_environment_hash(
-                    tmp_path, _SOURCE_VERSION
-                ),
+                "environment_hash": root_conftest._test_venv_environment_hash(tmp_path, _SOURCE_VERSION),
             }
         ),
         encoding="utf-8",
@@ -322,9 +314,7 @@ def test_expired_heartbeat_is_reclaimed_even_when_pid_is_live(tmp_path: Path) ->
                 "lease_seconds": 0.1,
                 "temp_path": str(abandoned),
                 "source_version": _SOURCE_VERSION,
-                "environment_hash": root_conftest._test_venv_environment_hash(
-                    tmp_path, _SOURCE_VERSION
-                ),
+                "environment_hash": root_conftest._test_venv_environment_hash(tmp_path, _SOURCE_VERSION),
             }
         ),
         encoding="utf-8",
@@ -365,9 +355,7 @@ def test_live_owner_with_stale_heartbeat_is_not_stolen_within_grace(tmp_path: Pa
                 "lease_seconds": 0.1,
                 "temp_path": str(building),
                 "source_version": _SOURCE_VERSION,
-                "environment_hash": root_conftest._test_venv_environment_hash(
-                    tmp_path, _SOURCE_VERSION
-                ),
+                "environment_hash": root_conftest._test_venv_environment_hash(tmp_path, _SOURCE_VERSION),
             }
         ),
         encoding="utf-8",
@@ -444,9 +432,7 @@ def test_stale_lease_recovers_past_invalid_final_symlink_without_following_targe
                 "lease_seconds": 0.1,
                 "temp_path": str(abandoned),
                 "source_version": _SOURCE_VERSION,
-                "environment_hash": root_conftest._test_venv_environment_hash(
-                    tmp_path, _SOURCE_VERSION
-                ),
+                "environment_hash": root_conftest._test_venv_environment_hash(tmp_path, _SOURCE_VERSION),
             }
         ),
         encoding="utf-8",

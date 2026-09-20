@@ -95,10 +95,7 @@ _PROFILE_TOOLGUIDES_HEADER_TPL = "Profile-Cited Toolguides ({profile_id}):"
 # inline citation list, so the header reads "Resolved" rather than "Cited".
 _PROFILE_PROCEDURES_HEADER_TPL = "Profile-Resolved Procedures ({profile_id}):"
 _PROFILE_CODE_CHANGE_WHEN = "are about to apply a code change"
-_STYLEGUIDE_TOOLGUIDE_POINTER_ONLY_REASON = (
-    "Styleguide and toolguide bodies vary in shape and are fetched on demand "
-    "under the NFR-001 token budget."
-)
+_STYLEGUIDE_TOOLGUIDE_POINTER_ONLY_REASON = "Styleguide and toolguide bodies vary in shape and are fetched on demand under the NFR-001 token budget."
 
 # WP01 (deliver-loaded-doctrine, FR-005): the stated reason styleguide/toolguide
 # profile sections render pointer-only (``body_fn=None``). This is a DELIBERATE
@@ -180,12 +177,7 @@ def format_inline_named_body(artifact: object) -> list[str]:
             # Only a sub-line when the title is the header AND a distinct,
             # non-empty description exists — never duplicate a description that
             # already stands in as the header (the title-less fall-through).
-            if (
-                isinstance(title, str)
-                and title.strip()
-                and isinstance(description, str)
-                and description.strip()
-            ):
+            if isinstance(title, str) and title.strip() and isinstance(description, str) and description.strip():
                 body.append(f"        {description.strip()}")
     return body
 
@@ -331,10 +323,7 @@ def render_profile_selector_refs(
 
 def _ref_entries(refs: Iterable[object]) -> list[tuple[str, str]]:
     """Map a profile reference list to ``(id, rationale)`` entry tuples."""
-    return [
-        (getattr(ref, "id", ""), getattr(ref, "rationale", "") or "")
-        for ref in refs
-    ]
+    return [(getattr(ref, "id", ""), getattr(ref, "rationale", "") or "") for ref in refs]
 
 
 def render_profile_styleguides(profile: AgentProfile, service: object) -> list[str]:
@@ -451,9 +440,7 @@ def _consolidate_kind_entries(
     return entries, when_by_id
 
 
-def render_profile_suggested_doctrine(
-    profile: AgentProfile, service: object
-) -> list[str]:
+def render_profile_suggested_doctrine(profile: AgentProfile, service: object) -> list[str]:
     """Render the profile channel's ``suggests``-delivered doctrine (WP01, C2–C5).
 
     The profile channel now follows ``suggests`` edges
@@ -496,9 +483,7 @@ def render_profile_suggested_doctrine(
             continue
         lines.extend(
             render_profile_selector_refs(
-                header=_PROFILE_SUGGESTED_HEADER_TPL.format(
-                    title=title, profile_id=profile.profile_id
-                ),
+                header=_PROFILE_SUGGESTED_HEADER_TPL.format(title=title, profile_id=profile.profile_id),
                 entries=entries,
                 repo=getattr(service, repo_attr, None),
                 selector_kind=kind,
@@ -613,10 +598,7 @@ def _render_profile_tactics(
     # toolguide / procedure paths. Byte-identical to the prior inline body.
     return render_profile_selector_refs(
         header=_PROFILE_TACTICS_HEADER_TPL.format(profile_id=profile.profile_id),
-        entries=[
-            (getattr(ref, "id", ""), getattr(ref, "rationale", "") or "")
-            for ref in refs
-        ],
+        entries=[(getattr(ref, "id", ""), getattr(ref, "rationale", "") or "") for ref in refs],
         repo=getattr(service, "tactics", None),
         selector_kind="tactic",
         profile_id=profile.profile_id,
@@ -664,9 +646,5 @@ def _render_profile_sections(
     """
     if profile is None:
         return ""
-    blocks = [
-        "\n".join(lines)
-        for renderer in _PROFILE_SECTION_RENDERERS
-        if (lines := renderer(profile, service))
-    ]
+    blocks = ["\n".join(lines) for renderer in _PROFILE_SECTION_RENDERERS if (lines := renderer(profile, service))]
     return "\n\n".join(blocks)

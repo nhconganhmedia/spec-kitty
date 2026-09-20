@@ -178,10 +178,7 @@ class FrontmatterManager:
 
         duplicates = find_duplicate_keys_in_text(content)
         if duplicates:
-            detail = "; ".join(
-                f"'{key}' (lines {', '.join(str(occ.line_index + 1) for occ in occurrences)})"
-                for key, occurrences in duplicates.items()
-            )
+            detail = "; ".join(f"'{key}' (lines {', '.join(str(occ.line_index + 1) for occ in occurrences)})" for key, occurrences in duplicates.items())
             return f"Duplicate frontmatter key(s) in {file_path}: {detail}"
         return f"Duplicate frontmatter key in {file_path}: {error}"
 
@@ -351,9 +348,7 @@ _RUNTIME_FIELD_NAMES = (
     "base_commit",
     "planning_base_branch",
 )
-WP_RUNTIME_FIELDS: frozenset[str] = frozenset(
-    field for field in FrontmatterManager.WP_FIELD_ORDER if field in _RUNTIME_FIELD_NAMES
-)
+WP_RUNTIME_FIELDS: frozenset[str] = frozenset(field for field in FrontmatterManager.WP_FIELD_ORDER if field in _RUNTIME_FIELD_NAMES)
 
 # Global instance for convenience
 _manager = FrontmatterManager()

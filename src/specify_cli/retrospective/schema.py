@@ -202,13 +202,9 @@ _SLUG_REGEX = r"^[A-Za-z0-9._-]{1,128}$"
 
 def _validate_safe_slug(value: str) -> str:
     if value.startswith("."):
-        raise ValueError(
-            "identifier must not start with '.': leading-dot names are reserved"
-        )
+        raise ValueError("identifier must not start with '.': leading-dot names are reserved")
     if ".." in value:
-        raise ValueError(
-            "identifier must not contain '..': path-traversal sequences are forbidden"
-        )
+        raise ValueError("identifier must not contain '..': path-traversal sequences are forbidden")
     return value
 
 
@@ -412,9 +408,7 @@ class RetrospectiveRecord(BaseModel):
             raise ValueError("status='failed' requires failure to be set")
 
         if status == "pending":
-            raise ValueError(
-                "status='pending' is not persistable; the writer refuses to materialize a pending record"
-            )
+            raise ValueError("status='pending' is not persistable; the writer refuses to materialize a pending record")
 
         return self
 
@@ -600,9 +594,7 @@ class GenRetrospectiveRecord:
     target_branch: str = ""
     created_at: str = ""  # RFC 3339
     created_by: GenActor = field(default_factory=lambda: GenActor(kind="runtime", id="unknown"))
-    provenance: GenProvenance = field(
-        default_factory=lambda: GenProvenance(kind="runtime_post_completion", invoked_at="")
-    )
+    provenance: GenProvenance = field(default_factory=lambda: GenProvenance(kind="runtime_post_completion", invoked_at=""))
     policy_source: dict[str, str] = field(default_factory=dict)
     findings_status: FindingsStatus = "ran_no_findings"
     helped: list[GenFinding] = field(default_factory=list)
@@ -689,17 +681,11 @@ def validate_record(record: "GenRetrospectiveRecord") -> None:
         ]
         raise RecordValidationError(
             violation="ran_no_findings_but_lists_non_empty",
-            detail=(
-                f"findings_status='ran_no_findings' but lists are non-empty: {nonempty}. "
-                "Set findings_status='has_findings' or clear all four lists."
-            ),
+            detail=(f"findings_status='ran_no_findings' but lists are non-empty: {nonempty}. Set findings_status='has_findings' or clear all four lists."),
         )
 
     # Invariant 4: synthesize_fabricate provenance must produce ran_no_findings.
-    if (
-        record.provenance.kind == "synthesize_fabricate"
-        and record.findings_status != "ran_no_findings"
-    ):
+    if record.provenance.kind == "synthesize_fabricate" and record.findings_status != "ran_no_findings":
         raise RecordValidationError(
             violation="synthesize_fabricate_must_have_no_findings",
             detail=(
@@ -718,10 +704,7 @@ def validate_record(record: "GenRetrospectiveRecord") -> None:
             if ref_id not in known_evidence_ids:
                 raise RecordValidationError(
                     violation="unresolved_evidence_ref",
-                    detail=(
-                        f"Finding id={finding.id!r} references evidence_ref id={ref_id!r} "
-                        "which is not present in the top-level evidence_refs list."
-                    ),
+                    detail=(f"Finding id={finding.id!r} references evidence_ref id={ref_id!r} which is not present in the top-level evidence_refs list."),
                 )
 
     for proposal in record.proposals:
@@ -729,8 +712,5 @@ def validate_record(record: "GenRetrospectiveRecord") -> None:
             if ref_id not in known_evidence_ids:
                 raise RecordValidationError(
                     violation="unresolved_evidence_ref",
-                    detail=(
-                        f"Proposal id={proposal.id!r} references evidence_ref id={ref_id!r} "
-                        "which is not present in the top-level evidence_refs list."
-                    ),
+                    detail=(f"Proposal id={proposal.id!r} references evidence_ref id={ref_id!r} which is not present in the top-level evidence_refs list."),
                 )

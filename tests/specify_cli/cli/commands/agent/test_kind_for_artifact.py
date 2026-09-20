@@ -25,9 +25,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.fast]
         ("tasks", MissionArtifactKind.TASKS_INDEX),
     ],
 )
-def test_kind_for_artifact_maps_known_types(
-    artifact_type: str, expected: MissionArtifactKind
-) -> None:
+def test_kind_for_artifact_maps_known_types(artifact_type: str, expected: MissionArtifactKind) -> None:
     """Each known planning ``artifact_type`` maps to its canonical primary kind."""
     assert _kind_for_artifact(artifact_type) == expected
 

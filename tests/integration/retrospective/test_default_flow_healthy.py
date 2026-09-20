@@ -23,7 +23,6 @@ pytestmark = [pytest.mark.integration]
 import ulid as _ulid_mod
 
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -36,13 +35,15 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     feature_dir.mkdir(parents=True)
 
     (feature_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "mission_type": "software-dev",
-            "friendly_name": "Test Mission",
-            "mission_number": None,
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "mission_type": "software-dev",
+                "friendly_name": "Test Mission",
+                "mission_number": None,
+            }
+        ),
         encoding="utf-8",
     )
     (feature_dir / "spec.md").write_text(
@@ -57,28 +58,30 @@ def _scaffold_minimal_mission(tmp_path: Path, mission_slug: str) -> tuple[Path, 
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir()
     (tasks_dir / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\nlane: done\ndependencies: []\n"
-        "requirement_refs: [FR-001]\ntitle: WP01 Test\n---\n# WP01\n",
+        "---\nwork_package_id: WP01\nlane: done\ndependencies: []\nrequirement_refs: [FR-001]\ntitle: WP01 Test\n---\n# WP01\n",
         encoding="utf-8",
     )
 
     # Bootstrap a WP done event in status.events.jsonl so generator can read it.
     events_path = feature_dir / "status.events.jsonl"
     events_path.write_text(
-        json.dumps({
-            "actor": "test",
-            "at": "2026-01-01T00:00:00+00:00",
-            "event_id": str(_ulid_mod.ULID()),
-            "evidence": None,
-            "execution_mode": "worktree",
-            "feature_slug": mission_slug,
-            "force": False,
-            "from_lane": "planned",
-            "reason": None,
-            "review_ref": None,
-            "to_lane": "done",
-            "wp_id": "WP01",
-        }) + "\n",
+        json.dumps(
+            {
+                "actor": "test",
+                "at": "2026-01-01T00:00:00+00:00",
+                "event_id": str(_ulid_mod.ULID()),
+                "evidence": None,
+                "execution_mode": "worktree",
+                "feature_slug": mission_slug,
+                "force": False,
+                "from_lane": "planned",
+                "reason": None,
+                "review_ref": None,
+                "to_lane": "done",
+                "wp_id": "WP01",
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
     return feature_dir, mission_id
@@ -126,9 +129,7 @@ def test_default_flow_healthy_writes_record_and_emits_captured(tmp_path: Path) -
     captured = captured_events[0]
 
     # (d) policy_source is non-empty (T021).
-    assert captured.get("policy_source"), (
-        f"policy_source must be non-empty on RetrospectiveCaptured; got: {captured.get('policy_source')!r}"
-    )
+    assert captured.get("policy_source"), f"policy_source must be non-empty on RetrospectiveCaptured; got: {captured.get('policy_source')!r}"
 
     # (e) provenance_kind matches what we passed.
     assert captured.get("provenance_kind") == "runtime_post_completion"

@@ -51,9 +51,7 @@ def test_config_skill_only_agents_derive_from_leaf() -> None:
 
 def test_valid_agents_is_the_derived_union() -> None:
     """``VALID_AGENTS`` is exactly the dir-keys union the leaf roster."""
-    assert set(AGENT_DIR_TO_KEY.values()) | set(
-        _agent_roster.SUPPORTED_AGENTS
-    ) == agent_config.VALID_AGENTS
+    assert set(AGENT_DIR_TO_KEY.values()) | set(_agent_roster.SUPPORTED_AGENTS) == agent_config.VALID_AGENTS
 
 
 def test_monkeypatch_derivation_propagates_into_config(

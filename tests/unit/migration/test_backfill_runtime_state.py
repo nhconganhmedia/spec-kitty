@@ -151,26 +151,15 @@ def test_seed_floor_precedes_transition_and_annotation_history(tmp_path: Path) -
         ],
     )
     stream_before = read_event_stream(feature_dir)
-    legitimate_keys = [
-        (event.at, event.event_id)
-        for event in (*stream_before.transitions, *stream_before.annotations)
-    ]
+    legitimate_keys = [(event.at, event.event_id) for event in (*stream_before.transitions, *stream_before.annotations)]
 
     result = b.backfill_runtime_state(feature_dir)
 
     assert result.seeded_count > 0
     stream_after = read_event_stream(feature_dir)
-    seeds = [
-        event
-        for event in (*stream_after.transitions, *stream_after.annotations)
-        if event.actor == b.BACKFILL_ACTOR
-    ]
+    seeds = [event for event in (*stream_after.transitions, *stream_after.annotations) if event.actor == b.BACKFILL_ACTOR]
     assert seeds
-    assert all(
-        (seed.at, seed.event_id) < history_key
-        for seed in seeds
-        for history_key in legitimate_keys
-    )
+    assert all((seed.at, seed.event_id) < history_key for seed in seeds for history_key in legitimate_keys)
 
 
 def test_seed_floor_uses_annotation_only_history(tmp_path: Path) -> None:
@@ -192,11 +181,7 @@ def test_seed_floor_uses_annotation_only_history(tmp_path: Path) -> None:
 
     assert result.seeded_count > 0
     stream = read_event_stream(feature_dir)
-    seed_keys = [
-        (event.at, event.event_id)
-        for event in (*stream.transitions, *stream.annotations)
-        if event.actor == b.BACKFILL_ACTOR
-    ]
+    seed_keys = [(event.at, event.event_id) for event in (*stream.transitions, *stream.annotations) if event.actor == b.BACKFILL_ACTOR]
     annotation_key = (
         "2026-01-02T03:04:05+00:00",
         "01BBBBBBBBBBBBBBBBBBBBBBB2",
@@ -261,10 +246,7 @@ def test_persisted_bad_claim_seed_repairs_lane_and_later_claim_slots(
 ) -> None:
     feature_dir = build_mission(tmp_path)
     events_path = feature_dir / "status.events.jsonl"
-    rows = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-    ]
+    rows = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
     rows[0]["policy_metadata"] = {
         "shell_pid": 991,
         "shell_pid_created_at": "later-claim-time",
@@ -311,11 +293,7 @@ def test_persisted_bad_claim_seed_repairs_lane_and_later_claim_slots(
     assert snapshot["shell_pid_created_at"] == "later-claim-time"
     assert snapshot["agent"] == "later-legitimate-agent"
     assert b.verify_backfill(feature_dir).ok
-    repairs = [
-        event
-        for event in read_event_stream(feature_dir).annotations
-        if event.actor == b.COMPATIBILITY_REPAIR_ACTOR
-    ]
+    repairs = [event for event in read_event_stream(feature_dir).annotations if event.actor == b.COMPATIBILITY_REPAIR_ACTOR]
     # Exactly one repair row may be minted: the compatibility repair is
     # append-only and idempotent, so a second row would be a duplicate write.
     assert len(repairs) == 1
@@ -549,9 +527,7 @@ def test_later_legitimate_completion_supersedes_immutable_planned_seed(
         [
             b.annotate(
                 "WP01",
-                WPInnerStateDelta(
-                    subtasks={"T001": Lane.DONE, "T002": Lane.DONE}
-                ),
+                WPInnerStateDelta(subtasks={"T001": Lane.DONE, "T002": Lane.DONE}),
                 actor="user",
                 at="2026-01-02T05:00:00+00:00",
                 event_id="01BBBBBBBBBBBBBBBBBBBBBBB2",
@@ -637,37 +613,24 @@ def test_missing_raw_claim_witness_cannot_be_masked_by_expected_event_builder(
     # therefore caused by the deleted claim seed, not by the monkeypatch.
     assert b.verify_backfill(feature_dir).ok is True
 
-    rows = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-    ]
+    rows = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
     retained = [row for row in rows if row["event_id"] != claim_seed_id]
     assert len(retained) == len(rows) - 1
     # Annotation seeds survive, so the reduced snapshot still carries runtime
     # state and the coarse count-parity guard stays silent — only the
     # independent per-slot witness can catch this.
-    surviving_migration_annotations = [
-        row
-        for row in retained
-        if "delta" in row and row.get("actor") == b.BACKFILL_ACTOR
-    ]
+    surviving_migration_annotations = [row for row in retained if "delta" in row and row.get("actor") == b.BACKFILL_ACTOR]
     assert surviving_migration_annotations
     events_path.write_text(
         "\n".join(json.dumps(row, sort_keys=True) for row in retained) + "\n",
         encoding="utf-8",
     )
-    assert b._has_snapshot_runtime(
-        materialize_snapshot(feature_dir).work_packages["WP01"]
-    )
+    assert b._has_snapshot_runtime(materialize_snapshot(feature_dir).work_packages["WP01"])
 
     result = b.verify_backfill(feature_dir)
 
     assert result.ok is False
-    missing = [
-        mismatch
-        for mismatch in result.mismatches
-        if "raw claim-slot witness missing" in mismatch
-    ]
+    missing = [mismatch for mismatch in result.mismatches if "raw claim-slot witness missing" in mismatch]
     # Every non-null legacy claim slot is reported, not just the first.
     assert len(missing) == len(b._CLAIM_SLOTS)
     for slot in b._CLAIM_SLOTS:
@@ -790,9 +753,7 @@ def test_assert_zero_readers_passes_for_real_src() -> None:
 def test_zero_reader_check_is_non_vacuous(tmp_path: Path) -> None:
     stub = tmp_path / "src_stub"
     (stub / "pkg").mkdir(parents=True)
-    (stub / "pkg" / "reader.py").write_text(
-        "def read(meta):\n    return meta.get('progress')\n", encoding="utf-8"
-    )
+    (stub / "pkg" / "reader.py").write_text("def read(meta):\n    return meta.get('progress')\n", encoding="utf-8")
     assert b.find_field_readers(stub, "progress")
     with pytest.raises(AssertionError):
         b.assert_zero_readers(stub, fields=("progress",))
@@ -884,9 +845,7 @@ def test_seed_claim_never_rewinds_a_finished_wp(tmp_path: Path) -> None:
 
     seeds = [e for e in read_event_stream(feature_dir).transitions if e.actor == b.BACKFILL_ACTOR]
     assert seeds, "expected the claim carrier to still be seeded (no data loss)"
-    assert all(seed.at < terminal_at for seed in seeds), (
-        "the retroactive claim seed must sort strictly before recorded history"
-    )
+    assert all(seed.at < terminal_at for seed in seeds), "the retroactive claim seed must sort strictly before recorded history"
     assert materialize_snapshot(feature_dir).work_packages["WP01"]["lane"] == Lane.DONE
 
 
@@ -918,9 +877,7 @@ def test_seed_claim_ordering_is_stable_across_reruns(tmp_path: Path) -> None:
         ("2026-01-02T00:00:00+00:00", "not-a-timestamp", "2026-01-02T00:00:00+00:00"),
     ],
 )
-def test_retro_claim_at_pins_the_seed_before_history(
-    anchor: str, earliest: str | None, expected: str
-) -> None:
+def test_retro_claim_at_pins_the_seed_before_history(anchor: str, earliest: str | None, expected: str) -> None:
     assert b._retro_claim_at(anchor, earliest) == expected
 
 
@@ -977,31 +934,21 @@ def test_no_claim_carrier_when_authentic_history_already_carries_the_slots(
 
     b.backfill_runtime_state(feature_dir)
 
-    claim_seeds = [
-        e
-        for e in read_event_stream(feature_dir).transitions
-        if e.actor == b.BACKFILL_ACTOR and e.to_lane == Lane.CLAIMED
-    ]
+    claim_seeds = [e for e in read_event_stream(feature_dir).transitions if e.actor == b.BACKFILL_ACTOR and e.to_lane == Lane.CLAIMED]
     assert claim_seeds == [], "a fully-migrated claim must not be re-seeded as a transition"
     assert b.verify_backfill(feature_dir).ok is True
 
 
 def test_claim_carrier_seeds_only_the_slots_still_missing(tmp_path: Path) -> None:
     """Partial coverage still migrates the remainder — no silent data loss."""
-    feature_dir = _mission_with_modern_claim(
-        tmp_path, policy_metadata={"agent": "claude:opus:pedro"}
-    )
+    feature_dir = _mission_with_modern_claim(tmp_path, policy_metadata={"agent": "claude:opus:pedro"})
 
     b.backfill_runtime_state(feature_dir)
 
-    claim_seeds = [
-        e
-        for e in read_event_stream(feature_dir).transitions
-        if e.actor == b.BACKFILL_ACTOR and e.to_lane == Lane.CLAIMED
-    ]
-    assert [e.policy_metadata for e in claim_seeds] == [
-        {"shell_pid": 44821, "shell_pid_created_at": "1784458183.44"}
-    ], "exactly one carrier, seeding only the two slots authentic history lacked"
+    claim_seeds = [e for e in read_event_stream(feature_dir).transitions if e.actor == b.BACKFILL_ACTOR and e.to_lane == Lane.CLAIMED]
+    assert [e.policy_metadata for e in claim_seeds] == [{"shell_pid": 44821, "shell_pid_created_at": "1784458183.44"}], (
+        "exactly one carrier, seeding only the two slots authentic history lacked"
+    )
     snapshot = materialize_snapshot(feature_dir).work_packages["WP01"]
     assert snapshot["shell_pid"] == 44821
     assert snapshot["agent"] == "claude:opus:pedro"
@@ -1017,9 +964,7 @@ def test_unmigrated_claim_slots_drops_only_already_archived_values() -> None:
     runtime = b.LegacyWPRuntime(wp_id="WP01", **legacy)  # type: ignore[arg-type]
 
     assert b._unmigrated_claim_slots(runtime, {}) == legacy
-    assert b._unmigrated_claim_slots(
-        runtime, {"agent": "claude:opus:pedro"}
-    ) == {
+    assert b._unmigrated_claim_slots(runtime, {"agent": "claude:opus:pedro"}) == {
         "shell_pid": 44821,
         "shell_pid_created_at": "1784458183.44",
     }
@@ -1097,25 +1042,14 @@ def test_seed_floor_precedes_history_under_either_at_encoding(
     """T-P4: the history-floor seam must survive a ``Z``-encoded corpus."""
     feature_dir = build_mission(tmp_path, at_encoding=at_encoding)
     stream_before = read_event_stream(feature_dir)
-    legitimate_keys = [
-        (event.at, event.event_id)
-        for event in (*stream_before.transitions, *stream_before.annotations)
-    ]
+    legitimate_keys = [(event.at, event.event_id) for event in (*stream_before.transitions, *stream_before.annotations)]
 
     result = b.backfill_runtime_state(feature_dir)
 
     assert result.action == "wrote"
-    seeds = [
-        event
-        for event in (*read_event_stream(feature_dir).transitions, *read_event_stream(feature_dir).annotations)
-        if event.actor == b.BACKFILL_ACTOR
-    ]
+    seeds = [event for event in (*read_event_stream(feature_dir).transitions, *read_event_stream(feature_dir).annotations) if event.actor == b.BACKFILL_ACTOR]
     assert seeds
-    assert all(
-        (seed.at, seed.event_id) < history_key
-        for seed in seeds
-        for history_key in legitimate_keys
-    )
+    assert all((seed.at, seed.event_id) < history_key for seed in seeds for history_key in legitimate_keys)
     assert b.verify_backfill(feature_dir).ok
 
 
@@ -1133,10 +1067,7 @@ def test_compatibility_repair_lands_after_history_under_either_at_encoding(
     """
     feature_dir = build_mission(tmp_path, at_encoding=at_encoding)
     events_path = feature_dir / "status.events.jsonl"
-    rows = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-    ]
+    rows = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
     rows[0]["policy_metadata"] = {
         "shell_pid": 991,
         "shell_pid_created_at": "later-claim-time",
@@ -1172,22 +1103,10 @@ def test_compatibility_repair_lands_after_history_under_either_at_encoding(
     assert b.backfill_runtime_state(feature_dir).seeded_count > 0
 
     stream = read_event_stream(feature_dir)
-    repairs = [
-        event
-        for event in (*stream.transitions, *stream.annotations)
-        if event.actor == b.COMPATIBILITY_REPAIR_ACTOR
-    ]
+    repairs = [event for event in (*stream.transitions, *stream.annotations) if event.actor == b.COMPATIBILITY_REPAIR_ACTOR]
     assert repairs
-    pre_repair_keys = [
-        (event.at, event.event_id)
-        for event in (*stream.transitions, *stream.annotations)
-        if event.actor != b.COMPATIBILITY_REPAIR_ACTOR
-    ]
-    assert all(
-        (repair.at, repair.event_id) > key
-        for repair in repairs
-        for key in pre_repair_keys
-    )
+    pre_repair_keys = [(event.at, event.event_id) for event in (*stream.transitions, *stream.annotations) if event.actor != b.COMPATIBILITY_REPAIR_ACTOR]
+    assert all((repair.at, repair.event_id) > key for repair in repairs for key in pre_repair_keys)
     assert b.verify_backfill(feature_dir).ok
 
 
@@ -1227,14 +1146,8 @@ def test_claim_carrier_still_archives_a_slot_whose_authentic_value_diverges(
 
     b.backfill_runtime_state(feature_dir)
 
-    claim_seeds = [
-        e
-        for e in read_event_stream(feature_dir).transitions
-        if e.actor == b.BACKFILL_ACTOR and e.to_lane == Lane.CLAIMED
-    ]
-    assert [e.policy_metadata for e in claim_seeds] == [
-        {"agent": "claude:opus:pedro"}
-    ], "the divergent legacy 'agent' must be archived in the raw seed evidence"
+    claim_seeds = [e for e in read_event_stream(feature_dir).transitions if e.actor == b.BACKFILL_ACTOR and e.to_lane == Lane.CLAIMED]
+    assert [e.policy_metadata for e in claim_seeds] == [{"agent": "claude:opus:pedro"}], "the divergent legacy 'agent' must be archived in the raw seed evidence"
     # The later legitimate writer still owns the reduced slot (invariant 5's
     # second clause) — archival must not resurrect the legacy value.
     snapshot = materialize_snapshot(feature_dir).work_packages["WP01"]
@@ -1247,9 +1160,7 @@ def test_snapshot_claim_slots_reports_authentic_values_not_bare_presence(
     tmp_path: Path,
 ) -> None:
     """The probe must expose values, or callers cannot compare against legacy."""
-    feature_dir = _mission_with_modern_claim(
-        tmp_path, policy_metadata={"agent": "codex:DIVERGENT"}
-    )
+    feature_dir = _mission_with_modern_claim(tmp_path, policy_metadata={"agent": "codex:DIVERGENT"})
 
     present = b._snapshot_claim_slots(read_event_stream(feature_dir))
 
@@ -1262,10 +1173,7 @@ def _delete_claim_seed_and_strip_claim_frontmatter(feature_dir: Path) -> None:
 
     seed_id = b._seed_id(b._mission_id(feature_dir), "WP01", "claim")
     events_path = feature_dir / "status.events.jsonl"
-    rows = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-    ]
+    rows = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
     kept = [row for row in rows if row.get("event_id") != seed_id]
     assert len(kept) == len(rows) - 1, "precondition: the claim seed must exist"
     events_path.write_text(
@@ -1298,9 +1206,7 @@ def test_scenario_e_currently_returns_a_documented_silent_green(
     _delete_claim_seed_and_strip_claim_frontmatter(feature_dir)
 
     result = b.verify_backfill(feature_dir)
-    assert (result.ok, result.mismatches) == (True, ()), (
-        "the documented silent-green hole changed shape — re-derive P7"
-    )
+    assert (result.ok, result.mismatches) == (True, ()), "the documented silent-green hole changed shape — re-derive P7"
     # Non-vacuity: deleting ONLY the seed row (leaving the frontmatter intact)
     # is still caught fail-closed, so the hole is specifically the *collusion*
     # of the two deletions, not a blanket blindness to a missing seed.
@@ -1308,10 +1214,6 @@ def test_scenario_e_currently_returns_a_documented_silent_green(
     b.backfill_runtime_state(intact)
     seed_id = b._seed_id(b._mission_id(intact), "WP01", "claim")
     events_path = intact / "status.events.jsonl"
-    kept = [
-        line
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if json.loads(line).get("event_id") != seed_id
-    ]
+    kept = [line for line in events_path.read_text(encoding="utf-8").splitlines() if json.loads(line).get("event_id") != seed_id]
     events_path.write_text("\n".join(kept) + "\n", encoding="utf-8")
     assert b.verify_backfill(intact).ok is False

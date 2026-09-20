@@ -301,9 +301,15 @@ def test_manifest_noop_preserves_original_serialization_and_identity_times(tmp_p
     from specify_cli.skills import manifest as owner
 
     from dataclasses import replace
-    value = ManagedSkillManifest(created_at="historical", updated_at="first", entries=[
-        _make_entry(), replace(_make_entry(), agent_key="another-owner"),
-    ])
+
+    value = ManagedSkillManifest(
+        created_at="historical",
+        updated_at="first",
+        entries=[
+            _make_entry(),
+            replace(_make_entry(), agent_key="another-owner"),
+        ],
+    )
     save_manifest(value, tmp_path)
     target = tmp_path / ".kittify" / MANIFEST_FILENAME
     target.write_text(json.dumps(json.loads(target.read_bytes()), separators=(",", ":")))

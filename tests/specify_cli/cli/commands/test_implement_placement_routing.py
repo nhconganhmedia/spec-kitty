@@ -133,9 +133,7 @@ class TestResolveClaimCommitTargetFailClosed:
 
 
 def _git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
 
 def _init_repo(repo: Path) -> None:
@@ -180,9 +178,7 @@ class TestEnsurePlanningArtifactsRoutesThroughPlacementRef:
     capture could not express the two-commit split.
     """
 
-    def test_partitioned_batch_routes_each_group_to_its_own_ref(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_partitioned_batch_routes_each_group_to_its_own_ref(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """List-capture every ``acquire`` call's ``(destination_ref, paths)`` and
         prove the mixed-kind batch splits: the COORD-residue artifact
         (``issue-matrix.md``) lands on ``placement_ref.ref`` -- a SENTINEL value
@@ -279,15 +275,11 @@ class TestEnsurePlanningArtifactsRoutesThroughPlacementRef:
         # COORD-residue group -> the seam-resolved sentinel ref (verbatim for
         # its partition).
         assert matrix_dest == [sentinel_seam_ref], (
-            f"expected issue-matrix.md (COORD) on the seam ref {sentinel_seam_ref!r}; "
-            f"got {matrix_dest!r} (all calls: {calls!r})"
+            f"expected issue-matrix.md (COORD) on the seam ref {sentinel_seam_ref!r}; got {matrix_dest!r} (all calls: {calls!r})"
         )
         # PRIMARY group -> the target branch, NEVER the coordination/sentinel ref
         # (the #3371 fix: PRIMARY artifacts never land on coord).
-        assert wp_dest == ["main"], (
-            f"expected WP01.md (PRIMARY) on the target branch 'main'; got "
-            f"{wp_dest!r} (all calls: {calls!r})"
-        )
+        assert wp_dest == ["main"], f"expected WP01.md (PRIMARY) on the target branch 'main'; got {wp_dest!r} (all calls: {calls!r})"
         assert sentinel_seam_ref not in wp_dest
 
     def test_no_inline_forbidden_ternary_grammar_in_source(self) -> None:
@@ -317,9 +309,7 @@ class TestPrimarySurfaceStatusPaths:
     mission every collected artifact is canonical on PRIMARY and stays.
     """
 
-    def test_coord_drops_worktrees_nested_tasks_md_and_status_files(
-        self, tmp_path: Path
-    ) -> None:
+    def test_coord_drops_worktrees_nested_tasks_md_and_status_files(self, tmp_path: Path) -> None:
         from specify_cli.cli.commands.implement import _primary_surface_status_paths
 
         wt = tmp_path / ".worktrees" / "slug-coord" / "kitty-specs" / "slug"
@@ -330,16 +320,12 @@ class TestPrimarySurfaceStatusPaths:
         for f in (events, status, tasks_md):
             f.write_text("x", encoding="utf-8")
 
-        kept = _primary_surface_status_paths(
-            [events, status, tasks_md], routes_through_coord=True
-        )
+        kept = _primary_surface_status_paths([events, status, tasks_md], routes_through_coord=True)
 
         # Every coord-owned artifact is under .worktrees/ -> nothing survives.
         assert kept == []
 
-    def test_flat_topology_keeps_all_collected_artifacts(
-        self, tmp_path: Path
-    ) -> None:
+    def test_flat_topology_keeps_all_collected_artifacts(self, tmp_path: Path) -> None:
         from specify_cli.cli.commands.implement import _primary_surface_status_paths
 
         feature_dir = tmp_path / "kitty-specs" / "slug"
@@ -350,9 +336,7 @@ class TestPrimarySurfaceStatusPaths:
         for f in (events, status, tasks_md):
             f.write_text("x", encoding="utf-8")
 
-        kept = _primary_surface_status_paths(
-            [events, status, tasks_md], routes_through_coord=False
-        )
+        kept = _primary_surface_status_paths([events, status, tasks_md], routes_through_coord=False)
 
         assert {p.resolve() for p in kept} == {
             events.resolve(),

@@ -11,6 +11,8 @@ from specify_cli.template.manager import copy_specify_base_from_local
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
+
 def test_get_local_repo_root_prefers_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     templates_dir = tmp_path / "src" / "charter" / "offering" / "templates"
     templates_dir.mkdir(parents=True)

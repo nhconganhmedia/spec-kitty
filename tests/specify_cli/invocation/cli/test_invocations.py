@@ -35,6 +35,8 @@ from specify_cli.cli.commands.invocations_cmd import (
 
 # Marked for mutmut sandbox skip — subprocess CLI invocation.
 pytestmark = [pytest.mark.non_sandbox, pytest.mark.fast]
+
+
 class ArgvCliRunner(CliRunner):
     def invoke(self, app, args=None, **kwargs):  # type: ignore[no-untyped-def]
         argv = ["spec-kitty", *(list(args) if args is not None and not isinstance(args, str) else [])]
@@ -356,6 +358,7 @@ class TestInvocationsListJSON:
         listed_ids = {record["invocation_id"] for record in records}
         assert live_id in listed_ids
         assert deleted_id not in listed_ids
+
 
 # ---------------------------------------------------------------------------
 # Performance gate (NFR-008)

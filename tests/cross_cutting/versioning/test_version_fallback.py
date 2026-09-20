@@ -8,6 +8,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 def test_version_fallback_chain():
     """Test version detection tries importlib.metadata then pyproject.toml."""
     from specify_cli.version_utils import get_version
@@ -51,9 +52,7 @@ def test_pyproject_version_matches_metadata():
         return
 
     # Should match
-    assert pyproject_version == metadata_version, (
-        f"pyproject.toml ({pyproject_version}) should match metadata ({metadata_version})"
-    )
+    assert pyproject_version == metadata_version, f"pyproject.toml ({pyproject_version}) should match metadata ({metadata_version})"
 
 
 def test_upgrade_uses_correct_version():
@@ -80,9 +79,7 @@ def test_get_version_with_mocked_metadata_failure():
         version = get_version()
 
         # Should fall back to pyproject.toml
-        assert version == expected_version, (
-            f"Should fall back to pyproject.toml version ({expected_version}), got {version}"
-        )
+        assert version == expected_version, f"Should fall back to pyproject.toml version ({expected_version}), got {version}"
         assert version != "0.0.0-dev", "Should not use last-resort fallback when pyproject.toml exists"
 
 

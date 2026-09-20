@@ -35,6 +35,7 @@ from specify_cli.doctrine.sources.protocol import FetchResult
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _write_config(repo_root: Path, body: str) -> Path:
     config_dir = repo_root / ".kittify"
     config_dir.mkdir(parents=True, exist_ok=True)
@@ -167,9 +168,7 @@ class TestLoadPackRegistry:
             registry = load_pack_registry(tmp_path)
         assert registry.packs == []
 
-    def test_canonical_config_visible_to_all_org_pack_consumers(
-        self, tmp_path: Path
-    ) -> None:
+    def test_canonical_config_visible_to_all_org_pack_consumers(self, tmp_path: Path) -> None:
         """One canonical config shape must drive registry, DRG, and context paths."""
         from charter.activation.org_pack_discovery import _enumerate_org_pack_paths
         from charter.activation.drg_activation import load_org_drg
@@ -195,9 +194,7 @@ class TestLoadPackRegistry:
         assert [fragment.pack_name for fragment in load_org_drg(tmp_path)] == ["acme"]
         assert [name for name, _path in _enumerate_org_pack_paths(tmp_path)] == ["acme"]
 
-    def test_legacy_top_level_config_visible_to_all_org_pack_consumers(
-        self, tmp_path: Path
-    ) -> None:
+    def test_legacy_top_level_config_visible_to_all_org_pack_consumers(self, tmp_path: Path) -> None:
         """Legacy ``organisation_packs`` is read through the same shared parser."""
         from charter.activation.org_pack_discovery import _enumerate_org_pack_paths
         from charter.activation.drg_activation import load_org_drg
@@ -225,9 +222,7 @@ class TestLoadPackRegistry:
         with pytest.warns(DeprecationWarning, match="organisation_packs"):
             assert [name for name, _path in _enumerate_org_pack_paths(tmp_path)] == ["acme"]
 
-    def test_legacy_organisation_packs_env_var_indirection(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_legacy_organisation_packs_env_var_indirection(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """T004: legacy ``organisation_packs[].path`` inherits env-var
         indirection through the shared ``OrgPackConfig`` constructor — no
         parallel expansion logic."""
@@ -293,14 +288,10 @@ class TestSavePackRegistry:
               other_setting: keep_me
             """,
         )
-        registry = PackRegistry(
-            packs=[OrgPackConfig(name="security", local_path=Path("/opt/sec"))]
-        )
+        registry = PackRegistry(packs=[OrgPackConfig(name="security", local_path=Path("/opt/sec"))])
         save_pack_registry(tmp_path, registry)
 
-        data: dict[str, Any] = yaml.safe_load(
-            (tmp_path / ".kittify" / "config.yaml").read_text()
-        )
+        data: dict[str, Any] = yaml.safe_load((tmp_path / ".kittify" / "config.yaml").read_text())
         assert data["vcs"] == {"provider": "github"}
         assert data["agents"] == {"available": ["claude", "codex"]}
         assert data["doctrine"]["other_setting"] == "keep_me"
@@ -414,13 +405,9 @@ class TestDoctrineFetchCLI:
         def fake_fetch_pack(pack: OrgPackConfig, repo_root: Path) -> FetchResult:
             fetched_names.append(pack.name)
             assert isinstance(3, int)  # artifacts_written must be int (FR-007)
-            return FetchResult(
-                ok=True, artifacts_written=3, pack_version="v1.0.0"
-            )
+            return FetchResult(ok=True, artifacts_written=3, pack_version="v1.0.0")
 
-        monkeypatch.setattr(
-            "specify_cli.doctrine.snapshot.fetch_pack", fake_fetch_pack
-        )
+        monkeypatch.setattr("specify_cli.doctrine.snapshot.fetch_pack", fake_fetch_pack)
 
         runner = CliRunner()
         result = runner.invoke(fetch_app, ["fetch"])
@@ -454,10 +441,7 @@ class TestDoctrineFetchCLI:
         fetched_names: list[str] = []
         monkeypatch.setattr(
             "specify_cli.doctrine.snapshot.fetch_pack",
-            lambda pack, repo_root: (
-                fetched_names.append(pack.name)
-                or FetchResult(ok=True, artifacts_written=1, pack_version=None)
-            ),
+            lambda pack, repo_root: fetched_names.append(pack.name) or FetchResult(ok=True, artifacts_written=1, pack_version=None),
         )
         runner = CliRunner()
         result = runner.invoke(fetch_app, ["fetch", "--pack", "security"])
@@ -504,7 +488,9 @@ class TestDoctrineFetchCLI:
         monkeypatch.setattr(
             "specify_cli.doctrine.snapshot.fetch_pack",
             lambda pack, repo_root: FetchResult(
-                ok=False, artifacts_written=0, pack_version=None,
+                ok=False,
+                artifacts_written=0,
+                pack_version=None,
                 errors=["network unreachable"],
             ),
         )
@@ -519,31 +505,21 @@ class TestDoctrineFetchCLI:
 # pack validate / assemble — live implementation wiring (WP06)
 # ----------------------------------------------------------------------
 class TestDoctrinePackCommands:
-    def test_pack_validate_missing_dir_exits_nonzero(
-        self, fetch_app: typer.Typer, tmp_path: Path
-    ) -> None:
+    def test_pack_validate_missing_dir_exits_nonzero(self, fetch_app: typer.Typer, tmp_path: Path) -> None:
         runner = CliRunner()
-        result = runner.invoke(
-            fetch_app, ["pack", "validate", str(tmp_path / "pack")]
-        )
+        result = runner.invoke(fetch_app, ["pack", "validate", str(tmp_path / "pack")])
         # Missing pack directory is a validation error → exit 1.
         assert result.exit_code == 1
 
-    def test_pack_validate_empty_pack_exits_zero(
-        self, fetch_app: typer.Typer, tmp_path: Path
-    ) -> None:
+    def test_pack_validate_empty_pack_exits_zero(self, fetch_app: typer.Typer, tmp_path: Path) -> None:
         # An empty directory is a structurally valid (no-op) pack.
         empty_pack = tmp_path / "empty-pack"
         empty_pack.mkdir()
         runner = CliRunner()
-        result = runner.invoke(
-            fetch_app, ["pack", "validate", str(empty_pack)]
-        )
+        result = runner.invoke(fetch_app, ["pack", "validate", str(empty_pack)])
         assert result.exit_code == 0, result.stdout
 
-    def test_pack_assemble_missing_inputs_exits_nonzero(
-        self, fetch_app: typer.Typer, tmp_path: Path
-    ) -> None:
+    def test_pack_assemble_missing_inputs_exits_nonzero(self, fetch_app: typer.Typer, tmp_path: Path) -> None:
         runner = CliRunner()
         result = runner.invoke(
             fetch_app,

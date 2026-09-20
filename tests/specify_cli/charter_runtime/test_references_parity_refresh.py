@@ -147,9 +147,7 @@ def _seed_baseline_repo(repo: Path, seen_calls: list[list[str]]) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def test_references_parity_drift_recompiles_the_catalog(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_references_parity_drift_recompiles_the_catalog(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     seen_calls: list[list[str]] = []
     charter_yaml_path = _seed_baseline_repo(tmp_path, seen_calls)
     charter_md_path = tmp_path / ".kittify" / "charter" / "charter.md"
@@ -167,16 +165,12 @@ def test_references_parity_drift_recompiles_the_catalog(
 
     charter_md_before = charter_md_path.read_bytes()
 
-    monkeypatch.setattr(
-        subprocess, "run", _make_generate_subprocess_fake(tmp_path, seen_calls)
-    )
+    monkeypatch.setattr(subprocess, "run", _make_generate_subprocess_fake(tmp_path, seen_calls))
 
     ran = references_refresh.refresh_references_if_needed(tmp_path, cause="synthesized_drg")
 
     assert ran is True
-    assert any(
-        tuple(c[:3]) == _GENERATE_CMD_PREFIX for c in seen_calls
-    ), seen_calls
+    assert any(tuple(c[:3]) == _GENERATE_CMD_PREFIX for c in seen_calls), seen_calls
 
     healed = _load_yaml(charter_yaml_path)
     healed_references = healed["catalog"]["references"]
@@ -192,23 +186,16 @@ def test_references_parity_drift_recompiles_the_catalog(
     # ("content reflects current activation" -- i.e. the SAME activated set
     # is recompiled, not left as the injected empty/truncated drift) without
     # coupling this test to that separate, out-of-scope defect.
-    assert {ref["id"] for ref in healed_references} == {
-        ref["id"] for ref in baseline_references
-    }, (
-        "references-parity refresh must recompile the catalog back to "
-        "current activation, not leave the drifted/truncated content"
+    assert {ref["id"] for ref in healed_references} == {ref["id"] for ref in baseline_references}, (
+        "references-parity refresh must recompile the catalog back to current activation, not leave the drifted/truncated content"
     )
     assert len(healed_references) == len(baseline_references)
 
     charter_md_after = charter_md_path.read_bytes()
-    assert charter_md_after == charter_md_before, (
-        "NFR-006: curated charter.md must be 0 bytes changed by the refresh"
-    )
+    assert charter_md_after == charter_md_before, "NFR-006: curated charter.md must be 0 bytes changed by the refresh"
 
 
-def test_references_parity_drift_recompiles_using_the_existing_mission_and_template_set(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_references_parity_drift_recompiles_using_the_existing_mission_and_template_set(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The targeted refresh must not silently reset a non-default mission
     type / template set to ``generate``'s hardcoded ``software-dev``
     fallback -- it reads the existing ``catalog.mission``/``template_set``
@@ -220,21 +207,14 @@ def test_references_parity_drift_recompiles_using_the_existing_mission_and_templ
     assert baseline["catalog"]["mission"] == "software-dev"
     assert baseline["catalog"]["template_set"]
 
-    monkeypatch.setattr(
-        subprocess, "run", _make_generate_subprocess_fake(tmp_path, seen_calls)
-    )
+    monkeypatch.setattr(subprocess, "run", _make_generate_subprocess_fake(tmp_path, seen_calls))
     references_refresh.refresh_references_if_needed(tmp_path, cause="synthesized_drg")
 
-    generate_call = next(
-        c for c in seen_calls if tuple(c[:3]) == _GENERATE_CMD_PREFIX
-    )
+    generate_call = next(c for c in seen_calls if tuple(c[:3]) == _GENERATE_CMD_PREFIX)
     assert "--mission-type" in generate_call
     assert generate_call[generate_call.index("--mission-type") + 1] == "software-dev"
     assert "--template-set" in generate_call
-    assert (
-        generate_call[generate_call.index("--template-set") + 1]
-        == baseline["catalog"]["template_set"]
-    )
+    assert generate_call[generate_call.index("--template-set") + 1] == baseline["catalog"]["template_set"]
 
 
 # ---------------------------------------------------------------------------
@@ -242,9 +222,7 @@ def test_references_parity_drift_recompiles_using_the_existing_mission_and_templ
 # ---------------------------------------------------------------------------
 
 
-def test_non_references_parity_cause_is_a_true_noop(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_non_references_parity_cause_is_a_true_noop(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     seen_calls: list[list[str]] = []
     charter_yaml_path = _seed_baseline_repo(tmp_path, seen_calls)
 
@@ -254,17 +232,13 @@ def test_non_references_parity_cause_is_a_true_noop(
     drifted["catalog"]["references"] = []
     _dump_yaml(charter_yaml_path, drifted)
 
-    monkeypatch.setattr(
-        subprocess, "run", _make_generate_subprocess_fake(tmp_path, seen_calls)
-    )
+    monkeypatch.setattr(subprocess, "run", _make_generate_subprocess_fake(tmp_path, seen_calls))
 
     ran = references_refresh.refresh_references_if_needed(tmp_path, cause="charter_source,synced_bundle")
 
     assert ran is False
     assert seen_calls == [], "a non-references-parity cause must never invoke generate"
-    assert _load_yaml(charter_yaml_path)["catalog"]["references"] == [], (
-        "no-op must leave the drifted content exactly as-is"
-    )
+    assert _load_yaml(charter_yaml_path)["catalog"]["references"] == [], "no-op must leave the drifted content exactly as-is"
 
 
 # ---------------------------------------------------------------------------

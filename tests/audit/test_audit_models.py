@@ -24,12 +24,11 @@ from specify_cli.audit.models import (
 
 pytestmark = [pytest.mark.integration]
 
+
 class TestSeverity:
     def test_has_exactly_three_members(self) -> None:
         members = list(Severity)
-        assert frozenset(member.name for member in members) == frozenset(
-            {"ERROR", "WARNING", "INFO"}
-        )
+        assert frozenset(member.name for member in members) == frozenset({"ERROR", "WARNING", "INFO"})
 
     def test_member_names(self) -> None:
         assert Severity.ERROR
@@ -199,15 +198,11 @@ class TestMissionAuditResult:
         assert r.has_errors is False
 
     def test_has_errors_false_with_only_warnings(self) -> None:
-        r = _make_result(
-            findings=[MissionFinding(code="LEGACY_KEY", severity=Severity.WARNING, artifact_path="x")]
-        )
+        r = _make_result(findings=[MissionFinding(code="LEGACY_KEY", severity=Severity.WARNING, artifact_path="x")])
         assert r.has_errors is False
 
     def test_has_errors_true(self) -> None:
-        r = _make_result(
-            findings=[MissionFinding(code="CORRUPT_JSONL", severity=Severity.ERROR, artifact_path="x")]
-        )
+        r = _make_result(findings=[MissionFinding(code="CORRUPT_JSONL", severity=Severity.ERROR, artifact_path="x")])
         assert r.has_errors is True
 
     def test_has_warnings_false_when_empty(self) -> None:
@@ -215,27 +210,19 @@ class TestMissionAuditResult:
         assert r.has_warnings is False
 
     def test_has_warnings_false_with_only_errors(self) -> None:
-        r = _make_result(
-            findings=[MissionFinding(code="CORRUPT_JSONL", severity=Severity.ERROR, artifact_path="x")]
-        )
+        r = _make_result(findings=[MissionFinding(code="CORRUPT_JSONL", severity=Severity.ERROR, artifact_path="x")])
         assert r.has_warnings is False
 
     def test_has_warnings_true(self) -> None:
-        r = _make_result(
-            findings=[MissionFinding(code="LEGACY_KEY", severity=Severity.WARNING, artifact_path="x")]
-        )
+        r = _make_result(findings=[MissionFinding(code="LEGACY_KEY", severity=Severity.WARNING, artifact_path="x")])
         assert r.has_warnings is True
 
     def test_has_teamspace_blockers_true_for_legacy_warning(self) -> None:
-        r = _make_result(
-            findings=[MissionFinding(code="LEGACY_KEY", severity=Severity.WARNING, artifact_path="x")]
-        )
+        r = _make_result(findings=[MissionFinding(code="LEGACY_KEY", severity=Severity.WARNING, artifact_path="x")])
         assert r.has_teamspace_blockers is True
 
     def test_has_teamspace_blockers_false_for_non_blocking_warning(self) -> None:
-        r = _make_result(
-            findings=[MissionFinding(code="ACTOR_DRIFT", severity=Severity.WARNING, artifact_path="x")]
-        )
+        r = _make_result(findings=[MissionFinding(code="ACTOR_DRIFT", severity=Severity.WARNING, artifact_path="x")])
         assert r.has_teamspace_blockers is False
 
     def test_finding_codes(self) -> None:
@@ -289,9 +276,7 @@ class TestMissionAuditResult:
         assert mission_dir == slug
         assert str(tmp_path) not in str(mission_dir)
 
-    def test_to_dict_fixture_dir_under_unrelated_kitty_specs_ancestor_uses_slug(
-        self, tmp_path: Path
-    ) -> None:
+    def test_to_dict_fixture_dir_under_unrelated_kitty_specs_ancestor_uses_slug(self, tmp_path: Path) -> None:
         slug = "fixture-mission"
         r = MissionAuditResult(
             mission_slug=slug,

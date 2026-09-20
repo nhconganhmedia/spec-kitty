@@ -44,6 +44,7 @@ def _write_org_mission_type_yaml(
     ]
     (mt_dir / f"{mission_type_id}.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+
 #: software-dev's byte-for-byte pre-cutover template_set (NFR-001), in the
 #: canonical sequence_index order: specify (idx0) projects "spec", plan
 #: (idx1) projects "plan".
@@ -156,9 +157,7 @@ def test_show_documentation_panel_includes_template_set_line() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_show_succeeds_and_reports_real_layer_for_activated_org_type(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_show_succeeds_and_reports_real_layer_for_activated_org_type(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-007: an activated org-layer type succeeds and reports layer "org"
     on BOTH the --json output and the default Panel output.
 
@@ -227,9 +226,7 @@ def _write_org_mission_type_yaml_no_action_sequence(
     (mt_dir / f"{mission_type_id}.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def test_show_exits_cleanly_for_activated_org_type_with_empty_action_sequence(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_show_exits_cleanly_for_activated_org_type_with_empty_action_sequence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """PR-CONTRACT-001: ``mission-type show <id>`` for an activated org type
     whose action sequence is empty must exit 1 with a clean error message --
     never an uncaught ``MissionTypeEmptyActionSequenceError`` traceback.
@@ -256,7 +253,5 @@ def test_show_exits_cleanly_for_activated_org_type_with_empty_action_sequence(
         MissionTypeRepository.cache_clear()
 
     assert result.exit_code == 1, result.output
-    assert result.exception is None or isinstance(
-        result.exception, SystemExit
-    ), f"expected a clean typer.Exit(1), got an uncaught exception: {result.exception!r}"
+    assert result.exception is None or isinstance(result.exception, SystemExit), f"expected a clean typer.Exit(1), got an uncaught exception: {result.exception!r}"
     assert "empty action sequence" in result.output

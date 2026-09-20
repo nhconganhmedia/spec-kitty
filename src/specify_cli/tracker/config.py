@@ -57,9 +57,7 @@ def _warn_legacy_ownership_key_once() -> None:
     ``_warn_legacy_ownership_key_once.cache_clear()``.
     """
     warnings.warn(
-        "tracker: the legacy 'doctrine' ownership key/option was used; "
-        "reading it as 'ownership'. Use the canonical config key or "
-        "`--ownership-mode`.",
+        "tracker: the legacy 'doctrine' ownership key/option was used; reading it as 'ownership'. Use the canonical config key or `--ownership-mode`.",
         LegacyTrackerOwnershipKeyWarning,
         stacklevel=3,
     )
@@ -230,11 +228,19 @@ class TrackerProjectConfig:
             result[_EGRESS_KEY] = self.egress
         return result
 
-    _KNOWN_KEYS: ClassVar[frozenset[str]] = frozenset({
-        "provider", "binding_ref", "project_slug", "display_label",
-        "provider_context", "workspace",
-        _CANONICAL_OWNERSHIP_KEY, _LEGACY_OWNERSHIP_KEY, _EGRESS_KEY,
-    })
+    _KNOWN_KEYS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "provider",
+            "binding_ref",
+            "project_slug",
+            "display_label",
+            "provider_context",
+            "workspace",
+            _CANONICAL_OWNERSHIP_KEY,
+            _LEGACY_OWNERSHIP_KEY,
+            _EGRESS_KEY,
+        }
+    )
 
     @staticmethod
     def _parse_ownership_block(block: object) -> tuple[str, dict[str, str]] | None:
@@ -255,11 +261,7 @@ class TrackerProjectConfig:
         field_owners: dict[str, str] = {}
         raw_field_owners = block.get("field_owners")
         if isinstance(raw_field_owners, dict):
-            field_owners = {
-                str(key): str(value)
-                for key, value in raw_field_owners.items()
-                if str(key).strip() and str(value).strip()
-            }
+            field_owners = {str(key): str(value) for key, value in raw_field_owners.items() if str(key).strip() and str(value).strip()}
         return mode, field_owners
 
     @classmethod
@@ -294,9 +296,7 @@ class TrackerProjectConfig:
 
         provider_context: dict[str, str] | None = None
         if isinstance(provider_context_raw, dict):
-            provider_context = {
-                str(k): str(v) for k, v in provider_context_raw.items()
-            }
+            provider_context = {str(k): str(v) for k, v in provider_context_raw.items()}
 
         # Channel 2 (#3108): the raw value is carried unchanged -- no strip(),
         # no str() coercion, unlike every field above. Coercing it would lose
@@ -314,11 +314,7 @@ class TrackerProjectConfig:
             provider=str(provider).strip() if isinstance(provider, str) and provider.strip() else None,
             binding_ref=str(binding_ref).strip() if isinstance(binding_ref, str) and binding_ref.strip() else None,
             project_slug=str(project_slug).strip() if isinstance(project_slug, str) and project_slug.strip() else None,
-            display_label=(
-                str(display_label).strip()
-                if isinstance(display_label, str) and display_label.strip()
-                else None
-            ),
+            display_label=(str(display_label).strip() if isinstance(display_label, str) and display_label.strip() else None),
             provider_context=provider_context,
             workspace=str(workspace).strip() if isinstance(workspace, str) and workspace.strip() else None,
             ownership_mode=ownership_mode,
@@ -414,9 +410,7 @@ def clear_tracker_config(repo_root: Path) -> None:
         return
 
     tracker_block = payload["tracker"]
-    recorded_egress = TrackerProjectConfig.from_dict(
-        tracker_block if isinstance(tracker_block, dict) else None
-    ).egress
+    recorded_egress = TrackerProjectConfig.from_dict(tracker_block if isinstance(tracker_block, dict) else None).egress
 
     if recorded_egress is EGRESS_ABSENT:
         del payload["tracker"]

@@ -36,59 +36,20 @@ pytestmark = pytest.mark.fast
 # ---------------------------------------------------------------------------
 
 _DUAL_KEY_EMPTY_FIRST = (
-    "---\n"
-    "work_package_id: WP01\n"
-    "title: Something\n"
-    "review_feedback: ''\n"
-    "subtasks:\n"
-    "- T001\n"
-    "review_feedback: review-cycle-1.md\n"
-    "---\n"
-    "Body content.\n"
+    "---\nwork_package_id: WP01\ntitle: Something\nreview_feedback: ''\nsubtasks:\n- T001\nreview_feedback: review-cycle-1.md\n---\nBody content.\n"
 )
 
-_DUAL_KEY_EMPTY_LAST = (
-    "---\n"
-    "work_package_id: WP02\n"
-    "review_feedback: docs/review-cycle-2.md\n"
-    "title: Other\n"
-    "review_feedback: ''\n"
-    "---\n"
-    "Body.\n"
-)
+_DUAL_KEY_EMPTY_LAST = "---\nwork_package_id: WP02\nreview_feedback: docs/review-cycle-2.md\ntitle: Other\nreview_feedback: ''\n---\nBody.\n"
 
-_CLEAN_ARTIFACT = (
-    "---\n"
-    "work_package_id: WP09\n"
-    "title: Clean\n"
-    "review_feedback: review-cycle-9.md\n"
-    "---\n"
-    "Body.\n"
-)
+_CLEAN_ARTIFACT = "---\nwork_package_id: WP09\ntitle: Clean\nreview_feedback: review-cycle-9.md\n---\nBody.\n"
 
 # After dropping the empty duplicate line the body STILL fails to parse (an
 # unclosed flow sequence), so the planner must refuse this artifact.
-_UNREPAIRABLE_STILL_INVALID = (
-    "---\n"
-    "work_package_id: WP03\n"
-    "review_feedback: ''\n"
-    "review_feedback: review-cycle-3.md\n"
-    "broken: [unclosed\n"
-    "---\n"
-    "Body.\n"
-)
+_UNREPAIRABLE_STILL_INVALID = "---\nwork_package_id: WP03\nreview_feedback: ''\nreview_feedback: review-cycle-3.md\nbroken: [unclosed\n---\nBody.\n"
 
 # The duplicate whose losing occurrence opens a nested block cannot be removed
 # line-wise without orphaning the block, so the planner refuses it.
-_UNREPAIRABLE_BLOCK_OCCURRENCE = (
-    "---\n"
-    "work_package_id: WP04\n"
-    "review_feedback:\n"
-    "  nested: value\n"
-    "review_feedback: review-cycle-4.md\n"
-    "---\n"
-    "Body.\n"
-)
+_UNREPAIRABLE_BLOCK_OCCURRENCE = "---\nwork_package_id: WP04\nreview_feedback:\n  nested: value\nreview_feedback: review-cycle-4.md\n---\nBody.\n"
 
 
 def _write_artifact(root: Path, slug: str, text: str) -> Path:
@@ -277,9 +238,7 @@ def test_cli_fix_heals_duplicate_key_artifact(tmp_path: Path, monkeypatch: pytes
     def _fake_repair_repo(*_args: object, **_kwargs: object) -> object:
         from specify_cli.migration.mission_state import RepairReport
 
-        return RepairReport(
-            run_id="x", repo_head=None, target_missions=[], manifest_path="m", missions=[]
-        )
+        return RepairReport(run_id="x", repo_head=None, target_missions=[], manifest_path="m", missions=[])
 
     monkeypatch.setattr(mission_state, "repair_repo", _fake_repair_repo)
 

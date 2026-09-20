@@ -22,25 +22,11 @@ def test_python_hook_detects_active_wp_ownership_in_reused_lane_context(tmp_path
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True)
     (tasks_dir / "WP01-old.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Old\n"
-        "execution_mode: code_change\n"
-        "owned_files:\n"
-        "- src/old.py\n"
-        "---\n\n"
-        "Old body.\n",
+        "---\nwork_package_id: WP01\ntitle: Old\nexecution_mode: code_change\nowned_files:\n- src/old.py\n---\n\nOld body.\n",
         encoding="utf-8",
     )
     (tasks_dir / "WP04-active.md").write_text(
-        "---\n"
-        "work_package_id: WP04\n"
-        "title: Active\n"
-        "execution_mode: code_change\n"
-        "owned_files:\n"
-        "- src/active.py\n"
-        "---\n\n"
-        "Active body.\n",
+        "---\nwork_package_id: WP04\ntitle: Active\nexecution_mode: code_change\nowned_files:\n- src/active.py\n---\n\nActive body.\n",
         encoding="utf-8",
     )
     save_context(
@@ -134,13 +120,7 @@ def test_lane_branch_hook_blocks_kitty_specs(tmp_path: Path) -> None:
     blocked_file = repo / "kitty-specs" / "001-test-feature" / "tasks" / "WP01-test.md"
     blocked_file.parent.mkdir(parents=True)
     blocked_file.write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        'shell_pid: "123"\n'
-        'agent: "tester"\n'
-        "---\n\n"
-        "## Activity Log\n"
-        "- 2026-01-01T00:00:00Z -- tester -- Started implementation\n",
+        '---\nwork_package_id: WP01\nshell_pid: "123"\nagent: "tester"\n---\n\n## Activity Log\n- 2026-01-01T00:00:00Z -- tester -- Started implementation\n',
         encoding="utf-8",
     )
     subprocess.run(["git", "add", str(blocked_file)], cwd=repo, check=True, capture_output=True)
@@ -156,6 +136,7 @@ def test_lane_branch_hook_blocks_kitty_specs(tmp_path: Path) -> None:
     assert result.returncode == 1
     assert "lane branches must not commit kitty-specs/" in result.stdout.lower()
 
+
 def test_lane_branch_hook_allows_non_lane_branches(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -165,13 +146,7 @@ def test_lane_branch_hook_allows_non_lane_branches(tmp_path: Path) -> None:
     allowed_file = repo / "kitty-specs" / "001-test-feature" / "tasks" / "WP01-test.md"
     allowed_file.parent.mkdir(parents=True)
     allowed_file.write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        'shell_pid: "123"\n'
-        'agent: "tester"\n'
-        "---\n\n"
-        "## Activity Log\n"
-        "- 2026-01-01T00:00:00Z -- tester -- Started implementation\n",
+        '---\nwork_package_id: WP01\nshell_pid: "123"\nagent: "tester"\n---\n\n## Activity Log\n- 2026-01-01T00:00:00Z -- tester -- Started implementation\n',
         encoding="utf-8",
     )
     subprocess.run(["git", "add", str(allowed_file)], cwd=repo, check=True, capture_output=True)

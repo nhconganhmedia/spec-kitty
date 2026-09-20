@@ -196,7 +196,4 @@ def wp_authors_bulk_edit_planning_artifact(wp_file: Path, mission_slug: str) -> 
         metadata, _body = read_wp_frontmatter(wp_file)
     except Exception:
         return False
-    return any(
-        is_bulk_edit_planning_owned_file(path, mission_slug)
-        for path in metadata.owned_files
-    )
+    return any(is_bulk_edit_planning_owned_file(path, mission_slug) for path in metadata.owned_files)

@@ -101,12 +101,7 @@ def test_migrated_primary_kinds_stay_silent_when_coord_branch_was_deleted(
     assert mission_type._resolve_mission_slug(tmp_path, MID8) == mission_dir.name
     assert next_cmd._resolve_mission_slug(MID8, tmp_path) == mission_dir.name
     assert verify._existing_feature_dir(tmp_path, MID8) == mission_dir
-    assert (
-        placement_seam(tmp_path, MISSION_DIR_NAME)
-        .read_dir(MissionArtifactKind.WORK_PACKAGE_TASK)
-        .resolve()
-        == mission_dir.resolve()
-    )
+    assert placement_seam(tmp_path, MISSION_DIR_NAME).read_dir(MissionArtifactKind.WORK_PACKAGE_TASK).resolve() == mission_dir.resolve()
 
 
 def test_stay_lenient_retrospect_fallback_tolerates_missing_status_surface(

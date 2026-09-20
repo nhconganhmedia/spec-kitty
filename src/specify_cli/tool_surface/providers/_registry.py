@@ -65,10 +65,7 @@ class SurfaceProviderRegistry:
         """
         orders = {r.order for r in cls._registrations}
         if reg.order in orders:
-            raise ValueError(
-                f"Duplicate SurfaceRegistration order: {reg.order}. "
-                f"Each provider must declare a unique order."
-            )
+            raise ValueError(f"Duplicate SurfaceRegistration order: {reg.order}. Each provider must declare a unique order.")
         cls._registrations.append(reg)
 
     @classmethod

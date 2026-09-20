@@ -133,10 +133,7 @@ Explicit empty charter selections remain empty.
 def test_table_parser_extracts_fields_and_body() -> None:
     header = parse_table_header(TABLE_ADR)
 
-    assert header.title == (
-        "CLI Auth Uses Browser-Mediated OAuth With "
-        "Encrypted File-Only Session Storage"
-    )
+    assert header.title == ("CLI Auth Uses Browser-Mediated OAuth With Encrypted File-Only Session Storage")
     assert header.status == "Accepted"
     assert header.date == "2026-04-19"
     # The table rows, the `---` rule, and surrounding blanks are header, not body.
@@ -163,9 +160,7 @@ def test_bold_inline_parser_extracts_fields_and_body() -> None:
 def test_dash_bullet_parser_extracts_fields_and_body() -> None:
     header = parse_dash_bullet_header(DASH_BULLET_ADR)
 
-    assert header.title == (
-        "ADR 2026-04-15-2: Explicit Empty Charter Selections Remain Empty"
-    )
+    assert header.title == ("ADR 2026-04-15-2: Explicit Empty Charter Selections Remain Empty")
     assert header.status == "Accepted"
     assert header.date == "2026-04-15"
     # Boundary rule: top bullets are header; the body begins at `## Context`.
@@ -244,9 +239,7 @@ def test_mutation_fixture_drives_invariance_red() -> None:
     # catch it. This is the false-green-proof — a re-render comparison would
     # pass on whitespace and miss this.
     converted = convert(BOLD_ADR)
-    mutated = converted.replace(
-        "Letta is skill-only", "Letta is slash-command-only"
-    )
+    mutated = converted.replace("Letta is skill-only", "Letta is slash-command-only")
 
     assert mutated != converted  # the mutation actually landed
     assert not invariant(BOLD_ADR, mutated)
@@ -415,9 +408,7 @@ Delete the module. Decided on `<DATE> (to be filled)` pending Robert.
 def test_bold_outside_parser_extracts_fields_and_body() -> None:
     header = parse_bold_inline_header(BOLD_OUTSIDE_ADR)
 
-    assert header.title == (
-        "ADR 2026-06-03-2: ExecutionContext Owner and CommitTarget Atomicity"
-    )
+    assert header.title == ("ADR 2026-06-03-2: ExecutionContext Owner and CommitTarget Atomicity")
     assert header.status == "Accepted"
     assert header.date == "2026-06-03"
     assert header.body.startswith("## Context")
@@ -452,9 +443,7 @@ def test_bold_outside_body_status_line_is_not_consumed_as_header() -> None:
 def test_dash_bold_parser_extracts_fields_and_body() -> None:
     header = parse_dash_bullet_header(DASH_BOLD_ADR)
 
-    assert header.title == (
-        "ADR-8: Monorepo charter scope via `CharterScope` abstraction"
-    )
+    assert header.title == ("ADR-8: Monorepo charter scope via `CharterScope` abstraction")
     assert header.status == "Accepted"
     assert header.date == "2026-05-18"
     assert header.body.startswith("## Context")
@@ -498,10 +487,7 @@ def test_alias_amended_superseded_is_explicit_superseded() -> None:
     # OPERATOR-ADJUDICATED: "Amended — the original … is superseded by …" → the
     # MADR terminal state is Superseded. The stripped root ("Amended") is NOT an
     # MADR word, so this is an EXPLICIT alias-table entry, never a silent guess.
-    raw = (
-        "Amended — the original *hard-fail* decision is **superseded** by the "
-        "fallback policy below"
-    )
+    raw = "Amended — the original *hard-fail* decision is **superseded** by the fallback policy below"
     adr = BOLD_OUTSIDE_ADR.replace("**Status**: Accepted", f"**Status**: {raw}")
     parsed = _inventory.parse_frontmatter(convert(adr))
 
@@ -535,9 +521,7 @@ def test_status_root_recovers_madr_word() -> None:
 def test_unmappable_qualified_status_still_hard_errors() -> None:
     # Fail-closed preserved: a qualified value whose root is neither MADR nor a
     # reviewed alias still raises — the alias table is not a silent catch-all.
-    adr = BOLD_OUTSIDE_ADR.replace(
-        "**Status**: Accepted", "**Status**: Ratified (board vote 2026-06-01)"
-    )
+    adr = BOLD_OUTSIDE_ADR.replace("**Status**: Accepted", "**Status**: Ratified (board vote 2026-06-01)")
     with pytest.raises(AdrParseError, match="MADR"):
         convert(adr)
 

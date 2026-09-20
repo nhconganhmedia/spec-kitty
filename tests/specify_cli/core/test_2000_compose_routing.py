@@ -42,8 +42,8 @@ _MISSION_ID = "01KV7SFD00000000000000000A"  # 26-char ULID; mid8 = "01KV7SFD"
 
 _FROZEN: dict[str, str] = {
     # (slug, mission_id) -> frozen dir/branch name
-    "083-foo": "foo-01KV7SFD",              # NNN- stripped
-    "foo": "foo-01KV7SFD",                  # bare slug, no prefix
+    "083-foo": "foo-01KV7SFD",  # NNN- stripped
+    "foo": "foo-01KV7SFD",  # bare slug, no prefix
     "foo-01KV6510": "foo-01KV6510-01KV7SFD",  # already-embedded mid8 (different ULID)
     "057-my-feature": "my-feature-01KV7SFD",  # NNN- prefix with hyphen body
 }
@@ -68,10 +68,7 @@ def test_head_inline_compose_produces_frozen_literal(slug: str, expected: str) -
     """
     human_slug = strip_numeric_prefix(slug)
     composed = f"{human_slug}-{mid8(_MISSION_ID)}"
-    assert composed == expected, (
-        f"HEAD inline compose for {slug!r} drifted from frozen literal: "
-        f"got {composed!r}, expected {expected!r}"
-    )
+    assert composed == expected, f"HEAD inline compose for {slug!r} drifted from frozen literal: got {composed!r}, expected {expected!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -85,9 +82,7 @@ def test_head_inline_compose_produces_frozen_literal(slug: str, expected: str) -
 
 
 @pytest.mark.parametrize("slug,expected", list(_FROZEN.items()))
-def test_mission_dir_name_seam_byte_identical_to_frozen_literal(
-    slug: str, expected: str
-) -> None:
+def test_mission_dir_name_seam_byte_identical_to_frozen_literal(slug: str, expected: str) -> None:
     """``mission_dir_name`` + ``resolve_mid8`` seam is byte-identical to the frozen literal.
 
     This is the "after" oracle: the routed seam call produces the same name
@@ -95,10 +90,7 @@ def test_mission_dir_name_seam_byte_identical_to_frozen_literal(
     """
     mid8_val = resolve_mid8("", mission_id=_MISSION_ID)
     seam_result = mission_dir_name(slug, mid8=mid8_val)
-    assert seam_result == expected, (
-        f"mission_dir_name seam for {slug!r} is not byte-identical to frozen literal: "
-        f"got {seam_result!r}, expected {expected!r}"
-    )
+    assert seam_result == expected, f"mission_dir_name seam for {slug!r} is not byte-identical to frozen literal: got {seam_result!r}, expected {expected!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -123,7 +115,4 @@ def test_seam_and_inline_compose_are_equal(slug: str) -> None:
     mid8_val = resolve_mid8("", mission_id=_MISSION_ID)
     seam_result = mission_dir_name(slug, mid8=mid8_val)
 
-    assert seam_result == inline_result, (
-        f"Seam/inline parity failed for {slug!r}: "
-        f"seam={seam_result!r}, inline={inline_result!r}"
-    )
+    assert seam_result == inline_result, f"Seam/inline parity failed for {slug!r}: seam={seam_result!r}, inline={inline_result!r}"

@@ -124,9 +124,7 @@ def _materialise_coord_empty(
 
 
 @pytest.mark.parametrize("slug", [BARE_SLUG, SLUG_WITH_MID8], ids=["bare", "slug-mid8"])
-def test_coord_empty_with_lanes_warns_loudly_and_returns_primary(
-    tmp_path: Path, slug: str, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_coord_empty_with_lanes_warns_loudly_and_returns_primary(tmp_path: Path, slug: str, caplog: pytest.LogCaptureFixture) -> None:
     """3-part conjunction: WARNING level + BOTH recovery tokens + PRIMARY dir.
 
     The TRUE-POSITIVE case (WP08 T031): a coord mission WITH lanes
@@ -142,11 +140,7 @@ def test_coord_empty_with_lanes_warns_loudly_and_returns_primary(
         resolved = resolve_status_surface_with_anchor(tmp_path, slug)
 
     # (a) EXACTLY one record, at EXACTLY logging.WARNING, from the named logger.
-    warning_records = [
-        r
-        for r in caplog.records
-        if r.name == _LOGGER_NAME and r.levelno == logging.WARNING
-    ]
+    warning_records = [r for r in caplog.records if r.name == _LOGGER_NAME and r.levelno == logging.WARNING]
     assert warning_records, (
         "coord-empty WITH lanes must emit a record at EXACTLY logging.WARNING "
         f"from {_LOGGER_NAME!r} — a print or DEBUG line must NOT satisfy this. "
@@ -159,26 +153,20 @@ def test_coord_empty_with_lanes_warns_loudly_and_returns_primary(
     lowered = message.lower()
     # (b) BOTH recovery paths named — discriminating tokens, not "an error".
     assert "flatten" in lowered and "coordination_branch" in message, (
-        "warning must name recovery path (a): flatten the mission by removing "
-        f"the `coordination_branch` key. Got: {message!r}"
+        f"warning must name recovery path (a): flatten the mission by removing the `coordination_branch` key. Got: {message!r}"
     )
     assert "doctor workspaces --fix" in message, (
-        "warning must name recovery path (b): the real repair command "
-        "(spec-kitty doctor workspaces --fix, per FR-007/#1890). "
-        f"Got: {message!r}"
+        f"warning must name recovery path (b): the real repair command (spec-kitty doctor workspaces --fix, per FR-007/#1890). Got: {message!r}"
     )
     # (c) The resolver RETURNS the PRIMARY dir — Option B fallback, not a raise,
     #     not the coord dir.
     assert resolved.read_dir.resolve() == primary_dir.resolve(), (
-        "coord-empty Option B must resolve to the PRIMARY checkout, not the "
-        f"coord dir. Got: {resolved.read_dir}"
+        f"coord-empty Option B must resolve to the PRIMARY checkout, not the coord dir. Got: {resolved.read_dir}"
     )
     assert resolved.primary_anchor.resolve() == primary_dir.resolve()
 
 
-def test_coord_empty_solo_no_lanes_stays_quiet_and_returns_primary(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_coord_empty_solo_no_lanes_stays_quiet_and_returns_primary(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """WP08 T031/T032: the legitimate-solo-empty case does NOT warn.
 
     A solo (no-lanes) coord-topology mission (``MissionTopology.COORD``)
@@ -199,11 +187,7 @@ def test_coord_empty_solo_no_lanes_stays_quiet_and_returns_primary(
     with caplog.at_level(logging.WARNING, logger=_LOGGER_NAME):
         resolved = resolve_status_surface_with_anchor(tmp_path, SOLO_SLUG)
 
-    warning_records = [
-        r
-        for r in caplog.records
-        if r.name == _LOGGER_NAME and r.levelno == logging.WARNING
-    ]
+    warning_records = [r for r in caplog.records if r.name == _LOGGER_NAME and r.levelno == logging.WARNING]
     assert not warning_records, (
         "a solo (no-lanes) coord mission's legitimately empty coord worktree "
         "must NOT emit the split-brain warning — it is an expected, "
@@ -211,7 +195,6 @@ def test_coord_empty_solo_no_lanes_stays_quiet_and_returns_primary(
         f"{[(r.name, r.levelname, r.getMessage()) for r in warning_records]}"
     )
     assert resolved.read_dir.resolve() == primary_dir.resolve(), (
-        "the legitimate-solo-empty case must still resolve to the PRIMARY "
-        f"checkout (Option B routing unchanged). Got: {resolved.read_dir}"
+        f"the legitimate-solo-empty case must still resolve to the PRIMARY checkout (Option B routing unchanged). Got: {resolved.read_dir}"
     )
     assert resolved.primary_anchor.resolve() == primary_dir.resolve()

@@ -33,6 +33,7 @@ identity) and ``result.source_identity == "unknown"`` (not
 asymmetry the mission's B1 finding describes. GREEN once T014 lands the
 parse-before-teardown fix.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -198,8 +199,7 @@ class TestB1ParseBeforeTeardown:
 
         scope_source = resolve_scope_source(repo)
         assert isinstance(scope_source, DeclaredCommandScopeSource), (
-            "fixture must route to the portable, non-pytest source -- the "
-            "one B1 targets -- not the internal GateCoverageScopeSource"
+            "fixture must route to the portable, non-pytest source -- the one B1 targets -- not the internal GateCoverageScopeSource"
         )
 
         result = capture_baseline(
@@ -256,14 +256,14 @@ class TestB1ParseBeforeTeardown:
         head_artifact.write_text(
             (
                 '<?xml version="1.0" encoding="utf-8"?>\n'
-                '<testsuites>\n'
+                "<testsuites>\n"
                 '  <testsuite name="pytest" tests="1" failures="1" errors="0" skipped="0">\n'
                 '    <testcase classname="tests.test_thing" name="test_boom" '
                 'file="tests/test_thing.py" line="3">\n'
                 '      <failure message="AssertionError: boom">AssertionError: boom</failure>\n'
-                '    </testcase>\n'
-                '  </testsuite>\n'
-                '</testsuites>\n'
+                "    </testcase>\n"
+                "  </testsuite>\n"
+                "</testsuites>\n"
             ),
             encoding="utf-8",
         )

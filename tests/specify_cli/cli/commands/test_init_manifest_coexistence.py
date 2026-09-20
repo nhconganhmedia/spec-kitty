@@ -39,10 +39,7 @@ def _new_manifest_path(project: Path) -> Path:
 
 
 def _expected_command_skill_paths() -> set[str]:
-    return {
-        f".agents/skills/spec-kitty.{command}/SKILL.md"
-        for command in command_installer.CANONICAL_COMMANDS
-    }
+    return {f".agents/skills/spec-kitty.{command}/SKILL.md" for command in command_installer.CANONICAL_COMMANDS}
 
 
 def _write_claude_like_legacy_manifest(project: Path) -> None:
@@ -102,9 +99,7 @@ def test_mixed_install_keeps_both_manifests_intact(tmp_path: Path) -> None:
     new_data = json.loads(new_path.read_text(encoding="utf-8"))
     assert new_data["schema_version"] == 1, "New manifest must carry schema_version: 1"
     assert "version" not in new_data, "New manifest must not carry legacy version field"
-    assert {entry["path"] for entry in new_data["entries"]} == expected_paths, (
-        f"Expected vibe command-skill entries, got {new_data['entries']}"
-    )
+    assert {entry["path"] for entry in new_data["entries"]} == expected_paths, f"Expected vibe command-skill entries, got {new_data['entries']}"
     for entry in new_data["entries"]:
         assert entry["agents"] == ["vibe"], entry
 
@@ -156,6 +151,4 @@ def test_skill_only_install_alone_does_not_create_legacy_manifest(tmp_path: Path
 
     command_installer.install(project, "vibe")
     assert _new_manifest_path(project).is_file()
-    assert not _legacy_manifest_path(project).exists(), (
-        "command_installer must not write the legacy manifest path"
-    )
+    assert not _legacy_manifest_path(project).exists(), "command_installer must not write the legacy manifest path"

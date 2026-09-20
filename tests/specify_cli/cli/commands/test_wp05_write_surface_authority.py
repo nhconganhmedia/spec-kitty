@@ -115,9 +115,7 @@ class TestCoordTopologyPlanningCommitRoundTrip:
     are kept and re-targeted onto the **primary** seam.
     """
 
-    def test_spec_planning_commit_lands_and_reads_back_from_primary_surface(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_spec_planning_commit_lands_and_reads_back_from_primary_surface(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         # Allow the planning commit to land on the protected primary ``main`` so the
         # write→read-back round-trip is observable hermetically. WP02's contract is
         # that a SPEC (a planning kind) routes to the primary ``target_branch`` for
@@ -152,8 +150,7 @@ class TestCoordTopologyPlanningCommitRoundTrip:
             f"coordination branch; got {result.placement_ref!r}"
         )
         assert result.placement_ref != _COORD_BRANCH, (
-            "WRITE leg: the removed planning→coord route regressed — the SPEC "
-            f"commit landed on the coordination branch {_COORD_BRANCH!r} (FR-003/C-005)."
+            f"WRITE leg: the removed planning→coord route regressed — the SPEC commit landed on the coordination branch {_COORD_BRANCH!r} (FR-003/C-005)."
         )
 
         # READ-BACK leg (SC-004): resolve the next-command read surface the way
@@ -168,16 +165,14 @@ class TestCoordTopologyPlanningCommitRoundTrip:
             "and read legs diverge (the #2063 desync)."
         )
         assert read_back_spec.read_text(encoding="utf-8") == expected_body, (
-            "READ-BACK leg: spec.md read from the resolved surface does not "
-            "match the committed content — SC-004 round-trip is broken."
+            "READ-BACK leg: spec.md read from the resolved surface does not match the committed content — SC-004 round-trip is broken."
         )
 
         # The read surface must be the PRIMARY feature dir (NOT a coordination
         # worktree), proving the round-trip is on the SAME primary surface as the
         # write — the inverse of the removed planning→coord contract.
         assert ".worktrees" not in str(read_surface), (
-            "READ-BACK leg: a planning artifact's read surface must be the PRIMARY "
-            f"feature dir, never a coordination worktree (FR-002); got {read_surface}"
+            f"READ-BACK leg: a planning artifact's read surface must be the PRIMARY feature dir, never a coordination worktree (FR-002); got {read_surface}"
         )
 
         # BIFURCATION leg (C-001): a coordination-partition artifact on the SAME
@@ -201,13 +196,10 @@ class TestCoordTopologyPlanningCommitRoundTrip:
             "branch the partition has collapsed (status leaked onto primary)."
         )
         assert status_result.placement_ref != repo.target_branch, (
-            "BIFURCATION leg: status routed to the PRIMARY target branch — the "
-            "planning/coordination partition (FR-003 + C-001) has collapsed."
+            "BIFURCATION leg: status routed to the PRIMARY target branch — the planning/coordination partition (FR-003 + C-001) has collapsed."
         )
 
-    def test_negative_planning_commit_is_on_primary_not_coord_worktree(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_negative_planning_commit_is_on_primary_not_coord_worktree(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Anti-fakeable inverse: the planning commit IS on primary and NOT on coord.
 
         Proves the write actually landed on primary HEAD (so the round-trip above
@@ -239,8 +231,7 @@ class TestCoordTopologyPlanningCommitRoundTrip:
             check=False,
         )
         assert "only-on-primary marker" in primary_show.stdout, (
-            f"primary target branch ({repo.target_branch}) does NOT carry the "
-            "planning marker — a SPEC commit must land on primary (FR-003)."
+            f"primary target branch ({repo.target_branch}) does NOT carry the planning marker — a SPEC commit must land on primary (FR-003)."
         )
 
         # NEGATIVE (anti-fakeable): the planning change must NOT have leaked onto
@@ -254,8 +245,7 @@ class TestCoordTopologyPlanningCommitRoundTrip:
             check=False,
         )
         assert "only-on-primary marker" not in coord_show.stdout, (
-            f"the coordination branch ({_COORD_BRANCH}) carries the planning "
-            "marker — the removed planning→coord route regressed (FR-003 / C-005)."
+            f"the coordination branch ({_COORD_BRANCH}) carries the planning marker — the removed planning→coord route regressed (FR-003 / C-005)."
         )
 
 
@@ -281,9 +271,7 @@ class TestSafeCommitTwoResponsibilities:
         )
         assert target.ref == "lane-x"
 
-    def test_generic_path_without_to_branch_uses_head(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_generic_path_without_to_branch_uses_head(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A non-mission file without --to-branch infers HEAD (generic path preserved)."""
         import specify_cli.cli.commands.safe_commit_cmd as mod
 
@@ -298,9 +286,7 @@ class TestSafeCommitTwoResponsibilities:
         )
         assert target.ref == "lane-head", "generic HEAD inference must be preserved (NFR-002)"
 
-    def test_mission_aware_path_resolves_via_seam_not_head(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mission_aware_path_resolves_via_seam_not_head(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A kitty-specs/<slug>/ artifact for a resolvable mission resolves via the seam.
 
         Asserts the seam value is used AND that ``get_current_branch`` is never
@@ -335,13 +321,10 @@ class TestSafeCommitTwoResponsibilities:
         )
         assert target.ref == "kitty/mission-001-demo-AAAA1111"
         assert not head_consulted, (
-            "mission-aware path consulted get_current_branch as the destination "
-            "decision (the #2063 root); it must resolve via the WP03 seam instead."
+            "mission-aware path consulted get_current_branch as the destination decision (the #2063 root); it must resolve via the WP03 seam instead."
         )
 
-    def test_unresolvable_mission_path_falls_back_to_generic_head(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unresolvable_mission_path_falls_back_to_generic_head(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A kitty-specs-looking path whose seam can't resolve degrades to the generic path.
 
         Guards against the discriminator hard-failing a legitimate commit when the
@@ -366,8 +349,7 @@ class TestSafeCommitTwoResponsibilities:
             files=[spec],
         )
         assert target.ref == "fallback-head", (
-            "an unresolvable mission path must fall back to the generic HEAD path, "
-            "not raise — keeping legitimate commits functional."
+            "an unresolvable mission path must fall back to the generic HEAD path, not raise — keeping legitimate commits functional."
         )
 
     def test_mission_slug_discriminator_only_fires_for_kitty_specs_paths(self, tmp_path: Path) -> None:

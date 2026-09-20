@@ -158,7 +158,6 @@ def test_get_renderer_returns_none_for_non_capable_harness() -> None:
     assert get_renderer("windsurf") is None
 
 
-
 # ---------------------------------------------------------------------------
 # CodexProfileRenderer tests
 # ---------------------------------------------------------------------------
@@ -313,9 +312,7 @@ def _with_codex_extras(profile: AgentProfile, **extras: object) -> AgentProfile:
 def test_codex_renderer_emits_model_when_present() -> None:
     import tomllib
 
-    profile = _with_codex_extras(
-        make_test_profile("architect-alphonso"), model="claude-sonnet-4-6"
-    )
+    profile = _with_codex_extras(make_test_profile("architect-alphonso"), model="claude-sonnet-4-6")
     doc = tomllib.loads(CodexProfileRenderer().render(profile))
     assert doc["model"] == "claude-sonnet-4-6"
 
@@ -323,9 +320,7 @@ def test_codex_renderer_emits_model_when_present() -> None:
 def test_codex_renderer_emits_reasoning_effort_when_present() -> None:
     import tomllib
 
-    profile = _with_codex_extras(
-        make_test_profile("architect-alphonso"), model_reasoning_effort="high"
-    )
+    profile = _with_codex_extras(make_test_profile("architect-alphonso"), model_reasoning_effort="high")
     doc = tomllib.loads(CodexProfileRenderer().render(profile))
     assert doc["model_reasoning_effort"] == "high"
 
@@ -333,9 +328,7 @@ def test_codex_renderer_emits_reasoning_effort_when_present() -> None:
 def test_codex_renderer_emits_sandbox_mode_when_present() -> None:
     import tomllib
 
-    profile = _with_codex_extras(
-        make_test_profile("architect-alphonso"), sandbox_mode="workspace-write"
-    )
+    profile = _with_codex_extras(make_test_profile("architect-alphonso"), sandbox_mode="workspace-write")
     doc = tomllib.loads(CodexProfileRenderer().render(profile))
     assert doc["sandbox_mode"] == "workspace-write"
 
@@ -368,9 +361,7 @@ def test_codex_renderer_falsy_sandbox_mode_none_is_not_emitted() -> None:
     """``sandbox_mode`` uses an ``is not None`` guard; ``None`` is skipped."""
     import tomllib
 
-    profile = _with_codex_extras(
-        make_test_profile("architect-alphonso"), sandbox_mode=None
-    )
+    profile = _with_codex_extras(make_test_profile("architect-alphonso"), sandbox_mode=None)
     doc = tomllib.loads(CodexProfileRenderer().render(profile))
     assert "sandbox_mode" not in doc
 
@@ -431,9 +422,7 @@ def test_claude_code_renderer_has_provenance_footer() -> None:
         (CodexProfileRenderer(), "/project/.codex/agents/my-analyst.v2.toml"),
     ],
 )
-def test_output_path_preserves_dotted_profile_id(
-    renderer: ProfileRenderer, expected: str
-) -> None:
+def test_output_path_preserves_dotted_profile_id(renderer: ProfileRenderer, expected: str) -> None:
     profile = make_test_profile("my-analyst.v2")
     tool_key = renderer.format_key.removesuffix("-agent")
     path = renderer.output_path(tool_key, profile, Path("/project"))
@@ -457,9 +446,7 @@ def test_output_path_preserves_dotted_profile_id(
         (AmazonQProfileRenderer(), "q"),
     ],
 )
-def test_all_renderers_render_non_empty_str(
-    renderer: ProfileRenderer, tool_key: str
-) -> None:
+def test_all_renderers_render_non_empty_str(renderer: ProfileRenderer, tool_key: str) -> None:
     profile = make_test_profile("architect-alphonso")
     assert renderer.can_render(tool_key) is True
     path = renderer.output_path(tool_key, profile, Path("/project"))

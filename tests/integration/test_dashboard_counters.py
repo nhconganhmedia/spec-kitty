@@ -28,9 +28,7 @@ class TestDashboardLaneColumnMapping:
 
         all_lanes = {lane for lane in get_all_lanes() if lane not in NON_DISPLAY_LANES}
         mapped = set(_KANBAN_COLUMN_FOR_LANE.keys())
-        assert mapped == all_lanes, (
-            f"Dashboard column mapping is missing lanes: {all_lanes - mapped}"
-        )
+        assert mapped == all_lanes, f"Dashboard column mapping is missing lanes: {all_lanes - mapped}"
 
     def test_approved_has_its_own_column(self) -> None:
         """approved must NOT be lumped into for_review or done."""
@@ -73,10 +71,7 @@ class TestStatusByLaneCounter:
         from specify_cli.status.models import Lane, get_all_lanes
 
         # Sample a WP per lane.
-        sample_wps = [
-            {"id": f"WP{i:02d}", "lane": lane}
-            for i, lane in enumerate(get_all_lanes(), start=1)
-        ]
+        sample_wps = [{"id": f"WP{i:02d}", "lane": lane} for i, lane in enumerate(get_all_lanes(), start=1)]
         lane_counts = Counter(wp["lane"] for wp in sample_wps)
 
         # Each lane is represented exactly once.
@@ -115,6 +110,4 @@ class TestProgressCountersInDecisionJSON:
 
         source = inspect.getsource(_compute_wp_progress)
         for key in expected_keys:
-            assert f'"{key}"' in source, (
-                f"Progress counter key {key!r} missing from _compute_wp_progress"
-            )
+            assert f'"{key}"' in source, f"Progress counter key {key!r} missing from _compute_wp_progress"

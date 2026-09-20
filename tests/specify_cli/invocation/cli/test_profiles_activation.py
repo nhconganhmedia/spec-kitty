@@ -90,9 +90,7 @@ def _write_org_doctrine_profile(repo_root: Path, profile_id: str = _ORG_ID) -> P
 
 
 def _invoke(project: Path, args: list[str]):
-    with patch(
-        "specify_cli.cli.commands.profiles_cmd.find_repo_root", return_value=project
-    ):
+    with patch("specify_cli.cli.commands.profiles_cmd.find_repo_root", return_value=project):
         return runner.invoke(cli_app, args)
 
 
@@ -116,9 +114,7 @@ class TestListActivationFilter:
         # Default schema preserved: no 'state' key on the default rows.
         assert all("state" not in d for d in data)
 
-    def test_unconfigured_output_is_byte_identical_to_unfiltered_descriptors(
-        self, tmp_path: Path
-    ) -> None:
+    def test_unconfigured_output_is_byte_identical_to_unfiltered_descriptors(self, tmp_path: Path) -> None:
         """NFR-001: default JSON for an unconfigured project == unfiltered baseline.
 
         Baseline: descriptors built directly from the registry (the pre-WP04
@@ -173,9 +169,7 @@ class TestListActivationFilter:
         data = _extract_json(result.output)
         assert data == []
 
-    def test_project_doctrine_profile_can_be_listed_when_activated(
-        self, tmp_path: Path
-    ) -> None:
+    def test_project_doctrine_profile_can_be_listed_when_activated(self, tmp_path: Path) -> None:
         """``list`` and ``show`` share the project-doctrine profile surface."""
         _write_project_doctrine_profile(tmp_path)
         _write_config(tmp_path, {"activated_agent_profiles": [_PROJECT_ID]})
@@ -193,9 +187,7 @@ class TestListActivationFilter:
         assert payload["profile_id"] == _PROJECT_ID
         assert payload["source_layer"] == "project"
 
-    def test_org_doctrine_profile_can_be_listed_when_activated(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_doctrine_profile_can_be_listed_when_activated(self, tmp_path: Path) -> None:
         """Configured org-pack profiles are part of list/show activation surface."""
         org_root = _write_org_doctrine_profile(tmp_path)
         _write_config(
@@ -371,9 +363,7 @@ def _profile_with_parent() -> tuple[str, str] | None:
 
 
 class TestLineageWarning:
-    def test_child_resolves_with_warning_when_parent_not_activated(
-        self, tmp_path: Path
-    ) -> None:
+    def test_child_resolves_with_warning_when_parent_not_activated(self, tmp_path: Path) -> None:
         """FR-015: activated child whose abstract parent is not activated → warning."""
         pair = _profile_with_parent()
         if pair is None:
@@ -401,9 +391,7 @@ class TestLineageWarning:
         payload = _extract_json(result.output)
         assert payload["warnings"] == []
 
-    def test_show_non_activated_parent_is_gated_without_all(
-        self, tmp_path: Path
-    ) -> None:
+    def test_show_non_activated_parent_is_gated_without_all(self, tmp_path: Path) -> None:
         """A non-activated parent (abstract base) is itself gated unless --all."""
         pair = _profile_with_parent()
         if pair is None:

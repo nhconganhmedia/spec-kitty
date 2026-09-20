@@ -33,12 +33,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.timing]
 
 def test_runner_cold_import_under_500ms() -> None:
     """The next hot path must not eagerly load the heavyweight charter package."""
-    probe = (
-        "import time; "
-        "start = time.perf_counter(); "
-        "import specify_cli.charter_runtime.preflight.runner; "
-        "print((time.perf_counter() - start) * 1000)"
-    )
+    probe = "import time; start = time.perf_counter(); import specify_cli.charter_runtime.preflight.runner; print((time.perf_counter() - start) * 1000)"
     completed = subprocess.run(
         [sys.executable, "-c", probe],
         check=True,
@@ -46,9 +41,8 @@ def test_runner_cold_import_under_500ms() -> None:
         text=True,
     )
     elapsed_ms = float(completed.stdout.strip())
-    assert elapsed_ms < 500.0, (
-        f"NFR-001 cold-import budget exceeded: {elapsed_ms:.1f} ms >= 500 ms"
-    )
+    assert elapsed_ms < 500.0, f"NFR-001 cold-import budget exceeded: {elapsed_ms:.1f} ms >= 500 ms"
+
 
 @pytest.mark.integration
 def test_warm_path_succeeds(tmp_path: Path) -> None:

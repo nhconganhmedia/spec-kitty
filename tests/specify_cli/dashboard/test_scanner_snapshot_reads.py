@@ -49,11 +49,7 @@ def _seed_scanner_wp(
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir(parents=True)
     prompt_file = tasks_dir / "WP01-x.md"
-    subtask_lines = (
-        ["subtasks:", *(f'  - "{task_id}"' for task_id in subtasks)]
-        if subtasks
-        else ["subtasks: []"]
-    )
+    subtask_lines = ["subtasks:", *(f'  - "{task_id}"' for task_id in subtasks)] if subtasks else ["subtasks: []"]
     frontmatter = [
         "---",
         'work_package_id: "WP01"',
@@ -131,9 +127,7 @@ def test_scanner_subtask_completion_from_snapshot_slot(tmp_path: Path) -> None:
     emit_inner_state_changed(
         feature_dir,
         "WP01",
-        WPInnerStateDelta(
-            subtasks={"T01": Lane.DONE, "T02": Lane.DONE, "T03": Lane.IN_PROGRESS}
-        ),
+        WPInnerStateDelta(subtasks={"T01": Lane.DONE, "T02": Lane.DONE, "T03": Lane.IN_PROGRESS}),
         actor="snap-agent",
         mission_slug=_MISSION_SLUG,
     )

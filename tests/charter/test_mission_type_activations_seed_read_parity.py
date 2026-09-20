@@ -121,15 +121,11 @@ def test_shared_helper_fails_closed_on_authored_empty_list_in_shipped_pack(
         load_default_mission_type_activations(pack_path=empty_pack)
 
 
-def test_charter_generate_path_fails_closed_on_broken_default_pack(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_charter_generate_path_fails_closed_on_broken_default_pack(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``charter.activation.compiler.provision_mission_type_activations`` fails closed too."""
     broken_pack = tmp_path / "broken-default.yaml"
     broken_pack.write_text("activated_kinds: []\n", encoding="utf-8")
-    monkeypatch.setattr(
-        default_pack_module, "_default_pack_yaml_path", lambda root: broken_pack
-    )
+    monkeypatch.setattr(default_pack_module, "_default_pack_yaml_path", lambda root: broken_pack)
 
     project = tmp_path / "project"
     kittify = project / ".kittify"
@@ -143,9 +139,7 @@ def test_charter_generate_path_fails_closed_on_broken_default_pack(
     assert "mission_type_activations" not in _load_config(kittify / "config.yaml")
 
 
-def test_init_upgrade_path_fails_closed_on_broken_default_pack_via_shared_helper(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_init_upgrade_path_fails_closed_on_broken_default_pack_via_shared_helper(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """``specify_cli`` provisioning fails closed through the SAME shared reader.
 
     Regression guard for the divergence this fold closes: before, an

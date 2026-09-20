@@ -56,13 +56,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = REPO_ROOT / "tests"
 CONFTEST_PATH = TESTS_ROOT / "conftest.py"
 CONFTEST_RELPATH = "conftest.py"
-CONTRACT_PATH = (
-    REPO_ROOT
-    / "kitty-specs"
-    / "isolated-home-pin-guard-r1a-01KZNMA3"
-    / "contracts"
-    / "canonical-home-owner.md"
-)
+CONTRACT_PATH = REPO_ROOT / "kitty-specs" / "isolated-home-pin-guard-r1a-01KZNMA3" / "contracts" / "canonical-home-owner.md"
 
 #: FR-005's placement floor. The owner is added **strictly after** this line; line 298 is the
 #: ``return home_base`` of ``_isolated_worker_home``.
@@ -229,8 +223,7 @@ def read_owner_contract(path: Path) -> OwnerContract:
     missing = {"name", "autouse", "scope"} - set(found)
     if missing:
         raise AssertionError(
-            f"{path} does not declare {sorted(missing)} in the parseable table form this "
-            "binding depends on — the contract has drifted out of machine reach"
+            f"{path} does not declare {sorted(missing)} in the parseable table form this binding depends on — the contract has drifted out of machine reach"
         )
     return OwnerContract(name=found["name"], autouse=found["autouse"], scope=found["scope"])
 
@@ -253,37 +246,19 @@ def definition_names(tree: ast.Module) -> tuple[str, ...]:
     The whole module, not only the names preceding the anchor: the narrower form cannot see a
     reorder *below* the anchor, and conftest fixture resolution depends on the ordering throughout.
     """
-    return tuple(
-        node.name
-        for _, _, node in sorted(
-            (node.lineno, node.col_offset, node)
-            for node in ast.walk(tree)
-            if isinstance(node, _DEFINITION_NODES)
-        )
-    )
+    return tuple(node.name for _, _, node in sorted((node.lineno, node.col_offset, node) for node in ast.walk(tree) if isinstance(node, _DEFINITION_NODES)))
 
 
 def owner_node(tree: ast.Module, name: str) -> FunctionNode:
     """The single ``def`` named ``name``. Raises if it is absent or declared more than once."""
-    matches = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name
-    ]
+    matches = [node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name]
     if [node.name for node in matches] != [name]:
-        raise AssertionError(
-            f"expected exactly one definition named {name!r} in {CONFTEST_RELPATH}, found "
-            f"{[node.lineno for node in matches]}"
-        )
+        raise AssertionError(f"expected exactly one definition named {name!r} in {CONFTEST_RELPATH}, found {[node.lineno for node in matches]}")
     return matches[0]
 
 
 def _fixture_decorators(node: FunctionNode) -> list[ast.expr]:
-    return [
-        decorator
-        for decorator in node.decorator_list
-        if _decorator_name(decorator) == "fixture"
-    ]
+    return [decorator for decorator in node.decorator_list if _decorator_name(decorator) == "fixture"]
 
 
 def _decorator_name(node: ast.expr) -> str | None:
@@ -304,11 +279,7 @@ def _decorator_keywords(node: FunctionNode) -> dict[str, ast.expr]:
 
 
 def _called_attributes(node: ast.AST) -> set[str]:
-    return {
-        child.func.attr
-        for child in ast.walk(node)
-        if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute)
-    }
+    return {child.func.attr for child in ast.walk(node) if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute)}
 
 
 @pytest.fixture(scope="module")
@@ -332,8 +303,7 @@ def test_the_conftest_fixture_carries_the_name_the_contract_declares(
 ) -> None:
     """T012(5): the document is PARSED, so it cannot drift from the code on a rename."""
     assert OWNER_NAME in definition_names(conftest_tree), (
-        f"{CONTRACT_PATH.name} declares the owner as {OWNER_NAME!r}, and no definition of that "
-        f"name exists in {CONFTEST_RELPATH}"
+        f"{CONTRACT_PATH.name} declares the owner as {OWNER_NAME!r}, and no definition of that name exists in {CONFTEST_RELPATH}"
     )
 
 
@@ -404,17 +374,12 @@ def test_owner_is_non_autouse_function_scoped_and_returns_none(
     assert _fixture_decorators(node), f"{OWNER_NAME} is not decorated as a pytest fixture"
     keywords = _decorator_keywords(node)
     assert "scope" not in keywords
-    assert keywords.get("autouse") is None or (
-        isinstance(keywords["autouse"], ast.Constant) and keywords["autouse"].value is False
-    )
+    assert keywords.get("autouse") is None or (isinstance(keywords["autouse"], ast.Constant) and keywords["autouse"].value is False)
     returns = [child for child in ast.walk(node) if isinstance(child, ast.Return)]
-    yields = [
-        child for child in ast.walk(node) if isinstance(child, (ast.Yield, ast.YieldFrom))
-    ]
+    yields = [child for child in ast.walk(node) if isinstance(child, (ast.Yield, ast.YieldFrom))]
     assert [child for child in returns if child.value is not None] == []
     assert yields == [], (
-        "the owner yields nothing: FR-005 pins the fixture value to None so a probe cannot "
-        "compare the environment against the fixture's own report"
+        "the owner yields nothing: FR-005 pins the fixture value to None so a probe cannot compare the environment against the fixture's own report"
     )
 
 
@@ -424,15 +389,8 @@ def test_owner_establishes_by_setenv_only_and_creates_the_directory(
     """FR-006's STATIC half — and it is only half; SC-012 carries the behavioural one."""
     node = owner_node(conftest_tree, OWNER_NAME)
     end = node.end_lineno or node.lineno
-    forms = {
-        site.form
-        for site in scan.find_write_sites(conftest_tree, key=scan.NEEDLE)
-        if node.lineno <= site.lineno <= end
-    }
-    assert forms == {"setenv"}, (
-        f"the owner must establish the home through `monkeypatch.setenv` and nothing else; "
-        f"found write forms {sorted(forms)}"
-    )
+    forms = {site.form for site in scan.find_write_sites(conftest_tree, key=scan.NEEDLE) if node.lineno <= site.lineno <= end}
+    assert forms == {"setenv"}, f"the owner must establish the home through `monkeypatch.setenv` and nothing else; found write forms {sorted(forms)}"
     called = _called_attributes(node)
     assert "setattr" not in called, (
         "no `monkeypatch.setattr(Path, 'home', ...)` and no process-global patch — C-005 binds "
@@ -495,14 +453,8 @@ def test_the_owner_is_a_member_of_the_behaviour_class_the_guard_walks() -> None:
     tree = scan.parse_module(CONFTEST_PATH)
     node = owner_node(tree, OWNER_NAME)
     end = node.end_lineno or node.lineno
-    inside = {
-        member
-        for member in scan.discover(TESTS_ROOT)
-        if member.relpath == CONFTEST_RELPATH and node.lineno <= member.lineno <= end
-    }
-    assert {(member.kind, member.resolved_value) for member in inside} == {
-        ("fixture", scan.TMP_PATH_HOME)
-    }
+    inside = {member for member in scan.discover(TESTS_ROOT) if member.relpath == CONFTEST_RELPATH and node.lineno <= member.lineno <= end}
+    assert {(member.kind, member.resolved_value) for member in inside} == {("fixture", scan.TMP_PATH_HOME)}
 
 
 # ---------------------------------------------------------------------------
@@ -525,10 +477,7 @@ def test_owner_pins_the_env_and_creates_the_directory_before_the_body_runs(
     ``is_dir()`` is asserted **at body entry**, so a fixture that sets the variable without
     creating the directory reds here.
     """
-    assert canonical_home is None, (
-        "the owner must yield None (FR-005); a fixture returning its own path re-opens the "
-        "circular comparison SC-012 exists to exclude"
-    )
+    assert canonical_home is None, "the owner must yield None (FR-005); a fixture returning its own path re-opens the circular comparison SC-012 exists to exclude"
     expected = str(tmp_path / "home")
     assert os.environ[scan.NEEDLE] == expected
     assert Path(os.environ[scan.NEEDLE]).is_dir()

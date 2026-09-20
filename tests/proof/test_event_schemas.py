@@ -48,17 +48,20 @@ def _base_payload(**overrides: object) -> dict[str, object]:
 
 
 def test_every_proof_event_type_has_a_payload_model() -> None:
-    assert frozenset(
-        {
-            "ProofItemRecorded",
-            "ReviewProofRecorded",
-            "TestEvidenceCaptured",
-            "BenchmarkEvidenceAttached",
-            "SecurityScanCompleted",
-            "PullRequestLineageRecorded",
-            "HumanApprovalRecorded",
-        }
-    ) == PROOF_EVENT_TYPES
+    assert (
+        frozenset(
+            {
+                "ProofItemRecorded",
+                "ReviewProofRecorded",
+                "TestEvidenceCaptured",
+                "BenchmarkEvidenceAttached",
+                "SecurityScanCompleted",
+                "PullRequestLineageRecorded",
+                "HumanApprovalRecorded",
+            }
+        )
+        == PROOF_EVENT_TYPES
+    )
     assert set(PROOF_EVENT_REQUIRED_FIELDS) == set(PROOF_EVENT_TYPES)
 
 

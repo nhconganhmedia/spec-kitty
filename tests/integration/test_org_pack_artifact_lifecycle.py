@@ -122,17 +122,9 @@ def _build_org_pack(
     pack_dir = org_root / pack_name
     (pack_dir / "styleguides").mkdir(parents=True, exist_ok=True)
     for sg_id, body in (styleguides or {}).items():
-        (pack_dir / "styleguides" / f"{sg_id}.styleguide.yaml").write_text(
-            body, encoding="utf-8"
-        )
+        (pack_dir / "styleguides" / f"{sg_id}.styleguide.yaml").write_text(body, encoding="utf-8")
     if required_styleguides is not None:
-        org_charter_body = (
-            "schema_version: \"1\"\n"
-            f"org_name: {pack_name}\n"
-            "required_styleguides:\n"
-            + "\n".join(f"  - {sid}" for sid in required_styleguides)
-            + "\n"
-        )
+        org_charter_body = f'schema_version: "1"\norg_name: {pack_name}\nrequired_styleguides:\n' + "\n".join(f"  - {sid}" for sid in required_styleguides) + "\n"
         (pack_dir / "org-charter.yaml").write_text(org_charter_body, encoding="utf-8")
     return pack_dir
 
@@ -225,10 +217,7 @@ def test_case_2_org_pack_styleguide_appears_in_consumer_prompt(tmp_path: Path) -
 
     has_styleguide_id = "caveman-comments" in result.text
     has_org_provenance = (
-        '"source":"org"' in result.text.replace(" ", "")
-        or "source: org" in result.text
-        or "(org)" in result.text
-        or "very-serious-developers" in result.text
+        '"source":"org"' in result.text.replace(" ", "") or "source: org" in result.text or "(org)" in result.text or "very-serious-developers" in result.text
     )
 
     assert has_styleguide_id, (
@@ -341,9 +330,7 @@ def test_case_2_org_styleguide_collision_with_builtin_warns(tmp_path: Path) -> N
         pack_name="very-serious-developers",
         styleguides={"python-conventions": _BUILTIN_OVERRIDE_STYLEGUIDE_YAML},
     )
-    _write_consumer_pack_config(
-        consumer, pack_name="very-serious-developers", local_path=pack_path
-    )
+    _write_consumer_pack_config(consumer, pack_name="very-serious-developers", local_path=pack_path)
 
     with pytest.warns(DoctrineLayerCollisionWarning) as warning_records:
         # No explicit built-in root: the styleguide repository self-resolves
@@ -359,16 +346,11 @@ def test_case_2_org_styleguide_collision_with_builtin_warns(tmp_path: Path) -> N
         _ = list(service.styleguides.all())
 
     messages = [str(record.message) for record in warning_records]
-    matching = [
-        m for m in messages
-        if "python-conventions" in m and ("styleguide" in m.lower())
-    ]
+    matching = [m for m in messages if "python-conventions" in m and ("styleguide" in m.lower())]
     assert matching, (
         "An org-layer styleguide that collides with a built-in id MUST emit "
         "DoctrineLayerCollisionWarning naming both the id (`python-conventions`) "
-        "and the artifact kind (`styleguide`). Observed warnings:\n"
-        + "\n".join(f"  - {m}" for m in messages)
-        + "\n\n"
+        "and the artifact kind (`styleguide`). Observed warnings:\n" + "\n".join(f"  - {m}" for m in messages) + "\n\n"
         "If no warning fires at all, the styleguide repository never reaches "
         "the collision pipeline. If a warning fires but mentions only the id "
         "(no kind), the message format is incomplete and operators cannot tell "

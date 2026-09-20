@@ -61,9 +61,7 @@ def _patch_common(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, seen_feature_
     return fake_bridge
 
 
-def test_handle_answer_without_effective_root_uses_placement_seam(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_handle_answer_without_effective_root_uses_placement_seam(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Historical behavior: no ``effective_root`` -> the primary-folding seam."""
     primary_marker = tmp_path / "primary-marker"
     seen_feature_dirs: list[Path] = []
@@ -96,14 +94,10 @@ def test_handle_answer_without_effective_root_uses_placement_seam(
     assert result == "input:review"
     assert seam_calls == [(tmp_path, "some-mission")]
     assert seen_feature_dirs == [primary_marker]
-    assert fake_bridge.answer_calls == [
-        ("some-mission", "input:review", "yes", "claude", tmp_path)
-    ]
+    assert fake_bridge.answer_calls == [("some-mission", "input:review", "yes", "claude", tmp_path)]
 
 
-def test_handle_answer_with_effective_root_uses_mission_context_for(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_handle_answer_with_effective_root_uses_mission_context_for(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Owned-checkout path: ``effective_root`` supplied -> resolves against it,
     never against ``placement_seam``'s primary-folding read."""
     owned_root = tmp_path / "owned-checkout"
@@ -142,14 +136,10 @@ def test_handle_answer_with_effective_root_uses_mission_context_for(
     assert result == "input:review"
     assert context_calls == [(owned_root, "owned-mission", owned_root)]
     assert seen_feature_dirs == [owned_marker]
-    assert fake_bridge.answer_calls == [
-        ("owned-mission", "input:review", "yes", "claude", owned_root)
-    ]
+    assert fake_bridge.answer_calls == [("owned-mission", "input:review", "yes", "claude", owned_root)]
 
 
-def test_maybe_handle_answer_threads_effective_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_maybe_handle_answer_threads_effective_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The call-site wrapper (``_maybe_handle_answer``) forwards ``effective_root``
     to ``_handle_answer`` unchanged -- this is what closes the owned ``--answer``
     gap at the ``next_step`` call site."""

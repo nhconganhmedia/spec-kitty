@@ -182,14 +182,10 @@ def _write_meta(feature_dir: Path, *, coordination_branch: str) -> None:
         "friendly_name": "Annoying bugs sweep",
         "coordination_branch": coordination_branch,
     }
-    (feature_dir / "meta.json").write_text(
-        json.dumps(payload, indent=2), encoding="utf-8"
-    )
+    (feature_dir / "meta.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def _make_manifest(
-    coordination_branch: str, *, planning_commit_sha: str | None = None
-) -> LanesManifest:
+def _make_manifest(coordination_branch: str, *, planning_commit_sha: str | None = None) -> LanesManifest:
     """Build the lanes.json fixture this test hand-constructs.
 
     ``planning_commit_sha`` defaults to ``None`` (pre-WP01 shape) so any other
@@ -269,9 +265,7 @@ def test_lane_worktree_does_not_descend_from_planning_artifacts(
     feature_dir = repo / "kitty-specs" / MISSION_SLUG
     (feature_dir).mkdir(parents=True, exist_ok=True)
     (feature_dir / "spec.md").write_text(
-        "# Annoying bugs sweep\n\n"
-        "## NFR-002 Retracted Constraint\n\n"
-        "This constraint block must be removed after correction.\n",
+        "# Annoying bugs sweep\n\n## NFR-002 Retracted Constraint\n\nThis constraint block must be removed after correction.\n",
         encoding="utf-8",
     )
     (feature_dir / "tasks.md").write_text(
@@ -374,8 +368,7 @@ def test_lane_worktree_does_not_descend_from_planning_artifacts(
     # tasks.md at all, so the merge fabricates a stale/absent result instead
     # of the amended text.
     (feature_dir / "tasks.md").write_text(
-        "## WP03 Ledger grammar and census (amended)\n\n"
-        "- [ ] T001 Draft grammar\n- [ ] T002 Census sweep\n",
+        "## WP03 Ledger grammar and census (amended)\n\n- [ ] T001 Draft grammar\n- [ ] T002 Census sweep\n",
         encoding="utf-8",
     )
     _git(repo, "add", "kitty-specs")
@@ -404,15 +397,9 @@ def test_lane_worktree_does_not_descend_from_planning_artifacts(
         capture_output=True,
         text=True,
     )
-    assert show.returncode == 0, (
-        f"tasks.md missing from the union-merge tree entirely: {show.stderr!r}"
-    )
-    assert show.stdout == (
-        "## WP03 Ledger grammar and census (amended)\n\n"
-        "- [ ] T001 Draft grammar\n- [ ] T002 Census sweep\n"
-    ), (
-        "the union-merge should carry forward the amended tasks.md; instead it "
-        f"kept the lane's stale copy:\n{show.stdout!r}"
+    assert show.returncode == 0, f"tasks.md missing from the union-merge tree entirely: {show.stderr!r}"
+    assert show.stdout == ("## WP03 Ledger grammar and census (amended)\n\n- [ ] T001 Draft grammar\n- [ ] T002 Census sweep\n"), (
+        f"the union-merge should carry forward the amended tasks.md; instead it kept the lane's stale copy:\n{show.stdout!r}"
     )
 
     # Assert C -- deletion-only half. #2993's acceptance criteria singles this
@@ -451,10 +438,7 @@ def test_lane_worktree_does_not_descend_from_planning_artifacts(
         capture_output=True,
         text=True,
     )
-    assert deletion_show.returncode == 0, (
-        f"spec.md missing from the union-merge tree entirely: {deletion_show.stderr!r}"
-    )
+    assert deletion_show.returncode == 0, f"spec.md missing from the union-merge tree entirely: {deletion_show.stderr!r}"
     assert "NFR-002 Retracted Constraint" not in deletion_show.stdout, (
-        "the union-merge silently resurrected a block that was deleted on the "
-        f"planning branch after the lane existed:\n{deletion_show.stdout!r}"
+        f"the union-merge silently resurrected a block that was deleted on the planning branch after the lane existed:\n{deletion_show.stdout!r}"
     )

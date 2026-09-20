@@ -56,11 +56,7 @@ def _strip_pii_recursive(obj: Any, seen: _SEEN_TYPE) -> Any:
             # Circular reference — return an empty dict rather than looping.
             return {}
         seen = seen | {obj_id}  # immutable update so sibling branches are unaffected
-        return {
-            k: _strip_pii_recursive(v, seen)
-            for k, v in obj.items()
-            if k not in _PII_FIELDS
-        }
+        return {k: _strip_pii_recursive(v, seen) for k, v in obj.items() if k not in _PII_FIELDS}
     if isinstance(obj, list):
         return [_strip_pii_recursive(item, seen) for item in obj]
     if isinstance(obj, tuple):

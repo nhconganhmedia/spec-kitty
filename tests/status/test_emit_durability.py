@@ -126,22 +126,43 @@ def _advance_to_in_review(feature_dir: Path, wp_id: str, mission_slug: str) -> N
     reviewer records a verdict -- the seam this file's tests exercise.
     """
     _seed_planned(feature_dir, wp_id, slug=mission_slug)
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=mission_slug, wp_id=wp_id,
-        to_lane="claimed", actor="implementer",
-    ))
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=mission_slug, wp_id=wp_id,
-        to_lane="in_progress", actor="implementer",
-    ))
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=mission_slug, wp_id=wp_id,
-        to_lane="for_review", actor="implementer", subtasks_complete=True,
-    ))
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=mission_slug, wp_id=wp_id,
-        to_lane="in_review", actor="reviewer",
-    ))
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=mission_slug,
+            wp_id=wp_id,
+            to_lane="claimed",
+            actor="implementer",
+        )
+    )
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=mission_slug,
+            wp_id=wp_id,
+            to_lane="in_progress",
+            actor="implementer",
+        )
+    )
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=mission_slug,
+            wp_id=wp_id,
+            to_lane="for_review",
+            actor="implementer",
+            subtasks_complete=True,
+        )
+    )
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=mission_slug,
+            wp_id=wp_id,
+            to_lane="in_review",
+            actor="reviewer",
+        )
+    )
 
 
 def _record_verdict(
@@ -154,10 +175,16 @@ def _record_verdict(
 ) -> ReviewResult:
     """Record an ``approved`` verdict for *wp_id* through the emit seam."""
     review_result = ReviewResult(reviewer=reviewer, verdict="approved", reference=reference)
-    emit_status_transition(TransitionRequest(
-        feature_dir=feature_dir, mission_slug=mission_slug, wp_id=wp_id,
-        to_lane="approved", actor=reviewer, review_result=review_result,
-    ))
+    emit_status_transition(
+        TransitionRequest(
+            feature_dir=feature_dir,
+            mission_slug=mission_slug,
+            wp_id=wp_id,
+            to_lane="approved",
+            actor=reviewer,
+            review_result=review_result,
+        )
+    )
     return review_result
 
 
@@ -176,9 +203,7 @@ class TestT013EventAppendIsAuthoritative:
         assert lookup.slot_present is True
         assert lookup.result == review_result
 
-    def test_durability_depends_on_the_append_not_on_a_tautology(
-        self, feature_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_durability_depends_on_the_append_not_on_a_tautology(self, feature_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Non-vacuity guard (mirrors WP05's own commit-removal mutation
         pattern, ``test_matrix_is_sensitive_to_commit_removal``): if the
         authoritative append is neutered, the verdict must NOT be
@@ -189,17 +214,13 @@ class TestT013EventAppendIsAuthoritative:
         def _neutered_append(*_args: Any, **_kwargs: Any) -> None:
             return None  # swallow the durability write entirely
 
-        monkeypatch.setattr(
-            emit_module._store, "append_event_stream_atomic_verified", _neutered_append
-        )
+        monkeypatch.setattr(emit_module._store, "append_event_stream_atomic_verified", _neutered_append)
 
         _record_verdict(feature_dir, "WP01", _MISSION_SLUG, reference="PR#102")
 
         lookup = event_sourced_review_result(feature_dir, "WP01")
         assert lookup.slot_present is False, (
-            "the verdict should be unobservable once the authoritative append "
-            "is neutered -- if it still appears, the positive assertion above "
-            "was vacuous"
+            "the verdict should be unobservable once the authoritative append is neutered -- if it still appears, the positive assertion above was vacuous"
         )
 
 
@@ -225,14 +246,16 @@ def _mp_record_verdict(
     """
     try:
         review_result = ReviewResult(reviewer=reviewer, verdict="approved", reference=reference)
-        event = emit_status_transition(TransitionRequest(
-            feature_dir=Path(feature_dir),
-            mission_slug=mission_slug,
-            wp_id=wp_id,
-            to_lane="approved",
-            actor=reviewer,
-            review_result=review_result,
-        ))
+        event = emit_status_transition(
+            TransitionRequest(
+                feature_dir=Path(feature_dir),
+                mission_slug=mission_slug,
+                wp_id=wp_id,
+                to_lane="approved",
+                actor=reviewer,
+                review_result=review_result,
+            )
+        )
         result_queue.put(("ok", event.event_id))
     except Exception as exc:  # noqa: BLE001 -- report to the parent, never crash silently
         result_queue.put(("error", repr(exc)))
@@ -290,10 +313,7 @@ def test_two_concurrent_distinct_verdicts_are_both_durable(feature_dir: Path) ->
         # SC-003 also accepts an explicit single-side refusal -- but exactly
         # one side must have refused, never a silent 2-for-2 "success" that
         # masks a half-written record.
-        assert len(oks) == 1 and len(errors) == 1, (
-            f"expected either 2 durable records or exactly one explicit "
-            f"refusal, got oks={oks} errors={errors}"
-        )
+        assert len(oks) == 1 and len(errors) == 1, f"expected either 2 durable records or exactly one explicit refusal, got oks={oks} errors={errors}"
 
 
 # ── T014 -- NFR-001 (no lock across git) + NFR-004 (single authoritative call) ──
@@ -303,9 +323,7 @@ class TestT014DurabilityStructuralGuarantees:
     """NFR-001: no inter-process lock is held across a ``git`` subprocess.
     NFR-004: exactly one authoritative durability-append call per verdict."""
 
-    def test_no_subprocess_call_is_made_while_the_durability_lock_is_held(
-        self, feature_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_no_subprocess_call_is_made_while_the_durability_lock_is_held(self, feature_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Names the NFR-001 mechanism concretely: instruments BOTH the lock
         context manager and ``subprocess.run`` (any ``git`` invoker included)
         and asserts no subprocess call is ever recorded while the real lock
@@ -337,14 +355,9 @@ class TestT014DurabilityStructuralGuarantees:
 
         _record_verdict(feature_dir, "WP01", _MISSION_SLUG, reference="PR#401")
 
-        assert calls_while_locked == [], (
-            "a subprocess call was made while the feature_status_lock was "
-            f"held (NFR-001 violation): {calls_while_locked}"
-        )
+        assert calls_while_locked == [], f"a subprocess call was made while the feature_status_lock was held (NFR-001 violation): {calls_while_locked}"
 
-    def test_exactly_one_authoritative_append_per_recorded_verdict(
-        self, feature_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_exactly_one_authoritative_append_per_recorded_verdict(self, feature_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """NFR-004: exactly one authoritative ``emit_status_transition``
         append occurs per recorded verdict. The best-effort ``.md`` render
         commit is excluded from this count by construction -- this test
@@ -358,16 +371,11 @@ class TestT014DurabilityStructuralGuarantees:
             call_count["n"] += 1
             real_append(*args, **kwargs)
 
-        monkeypatch.setattr(
-            emit_module._store, "append_event_stream_atomic_verified", _counting_append
-        )
+        monkeypatch.setattr(emit_module._store, "append_event_stream_atomic_verified", _counting_append)
 
         _record_verdict(feature_dir, "WP01", _MISSION_SLUG, reference="PR#301")
 
-        assert call_count["n"] == 1, (
-            "NFR-004 requires exactly one authoritative durability-append "
-            f"call per recorded verdict; observed {call_count['n']}"
-        )
+        assert call_count["n"] == 1, f"NFR-004 requires exactly one authoritative durability-append call per recorded verdict; observed {call_count['n']}"
 
 
 # ── T015 -- NFR-005 responsiveness ───────────────────────────────────────
@@ -385,6 +393,4 @@ class TestT015Responsiveness:
         _record_verdict(feature_dir, "WP01", _MISSION_SLUG, reference="PR#501")
         elapsed = time.monotonic() - started
 
-        assert elapsed < 2.0, (
-            f"verdict recording took {elapsed:.3f}s, exceeding the NFR-005 2s budget"
-        )
+        assert elapsed < 2.0, f"verdict recording took {elapsed:.3f}s, exceeding the NFR-005 2s budget"

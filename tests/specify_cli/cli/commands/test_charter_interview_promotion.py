@@ -36,7 +36,9 @@ _PARADIGM_DDD = "domain-driven-design"
 def _git_init(repo: Path) -> None:
     subprocess.run(
         ["git", "init", "--initial-branch=main"],
-        cwd=repo, check=True, capture_output=True,
+        cwd=repo,
+        check=True,
+        capture_output=True,
     )
     for key, value in (
         ("user.email", "test@example.com"),
@@ -78,9 +80,12 @@ def test_interview_promotes_selections_preserving_builtins_on_absent_key(
             [
                 "interview",
                 "--defaults",
-                "--profile", "minimal",
-                "--selected-directives", _DIRECTIVE_010_STEM,
-                "--selected-paradigms", _PARADIGM_DDD,
+                "--profile",
+                "minimal",
+                "--selected-directives",
+                _DIRECTIVE_010_STEM,
+                "--selected-paradigms",
+                _PARADIGM_DDD,
             ],
             catch_exceptions=False,
         )
@@ -104,9 +109,7 @@ def test_interview_promotes_selections_preserving_builtins_on_absent_key(
         os.chdir(old_cwd)
 
 
-def test_interview_normalizes_canonical_form_directive_id(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_interview_normalizes_canonical_form_directive_id(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A directive selected in canonical id form (DIRECTIVE_010) still promotes
     into config as its config-stem form (ID-form parity, WP01 resolver reuse).
     """
@@ -122,8 +125,10 @@ def test_interview_normalizes_canonical_form_directive_id(
             [
                 "interview",
                 "--defaults",
-                "--profile", "minimal",
-                "--selected-directives", _DIRECTIVE_010_CANONICAL,
+                "--profile",
+                "minimal",
+                "--selected-directives",
+                _DIRECTIVE_010_CANONICAL,
             ],
             catch_exceptions=False,
         )
@@ -136,9 +141,7 @@ def test_interview_normalizes_canonical_form_directive_id(
         os.chdir(old_cwd)
 
 
-def test_interview_promotion_is_idempotent_across_runs(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_interview_promotion_is_idempotent_across_runs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _git_init(tmp_path)
     # See the hermeticity note in
     # test_interview_promotes_selections_preserving_builtins_on_absent_key.
@@ -149,8 +152,10 @@ def test_interview_promotion_is_idempotent_across_runs(
         args = [
             "interview",
             "--defaults",
-            "--profile", "minimal",
-            "--selected-directives", _DIRECTIVE_010_STEM,
+            "--profile",
+            "minimal",
+            "--selected-directives",
+            _DIRECTIVE_010_STEM,
         ]
         first = runner.invoke(charter_app, args, catch_exceptions=False)
         assert first.exit_code == 0
@@ -176,9 +181,12 @@ def test_interview_with_no_selections_leaves_config_untouched(tmp_path: Path) ->
             [
                 "interview",
                 "--defaults",
-                "--profile", "minimal",
-                "--selected-directives", "",
-                "--selected-paradigms", "",
+                "--profile",
+                "minimal",
+                "--selected-directives",
+                "",
+                "--selected-paradigms",
+                "",
             ],
             catch_exceptions=False,
         )

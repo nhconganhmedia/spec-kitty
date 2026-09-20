@@ -31,11 +31,7 @@ def _write_graph(
                         [
                             f'  - urn: "{node["urn"]}"',
                             f'    kind: "{node["kind"]}"',
-                            *(
-                                [f'    label: "{node["label"]}"']
-                                if "label" in node
-                                else []
-                            ),
+                            *([f'    label: "{node["label"]}"'] if "label" in node else []),
                         ]
                     )
                     for node in nodes

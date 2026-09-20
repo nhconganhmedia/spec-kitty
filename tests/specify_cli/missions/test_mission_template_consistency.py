@@ -51,14 +51,8 @@ _DOCTRINE_STEPS_ROOT = _REPO_ROOT / "packs" / "built-in" / "missions" / "mission
 KNOWN_CLI_DRIVEN: dict[tuple[str, str], str] = {
     # research/documentation declare an ``accept`` step but never had
     # command-templates/ to begin with.
-    ("research", "accept.md"): (
-        "research mission never shipped command-templates/; accept prompt "
-        "resolution is a known latent gap tracked separately"
-    ),
-    ("documentation", "accept.md"): (
-        "documentation mission never shipped command-templates/; accept "
-        "prompt resolution is a known latent gap tracked separately"
-    ),
+    ("research", "accept.md"): ("research mission never shipped command-templates/; accept prompt resolution is a known latent gap tracked separately"),
+    ("documentation", "accept.md"): ("documentation mission never shipped command-templates/; accept prompt resolution is a known latent gap tracked separately"),
     # FR-010 migration: command-templates/ deleted; template now lives in
     # doctrine (software-dev/accept/prompt.md). Runtime resolver wiring is a
     # follow-up tracked separately.
@@ -155,12 +149,7 @@ def test_software_dev_accept_template_in_doctrine() -> None:
     must be present at the new location so no content is silently lost.
     """
     accept_template = _DOCTRINE_STEPS_ROOT / "software-dev" / "accept" / "prompt.md"
-    assert accept_template.is_file(), (
-        f"software-dev accept template missing at {accept_template}; "
-        "FR-010 requires it in the doctrine layer."
-    )
+    assert accept_template.is_file(), f"software-dev accept template missing at {accept_template}; FR-010 requires it in the doctrine layer."
     body = accept_template.read_text(encoding="utf-8")
     assert body.strip(), "accept/prompt.md is empty"
-    assert "spec-kitty accept" in body, (
-        "accept/prompt.md should instruct the operator to run 'spec-kitty accept'"
-    )
+    assert "spec-kitty accept" in body, "accept/prompt.md should instruct the operator to run 'spec-kitty accept'"

@@ -237,27 +237,16 @@ class UnknownMissionTypeError(ValueError):
             # Activated-but-unresolvable case (#3183): naming this id both
             # "unknown" and "registered" in one sentence is the defect this
             # branch exists to avoid. State the two real facts separately.
-            message = (
-                f"Mission type {mission_type_id!r} is activated but has no "
-                "loadable profile."
-            )
-            other_registered = [
-                rid for rid in self.registered_ids if rid != mission_type_id
-            ]
+            message = f"Mission type {mission_type_id!r} is activated but has no loadable profile."
+            other_registered = [rid for rid in self.registered_ids if rid != mission_type_id]
             if other_registered:
                 others_str = ", ".join(other_registered)
                 message += f" Other activated mission types: {others_str}."
         elif self.registered_ids:
             ids_str = ", ".join(self.registered_ids)
-            message = (
-                f"Unknown mission type {mission_type_id!r}. "
-                f"Registered types: {ids_str}."
-            )
+            message = f"Unknown mission type {mission_type_id!r}. Registered types: {ids_str}."
         else:
-            message = (
-                f"Unknown mission type {mission_type_id!r}. "
-                "No registered mission types are available."
-            )
+            message = f"Unknown mission type {mission_type_id!r}. No registered mission types are available."
         super().__init__(message)
 
 
@@ -303,10 +292,7 @@ class MissionTypeEmptyActionSequenceError(ValueError):
     def __init__(self, mission_type_id: str, layer: str) -> None:
         self.mission_type_id = mission_type_id
         self.layer = layer
-        super().__init__(
-            f"mission type `{mission_type_id}` resolved from layer `{layer}` "
-            "has an empty action sequence."
-        )
+        super().__init__(f"mission type `{mission_type_id}` resolved from layer `{layer}` has an empty action sequence.")
 
 
 class CrossGrainDoubleDeclarationError(ValueError):
@@ -413,26 +399,18 @@ class ResolvedMissionType:
     provenance: str
     #: Deferred resolver for the activated doctrine artifact's template
     #: mapping. ``None`` yields ``None`` for the neutral/typeless bundle.
-    _template_set_thunk: Callable[[], Mapping[str, str] | None] | None = field(
-        default=None, repr=False, compare=False
-    )
+    _template_set_thunk: Callable[[], Mapping[str, str] | None] | None = field(default=None, repr=False, compare=False)
     #: Deferred resolver for ``governance``. ``None`` yields ``None`` (the
     #: neutral/typeless bundle). Excluded from ``eq``/``repr``: equality and
     #: determinism hinge on the eager, hot-path fields plus the memoised
     #: values callers actually assert on, not on the thunk identity.
-    _governance_thunk: Callable[[], ResolvedGovernance] | None = field(
-        default=None, repr=False, compare=False
-    )
+    _governance_thunk: Callable[[], ResolvedGovernance] | None = field(default=None, repr=False, compare=False)
     #: Deferred resolver for ``expected_artifacts``. ``None`` yields ``None``
     #: (the neutral/typeless bundle). Excluded from ``eq``/``repr`` so equality
     #: and determinism hinge on the eager, hot-path fields only.
-    _expected_artifacts_thunk: Callable[[], _ExpectedArtifactsManifest | None] | None = field(
-        default=None, repr=False, compare=False
-    )
+    _expected_artifacts_thunk: Callable[[], _ExpectedArtifactsManifest | None] | None = field(default=None, repr=False, compare=False)
     #: Deferred resolver for ``step_contracts``. ``None`` yields ``[]``.
-    _step_contracts_thunk: Callable[[], list[str]] | None = field(
-        default=None, repr=False, compare=False
-    )
+    _step_contracts_thunk: Callable[[], list[str]] | None = field(default=None, repr=False, compare=False)
 
     @cached_property
     def governance(self) -> ResolvedGovernance | None:
@@ -676,15 +654,9 @@ def resolve_mission_type_context(
         # FSM hot path (action_sequence only) stays under the NFR-001 100ms
         # budget. Each is memoised on first access.
         _governance_thunk=governance_thunk,
-        _template_set_thunk=lambda: _resolve_template_set_slot(
-            type_key, is_registered=is_registered, pack_context=pack_context
-        ),
-        _step_contracts_thunk=lambda: _resolve_step_contracts_slot(
-            type_key, is_registered=is_registered
-        ),
-        _expected_artifacts_thunk=lambda: _resolve_expected_artifacts_slot(
-            type_key, is_registered=is_registered, repo_root=repo_root
-        ),
+        _template_set_thunk=lambda: _resolve_template_set_slot(type_key, is_registered=is_registered, pack_context=pack_context),
+        _step_contracts_thunk=lambda: _resolve_step_contracts_slot(type_key, is_registered=is_registered),
+        _expected_artifacts_thunk=lambda: _resolve_expected_artifacts_slot(type_key, is_registered=is_registered, repo_root=repo_root),
     )
 
 
@@ -978,9 +950,7 @@ def _resolve_action_slot(
     return action_sequence
 
 
-def _resolve_with_extends_fallback(
-    mission: MissionType, roster: Mapping[str, MissionType]
-) -> list[str]:
+def _resolve_with_extends_fallback(mission: MissionType, roster: Mapping[str, MissionType]) -> list[str]:
     """Own action_sequence, or single-level extends fallback if own is empty.
 
     Factored out of :func:`_resolve_action_slot` (WP01, mission
@@ -1180,11 +1150,7 @@ def _resolve_template_set_slot(
     from charter.offering.missions.mission_step_repository import MissionStepRepository  # noqa: PLC0415
     from charter.offering.missions.step_projection import project_template_set  # noqa: PLC0415
 
-    steps = list(
-        MissionStepRepository.default()
-        .resolve_all_for_mission_type(mission_type, pack_context=pack_context)
-        .values()
-    )
+    steps = list(MissionStepRepository.default().resolve_all_for_mission_type(mission_type, pack_context=pack_context).values())
     template_set = project_template_set(steps)
     if template_set is None:
         return None
@@ -1300,9 +1266,7 @@ def _mission_type_profile_repository(
         return MissionTypeProfileRepository()
     from charter.offering.drg.org_pack_config import resolve_org_dirs  # noqa: PLC0415 — lazy; mirrors MissionTypeProfileRepository import above
 
-    return MissionTypeProfileRepository.for_project(
-        repo_root, org_dirs=resolve_org_dirs(repo_root, "mission_types")
-    )
+    return MissionTypeProfileRepository.for_project(repo_root, org_dirs=resolve_org_dirs(repo_root, "mission_types"))
 
 
 def _load_mission_type_profile(

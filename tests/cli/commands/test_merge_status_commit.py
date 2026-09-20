@@ -38,17 +38,15 @@ pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 def _init_git_repo(path: Path, branch: str = "main") -> None:
     """Initialize a git repo with a signed-off initial commit."""
     subprocess.run(["git", "init", f"-b{branch}"], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@test.com"], cwd=path, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test"], cwd=path, check=True, capture_output=True
-    )
+    subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=path, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=path, check=True, capture_output=True)
     (path / "README.md").write_text("init\n")
     subprocess.run(["git", "add", "."], cwd=path, check=True, capture_output=True)
     subprocess.run(
         ["git", "-c", "commit.gpgsign=false", "commit", "-m", "init"],
-        cwd=path, check=True, capture_output=True,
+        cwd=path,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -67,7 +65,7 @@ def _seed_mission_branch(repo_path: Path, mission_slug: str) -> None:
 def _write_wp_file(tasks_dir: Path, wp_id: str, *, review_status: str = "approved", reviewed_by: str = "reviewer-1") -> None:
     tasks_dir.mkdir(parents=True, exist_ok=True)
     (tasks_dir / f"{wp_id}-impl.md").write_text(
-        f"---\nwork_package_id: \"{wp_id}\"\nreview_status: \"{review_status}\"\nreviewed_by: \"{reviewed_by}\"\n---\n# {wp_id}\n",
+        f'---\nwork_package_id: "{wp_id}"\nreview_status: "{review_status}"\nreviewed_by: "{reviewed_by}"\n---\n# {wp_id}\n',
         encoding="utf-8",
     )
 
@@ -126,25 +124,10 @@ def _baseline_run_command_side_effect(feature_dir: Path, baseline_sha: str):
     committed_meta_json = json.dumps(meta, sort_keys=True)
 
     def _side_effect(cmd, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003
-        if (
-            isinstance(cmd, (list, tuple))
-            and len(cmd) >= 3
-            and cmd[0] == "git"
-            and cmd[1] == "show"
-            and str(cmd[2]).endswith("meta.json")
-        ):
+        if isinstance(cmd, (list, tuple)) and len(cmd) >= 3 and cmd[0] == "git" and cmd[1] == "show" and str(cmd[2]).endswith("meta.json"):
             return (0, committed_meta_json, "")
-        if (
-            isinstance(cmd, (list, tuple))
-            and len(cmd) >= 3
-            and cmd[0] == "git"
-            and cmd[1] == "show"
-            and str(cmd[2]).endswith("status.events.jsonl")
-        ):
-            committed_events = "\n".join(
-                json.dumps({"wp_id": wp_id, "to_lane": "done"})
-                for wp_id in ("WP01", "WP02")
-            )
+        if isinstance(cmd, (list, tuple)) and len(cmd) >= 3 and cmd[0] == "git" and cmd[1] == "show" and str(cmd[2]).endswith("status.events.jsonl"):
+            committed_events = "\n".join(json.dumps({"wp_id": wp_id, "to_lane": "done"}) for wp_id in ("WP01", "WP02"))
             return (0, committed_events + "\n", "")
         return (0, baseline_sha, "")
 
@@ -354,9 +337,7 @@ class TestSafeCommitCalledAfterMarkDoneLoop:
             # this unit test; patch them at their seam homes.
             stack.enter_context(patch("specify_cli.merge.executor._bake_mission_number_into_mission_branch"))
             stack.enter_context(patch("specify_cli.merge.executor._assert_merged_wps_done_on_target"))
-            mock_safe_commit = stack.enter_context(
-                patch("specify_cli.merge.executor.commit_merge_bookkeeping", return_value=True)
-            )
+            mock_safe_commit = stack.enter_context(patch("specify_cli.merge.executor.commit_merge_bookkeeping", return_value=True))
             mock_run_check = stack.enter_context(patch("specify_cli.post_merge.stale_assertions.run_check"))
             mock_gates = stack.enter_context(patch("specify_cli.policy.merge_gates.evaluate_merge_gates"))
             mock_policy = stack.enter_context(patch("specify_cli.policy.config.load_policy_config"))
@@ -432,9 +413,7 @@ class TestMergeDoneTransitions:
         kwargs = mock_emit.call_args.kwargs
         assert kwargs["ensure_sync_daemon"] is False
 
-    def test_safe_commit_called_before_worktree_removal(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_safe_commit_called_before_worktree_removal(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """FR-019: safe_commit must precede any worktree removal step."""
         mission_slug = "068-test-order"
         feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -533,10 +512,7 @@ class TestMergeDoneTransitions:
         if "worktree_remove" in call_order:
             sc_idx = call_order.index("safe_commit")
             wr_idx = call_order.index("worktree_remove")
-            assert sc_idx < wr_idx, (
-                f"safe_commit (idx={sc_idx}) must precede worktree_remove (idx={wr_idx}). "
-                "FR-019: persist events before destroying worktree."
-            )
+            assert sc_idx < wr_idx, f"safe_commit (idx={sc_idx}) must precede worktree_remove (idx={wr_idx}). FR-019: persist events before destroying worktree."
 
 
 # ---------------------------------------------------------------------------
@@ -571,7 +547,9 @@ class TestDoneEventsCommittedToGit:
         subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
         subprocess.run(
             ["git", "-c", "commit.gpgsign=false", "commit", "-m", "initial feature"],
-            cwd=tmp_path, check=True, capture_output=True,
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
         )
         _seed_mission_branch(tmp_path, mission_slug)
 
@@ -581,6 +559,7 @@ class TestDoneEventsCommittedToGit:
 
         # Materialize status.json
         from specify_cli.status.reducer import materialize
+
         materialize(feature_dir)
 
         manifest = MagicMock()
@@ -654,11 +633,7 @@ class TestDoneEventsCommittedToGit:
             text=True,
             check=True,
         )
-        events = [
-            json.loads(line)
-            for line in result.stdout.splitlines()
-            if line.strip()
-        ]
+        events = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
         done_wps = {e["wp_id"] for e in events if e.get("to_lane") == "done"}
 
         assert done_wps == set(wps), (

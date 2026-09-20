@@ -45,9 +45,7 @@ from pathlib import Path
 
 def git_cmd(repo: Path, *args: str) -> str:
     """Run a git command in *repo*, returning stripped stdout."""
-    result = subprocess.run(
-        ["git", "-C", str(repo), *args], check=True, capture_output=True, text=True
-    )
+    result = subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True)
     return result.stdout.strip()
 
 

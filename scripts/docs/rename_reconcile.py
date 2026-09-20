@@ -53,9 +53,7 @@ __all__ = [
     "run_reconcile",
 ]
 
-DEFAULT_OCCURRENCE_MAP: Final[str] = (
-    "kitty-specs/common-docs-convergence-01KZMTR9/occurrence_map.yaml"
-)
+DEFAULT_OCCURRENCE_MAP: Final[str] = "kitty-specs/common-docs-convergence-01KZMTR9/occurrence_map.yaml"
 DEFAULT_REDIRECT_MAP: Final[str] = "scripts/docs/redirect_map.yaml"
 
 _RETIRE: Final[str] = "RETIRE"
@@ -112,9 +110,7 @@ def load_moves(occurrence_map_path: Path) -> list[Move]:
         with occurrence_map_path.open("r", encoding="utf-8") as handle:
             raw: Any = yaml.load(handle)
     except (OSError, YAMLError) as exc:  # pragma: no cover - defensive
-        raise ValueError(
-            f"cannot read occurrence map {occurrence_map_path}: {exc}"
-        ) from exc
+        raise ValueError(f"cannot read occurrence map {occurrence_map_path}: {exc}") from exc
     if not isinstance(raw, dict):
         return []
     moves_raw = raw.get("moves")
@@ -147,9 +143,7 @@ def _load_redirect_keys(redirect_map_path: Path) -> set[str]:
         with redirect_map_path.open("r", encoding="utf-8") as handle:
             raw: Any = yaml.load(handle)
     except (OSError, YAMLError) as exc:  # pragma: no cover - defensive
-        raise ValueError(
-            f"cannot read redirect map {redirect_map_path}: {exc}"
-        ) from exc
+        raise ValueError(f"cannot read redirect map {redirect_map_path}: {exc}") from exc
     return {str(key) for key in raw} if isinstance(raw, dict) else set()
 
 
@@ -225,10 +219,7 @@ def check_renames_covered(sources: list[str], moves: list[Move]) -> list[Violati
             Violation(
                 rule_id="rename_reconcile",
                 path=source,
-                message=(
-                    f"{source} was renamed/deleted but is not covered by any "
-                    "occurrence_map.yaml moves: entry (off-spine)"
-                ),
+                message=(f"{source} was renamed/deleted but is not covered by any occurrence_map.yaml moves: entry (off-spine)"),
             )
         )
     return violations
@@ -244,9 +235,7 @@ def _published_old_url(docs_path: str) -> str | None:
     return docs_path[len(_DOCS_PREFIX) : -len(".md")] + ".html"
 
 
-def check_occurrence_subset_redirect(
-    moves: list[Move], redirect_keys: set[str]
-) -> list[Violation]:
+def check_occurrence_subset_redirect(moves: list[Move], redirect_keys: set[str]) -> list[Violation]:
     """Flag concrete file moves whose published old URL has no redirect entry."""
     violations: list[Violation] = []
     for move in moves:
@@ -261,11 +250,7 @@ def check_occurrence_subset_redirect(
                     Violation(
                         rule_id="occurrence_subset_redirect",
                         path=source,
-                        message=(
-                            f"{source} moves to '{move.to}' but its published URL "
-                            f"'{url}' is absent from the redirect map (broken "
-                            "redirect)"
-                        ),
+                        message=(f"{source} moves to '{move.to}' but its published URL '{url}' is absent from the redirect map (broken redirect)"),
                     )
                 )
     return violations
@@ -373,14 +358,10 @@ def _emit(report: ReconcileReport, *, as_json: bool) -> None:
         sys.stdout.write(json.dumps(report.as_dict(), indent=2, sort_keys=True) + "\n")
         return
     sys.stdout.write(
-        f"rename_reconcile: examined {report.renames_examined} rename/deletion(s) "
-        f"against {report.moves_examined} move(s); "
-        f"{len(report.violations)} finding(s).\n"
+        f"rename_reconcile: examined {report.renames_examined} rename/deletion(s) against {report.moves_examined} move(s); {len(report.violations)} finding(s).\n"
     )
     for violation in report.violations:
-        sys.stdout.write(
-            f"  [{violation.rule_id}] {violation.path}: {violation.message}\n"
-        )
+        sys.stdout.write(f"  [{violation.rule_id}] {violation.path}: {violation.message}\n")
 
 
 if __name__ == "__main__":  # pragma: no cover - module-level CLI guard

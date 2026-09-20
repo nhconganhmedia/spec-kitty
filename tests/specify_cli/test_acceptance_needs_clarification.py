@@ -23,9 +23,7 @@ def test_needs_clarification_ignores_descriptive_prose(tmp_path: Path) -> None:
     """Mentioning the marker syntax in prose is not an unresolved marker."""
     artifact = tmp_path / "research.md"
     artifact.write_text(
-        "| Spec marker | Resolution |\n"
-        "|-------------|------------|\n"
-        "| (no `[NEEDS CLARIFICATION]` markers in spec) | n/a |\n",
+        "| Spec marker | Resolution |\n|-------------|------------|\n| (no `[NEEDS CLARIFICATION]` markers in spec) | n/a |\n",
         encoding="utf-8",
     )
 
@@ -36,8 +34,7 @@ def test_needs_clarification_flags_canonical_marker(tmp_path: Path) -> None:
     """The acceptance gate still flags real deferred-decision markers."""
     artifact = tmp_path / "spec.md"
     artifact.write_text(
-        "The system must choose a queue backend. "
-        "[NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: 01KS0ABCDEF0123456789ABCDE -->\n",
+        "The system must choose a queue backend. [NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: 01KS0ABCDEF0123456789ABCDE -->\n",
         encoding="utf-8",
     )
 
@@ -48,8 +45,7 @@ def test_needs_clarification_flags_malformed_decision_marker(tmp_path: Path) -> 
     """Malformed clarification markers remain acceptance blockers."""
     artifact = tmp_path / "spec.md"
     artifact.write_text(
-        "The system must choose a queue backend. "
-        "[NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: malformed -->\n",
+        "The system must choose a queue backend. [NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: malformed -->\n",
         encoding="utf-8",
     )
 
@@ -72,8 +68,7 @@ def test_needs_clarification_ignores_closed_decision_marker(tmp_path: Path) -> N
     decision_id = "01KS0ABCDEF0123456789ABCDE"
     artifact = tmp_path / "spec.md"
     artifact.write_text(
-        "The system accepted the plan default. "
-        f"[NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: {decision_id} -->\n",
+        f"The system accepted the plan default. [NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: {decision_id} -->\n",
         encoding="utf-8",
     )
     save_index(
@@ -106,8 +101,7 @@ def test_needs_clarification_accepts_trailing_comment_metadata(tmp_path: Path) -
     decision_id = "01KS0ABCDEF0123456789ABCDE"
     artifact = tmp_path / "spec.md"
     artifact.write_text(
-        "The system accepted the plan default. "
-        f"[NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: {decision_id} source: specify -->\n",
+        f"The system accepted the plan default. [NEEDS CLARIFICATION: choose durable queue] <!-- decision_id: {decision_id} source: specify -->\n",
         encoding="utf-8",
     )
     save_index(

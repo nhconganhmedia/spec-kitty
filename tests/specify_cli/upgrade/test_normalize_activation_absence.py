@@ -114,10 +114,7 @@ def test_does_not_clobber_populated_or_explicit_empty(tmp_path: Path) -> None:
     _write(tmp_path / ".kittify" / "config.yaml", _POINTER_CONFIG)
     _write(
         tmp_path / ".kittify" / "charter" / "charter.yaml",
-        _charter_yaml(
-            "activated_tactics:\n  - bug-fixing-checklist\n"
-            "activated_paradigms: []\n"
-        ),
+        _charter_yaml("activated_tactics:\n  - bug-fixing-checklist\nactivated_paradigms: []\n"),
     )
     migration = NormalizeActivationAbsenceMigration()
     migration.apply(tmp_path)
@@ -231,10 +228,7 @@ def test_unify_promotion_pending_true_with_answers_only_selection(tmp_path: Path
 
 def test_should_defer_bare_config_write_false_when_charter_path_given(tmp_path: Path) -> None:
     """Once charter.yaml exists, config.yaml is never the resolved store -- never defer."""
-    assert (
-        _should_defer_bare_config_write(tmp_path, {}, tmp_path / ".kittify" / "charter" / "charter.yaml")
-        is False
-    )
+    assert _should_defer_bare_config_write(tmp_path, {}, tmp_path / ".kittify" / "charter" / "charter.yaml") is False
 
 
 def test_should_defer_bare_config_write_false_when_legacy_bundle_present(tmp_path: Path) -> None:

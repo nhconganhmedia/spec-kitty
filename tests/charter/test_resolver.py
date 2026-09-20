@@ -92,23 +92,17 @@ def _write_charter_files(
     return charter_dir
 
 
-def test_resolve_governance_reads_charter_selections_first(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_resolve_governance_reads_charter_selections_first(tmp_path: Path, monkeypatch) -> None:
     """Charter selections (paradigms, directives, tools, template_set) are used
     when explicitly declared and all values exist in the shipped catalog."""
     # Build a minimal doctrine root so shipped paradigm validation passes.
     doctrine_root = tmp_path / "doctrine_root"
     (doctrine_root / "paradigms").mkdir(parents=True)
-    (doctrine_root / "paradigms" / "test-first.paradigm.yaml").write_text(
-        "id: test-first\n"
-    )
+    (doctrine_root / "paradigms" / "test-first.paradigm.yaml").write_text("id: test-first\n")
     (doctrine_root / "directives").mkdir(parents=True)
     (doctrine_root / "agent_profiles").mkdir(parents=True)
     (doctrine_root / "missions" / "software-dev").mkdir(parents=True)
-    (doctrine_root / "missions" / "software-dev" / "mission.yaml").write_text(
-        "name: software-dev\n"
-    )
+    (doctrine_root / "missions" / "software-dev" / "mission.yaml").write_text("name: software-dev\n")
     monkeypatch.setattr(catalog_module, "resolve_doctrine_root", lambda: doctrine_root)
     # Built-in pack content resolves per-kind via ``built_in_dir`` post-relocation
     # (mission doctrine-built-in-seam-consolidation-01KYW3TX, WP02); point it at
@@ -201,10 +195,7 @@ doctrine:
     assert "git" in result.tools
     assert "python" in result.tools
     assert result.metadata["tools_source"] == "charter+registry"
-    assert any(
-        "imaginary-tool" in diag and "Charter declared additional tool" in diag
-        for diag in result.diagnostics
-    )
+    assert any("imaginary-tool" in diag and "Charter declared additional tool" in diag for diag in result.diagnostics)
 
 
 def test_resolve_governance_missing_template_set_hard_fails(tmp_path: Path) -> None:
@@ -315,10 +306,7 @@ directives:
     }
     assert any("runtime tool registry fallback" in line for line in result.diagnostics)
     assert any("fallback-pack" in line for line in result.diagnostics)
-    assert any(
-        "project-local directive" in line and "LOCAL_ONLY" in line
-        for line in result.diagnostics
-    ), result.diagnostics
+    assert any("project-local directive" in line and "LOCAL_ONLY" in line for line in result.diagnostics), result.diagnostics
 
 
 def test_resolve_governance_uses_catalog_directives_when_no_local_declarations(
@@ -362,10 +350,7 @@ def test_bare_project_fallback_emits_catalog_default_diagnostic(
     result = resolve_project_governance(tmp_path, tool_registry={"git"})
 
     assert result.metadata["directives_source"] == "catalog_fallback"
-    assert any(
-        "built-in catalog default" in line and "2 directives" in line
-        for line in result.diagnostics
-    ), result.diagnostics
+    assert any("built-in catalog default" in line and "2 directives" in line for line in result.diagnostics), result.diagnostics
 
 
 def test_explicit_selection_and_local_declaration_union(
@@ -407,10 +392,7 @@ directives:
     assert result.metadata["directives_source"] == "catalog_fallback+charter+project_local"
     # Selected id is never narrowed away (INV-3).
     assert "DIRECTIVE_A" in result.directives
-    assert any(
-        "project-local directive" in line and "charter" in line
-        for line in result.diagnostics
-    ), result.diagnostics
+    assert any("project-local directive" in line and "charter" in line for line in result.diagnostics), result.diagnostics
 
 
 def test_local_declaration_matching_catalog_id_dedups_in_base_position(
@@ -444,10 +426,7 @@ directives:
     assert result.metadata["directives_source"] == "catalog_fallback+project_local"
     # #3728 review-fix: the merge diagnostic must be truthful in the zero-net-add
     # case — it names the already-present id instead of claiming a merge.
-    assert any(
-        "already present" in line and "none added" in line
-        for line in result.diagnostics
-    ), result.diagnostics
+    assert any("already present" in line and "none added" in line for line in result.diagnostics), result.diagnostics
 
 
 def test_activation_base_and_local_declaration_union(
@@ -474,11 +453,7 @@ def test_activation_base_and_local_declaration_union(
     config_path = tmp_path / ".kittify" / "config.yaml"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(
-        "mission_type_activations:\n"
-        "  - software-dev\n"
-        "activated_directives:\n"
-        "  - DIRECTIVE_010\n"
-        "  - DIRECTIVE_003\n",
+        "mission_type_activations:\n  - software-dev\nactivated_directives:\n  - DIRECTIVE_010\n  - DIRECTIVE_003\n",
         encoding="utf-8",
     )
     _write_charter_files(
@@ -495,10 +470,7 @@ directives:
 
     assert result.directives == ["DIRECTIVE_003", "DIRECTIVE_010", "LOCAL_NEW"]
     assert result.metadata["directives_source"] == "activation+project_local"
-    assert any(
-        "project-local directive" in line and "LOCAL_NEW" in line
-        for line in result.diagnostics
-    ), result.diagnostics
+    assert any("project-local directive" in line and "LOCAL_NEW" in line for line in result.diagnostics), result.diagnostics
 
 
 def test_resolve_governance_for_profile_merges_profile_directives_first() -> None:
@@ -676,9 +648,7 @@ def _make_doctrine_root(tmp_path: Path, *, with_paradigm: str | None = None) -> 
     paradigms_shipped = doctrine_root / "paradigms" / "built-in"
     paradigms_shipped.mkdir(parents=True)
     if with_paradigm:
-        (paradigms_shipped / f"{with_paradigm}.paradigm.yaml").write_text(
-            f"id: {with_paradigm}\n"
-        )
+        (paradigms_shipped / f"{with_paradigm}.paradigm.yaml").write_text(f"id: {with_paradigm}\n")
     (doctrine_root / "directives" / "built-in").mkdir(parents=True)
     (doctrine_root / "agent_profiles" / "built-in").mkdir(parents=True)
     (doctrine_root / "missions" / "software-dev").mkdir(parents=True)

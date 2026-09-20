@@ -122,9 +122,7 @@ def test_dry_run_forecast_reads_primary_lane_set(
         captured["wp_ids"] = list(wp_ids)
         raise _StopProbe
 
-    monkeypatch.setattr(
-        forecast, "run_review_artifact_consistency_preflight", _fake_preflight
-    )
+    monkeypatch.setattr(forecast, "run_review_artifact_consistency_preflight", _fake_preflight)
 
     with pytest.raises(_StopProbe):
         forecast.run_dry_run_forecast(
@@ -170,9 +168,7 @@ def test_executor_preflight_identity_reads_primary_mission_id(
         captured["mission_id"] = kwargs.get("mission_id")
         raise _StopProbe
 
-    monkeypatch.setattr(
-        executor, "require_no_sparse_checkout", _fake_require_no_sparse_checkout
-    )
+    monkeypatch.setattr(executor, "require_no_sparse_checkout", _fake_require_no_sparse_checkout)
 
     with pytest.raises(_StopProbe):
         executor._run_lane_based_merge(
@@ -217,19 +213,13 @@ def test_executor_lanes_and_canonical_id_read_primary(
     ctx = coord_topology_mission_sentinel_meta
     captured: dict[str, Any] = {}
 
-    monkeypatch.setattr(
-        executor, "require_no_sparse_checkout", lambda **kwargs: None
-    )
+    monkeypatch.setattr(executor, "require_no_sparse_checkout", lambda **kwargs: None)
 
-    def _fake_effective_push_requested(
-        main_repo: object, canonical_id: str, push: bool
-    ) -> NoReturn:
+    def _fake_effective_push_requested(main_repo: object, canonical_id: str, push: bool) -> NoReturn:
         captured["canonical_id"] = canonical_id
         raise _StopProbe
 
-    monkeypatch.setattr(
-        executor, "_effective_push_requested", _fake_effective_push_requested
-    )
+    monkeypatch.setattr(executor, "_effective_push_requested", _fake_effective_push_requested)
 
     with pytest.raises(_StopProbe):
         executor._run_lane_based_merge(
@@ -270,13 +260,9 @@ def test_merge_state_key_candidates_use_primary_mission_id(
     keys = _merge_state_key_candidates(ctx.repo, ctx.slug)
 
     assert _PRIMARY_MISSION_ID in keys, (
-        "the canonical merge-state key must be the PRIMARY mission_id.\n"
-        f"  Expected to contain : {_PRIMARY_MISSION_ID}\n  Got keys : {keys}"
+        f"the canonical merge-state key must be the PRIMARY mission_id.\n  Expected to contain : {_PRIMARY_MISSION_ID}\n  Got keys : {keys}"
     )
-    assert SENTINEL_HUSK_MISSION_ID not in keys, (
-        "the husk SENTINEL id leaked into the merge-state keys — the identity read "
-        "regressed to the coord-aware resolver."
-    )
+    assert SENTINEL_HUSK_MISSION_ID not in keys, "the husk SENTINEL id leaked into the merge-state keys — the identity read regressed to the coord-aware resolver."
 
 
 # ---------------------------------------------------------------------------
@@ -363,13 +349,9 @@ def test_abort_teardown_reads_primary_meta_not_husk_sentinel(
 
     _teardown_coordination_for_abort(ctx.repo, ctx.slug, None)
 
-    assert _PRIMARY_MISSION_ID in seen_ids, (
-        "the --abort teardown must read the PRIMARY meta.json identity.\n"
-        f"  Observed mission_ids : {seen_ids}"
-    )
+    assert _PRIMARY_MISSION_ID in seen_ids, f"the --abort teardown must read the PRIMARY meta.json identity.\n  Observed mission_ids : {seen_ids}"
     assert SENTINEL_HUSK_MISSION_ID not in seen_ids, (
-        "the husk SENTINEL id was read during --abort teardown — the meta read "
-        "regressed to the coord-aware resolver (the STATUS-only husk)."
+        "the husk SENTINEL id was read during --abort teardown — the meta read regressed to the coord-aware resolver (the STATUS-only husk)."
     )
 
 
@@ -415,9 +397,7 @@ def test_executor_baseline_identity_reads_primary_mission_id(
     # husk STATUS log, which the shared fixture seeds as a deliberately non-reducible
     # wrong-leg probe — not under test here. Neutralise it so the flow reaches the
     # baseline phase; the STATUS partition is exercised by the NFR-001 tests.
-    monkeypatch.setattr(
-        executor, "_enforce_review_artifact_consistency", lambda **kwargs: None
-    )
+    monkeypatch.setattr(executor, "_enforce_review_artifact_consistency", lambda **kwargs: None)
     monkeypatch.setattr(executor, "_phase_gates_and_state", lambda run: None)
     monkeypatch.setattr(executor, "_phase_merge_lanes", lambda run: None)
 
@@ -425,9 +405,7 @@ def test_executor_baseline_identity_reads_primary_mission_id(
         captured["baseline_mission_id"] = run.baseline_mission_id
         raise _StopProbe
 
-    monkeypatch.setattr(
-        executor, "_phase_bake_and_pre_target_done", _capture_after_baseline
-    )
+    monkeypatch.setattr(executor, "_phase_bake_and_pre_target_done", _capture_after_baseline)
 
     with pytest.raises(_StopProbe):
         executor._run_lane_based_merge(

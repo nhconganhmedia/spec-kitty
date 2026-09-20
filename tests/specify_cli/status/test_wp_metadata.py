@@ -619,9 +619,7 @@ class TestReadWpFrontmatter:
         with pytest.raises(ValidationError, match="work_package_id"):
             read_wp_frontmatter(wp_file)
 
-    def test_shell_pid_is_snapshot_sourced_not_frontmatter(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_shell_pid_is_snapshot_sourced_not_frontmatter(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Post-cutover (#2816/IC-04, WP04): ``read_wp_frontmatter`` resolves the
         runtime ``shell_pid`` from the reduced event-sourced snapshot, NOT from the
         WP file frontmatter (the retired dual-write, NFR-003 byte-stability).

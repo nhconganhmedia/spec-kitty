@@ -73,9 +73,7 @@ def test_path_from_payload_no_path_returns_none() -> None:
 
 
 @patch("subprocess.run")
-def test_lint_reads_path_from_claude_stdin(
-    mock_run: MagicMock, runner: CliRunner, app: typer.Typer, tmp_path: Path
-) -> None:
+def test_lint_reads_path_from_claude_stdin(mock_run: MagicMock, runner: CliRunner, app: typer.Typer, tmp_path: Path) -> None:
     """The wired hook form `lint --json` (no argv) resolves the file from stdin."""
     target = tmp_path / "edited.py"
     target.write_text("x = 1\n")
@@ -103,9 +101,7 @@ def test_lint_stdin_non_json_is_noop(runner: CliRunner, app: typer.Typer) -> Non
 
 
 @patch("subprocess.run")
-def test_lint_passes_absolute_path_to_tools(
-    mock_run: MagicMock, runner: CliRunner, app: typer.Typer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_lint_passes_absolute_path_to_tools(mock_run: MagicMock, runner: CliRunner, app: typer.Typer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """ruff/mypy must receive the resolved absolute path, not the caller-relative one."""
     target = tmp_path / "rel.py"
     target.write_text("x = 1\n")
@@ -145,11 +141,7 @@ def test_claude_enable_adds_matcher_and_command(tmp_path: Path) -> None:
     assert _sync_claude_hooks(tmp_path, enabled=True) is True
     data = _read(tmp_path / ".claude" / "settings.json")
     entries = data["hooks"]["PostToolUse"]
-    assert any(
-        e.get("matcher") == "Edit|Write"
-        and any(h.get("command") == LINT_HOOK_COMMAND for h in e.get("hooks", []))
-        for e in entries
-    )
+    assert any(e.get("matcher") == "Edit|Write" and any(h.get("command") == LINT_HOOK_COMMAND for h in e.get("hooks", [])) for e in entries)
 
 
 def test_claude_disable_preserves_sibling_hooks(tmp_path: Path) -> None:
@@ -172,11 +164,7 @@ def test_claude_disable_preserves_sibling_hooks(tmp_path: Path) -> None:
 
     assert _sync_claude_hooks(tmp_path, enabled=False) is True
 
-    commands = [
-        h.get("command")
-        for e in _read(settings)["hooks"]["PostToolUse"]
-        for h in e.get("hooks", [])
-    ]
+    commands = [h.get("command") for e in _read(settings)["hooks"]["PostToolUse"] for h in e.get("hooks", [])]
     assert "prettier --write" in commands
     assert LINT_HOOK_COMMAND not in commands
 

@@ -94,9 +94,7 @@ def _seed_claim_to_in_review(feature_dir: Path) -> None:
         )
 
 
-def _build_flag_on_mission(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, wp_agent: str = "reviewer"
-) -> tuple[Path, Path]:
+def _build_flag_on_mission(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, wp_agent: str = "reviewer") -> tuple[Path, Path]:
     """Materialise a ``status_phase: 1`` (flag ON) lanes mission with WP01
     seeded to ``in_review`` carrying a live claim. Returns ``(repo, feature_dir)``.
     """
@@ -113,9 +111,7 @@ def _build_flag_on_mission(
     # "main" as protected by default, so this real-git fixture needs the
     # override to let the review-cycle artifact's commit genuinely succeed --
     # mirrors ``tests/review/test_cycle.py``'s ``_unprotect_main`` idiom.
-    (repo / ".kittify" / "config.yaml").write_text(
-        "auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8"
-    )
+    (repo / ".kittify" / "config.yaml").write_text("auto_commit: false\nprotection:\n  protected_branches: []\n", encoding="utf-8")
 
     feature_dir = repo / "kitty-specs" / _MISSION_SLUG
     tasks_dir = feature_dir / "tasks"
@@ -127,20 +123,11 @@ def _build_flag_on_mission(
     meta["status_phase"] = "1"  # flag ON: event-only writes, byte-stable WP file
     meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
-    (feature_dir / "tasks.md").write_text(
-        "# Tasks\n\n## WP01 - Core\n\n(no subtasks)\n", encoding="utf-8"
-    )
+    (feature_dir / "tasks.md").write_text("# Tasks\n\n## WP01 - Core\n\n(no subtasks)\n", encoding="utf-8")
     # No ``lane``/``agent``/``shell_pid`` frontmatter fields -> the flag-ON lane
     # mirror is a no-op and the file is byte-stable across the driven rollback.
     (tasks_dir / "WP01-core.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Core\n"
-        f"agent: {wp_agent}\n"
-        "subtasks: []\n"
-        "tracker_refs: []\n"
-        "dependencies: []\n"
-        "---\n\n# WP01\n\n## Activity Log\n",
+        f"---\nwork_package_id: WP01\ntitle: Core\nagent: {wp_agent}\nsubtasks: []\ntracker_refs: []\ndependencies: []\n---\n\n# WP01\n\n## Activity Log\n",
         encoding="utf-8",
     )
 
@@ -150,9 +137,7 @@ def _build_flag_on_mission(
 
     monkeypatch.chdir(repo)
     monkeypatch.setattr(tasks_module, "locate_project_root", lambda: repo)
-    monkeypatch.setattr(
-        tasks_module, "_validate_ready_for_review", lambda *_a, **_k: (True, [])
-    )
+    monkeypatch.setattr(tasks_module, "_validate_ready_for_review", lambda *_a, **_k: (True, []))
     monkeypatch.setattr(tasks_module, "get_mission_type", lambda *_a, **_k: "software-dev")
     return repo, feature_dir
 
@@ -167,9 +152,7 @@ def _move(args: list[str]) -> Result:
     return CliRunner().invoke(tasks_app, ["move-task", *args])
 
 
-def test_rollback_to_planned_releases_claim_in_snapshot(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_rollback_to_planned_releases_claim_in_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A plain rollback to planned RELEASES the prior claim: the reduced
     snapshot's ``agent``/``shell_pid`` slots go falsy (no live claim), whereas
     they were live before the rollback (proof-of-drive positive control)."""
@@ -184,8 +167,15 @@ def test_rollback_to_planned_releases_claim_in_snapshot(
 
     result = _move(
         [
-            "WP01", "--to", "planned", "--mission", _MISSION_SLUG,
-            "--review-feedback-file", str(feedback), "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "planned",
+            "--mission",
+            _MISSION_SLUG,
+            "--review-feedback-file",
+            str(feedback),
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert result.exit_code == 0, result.output
@@ -196,9 +186,7 @@ def test_rollback_to_planned_releases_claim_in_snapshot(
     assert not after.get("agent"), f"agent not released: {after.get('agent')!r}"
 
 
-def test_rollback_release_is_event_only_wp_file_byte_stable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_rollback_release_is_event_only_wp_file_byte_stable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The #2512 release is event-only: a release ``InnerStateChanged`` is
     persisted and the WP file stays byte-identical across the rollback (AC-5)."""
     repo, feature_dir = _build_flag_on_mission(tmp_path, monkeypatch)
@@ -211,8 +199,15 @@ def test_rollback_release_is_event_only_wp_file_byte_stable(
 
     result = _move(
         [
-            "WP01", "--to", "planned", "--mission", _MISSION_SLUG,
-            "--review-feedback-file", str(feedback), "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "planned",
+            "--mission",
+            _MISSION_SLUG,
+            "--review-feedback-file",
+            str(feedback),
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert result.exit_code == 0, result.output
@@ -220,18 +215,13 @@ def test_rollback_release_is_event_only_wp_file_byte_stable(
     # Event-only: a release annotation landed...
     stream = read_event_stream(feature_dir)
     assert len(stream.annotations) > annotations_before, "no release annotation persisted"
-    release = [
-        a for a in stream.annotations
-        if a.wp_id == "WP01" and a.delta.release_runtime_claim
-    ]
+    release = [a for a in stream.annotations if a.wp_id == "WP01" and a.delta.release_runtime_claim]
     assert release, "no InnerStateChanged released the claim (release_runtime_claim marker)"
     # ...and the WP file bytes did not change.
     assert _content_hash(wp_file) == hash_before, "rollback rewrote tasks/WP01.md bytes"
 
 
-def test_rollback_with_explicit_agent_replants_claim(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_rollback_with_explicit_agent_replants_claim(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An explicit ``--agent`` on rollback RE-PLANTS a fresh claim (override
     case): the snapshot ``agent`` slot carries the supplied value, not the
     release sentinel. ``--force`` bypasses the orthogonal claim-owner mismatch
@@ -242,14 +232,21 @@ def test_rollback_with_explicit_agent_replants_claim(
 
     result = _move(
         [
-            "WP01", "--to", "planned", "--mission", _MISSION_SLUG,
-            "--review-feedback-file", str(feedback), "--agent", "fresh-claimer",
-            "--force", "--no-auto-commit", "--json",
+            "WP01",
+            "--to",
+            "planned",
+            "--mission",
+            _MISSION_SLUG,
+            "--review-feedback-file",
+            str(feedback),
+            "--agent",
+            "fresh-claimer",
+            "--force",
+            "--no-auto-commit",
+            "--json",
         ]
     )
     assert result.exit_code == 0, result.output
 
     after = _snapshot_wp_state(feature_dir)
-    assert after.get("agent") == "fresh-claimer", (
-        "explicit --agent on rollback must re-plant a fresh claim, not release it"
-    )
+    assert after.get("agent") == "fresh-claimer", "explicit --agent on rollback must re-plant a fresh claim, not release it"

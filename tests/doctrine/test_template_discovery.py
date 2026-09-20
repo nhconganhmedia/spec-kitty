@@ -100,9 +100,7 @@ def test_discovery_disambiguates_same_name_across_missions(package_root: Path) -
     }
 
 
-def test_discovery_dedupes_multi_tier_to_highest_precedence(
-    tmp_path: Path, package_root: Path
-) -> None:
+def test_discovery_dedupes_multi_tier_to_highest_precedence(tmp_path: Path, package_root: Path) -> None:
     override_root = tmp_path / "override" / "missions"
     _make_template(override_root, "software-dev", "templates", "spec-template.md", "override spec")
 
@@ -149,9 +147,7 @@ def test_template_node_urn_format(package_root: Path) -> None:
 
 
 def test_template_urn_helper() -> None:
-    assert template_urn(template_id_for("software-dev", "spec-template.md")) == (
-        "template:software-dev/spec-template.md"
-    )
+    assert template_urn(template_id_for("software-dev", "spec-template.md")) == ("template:software-dev/spec-template.md")
 
 
 def test_cross_mission_nodes_are_distinct(package_root: Path) -> None:
@@ -209,9 +205,7 @@ def test_resolve_by_id_respects_tier_precedence(tmp_path: Path) -> None:
     assert result.mission == "software-dev"
 
 
-def test_resolve_by_id_falls_through_to_package_default(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_by_id_falls_through_to_package_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # No project dir supplied -> override/legacy skipped. Point the global home
     # at an empty dir so the global-mission/global tiers are also skipped, and
     # the package default wins for a real shipped template

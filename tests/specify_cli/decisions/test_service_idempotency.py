@@ -142,9 +142,12 @@ def test_idempotent_retry_repairs_missing_opened_event(tmp_path: Path) -> None:
         "options": ("1-5",),
         "actor": "alice",
     }
-    with pytest.raises(RuntimeError, match="emit failed"), patch(
-        "specify_cli.decisions.emit.emit_decision_opened",
-        side_effect=RuntimeError("emit failed"),
+    with (
+        pytest.raises(RuntimeError, match="emit failed"),
+        patch(
+            "specify_cli.decisions.emit.emit_decision_opened",
+            side_effect=RuntimeError("emit failed"),
+        ),
     ):
         open_decision(tmp_path, MISSION_SLUG, **args)
 
@@ -159,10 +162,7 @@ def test_idempotent_retry_repairs_missing_opened_event(tmp_path: Path) -> None:
     assert resp.idempotent is True
     assert resp.decision_id == persisted.decision_id
     assert resp.event_lamport == 1
-    events = [
-        json.loads(line)
-        for line in (mission_dir / "status.events.jsonl").read_text(encoding="utf-8").splitlines()
-    ]
+    events = [json.loads(line) for line in (mission_dir / "status.events.jsonl").read_text(encoding="utf-8").splitlines()]
     assert len(events) == 1
     assert events[0]["event_type"] == DECISION_POINT_OPENED
     assert events[0]["payload"]["decision_point_id"] == persisted.decision_id
@@ -234,9 +234,7 @@ def test_on_minted_runs_after_fresh_open_writes_artifact(tmp_path: Path) -> None
     observations: list[tuple[str, bool]] = []
 
     def record_minted(decision_id: str) -> None:
-        observations.append(
-            (decision_id, _store.artifact_path(_mission_dir(tmp_path), decision_id).exists())
-        )
+        observations.append((decision_id, _store.artifact_path(_mission_dir(tmp_path), decision_id).exists()))
 
     with patch("specify_cli.decisions.emit.emit_decision_opened", return_value=1):
         resp = open_decision(
@@ -325,9 +323,7 @@ def test_dry_run_creates_no_index(tmp_path: Path) -> None:
 
 
 def test_dry_run_emits_no_event(tmp_path: Path) -> None:
-    with patch(
-        "specify_cli.decisions.emit.emit_decision_opened", return_value=1
-    ) as mock_emit:
+    with patch("specify_cli.decisions.emit.emit_decision_opened", return_value=1) as mock_emit:
         _open(tmp_path, dry_run=True)
     mock_emit.assert_not_called()
 

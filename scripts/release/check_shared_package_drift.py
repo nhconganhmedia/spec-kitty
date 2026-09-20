@@ -24,6 +24,8 @@ PACKAGES = (
 )
 RETIRED_PACKAGES = ("spec-kitty-runtime",)
 INSTALLED_DRIFT_REMEDIATION = "Run `uv sync --extra test --extra lint` before collecting release evidence."
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pyproject", default="pyproject.toml")
@@ -113,9 +115,7 @@ def extract_dependencies(pyproject: dict[str, object]) -> list[str]:
     return [str(dep) for dep in deps]
 
 
-def extract_constraints(
-    dependencies: Iterable[str], *, packages: Iterable[str], exact_required: bool = False
-) -> dict[str, str]:
+def extract_constraints(dependencies: Iterable[str], *, packages: Iterable[str], exact_required: bool = False) -> dict[str, str]:
     constraints: dict[str, str] = {}
     issues: list[str] = []
     canonical = {package.lower(): package for package in packages}
@@ -134,14 +134,10 @@ def extract_constraints(
             issues.append(f"{req.name}: dependency must be exact-pinned with == ({raw})")
             continue
         if not exact_required and pinned is not None:
-            issues.append(
-                f"{req.name}: dependency must use a compatible range, not an exact pin ({raw})"
-            )
+            issues.append(f"{req.name}: dependency must use a compatible range, not an exact pin ({raw})")
             continue
         if not exact_required and not has_compatible_range(raw):
-            issues.append(
-                f"{req.name}: dependency must use a bounded compatible range ({raw})"
-            )
+            issues.append(f"{req.name}: dependency must use a bounded compatible range ({raw})")
             continue
         if package in constraints:
             issues.append(f"{req.name}: duplicate dependency entries found")
@@ -243,20 +239,14 @@ def collect_manifest_alignment_issues(
         expected_range = SpecifierSet(authority["cli_range"])
         actual_range = requirement_specifier(cli_constraints[package])
         if actual_range != expected_range:
-            issues.append(
-                f"{package} CLI range {actual_range} does not match release authority {expected_range}"
-            )
+            issues.append(f"{package} CLI range {actual_range} does not match release authority {expected_range}")
 
         expected_lock = authority["locked_version"]
         actual_lock = lock_versions[package]
         if actual_lock != expected_lock:
-            issues.append(
-                f"{package} uv.lock version {actual_lock} does not match release authority {expected_lock}"
-            )
+            issues.append(f"{package} uv.lock version {actual_lock} does not match release authority {expected_lock}")
         if Version(expected_lock) not in expected_range:
-            issues.append(
-                f"{package} release authority lock {expected_lock} is outside manifest CLI range {expected_range}"
-            )
+            issues.append(f"{package} release authority lock {expected_lock} is outside manifest CLI range {expected_range}")
     return issues
 
 
@@ -280,9 +270,7 @@ def extract_lock_versions(lockfile: dict[str, object], *, packages: Iterable[str
 
     missing = sorted(set(packages) - set(versions))
     if missing:
-        raise SystemExit(
-            "uv.lock is missing resolved package versions: " + ", ".join(missing)
-        )
+        raise SystemExit("uv.lock is missing resolved package versions: " + ", ".join(missing))
     return versions
 
 
@@ -299,18 +287,12 @@ def collect_installed_version_issues(
         try:
             installed_version = version_reader(package)
         except importlib.metadata.PackageNotFoundError:
-            issues.append(
-                f"{package} is not installed in the active environment; "
-                f"uv.lock version is {lock_version}. "
-                f"Remediation: {INSTALLED_DRIFT_REMEDIATION}"
-            )
+            issues.append(f"{package} is not installed in the active environment; uv.lock version is {lock_version}. Remediation: {INSTALLED_DRIFT_REMEDIATION}")
             continue
         installed_versions[package] = installed_version
         if installed_version != lock_version:
             issues.append(
-                f"{package} installed version {installed_version} does not match "
-                f"uv.lock version {lock_version}. "
-                f"Remediation: {INSTALLED_DRIFT_REMEDIATION}"
+                f"{package} installed version {installed_version} does not match uv.lock version {lock_version}. Remediation: {INSTALLED_DRIFT_REMEDIATION}"
             )
     return installed_versions, issues
 
@@ -333,10 +315,7 @@ def collect_override_issues(overrides: Iterable[str]) -> list[str]:
     for entry in overrides:
         req = parse_requirement(entry)
         if req.name.startswith("spec-kitty-"):
-            issues.append(
-                f"Emergency override still present for {req.name}: {entry}. "
-                "Release pins must align without tool.uv override-dependencies."
-            )
+            issues.append(f"Emergency override still present for {req.name}: {entry}. Release pins must align without tool.uv override-dependencies.")
     return issues
 
 
@@ -347,10 +326,7 @@ def main() -> int:
     manifest_retired = extract_manifest_retired_packages(manifest)
     missing_retired = sorted(set(RETIRED_PACKAGES) - manifest_retired)
     if missing_retired:
-        raise SystemExit(
-            "Compatibility manifest missing retired package authority: "
-            + ", ".join(missing_retired)
-        )
+        raise SystemExit("Compatibility manifest missing retired package authority: " + ", ".join(missing_retired))
 
     cli_pyproject = load_toml(args.pyproject)
     assert cli_pyproject is not None
@@ -360,17 +336,12 @@ def main() -> int:
 
     issues = collect_override_issues(extract_overrides(cli_pyproject))
     if retired:
-        issues.append(
-            "Retired runtime package must not be a CLI dependency: "
-            + ", ".join(retired)
-        )
+        issues.append("Retired runtime package must not be a CLI dependency: " + ", ".join(retired))
 
     lockfile = load_toml(args.lockfile)
     assert lockfile is not None
     lock_versions = extract_lock_versions(lockfile, packages=PACKAGES)
-    issues.extend(
-        collect_manifest_alignment_issues(cli_constraints, lock_versions, manifest_authority)
-    )
+    issues.extend(collect_manifest_alignment_issues(cli_constraints, lock_versions, manifest_authority))
 
     summary: list[str] = [
         f"release train: {manifest.get('release_train', 'unknown')}",
@@ -380,27 +351,18 @@ def main() -> int:
     ]
     for package, version in lock_versions.items():
         if not requirement_contains_version(cli_constraints[package], version):
-            issues.append(
-                f"{package} uv.lock version {version} is outside CLI constraint "
-                f"{cli_constraints[package]}"
-            )
+            issues.append(f"{package} uv.lock version {version} is outside CLI constraint {cli_constraints[package]}")
 
     if args.check_installed:
-        installed_versions, installed_issues = collect_installed_version_issues(
-            lock_versions, packages=PACKAGES
-        )
+        installed_versions, installed_issues = collect_installed_version_issues(lock_versions, packages=PACKAGES)
         issues.extend(installed_issues)
         for package in PACKAGES:
             installed_version = installed_versions.get(package, "not installed")
-            summary.append(
-                f"installed {package}: {installed_version} (uv.lock {lock_versions[package]})"
-            )
+            summary.append(f"installed {package}: {installed_version} (uv.lock {lock_versions[package]})")
 
     runtime_pyproject = load_toml(args.runtime_pyproject)
     if runtime_pyproject is not None:
-        summary.append(
-            "runtime spec-kitty-events: ignored; spec-kitty-runtime is retired for CLI releases"
-        )
+        summary.append("runtime spec-kitty-events: ignored; spec-kitty-runtime is retired for CLI releases")
 
     print("Shared Package Drift Summary")
     print("----------------------------")

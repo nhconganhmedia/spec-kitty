@@ -61,8 +61,7 @@ def test_validate_ignores_retrospective_events_in_shared_status_log(tmp_path: Pa
         },
     }
     (feature_dir / "status.events.jsonl").write_text(
-        json.dumps(lane_event, sort_keys=True) + "\n"
-        + json.dumps(retrospective_event, sort_keys=True) + "\n",
+        json.dumps(lane_event, sort_keys=True) + "\n" + json.dumps(retrospective_event, sort_keys=True) + "\n",
         encoding="utf-8",
     )
 

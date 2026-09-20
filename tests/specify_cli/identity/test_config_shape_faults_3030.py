@@ -32,6 +32,7 @@ Two properties follow, and they are the same rule in the two directions:
   false``, their comments and every other section with an identity-only document —
   destroying exactly what could not be read.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -83,22 +84,16 @@ def _config(tmp_path: Path, case: str, body: str) -> Path:
 
 class TestReadingAStructurallyInvalidConfig:
     @pytest.mark.parametrize("case", sorted(NON_MAPPING_SHAPES))
-    def test_a_non_mapping_document_yields_no_identity_rather_than_raising(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_a_non_mapping_document_yields_no_identity_rather_than_raising(self, tmp_path: Path, case: str) -> None:
         """Its docstring promises graceful handling; four shapes did not get it."""
         path = _config(tmp_path, case, NON_MAPPING_SHAPES[case])
 
         identity = load_identity(path)
 
-        assert identity == ProjectIdentity(), (
-            "a file that exists and cannot be understood carries no identity"
-        )
+        assert identity == ProjectIdentity(), "a file that exists and cannot be understood carries no identity"
 
     @pytest.mark.parametrize("case", sorted(ALREADY_ABSENCE_SHAPES))
-    def test_an_empty_document_is_absence_and_keeps_working(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_an_empty_document_is_absence_and_keeps_working(self, tmp_path: Path, case: str) -> None:
         """Regression guard: ``yaml.load() or {}`` already handled these."""
         path = _config(tmp_path, case, ALREADY_ABSENCE_SHAPES[case])
 
@@ -107,14 +102,10 @@ class TestReadingAStructurallyInvalidConfig:
     def test_a_valid_config_still_loads(self, tmp_path: Path) -> None:
         path = _config(tmp_path, "valid", _VALID)
 
-        assert str(load_identity(path).project_uuid) == (
-            "11111111-1111-1111-1111-111111111111"
-        )
+        assert str(load_identity(path).project_uuid) == ("11111111-1111-1111-1111-111111111111")
 
     @pytest.mark.parametrize("case", sorted(NON_MAPPING_SHAPES))
-    def test_the_read_only_resolver_answers_instead_of_crashing(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_the_read_only_resolver_answers_instead_of_crashing(self, tmp_path: Path, case: str) -> None:
         """``resolve_identity`` is on side-effect-free policy paths (sync, accept).
 
         This is the shape that reached ``sync/routing.py``: a policy read that must
@@ -131,9 +122,7 @@ class TestReadingAStructurallyInvalidConfig:
 
 class TestWritingOverAConfigThatCouldNotBeRead:
     @pytest.mark.parametrize("case", sorted(NON_MAPPING_SHAPES))
-    def test_atomic_write_refuses_rather_than_replacing_the_document(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_atomic_write_refuses_rather_than_replacing_the_document(self, tmp_path: Path, case: str) -> None:
         """Refuse with a typed error, not an opaque ``AttributeError``/``TypeError``.
 
         ``atomic_write_config`` merges ``config["project"]`` into the loaded
@@ -149,9 +138,7 @@ class TestWritingOverAConfigThatCouldNotBeRead:
 
         assert "config.yaml" in str(excinfo.value), "the operator needs the path"
         assert path.read_bytes() == before, "the unreadable document must survive"
-        assert [p.name for p in path.parent.iterdir()] == ["config.yaml"], (
-            "no temp file may be left behind"
-        )
+        assert [p.name for p in path.parent.iterdir()] == ["config.yaml"], "no temp file may be left behind"
 
     def test_atomic_write_refuses_on_unparseable_yaml_too(self, tmp_path: Path) -> None:
         """The fifth crash, on the write path only.
@@ -168,21 +155,15 @@ class TestWritingOverAConfigThatCouldNotBeRead:
 
         assert path.read_bytes() == before
 
-    def test_atomic_write_still_merges_into_a_valid_document(
-        self, tmp_path: Path
-    ) -> None:
+    def test_atomic_write_still_merges_into_a_valid_document(self, tmp_path: Path) -> None:
         """Regression guard: the ordinary merge must be untouched.
 
         Other sections have to survive an identity write — that is the whole reason
         this function re-loads the file instead of overwriting it.
         """
-        path = _config(
-            tmp_path, "merge", "sync:\n  enabled: false\nproject:\n  slug: old\n"
-        )
+        path = _config(tmp_path, "merge", "sync:\n  enabled: false\nproject:\n  slug: old\n")
 
-        atomic_write_config(
-            path, ProjectIdentity(project_slug="new").with_defaults(path.parent.parent)
-        )
+        atomic_write_config(path, ProjectIdentity(project_slug="new").with_defaults(path.parent.parent))
 
         text = path.read_text(encoding="utf-8")
         assert "enabled: false" in text, "an unrelated section must survive"
@@ -191,9 +172,7 @@ class TestWritingOverAConfigThatCouldNotBeRead:
 
 class TestTheWriteBoundaryDegradesInsteadOfCrashing:
     @pytest.mark.parametrize("case", sorted(NON_MAPPING_SHAPES))
-    def test_ensure_identity_returns_an_in_memory_identity(
-        self, tmp_path: Path, case: str
-    ) -> None:
+    def test_ensure_identity_returns_an_in_memory_identity(self, tmp_path: Path, case: str) -> None:
         """``ensure_identity`` has four production callers (``init``, ``tracker``,
         history-import). None of them may learn a new exception — a new error nobody
         catches is a crash moved, not fixed. It degrades down the path it already
@@ -207,9 +186,7 @@ class TestTheWriteBoundaryDegradesInsteadOfCrashing:
         assert identity.is_complete, "callers depend on a usable identity"
         assert path.read_bytes() == before, "the file they could not read survives"
 
-    def test_ensure_identity_degrades_on_unparseable_yaml_too(
-        self, tmp_path: Path
-    ) -> None:
+    def test_ensure_identity_degrades_on_unparseable_yaml_too(self, tmp_path: Path) -> None:
         path = _config(tmp_path, "unparseable-ensure", "a: [unclosed\n")
         before = path.read_bytes()
 
@@ -218,9 +195,7 @@ class TestTheWriteBoundaryDegradesInsteadOfCrashing:
         assert identity.is_complete
         assert path.read_bytes() == before
 
-    def test_ensure_identity_still_persists_over_a_readable_config(
-        self, tmp_path: Path
-    ) -> None:
+    def test_ensure_identity_still_persists_over_a_readable_config(self, tmp_path: Path) -> None:
         """Regression guard: minting onto an understandable file still happens."""
         path = _config(tmp_path, "mintable", "project:\n  slug: keep-me\n")
 
@@ -243,18 +218,14 @@ class TestTheWriteBoundaryDegradesInsteadOfCrashing:
             "# keep me: this file is reviewed in diffs\nsync:\n  enabled: false\n",
         )
 
-        atomic_write_config(
-            path, ProjectIdentity().with_defaults(path.parent.parent)
-        )
+        atomic_write_config(path, ProjectIdentity().with_defaults(path.parent.parent))
 
         text = path.read_text(encoding="utf-8")
         assert "# keep me: this file is reviewed in diffs" in text
         assert "enabled: false" in text
 
-    def test_the_operator_is_told_the_real_cause_not_unwritable(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        """"Config not writable" would send them to chmod; the fix is a YAML error.
+    def test_the_operator_is_told_the_real_cause_not_unwritable(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        """ "Config not writable" would send them to chmod; the fix is a YAML error.
 
         The file here IS writable. Reporting the wrong cause is the misdirected-denial
         class this mission keeps closing, so the in-memory warning names which of the

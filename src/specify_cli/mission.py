@@ -697,8 +697,7 @@ def validate_deliverables_path(deliverables_path: str) -> tuple[bool, str]:
     if any(char in raw for char in _FORBIDDEN_DELIVERABLES_CHARS):
         return (
             False,
-            "deliverables_path must not contain control characters or bidirectional "
-            "text overrides (e.g. null bytes, RTL/LTR overrides)",
+            "deliverables_path must not contain control characters or bidirectional text overrides (e.g. null bytes, RTL/LTR overrides)",
         )
 
     stripped = raw.strip()
@@ -742,8 +741,7 @@ def validate_deliverables_path(deliverables_path: str) -> tuple[bool, str]:
     except ValueError:
         return (
             False,
-            "deliverables_path must resolve to a location inside the project root "
-            "(symlink escape detected)",
+            "deliverables_path must resolve to a location inside the project root (symlink escape detected)",
         )
 
     relative_posix = relative.as_posix().lower()

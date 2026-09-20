@@ -34,6 +34,7 @@ _HEAVY_MODULES = (
     "specify_cli.status.reducer",
 )
 
+
 def _drive(command: object, instruction: str, *, line: str) -> str:
     """Run Typer completion against ``command`` and capture its stdout.
 
@@ -45,10 +46,7 @@ def _drive(command: object, instruction: str, *, line: str) -> str:
     from typer.completion import shell_complete
 
     completion_init()
-    saved = {
-        key: os.environ.get(key)
-        for key in ("COMP_WORDS", "COMP_CWORD", "_TYPER_COMPLETE_ARGS")
-    }
+    saved = {key: os.environ.get(key) for key in ("COMP_WORDS", "COMP_CWORD", "_TYPER_COMPLETE_ARGS")}
     try:
         os.environ["COMP_WORDS"] = line
         os.environ["COMP_CWORD"] = str(len(line.split()))
@@ -96,10 +94,7 @@ def test_manifest_matches_live_cli(monkeypatch: pytest.MonkeyPatch) -> None:
     live = completion.generate_manifest()
     committed = completion._load_manifest()
 
-    assert live == committed, (
-        "completion manifest is stale; regenerate with "
-        "`SPEC_KITTY_ENABLE_SAAS_SYNC=1 python -m specify_cli.completion --regenerate`"
-    )
+    assert live == committed, "completion manifest is stale; regenerate with `SPEC_KITTY_ENABLE_SAAS_SYNC=1 python -m specify_cli.completion --regenerate`"
 
 
 # --------------------------------------------------------------------------- #

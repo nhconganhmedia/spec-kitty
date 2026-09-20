@@ -49,9 +49,7 @@ _ISSUE_MATRIX_MD_FILENAME = "issue-matrix.md"
 # T027a -- every LIVE consumer module imports a canonical reader symbol
 # ---------------------------------------------------------------------------
 
-_CANONICAL_READER_SYMBOLS: frozenset[str] = frozenset(
-    {"validate_issue_matrix", "issue_matrix_artifact_present", "load_issue_matrix"}
-)
+_CANONICAL_READER_SYMBOLS: frozenset[str] = frozenset({"validate_issue_matrix", "issue_matrix_artifact_present", "load_issue_matrix"})
 
 # The live consumer set (m2/E2 scope boundary, WP06 prompt "Context"): doctor,
 # post-merge review (Gate 4), finalize-lint, and the shared approval-blocker
@@ -141,9 +139,7 @@ def _stub_write_artifact_committed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(write_seam, "write_artifact", _fake_write_artifact)
 
 
-def test_canonical_writer_never_emits_markdown(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_canonical_writer_never_emits_markdown(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from specify_cli.tasks.issue_matrix import IssueMatrixEntry, write_issue_matrix
 
     _stub_write_artifact_committed(monkeypatch)
@@ -162,9 +158,7 @@ def test_canonical_writer_never_emits_markdown(
     assert not (feature_dir / _ISSUE_MATRIX_MD_FILENAME).exists()
 
 
-def test_finalize_scaffold_never_emits_markdown_for_a_fresh_mission(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_finalize_scaffold_never_emits_markdown_for_a_fresh_mission(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import mission_runtime
     from specify_cli.tasks.issue_matrix import scaffold_issue_matrix
 
@@ -201,9 +195,7 @@ def test_finalize_scaffold_never_emits_markdown_for_a_fresh_mission(
 # touching ``issue-matrix.md``), not a static import check.
 
 
-def test_finalize_lint_behaviourally_validates_a_json_only_mission(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_finalize_lint_behaviourally_validates_a_json_only_mission(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     from specify_cli.cli.commands.agent.mission_finalize import (
         _advisory_issue_matrix_lint,
     )
@@ -228,9 +220,7 @@ def test_finalize_lint_behaviourally_validates_a_json_only_mission(
     assert not (planning_dir / _ISSUE_MATRIX_MD_FILENAME).exists()
 
 
-def test_finalize_lint_is_silent_for_a_valid_json_only_mission(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_finalize_lint_is_silent_for_a_valid_json_only_mission(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     from specify_cli.cli.commands.agent.mission_finalize import (
         _advisory_issue_matrix_lint,
     )
@@ -238,9 +228,7 @@ def test_finalize_lint_is_silent_for_a_valid_json_only_mission(
     planning_dir = tmp_path / "kitty-specs" / "999-json-only-demo-valid"
     planning_dir.mkdir(parents=True)
     (planning_dir / _ISSUE_MATRIX_JSON_FILENAME).write_text(
-        json.dumps(
-            {"schema_version": 1, "rows": {"#1": {"verdict": "fixed", "evidence_ref": "x"}}}
-        ),
+        json.dumps({"schema_version": 1, "rows": {"#1": {"verdict": "fixed", "evidence_ref": "x"}}}),
         encoding="utf-8",
     )
 
@@ -269,16 +257,12 @@ def test_doctrine_skills_name_the_json_artifact() -> None:
     for skill_path in skill_paths:
         text = skill_path.read_text(encoding="utf-8")
         assert _ISSUE_MATRIX_JSON_FILENAME in text, (
-            f"{skill_path.relative_to(_REPO_ROOT)} never mentions "
-            f"{_ISSUE_MATRIX_JSON_FILENAME} -- still teaches the retired "
-            "markdown path only."
+            f"{skill_path.relative_to(_REPO_ROOT)} never mentions {_ISSUE_MATRIX_JSON_FILENAME} -- still teaches the retired markdown path only."
         )
 
 
 def test_glossary_pack_names_the_json_artifact() -> None:
-    glossary_path = (
-        _REPO_ROOT / "packs/built-in/glossary_packs/spec-kitty-core.glossary-pack.yaml"
-    )
+    glossary_path = _REPO_ROOT / "packs/built-in/glossary_packs/spec-kitty-core.glossary-pack.yaml"
     text = glossary_path.read_text(encoding="utf-8")
     assert _ISSUE_MATRIX_JSON_FILENAME in text
 

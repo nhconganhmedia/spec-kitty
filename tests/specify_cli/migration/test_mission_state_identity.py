@@ -79,12 +79,8 @@ def _make_primary_and_lane(tmp_path, *, primary_status: str, lane_status: str):
 
 def test_foreign_lane_fix_fails_closed_naming_primary(tmp_path) -> None:
     """A foreign-lane ``--fix`` refuses, names the primary, leaves it unchanged."""
-    primary, lane = _make_primary_and_lane(
-        tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
-    primary_status_before = (primary / "kitty-specs" / _SLUG / "status.json").read_text(
-        encoding="utf-8"
-    )
+    primary, lane = _make_primary_and_lane(tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
+    primary_status_before = (primary / "kitty-specs" / _SLUG / "status.json").read_text(encoding="utf-8")
 
     with pytest.raises(MissionStateWriteRefused) as exc:
         # resolved_root is the re-anchored #2320 primary (kept, not flipped).
@@ -94,16 +90,12 @@ def test_foreign_lane_fix_fails_closed_naming_primary(tmp_path) -> None:
     assert exc.value.refusal.refusal_path == primary
     assert str(primary) in str(exc.value)  # message names the primary verbatim
     # Primary status home is untouched — no silent canonicalization, no lane write.
-    assert (
-        primary / "kitty-specs" / _SLUG / "status.json"
-    ).read_text(encoding="utf-8") == primary_status_before
+    assert (primary / "kitty-specs" / _SLUG / "status.json").read_text(encoding="utf-8") == primary_status_before
 
 
 def test_owner_fix_proceeds_without_refusal(tmp_path) -> None:
     """An owner invocation (cwd IS the primary) is a silent no-op — #2320 fix path."""
-    primary, _lane = _make_primary_and_lane(
-        tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, _lane = _make_primary_and_lane(tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
     # Must NOT raise: owner writes to the primary it owns.
     enforce_primary_write_ownership(primary, primary)
@@ -116,9 +108,7 @@ def test_explicit_root_that_is_not_the_invocation_primary_is_ignored(tmp_path) -
     itself runs from a lane worktree): the enforcement keys off the guard's
     ``canonical_target``, so an unrelated target never trips a refusal.
     """
-    _primary, lane = _make_primary_and_lane(
-        tmp_path, primary_status="{}", lane_status="{}"
-    )
+    _primary, lane = _make_primary_and_lane(tmp_path, primary_status="{}", lane_status="{}")
     unrelated = (tmp_path / "unrelated").resolve()
     unrelated.mkdir(parents=True, exist_ok=True)
 
@@ -130,9 +120,7 @@ def test_explicit_root_that_is_not_the_invocation_primary_is_ignored(tmp_path) -
 
 def test_foreign_lane_audit_reports_honest_disagreement(tmp_path) -> None:
     """From a lane, audit reports the invoking-vs-primary mismatch (no false-green)."""
-    primary, lane = _make_primary_and_lane(
-        tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, lane = _make_primary_and_lane(tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
     disagreements = audit_invocation_disagreement(lane, primary, mission=_SLUG)
 
@@ -147,18 +135,14 @@ def test_foreign_lane_audit_reports_honest_disagreement(tmp_path) -> None:
 def test_agreeing_lane_audit_reports_no_disagreement(tmp_path) -> None:
     """Identical state on both sides yields no disagreement (no false-red)."""
     same = '{"v": "identical"}'
-    primary, lane = _make_primary_and_lane(
-        tmp_path, primary_status=same, lane_status=same
-    )
+    primary, lane = _make_primary_and_lane(tmp_path, primary_status=same, lane_status=same)
 
     assert audit_invocation_disagreement(lane, primary, mission=_SLUG) == []
 
 
 def test_owner_audit_never_disagrees_with_itself(tmp_path) -> None:
     """An owner audit (cwd IS the primary) has no cross-checkout read to disagree."""
-    primary, _lane = _make_primary_and_lane(
-        tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}'
-    )
+    primary, _lane = _make_primary_and_lane(tmp_path, primary_status='{"v": "primary"}', lane_status='{"v": "lane"}')
 
     assert audit_invocation_disagreement(primary, primary, mission=_SLUG) == []
 

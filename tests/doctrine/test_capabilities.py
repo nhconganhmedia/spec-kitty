@@ -5,8 +5,8 @@ Test suite for RoleCapabilities.
 from charter.offering.agent_profiles.capabilities import DEFAULT_ROLE_CAPABILITIES, RoleCapabilities, get_capabilities
 from charter.offering.agent_profiles.profile import AgentProfile, Role
 import pytest
-pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
+pytestmark = [pytest.mark.fast, pytest.mark.doctrine]
 
 
 class TestRoleCapabilities:

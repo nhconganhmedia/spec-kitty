@@ -63,13 +63,13 @@ class NodeKind(StrEnum):
     # from the doctrine-owned kind below so that deletion is a clean, isolated
     # excision and does not disturb ``GLOSSARY_PACK``.
     GLOSSARY_SCOPE = "glossary_scope"
-    GLOSSARY = "glossary"           # URN prefix: "glossary:<id>"
+    GLOSSARY = "glossary"  # URN prefix: "glossary:<id>"
     # -- Doctrine-owned node (keep) -----------------------------------------
     # ``GLOSSARY_PACK`` is a first-order, charter-activatable doctrine kind
     # addressed by the underscore URN ``glossary_pack:<id>``. It is NOT part of
     # the retiring runtime term nodes above and survives Mission C.
     GLOSSARY_PACK = "glossary_pack"  # URN prefix: "glossary_pack:<id>"
-    MISSION_TYPE = "mission_type"   # URN prefix: "mission_type:<id>"; carries `requires`->action_sequence steps, `scope`->type-wide governance (#3604)
+    MISSION_TYPE = "mission_type"  # URN prefix: "mission_type:<id>"; carries `requires`->action_sequence steps, `scope`->type-wide governance (#3604)
     # URN prefix: "anti_pattern:<id>"; `rejects` targets only (D2) -- never
     # activated as a live rule; finer marking (e.g. "smell") lives in
     # `DRGNode.tags`, not a second `NodeKind` member.
@@ -225,7 +225,7 @@ RELATION_DESCRIPTIONS: dict[Relation, str] = {
         "distinction the graph already encodes structurally (a scope "
         "edge's source-node kind -- ``action`` vs ``mission_type`` -- tells "
         "a consumer which grain it is without a second relation name). Do "
-        "NOT split this relation to \"fix\" the overload; if a genuine "
+        'NOT split this relation to "fix" the overload; if a genuine '
         "behavioral need for two distinct relations ever arises, that is a "
         "new decision to make explicitly, not a refactor of this one."
     ),
@@ -371,15 +371,10 @@ class DRGNode(BaseModel):
     @model_validator(mode="after")
     def _validate_urn(self) -> Self:
         if not _URN_RE.match(self.urn):
-            raise ValueError(
-                f"URN {self.urn!r} does not match pattern "
-                f"{_URN_RE.pattern}"
-            )
+            raise ValueError(f"URN {self.urn!r} does not match pattern {_URN_RE.pattern}")
         prefix = self.urn.split(":", 1)[0]
         if prefix != self.kind.value:
-            raise ValueError(
-                f"URN prefix {prefix!r} does not match kind {self.kind.value!r}"
-            )
+            raise ValueError(f"URN prefix {prefix!r} does not match kind {self.kind.value!r}")
         return self
 
 
@@ -406,10 +401,7 @@ class DRGEdge(BaseModel):
         for field_name in ("source", "target"):
             value = getattr(self, field_name)
             if not _URN_RE.match(value):
-                raise ValueError(
-                    f"Edge {field_name} {value!r} does not match URN pattern "
-                    f"{_URN_RE.pattern}"
-                )
+                raise ValueError(f"Edge {field_name} {value!r} does not match URN pattern {_URN_RE.pattern}")
         return self
 
 
@@ -444,11 +436,7 @@ class DRGGraph(BaseModel):
         relation: Relation | None = None,
     ) -> list[DRGEdge]:
         """Return outgoing edges from *urn*, optionally filtered by *relation*."""
-        return [
-            e
-            for e in self.edges
-            if e.source == urn and (relation is None or e.relation == relation)
-        ]
+        return [e for e in self.edges if e.source == urn and (relation is None or e.relation == relation)]
 
     def edges_to(
         self,
@@ -464,11 +452,7 @@ class DRGGraph(BaseModel):
         Implemented as an O(E) scan for parity with :meth:`edges_from`; no
         reverse index is pre-built.
         """
-        return [
-            e
-            for e in self.edges
-            if e.target == urn and (relation is None or e.relation == relation)
-        ]
+        return [e for e in self.edges if e.target == urn and (relation is None or e.relation == relation)]
 
     def get_node(self, urn: str) -> DRGNode | None:
         """Look up a node by URN, or ``None`` if not found."""

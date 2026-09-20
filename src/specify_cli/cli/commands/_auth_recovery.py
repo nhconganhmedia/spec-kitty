@@ -90,12 +90,7 @@ def emit_structured_stderr(*, teamspace: str, command_name: str) -> None:
         command=<name> action=run-spec-kitty-auth-login
 
     """
-    line = (
-        "spec-kitty: logged_out_on_connected_teamspace "
-        f"teamspace={teamspace} "
-        f"command={command_name} "
-        "action=run-spec-kitty-auth-login\n"
-    )
+    line = f"spec-kitty: logged_out_on_connected_teamspace teamspace={teamspace} command={command_name} action=run-spec-kitty-auth-login\n"
     try:
         sys.stderr.write(line)
         sys.stderr.flush()

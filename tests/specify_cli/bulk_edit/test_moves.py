@@ -72,9 +72,7 @@ class TestLegacyBackwardCompat:
         assert omap is not None
         assert omap.moves == []
 
-    def test_legacy_map_structural_validation_unchanged(
-        self, tmp_path: Path
-    ) -> None:
+    def test_legacy_map_structural_validation_unchanged(self, tmp_path: Path) -> None:
         _write(tmp_path, _legacy_map_data())
         omap = load_occurrence_map(tmp_path)
         assert omap is not None
@@ -206,10 +204,7 @@ def _map_with_moves(moves: list[MoveEntry]) -> OccurrenceMap:
         "target": {"term": "oldName", "operation": "rename"},
         "categories": copy.deepcopy(ALL_EIGHT_CATEGORIES),
         "exceptions": [],
-        "moves": [
-            {"from": m.sources, "to": m.destination, **({"reason": m.reason} if m.reason else {})}
-            for m in moves
-        ],
+        "moves": [{"from": m.sources, "to": m.destination, **({"reason": m.reason} if m.reason else {})} for m in moves],
     }
     return OccurrenceMap(
         target_term="oldName",
@@ -228,50 +223,36 @@ class TestMoveDiffExemption:
         # logs_telemetry is do_not_change; a .yaml normally classifies as
         # serialized_keys (also do_not_change). Declaring the path as a move
         # source must exempt it.
-        omap = _map_with_moves(
-            [MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")]
-        )
+        omap = _map_with_moves([MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")])
         a = assess_file("config/old.yaml", omap)
         assert a.violation is False
         assert a.source == "move"
 
     def test_move_destination_exempt(self) -> None:
-        omap = _map_with_moves(
-            [MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")]
-        )
+        omap = _map_with_moves([MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")])
         a = assess_file("config/new.yaml", omap)
         assert a.violation is False
         assert a.source == "move"
 
     def test_directory_prefix_destination_covers_children(self) -> None:
-        omap = _map_with_moves(
-            [MoveEntry(sources=["src/legacy/auth"], destination="src/auth")]
-        )
+        omap = _map_with_moves([MoveEntry(sources=["src/legacy/auth"], destination="src/auth")])
         a = assess_file("src/auth/login.py", omap)
         assert a.violation is False
         assert a.source == "move"
 
     def test_glob_source_matches(self) -> None:
-        omap = _map_with_moves(
-            [MoveEntry(sources=["src/legacy/**/*.py"], destination="src/new")]
-        )
+        omap = _map_with_moves([MoveEntry(sources=["src/legacy/**/*.py"], destination="src/new")])
         a = assess_file("src/legacy/auth/login.py", omap)
         assert a.violation is False
         assert a.source == "move"
 
     def test_non_move_do_not_change_still_blocks(self) -> None:
         # A serialized_keys file NOT covered by any move still blocks.
-        omap = _map_with_moves(
-            [MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")]
-        )
+        omap = _map_with_moves([MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")])
         a = assess_file("config/unrelated.yaml", omap)
         assert a.violation is True
 
     def test_check_diff_compliance_passes_with_moves(self) -> None:
-        omap = _map_with_moves(
-            [MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")]
-        )
-        result = check_diff_compliance(
-            ["config/old.yaml", "config/new.yaml"], omap
-        )
+        omap = _map_with_moves([MoveEntry(sources=["config/old.yaml"], destination="config/new.yaml")])
+        result = check_diff_compliance(["config/old.yaml", "config/new.yaml"], omap)
         assert result.passed is True

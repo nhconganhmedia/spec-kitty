@@ -104,9 +104,7 @@ _MISCOUNTED_VERDICT = (
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args], cwd=str(repo), capture_output=True, text=True, check=True
-    )
+    return subprocess.run(["git", *args], cwd=str(repo), capture_output=True, text=True, check=True)
 
 
 def _init_repo(repo: Path) -> None:
@@ -122,7 +120,9 @@ def _show(repo: Path, ref: str, rel_path: str) -> str:
     independent of whatever happens to be checked out in *repo*'s worktree."""
     result = subprocess.run(
         ["git", "show", f"{ref}:{rel_path}"],
-        cwd=str(repo), capture_output=True, text=True,
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         raise AssertionError(f"git show {ref}:{rel_path} failed: {result.stderr}")
@@ -250,7 +250,10 @@ def test_merge_driver_review_cycle_missing_theirs_side_embeds_both_without_raisi
 def _check_attr(repo: Path, rel_path: str) -> str:
     result = subprocess.run(
         ["git", "check-attr", "merge", "--", rel_path],
-        cwd=str(repo), capture_output=True, text=True, check=True,
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
+        check=True,
     )
     return result.stdout.strip().rsplit(": ", 1)[-1]
 
@@ -263,19 +266,11 @@ def test_review_cycle_pattern_is_filename_anchored_not_directory_anchored(tmp_pa
     _git(repo, "add", ".gitattributes")
     _git(repo, "commit", "-m", "attrs")
 
-    assert (
-        _check_attr(repo, "kitty-specs/m1/tasks/WP01/review-cycle-1.md")
-        == "spec-kitty-review-cycle"
-    )
-    assert (
-        _check_attr(repo, "kitty-specs/m1/tasks/WP01/review-cycle-12.md")
-        == "spec-kitty-review-cycle"
-    )
+    assert _check_attr(repo, "kitty-specs/m1/tasks/WP01/review-cycle-1.md") == "spec-kitty-review-cycle"
+    assert _check_attr(repo, "kitty-specs/m1/tasks/WP01/review-cycle-12.md") == "spec-kitty-review-cycle"
     # Negative case 1: the deliberately-PRIMARY, single-writer baseline
     # artifact living in the SAME per-wp directory must NOT be swept in.
-    assert (
-        _check_attr(repo, "kitty-specs/m1/tasks/WP01/baseline-tests.json") == "unspecified"
-    )
+    assert _check_attr(repo, "kitty-specs/m1/tasks/WP01/baseline-tests.json") == "unspecified"
     # Negative case 2: WP task files live directly under tasks/, never
     # nested under a per-wp subdirectory -- must also not be swept in.
     assert _check_attr(repo, "kitty-specs/m1/tasks/WP01.md") == "unspecified"
@@ -301,9 +296,7 @@ def test_migration_installs_driver_and_is_idempotent(tmp_path: Path) -> None:
 
     attributes = (repo / ".gitattributes").read_text(encoding="utf-8")
     assert _REVIEW_CYCLE_ATTR_ENTRY in attributes
-    driver_value = _git(
-        repo, "config", "--local", "--get", "merge.spec-kitty-review-cycle.driver"
-    ).stdout.strip()
+    driver_value = _git(repo, "config", "--local", "--get", "merge.spec-kitty-review-cycle.driver").stdout.strip()
     assert driver_value == "spec-kitty merge-driver-review-cycle %O %A %B"
 
     # Idempotent: a second apply is a genuine no-op.
@@ -335,9 +328,7 @@ def test_migration_preserves_unrelated_gitattributes_content(tmp_path: Path) -> 
 
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox  # shells out to `spec-kitty merge-driver-*` via git
-def test_create_window_collision_clobbers_target_without_driver_registered(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_create_window_collision_clobbers_target_without_driver_registered(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """RED-FIRST (T080): reproduce the #2804-shaped create-window clobber
     through ``specify_cli.lanes.merge._merge_branch_into`` -- the exact
     function ``spec-kitty merge`` calls for mission->target integration --
@@ -350,12 +341,9 @@ def test_create_window_collision_clobbers_target_without_driver_registered(
     pre = _show(repo, "main", _REVIEW_CYCLE_REL_PATH)
     assert pre == _TARGET_VERDICT, "precondition: target must start with its genuine verdict"
 
-    without_review_cycle = tuple(
-        spec for spec in _MERGE_DRIVERS if spec.config_key != "spec-kitty-review-cycle"
-    )
+    without_review_cycle = tuple(spec for spec in _MERGE_DRIVERS if spec.config_key != "spec-kitty-review-cycle")
     assert len(without_review_cycle) == len(_MERGE_DRIVERS) - 1, (
-        "sanity: the review-cycle driver must actually be registered in "
-        "_MERGE_DRIVERS for excluding it to mean anything"
+        "sanity: the review-cycle driver must actually be registered in _MERGE_DRIVERS for excluding it to mean anything"
     )
     monkeypatch.setattr("specify_cli.lanes.merge._MERGE_DRIVERS", without_review_cycle)
 
@@ -378,7 +366,8 @@ def test_create_window_collision_clobbers_target_without_driver_registered(
 @pytest.mark.git_repo
 @pytest.mark.non_sandbox  # shells out to `spec-kitty merge-driver-*` via git
 def test_driver_registered_embeds_both_verdicts_without_aborting_real_squash_merge(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """WP09/FR-014 re-pin of the T080 GREEN case: the SAME real merge path,
     with the review-cycle driver present in the real, unmodified
@@ -405,14 +394,8 @@ def test_driver_registered_embeds_both_verdicts_without_aborting_real_squash_mer
     assert changed is True, "the squash must succeed (non-aborting driver)"
 
     post = _show(repo, "main", _REVIEW_CYCLE_REL_PATH)
-    assert _TARGET_VERDICT in post, (
-        "the target's genuine verdict must survive verbatim, embedded inside "
-        f"the conflict-marked document. Got: {post!r}"
-    )
-    assert _MISCOUNTED_VERDICT in post, (
-        "the incoming (mission-side) verdict must also survive verbatim -- "
-        f"never lost/fabricated. Got: {post!r}"
-    )
+    assert _TARGET_VERDICT in post, f"the target's genuine verdict must survive verbatim, embedded inside the conflict-marked document. Got: {post!r}"
+    assert _MISCOUNTED_VERDICT in post, f"the incoming (mission-side) verdict must also survive verbatim -- never lost/fabricated. Got: {post!r}"
     assert "<<<<<<<" in post, "both verdicts must stay demarcated, never blended"
 
 
@@ -457,7 +440,10 @@ def test_driver_registered_via_absolute_interpreter_path_survives_real_git_merge
 
     result = subprocess.run(
         ["git", "merge", "--squash", "-X", "theirs", mission_branch],
-        cwd=str(repo), capture_output=True, text=True, env=_hermetic_env(),
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
+        env=_hermetic_env(),
     )
     assert result.returncode == 0, (
         "expected the review-cycle driver to resolve WITHOUT aborting on a "
@@ -468,12 +454,10 @@ def test_driver_registered_via_absolute_interpreter_path_survives_real_git_merge
 
     working_tree_content = (repo / _REVIEW_CYCLE_REL_PATH).read_text(encoding="utf-8")
     assert _TARGET_VERDICT in working_tree_content, (
-        "the target's genuine verdict must survive verbatim, embedded inside "
-        f"the conflict-marked document. Got: {working_tree_content!r}"
+        f"the target's genuine verdict must survive verbatim, embedded inside the conflict-marked document. Got: {working_tree_content!r}"
     )
     assert _MISCOUNTED_VERDICT in working_tree_content, (
-        "the incoming (mission-side) verdict must also survive verbatim -- "
-        f"never lost. Got: {working_tree_content!r}"
+        f"the incoming (mission-side) verdict must also survive verbatim -- never lost. Got: {working_tree_content!r}"
     )
     assert "<<<<<<<" in working_tree_content
     assert ">>>>>>>" in working_tree_content

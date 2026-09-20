@@ -41,6 +41,7 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
+
 def _make_mission_dir(
     parent: Path,
     slug: str,
@@ -223,12 +224,8 @@ class TestDuplicateIdsToFindings:
         """
         shared_id = "01ABCDEFGHJKMNPQRSTVWXYZ01"
 
-        dir_a = _make_mission_dir(
-            tmp_path, "001-first", mission_id=shared_id, mission_number=1
-        )
-        dir_b = _make_mission_dir(
-            tmp_path, "002-second", mission_id=shared_id, mission_number=2
-        )
+        dir_a = _make_mission_dir(tmp_path, "001-first", mission_id=shared_id, mission_number=1)
+        dir_b = _make_mission_dir(tmp_path, "002-second", mission_id=shared_id, mission_number=2)
 
         from specify_cli.status.identity_audit import classify_mission as cm
 
@@ -266,12 +263,8 @@ class TestDuplicateIdsToFindings:
 
     def test_unique_mission_ids_returns_empty(self, tmp_path: Path) -> None:
         """Missions with distinct mission_ids → empty findings."""
-        dir_a = _make_mission_dir(
-            tmp_path, "001-a", mission_id="01AAAAAAAAAAAAAAAAAAAAAAAAA1", mission_number=1
-        )
-        dir_b = _make_mission_dir(
-            tmp_path, "002-b", mission_id="01BBBBBBBBBBBBBBBBBBBBBBBBB1", mission_number=2
-        )
+        dir_a = _make_mission_dir(tmp_path, "001-a", mission_id="01AAAAAAAAAAAAAAAAAAAAAAAAA1", mission_number=1)
+        dir_b = _make_mission_dir(tmp_path, "002-b", mission_id="01BBBBBBBBBBBBBBBBBBBBBBBBB1", mission_number=2)
 
         from specify_cli.status.identity_audit import classify_mission as cm
 
@@ -319,9 +312,7 @@ class TestSelectorGroupsToFindings:
         groups = find_ambiguous_selectors(states)
 
         # The "042" numeric handle should be ambiguous
-        assert any(len(v) >= 2 for v in groups.values()), (
-            "Expected at least one ambiguous handle; groups were: " + repr(groups)
-        )
+        assert any(len(v) >= 2 for v in groups.values()), "Expected at least one ambiguous handle; groups were: " + repr(groups)
 
         slug_to_dir = {"042-foo": dir_a, "042-bar": dir_b}
         findings = selector_groups_to_findings(groups, slug_to_dir)

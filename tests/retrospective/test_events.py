@@ -201,21 +201,40 @@ class TestEventTypeShapes:
         """When serialized with sort_keys=True, the keys must be already sorted."""
         events = [
             RetrospectiveCaptured(
-                event_id="A" * 26, lamport=1, at="2026-05-19T10:00:00+00:00",
-                actor=_RUNTIME_ACTOR, mission_id=MISSION_ID, mission_slug=MISSION_SLUG,
-                findings_status="ran_no_findings", record_path="/path",
-                generator_version="1.0", policy_source={}, provenance_kind="explicit_create",
+                event_id="A" * 26,
+                lamport=1,
+                at="2026-05-19T10:00:00+00:00",
+                actor=_RUNTIME_ACTOR,
+                mission_id=MISSION_ID,
+                mission_slug=MISSION_SLUG,
+                findings_status="ran_no_findings",
+                record_path="/path",
+                generator_version="1.0",
+                policy_source={},
+                provenance_kind="explicit_create",
             ),
             RetrospectiveCaptureFailed(
-                event_id="B" * 26, lamport=2, at="2026-05-19T10:01:00+00:00",
-                actor=_RUNTIME_ACTOR, mission_id=MISSION_ID, mission_slug=MISSION_SLUG,
-                failure_category="other", failure_message="err", policy_source={},
+                event_id="B" * 26,
+                lamport=2,
+                at="2026-05-19T10:01:00+00:00",
+                actor=_RUNTIME_ACTOR,
+                mission_id=MISSION_ID,
+                mission_slug=MISSION_SLUG,
+                failure_category="other",
+                failure_message="err",
+                policy_source={},
                 attempted_provenance_kind="runtime_post_completion",
             ),
             RetrospectiveSkipped(
-                event_id="C" * 26, lamport=3, at="2026-05-19T10:02:00+00:00",
-                actor=_HUMAN_ACTOR, mission_id=MISSION_ID, mission_slug=MISSION_SLUG,
-                skip_reason="test reason", skip_reason_source="cli_flag", policy_source={},
+                event_id="C" * 26,
+                lamport=3,
+                at="2026-05-19T10:02:00+00:00",
+                actor=_HUMAN_ACTOR,
+                mission_id=MISSION_ID,
+                mission_slug=MISSION_SLUG,
+                skip_reason="test reason",
+                skip_reason_source="cli_flag",
+                policy_source={},
             ),
         ]
         for event in events:
@@ -286,7 +305,8 @@ class TestEmitCaptured:
         feature_dir.mkdir(parents=True)
 
         event = emit_captured(
-            record, tmp_path,
+            record,
+            tmp_path,
             provenance_kind="synthesize_fabricate",
             actor=_RUNTIME_ACTOR,
         )
@@ -336,7 +356,9 @@ class TestEmitCaptureFailed:
         feature_dir.mkdir(parents=True)
 
         event = emit_capture_failed(
-            MISSION_ID, MISSION_SLUG, tmp_path,
+            MISSION_ID,
+            MISSION_SLUG,
+            tmp_path,
             failure_category="other",
             failure_message="Unknown failure",
             remediation_hint=None,
@@ -410,7 +432,9 @@ class TestEmitSkipped:
         feature_dir.mkdir(parents=True)
 
         event = emit_skipped(
-            MISSION_ID, MISSION_SLUG, tmp_path,
+            MISSION_ID,
+            MISSION_SLUG,
+            tmp_path,
             skip_reason="Test reason.",
             skip_reason_source="cli_flag",
             policy_source={},
@@ -452,7 +476,9 @@ class TestEventRoundTrip:
         feature_dir.mkdir(parents=True)
 
         emitted = emit_capture_failed(
-            MISSION_ID, MISSION_SLUG, tmp_path,
+            MISSION_ID,
+            MISSION_SLUG,
+            tmp_path,
             failure_category="generator_exception",
             failure_message="Timeout during analysis",
             remediation_hint=None,
@@ -477,7 +503,9 @@ class TestEventRoundTrip:
         feature_dir.mkdir(parents=True)
 
         emitted = emit_skipped(
-            MISSION_ID, MISSION_SLUG, tmp_path,
+            MISSION_ID,
+            MISSION_SLUG,
+            tmp_path,
             skip_reason="Testing round-trip.",
             skip_reason_source="ci_environment",
             policy_source=_STRICT_POLICY_SOURCE,
@@ -502,11 +530,16 @@ class TestEventRoundTrip:
         record = make_gen_record()
         e1 = emit_captured(record, tmp_path, provenance_kind="explicit_create", actor=_RUNTIME_ACTOR)
         e2 = emit_capture_failed(
-            MISSION_ID, MISSION_SLUG, tmp_path,
-            failure_category="other", failure_message="err",
-            remediation_hint=None, policy_source={},
+            MISSION_ID,
+            MISSION_SLUG,
+            tmp_path,
+            failure_category="other",
+            failure_message="err",
+            remediation_hint=None,
+            policy_source={},
             attempted_provenance_kind="explicit_create",
-            missing_artifacts=None, actor=_RUNTIME_ACTOR,
+            missing_artifacts=None,
+            actor=_RUNTIME_ACTOR,
         )
 
         assert e2.lamport > e1.lamport
@@ -557,12 +590,14 @@ class TestClassifyMissionRecord:
         }
 
         import yaml as _yaml  # stdlib yaml for simple dict write
+
         try:
             retro_path.write_text(_yaml.dump(content), encoding="utf-8")
         except ImportError:
             # Fall back to ruamel
             from ruamel.yaml import YAML
             import io
+
             y = YAML()
             buf = io.StringIO()
             y.dump(content, buf)
@@ -601,13 +636,17 @@ class TestClassifyMissionRecord:
         # Write a captured event to the event log.
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "type": "RetrospectiveCaptured",
-                "lamport": 5,
-                "at": "2026-05-19T10:00:00+00:00",
-                "mission_id": MISSION_ID,
-                "mission_slug": MISSION_SLUG,
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "type": "RetrospectiveCaptured",
+                    "lamport": 5,
+                    "at": "2026-05-19T10:00:00+00:00",
+                    "mission_id": MISSION_ID,
+                    "mission_slug": MISSION_SLUG,
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -622,19 +661,27 @@ class TestClassifyMissionRecord:
 
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "type": "RetrospectureCaptureFailed",
-                "lamport": 1,
-                "at": "2026-05-19T09:00:00+00:00",
-                "mission_id": MISSION_ID,
-            }, sort_keys=True) + "\n" +
-            json.dumps({
-                "type": "RetrospectiveCaptureFailed",
-                "lamport": 5,
-                "at": "2026-05-19T10:00:00+00:00",
-                "mission_id": MISSION_ID,
-                "mission_slug": MISSION_SLUG,
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "type": "RetrospectureCaptureFailed",
+                    "lamport": 1,
+                    "at": "2026-05-19T09:00:00+00:00",
+                    "mission_id": MISSION_ID,
+                },
+                sort_keys=True,
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "type": "RetrospectiveCaptureFailed",
+                    "lamport": 5,
+                    "at": "2026-05-19T10:00:00+00:00",
+                    "mission_id": MISSION_ID,
+                    "mission_slug": MISSION_SLUG,
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -648,16 +695,24 @@ class TestClassifyMissionRecord:
 
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "type": "RetrospectiveCaptured",
-                "lamport": 3,
-                "at": "2026-05-19T09:00:00+00:00",
-            }, sort_keys=True) + "\n" +
-            json.dumps({
-                "type": "RetrospectiveCaptureFailed",
-                "lamport": 7,
-                "at": "2026-05-19T10:00:00+00:00",
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "type": "RetrospectiveCaptured",
+                    "lamport": 3,
+                    "at": "2026-05-19T09:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "type": "RetrospectiveCaptureFailed",
+                    "lamport": 7,
+                    "at": "2026-05-19T10:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -671,16 +726,24 @@ class TestClassifyMissionRecord:
 
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "type": "RetrospectiveCaptureFailed",
-                "lamport": 3,
-                "at": "2026-05-19T09:00:00+00:00",
-            }, sort_keys=True) + "\n" +
-            json.dumps({
-                "type": "RetrospectiveCaptured",
-                "lamport": 7,
-                "at": "2026-05-19T10:00:00+00:00",
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "type": "RetrospectiveCaptureFailed",
+                    "lamport": 3,
+                    "at": "2026-05-19T09:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "type": "RetrospectiveCaptured",
+                    "lamport": 7,
+                    "at": "2026-05-19T10:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -688,9 +751,7 @@ class TestClassifyMissionRecord:
         # Captured is more recent than Failed → not "failed"
         assert result == "missing"
 
-    def test_classify_record_with_unknown_findings_status_falls_back_to_has_findings(
-        self, tmp_path: Path
-    ) -> None:
+    def test_classify_record_with_unknown_findings_status_falls_back_to_has_findings(self, tmp_path: Path) -> None:
         """Record with unrecognized findings_status falls through to 'has_findings'."""
         feature_dir = tmp_path / "unknown-status"
         feature_dir.mkdir()
@@ -705,9 +766,7 @@ class TestClassifyMissionRecord:
         # Falls through to conservative "has_findings" return.
         assert result == "has_findings"
 
-    def test_classify_unreadable_record_file_returns_has_findings(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_classify_unreadable_record_file_returns_has_findings(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When record file exists but read raises, returns 'has_findings' conservatively."""
         feature_dir = tmp_path / "unreadable"
         feature_dir.mkdir()
@@ -726,9 +785,7 @@ class TestClassifyMissionRecord:
         # Both YAML and Pydantic fallback fail → "has_findings" conservative.
         assert result == "has_findings"
 
-    def test_classify_pydantic_fallback_completed_with_findings(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_classify_pydantic_fallback_completed_with_findings(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Pydantic fallback: non-dict YAML + completed record with findings → 'has_findings'."""
         feature_dir = tmp_path / "pydantic-fallback-findings"
         feature_dir.mkdir()
@@ -739,6 +796,7 @@ class TestClassifyMissionRecord:
         # Mock read_record and the Pydantic record object.
         from unittest.mock import MagicMock
         import specify_cli.retrospective.summary as _summary_mod
+
         mock_record = MagicMock()
         mock_record.status = "completed"
         mock_record.helped = [MagicMock()]
@@ -750,9 +808,7 @@ class TestClassifyMissionRecord:
         result = classify_mission_record(feature_dir)
         assert result == "has_findings"
 
-    def test_classify_pydantic_fallback_completed_no_findings(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_classify_pydantic_fallback_completed_no_findings(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Pydantic fallback: non-dict YAML + completed record with no findings → 'ran_no_findings'."""
         feature_dir = tmp_path / "pydantic-fallback-empty"
         feature_dir.mkdir()
@@ -761,6 +817,7 @@ class TestClassifyMissionRecord:
 
         from unittest.mock import MagicMock
         import specify_cli.retrospective.summary as _summary_mod
+
         mock_record = MagicMock()
         mock_record.status = "completed"
         mock_record.helped = []
@@ -778,35 +835,45 @@ class TestClassifyMissionRecord:
         feature_dir.mkdir()
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "type": "RetrospectiveCaptureFailed",
-                "lamport": "not-a-number",
-                "at": "2026-05-19T10:00:00+00:00",
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "type": "RetrospectiveCaptureFailed",
+                    "lamport": "not-a-number",
+                    "at": "2026-05-19T10:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
         result = classify_mission_record(feature_dir)
         # lamport="not-a-number" is treated as 0, so failed_lp(0) > captured_lp(0) is False.
         assert result == "missing"
 
-    def test_classify_non_integer_captured_lamport_treated_as_zero(
-        self, tmp_path: Path
-    ) -> None:
+    def test_classify_non_integer_captured_lamport_treated_as_zero(self, tmp_path: Path) -> None:
         """Non-integer captured lamport falls back to 0 so failed event can win."""
         feature_dir = tmp_path / "bad-captured-lamport"
         feature_dir.mkdir()
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "type": "RetrospectiveCaptured",
-                "lamport": "bad",
-                "at": "2026-05-19T09:00:00+00:00",
-            }, sort_keys=True) + "\n" +
-            json.dumps({
-                "type": "RetrospectiveCaptureFailed",
-                "lamport": 3,
-                "at": "2026-05-19T10:00:00+00:00",
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "type": "RetrospectiveCaptured",
+                    "lamport": "bad",
+                    "at": "2026-05-19T09:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "type": "RetrospectiveCaptureFailed",
+                    "lamport": 3,
+                    "at": "2026-05-19T10:00:00+00:00",
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
         result = classify_mission_record(feature_dir)
@@ -820,14 +887,18 @@ class TestClassifyMissionRecord:
 
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            json.dumps({
-                "actor": "claude",
-                "at": "2026-05-19T09:00:00+00:00",
-                "event_id": "01KS049J4V9CSWBKJHTY2FB001",
-                "from_lane": "planned",
-                "to_lane": "claimed",
-                "wp_id": "WP01",
-            }, sort_keys=True) + "\n",
+            json.dumps(
+                {
+                    "actor": "claude",
+                    "at": "2026-05-19T09:00:00+00:00",
+                    "event_id": "01KS049J4V9CSWBKJHTY2FB001",
+                    "from_lane": "planned",
+                    "to_lane": "claimed",
+                    "wp_id": "WP01",
+                },
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -846,6 +917,7 @@ class TestLifecycleEventsEdgeCases:
     def test_emit_captured_empty_mission_slug_raises(self, tmp_path: Path) -> None:
         """emit_captured with empty mission_slug raises ValueError."""
         import dataclasses
+
         record = make_gen_record()
         bad_record = dataclasses.replace(record, mission_slug="")
         with pytest.raises(ValueError, match="mission_slug must be non-empty"):
@@ -888,14 +960,12 @@ class TestLifecycleEventsEdgeCases:
     def test_next_lamport_skips_blank_lines(self, tmp_path: Path) -> None:
         """_next_lamport skips blank/whitespace lines in the events file."""
         from specify_cli.retrospective.lifecycle_events import _next_lamport
+
         feature_dir = tmp_path / "kitty-specs" / MISSION_SLUG
         feature_dir.mkdir(parents=True)
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            '{"lamport": 5, "type": "RetrospectiveCaptured"}\n'
-            '\n'
-            '   \n'
-            '{"lamport": 3, "type": "RetrospectiveCaptureFailed"}\n',
+            '{"lamport": 5, "type": "RetrospectiveCaptured"}\n\n   \n{"lamport": 3, "type": "RetrospectiveCaptureFailed"}\n',
             encoding="utf-8",
         )
         result = _next_lamport(feature_dir)
@@ -904,23 +974,21 @@ class TestLifecycleEventsEdgeCases:
     def test_next_lamport_skips_invalid_json_lines(self, tmp_path: Path) -> None:
         """_next_lamport skips lines with invalid JSON (JSONDecodeError)."""
         from specify_cli.retrospective.lifecycle_events import _next_lamport
+
         feature_dir = tmp_path / "kitty-specs" / MISSION_SLUG
         feature_dir.mkdir(parents=True)
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            '{"lamport": 7, "type": "RetrospectiveCaptured"}\n'
-            'not valid json {{{{\n'
-            '{"lamport": 2, "type": "RetrospectiveCaptureFailed"}\n',
+            '{"lamport": 7, "type": "RetrospectiveCaptured"}\nnot valid json {{{{\n{"lamport": 2, "type": "RetrospectiveCaptureFailed"}\n',
             encoding="utf-8",
         )
         result = _next_lamport(feature_dir)
         assert result == 8  # max(7,2) + 1
 
-    def test_next_lamport_handles_oserror_gracefully(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_next_lamport_handles_oserror_gracefully(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """_next_lamport returns 1 (safe default) if the events file is unreadable (OSError)."""
         from specify_cli.retrospective.lifecycle_events import _next_lamport
+
         feature_dir = tmp_path / "kitty-specs" / MISSION_SLUG
         feature_dir.mkdir(parents=True)
         events_path = feature_dir / "status.events.jsonl"
@@ -950,6 +1018,7 @@ class TestSummaryHelperEdgeCases:
     def test_is_legacy_naive_datetime_gets_utc_added(self) -> None:
         """_is_legacy handles a naive datetime string (no tz info) without error."""
         from specify_cli.retrospective.summary import _is_legacy
+
         # A clearly old date — naive datetime → gets UTC added → should be legacy.
         result = _is_legacy("2025-01-01T00:00:00")
         assert result is True
@@ -957,35 +1026,38 @@ class TestSummaryHelperEdgeCases:
     def test_is_legacy_invalid_string_returns_false(self) -> None:
         """_is_legacy returns False on an unparseable datetime string."""
         from specify_cli.retrospective.summary import _is_legacy
+
         result = _is_legacy("not-a-date")
         assert result is False
 
     def test_mission_is_in_flight_no_meta_json(self, tmp_path: Path) -> None:
         """_mission_is_in_flight returns False if meta.json doesn't exist."""
         from specify_cli.retrospective.summary import _mission_is_in_flight
+
         result = _mission_is_in_flight(tmp_path / "no-such-dir")
         assert result is False
 
     def test_mission_is_in_flight_in_progress_status(self, tmp_path: Path) -> None:
         """_mission_is_in_flight returns True when status is non-terminal."""
         from specify_cli.retrospective.summary import _mission_is_in_flight
+
         mission_dir = tmp_path / "mission"
         mission_dir.mkdir()
-        (mission_dir / "meta.json").write_text(
-            '{"status": "in_progress"}', encoding="utf-8"
-        )
+        (mission_dir / "meta.json").write_text('{"status": "in_progress"}', encoding="utf-8")
         result = _mission_is_in_flight(mission_dir)
         assert result is True
 
     def test_read_slug_from_meta_no_meta_json(self, tmp_path: Path) -> None:
         """_read_slug_from_meta returns None when meta.json doesn't exist."""
         from specify_cli.retrospective.summary import _read_slug_from_meta
+
         result = _read_slug_from_meta(tmp_path / "no-such-dir")
         assert result is None
 
     def test_read_slug_from_meta_missing_slug_key(self, tmp_path: Path) -> None:
         """_read_slug_from_meta returns None when meta.json has no slug field."""
         from specify_cli.retrospective.summary import _read_slug_from_meta
+
         mission_dir = tmp_path / "mission"
         mission_dir.mkdir()
         (mission_dir / "meta.json").write_text('{"status": "done"}', encoding="utf-8")
@@ -995,36 +1067,32 @@ class TestSummaryHelperEdgeCases:
     def test_most_recent_gen_event_skips_blank_and_bad_json(self, tmp_path: Path) -> None:
         """_most_recent_gen_event handles blank lines and JSONDecodeError gracefully."""
         from specify_cli.retrospective.summary import _most_recent_gen_event
+
         feature_dir = tmp_path / "events-test"
         feature_dir.mkdir()
         events_path = feature_dir / "status.events.jsonl"
         events_path.write_text(
-            '{"type": "RetrospectiveCaptured", "lamport": 5}\n'
-            '\n'
-            'bad json {{{\n'
-            '{"type": "RetrospectiveCaptured", "lamport": 3}\n',
+            '{"type": "RetrospectiveCaptured", "lamport": 5}\n\nbad json {{{\n{"type": "RetrospectiveCaptured", "lamport": 3}\n',
             encoding="utf-8",
         )
         result = _most_recent_gen_event(feature_dir, "RetrospectiveCaptured")
         assert result is not None
         assert result["lamport"] == 5
 
-    def test_mission_is_in_flight_exception_returns_false(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_mission_is_in_flight_exception_returns_false(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """_mission_is_in_flight returns False on json.loads error."""
         from specify_cli.retrospective.summary import _mission_is_in_flight
+
         mission_dir = tmp_path / "bad-json-mission"
         mission_dir.mkdir()
         (mission_dir / "meta.json").write_text("not valid json !!!", encoding="utf-8")
         result = _mission_is_in_flight(mission_dir)
         assert result is False
 
-    def test_read_slug_from_meta_exception_returns_none(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_read_slug_from_meta_exception_returns_none(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """_read_slug_from_meta returns None on any exception (e.g. bad JSON)."""
         from specify_cli.retrospective.summary import _read_slug_from_meta
+
         mission_dir = tmp_path / "bad-json-slug"
         mission_dir.mkdir()
         (mission_dir / "meta.json").write_text("not valid json !!!", encoding="utf-8")
@@ -1034,18 +1102,21 @@ class TestSummaryHelperEdgeCases:
     def test_read_proposal_events_empty_slug_returns_zeros(self, tmp_path: Path) -> None:
         """_read_proposal_events with empty mission_slug returns (0, 0, 0)."""
         from specify_cli.retrospective.summary import _read_proposal_events
+
         result = _read_proposal_events(tmp_path, "")
         assert result == (0, 0, 0)
 
     def test_read_proposal_events_no_events_file_returns_zeros(self, tmp_path: Path) -> None:
         """_read_proposal_events with no events file returns (0, 0, 0)."""
         from specify_cli.retrospective.summary import _read_proposal_events
+
         result = _read_proposal_events(tmp_path, "no-such-mission")
         assert result == (0, 0, 0)
 
     def test_read_proposal_events_counts_events(self, tmp_path: Path) -> None:
         """_read_proposal_events counts proposal events correctly."""
         from specify_cli.retrospective.summary import _read_proposal_events
+
         mission_slug = "test-mission-prop"
         feature_dir = tmp_path / "kitty-specs" / mission_slug
         feature_dir.mkdir(parents=True)
@@ -1055,8 +1126,8 @@ class TestSummaryHelperEdgeCases:
             '{"event_name": "retrospective.proposal.generated"}\n'
             '{"event_name": "retrospective.proposal.applied"}\n'
             '{"event_name": "retrospective.proposal.rejected"}\n'
-            'bad json\n'
-            '\n',
+            "bad json\n"
+            "\n",
             encoding="utf-8",
         )
         gen, app, rej = _read_proposal_events(tmp_path, mission_slug)
@@ -1064,11 +1135,10 @@ class TestSummaryHelperEdgeCases:
         assert app == 1
         assert rej == 1
 
-    def test_most_recent_gen_event_oserror_returns_none(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_most_recent_gen_event_oserror_returns_none(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """_most_recent_gen_event returns None on OSError reading events file."""
         from specify_cli.retrospective.summary import _most_recent_gen_event
+
         feature_dir = tmp_path / "events-oserror"
         feature_dir.mkdir()
         events_path = feature_dir / "status.events.jsonl"

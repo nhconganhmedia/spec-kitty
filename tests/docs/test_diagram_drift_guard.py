@@ -88,9 +88,7 @@ def test_nested_depth2_field_add_fails(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(guard, "model_field_set", fake_field_set)
     findings = guard.collect_findings(_REPO_ROOT)
-    assert any(
-        "AgentSpecialization" in f and "new-nested-field" in f for f in findings
-    ), findings
+    assert any("AgentSpecialization" in f and "new-nested-field" in f for f in findings), findings
 
 
 def test_antipattern_class_is_distinct_from_anti_pattern_node_kind() -> None:

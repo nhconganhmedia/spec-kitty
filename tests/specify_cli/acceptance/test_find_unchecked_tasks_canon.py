@@ -48,9 +48,7 @@ def test_old_regex_flagged_prose_and_fenced_rows_new_iterator_does_not() -> None
     row and the fenced example row (whole-file, no T### requirement, no fence
     awareness); the NEW canonical iterator narrows to T###-scoped, fence-aware
     rows only, so both drop out of the new result."""
-    old_flagged = [
-        line.strip() for line in _MIXED_FIXTURE.splitlines() if _OLD_STRAY_UNCHECKED_REGEX.match(line)
-    ]
+    old_flagged = [line.strip() for line in _MIXED_FIXTURE.splitlines() if _OLD_STRAY_UNCHECKED_REGEX.match(line)]
     new_flagged = list(iter_unchecked_subtask_rows(_MIXED_FIXTURE))
 
     # OLD: whole-file, no T-id or fence awareness -- flags all 4 unchecked dash-checkbox rows.
@@ -97,9 +95,7 @@ class TestIterUncheckedSubtaskRowsDirectBranches:
     by the terminal-mission normalization tests below."""
 
     def test_t_id_unchecked_row_is_yielded(self) -> None:
-        assert list(iter_unchecked_subtask_rows("- [ ] T001 real subtask\n")) == [
-            "- [ ] T001 real subtask"
-        ]
+        assert list(iter_unchecked_subtask_rows("- [ ] T001 real subtask\n")) == ["- [ ] T001 real subtask"]
 
     def test_prose_checkbox_without_t_id_is_rejected(self) -> None:
         assert list(iter_unchecked_subtask_rows("- [ ] remember to hydrate\n")) == []
@@ -122,18 +118,10 @@ class TestIterUncheckedSubtaskRowsDirectBranches:
         """Anchoring is on the STRIPPED line -- leading indentation alone
         does not exclude a row, mirroring ``count_subtask_rows``'s existing
         fence-loop semantics."""
-        assert list(iter_unchecked_subtask_rows("  - [ ] T001 indented\n")) == [
-            "- [ ] T001 indented"
-        ]
+        assert list(iter_unchecked_subtask_rows("  - [ ] T001 indented\n")) == ["- [ ] T001 indented"]
 
     def test_mixed_fence_and_real_rows_yields_only_unfenced(self) -> None:
-        body = (
-            "- [ ] T001 before the fence\n"
-            "```\n"
-            "- [ ] T002 inside fence\n"
-            "```\n"
-            "- [ ] T003 after the fence\n"
-        )
+        body = "- [ ] T001 before the fence\n```\n- [ ] T002 inside fence\n```\n- [ ] T003 after the fence\n"
         assert list(iter_unchecked_subtask_rows(body)) == [
             "- [ ] T001 before the fence",
             "- [ ] T003 after the fence",

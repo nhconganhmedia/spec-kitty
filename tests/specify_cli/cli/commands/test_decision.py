@@ -756,9 +756,7 @@ def test_open_mission_path_traversal_rejected(tmp_path: Path) -> None:
             ],
             cwd=tmp_path,
         )
-        assert result.exit_code != 0, (
-            f"Expected non-zero exit for traversal value {bad_mission!r}, got 0"
-        )
+        assert result.exit_code != 0, f"Expected non-zero exit for traversal value {bad_mission!r}, got 0"
 
 
 # ---------------------------------------------------------------------------

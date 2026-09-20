@@ -60,15 +60,9 @@ class TestPhantomPathExistenceCheck:
 
         result = validate_glob_matches(manifests, tmp_path)
 
-        assert not result.passed, (
-            f"#1888 bug: phantom literal path '{phantom}' was silently accepted. "
-            "Expected a hard error; got none."
-        )
+        assert not result.passed, f"#1888 bug: phantom literal path '{phantom}' was silently accepted. Expected a hard error; got none."
         assert result.errors, "Expected at least one error message for the phantom path."
-        assert any(phantom in e for e in result.errors), (
-            f"Error message must name the offending path '{phantom}'. "
-            f"Got: {result.errors!r}"
-        )
+        assert any(phantom in e for e in result.errors), f"Error message must name the offending path '{phantom}'. Got: {result.errors!r}"
 
     def test_phantom_path_error_includes_create_intent_hint(self, tmp_path: Path) -> None:
         """The error for a missing literal path must guide the operator to create_intent."""
@@ -87,8 +81,7 @@ class TestPhantomPathExistenceCheck:
         assert not result.passed
         error_text = " ".join(result.errors)
         assert "create_intent" in error_text, (
-            "Error for missing literal path must mention 'create_intent' so the "
-            f"operator knows how to suppress it for planned-new-files. Got: {error_text!r}"
+            f"Error for missing literal path must mention 'create_intent' so the operator knows how to suppress it for planned-new-files. Got: {error_text!r}"
         )
 
     def test_phantom_path_suppressed_by_create_intent(self, tmp_path: Path) -> None:
@@ -112,13 +105,8 @@ class TestPhantomPathExistenceCheck:
 
         result = validate_glob_matches(manifests, tmp_path, create_intent=create_intent)
 
-        assert result.passed, (
-            f"A future file declared in create_intent must NOT be a hard error. "
-            f"Got errors: {result.errors!r}"
-        )
-        assert not result.errors, (
-            f"create_intent-suppressed path must produce zero errors. Got: {result.errors!r}"
-        )
+        assert result.passed, f"A future file declared in create_intent must NOT be a hard error. Got errors: {result.errors!r}"
+        assert not result.errors, f"create_intent-suppressed path must produce zero errors. Got: {result.errors!r}"
 
     def test_glob_zero_match_remains_warning_not_error(self, tmp_path: Path) -> None:
         """Glob pattern zero-matches must remain warnings, not hard errors.
@@ -136,10 +124,7 @@ class TestPhantomPathExistenceCheck:
 
         result = validate_glob_matches(manifests, tmp_path)
 
-        assert result.passed, (
-            "Glob zero-match must remain a soft warning, not a hard error. "
-            f"Unexpected errors: {result.errors!r}"
-        )
+        assert result.passed, f"Glob zero-match must remain a soft warning, not a hard error. Unexpected errors: {result.errors!r}"
         assert result.warnings, "Expected a warning for the glob zero-match."
 
     def test_existing_literal_path_passes_cleanly(self, tmp_path: Path) -> None:

@@ -15,11 +15,7 @@ pytestmark = [pytest.mark.fast]
 
 
 def _visible_root_command_names(command: click.Group, ctx: click.Context) -> list[str]:
-    return [
-        name
-        for name in command.list_commands(ctx)
-        if (subcommand := command.get_command(ctx, name)) is not None and not subcommand.hidden
-    ]
+    return [name for name in command.list_commands(ctx) if (subcommand := command.get_command(ctx, name)) is not None and not subcommand.hidden]
 
 
 def _command_names_from_simple_help(output: str) -> list[str]:

@@ -53,9 +53,9 @@ import pytest
 
 pytestmark = [pytest.mark.integration]
 
-LITERAL = re.compile(r'~/\.(kittify|spec-kitty)')
+LITERAL = re.compile(r"~/\.(kittify|spec-kitty)")
 # Comment detector: line starts with optional whitespace then '#'.
-COMMENT = re.compile(r'^\s*#')
+COMMENT = re.compile(r"^\s*#")
 
 
 def test_no_legacy_path_literals_in_cli_commands() -> None:
@@ -68,13 +68,8 @@ def test_no_legacy_path_literals_in_cli_commands() -> None:
             if COMMENT.match(line):
                 continue  # skip pure comments; they are not user-facing output
             if LITERAL.search(line):
-                violations.append(
-                    f"{py.relative_to(root.parents[2])}:{i}: {line.strip()}"
-                )
-    assert not violations, (
-        "Legacy Windows-unsafe path literals reintroduced in CLI command tree:\n  "
-        + "\n  ".join(violations)
-    )
+                violations.append(f"{py.relative_to(root.parents[2])}:{i}: {line.strip()}")
+    assert not violations, "Legacy Windows-unsafe path literals reintroduced in CLI command tree:\n  " + "\n  ".join(violations)
 
 
 def _capture_nudge(
@@ -124,28 +119,16 @@ def test_runtime_resolver_nudge_renders_real_runtime_path(tmp_path: pathlib.Path
     """
     fake_home = tmp_path / "runtime-home"
     output = _capture_nudge("specify_cli.runtime.resolver", fake_home)
-    assert str(fake_home) in output, (
-        f"Resolver nudge did not render the real runtime path.\n"
-        f"Expected substring: {fake_home}\n"
-        f"Got: {output!r}"
-    )
-    assert "~/.kittify/" not in output, (
-        f"Resolver nudge still contains a legacy tilde literal:\n{output!r}"
-    )
+    assert str(fake_home) in output, f"Resolver nudge did not render the real runtime path.\nExpected substring: {fake_home}\nGot: {output!r}"
+    assert "~/.kittify/" not in output, f"Resolver nudge still contains a legacy tilde literal:\n{output!r}"
 
 
 def test_doctrine_resolver_nudge_renders_real_runtime_path(tmp_path: pathlib.Path) -> None:
     """Mirror assertion for the doctrine package's resolver nudge."""
     fake_home = tmp_path / "doctrine-runtime-home"
     output = _capture_nudge("charter.offering.resolver", fake_home)
-    assert str(fake_home) in output, (
-        f"Doctrine resolver nudge did not render the real runtime path.\n"
-        f"Expected substring: {fake_home}\n"
-        f"Got: {output!r}"
-    )
-    assert "~/.kittify/" not in output, (
-        f"Doctrine resolver nudge still contains a legacy tilde literal:\n{output!r}"
-    )
+    assert str(fake_home) in output, f"Doctrine resolver nudge did not render the real runtime path.\nExpected substring: {fake_home}\nGot: {output!r}"
+    assert "~/.kittify/" not in output, f"Doctrine resolver nudge still contains a legacy tilde literal:\n{output!r}"
 
 
 @pytest.mark.parametrize(
@@ -218,9 +201,7 @@ def _line_has_bare_spec_kitty_literal(line: str) -> bool:
     return bool(_BARE_SPEC_KITTY_LITERAL.search(line))
 
 
-def _scan_global_state_for_home_literal(
-    repo_root: pathlib.Path, allowlist: frozenset[str]
-) -> list[str]:
+def _scan_global_state_for_home_literal(repo_root: pathlib.Path, allowlist: frozenset[str]) -> list[str]:
     """Return ``rel:line: text`` for every hand-rolled ``.spec-kitty`` literal.
 
     Scans the global-state surface (:data:`_GLOBAL_STATE_SCAN_ROOTS`) for the
@@ -256,8 +237,7 @@ def test_no_handrolled_spec_kitty_home_in_global_state_modules() -> None:
     assert not violations, (
         "Hand-rolled `.spec-kitty` home literal reintroduced in global-state "
         "modules (FR-010). Derive the path from "
-        "`specify_cli.paths.get_runtime_root().base` instead:\n  "
-        + "\n  ".join(violations)
+        "`specify_cli.paths.get_runtime_root().base` instead:\n  " + "\n  ".join(violations)
     )
 
 
@@ -273,7 +253,7 @@ def test_home_literal_guard_is_non_vacuous() -> None:
     detected = _scan_global_state_for_home_literal(repo_root, frozenset())
     keystone = "src/specify_cli/paths/windows_paths.py"
     assert any(v.startswith(keystone + ":") for v in detected), (
-        "Guard no longer detects the keystone's `Path.home() / \".spec-kitty\"` "
+        'Guard no longer detects the keystone\'s `Path.home() / ".spec-kitty"` '
         "literal — it would pass vacuously and miss a real re-scatter.\n"
         f"Detected: {detected!r}"
     )

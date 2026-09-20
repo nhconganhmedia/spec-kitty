@@ -51,14 +51,10 @@ def test_diagnostic_path_is_registered_with_a_predicate() -> None:
     A bare ``None`` registration would make the *mutating* form SAFE too, which
     would defeat the fail-closed guard — so the value must be callable.
     """
-    assert _DIAGNOSTIC_PATH in SAFETY_REGISTRY, (
-        f"{_DIAGNOSTIC_PATH!r} must be registered so classify() does not fail "
-        "closed on the recommended diagnostic."
-    )
+    assert _DIAGNOSTIC_PATH in SAFETY_REGISTRY, f"{_DIAGNOSTIC_PATH!r} must be registered so classify() does not fail closed on the recommended diagnostic."
     predicate = SAFETY_REGISTRY[_DIAGNOSTIC_PATH]
     assert callable(predicate), (
-        "The diagnostic must be gated by a --dry-run predicate, not registered "
-        "as unconditionally SAFE (that would open the mutating migration path)."
+        "The diagnostic must be gated by a --dry-run predicate, not registered as unconditionally SAFE (that would open the mutating migration path)."
     )
 
 
@@ -78,10 +74,7 @@ def test_diagnostic_path_is_registered_with_a_predicate() -> None:
 def test_dry_run_form_is_safe(raw_args: tuple[str, ...]) -> None:
     """With ``--dry-run`` present the diagnostic classifies SAFE (reachable)."""
     result = classify(_inv(_DIAGNOSTIC_PATH, raw_args))
-    assert result == Safety.SAFE, (
-        f"Expected SAFE for raw_args={raw_args!r} (diagnostic must be reachable "
-        "on a blocked project), got {result!r}."
-    )
+    assert result == Safety.SAFE, f"Expected SAFE for raw_args={raw_args!r} (diagnostic must be reachable on a blocked project), got {{result!r}}."
 
 
 # ---------------------------------------------------------------------------
@@ -100,10 +93,7 @@ def test_dry_run_form_is_safe(raw_args: tuple[str, ...]) -> None:
 def test_mutating_form_is_unsafe(raw_args: tuple[str, ...]) -> None:
     """Without ``--dry-run`` the mutating migration form remains UNSAFE."""
     result = classify(_inv(_DIAGNOSTIC_PATH, raw_args))
-    assert result == Safety.UNSAFE, (
-        f"Expected UNSAFE for raw_args={raw_args!r} (mutating form must stay "
-        "blocked under schema mismatch), got {result!r}."
-    )
+    assert result == Safety.UNSAFE, f"Expected UNSAFE for raw_args={raw_args!r} (mutating form must stay blocked under schema mismatch), got {{result!r}}."
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +109,4 @@ def test_predicate_failure_is_unsafe() -> None:
     """
     broken = SimpleNamespace(command_path=_DIAGNOSTIC_PATH)  # no raw_args attribute
     result = classify(broken)  # type: ignore[arg-type]
-    assert result == Safety.UNSAFE, (
-        "A predicate that raises while inspecting the invocation must fall back "
-        "to UNSAFE (fail closed)."
-    )
+    assert result == Safety.UNSAFE, "A predicate that raises while inspecting the invocation must fall back to UNSAFE (fail closed)."

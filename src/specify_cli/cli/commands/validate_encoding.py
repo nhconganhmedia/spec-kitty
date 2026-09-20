@@ -64,9 +64,7 @@ def validate_encoding(
         console.print()
         console.print(
             Panel(
-                f"[bold]Summary:[/bold]\n"
-                f"Total files with issues: [yellow]{total_issues}[/yellow]\n"
-                f"Total files fixed: [green]{total_fixed}[/green]",
+                f"[bold]Summary:[/bold]\nTotal files with issues: [yellow]{total_issues}[/yellow]\nTotal files fixed: [green]{total_fixed}[/green]",
                 title="Encoding Validation Complete",
                 border_style="cyan" if total_issues == 0 else "yellow",
             )
@@ -84,9 +82,7 @@ def validate_encoding(
     # partition content. Route through the seam on ``PRIMARY_METADATA`` so
     # this lands on the authored primary docs rather than the coordination
     # husk (NFR-001 — "do not pin the old coord husk").
-    feature_dir = placement_seam(repo_root, mission_slug).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    feature_dir = placement_seam(repo_root, mission_slug).read_dir(MissionArtifactKind.PRIMARY_METADATA)
 
     if not feature_dir.exists():
         console.print(f"[red]Error:[/red] Feature directory not found: {feature_dir}")

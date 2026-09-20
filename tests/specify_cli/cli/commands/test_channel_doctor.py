@@ -53,10 +53,7 @@ def test_doctor_py_source_never_hand_imports_the_channel_sibling() -> None:
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "command":
             for keyword in node.keywords:
                 if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
-                    assert keyword.value.value != "channel", (
-                        "doctor.py must not hand-write an @app.command(name='channel') "
-                        "shell (discovery seam regression)"
-                    )
+                    assert keyword.value.value != "channel", "doctor.py must not hand-write an @app.command(name='channel') shell (discovery seam regression)"
 
 
 def test_register_is_idempotent_safe_to_call_directly() -> None:

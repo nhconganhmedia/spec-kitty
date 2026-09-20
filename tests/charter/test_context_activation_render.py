@@ -100,13 +100,8 @@ def test_single_entry_with_both_qualifiers_renders_one_stanza(
     )
 
     assert rendered.startswith("Selected activations:"), rendered
-    assert (
-        "Run: spec-kitty charter context --include styleguide:caveman-comments"
-        in rendered
-    ), rendered
-    assert (
-        "When you are about to implement in a software-dev mission" in rendered
-    ), rendered
+    assert "Run: spec-kitty charter context --include styleguide:caveman-comments" in rendered, rendered
+    assert "When you are about to implement in a software-dev mission" in rendered, rendered
 
 
 # ---------------------------------------------------------------------------
@@ -152,9 +147,7 @@ def test_activation_when_clauses_match_canonical_when_doing_contract(
     """Every activation trigger must emit a fetch stanza whose conditional
     satisfies the canonical prompt-governance ``_WHEN_DOING_RE``.
     """
-    runtime_action = (
-        declared_action if declared_action in ALLOWED_ACTIONS else "implement"
-    )
+    runtime_action = declared_action if declared_action in ALLOWED_ACTIONS else "implement"
     entry = ActivationEntry(
         activation_context={"action": declared_action},
         doctrine_pack_id="project",
@@ -169,9 +162,7 @@ def test_activation_when_clauses_match_canonical_when_doing_contract(
         action=runtime_action,
     )
 
-    assert (
-        "spec-kitty charter context --include styleguide:caveman-comments" in rendered
-    )
+    assert "spec-kitty charter context --include styleguide:caveman-comments" in rendered
     assert _CANONICAL_WHEN_DOING_RE.search(rendered), rendered
 
 
@@ -237,9 +228,7 @@ def test_two_matching_entries_render_two_stanzas_in_declaration_order(
 
     assert rendered.count("Selected activations:") == 1, rendered
     # Two distinct stanzas.
-    fetch_count = rendered.count(
-        "Run: spec-kitty charter context --include styleguide:caveman-comments"
-    )
+    fetch_count = rendered.count("Run: spec-kitty charter context --include styleguide:caveman-comments")
     assert fetch_count == 2, rendered
     # Declaration order: ``implement`` clause appears before
     # ``write a code comment`` clause.
@@ -247,9 +236,7 @@ def test_two_matching_entries_render_two_stanzas_in_declaration_order(
     second_idx = rendered.find("When you are about to write a code comment,")
     assert first_idx != -1 and second_idx != -1, rendered
     assert first_idx < second_idx, (
-        "Stanzas must render in declaration order (concatenation policy). "
-        f"Got: implement at {first_idx}, write_comment at {second_idx}.\n"
-        f"Rendered:\n{rendered}"
+        f"Stanzas must render in declaration order (concatenation policy). Got: implement at {first_idx}, write_comment at {second_idx}.\nRendered:\n{rendered}"
     )
 
 
@@ -357,10 +344,7 @@ def test_kind_inference_via_service_when_artifact_kind_omitted(
         action="implement",
     )
 
-    assert (
-        "Run: spec-kitty charter context --include styleguide:caveman-comments"
-        in rendered
-    ), rendered
+    assert "Run: spec-kitty charter context --include styleguide:caveman-comments" in rendered, rendered
 
 
 def test_kind_inference_falls_back_to_artifact_when_service_is_none() -> None:
@@ -410,10 +394,7 @@ def test_singular_artifact_kind_renders_singular_selector(
         action="implement",
     )
 
-    assert (
-        "Run: spec-kitty charter context --include styleguide:caveman-comments"
-        in rendered
-    ), rendered
+    assert "Run: spec-kitty charter context --include styleguide:caveman-comments" in rendered, rendered
 
 
 def test_plural_artifact_kind_renders_singular_selector(
@@ -433,7 +414,4 @@ def test_plural_artifact_kind_renders_singular_selector(
         action="implement",
     )
 
-    assert (
-        "Run: spec-kitty charter context --include styleguide:caveman-comments"
-        in rendered
-    ), rendered
+    assert "Run: spec-kitty charter context --include styleguide:caveman-comments" in rendered, rendered

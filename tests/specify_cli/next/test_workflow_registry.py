@@ -5,6 +5,7 @@ ATDD anchors
 * Scenario 3 exception: ``test_unknown_workflow_id_hard_fails_with_available_list``
   covers: Scenario 3 exception, FR-015 — expected GREEN at: WP10 final commit
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,6 +14,7 @@ import pytest
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
+
 
 def test_get_workflow_loads_software_dev_default():
     from runtime.next._internal_runtime.workflow_registry import get_workflow
@@ -295,10 +297,7 @@ def test_invalid_workflow_id_uppercase_raises_validation_error():
     with pytest.raises(UnknownWorkflowError) as exc_info:
         get_workflow("Software-Dev-Default")
     msg = str(exc_info.value)
-    assert "Invalid workflow_id" in msg, (
-        "Uppercase slug 'Software-Dev-Default' MUST be rejected with "
-        "'Invalid workflow_id' by the slug validator."
-    )
+    assert "Invalid workflow_id" in msg, "Uppercase slug 'Software-Dev-Default' MUST be rejected with 'Invalid workflow_id' by the slug validator."
 
 
 def test_invalid_workflow_id_with_spaces_raises_validation_error():
@@ -313,9 +312,7 @@ def test_invalid_workflow_id_with_spaces_raises_validation_error():
     with pytest.raises(UnknownWorkflowError) as exc_info:
         get_workflow("software dev default")
     msg = str(exc_info.value)
-    assert "Invalid workflow_id" in msg, (
-        "Slug with spaces MUST be rejected with 'Invalid workflow_id'."
-    )
+    assert "Invalid workflow_id" in msg, "Slug with spaces MUST be rejected with 'Invalid workflow_id'."
 
 
 def test_valid_workflow_id_slug_accepted():
@@ -328,10 +325,7 @@ def test_valid_workflow_id_slug_accepted():
     try:
         get_workflow("software-dev-default")
     except Exception as exc:
-        assert "Invalid workflow_id" not in str(exc), (
-            "Valid slug 'software-dev-default' MUST NOT be rejected by the "
-            "workflow_id validator. Exception: " + str(exc)
-        )
+        assert "Invalid workflow_id" not in str(exc), "Valid slug 'software-dev-default' MUST NOT be rejected by the workflow_id validator. Exception: " + str(exc)
 
 
 def test_workflow_sequence_rejects_unreachable_cycle():

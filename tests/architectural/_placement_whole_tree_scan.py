@@ -161,8 +161,4 @@ def is_sanctioned(rel: str) -> bool:
 
 def scan_scope(*, src_root: Path = SRC_ROOT, repo_root: Path = REPO_ROOT) -> list[Path]:
     """Every ``src/`` module that is NOT sanctioned -- the actual gate scan scope."""
-    return [
-        module
-        for module in iter_src_modules(src_root=src_root)
-        if not is_sanctioned(rel_path(module, repo_root=repo_root))
-    ]
+    return [module for module in iter_src_modules(src_root=src_root) if not is_sanctioned(rel_path(module, repo_root=repo_root))]

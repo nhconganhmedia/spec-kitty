@@ -46,6 +46,7 @@ from charter.activation.synthesizer.resynthesize_pipeline import run as resynthe
 
 pytestmark = [pytest.mark.unit, pytest.mark.git_repo]
 
+
 @pytest.fixture
 def fixture_root() -> Path:
     return Path(__file__).parent.parent / "fixtures" / "synthesizer"
@@ -86,9 +87,7 @@ def minimal_doctrine_snapshot() -> dict[str, Any]:
 @pytest.fixture
 def minimal_drg_snapshot() -> dict[str, Any]:
     return {
-        "nodes": [
-            {"urn": "directive:DIRECTIVE_003", "kind": "directive"}
-        ],
+        "nodes": [{"urn": "directive:DIRECTIVE_003", "kind": "directive"}],
         "edges": [],
         "schema_version": "1",
     }
@@ -142,14 +141,9 @@ def _content_hash(yaml_bytes: bytes) -> str:
     return hashlib.sha256(yaml_bytes).hexdigest()  # noqa: TID251 — charter synthesizer resynthesis content hash (own scheme), not charter.hasher.hash_content() freshness
 
 
-def _artifact_hashes_from_manifest(
-    repo_root: Path, manifest: SynthesisManifest
-) -> dict[str, str]:
+def _artifact_hashes_from_manifest(repo_root: Path, manifest: SynthesisManifest) -> dict[str, str]:
     """Return {kind:slug → content_hash} for all manifest entries."""
-    return {
-        f"{e.kind}:{e.slug}": e.content_hash
-        for e in manifest.artifacts
-    }
+    return {f"{e.kind}:{e.slug}": e.content_hash for e in manifest.artifacts}
 
 
 def _seed_bundle_files(repo: Path) -> None:
@@ -318,9 +312,7 @@ class TestUs3KindSlug:
         # than a raw `datetime.now(UTC)` call, so the "time has advanced"
         # freeze point is `project_drg.now_utc_seconds` itself.
         later = datetime(2026, 6, 15, 12, 0, 0, tzinfo=UTC)
-        monkeypatch.setattr(
-            project_drg, "now_utc_seconds", lambda: later.isoformat(timespec="seconds")
-        )
+        monkeypatch.setattr(project_drg, "now_utc_seconds", lambda: later.isoformat(timespec="seconds"))
 
         result = resynthesize_run(
             request=base_request,
@@ -360,8 +352,7 @@ class TestUs3KindSlug:
         for key, prior_hash in prior_hashes.items():
             if key != regenerated_key:
                 assert new_hashes.get(key) == prior_hash, (
-                    f"FR-017 violation: artifact '{key}' hash changed unexpectedly. "
-                    f"prior={prior_hash[:12]}... new={new_hashes.get(key, 'MISSING')[:12]}..."
+                    f"FR-017 violation: artifact '{key}' hash changed unexpectedly. prior={prior_hash[:12]}... new={new_hashes.get(key, 'MISSING')[:12]}..."
                 )
 
     def test_resynthesize_kind_slug_preserves_full_project_graph(
@@ -375,9 +366,7 @@ class TestUs3KindSlug:
         graph_path = repo / ".kittify" / "doctrine" / "graph.yaml"
         before_graph = load_graph(graph_path)
         before_nodes = {node.urn for node in before_graph.nodes}
-        before_edges = {
-            (edge.source, edge.target, edge.relation.value) for edge in before_graph.edges
-        }
+        before_edges = {(edge.source, edge.target, edge.relation.value) for edge in before_graph.edges}
 
         resynthesize_run(
             request=base_request,
@@ -388,17 +377,14 @@ class TestUs3KindSlug:
 
         after_graph = load_graph(graph_path)
         after_nodes = {node.urn for node in after_graph.nodes}
-        after_edges = {
-            (edge.source, edge.target, edge.relation.value) for edge in after_graph.edges
-        }
+        after_edges = {(edge.source, edge.target, edge.relation.value) for edge in after_graph.edges}
 
         assert after_nodes == before_nodes
         assert after_edges == before_edges
 
-
-# ---------------------------------------------------------------------------
-# US-2: DRG URN → multiple artifacts affected, unrelated unchanged
-# ---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
+    # US-2: DRG URN → multiple artifacts affected, unrelated unchanged
+    # ---------------------------------------------------------------------------
 
     def test_resynthesis_reference_warnings_ride_on_result(
         self,
@@ -427,9 +413,7 @@ class TestUs3KindSlug:
             topic="tactic:how-we-apply-directive-003",
             repo_root=repo_with_prior_synthesis,
         )
-        assert result.reference_warnings == (
-            "agent_profile:ops-responder references unresolved procedure:gone",
-        )
+        assert result.reference_warnings == ("agent_profile:ops-responder references unresolved procedure:gone",)
 
 
 class TestUs2DrgUrn:
@@ -482,9 +466,7 @@ class TestUs2DrgUrn:
         for key, prior_hash in prior_hashes.items():
             _, slug = key.split(":", 1)
             if slug not in regenerated_slugs:
-                assert new_hashes.get(key) == prior_hash, (
-                    f"FR-017 violation: '{key}' hash changed but was not in resynthesis targets"
-                )
+                assert new_hashes.get(key) == prior_hash, f"FR-017 violation: '{key}' hash changed but was not in resynthesis targets"
 
 
 # ---------------------------------------------------------------------------
@@ -539,9 +521,7 @@ class TestUs4InterviewSection:
         for key, prior_hash in prior_hashes.items():
             _, slug = key.split(":", 1)
             if slug not in regenerated_slugs:
-                assert new_hashes.get(key) == prior_hash, (
-                    f"FR-017 violation: unrelated artifact '{key}' hash changed"
-                )
+                assert new_hashes.get(key) == prior_hash, f"FR-017 violation: unrelated artifact '{key}' hash changed"
 
 
 # ---------------------------------------------------------------------------
@@ -561,9 +541,7 @@ class TestEc4ZeroMatch:
 
         # Build a DRG with a paradigm URN that no artifact references
         extended_drg = dict(base_request.drg_snapshot)
-        extended_drg["nodes"] = list(base_request.drg_snapshot.get("nodes", [])) + [
-            {"urn": "paradigm:evidence-first", "kind": "paradigm"}
-        ]
+        extended_drg["nodes"] = list(base_request.drg_snapshot.get("nodes", [])) + [{"urn": "paradigm:evidence-first", "kind": "paradigm"}]
         ec4_request = SynthesisRequest(
             target=base_request.target,
             interview_snapshot=base_request.interview_snapshot,
@@ -597,9 +575,7 @@ class TestEc4ZeroMatch:
         prior_mtime = manifest_path.stat().st_mtime
 
         extended_drg = dict(base_request.drg_snapshot)
-        extended_drg["nodes"] = list(base_request.drg_snapshot.get("nodes", [])) + [
-            {"urn": "paradigm:evidence-first", "kind": "paradigm"}
-        ]
+        extended_drg["nodes"] = list(base_request.drg_snapshot.get("nodes", [])) + [{"urn": "paradigm:evidence-first", "kind": "paradigm"}]
         ec4_request = SynthesisRequest(
             target=base_request.target,
             interview_snapshot=base_request.interview_snapshot,
@@ -658,9 +634,7 @@ class TestResynthesizeValidationWiring:
         manifest_before = manifest_path.read_text(encoding="utf-8")
         graph_before = graph_path.read_text(encoding="utf-8")
 
-        def fail_validate(
-            _staging_dir: Path, _shipped_drg: object, conflicts: object = (), org_drg: object = None
-        ) -> None:
+        def fail_validate(_staging_dir: Path, _shipped_drg: object, conflicts: object = (), org_drg: object = None) -> None:
             # #4121 (MAJOR 2) added the org-chain ``org_drg`` kwarg to
             # validate(); accept (and ignore) it plus ``conflicts`` so this
             # forced-failure stub keeps matching the real call signature.
@@ -684,9 +658,7 @@ class TestResynthesizeValidationWiring:
         assert graph_path.read_text(encoding="utf-8") == graph_before
 
         staging_root = repo / ".kittify" / "charter" / ".staging"
-        failed_dirs = sorted(
-            d for d in staging_root.iterdir() if d.is_dir() and d.name.endswith(".failed")
-        )
+        failed_dirs = sorted(d for d in staging_root.iterdir() if d.is_dir() and d.name.endswith(".failed"))
         assert failed_dirs, "Expected a .failed staging directory when validation rejects resynthesis"
         assert (failed_dirs[0] / "doctrine" / "graph.yaml").exists()
 
@@ -722,8 +694,7 @@ class TestManifestContentHashPreservation:
         for key, prior_hash in prior_by_key.items():
             if regenerated_slug not in key:
                 assert new_by_key.get(key) == prior_hash, (
-                    f"FR-017: '{key}' content_hash changed from "
-                    f"{prior_hash[:16]}... to {new_by_key.get(key, 'MISSING')[:16]}..."
+                    f"FR-017: '{key}' content_hash changed from {prior_hash[:16]}... to {new_by_key.get(key, 'MISSING')[:16]}..."
                 )
                 preserved_count += 1
 
@@ -733,10 +704,7 @@ class TestManifestContentHashPreservation:
         expected_preserved = total - regenerated
         if expected_preserved > 0:
             ratio = preserved_count / expected_preserved
-            assert ratio >= 0.95, (
-                f"SC-006: only {ratio:.1%} of unmodified artifacts preserved "
-                f"(need ≥ 95%)"
-            )
+            assert ratio >= 0.95, f"SC-006: only {ratio:.1%} of unmodified artifacts preserved (need ≥ 95%)"
 
 
 # ---------------------------------------------------------------------------

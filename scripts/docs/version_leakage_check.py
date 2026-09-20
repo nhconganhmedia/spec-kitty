@@ -70,24 +70,17 @@ DEFAULT_INVENTORY_PATH: Final[str] = "docs/development/3-2-page-inventory.yaml"
 DEFAULT_DOCS_ROOT: Final[str] = "docs/"
 DEFAULT_BANNER_REGEX: Final[str] = r"^>\s*(?:Archive notice|Migration note)\b"
 
-_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(
-    r"\[([^\]]+)\]\(([^)]+)\)"
-)
+_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 # Banner-tier tags whose pages must carry an archive/migration banner.
-_BANNER_REQUIRED: Final[frozenset[VersionTag]] = frozenset(
-    {VersionTag.ARCHIVAL, VersionTag.MIGRATION}
-)
+_BANNER_REQUIRED: Final[frozenset[VersionTag]] = frozenset({VersionTag.ARCHIVAL, VersionTag.MIGRATION})
 
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser for the leakage check."""
     parser = argparse.ArgumentParser(
         prog="version_leakage_check",
-        description=(
-            "Detect version-tier docs leakage and frontmatter/inventory "
-            "drift (FR-005 / NFR-002). Read-only."
-        ),
+        description=("Detect version-tier docs leakage and frontmatter/inventory drift (FR-005 / NFR-002). Read-only."),
     )
     parser.add_argument(
         "--inventory",
@@ -105,10 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--banner-regex",
         type=str,
         default=DEFAULT_BANNER_REGEX,
-        help=(
-            "Regex matched against the first 20 non-empty lines of "
-            "archival/migration pages."
-        ),
+        help=("Regex matched against the first 20 non-empty lines of archival/migration pages."),
     )
     parser.add_argument(
         "--report",
@@ -156,9 +146,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     # Deterministic ordering: by rule_id, then location.
-    findings_sorted = sorted(
-        findings, key=lambda f: (f.rule_id, f.location, f.message)
-    )
+    findings_sorted = sorted(findings, key=lambda f: (f.rule_id, f.location, f.message))
 
     exit_code: int = 1 if any(f.severity == "error" for f in findings_sorted) else 0
 
@@ -181,9 +169,7 @@ def run_checks(
 ) -> list[FreshnessFinding]:
     """Execute all leakage checks. Pure function for ease of testing."""
     findings: list[FreshnessFinding] = []
-    inventory_by_path: dict[str, PageInventoryEntry] = {
-        entry.path: entry for entry in inventory
-    }
+    inventory_by_path: dict[str, PageInventoryEntry] = {entry.path: entry for entry in inventory}
 
     for entry in inventory:
         file_path = Path(entry.path)
@@ -193,13 +179,8 @@ def run_checks(
                     rule_id="LEAK-MISSING-FILE",
                     severity="error",
                     location=entry.path,
-                    message=(
-                        "inventory row references a file that does not "
-                        "exist on disk"
-                    ),
-                    suggested_action=(
-                        "create the page or remove the row from the inventory"
-                    ),
+                    message=("inventory row references a file that does not exist on disk"),
+                    suggested_action=("create the page or remove the row from the inventory"),
                 )
             )
             continue
@@ -224,13 +205,8 @@ def run_checks(
                     rule_id="LEAK-MISSING-BANNER",
                     severity="error",
                     location=entry.path,
-                    message=(
-                        f"{entry.tag.value} page missing banner matching "
-                        f"/{banner_regex.pattern}/"
-                    ),
-                    suggested_action=(
-                        "prepend an archive or migration banner to the page"
-                    ),
+                    message=(f"{entry.tag.value} page missing banner matching /{banner_regex.pattern}/"),
+                    suggested_action=("prepend an archive or migration banner to the page"),
                 )
             )
 
@@ -240,23 +216,14 @@ def run_checks(
                 if resolved is None:
                     continue
                 target_entry = inventory_by_path.get(resolved)
-                if (
-                    target_entry is not None
-                    and target_entry.tag is VersionTag.ARCHIVAL
-                ):
+                if target_entry is not None and target_entry.tag is VersionTag.ARCHIVAL:
                     findings.append(
                         FreshnessFinding(
                             rule_id="LEAK-CURRENT-LINKS-ARCHIVAL",
                             severity="error",
                             location=entry.path,
-                            message=(
-                                f"links to {resolved} (archival) without a "
-                                "migration banner"
-                            ),
-                            suggested_action=(
-                                "add a migration callout or retarget the link "
-                                "to a current/migration page"
-                            ),
+                            message=(f"links to {resolved} (archival) without a migration banner"),
+                            suggested_action=("add a migration callout or retarget the link to a current/migration page"),
                         )
                     )
 
@@ -271,10 +238,7 @@ def run_checks(
                 severity="error",
                 location=rel,
                 message="markdown file under docs/ is not in the inventory",
-                suggested_action=(
-                    "add a PageInventoryEntry row for this page or move it "
-                    "outside docs/"
-                ),
+                suggested_action=("add a PageInventoryEntry row for this page or move it outside docs/"),
             )
         )
 

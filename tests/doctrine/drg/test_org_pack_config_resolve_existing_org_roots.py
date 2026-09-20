@@ -109,9 +109,7 @@ class TestDropWarningLivesOnResolveOrgDirs:
     emits exactly one warning naming both the dropped root and the subdir.
     """
 
-    def test_bare_primitive_emits_no_warning_on_a_dropped_root(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_bare_primitive_emits_no_warning_on_a_dropped_root(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         stale_root = tmp_path / "stale-pack-never-fetched"
         _write_config(tmp_path, [("stale-pack", stale_root)])
 
@@ -121,9 +119,7 @@ class TestDropWarningLivesOnResolveOrgDirs:
         assert result == []
         assert not any(r.levelno == logging.WARNING for r in caplog.records)
 
-    def test_resolve_org_dirs_built_on_the_primitive_still_warns_once(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_resolve_org_dirs_built_on_the_primitive_still_warns_once(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         subdir = "mission_step_contracts"
         stale_root = tmp_path / "stale-pack-never-fetched"
         _write_config(tmp_path, [("stale-pack", stale_root)])

@@ -25,6 +25,7 @@ from kernel.locks import read_lock_record
 
 pytestmark = [pytest.mark.integration]
 
+
 def _make_session() -> StoredSession:
     now = now_utc()
     return StoredSession(
@@ -105,9 +106,7 @@ def _write_lock_record(path: Path, *, age_s: float) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_unstick_drops_old_lock(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_unstick_drops_old_lock(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """120-second-old lock + ``--unstick-lock`` ⇒ lock record cleared."""
     session = _make_session()
     lock_path = tmp_path / "auth" / "refresh.lock"
@@ -120,9 +119,7 @@ def test_unstick_drops_old_lock(
         lock_path=lock_path,
     )
 
-    exit_code = doctor_impl(
-        json_output=True, unstick_lock=True, stuck_threshold=60.0
-    )
+    exit_code = doctor_impl(json_output=True, unstick_lock=True, stuck_threshold=60.0)
 
     assert read_lock_record(lock_path) is None
     # F-003 was the only critical finding; after the unstick repair the
@@ -130,9 +127,7 @@ def test_unstick_drops_old_lock(
     assert exit_code == 0
 
 
-def test_unstick_preserves_fresh_lock(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_unstick_preserves_fresh_lock(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """5-second-old lock + ``--unstick-lock`` ⇒ no-op; lock still present."""
     session = _make_session()
     lock_path = tmp_path / "auth" / "refresh.lock"
@@ -145,18 +140,14 @@ def test_unstick_preserves_fresh_lock(
         lock_path=lock_path,
     )
 
-    exit_code = doctor_impl(
-        json_output=True, unstick_lock=True, stuck_threshold=60.0
-    )
+    exit_code = doctor_impl(json_output=True, unstick_lock=True, stuck_threshold=60.0)
 
     assert lock_path.exists(), "Fresh lock must not be removed"
     # No F-003 (lock not stuck), no other critical findings, exit 0.
     assert exit_code == 0
 
 
-def test_unstick_noop_without_stuck_lock(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_unstick_noop_without_stuck_lock(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """``--unstick-lock`` without a stuck lock ⇒ no-op message, lock absent."""
     session = _make_session()
     lock_path = tmp_path / "auth" / "refresh.lock"
@@ -167,17 +158,13 @@ def test_unstick_noop_without_stuck_lock(
 
     monkeypatch.setattr(_auth_doctor, "force_release", _fail_force_release)
 
-    exit_code = doctor_impl(
-        json_output=False, unstick_lock=True, stuck_threshold=60.0
-    )
+    exit_code = doctor_impl(json_output=False, unstick_lock=True, stuck_threshold=60.0)
 
     # No critical findings before or after the no-op repair.
     assert exit_code == 0
 
 
-def test_unstick_passes_stuck_threshold_to_force_release(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_unstick_passes_stuck_threshold_to_force_release(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """``doctor_impl`` forwards ``stuck_threshold`` unchanged to ``force_release``.
 
     A 400 s lock with a raised threshold (300 s) is still stuck, so the
@@ -197,9 +184,7 @@ def test_unstick_passes_stuck_threshold_to_force_release(
     monkeypatch.setattr(_auth_doctor, "force_release", fake_force_release)
     _patch_state(monkeypatch, session=session, lock_path=lock_path)
 
-    exit_code = doctor_impl(
-        json_output=True, unstick_lock=True, stuck_threshold=300.0
-    )
+    exit_code = doctor_impl(json_output=True, unstick_lock=True, stuck_threshold=300.0)
 
     assert seen_thresholds == [300.0]
     # The fake declined to release, so the refreshed report still carries

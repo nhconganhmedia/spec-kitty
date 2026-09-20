@@ -5,6 +5,7 @@ The imports of ``_get_slash_command_agents``, ``SlashCommandGap``,
 ``_load_slash_command_state``, and ``_repair_slash_command_state`` are the
 forward contract for WP02's implementation.
 """
+
 from __future__ import annotations
 
 import json
@@ -27,9 +28,7 @@ def test_doctor_skills_output_includes_slash_commands_section() -> None:
 
     runner = CliRunner()
     result = runner.invoke(app, ["skills"])
-    assert "Slash Commands" in (result.output or ""), (
-        "doctor skills must include a Slash Commands section in its output"
-    )
+    assert "Slash Commands" in (result.output or ""), "doctor skills must include a Slash Commands section in its output"
 
 
 # ---------------------------------------------------------------------------
@@ -40,9 +39,7 @@ def test_doctor_skills_output_includes_slash_commands_section() -> None:
 class TestLoadSlashCommandState:
     """FR-005/FR-007: _load_slash_command_state() must detect gaps."""
 
-    def test_missing_file_detected_as_gap(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_missing_file_detected_as_gap(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """A missing command file is reported as a gap with status='missing'."""
         from specify_cli.cli.commands.doctor import _load_slash_command_state
 
@@ -62,9 +59,7 @@ class TestLoadSlashCommandState:
         assert len(gaps) > 0
         assert all(g.status == "missing" for g in gaps)
 
-    def test_present_files_no_gap(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_present_files_no_gap(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When all command files exist with current version marker, no gaps reported."""
         from specify_cli.cli.commands.doctor import _load_slash_command_state
         from specify_cli.runtime.agent_commands import (
@@ -94,9 +89,7 @@ class TestLoadSlashCommandState:
         _, gaps = _load_slash_command_state(tmp_path)
         assert gaps == []
 
-    def test_scope_guard_unconfigured_agent_not_audited(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_scope_guard_unconfigured_agent_not_audited(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """T013: Agents not in config.available are excluded from audit."""
         from specify_cli.cli.commands.doctor import _load_slash_command_state
 
@@ -118,9 +111,7 @@ class TestLoadSlashCommandState:
 class TestAuditFalsePositives:
     """FR-007: A stale file must be reported as 'stale', not 'missing'."""
 
-    def test_stale_version_reported_as_stale(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_stale_version_reported_as_stale(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from specify_cli.cli.commands.doctor import _load_slash_command_state
         from specify_cli.runtime.agent_commands import (
             _VERSION_MARKER_PREFIX,
@@ -155,9 +146,7 @@ class TestAuditFalsePositives:
 class TestFixScopeGuard:
     """FR-011/C-002: Repair must only touch configured agents."""
 
-    def test_repair_only_touches_configured_agents(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repair_only_touches_configured_agents(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         called_with: list[list[str] | None] = []
 
         def fake_ensure(*, agent_keys: list[str] | None = None) -> None:
@@ -173,9 +162,7 @@ class TestFixScopeGuard:
         gap = SlashCommandGap("claude", "specify", tmp_path / "spec-kitty.specify.md", "missing")
         _repair_slash_command_state(tmp_path, ["claude"], [gap])
 
-        assert called_with == [["claude"]], (
-            "repair must pass only configured agents, not all agents"
-        )
+        assert called_with == [["claude"]], "repair must pass only configured agents, not all agents"
 
 
 # ---------------------------------------------------------------------------
@@ -186,9 +173,7 @@ class TestFixScopeGuard:
 class TestFixIdempotency:
     """FR-010/T016: _repair_slash_command_state returns [] when gaps=[]."""
 
-    def test_repair_noop_when_no_gaps(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repair_noop_when_no_gaps(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         ensure_called: list[object] = []
 
         def fake_ensure(*, agent_keys: list[str] | None = None) -> None:
@@ -206,9 +191,7 @@ class TestFixIdempotency:
         assert result == [], "Empty gaps should return empty list"
         assert ensure_called == [], "Installer must not be called when there are no gaps"
 
-    def test_repair_idempotent_twice(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_repair_idempotent_twice(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Running repair twice returns the same healthy state."""
         call_count = 0
 
@@ -238,9 +221,7 @@ class TestFixIdempotency:
 class TestDoctorSkillsFixIntegration:
     """FR-006: --fix path must repair detected gaps."""
 
-    def test_fix_repairs_missing_files(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fix_repairs_missing_files(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """--fix path calls repair when gaps exist, leaving zero gaps after."""
         repaired: list[object] = []
 
@@ -270,9 +251,7 @@ class TestDoctorSkillsFixIntegration:
             if call_count == 1:
                 from specify_cli.cli.commands.doctor import SlashCommandGap
 
-                gap = SlashCommandGap(
-                    "claude", "specify", tmp_path / "spec-kitty.specify.md", "missing"
-                )
+                gap = SlashCommandGap("claude", "specify", tmp_path / "spec-kitty.specify.md", "missing")
                 return ["claude"], [gap]
             return ["claude"], []
 
@@ -289,9 +268,7 @@ class TestDoctorSkillsFixIntegration:
         assert repaired, "Expected at least one gap to be repaired"
         assert remaining == [], "Expected zero remaining gaps after repair"
 
-    def test_fix_repaired_count_returned(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fix_repaired_count_returned(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """_repair_slash_command_state returns one entry per repaired file."""
 
         def fake_ensure(*, agent_keys: list[str] | None = None) -> None:
@@ -372,9 +349,7 @@ class TestDoctorSkillsJson:
             ["spec-kitty", "doctor", "skills", "--fix", "--json"],
         )
 
-        result = CliRunner().invoke(
-            specify_cli.app, ["doctor", "skills", "--fix", "--json"]
-        )
+        result = CliRunner().invoke(specify_cli.app, ["doctor", "skills", "--fix", "--json"])
 
         # The command body itself runs to its not-in-project exit (no project
         # root): the point under test is that root startup got there first

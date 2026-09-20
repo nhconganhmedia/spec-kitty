@@ -1,4 +1,5 @@
 """``spec-kitty charter sync`` command (WP06 per-subcommand split)."""
+
 from __future__ import annotations
 
 import json

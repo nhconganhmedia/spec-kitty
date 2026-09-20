@@ -63,16 +63,11 @@ def test_inequality_holds_for_all_steps(mission_key: str) -> None:
     assert findings, f"No findings returned for mission '{mission_key}'"
 
     failures = [
-        f"{f.step_id} (action={f.action_id}): "
-        f"missing={sorted(f.inequality.missing_urns)}, "
-        f"over_broad={sorted(f.inequality.over_broad_urns)}"
+        f"{f.step_id} (action={f.action_id}): missing={sorted(f.inequality.missing_urns)}, over_broad={sorted(f.inequality.over_broad_urns)}"
         for f in findings
         if not f.inequality.holds
     ]
-    assert not failures, (
-        f"Mission '{mission_key}' has {len(failures)} failing step(s):\n"
-        + "\n".join(f"  {line}" for line in failures)
-    )
+    assert not failures, f"Mission '{mission_key}' has {len(failures)} failing step(s):\n" + "\n".join(f"  {line}" for line in failures)
 
 
 @pytest.mark.parametrize(
@@ -103,29 +98,33 @@ def test_expected_steps_present(mission_key: str, expected_steps: list[str]) -> 
     [
         (
             ("software-dev", "action:software-dev/specify"),
-            frozenset({
-                "directive:DIRECTIVE_003",
-                "directive:DIRECTIVE_010",
-                "tactic:requirements-validation-workflow",
-            }),
+            frozenset(
+                {
+                    "directive:DIRECTIVE_003",
+                    "directive:DIRECTIVE_010",
+                    "tactic:requirements-validation-workflow",
+                }
+            ),
         ),
         (
             ("software-dev", "action:software-dev/implement"),
-            frozenset({
-                "directive:DIRECTIVE_024",
-                "directive:DIRECTIVE_025",
-                "directive:DIRECTIVE_028",
-                "directive:DIRECTIVE_029",
-                "directive:DIRECTIVE_030",
-                "directive:DIRECTIVE_034",
-                "tactic:acceptance-test-first",
-                "tactic:autonomous-operation-protocol",
-                "tactic:change-apply-smallest-viable-diff",
-                "tactic:quality-gate-verification",
-                "tactic:stopping-conditions",
-                "tactic:tdd-red-green-refactor",
-                "toolguide:efficient-local-tooling",
-            }),
+            frozenset(
+                {
+                    "directive:DIRECTIVE_024",
+                    "directive:DIRECTIVE_025",
+                    "directive:DIRECTIVE_028",
+                    "directive:DIRECTIVE_029",
+                    "directive:DIRECTIVE_030",
+                    "directive:DIRECTIVE_034",
+                    "tactic:acceptance-test-first",
+                    "tactic:autonomous-operation-protocol",
+                    "tactic:change-apply-smallest-viable-diff",
+                    "tactic:quality-gate-verification",
+                    "tactic:stopping-conditions",
+                    "tactic:tdd-red-green-refactor",
+                    "toolguide:efficient-local-tooling",
+                }
+            ),
         ),
         (
             # Pins the two re-inlined-constant fixes (DIRECTIVE_010, DIRECTIVE_037),
@@ -133,46 +132,48 @@ def test_expected_steps_present(mission_key: str, expected_steps: list[str]) -> 
             # moved off `implement` onto `review` as a REQUIRED positive guard
             # (no longer a silently-tolerated calibrator-sourced extra).
             ("software-dev", "action:software-dev/review"),
-            frozenset({
-                "directive:DIRECTIVE_003",
-                "directive:DIRECTIVE_010",
-                "directive:DIRECTIVE_024",
-                "directive:DIRECTIVE_025",
-                "directive:DIRECTIVE_028",
-                "directive:DIRECTIVE_029",
-                "directive:DIRECTIVE_030",
-                "directive:DIRECTIVE_034",
-                "directive:DIRECTIVE_037",
-                "tactic:acceptance-test-first",
-                "tactic:usage-examples-sync",
-                "tactic:quality-gate-verification",
-                "tactic:review-intent-and-risk-first",
-                "tactic:stopping-conditions",
-            }),
+            frozenset(
+                {
+                    "directive:DIRECTIVE_003",
+                    "directive:DIRECTIVE_010",
+                    "directive:DIRECTIVE_024",
+                    "directive:DIRECTIVE_025",
+                    "directive:DIRECTIVE_028",
+                    "directive:DIRECTIVE_029",
+                    "directive:DIRECTIVE_030",
+                    "directive:DIRECTIVE_034",
+                    "directive:DIRECTIVE_037",
+                    "tactic:acceptance-test-first",
+                    "tactic:usage-examples-sync",
+                    "tactic:quality-gate-verification",
+                    "tactic:review-intent-and-risk-first",
+                    "tactic:stopping-conditions",
+                }
+            ),
         ),
         (
             ("erp-custom", "action:software-dev/implement"),
-            frozenset({
-                "directive:DIRECTIVE_024",
-                "directive:DIRECTIVE_025",
-                "directive:DIRECTIVE_028",
-                "directive:DIRECTIVE_029",
-                "directive:DIRECTIVE_030",
-                "directive:DIRECTIVE_034",
-                "tactic:acceptance-test-first",
-                "tactic:autonomous-operation-protocol",
-                "tactic:change-apply-smallest-viable-diff",
-                "tactic:quality-gate-verification",
-                "tactic:stopping-conditions",
-                "tactic:tdd-red-green-refactor",
-                "toolguide:efficient-local-tooling",
-            }),
+            frozenset(
+                {
+                    "directive:DIRECTIVE_024",
+                    "directive:DIRECTIVE_025",
+                    "directive:DIRECTIVE_028",
+                    "directive:DIRECTIVE_029",
+                    "directive:DIRECTIVE_030",
+                    "directive:DIRECTIVE_034",
+                    "tactic:acceptance-test-first",
+                    "tactic:autonomous-operation-protocol",
+                    "tactic:change-apply-smallest-viable-diff",
+                    "tactic:quality-gate-verification",
+                    "tactic:stopping-conditions",
+                    "tactic:tdd-red-green-refactor",
+                    "toolguide:efficient-local-tooling",
+                }
+            ),
         ),
     ],
 )
-def test_required_scope_membership_is_byte_stable(
-    key: tuple[str, str], expected: frozenset[str]
-) -> None:
+def test_required_scope_membership_is_byte_stable(key: tuple[str, str], expected: frozenset[str]) -> None:
     """Constant-backed frozensets equal the exact URN literals they replaced."""
     assert _REQUIRED_SCOPE[key] == expected
 
@@ -201,8 +202,7 @@ def test_resolved_scope_is_superset_of_required() -> None:
         findings = walk_mission(mission_key=mission_key, repo_root=_REPO_ROOT)
         for f in findings:
             assert f.required_scope.issubset(f.resolved_scope), (
-                f"{mission_key}/{f.step_id}: required URNs not in resolved_scope: "
-                f"{f.required_scope - f.resolved_scope}"
+                f"{mission_key}/{f.step_id}: required URNs not in resolved_scope: {f.required_scope - f.resolved_scope}"
             )
 
 
@@ -212,10 +212,7 @@ def test_no_recommended_changes_when_all_pass() -> None:
         findings = walk_mission(mission_key=mission_key, repo_root=_REPO_ROOT)
         for f in findings:
             if f.inequality.holds:
-                assert f.recommended_edge_changes == [], (
-                    f"{mission_key}/{f.step_id}: unexpected edge changes: "
-                    f"{f.recommended_edge_changes}"
-                )
+                assert f.recommended_edge_changes == [], f"{mission_key}/{f.step_id}: unexpected edge changes: {f.recommended_edge_changes}"
 
 
 # ---------------------------------------------------------------------------
@@ -248,11 +245,7 @@ def test_overlay_add_edge_extends_resolved_scope(tmp_path: Path) -> None:
     # Add a scope edge from software-dev/specify to a tactic that is not yet scoped
     overlay_yaml = overlays_dir / "calibration-software-dev.yaml"
     overlay_yaml.write_text(
-        "add_edge:\n"
-        "  - source: action:software-dev/specify\n"
-        "    target: tactic:adr-drafting-workflow\n"
-        "    relation: scope\n"
-        "    reason: test overlay\n",
+        "add_edge:\n  - source: action:software-dev/specify\n    target: tactic:adr-drafting-workflow\n    relation: scope\n    reason: test overlay\n",
         encoding="utf-8",
     )
 

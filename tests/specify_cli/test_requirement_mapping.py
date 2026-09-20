@@ -22,13 +22,12 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestValidateRefs:
     """Test ref validation against spec IDs."""
 
     def test_all_valid(self):
-        valid, unknown = validate_refs(
-            ["FR-001", "NFR-002"], {"FR-001", "NFR-002", "FR-003"}
-        )
+        valid, unknown = validate_refs(["FR-001", "NFR-002"], {"FR-001", "NFR-002", "FR-003"})
         assert valid == ["FR-001", "NFR-002"]
         assert unknown == []
 
@@ -67,9 +66,7 @@ class TestClassifyStaleRefs:
             {"WP02": ["FR-003a", "FR-999"]},
             malformed=["FR-003A"],
         )
-        assert reasons == {
-            "WP02": {"malformed": ["FR-003a"], "unknown_spec_id": ["FR-999"]}
-        }
+        assert reasons == {"WP02": {"malformed": ["FR-003a"], "unknown_spec_id": ["FR-999"]}}
 
     def test_unfilled_placeholder_is_malformed(self):
         # An unfilled <FR-XXX> template placeholder is classified malformed, not unknown.
@@ -286,12 +283,7 @@ class TestFindUndeclaredRequirementCitations:
         The heading-scoped check still catches the "Functional Requirements"
         section that opens with plain, undeclared prose.
         """
-        content = (
-            "## Non-Functional Requirements\n\n"
-            "- **NFR-001**: Some constraint.\n\n"
-            "## Functional Requirements\n\n"
-            "FR-001 must hold. FR-002 too.\n"
-        )
+        content = "## Non-Functional Requirements\n\n- **NFR-001**: Some constraint.\n\n## Functional Requirements\n\nFR-001 must hold. FR-002 too.\n"
         warnings = find_undeclared_requirement_citations(content)
         assert len(warnings) == 1
         assert "FR-001" in warnings[0]
@@ -349,12 +341,7 @@ class TestFindBareProseRequirementIds:
         must produce NO candidate for that row -- the per-line skip rule
         that keeps this predicate from repeating #3395's rejected ~6%
         false-positive rate."""
-        content = (
-            "### Functional Requirements\n\n"
-            "| ID | Requirement |\n"
-            "|----|-------------|\n"
-            "| FR-001 | See FR-999 for related context. |\n"
-        )
+        content = "### Functional Requirements\n\n| ID | Requirement |\n|----|-------------|\n| FR-001 | See FR-999 for related context. |\n"
         assert find_bare_prose_requirement_ids(content) == []
 
     def test_story5_fault_injection_surfaces_explicit_failure_not_silent_clean(self, monkeypatch):
@@ -432,8 +419,7 @@ class TestReadAllWpRequirementRefs:
         tasks_dir = tmp_path / "tasks"
         tasks_dir.mkdir()
         (tasks_dir / "WP01-test.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "WP01"\n'
-            "requirement_refs:\n  - FR-001\n  - FR-002\n---\n\n# WP01\n",
+            '---\nwork_package_id: "WP01"\ntitle: "WP01"\nrequirement_refs:\n  - FR-001\n  - FR-002\n---\n\n# WP01\n',
             encoding="utf-8",
         )
         (tasks_dir / "WP02-test.md").write_text(
@@ -456,8 +442,7 @@ class TestReadAllWpRawRequirementRefs:
         tasks_dir = tmp_path / "tasks"
         tasks_dir.mkdir()
         (tasks_dir / "WP01-test.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "WP01"\n'
-            "requirement_refs:\n  - FR-001\n  - BOGUS\n---\n\n# WP01\n",
+            '---\nwork_package_id: "WP01"\ntitle: "WP01"\nrequirement_refs:\n  - FR-001\n  - BOGUS\n---\n\n# WP01\n',
             encoding="utf-8",
         )
 
@@ -469,8 +454,7 @@ class TestReadAllWpRawRequirementRefs:
         tasks_dir = tmp_path / "tasks"
         tasks_dir.mkdir()
         (tasks_dir / "WP01-test.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "WP01"\n'
-            "requirement_refs:\n  - FR-001\n  - BOGUS\n---\n\n# WP01\n",
+            '---\nwork_package_id: "WP01"\ntitle: "WP01"\nrequirement_refs:\n  - FR-001\n  - BOGUS\n---\n\n# WP01\n',
             encoding="utf-8",
         )
 
@@ -482,8 +466,7 @@ class TestReadAllWpRawRequirementRefs:
         tasks_dir = tmp_path / "tasks"
         tasks_dir.mkdir()
         (tasks_dir / "WP01-test.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "WP01"\n'
-            'requirement_refs: "FR-002, FR-003"\n---\n\n# WP01\n',
+            '---\nwork_package_id: "WP01"\ntitle: "WP01"\nrequirement_refs: "FR-002, FR-003"\n---\n\n# WP01\n',
             encoding="utf-8",
         )
 
@@ -495,15 +478,12 @@ class TestReadAllWpRawRequirementRefs:
         tasks_dir = tmp_path / "tasks"
         tasks_dir.mkdir()
         (tasks_dir / "WP01-test.md").write_text(
-            '---\nwork_package_id: "WP01"\ntitle: "WP01"\n'
-            "requirement_refs:\n  - FR-001\n  - 42\n---\n\n# WP01\n",
+            '---\nwork_package_id: "WP01"\ntitle: "WP01"\nrequirement_refs:\n  - FR-001\n  - 42\n---\n\n# WP01\n',
             encoding="utf-8",
         )
 
         result = read_all_wp_raw_requirement_refs(tasks_dir)
         assert "FR-001" in result["WP01"]
-        non_string_tokens = [
-            token for token in result["WP01"] if token.startswith("<NON_STRING:")
-        ]
+        non_string_tokens = [token for token in result["WP01"] if token.startswith("<NON_STRING:")]
         assert len(non_string_tokens) == 1
         assert "42" in non_string_tokens[0]

@@ -38,21 +38,29 @@ def _make_git_repo(path: Path) -> None:
     subprocess.run(["git", "init", str(path)], capture_output=True, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
     subprocess.run(
         ["git", "branch", "-M", "main"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
     (path / "README.md").write_text("init\n")
     subprocess.run(["git", "add", "."], cwd=str(path), capture_output=True, check=True)
     subprocess.run(
         ["git", "commit", "-m", "init"],
-        cwd=str(path), capture_output=True, check=True,
+        cwd=str(path),
+        capture_output=True,
+        check=True,
     )
 
 
@@ -146,14 +154,18 @@ def _create_lane_branch_with_commits(
     mission_branch = f"kitty/mission-{mission_slug}"
     subprocess.run(
         ["git", "branch", mission_branch, "main"],
-        cwd=str(repo), capture_output=True, check=False,  # ignore if exists
+        cwd=str(repo),
+        capture_output=True,
+        check=False,  # ignore if exists
     )
 
     # Create lane branch from mission branch
     lane_branch = f"kitty/mission-{mission_slug}-{lane_id}"
     subprocess.run(
         ["git", "branch", lane_branch, mission_branch],
-        cwd=str(repo), capture_output=True, check=True,
+        cwd=str(repo),
+        capture_output=True,
+        check=True,
     )
 
     # Create a temporary worktree to make a commit on the lane branch
@@ -161,19 +173,25 @@ def _create_lane_branch_with_commits(
     tmp_worktree.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["git", "worktree", "add", str(tmp_worktree), lane_branch],
-        cwd=str(repo), capture_output=True, check=True,
+        cwd=str(repo),
+        capture_output=True,
+        check=True,
     )
     (tmp_worktree / "feature.py").write_text("# WP implementation\n")
     subprocess.run(["git", "add", "."], cwd=str(tmp_worktree), capture_output=True, check=True)
     subprocess.run(
         ["git", "commit", "-m", "feat: WP implementation"],
-        cwd=str(tmp_worktree), capture_output=True, check=True,
+        cwd=str(tmp_worktree),
+        capture_output=True,
+        check=True,
     )
 
     # Remove the temporary worktree (simulating crash -- worktree lost)
     subprocess.run(
         ["git", "worktree", "remove", str(tmp_worktree), "--force"],
-        cwd=str(repo), capture_output=True, check=True,
+        cwd=str(repo),
+        capture_output=True,
+        check=True,
     )
 
     return lane_branch
@@ -189,7 +207,9 @@ class TestBranchHasCommitsBeyondSeparator:
     """
 
     def test_inserts_end_of_options_before_the_range(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         import specify_cli.lanes.recovery as recovery_mod
 
@@ -221,12 +241,8 @@ class TestBranchHasCommitsBeyondSeparator:
 
         import specify_cli.lanes.recovery as recovery_mod
 
-        assert recovery_mod._branch_has_commits_beyond(
-            repo, lane_branch, "kitty/mission-010-feat"
-        ) is True
-        assert recovery_mod._branch_has_commits_beyond(
-            repo, "kitty/mission-010-feat", "kitty/mission-010-feat"
-        ) is False
+        assert recovery_mod._branch_has_commits_beyond(repo, lane_branch, "kitty/mission-010-feat") is True
+        assert recovery_mod._branch_has_commits_beyond(repo, "kitty/mission-010-feat", "kitty/mission-010-feat") is False
 
 
 class TestScanRecoveryState:
@@ -262,7 +278,9 @@ class TestScanRecoveryState:
         mission_branch = "kitty/mission-010-feat"
         subprocess.run(
             ["git", "branch", mission_branch, "main"],
-            cwd=str(repo), capture_output=True, check=True,
+            cwd=str(repo),
+            capture_output=True,
+            check=True,
         )
 
         # Create lane branch and worktree (but no context)
@@ -271,7 +289,9 @@ class TestScanRecoveryState:
         worktree_path.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(
             ["git", "worktree", "add", "-b", lane_branch, str(worktree_path), mission_branch],
-            cwd=str(repo), capture_output=True, check=True,
+            cwd=str(repo),
+            capture_output=True,
+            check=True,
         )
 
         states = scan_recovery_state(repo, "010-feat")
@@ -355,7 +375,10 @@ class TestWorktreeRecovery:
         # Verify the branch is correct
         result = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            cwd=str(worktree_path), capture_output=True, text=True, check=True,
+            cwd=str(worktree_path),
+            capture_output=True,
+            text=True,
+            check=True,
         )
         assert result.stdout.strip() == lane_branch
 
@@ -418,7 +441,10 @@ class TestWorktreeRecovery:
         # own line ahead of the sha, which this exact-match assertion pins.
         expected_sha = subprocess.run(
             ["git", "rev-parse", "kitty/mission-010-feat"],
-            cwd=str(repo), capture_output=True, text=True, check=True,
+            cwd=str(repo),
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
         assert loaded.base_commit == expected_sha
 
@@ -448,7 +474,9 @@ class TestWorktreeRecovery:
         assert loaded.base_commit is None
 
     def test_recover_context_rev_parse_inserts_end_of_options_before_branch(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Alert #66 (S6350): the base-commit rev-parse gets ``--end-of-options``
         immediately before the (potentially hostile) mission branch value.
@@ -461,9 +489,7 @@ class TestWorktreeRecovery:
         _setup_feature(repo)
 
         hostile_branch = "--upload-pack=touch /pwned-marker"
-        monkeypatch.setattr(
-            recovery_mod, "_resolve_mission_branch", lambda *_a, **_kw: hostile_branch
-        )
+        monkeypatch.setattr(recovery_mod, "_resolve_mission_branch", lambda *_a, **_kw: hostile_branch)
 
         calls: list[list[str]] = []
 
@@ -558,20 +584,24 @@ class TestStatusReconciliation:
         # First, emit events to get to in_progress
         from specify_cli.status.emit import emit_status_transition
 
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir,
-            mission_slug="010-feat",
-            wp_id="WP01",
-            to_lane="claimed",
-            actor="test",
-        ))
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir,
-            mission_slug="010-feat",
-            wp_id="WP01",
-            to_lane="in_progress",
-            actor="test",
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug="010-feat",
+                wp_id="WP01",
+                to_lane="claimed",
+                actor="test",
+            )
+        )
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug="010-feat",
+                wp_id="WP01",
+                to_lane="in_progress",
+                actor="test",
+            )
+        )
 
         state = RecoveryState(
             wp_id="WP01",
@@ -631,13 +661,15 @@ class TestStatusReconciliation:
         # Get to claimed first
         from specify_cli.status.emit import emit_status_transition
 
-        emit_status_transition(TransitionRequest(
-            feature_dir=feature_dir,
-            mission_slug="010-feat",
-            wp_id="WP01",
-            to_lane="claimed",
-            actor="test",
-        ))
+        emit_status_transition(
+            TransitionRequest(
+                feature_dir=feature_dir,
+                mission_slug="010-feat",
+                wp_id="WP01",
+                to_lane="claimed",
+                actor="test",
+            )
+        )
 
         state = RecoveryState(
             wp_id="WP01",
@@ -748,6 +780,9 @@ class TestRecoverLaneWorktree:
 
         result = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            cwd=str(worktree_path), capture_output=True, text=True, check=True,
+            cwd=str(worktree_path),
+            capture_output=True,
+            text=True,
+            check=True,
         )
         assert result.stdout.strip() == lane_branch

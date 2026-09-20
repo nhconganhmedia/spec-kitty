@@ -14,6 +14,7 @@ an integration side-effect, and confirm the classifier wires
 ``retrospective.yaml`` to the new kind so it is NOT treated as coordination
 residue (PRIMARY, not residue).
 """
+
 from __future__ import annotations
 
 import pytest

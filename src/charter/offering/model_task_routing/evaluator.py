@@ -150,9 +150,7 @@ class RoutingRecommendation:
         return next((c for c in self.candidates if c.source == _SOURCE_PROFILE), None)
 
 
-def _tier_allowed(
-    model: ModelEntry, task_type: str, tier_constraints: list[TierConstraint]
-) -> bool:
+def _tier_allowed(model: ModelEntry, task_type: str, tier_constraints: list[TierConstraint]) -> bool:
     """Apply the ``tier_constraints`` hard filter for ``task_type``.
 
     A model whose cost tier exceeds the constraint's ``max_tier`` is
@@ -173,22 +171,9 @@ def _weighted_score(model: ModelEntry, fit: TaskFit, weights: RoutingWeights) ->
     """The plain objective-function weighted sum across all four axes."""
     quality = fit.score
     cost = _COST_DESIRABILITY.get(model.cost.tier, _NEUTRAL_DESIRABILITY)
-    risk = (
-        _RISK_DESIRABILITY.get(fit.confidence, _NEUTRAL_DESIRABILITY)
-        if fit.confidence is not None
-        else _NEUTRAL_DESIRABILITY
-    )
-    latency = (
-        _LATENCY_DESIRABILITY.get(model.latency_tier, _NEUTRAL_DESIRABILITY)
-        if model.latency_tier is not None
-        else _NEUTRAL_DESIRABILITY
-    )
-    return (
-        weights.quality * quality
-        + weights.cost * cost
-        + weights.risk * risk
-        + weights.latency * latency
-    )
+    risk = _RISK_DESIRABILITY.get(fit.confidence, _NEUTRAL_DESIRABILITY) if fit.confidence is not None else _NEUTRAL_DESIRABILITY
+    latency = _LATENCY_DESIRABILITY.get(model.latency_tier, _NEUTRAL_DESIRABILITY) if model.latency_tier is not None else _NEUTRAL_DESIRABILITY
+    return weights.quality * quality + weights.cost * cost + weights.risk * risk + weights.latency * latency
 
 
 def _ranking_key(
@@ -249,9 +234,7 @@ def _profile_candidate(profile: AgentProfile) -> RoutingCandidate | None:
     )
 
 
-def _resolve_model_tier(
-    recommended_model_tier: str | None, model_tier_override: str | None
-) -> OfferResolution | None:
+def _resolve_model_tier(recommended_model_tier: str | None, model_tier_override: str | None) -> OfferResolution | None:
     """Resolve the step's model-tier offer via the one named seam.
 
     Returns ``None`` -- not an :class:`OfferResolution` with empty

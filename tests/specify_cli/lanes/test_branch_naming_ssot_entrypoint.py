@@ -221,10 +221,7 @@ def test_composed_names_byte_identical_to_head(
     """Composed branch/worktree names are byte-identical to the pre-rename output."""
     assert mission_branch_name(slug, mission_id=mission_id) == mission_branch
     assert lane_branch_name(slug, "lane-a", mission_id=mission_id) == lane_branch
-    assert (
-        worktree_dir_name(slug, mission_id=mission_id, lane_id="lane-a")
-        == worktree_dir
-    )
+    assert worktree_dir_name(slug, mission_id=mission_id, lane_id="lane-a") == worktree_dir
 
 
 # ---------------------------------------------------------------------------
@@ -235,18 +232,10 @@ def test_composed_names_byte_identical_to_head(
 def test_resolve_transaction_mid8_cascade_preserved() -> None:
     """The transaction resolver's declared-source cascade is intact (T003)."""
     # explicit mid8 wins
-    assert (
-        resolve_transaction_mid8("foo", mission_id=None, mid8="01EXPLCT") == "01EXPLCT"
-    )
+    assert resolve_transaction_mid8("foo", mission_id=None, mid8="01EXPLCT") == "01EXPLCT"
     # mission_id[:8]
-    assert (
-        resolve_transaction_mid8("foo", mission_id=_FULL_ID, mid8=None)
-        == _FULL_ID_MID8
-    )
+    assert resolve_transaction_mid8("foo", mission_id=_FULL_ID, mid8=None) == _FULL_ID_MID8
     # embedded slug tail
-    assert (
-        resolve_transaction_mid8("foo-01KV6510", mission_id=None, mid8=None)
-        == "01KV6510"
-    )
+    assert resolve_transaction_mid8("foo-01KV6510", mission_id=None, mid8=None) == "01KV6510"
     # legacy NNN- slug carves out to the bare-slug surface (empty mid8)
     assert resolve_transaction_mid8("057-legacy", mission_id=None, mid8=None) == ""

@@ -60,9 +60,7 @@ def _scope_to_mission(
     # is the artifact kind for a mission's ``meta.json`` -- exactly what
     # ``classify_mission`` reads -- and is a PRIMARY-partition kind, so
     # ``read_dir`` resolves the topology-blind primary directory directly.
-    target_dir = placement_seam(repo_root, mission).read_dir(
-        MissionArtifactKind.PRIMARY_METADATA
-    )
+    target_dir = placement_seam(repo_root, mission).read_dir(MissionArtifactKind.PRIMARY_METADATA)
     if target_dir.is_dir():
         return [classify_mission(target_dir)]
     return []
@@ -108,9 +106,7 @@ def _print_dup_and_ambig(
         console.print("[green]No duplicate prefixes or ambiguous selectors.[/green]\n")
 
 
-def _print_identity_summary_table(
-    all_states: list[IdentityState], summary: dict[str, object]
-) -> None:
+def _print_identity_summary_table(all_states: list[IdentityState], summary: dict[str, object]) -> None:
     """Print the per-state count table (extracted to keep callers <=15 CC)."""
     counts_dict: dict[str, int] = summary["counts"]  # type: ignore[assignment]
     total = len(all_states)
@@ -159,22 +155,13 @@ def _print_identity_human(
     _print_identity_path_sections(summary)
 
     if fail_on_triggered:
-        console.print(
-            f"[bold red]FAIL:[/bold red] --fail-on {fail_on!r} triggered "
-            f"(one or more missions in: {', '.join(sorted(fail_on_states))})"
-        )
+        console.print(f"[bold red]FAIL:[/bold red] --fail-on {fail_on!r} triggered (one or more missions in: {', '.join(sorted(fail_on_states))})")
 
 
-def _compute_fail_on(
-    fail_on: str | None, all_states: list[IdentityState]
-) -> tuple[set[str], bool]:
+def _compute_fail_on(fail_on: str | None, all_states: list[IdentityState]) -> tuple[set[str], bool]:
     """Parse ``--fail-on`` states and determine whether the gate is triggered."""
-    fail_on_states: set[str] = (
-        {s.strip() for s in fail_on.split(",") if s.strip()} if fail_on else set()
-    )
-    fail_on_triggered = bool(
-        fail_on_states and any(s.state in fail_on_states for s in all_states)
-    )
+    fail_on_states: set[str] = {s.strip() for s in fail_on.split(",") if s.strip()} if fail_on else set()
+    fail_on_triggered = bool(fail_on_states and any(s.state in fail_on_states for s in all_states))
     return fail_on_states, fail_on_triggered
 
 
@@ -189,21 +176,13 @@ def _build_identity_json(
     return {
         "summary": summary["counts"],
         "missions": [s.to_dict() for s in all_states],
-        "duplicate_prefixes": {
-            prefix: [s.to_dict() for s in items]
-            for prefix, items in dup_prefixes.items()
-        },
-        "ambiguous_selectors": {
-            handle: [s.to_dict() for s in items]
-            for handle, items in ambig_selectors.items()
-        },
+        "duplicate_prefixes": {prefix: [s.to_dict() for s in items] for prefix, items in dup_prefixes.items()},
+        "ambiguous_selectors": {handle: [s.to_dict() for s in items] for handle, items in ambig_selectors.items()},
         "fail_on_triggered": fail_on_triggered,
     }
 
 
-def run_identity_audit(
-    repo_root: Path, json_output: bool, mission: str | None, fail_on: str | None
-) -> None:
+def run_identity_audit(repo_root: Path, json_output: bool, mission: str | None, fail_on: str | None) -> None:
     """Entry point for ``doctor identity`` — preserves the original exit contract.
 
     *repo_root* is resolved by the ``doctor.py`` command shell (which owns the
@@ -235,9 +214,7 @@ def run_identity_audit(
     fail_on_states, fail_on_triggered = _compute_fail_on(fail_on, all_states)
 
     if json_output:
-        report = _build_identity_json(
-            all_states, summary, dup_prefixes, ambig_selectors, fail_on_triggered
-        )
+        report = _build_identity_json(all_states, summary, dup_prefixes, ambig_selectors, fail_on_triggered)
         sys.stdout.write(json.dumps(report, indent=2) + "\n")
         sys.stdout.flush()
         raise typer.Exit(1 if fail_on_triggered else 0)
@@ -300,15 +277,9 @@ def _collect_topology_rows(repo_root: Path, mission: str | None) -> list[dict[st
         # seam (see ``_scope_to_mission`` above for the full rationale) --
         # ``PRIMARY_METADATA`` again, since this reads the mission's
         # ``meta.json``-bearing directory.
-        target = placement_seam(repo_root, mission).read_dir(
-            MissionArtifactKind.PRIMARY_METADATA
-        )
+        target = placement_seam(repo_root, mission).read_dir(MissionArtifactKind.PRIMARY_METADATA)
         return [_read_stored_topology(target)] if target.is_dir() else []
-    return [
-        _read_stored_topology(entry)
-        for entry in sorted(specs_dir.iterdir())
-        if entry.is_dir()
-    ]
+    return [_read_stored_topology(entry) for entry in sorted(specs_dir.iterdir()) if entry.is_dir()]
 
 
 def _print_topology_human(rows: list[dict[str, object | None]]) -> None:

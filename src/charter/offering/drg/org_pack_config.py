@@ -188,28 +188,19 @@ def resolve_relative_path_within_root(root: Path, relative_path: str) -> Path:
     Does not otherwise touch the filesystem — a not-yet-materialised *root*
     or *relative_path* is not an error by itself (``strict=False``).
     """
-    if PurePosixPath(relative_path).is_absolute() or PureWindowsPath(
-        relative_path
-    ).is_absolute():
-        raise OrgPackSubdirEscapeError(
-            f"path {relative_path!r} must be a relative path, got an absolute path"
-        )
+    if PurePosixPath(relative_path).is_absolute() or PureWindowsPath(relative_path).is_absolute():
+        raise OrgPackSubdirEscapeError(f"path {relative_path!r} must be a relative path, got an absolute path")
     posix_parts = PurePosixPath(relative_path).parts
     win_parts = PureWindowsPath(relative_path).parts
     if ".." in posix_parts or ".." in win_parts:
-        raise OrgPackSubdirEscapeError(
-            f"path {relative_path!r} must not contain '..' components"
-        )
+        raise OrgPackSubdirEscapeError(f"path {relative_path!r} must not contain '..' components")
 
     resolved_root = root.resolve(strict=False)
     resolved_candidate = (root / relative_path).resolve(strict=False)
     try:
         resolved_candidate.relative_to(resolved_root)
     except ValueError as exc:
-        raise OrgPackSubdirEscapeError(
-            f"path {relative_path!r} resolves outside root {resolved_root}: "
-            f"{resolved_candidate}"
-        ) from exc
+        raise OrgPackSubdirEscapeError(f"path {relative_path!r} resolves outside root {resolved_root}: {resolved_candidate}") from exc
     return resolved_candidate
 
 
@@ -244,8 +235,7 @@ class OrgPackConfig(BaseModel):
     name: str
     pack_id: str | None = Field(
         default=None,
-        description="Stable ULID (26 chars); sole runtime identity. Immutable once minted. "
-        "Optional during backfill; resolver requires it.",
+        description="Stable ULID (26 chars); sole runtime identity. Immutable once minted. Optional during backfill; resolver requires it.",
     )
     local_path: Path
     subdir: str | None = None
@@ -292,9 +282,7 @@ class OrgPackConfig(BaseModel):
             # Return the normalized string form (consistent capitalization)
             return str(ulid_obj)
         except (ValueError, TypeError) as exc:
-            raise ValueError(
-                f"pack_id must be a valid 26-char ULID, got {value!r}"
-            ) from exc
+            raise ValueError(f"pack_id must be a valid 26-char ULID, got {value!r}") from exc
 
     @field_validator("subdir", mode="before")
     @classmethod
@@ -315,26 +303,18 @@ class OrgPackConfig(BaseModel):
             return None
         # Reject POSIX absolute paths
         if PurePosixPath(stripped).is_absolute():
-            raise ValueError(
-                f"subdir must be a relative path, got absolute POSIX path: {stripped!r}"
-            )
+            raise ValueError(f"subdir must be a relative path, got absolute POSIX path: {stripped!r}")
         # Reject Windows drive-letter absolute paths (C:\...) and UNC (\\...)
         if PureWindowsPath(stripped).is_absolute():
-            raise ValueError(
-                f"subdir must be a relative path, got absolute Windows path: {stripped!r}"
-            )
+            raise ValueError(f"subdir must be a relative path, got absolute Windows path: {stripped!r}")
         # Reject any path containing .. components
         parts = PurePosixPath(stripped).parts
         if ".." in parts:
-            raise ValueError(
-                f"subdir must not contain '..' components, got: {stripped!r}"
-            )
+            raise ValueError(f"subdir must not contain '..' components, got: {stripped!r}")
         # Also check Windows-style separators for ..
         win_parts = PureWindowsPath(stripped).parts
         if ".." in win_parts:
-            raise ValueError(
-                f"subdir must not contain '..' components, got: {stripped!r}"
-            )
+            raise ValueError(f"subdir must not contain '..' components, got: {stripped!r}")
         return stripped
 
     def local_path_root(self, repo_root: Path) -> Path:
@@ -414,9 +394,7 @@ class PackRegistry(BaseModel):
         names = [pack.name for pack in self.packs]
         dupes = sorted({name for name in names if names.count(name) > 1})
         if dupes:
-            raise ValueError(
-                f"Duplicate pack names in charter_packs.org.packs: {dupes}"
-            )
+            raise ValueError(f"Duplicate pack names in charter_packs.org.packs: {dupes}")
         return self
 
     def get(self, name: str) -> OrgPackConfig | None:
@@ -493,8 +471,7 @@ def load_pack_registry(repo_root: Path, *, quiet: bool = False) -> PackRegistry:
         legacy_flat_registry = _registry_from_legacy_organisation_packs(data)
         if legacy_flat_registry is not None:
             warnings.warn(
-                "Top-level organisation_packs is deprecated; use "
-                "charter_packs.org.packs[].local_path instead.",
+                "Top-level organisation_packs is deprecated; use charter_packs.org.packs[].local_path instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -543,9 +520,7 @@ def save_pack_registry(repo_root: Path, registry: PackRegistry) -> None:
         charter_packs_section = {}
         data[_CANONICAL_ORG_PACKS_KEY] = charter_packs_section
 
-    charter_packs_section["org"] = {
-        "packs": [_pack_to_yaml_dict(pack) for pack in registry.packs]
-    }
+    charter_packs_section["org"] = {"packs": [_pack_to_yaml_dict(pack) for pack in registry.packs]}
 
     with config_path.open("w", encoding="utf-8") as file:
         yaml.dump(data, file)
@@ -562,10 +537,7 @@ def resolve_org_roots(repo_root: Path, *, quiet: bool = False) -> list[Path]:
     ``quiet``: forwarded verbatim to :func:`load_pack_registry` — see its
     docstring for exactly which signal it does (and does not) silence.
     """
-    return [
-        pack.effective_root(repo_root)
-        for pack in load_pack_registry(repo_root, quiet=quiet).packs
-    ]
+    return [pack.effective_root(repo_root) for pack in load_pack_registry(repo_root, quiet=quiet).packs]
 
 
 def resolve_existing_org_roots(repo_root: Path) -> list[Path]:
@@ -682,10 +654,7 @@ def _registry_from_legacy_organisation_packs(
             continue
         source = str(raw.get("source", "local_path"))
         if source != "local_path":
-            raise NotImplementedError(
-                f"Org pack source {source!r} not yet implemented. "
-                "Use charter_packs.org.packs[].local_path for fetched local packs."
-            )
+            raise NotImplementedError(f"Org pack source {source!r} not yet implemented. Use charter_packs.org.packs[].local_path for fetched local packs.")
         packs.append(
             OrgPackConfig(
                 name=raw["name"],

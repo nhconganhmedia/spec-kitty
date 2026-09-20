@@ -249,9 +249,7 @@ _FACADE_TABLE: dict[str, list[tuple[str, str]]] = {
 #: definition (``__module__`` under ``charter``) is not a re-export; a stdlib
 #: value instance such as a ``pathlib.Path`` constant is not one either — both are
 #: correctly excluded by keying on these origins rather than on "not charter".
-_IDENTITY_REQUIRED_ORIGINS = frozenset(
-    {"doctrine", "spec_kitty_events", "spec_kitty_tracker"}
-)
+_IDENTITY_REQUIRED_ORIGINS = frozenset({"doctrine", "spec_kitty_events", "spec_kitty_tracker"})
 
 _CHARTER_SRC = pathlib.Path(__file__).resolve().parents[2] / "src" / "charter"
 
@@ -263,20 +261,12 @@ def _charter_modules() -> list[str]:
     re-export module simply never added to the table (e.g. ``charter.activation.kind_vocabulary``,
     caught by the #3321 post-fold squad) cannot hide from the check.
     """
-    return [
-        f"charter.{path.stem}"
-        for path in sorted(_CHARTER_SRC.glob("*.py"))
-        if path.stem != "__init__"
-    ]
+    return [f"charter.{path.stem}" for path in sorted(_CHARTER_SRC.glob("*.py")) if path.stem != "__init__"]
 
 
 def _flat_cases() -> list[tuple[str, str, str]]:
     """Flatten the facade table into a list of (facade, symbol, doctrine) tuples."""
-    return [
-        (facade, symbol, doctrine)
-        for facade, items in _FACADE_TABLE.items()
-        for symbol, doctrine in items
-    ]
+    return [(facade, symbol, doctrine) for facade, items in _FACADE_TABLE.items() for symbol, doctrine in items]
 
 
 @pytest.mark.parametrize(
@@ -284,9 +274,7 @@ def _flat_cases() -> list[tuple[str, str, str]]:
     _flat_cases(),
     ids=[f"{facade}.{symbol}" for facade, symbol, _ in _flat_cases()],
 )
-def test_facade_reexports_doctrine_symbol_by_identity(
-    facade_module: str, symbol: str, doctrine_module: str
-) -> None:
+def test_facade_reexports_doctrine_symbol_by_identity(facade_module: str, symbol: str, doctrine_module: str) -> None:
     """Each facade symbol MUST be the same object as its doctrine source.
 
     Identity (``is``) — not equality (``==``) — is the invariant. A facade
@@ -318,10 +306,7 @@ def test_facade_all_lists_every_reexport(facade_module: str) -> None:
     assert all_ is not None, f"{facade_module} must define __all__"
     expected_symbols = {symbol for symbol, _ in _FACADE_TABLE[facade_module]}
     missing = expected_symbols - set(all_)
-    assert not missing, (
-        f"{facade_module}.__all__ is missing contract symbols: {sorted(missing)}. "
-        f"Add them to __all__ or update the contract table."
-    )
+    assert not missing, f"{facade_module}.__all__ is missing contract symbols: {sorted(missing)}. Add them to __all__ or update the contract table."
 
 
 @pytest.mark.parametrize("facade_module", _charter_modules())

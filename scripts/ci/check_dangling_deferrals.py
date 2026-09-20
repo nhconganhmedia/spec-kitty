@@ -66,15 +66,10 @@ class DanglingDeferral:
 
     def describe(self) -> str:
         reason = self.deferred_reason or "no deferred_reason recorded"
-        return (
-            f"{self.mission_slug}: negative invariant {self.invariant_id!r} is "
-            f"still {DEFERRED_TO_CONSOLIDATION!r} ({reason}) — {self.matrix_path}"
-        )
+        return f"{self.mission_slug}: negative invariant {self.invariant_id!r} is still {DEFERRED_TO_CONSOLIDATION!r} ({reason}) — {self.matrix_path}"
 
 
-def _dangling_deferrals_in_matrix(
-    matrix_path: Path, data: dict[str, object]
-) -> list[DanglingDeferral]:
+def _dangling_deferrals_in_matrix(matrix_path: Path, data: dict[str, object]) -> list[DanglingDeferral]:
     mission_slug = data.get("mission_slug") or matrix_path.parent.name
     invariants = data.get("negative_invariants")
     if not isinstance(invariants, list):
@@ -113,9 +108,7 @@ def find_dangling_deferrals(kitty_specs_root: Path) -> list[DanglingDeferral]:
             data = json.loads(matrix_path.read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             print(
-                f"warning: {matrix_path}: could not be parsed as JSON ({exc}); "
-                "skipped by the FR-016 deferral check (matrix validity is a "
-                "separate gate)",
+                f"warning: {matrix_path}: could not be parsed as JSON ({exc}); skipped by the FR-016 deferral check (matrix validity is a separate gate)",
                 file=sys.stderr,
             )
             continue
@@ -131,10 +124,7 @@ def main(argv: list[str] | None = None) -> int:
         "--root",
         type=Path,
         default=Path("kitty-specs"),
-        help=(
-            "Directory holding <mission>/acceptance-matrix.json files "
-            "(default: kitty-specs)"
-        ),
+        help=("Directory holding <mission>/acceptance-matrix.json files (default: kitty-specs)"),
     )
     args = parser.parse_args(argv)
 

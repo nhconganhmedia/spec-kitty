@@ -45,9 +45,7 @@ _CONTRACTED_SYMBOLS = [
 @pytest.mark.parametrize("name", _CONTRACTED_SYMBOLS)
 def test_contracted_symbol_resolves_from_doctor(name: str) -> None:
     module = importlib.import_module("specify_cli.cli.commands.doctor")
-    assert hasattr(module, name), (
-        f"{name!r} must remain importable from specify_cli.cli.commands.doctor"
-    )
+    assert hasattr(module, name), f"{name!r} must remain importable from specify_cli.cli.commands.doctor"
 
 
 # ``test_app_is_a_typer_group_with_seventeen_commands`` (count-only) and

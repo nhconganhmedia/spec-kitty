@@ -217,9 +217,7 @@ def test_is_mission_completed_true_when_all_wps_terminal(tmp_path: Path) -> None
         from_lane="approved",
     )
     # recently_completed / archived both classify as completed.
-    assert is_mission_completed(
-        feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)
-    ) is True
+    assert is_mission_completed(feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)) is True
 
 
 def test_is_mission_completed_false_for_active_wip(tmp_path: Path) -> None:
@@ -232,17 +230,13 @@ def test_is_mission_completed_false_for_active_wip(tmp_path: Path) -> None:
         at="2026-04-21T12:00:00+00:00",
         event_id="01TESTWIP000000000000000001",
     )
-    assert is_mission_completed(
-        feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)
-    ) is False
+    assert is_mission_completed(feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)) is False
 
 
 def test_is_mission_completed_false_for_recoverable_no_events(tmp_path: Path) -> None:
     feature_dir = tmp_path / "kitty-specs" / "053-recoverable"
     _write_meta(feature_dir)  # no merge marker, no events → recoverable
-    assert is_mission_completed(
-        feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)
-    ) is False
+    assert is_mission_completed(feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)) is False
 
 
 def test_lifecycle_carries_mission_id(tmp_path: Path) -> None:
@@ -252,17 +246,11 @@ def test_lifecycle_carries_mission_id(tmp_path: Path) -> None:
     feature_dir = tmp_path / "kitty-specs" / "054-carries-id"
     _write_meta(feature_dir, mission_id=ulid)
 
-    result = derive_mission_lifecycle(
-        feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)
-    )
+    result = derive_mission_lifecycle(feature_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC))
     assert result.mission_id == ulid
     assert result.to_dict()["mission_id"] == ulid
 
     derived_dir = tmp_path / ".kittify" / "derived"
-    generate_lifecycle_json(
-        feature_dir, derived_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC)
-    )
-    written = json.loads(
-        (derived_dir / "054-carries-id" / "lifecycle.json").read_text(encoding="utf-8")
-    )
+    generate_lifecycle_json(feature_dir, derived_dir, now=datetime(2026, 4, 22, 12, 0, tzinfo=UTC))
+    written = json.loads((derived_dir / "054-carries-id" / "lifecycle.json").read_text(encoding="utf-8"))
     assert written["mission_id"] == ulid

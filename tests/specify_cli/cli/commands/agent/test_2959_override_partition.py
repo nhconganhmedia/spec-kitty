@@ -71,16 +71,13 @@ def test_override_write_lands_on_gate_read_partition(
     # caller happened to pass — fixture invariant that makes this test meaningful.
     gate_read_dir = _resolve_lane_state_read_dir(ctx.primary_feature_dir)
     assert gate_read_dir == ctx.coord_feature_dir, (
-        "fixture invariant: the gate must read the coord husk for a coord "
-        "topology, or this test cannot distinguish the two partitions"
+        "fixture invariant: the gate must read the coord husk for a coord topology, or this test cannot distinguish the two partitions"
     )
     assert gate_read_dir != ctx.primary_feature_dir
 
     # The override caller hands a PRIMARY-derived artifact path (review-cycle
     # artifacts live under the primary tasks/ tree): parents[2] == primary dir.
-    artifact_path = (
-        ctx.primary_feature_dir / "tasks" / _WP_SLUG / "review-cycle-1.md"
-    )
+    artifact_path = ctx.primary_feature_dir / "tasks" / _WP_SLUG / "review-cycle-1.md"
     artifact_path.parent.mkdir(parents=True, exist_ok=True)
     artifact_path.write_text("# review\nVerdict: rejected\n", encoding="utf-8")
     assert artifact_path.parents[2] == ctx.primary_feature_dir
@@ -95,10 +92,7 @@ def test_override_write_lands_on_gate_read_partition(
 
     # The override must be present on the gate's READ surface (coord husk).
     gate_slot = _override_review_slot(gate_read_dir)
-    assert gate_slot is not None, (
-        "override not visible on the gate's STATUS_STATE read surface — the "
-        "write landed on the wrong partition (the #2959 deadlock)"
-    )
+    assert gate_slot is not None, "override not visible on the gate's STATUS_STATE read surface — the write landed on the wrong partition (the #2959 deadlock)"
     override = ReviewOverride.from_dict(gate_slot)
     assert override.complete
     assert override.reason == _REASON
@@ -107,6 +101,5 @@ def test_override_write_lands_on_gate_read_partition(
     # MOVED to the gate's partition, not merely also-wrote it).
     primary_slot = _override_review_slot(ctx.primary_feature_dir)
     assert primary_slot is None, (
-        "override leaked onto the PRIMARY partition; the write must target the "
-        "COORD STATUS_STATE surface the gate reads, not the primary event log"
+        "override leaked onto the PRIMARY partition; the write must target the COORD STATUS_STATE surface the gate reads, not the primary event log"
     )

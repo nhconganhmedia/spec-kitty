@@ -128,14 +128,9 @@ class AutoRebaseReport:
     def __post_init__(self) -> None:
         # Invariant: halt_reason is set iff succeeded is False.
         if self.succeeded and self.halt_reason is not None:
-            raise ValueError(
-                "AutoRebaseReport: halt_reason must be None when succeeded=True"
-            )
+            raise ValueError("AutoRebaseReport: halt_reason must be None when succeeded=True")
         if not self.succeeded and self.halt_reason is None and self.attempted:
-            raise ValueError(
-                "AutoRebaseReport: halt_reason must be set when succeeded=False "
-                "and attempted=True"
-            )
+            raise ValueError("AutoRebaseReport: halt_reason must be set when succeeded=False and attempted=True")
 
 
 # Conflict-marker regex used to split a conflicted file into clean text,
@@ -146,9 +141,7 @@ _RE_CONFLICT_REGION = re.compile(
 )
 
 
-def _run(
-    cmd: list[str], cwd: Path, *, check: bool = False
-) -> subprocess.CompletedProcess[str]:
+def _run(cmd: list[str], cwd: Path, *, check: bool = False) -> subprocess.CompletedProcess[str]:
     """Run a subprocess command capturing stdout/stderr as text."""
     return subprocess.run(
         cmd,
@@ -184,20 +177,12 @@ def _path_parts(rel_path: str) -> tuple[str, ...]:
 
 def _is_status_events_path(rel_path: str) -> bool:
     parts = _path_parts(rel_path)
-    return (
-        len(parts) >= 3
-        and parts[0] == KITTY_SPECS_DIR
-        and parts[-1] == "status.events.jsonl"
-    )
+    return len(parts) >= 3 and parts[0] == KITTY_SPECS_DIR and parts[-1] == "status.events.jsonl"
 
 
 def _is_status_json_path(rel_path: str) -> bool:
     parts = _path_parts(rel_path)
-    return (
-        len(parts) >= 3
-        and parts[0] == KITTY_SPECS_DIR
-        and parts[-1] == _STATUS_JSON_FILENAME
-    )
+    return len(parts) >= 3 and parts[0] == KITTY_SPECS_DIR and parts[-1] == _STATUS_JSON_FILENAME
 
 
 def _is_coordination_owned_artifact(rel_path: str) -> bool:
@@ -301,9 +286,7 @@ def _remove_sparse(worktree: Path, rel_path: str) -> tuple[bool, str | None]:
         except OSError as exc:
             return False, f"could not remove {rel_path}: {exc!r}"
     if _sparse_checkout_enabled(worktree):
-        result = _run(
-            ["git", "rm", "-f", "--ignore-unmatch", "--sparse", rel_path], worktree
-        )
+        result = _run(["git", "rm", "-f", "--ignore-unmatch", "--sparse", rel_path], worktree)
         if result.returncode == 0:
             return True, None
         if not _rejected_sparse_flag(result):
@@ -327,16 +310,9 @@ def _resolve_status_events(
     worktree: Path,
 ) -> tuple[ConflictClassification | None, str | None]:
     rel_path = _relative_path(file_path, worktree)
-    stage_text_by_number = {
-        stage: text
-        for stage in (1, 2, 3)
-        if (text := _git_show_stage(worktree, rel_path, stage)) is not None
-    }
+    stage_text_by_number = {stage: text for stage in (1, 2, 3) if (text := _git_show_stage(worktree, rel_path, stage)) is not None}
     if 2 not in stage_text_by_number or 3 not in stage_text_by_number:
-        return None, (
-            f"{RULE_ID_STATUS_EVENTS}: refusing status.events.jsonl deletion "
-            f"conflict for {rel_path}"
-        )
+        return None, (f"{RULE_ID_STATUS_EVENTS}: refusing status.events.jsonl deletion conflict for {rel_path}")
 
     stage_texts = list(stage_text_by_number.values())
     if not stage_texts:
@@ -368,26 +344,18 @@ def _resolve_take_theirs(
     if theirs is None:
         ok, message = _remove_sparse(worktree, rel_path)
         if not ok:
-            return None, (
-                f"{RULE_ID_COORDINATION_ARTIFACT}: git rm {rel_path} "
-                f"failed: {message}"
-            )
+            return None, (f"{RULE_ID_COORDINATION_ARTIFACT}: git rm {rel_path} failed: {message}")
         return _managed_classification(file_path, RULE_ID_COORDINATION_ARTIFACT), None
 
     file_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         file_path.write_text(theirs, encoding="utf-8")
     except OSError as exc:
-        return None, (
-            f"{RULE_ID_COORDINATION_ARTIFACT}: could not write {rel_path}: {exc!r}"
-        )
+        return None, (f"{RULE_ID_COORDINATION_ARTIFACT}: could not write {rel_path}: {exc!r}")
 
     ok, message = _stage_sparse(worktree, rel_path)
     if not ok:
-        return None, (
-            f"{RULE_ID_COORDINATION_ARTIFACT}: git add {rel_path} "
-            f"failed: {message}"
-        )
+        return None, (f"{RULE_ID_COORDINATION_ARTIFACT}: git add {rel_path} failed: {message}")
     return _managed_classification(file_path, RULE_ID_COORDINATION_ARTIFACT), None
 
 
@@ -495,11 +463,7 @@ def _status_artifact_paths_from_ref(
     )
     if result.returncode != 0:
         return set(), result.stderr.strip() or result.stdout.strip()
-    return {
-        rel_path
-        for rel_path in result.stdout.splitlines()
-        if _is_status_events_path(rel_path) or _is_status_json_path(rel_path)
-    }, None
+    return {rel_path for rel_path in result.stdout.splitlines() if _is_status_events_path(rel_path) or _is_status_json_path(rel_path)}, None
 
 
 def _refuse_preexisting_lane_status_deletions(
@@ -533,10 +497,7 @@ def _refuse_preexisting_lane_status_deletions(
     """
     merge_base = _run(["git", "merge-base", "HEAD", mission_branch], worktree)
     if merge_base.returncode != 0:
-        return (
-            f"{RULE_ID_STATUS_EVENTS}: could not find merge base with "
-            f"{mission_branch}: {(merge_base.stderr or merge_base.stdout).strip()}"
-        )
+        return f"{RULE_ID_STATUS_EVENTS}: could not find merge base with {mission_branch}: {(merge_base.stderr or merge_base.stdout).strip()}"
     base_ref = merge_base.stdout.strip()
 
     base_paths, error = _status_artifact_paths_from_ref(worktree, base_ref)
@@ -544,17 +505,11 @@ def _refuse_preexisting_lane_status_deletions(
         return f"{RULE_ID_STATUS_EVENTS}: could not inspect base status artifacts: {error}"
     mission_paths, error = _status_artifact_paths_from_ref(worktree, mission_branch)
     if error is not None:
-        return (
-            f"{RULE_ID_STATUS_EVENTS}: could not inspect coordination status "
-            f"artifacts: {error}"
-        )
+        return f"{RULE_ID_STATUS_EVENTS}: could not inspect coordination status artifacts: {error}"
 
     for rel_path in sorted(base_paths & mission_paths):
         if not _git_ref_has_path(worktree, "HEAD", rel_path):
-            return (
-                f"{RULE_ID_STATUS_EVENTS}: refusing pre-existing lane-side "
-                f"deletion of coordination-owned status artifact {rel_path}"
-            )
+            return f"{RULE_ID_STATUS_EVENTS}: refusing pre-existing lane-side deletion of coordination-owned status artifact {rel_path}"
     return None
 
 
@@ -573,10 +528,7 @@ def _staged_status_artifact_dirs(worktree: Path) -> tuple[set[Path], str | None]
         for rel_path in rel_paths:
             if _is_status_events_path(rel_path):
                 if status.startswith(("D", "R")):
-                    return set(), (
-                        f"{RULE_ID_STATUS_EVENTS}: refusing staged deletion "
-                        f"of {rel_path}"
-                    )
+                    return set(), (f"{RULE_ID_STATUS_EVENTS}: refusing staged deletion of {rel_path}")
                 feature_dirs.add((worktree / rel_path).parent)
             elif _is_status_json_path(rel_path):
                 feature_dirs.add((worktree / rel_path).parent)
@@ -588,9 +540,7 @@ def _status_json_already_classified(
     classifications: list[ConflictClassification],
 ) -> bool:
     return any(
-        classification.file_path == file_path
-        and isinstance(classification.resolution, Auto)
-        and classification.resolution.rule_id == RULE_ID_STATUS_JSON
+        classification.file_path == file_path and isinstance(classification.resolution, Auto) and classification.resolution.rule_id == RULE_ID_STATUS_JSON
         for classification in classifications
     )
 
@@ -671,10 +621,7 @@ def _regenerate_uv_lock(repo_root: Path, worktree: Path) -> tuple[bool, str]:
             )
             stdout_bytes, stderr_bytes = await proc.communicate()
             if proc.returncode != 0:
-                summary = (
-                    stderr_bytes.decode("utf-8", errors="replace")
-                    or stdout_bytes.decode("utf-8", errors="replace")
-                ).strip()
+                summary = (stderr_bytes.decode("utf-8", errors="replace") or stdout_bytes.decode("utf-8", errors="replace")).strip()
                 return False, summary
             return True, ""
 
@@ -818,9 +765,7 @@ def _process_conflicted_file(
 
     segments, conflict_count = _split_into_regions(body)
     if conflict_count == 0:
-        return [], False, (
-            f"file {file_path} marked conflicted but contains no conflict markers"
-        )
+        return [], False, (f"file {file_path} marked conflicted but contains no conflict markers")
 
     file_classifications, manual_hit = _classify_file_regions(file_path, segments)
     if manual_hit is not None:
@@ -829,9 +774,7 @@ def _process_conflicted_file(
 
     rebuilt = _splice_resolutions(segments, file_classifications)
 
-    validated, validation_failed = _validate_file_classifications(
-        file_classifications, rebuilt
-    )
+    validated, validation_failed = _validate_file_classifications(file_classifications, rebuilt)
     if validation_failed is not None:
         assert isinstance(validation_failed.resolution, Manual)
         return validated, False, validation_failed.resolution.reason
@@ -846,9 +789,7 @@ def _process_conflicted_file(
         worktree_path,
     )
     if add_result.returncode != 0:
-        return validated, False, (
-            f"git add {file_path} failed: {add_result.stderr.strip()}"
-        )
+        return validated, False, (f"git add {file_path} failed: {add_result.stderr.strip()}")
 
     return validated, file_path.name == "__init__.py", None
 
@@ -866,7 +807,9 @@ def _finalize_auto_rebase(
         ok, message = _attempt_resolve_uv_lock(worktree_path, repo_root)
         if not ok:
             return _abort_with_failure(
-                worktree_path, lane_id, classifications,
+                worktree_path,
+                lane_id,
+                classifications,
                 f"{RULE_ID_UVLOCK}: {message}",
             )
 
@@ -874,7 +817,9 @@ def _finalize_auto_rebase(
         ok, message = _run_ruff_imports_fix(worktree_path, init_path)
         if not ok:
             return _abort_with_failure(
-                worktree_path, lane_id, classifications,
+                worktree_path,
+                lane_id,
+                classifications,
                 f"{RULE_ID_INIT_IMPORTS}: ruff failed: {message}",
             )
         _run(
@@ -885,36 +830,33 @@ def _finalize_auto_rebase(
     halt_reason = _refresh_status_json_for_staged_artifacts(worktree_path, classifications)
     if halt_reason is not None:
         return _abort_with_failure(
-            worktree_path, lane_id, classifications, halt_reason,
+            worktree_path,
+            lane_id,
+            classifications,
+            halt_reason,
         )
 
     sparse_error = _reapply_sparse_checkout(worktree_path)
     if sparse_error is not None:
         return _abort_with_failure(
-            worktree_path, lane_id, classifications,
+            worktree_path,
+            lane_id,
+            classifications,
             f"sparse checkout cleanup failed: {sparse_error}",
         )
 
-    rule_ids_used = sorted(
-        {
-            c.resolution.rule_id
-            for c in classifications
-            if isinstance(c.resolution, Auto)
-        }
-    )
-    message = (
-        f"auto-rebase(lane={lane_id}): {len(classifications)} conflicts "
-        f"resolved by classifier rules [{', '.join(rule_ids_used)}]"
-    )
+    rule_ids_used = sorted({c.resolution.rule_id for c in classifications if isinstance(c.resolution, Auto)})
+    message = f"auto-rebase(lane={lane_id}): {len(classifications)} conflicts resolved by classifier rules [{', '.join(rule_ids_used)}]"
     commit_result = _run(
         ["git", "-c", "commit.gpgsign=false", "commit", "-m", message],
         worktree_path,
     )
     if commit_result.returncode != 0:
         return _abort_with_failure(
-            worktree_path, lane_id, classifications,
-            f"merge commit failed: "
-            f"{(commit_result.stderr or commit_result.stdout).strip()}",
+            worktree_path,
+            lane_id,
+            classifications,
+            f"merge commit failed: {(commit_result.stderr or commit_result.stdout).strip()}",
         )
 
     return AutoRebaseReport(
@@ -972,18 +914,21 @@ def attempt_auto_rebase(
     )
     if merge_result.returncode == 0:
         clean_classifications: list[ConflictClassification] = []
-        halt_reason = _refresh_status_json_for_staged_artifacts(
-            worktree_path, clean_classifications
-        )
+        halt_reason = _refresh_status_json_for_staged_artifacts(worktree_path, clean_classifications)
         if halt_reason is not None:
             return _abort_with_failure(
-                worktree_path, lane.lane_id, clean_classifications, halt_reason,
+                worktree_path,
+                lane.lane_id,
+                clean_classifications,
+                halt_reason,
             )
 
         sparse_error = _reapply_sparse_checkout(worktree_path)
         if sparse_error is not None:
             return _abort_with_failure(
-                worktree_path, lane.lane_id, clean_classifications,
+                worktree_path,
+                lane.lane_id,
+                clean_classifications,
                 f"sparse checkout cleanup failed: {sparse_error}",
             )
 
@@ -994,9 +939,10 @@ def attempt_auto_rebase(
             )
             if commit_result.returncode != 0:
                 return _abort_with_failure(
-                    worktree_path, lane.lane_id, clean_classifications,
-                    f"merge commit failed: "
-                    f"{(commit_result.stderr or commit_result.stdout).strip()}",
+                    worktree_path,
+                    lane.lane_id,
+                    clean_classifications,
+                    f"merge commit failed: {(commit_result.stderr or commit_result.stdout).strip()}",
                 )
 
         return AutoRebaseReport(
@@ -1009,44 +955,56 @@ def attempt_auto_rebase(
     conflicted = _list_conflicted_files(worktree_path)
     if not conflicted:
         return _abort_with_failure(
-            worktree_path, lane.lane_id, [],
-            f"git merge failed without conflicts on {branch}: "
-            f"{(merge_result.stderr or merge_result.stdout).strip()}",
+            worktree_path,
+            lane.lane_id,
+            [],
+            f"git merge failed without conflicts on {branch}: {(merge_result.stderr or merge_result.stdout).strip()}",
         )
 
     classifications: list[ConflictClassification] = []
     init_py_touched: list[Path] = []
     uvlock_seen = False
-    conflicted, halt_reason = _resolve_managed_artifact_conflicts(
-        conflicted, worktree_path, classifications
-    )
+    conflicted, halt_reason = _resolve_managed_artifact_conflicts(conflicted, worktree_path, classifications)
     if halt_reason is not None:
         return _abort_with_failure(
-            worktree_path, lane.lane_id, classifications, halt_reason,
+            worktree_path,
+            lane.lane_id,
+            classifications,
+            halt_reason,
         )
 
     for file_path in conflicted:
         if file_path.name == _UV_LOCK_FILENAME:
-            classifications.append(ConflictClassification(
-                file_path=file_path,
-                hunk_text="",
-                resolution=Auto(merged_text="", rule_id=RULE_ID_UVLOCK),
-            ))
+            classifications.append(
+                ConflictClassification(
+                    file_path=file_path,
+                    hunk_text="",
+                    resolution=Auto(merged_text="", rule_id=RULE_ID_UVLOCK),
+                )
+            )
             uvlock_seen = True
             continue
 
         file_classifications, is_init, halt_reason = _process_conflicted_file(
-            file_path, worktree_path,
+            file_path,
+            worktree_path,
         )
         classifications.extend(file_classifications)
         if halt_reason is not None:
             return _abort_with_failure(
-                worktree_path, lane.lane_id, classifications, halt_reason,
+                worktree_path,
+                lane.lane_id,
+                classifications,
+                halt_reason,
             )
         if is_init:
             init_py_touched.append(file_path)
 
     return _finalize_auto_rebase(
-        lane.lane_id, worktree_path, repo_root,
-        classifications, init_py_touched, uvlock_seen,
+        lane.lane_id,
+        worktree_path,
+        repo_root,
+        classifications,
+        init_py_touched,
+        uvlock_seen,
     )

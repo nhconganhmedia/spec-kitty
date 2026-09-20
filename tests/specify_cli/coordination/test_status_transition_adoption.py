@@ -77,9 +77,7 @@ def _request(feature_dir: Path, slug: str) -> TransitionRequest:
 # ---------------------------------------------------------------------------
 
 
-def test_root_walk_routes_to_canonical_main_under_coord(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_root_walk_routes_to_canonical_main_under_coord(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """R5: the coord-worktree feature dir resolves to the canonical MAIN root.
 
     BEFORE adoption ``_repo_root_for_feature`` walked ``parent.parent`` to the
@@ -98,9 +96,7 @@ def test_root_walk_routes_to_canonical_main_under_coord(
     assert _repo_root_for_feature(fd, None) != coord.coord_worktree.resolve()
 
 
-def test_root_walk_stops_at_submodule_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_root_walk_stops_at_submodule_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """R5 / #2011: under a real submodule the root STOPS at the submodule root.
 
     The submodule's ``.git`` is a FILE pointer; a naive ``parent.parent`` walk
@@ -125,9 +121,7 @@ def test_root_walk_explicit_repo_root_short_circuit_preserved(tmp_path: Path) ->
     assert _repo_root_for_feature(feature_dir, explicit) == explicit
 
 
-def test_root_walk_degrades_to_feature_dir_when_no_repo_found(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_root_walk_degrades_to_feature_dir_when_no_repo_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """When no enclosing git repo can be resolved, the walk degrades to ``feature_dir``.
 
     This mirrors the prior non-``kitty-specs`` fallback so ad-hoc fixtures built
@@ -152,9 +146,7 @@ def test_root_walk_degrades_to_feature_dir_when_no_repo_found(
 # ---------------------------------------------------------------------------
 
 
-def test_write_surface_resolves_to_coord_authority_never_primary(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_surface_resolves_to_coord_authority_never_primary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """C-007: the status WRITE surface is the coord authority, NEVER primary_root.
 
     Asserted POSITIVELY (renata S-3): the resolved surface DIR equals the coord
@@ -165,9 +157,7 @@ def test_write_surface_resolves_to_coord_authority_never_primary(
     coord = build_coord(tmp_path)
     monkeypatch.chdir(coord.coord_worktree)
 
-    surface_dir = resolve_status_surface(
-        coord.main_root, coord.mission_slug
-    ).parent
+    surface_dir = resolve_status_surface(coord.main_root, coord.mission_slug).parent
     primary_root = coord.expected_primary_root
     primary_surface_dir = primary_root / KITTY_SPECS / coord.mission_slug
 
@@ -178,9 +168,7 @@ def test_write_surface_resolves_to_coord_authority_never_primary(
     # meta, which is the C-007 coord write target. This mirrors the WP01-net
     # positive assertion ``test_coord_status_write_surface_is_coord_authority_never_primary``.)
     assert ".worktrees" in surface_dir.parts
-    assert any(
-        part.endswith("-coord") for part in surface_dir.parts
-    ), surface_dir
+    assert any(part.endswith("-coord") for part in surface_dir.parts), surface_dir
     # NEGATIVE: it did NOT degrade to the primary checkout's mission dir (the
     # #2004/#2007 flatten regression C-007 forbids). The coord worktree itself
     # legitimately nests under ``<main_root>/.worktrees`` — so we pin the
@@ -194,9 +182,7 @@ def test_write_surface_resolves_to_coord_authority_never_primary(
 # ---------------------------------------------------------------------------
 
 
-def test_write_target_flat_arm_yields_target_branch_not_head(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_target_flat_arm_yields_target_branch_not_head(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-004 flat-arm proof carried inline (renata S-4, ahead of WP08's keystone).
 
     Flat mission (no coord branch), CWD parked on an off-target branch so git
@@ -216,9 +202,7 @@ def test_write_target_flat_arm_yields_target_branch_not_head(
     assert identity.destination_ref != _current_branch(primary.repo_root)
 
 
-def test_write_target_coord_arm_yields_coord_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_write_target_coord_arm_yields_coord_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-004 coord arm: the write-target is the coordination branch.
 
     Under coord topology both the inline short-circuit (``coord_branch``) and the
@@ -227,24 +211,15 @@ def test_write_target_coord_arm_yields_coord_branch(
     coord = build_coord(tmp_path)
     monkeypatch.chdir(coord.coord_worktree)
 
-    identity = _identity_for_request(
-        _request(coord.primary_feature_dir, coord.mission_slug)
-    )
+    identity = _identity_for_request(_request(coord.primary_feature_dir, coord.mission_slug))
     assert identity.destination_ref == coord.coord_branch
     # The status write target uses the STATUS_STATE (coord-preserving) kind
     # (write-surface-coherence WP02 / T031): under coord topology it keeps the
     # coordination branch — byte-identical to the write-side destination_ref.
-    assert (
-        identity.destination_ref
-        == resolve_placement_only(
-            coord.main_root, coord.mission_slug, kind=MissionArtifactKind.STATUS_STATE
-        ).ref
-    )
+    assert identity.destination_ref == resolve_placement_only(coord.main_root, coord.mission_slug, kind=MissionArtifactKind.STATUS_STATE).ref
 
 
-def test_resolve_write_target_stays_coord_after_required_kind(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_write_target_stays_coord_after_required_kind(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """write-surface-coherence WP02 / T031 DoD: the STATUS write target stays COORD.
 
     ``resolve_placement_only``'s ``kind`` is now REQUIRED (WP01). The status write
@@ -258,16 +233,12 @@ def test_resolve_write_target_stays_coord_after_required_kind(
     coord = build_coord(tmp_path)
     monkeypatch.chdir(coord.coord_worktree)
 
-    resolved = _resolve_write_target(
-        coord.main_root, coord.mission_slug, coord.coord_branch
-    )
+    resolved = _resolve_write_target(coord.main_root, coord.mission_slug, coord.coord_branch)
     assert resolved == coord.coord_branch
     assert resolved != TARGET_BRANCH
 
 
-def test_resolve_write_target_helper_no_meta_degrades_to_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_write_target_helper_no_meta_degrades_to_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The bootstrap window: a no-``meta`` mission degrades cleanly (no churn).
 
     With no resolvable ``meta.json`` the placement resolver degrades to the
@@ -301,9 +272,7 @@ def test_resolve_write_target_helper_no_meta_degrades_to_branch(
 # ---------------------------------------------------------------------------
 
 
-def test_coord_write_target_idempotent_before_after(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_coord_write_target_idempotent_before_after(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """NFR-004: the coord on-disk write target is IDENTICAL before/after adoption.
 
     Asserted, not inspected: under coord topology the adopted resolver yields the
@@ -323,9 +292,7 @@ def test_coord_write_target_idempotent_before_after(
 
 
 @pytest.mark.parametrize("topology", ["primary", "coord", "submodule"])
-def test_read_write_resolution_equivalence_across_topologies(
-    topology: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_read_write_resolution_equivalence_across_topologies(topology: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """D-5 / NFR-001: read==write for root + surface + target, driven bare.
 
     Across all three real topologies the write-side ``_identity_for_request``
@@ -362,9 +329,7 @@ def test_read_write_resolution_equivalence_across_topologies(
     monkeypatch.chdir(cwd)
 
     # Root: write-side R5 == read-side canonical resolver == the main root.
-    assert _repo_root_for_feature(feature_dir, None) == resolve_canonical_root(
-        feature_dir
-    )
+    assert _repo_root_for_feature(feature_dir, None) == resolve_canonical_root(feature_dir)
     assert _repo_root_for_feature(feature_dir, None) == main_root
 
     # Target: write-side identity == read-side placement resolver. The status
@@ -372,10 +337,4 @@ def test_read_write_resolution_equivalence_across_topologies(
     # (write-surface-coherence WP02 / T031): coord topology → coord branch,
     # flat/submodule → target branch — matching ``expected_target`` for all three.
     identity = _identity_for_request(_request(feature_dir, slug))
-    assert (
-        identity.destination_ref
-        == resolve_placement_only(
-            main_root, slug, kind=MissionArtifactKind.STATUS_STATE
-        ).ref
-        == expected_target
-    )
+    assert identity.destination_ref == resolve_placement_only(main_root, slug, kind=MissionArtifactKind.STATUS_STATE).ref == expected_target

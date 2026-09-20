@@ -47,9 +47,7 @@ def large_docs(tmp_path_factory: pytest.TempPathFactory) -> Path:
 def _write_config(directory: Path, files: list[str], *, name: str) -> Path:
     """Write a minimal single-entry ``docfx.json`` and return its path."""
     config_path = directory / name
-    config_path.write_text(
-        json.dumps({"build": {"content": [{"files": files}]}}), encoding="utf-8"
-    )
+    config_path.write_text(json.dumps({"build": {"content": [{"files": files}]}}), encoding="utf-8")
     return config_path
 
 
@@ -58,17 +56,13 @@ def test_dropped_glob_surfaces_as_coverage_error(large_docs: Path, tmp_path: Pat
     config = _write_config(tmp_path, ["context/**.md", "nowhere/**.md"], name="dropped.json")
 
     with pytest.raises(CoverageError, match=r"nowhere/\*\*\.md"):
-        validate_descriptions(
-            docs_root=large_docs, repo_root=large_docs.parent, docfx_config=config
-        )
+        validate_descriptions(docs_root=large_docs, repo_root=large_docs.parent, docfx_config=config)
 
 
 def test_populated_globs_do_not_trip_the_coverage_error(large_docs: Path, tmp_path: Path) -> None:
     """A configuration whose globs all resolve does not raise CoverageError from the guard."""
     config = _write_config(tmp_path, ["context/**.md"], name="clean.json")
 
-    report = validate_descriptions(
-        docs_root=large_docs, repo_root=large_docs.parent, docfx_config=config
-    )
+    report = validate_descriptions(docs_root=large_docs, repo_root=large_docs.parent, docfx_config=config)
 
     assert report.checked_count >= MINIMUM_EXPECTED_PAGES

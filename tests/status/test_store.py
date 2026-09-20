@@ -19,6 +19,8 @@ def _git_init(path: Path) -> None:
         check=True,
         capture_output=True,
     )
+
+
 from specify_cli.status.store import (
     EVENTS_FILENAME,
     EventPersistenceError,
@@ -516,9 +518,7 @@ def test_slug_resolver_returns_none_for_malformed_meta(tmp_path: Path) -> None:
     assert resolver.resolve("034-feature-name") is None
 
 
-def test_slug_resolver_returns_none_for_non_dict_meta(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_slug_resolver_returns_none_for_non_dict_meta(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """A meta.json that parses to a non-object (e.g. a JSON array) leaves
     mission_id unresolved instead of crashing on ``data.get`` — and logs why.
 
@@ -535,11 +535,9 @@ def test_slug_resolver_returns_none_for_non_dict_meta(
     with caplog.at_level("WARNING", logger="specify_cli.status.store"):
         assert resolver.resolve("034-feature-name") is None
 
-    assert any(
-        "Expected JSON object" in record.getMessage()
-        and "034-feature-name" in record.getMessage()
-        for record in caplog.records
-    ), "non-dict meta.json must emit the canonical 'Expected JSON object' WARNING"
+    assert any("Expected JSON object" in record.getMessage() and "034-feature-name" in record.getMessage() for record in caplog.records), (
+        "non-dict meta.json must emit the canonical 'Expected JSON object' WARNING"
+    )
 
 
 def test_slug_resolver_happy_path_resolves_from_meta(tmp_path: Path) -> None:

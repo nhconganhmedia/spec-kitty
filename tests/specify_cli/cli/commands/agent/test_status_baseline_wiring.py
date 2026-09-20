@@ -39,22 +39,12 @@ def _write_wp(tasks_dir: Path, *, shell_pid: str, baseline: str | None) -> None:
     tasks_dir.mkdir(parents=True, exist_ok=True)
     baseline_line = f'{SHELL_PID_BASELINE_FIELD}: "{baseline}"\n' if baseline is not None else ""
     (tasks_dir / "WP01.md").write_text(
-        "---\n"
-        "work_package_id: WP01\n"
-        "title: Example\n"
-        "phase: Phase 1\n"
-        "agent: claude\n"
-        f'shell_pid: "{shell_pid}"\n'
-        f"{baseline_line}"
-        "history: []\n"
-        "---\n\n# Body\n",
+        f'---\nwork_package_id: WP01\ntitle: Example\nphase: Phase 1\nagent: claude\nshell_pid: "{shell_pid}"\n{baseline_line}history: []\n---\n\n# Body\n',
         encoding="utf-8",
     )
 
 
-def _seed_snapshot_runtime(
-    feature_dir: Path, wp_id: str, *, shell_pid: str, baseline: str | None
-) -> None:
+def _seed_snapshot_runtime(feature_dir: Path, wp_id: str, *, shell_pid: str, baseline: str | None) -> None:
     """Seed the reduced snapshot's runtime ``shell_pid``/``shell_pid_created_at`` slots.
 
     Post-#2816 these are event-sourced only, so the CLI reader and the staleness
@@ -76,11 +66,7 @@ def _seed_snapshot_runtime(
             execution_mode="worktree",
         ),
     )
-    delta = (
-        WPInnerStateDelta(shell_pid=int(shell_pid), shell_pid_created_at=baseline)
-        if baseline is not None
-        else WPInnerStateDelta(shell_pid=int(shell_pid))
-    )
+    delta = WPInnerStateDelta(shell_pid=int(shell_pid), shell_pid_created_at=baseline) if baseline is not None else WPInnerStateDelta(shell_pid=int(shell_pid))
     append_annotations_atomic_verified(
         feature_dir,
         [
@@ -210,9 +196,7 @@ def test_recycled_pid_caught_through_check_doing_wps(tmp_path: Path, monkeypatch
     assert results["WP01"].stale.reason != LIVE_CLAIM_PROCESS_REASON
 
 
-def test_matching_baseline_still_trusts_live_pid_through_check_doing_wps(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_matching_baseline_still_trusts_live_pid_through_check_doing_wps(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Contrast: a MATCHING baseline preserves the trusted-alive short-circuit.
 
     Proves the divergence above is caused by the threaded baseline, not by an

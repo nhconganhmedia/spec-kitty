@@ -125,10 +125,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the orchestrator CLI parser."""
     parser = argparse.ArgumentParser(
         prog="check_docs_freshness",
-        description=(
-            "Orchestrate every docs-freshness sub-check (FR-020 / FR-021) "
-            "and emit a single FreshnessReport."
-        ),
+        description=("Orchestrate every docs-freshness sub-check (FR-020 / FR-021) and emit a single FreshnessReport."),
     )
     parser.add_argument(
         "--inventory",
@@ -152,9 +149,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--agent-reference",
         type=Path,
         default=Path(DEFAULT_AGENT_REFERENCE_PATH),
-        help=(
-            f"Agent CLI reference path (default: {DEFAULT_AGENT_REFERENCE_PATH})."
-        ),
+        help=(f"Agent CLI reference path (default: {DEFAULT_AGENT_REFERENCE_PATH})."),
     )
     parser.add_argument(
         "--docs-index",
@@ -166,10 +161,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--link-check",
         choices=("none", "spot", "full"),
         default="spot",
-        help=(
-            "Link-health mode: 'none' skips; 'spot' samples 20 current pages "
-            "(default); 'full' checks every external link."
-        ),
+        help=("Link-health mode: 'none' skips; 'spot' samples 20 current pages (default); 'full' checks every external link."),
     )
     parser.add_argument(
         "--report",
@@ -206,14 +198,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    saas_sync_enabled = _SAAS_SYNC_PRESET or _os.environ.get(
-        "SPEC_KITTY_ENABLE_SAAS_SYNC"
-    ) == "1"
+    saas_sync_enabled = _SAAS_SYNC_PRESET or _os.environ.get("SPEC_KITTY_ENABLE_SAAS_SYNC") == "1"
     if not saas_sync_enabled:
-        _stderr(
-            "ENV-SAAS-SYNC-OFF  SPEC_KITTY_ENABLE_SAAS_SYNC was not set at "
-            "import time; tracker/issue-search paths cannot be evaluated."
-        )
+        _stderr("ENV-SAAS-SYNC-OFF  SPEC_KITTY_ENABLE_SAAS_SYNC was not set at import time; tracker/issue-search paths cannot be evaluated.")
         report = FreshnessReport(
             started_at=_now_iso(),
             cli_version=_cli_version(),
@@ -225,15 +212,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     rule_id="ENV-SAAS-SYNC-OFF",
                     severity="error",
                     location="(virtual)",
-                    message=(
-                        "SPEC_KITTY_ENABLE_SAAS_SYNC was not set before "
-                        "import; tracker/issue-search paths could not be "
-                        "evaluated."
-                    ),
-                    suggested_action=(
-                        "Re-run with SPEC_KITTY_ENABLE_SAAS_SYNC=1 in the "
-                        "environment."
-                    ),
+                    message=("SPEC_KITTY_ENABLE_SAAS_SYNC was not set before import; tracker/issue-search paths could not be evaluated."),
+                    suggested_action=("Re-run with SPEC_KITTY_ENABLE_SAAS_SYNC=1 in the environment."),
                 )
             ],
             saas_sync_flag=False,
@@ -407,9 +387,7 @@ def run_orchestrator(
                 severity="error",
                 location="check_cli_reference_freshness",
                 message=f"sub-check raised: {exc}",
-                suggested_action=(
-                    "re-run check_cli_reference_freshness standalone for diagnostics"
-                ),
+                suggested_action=("re-run check_cli_reference_freshness standalone for diagnostics"),
             )
         )
         ref_rc = 1
@@ -418,9 +396,7 @@ def run_orchestrator(
     ref_findings = _findings_from_cli_reference_payload(ref_payload)
     findings.extend(ref_findings)
     ref_findings_list = ref_payload.get("findings", [])
-    reference_entries_count = (
-        len(ref_findings_list) if isinstance(ref_findings_list, list) else 0
-    )
+    reference_entries_count = len(ref_findings_list) if isinstance(ref_findings_list, list) else 0
     if ref_rc == 2:
         findings.append(
             FreshnessFinding(
@@ -457,9 +433,7 @@ def run_orchestrator(
     # (WP01). Appended alongside sub-check 5, never replacing it (C-001).
     findings.extend(_check_docs_index_drift(docs_index_path, docs_root))
 
-    visible_paths_count = sum(
-        1 for f in findings if f.rule_id.startswith("REF-")
-    )
+    visible_paths_count = sum(1 for f in findings if f.rule_id.startswith("REF-"))
 
     findings.sort(key=lambda f: (f.rule_id, f.location, f.message))
     has_error = any(f.severity == "error" for f in findings)
@@ -529,21 +503,14 @@ def _findings_from_cli_reference_payload(
         if not isinstance(raw, dict):
             continue
         path = raw.get("path")
-        location = (
-            " ".join(str(p) for p in path) or "(virtual)"
-            if isinstance(path, list)
-            else str(path or "(virtual)")
-        )
+        location = " ".join(str(p) for p in path) or "(virtual)" if isinstance(path, list) else str(path or "(virtual)")
         out.append(
             FreshnessFinding(
                 rule_id=str(raw.get("rule_id", "")),
                 severity=_coerce_severity(raw.get("severity")),
                 location=location,
                 message=str(raw.get("detail", "")),
-                suggested_action=(
-                    "see contracts/check_cli_reference_freshness.md "
-                    "for remediation"
-                ),
+                suggested_action=("see contracts/check_cli_reference_freshness.md for remediation"),
             )
         )
     return out
@@ -587,9 +554,7 @@ def _check_link_health(
                         severity="warning",
                         location=f"{page_path}#{url}",
                         message=err,
-                        suggested_action=(
-                            "verify the URL manually; replace or remove if stale"
-                        ),
+                        suggested_action=("verify the URL manually; replace or remove if stale"),
                     )
                 )
     return findings
@@ -620,11 +585,7 @@ def _select_link_check_paths(
         selected = list(current_paths)
     else:  # mode == "spot"
         rng = random.Random(random_seed)  # noqa: S311 — non-crypto sampling
-        selected = (
-            list(current_paths)
-            if len(current_paths) <= _SPOT_SAMPLE_SIZE
-            else rng.sample(current_paths, _SPOT_SAMPLE_SIZE)
-        )
+        selected = list(current_paths) if len(current_paths) <= _SPOT_SAMPLE_SIZE else rng.sample(current_paths, _SPOT_SAMPLE_SIZE)
 
     if reference.exists() and reference not in selected:
         selected.append(reference)
@@ -666,9 +627,7 @@ def _probe_url(url: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _check_page_inventory_completeness(
-    inventory: Path, docs_root: Path
-) -> list[FreshnessFinding]:
+def _check_page_inventory_completeness(inventory: Path, docs_root: Path) -> list[FreshnessFinding]:
     """Every ``.md`` under ``docs_root`` must be in the inventory."""
     try:
         inv_rows = _load_inventory_rows(inventory)
@@ -690,9 +649,7 @@ def _check_page_inventory_completeness(
                 severity="error",
                 location=rel,
                 message="markdown file under docs/ is not in the inventory",
-                suggested_action=(
-                    "add a PageInventoryEntry row or move the file outside docs/"
-                ),
+                suggested_action=("add a PageInventoryEntry row or move the file outside docs/"),
             )
         )
     return findings
@@ -703,9 +660,7 @@ def _check_page_inventory_completeness(
 # ---------------------------------------------------------------------------
 
 
-def _check_inventory_lockfile_drift(
-    inventory: Path, docs_root: Path
-) -> list[FreshnessFinding]:
+def _check_inventory_lockfile_drift(inventory: Path, docs_root: Path) -> list[FreshnessFinding]:
     """Regenerate the rollup from frontmatter and report drift as errors.
 
     This is the inverted ruler (ADR 2026-06-27-1 D1): rather than asserting
@@ -752,10 +707,7 @@ def _lockfile_finding(location: str, message: str) -> FreshnessFinding:
         severity="error",
         location=location,
         message=message,
-        suggested_action=(
-            "regenerate the lockfile with scripts/docs/inventory_lockfile.py "
-            "--write docs/development/3-2-page-inventory.yaml, then commit it"
-        ),
+        suggested_action=("regenerate the lockfile with scripts/docs/inventory_lockfile.py --write docs/development/3-2-page-inventory.yaml, then commit it"),
     )
 
 
@@ -764,9 +716,7 @@ def _lockfile_finding(location: str, message: str) -> FreshnessFinding:
 # ---------------------------------------------------------------------------
 
 
-def _check_docs_index_drift(
-    index_path: Path, docs_root: Path
-) -> list[FreshnessFinding]:
+def _check_docs_index_drift(index_path: Path, docs_root: Path) -> list[FreshnessFinding]:
     """Regenerate the docs retrieval index and report drift as errors.
 
     Mirrors :func:`_check_inventory_lockfile_drift` exactly (WP02 / FR-005):
@@ -797,19 +747,11 @@ def _check_docs_index_drift(
     )
     findings: list[FreshnessFinding] = []
     for path in report.drift.added:
-        findings.append(
-            _docs_index_finding(path, "present in docs/ tree, absent from committed index")
-        )
+        findings.append(_docs_index_finding(path, "present in docs/ tree, absent from committed index"))
     for path in report.drift.removed:
-        findings.append(
-            _docs_index_finding(path, "present in committed index, absent from docs/ tree")
-        )
+        findings.append(_docs_index_finding(path, "present in committed index, absent from docs/ tree"))
     for path in report.drift.changed:
-        findings.append(
-            _docs_index_finding(
-                path, "index row (title/abstract/anchors) disagrees with regenerated page"
-            )
-        )
+        findings.append(_docs_index_finding(path, "index row (title/abstract/anchors) disagrees with regenerated page"))
     return findings
 
 
@@ -824,10 +766,7 @@ def _docs_index_finding(location: str, message: str) -> FreshnessFinding:
         severity="error",
         location=location,
         message=message,
-        suggested_action=(
-            "regenerate the docs index with PYTHONPATH=. uv run python "
-            "scripts/docs/docs_index.py --write, then commit it"
-        ),
+        suggested_action=("regenerate the docs index with PYTHONPATH=. uv run python scripts/docs/docs_index.py --write, then commit it"),
     )
 
 
@@ -910,10 +849,7 @@ def _emit_report(
 
     stream = sys.stdout if ci or not sys.stdout.isatty() else sys.stderr
     for finding in report.findings:
-        stream.write(
-            f"{finding.severity.upper()} {finding.rule_id} "
-            f"{finding.location}: {finding.message}\n"
-        )
+        stream.write(f"{finding.severity.upper()} {finding.rule_id} {finding.location}: {finding.message}\n")
     summary = (
         f"check_docs_freshness: exit={report.exit_code} "
         f"findings={len(report.findings)} "

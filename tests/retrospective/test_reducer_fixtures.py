@@ -71,10 +71,7 @@ def _lane_lifecycle_keys(snapshot_dict: dict) -> dict:
     mission_type, summary, work_packages.  Excludes ``retrospective`` and
     ``materialized_at``.
     """
-    return {
-        k: v for k, v in snapshot_dict.items()
-        if k not in ("retrospective", "materialized_at")
-    }
+    return {k: v for k, v in snapshot_dict.items() if k not in ("retrospective", "materialized_at")}
 
 
 def _load_expected_snapshot(path: Path) -> dict:
@@ -109,10 +106,7 @@ class TestBaselineReducesByteIdentically:
     def test_baseline_has_no_retrospective_key(self) -> None:
         """Fixture A snapshot must NOT have a 'retrospective' key."""
         actual = _reduce_fixture(FIXTURE_A_EVENTS)
-        assert "retrospective" not in actual, (
-            "Fixture A snapshot should not contain a 'retrospective' key, "
-            "but got one."
-        )
+        assert "retrospective" not in actual, "Fixture A snapshot should not contain a 'retrospective' key, but got one."
 
 
 class TestRetrospectiveEventsAreLaneStateNoops:
@@ -163,24 +157,15 @@ class TestRetrospectiveEventsAreLaneStateNoops:
             except json.JSONDecodeError:
                 continue
 
-        assert "RetrospectiveCaptured" in event_types, (
-            "Fixture B is missing RetrospectiveCaptured event"
-        )
-        assert "RetrospectiveCaptureFailed" in event_types, (
-            "Fixture B is missing RetrospectiveCaptureFailed event"
-        )
-        assert "RetrospectiveSkipped" in event_types, (
-            "Fixture B is missing RetrospectiveSkipped event"
-        )
+        assert "RetrospectiveCaptured" in event_types, "Fixture B is missing RetrospectiveCaptured event"
+        assert "RetrospectiveCaptureFailed" in event_types, "Fixture B is missing RetrospectiveCaptureFailed event"
+        assert "RetrospectiveSkipped" in event_types, "Fixture B is missing RetrospectiveSkipped event"
 
     def test_fixture_b_has_more_events_than_a(self) -> None:
         """Fixture B must have more lines than A (the three retro events appended)."""
         lines_a = [ln for ln in FIXTURE_A_EVENTS.read_text().splitlines() if ln.strip()]
         lines_b = [ln for ln in FIXTURE_B_EVENTS.read_text().splitlines() if ln.strip()]
-        assert len(lines_b) == len(lines_a) + 3, (
-            f"Expected fixture B to have exactly 3 more events than A. "
-            f"A={len(lines_a)}, B={len(lines_b)}"
-        )
+        assert len(lines_b) == len(lines_a) + 3, f"Expected fixture B to have exactly 3 more events than A. A={len(lines_a)}, B={len(lines_b)}"
 
     def test_event_count_in_snapshot_ignores_retro_events(self) -> None:
         """The snapshot event_count reflects only lane-transition events (not retro events).

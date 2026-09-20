@@ -98,10 +98,7 @@ def _has_reference_block(data: dict[str, Any], list_key: str) -> bool:
     blocks = data.get(list_key)
     if not isinstance(blocks, list):
         return False
-    return any(
-        isinstance(block, dict) and block.get("id") == RETIRED_TOOLGUIDE_REFERENCE_ID
-        for block in blocks
-    )
+    return any(isinstance(block, dict) and block.get("id") == RETIRED_TOOLGUIDE_REFERENCE_ID for block in blocks)
 
 
 def _drop_activation(data: dict[str, Any]) -> bool:
@@ -122,11 +119,7 @@ def _drop_reference_block(data: dict[str, Any], list_key: str) -> bool:
     blocks = data.get(list_key)
     if not isinstance(blocks, list):
         return False
-    stale_indexes = [
-        index
-        for index, block in enumerate(blocks)
-        if isinstance(block, dict) and block.get("id") == RETIRED_TOOLGUIDE_REFERENCE_ID
-    ]
+    stale_indexes = [index for index, block in enumerate(blocks) if isinstance(block, dict) and block.get("id") == RETIRED_TOOLGUIDE_REFERENCE_ID]
     for index in reversed(stale_indexes):
         del blocks[index]
     return bool(stale_indexes)
@@ -220,10 +213,7 @@ class RetireRtkSearchToolingMigration(BaseMigration):
 
             rel = relative_path.as_posix()
             if dry_run:
-                changes.extend(
-                    f"Would remove {RETIRED_TOOLGUIDE_STEM} from {rel} ({key})"
-                    for key in touched_keys
-                )
+                changes.extend(f"Would remove {RETIRED_TOOLGUIDE_STEM} from {rel} ({key})" for key in touched_keys)
                 continue
 
             try:
@@ -231,10 +221,7 @@ class RetireRtkSearchToolingMigration(BaseMigration):
             except OSError as exc:
                 errors.append(f"Failed writing {rel}: {exc}")
                 continue
-            changes.extend(
-                f"Removed {RETIRED_TOOLGUIDE_STEM} from {rel} ({key})"
-                for key in touched_keys
-            )
+            changes.extend(f"Removed {RETIRED_TOOLGUIDE_STEM} from {rel} ({key})" for key in touched_keys)
 
         if not changes and not errors:
             changes.append(f"{RETIRED_TOOLGUIDE_STEM} already absent; nothing to remove")

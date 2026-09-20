@@ -62,9 +62,7 @@ class TestAcceptGateKittyOps:
     returned ``[' M kitty-ops/...jsonl']`` (non-empty → gate blocked).
     """
 
-    def _call_accept_gate(
-        self, tmp_path: Path, dirty_paths: list[str]
-    ) -> list[str]:
+    def _call_accept_gate(self, tmp_path: Path, dirty_paths: list[str]) -> list[str]:
         """Drive _accept_dirty_gate with fabricated porcelain lines.
 
         tmp_path serves as repo_root.  The mission has no meta.json, so
@@ -80,31 +78,21 @@ class TestAcceptGateKittyOps:
             feature=_FEATURE,
         )
 
-    def test_kitty_ops_orphan_does_not_block_accept_gate(
-        self, tmp_path: Path
-    ) -> None:
+    def test_kitty_ops_orphan_does_not_block_accept_gate(self, tmp_path: Path) -> None:
         """Accept gate must NOT block on a kitty-ops Op-record orphan (#2251)."""
         result = self._call_accept_gate(tmp_path, [_OP_JSONL])
-        assert result == [], (
-            f"Accept gate must not block on kitty-ops orphan; got {result!r}"
-        )
+        assert result == [], f"Accept gate must not block on kitty-ops orphan; got {result!r}"
 
     def test_real_dirt_still_blocks_accept_gate(self, tmp_path: Path) -> None:
         """Counter-contract (G-5): genuine source dirt MUST still block."""
         result = self._call_accept_gate(tmp_path, [_REAL_DIRT])
-        assert len(result) == 1, (
-            f"Accept gate must still block on real dirt; result was {result!r}"
-        )
+        assert len(result) == 1, f"Accept gate must still block on real dirt; result was {result!r}"
 
-    def test_non_ulid_kitty_ops_does_not_bypass_accept_gate(
-        self, tmp_path: Path
-    ) -> None:
+    def test_non_ulid_kitty_ops_does_not_bypass_accept_gate(self, tmp_path: Path) -> None:
         """Tightness: ``kitty-ops/notes.txt`` (non-ULID) must still block."""
         non_ulid = "kitty-ops/notes.txt"
         result = self._call_accept_gate(tmp_path, [non_ulid])
-        assert len(result) == 1, (
-            f"Accept gate must block on non-ULID kitty-ops path; got {result!r}"
-        )
+        assert len(result) == 1, f"Accept gate must block on non-ULID kitty-ops path; got {result!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -144,9 +132,7 @@ class TestAcceptGateOwnWriteScoping:
             feature=_FEATURE,
         )
 
-    def test_status_events_jsonl_still_blocks_accept_gate_under_flat_topology(
-        self, tmp_path: Path
-    ) -> None:
+    def test_status_events_jsonl_still_blocks_accept_gate_under_flat_topology(self, tmp_path: Path) -> None:
         """RED-FIRST: a dirty ``status.events.jsonl`` is NOT an accept own-write."""
         path = f"kitty-specs/{_FEATURE}/status.events.jsonl"
         result = self._call_accept_gate(tmp_path, [path])
@@ -160,27 +146,19 @@ class TestAcceptGateOwnWriteScoping:
         """Counter-contract: the daemon-materialized ``status.json`` IS an own-write."""
         path = f"kitty-specs/{_FEATURE}/status.json"
         result = self._call_accept_gate(tmp_path, [path])
-        assert result == [], (
-            f"status.json is an accept-pipeline own-write and must stay benign; "
-            f"got {result!r}"
-        )
+        assert result == [], f"status.json is an accept-pipeline own-write and must stay benign; got {result!r}"
 
     def test_acceptance_matrix_json_is_still_accept_owned(self, tmp_path: Path) -> None:
         """Counter-contract: ``acceptance-matrix.json`` IS an own-write."""
         path = f"kitty-specs/{_FEATURE}/acceptance-matrix.json"
         result = self._call_accept_gate(tmp_path, [path])
-        assert result == [], (
-            f"acceptance-matrix.json is an accept-pipeline own-write and must "
-            f"stay benign; got {result!r}"
-        )
+        assert result == [], f"acceptance-matrix.json is an accept-pipeline own-write and must stay benign; got {result!r}"
 
     def test_unrelated_mission_status_json_still_blocks(self, tmp_path: Path) -> None:
         """Counter-contract: another mission's status.json is NOT this pipeline's write."""
         path = "kitty-specs/other-mission/status.json"
         result = self._call_accept_gate(tmp_path, [path])
-        assert len(result) == 1, (
-            f"Another mission's status.json must still block; got {result!r}"
-        )
+        assert len(result) == 1, f"Another mission's status.json must still block; got {result!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -203,24 +181,18 @@ class TestMergeGateKittyOps:
     def test_kitty_ops_orphan_does_not_block_merge_gate(self) -> None:
         """Merge gate must NOT block on a kitty-ops Op-record orphan (#2251)."""
         offending, _skipped = self._call_merge_gate([_OP_JSONL])
-        assert offending == [], (
-            f"Merge gate must not block on kitty-ops orphan; offending={offending!r}"
-        )
+        assert offending == [], f"Merge gate must not block on kitty-ops orphan; offending={offending!r}"
 
     def test_real_dirt_still_blocks_merge_gate(self) -> None:
         """Counter-contract (G-5): genuine source dirt MUST still block."""
         offending, _skipped = self._call_merge_gate([_REAL_DIRT])
-        assert len(offending) == 1, (
-            f"Merge gate must still block on real dirt; offending={offending!r}"
-        )
+        assert len(offending) == 1, f"Merge gate must still block on real dirt; offending={offending!r}"
 
     def test_non_ulid_kitty_ops_does_not_bypass_merge_gate(self) -> None:
         """Tightness: ``kitty-ops/notes.txt`` (non-ULID) must still block."""
         non_ulid = "kitty-ops/notes.txt"
         offending, _skipped = self._call_merge_gate([non_ulid])
-        assert len(offending) == 1, (
-            f"Merge gate must block on non-ULID kitty-ops path; got {offending!r}"
-        )
+        assert len(offending) == 1, f"Merge gate must block on non-ULID kitty-ops path; got {offending!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -240,38 +212,24 @@ class TestReviewGateKittyOps:
 
     def test_kitty_ops_orphan_is_benign(self) -> None:
         """Review gate must treat a kitty-ops Op-record orphan as benign (#2251)."""
-        assert _is_benign(_OP_JSONL, self._WP_ID), (
-            f"_is_benign must return True for kitty-ops orphan; path={_OP_JSONL!r}"
-        )
+        assert _is_benign(_OP_JSONL, self._WP_ID), f"_is_benign must return True for kitty-ops orphan; path={_OP_JSONL!r}"
 
     def test_real_dirt_is_not_benign(self) -> None:
         """Counter-contract (G-5): real source dirt is NOT benign."""
-        assert not _is_benign(_REAL_DIRT, self._WP_ID), (
-            f"Real dirt must not be benign; path={_REAL_DIRT!r}"
-        )
+        assert not _is_benign(_REAL_DIRT, self._WP_ID), f"Real dirt must not be benign; path={_REAL_DIRT!r}"
 
     def test_classify_dirty_paths_kitty_ops_orphan_in_benign(self) -> None:
         """classify_dirty_paths must route kitty-ops orphan to benign bucket."""
-        blocking, benign = classify_dirty_paths(
-            [_OP_JSONL], wp_id=self._WP_ID, mission_slug=_FEATURE
-        )
-        assert _OP_JSONL in benign, (
-            f"Kitty-ops orphan must be benign; blocking={blocking!r}, benign={benign!r}"
-        )
+        blocking, benign = classify_dirty_paths([_OP_JSONL], wp_id=self._WP_ID, mission_slug=_FEATURE)
+        assert _OP_JSONL in benign, f"Kitty-ops orphan must be benign; blocking={blocking!r}, benign={benign!r}"
         assert _OP_JSONL not in blocking
 
     def test_classify_dirty_paths_real_dirt_in_blocking(self) -> None:
         """Counter-contract: classify_dirty_paths puts real dirt in blocking."""
-        blocking, benign = classify_dirty_paths(
-            [_REAL_DIRT], wp_id=self._WP_ID, mission_slug=_FEATURE
-        )
-        assert _REAL_DIRT in blocking, (
-            f"Real dirt must be blocking; blocking={blocking!r}, benign={benign!r}"
-        )
+        blocking, benign = classify_dirty_paths([_REAL_DIRT], wp_id=self._WP_ID, mission_slug=_FEATURE)
+        assert _REAL_DIRT in blocking, f"Real dirt must be blocking; blocking={blocking!r}, benign={benign!r}"
 
     def test_non_ulid_kitty_ops_path_is_not_benign(self) -> None:
         """Tightness: kitty-ops/notes.txt (non-ULID basename) is NOT benign."""
         non_ulid = "kitty-ops/notes.txt"
-        assert not _is_benign(non_ulid, self._WP_ID), (
-            f"Non-ULID kitty-ops path must NOT be benign; path={non_ulid!r}"
-        )
+        assert not _is_benign(non_ulid, self._WP_ID), f"Non-ULID kitty-ops path must NOT be benign; path={non_ulid!r}"

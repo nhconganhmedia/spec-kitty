@@ -92,61 +92,41 @@ def target_branch_sync_remediation(
         ),
         "Spec Kitty stopped before mutating merge state or reconstructing branches.",
         f"Refresh remote refs: git fetch origin {status.target_branch}",
-        (
-            "Inspect differences: "
-            f"git log --oneline --left-right --cherry-pick {status.target_branch}...{tracking_branch}"
-        ),
-        (
-            "Inspect changed paths: "
-            f"git diff --name-only {tracking_branch}...{status.target_branch}"
-        ),
+        (f"Inspect differences: git log --oneline --left-right --cherry-pick {status.target_branch}...{tracking_branch}"),
+        (f"Inspect changed paths: git diff --name-only {tracking_branch}...{status.target_branch}"),
     ]
 
     if status.state in {"ahead", "diverged"}:
         lines.extend(
             [
-                (
-                    "Recommended: use the focused PR path unless you verified every ahead "
-                    f"commit belongs on '{status.target_branch}' now."
-                ),
+                (f"Recommended: use the focused PR path unless you verified every ahead commit belongs on '{status.target_branch}' now."),
                 (
                     f"Do not run 'git push origin {status.target_branch}' just to satisfy "
                     "this preflight; local target commits may include orchestration history "
                     "or unrelated missions."
                 ),
-                (
-                    f"Only direct-push '{status.target_branch}' after reviewing the ahead "
-                    "commits and changed paths."
-                ),
+                (f"Only direct-push '{status.target_branch}' after reviewing the ahead commits and changed paths."),
             ]
         )
     elif status.state == "behind":
         lines.append(
-            f"Recommended: update local '{status.target_branch}' from '{tracking_branch}' "
-            "after reviewing remote-only commits; do not push the local target branch."
+            f"Recommended: update local '{status.target_branch}' from '{tracking_branch}' after reviewing remote-only commits; do not push the local target branch."
         )
 
     if mission_slug:
         from specify_cli.lanes.branch_naming import mission_branch_name_required
 
         focused_branch = focused_pr_branch_name(mission_slug, status.target_branch)
-        source_branch = mission_branch or mission_branch_name_required(
-            mission_slug, mission_id
-        )
+        source_branch = mission_branch or mission_branch_name_required(mission_slug, mission_id)
         lines.extend(
             [
-                (
-                    "Focused PR path: "
-                    f"git switch -c {focused_branch} {source_branch}"
-                ),
+                (f"Focused PR path: git switch -c {focused_branch} {source_branch}"),
                 f"Then push it: git push -u origin {focused_branch}",
                 f"Open a PR from {focused_branch} into {status.target_branch}.",
             ]
         )
     else:
-        lines.append(
-            "If local-only commits are intentional, preserve them on a new PR branch before retrying."
-        )
+        lines.append("If local-only commits are intentional, preserve them on a new PR branch before retrying.")
 
     lines.append("Do not use reset, rebase, or force-push as part of this preflight remediation.")
     return lines
@@ -179,9 +159,7 @@ def _check_mission_branch(
     """
     from specify_cli.lanes.branch_naming import resolve_branch_name
 
-    expected_branch = expected_branch or resolve_branch_name(
-        mission_slug, mission_id=mission_id
-    )
+    expected_branch = expected_branch or resolve_branch_name(mission_slug, mission_id=mission_id)
     if _has_branch_ref(repo_root, expected_branch):
         return True, None
 
@@ -216,10 +194,7 @@ def _enforce_planning_artifact_target_branch(repo_root: Path, target_branch: str
         return
 
     current_label = current_branch or "detached HEAD"
-    console.print(
-        "[red]Error:[/red] Planning-artifact-only merge must run on "
-        f"target branch {target_branch}, not {current_label}."
-    )
+    console.print(f"[red]Error:[/red] Planning-artifact-only merge must run on target branch {target_branch}, not {current_label}.")
     raise typer.Exit(1)
 
 
@@ -390,10 +365,7 @@ def _record_review_artifact_skip_evidence(
 
     actor = _resolve_merge_actor(repo_root)
     timestamp = now_utc_stamp()
-    console.print(
-        "[yellow]⚠️  Review-artifact consistency gate BYPASSED via "
-        "--skip-review-artifact-check.[/yellow]"
-    )
+    console.print("[yellow]⚠️  Review-artifact consistency gate BYPASSED via --skip-review-artifact-check.[/yellow]")
     console.print(f"    Reason (recorded as override evidence): {note}")
     for finding in findings:
         wp_id = finding.wp_id
@@ -411,11 +383,7 @@ def _record_review_artifact_skip_evidence(
         emit_inner_state_changed_transactional(
             feature_dir,
             wp_id,
-            WPInnerStateDelta(
-                review=ReviewOverride(
-                    at=timestamp, actor=actor, wp_id=wp_id, reason=note
-                )
-            ),
+            WPInnerStateDelta(review=ReviewOverride(at=timestamp, actor=actor, wp_id=wp_id, reason=note)),
             actor=actor,
             mission_slug=mission_slug,
             at=timestamp,
@@ -459,8 +427,7 @@ def _enforce_review_artifact_consistency(
             feature_dir=feature_dir,
             mission_slug=mission_slug,
             findings=findings,
-            note=(skip_note or "").strip()
-            or "review-artifact gate skipped via --skip-review-artifact-check",
+            note=(skip_note or "").strip() or "review-artifact gate skipped via --skip-review-artifact-check",
         )
         return
 
@@ -470,23 +437,13 @@ def _enforce_review_artifact_consistency(
             finding,
             repo_root=repo_root,
         )
-        console.print(
-            f"  - {format_review_artifact_finding(finding, repo_root=repo_root)}"
-        )
+        console.print(f"  - {format_review_artifact_finding(finding, repo_root=repo_root)}")
         console.print(f"    diagnostic_code: {diagnostic['diagnostic_code']}")
-        console.print(
-            f"    branch_or_work_package: {diagnostic['branch_or_work_package']}"
-        )
-        console.print(
-            f"    violated_invariant: {diagnostic['violated_invariant']}"
-        )
-        console.print(
-            f"    latest_review_cycle_path: {diagnostic['latest_review_cycle_path']}"
-        )
+        console.print(f"    branch_or_work_package: {diagnostic['branch_or_work_package']}")
+        console.print(f"    violated_invariant: {diagnostic['violated_invariant']}")
+        console.print(f"    latest_review_cycle_path: {diagnostic['latest_review_cycle_path']}")
         if "latest_review_cycle_verdict" in diagnostic:
-            console.print(
-                f"    latest_review_cycle_verdict: {diagnostic['latest_review_cycle_verdict']}"
-            )
+            console.print(f"    latest_review_cycle_verdict: {diagnostic['latest_review_cycle_verdict']}")
         if "schema_error" in diagnostic:
             console.print(f"    schema_error: {diagnostic['schema_error']}")
         remediation = diagnostic.get("remediation", [])
@@ -494,15 +451,11 @@ def _enforce_review_artifact_consistency(
             remediation = [str(remediation)]
         for line in remediation:
             console.print(f"    remediation: {line}")
-    console.print(
-        f"  Mission: {mission_slug}"
-    )
+    console.print(f"  Mission: {mission_slug}")
     raise typer.Exit(1)
 
 
-def _latest_actor_for_transition(
-    feature_dir: Path, wp_id: str, to_lane: str
-) -> str | None:
+def _latest_actor_for_transition(feature_dir: Path, wp_id: str, to_lane: str) -> str | None:
     """Return the actor on WP's most recent transition into *to_lane*.
 
     Scans the raw event log rather than the reduced snapshot, because the
@@ -627,9 +580,7 @@ def _collect_self_approval_warnings(
         intended = str(payload.get("intended_reviewer") or "unknown")
         actor = str(payload.get("implementing_actor") or "unknown")
         reason = str(payload.get("failure_reason") or "reviewer_failed")
-        warnings.setdefault(wp_id, []).append(
-            f"ReviewerSelfApproval ({intended} failed: {reason}; {actor} self-reviewed)"
-        )
+        warnings.setdefault(wp_id, []).append(f"ReviewerSelfApproval ({intended} failed: {reason}; {actor} self-reviewed)")
 
 
 def _collect_hollow_review_warnings(feature_dir: Path, wp_ids: list[str]) -> HollowReviewWarnings:

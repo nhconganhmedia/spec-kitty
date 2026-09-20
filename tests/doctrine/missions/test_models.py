@@ -74,14 +74,14 @@ class TestMissionStepIdValidation:
     @pytest.mark.parametrize(
         "step_id",
         [
-            "Specify",        # capitals
-            "plan tasks",     # space
-            "plan_tasks",     # underscore
-            "1-specify",      # leading digit
-            "-specify",       # leading hyphen
-            "specify!",       # punctuation
-            "specify/plan",   # slash
-            "",               # empty
+            "Specify",  # capitals
+            "plan tasks",  # space
+            "plan_tasks",  # underscore
+            "1-specify",  # leading digit
+            "-specify",  # leading hyphen
+            "specify!",  # punctuation
+            "specify/plan",  # slash
+            "",  # empty
         ],
     )
     def test_invalid_id_rejected(self, step_id: str) -> None:

@@ -3,6 +3,7 @@
 This module is a leaf — it must not import from specify_cli.auth,
 specify_cli.tracker, or any kernel subpackage.
 """
+
 from __future__ import annotations
 
 import os
@@ -80,9 +81,7 @@ def get_runtime_root() -> RuntimeRoot:
         base = Path(env_home)
     elif platform == "win32":
         try:
-            base = Path(
-                platformdirs.user_data_dir("spec-kitty", appauthor=False, roaming=False)
-            )
+            base = Path(platformdirs.user_data_dir("spec-kitty", appauthor=False, roaming=False))
         except Exception:
             # Keep import-time Windows simulations and constrained runtimes from
             # crashing before callers can patch or inspect the module.

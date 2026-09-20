@@ -64,11 +64,7 @@ class ManagedSkillManifest:
         Shared-root agents intentionally share ``installed_path`` so deduplication
         must include ``agent_key`` to avoid collapsing entries for different agents.
         """
-        self.entries = [
-            e
-            for e in self.entries
-            if not (e.installed_path == entry.installed_path and e.agent_key == entry.agent_key)
-        ]
+        self.entries = [e for e in self.entries if not (e.installed_path == entry.installed_path and e.agent_key == entry.agent_key)]
         self.entries.append(entry)
 
     def remove_entries_for_agent(self, agent_key: str) -> list[ManagedFileEntry]:
@@ -106,26 +102,29 @@ class PreparedSkillManifest:
     mode: int
 
 
-def _retain_entry_times(
-    entries: list[ManagedFileEntry], previous: ManagedSkillManifest
-) -> list[ManagedFileEntry]:
+def _retain_entry_times(entries: list[ManagedFileEntry], previous: ManagedSkillManifest) -> list[ManagedFileEntry]:
     old = {(entry.installed_path, entry.agent_key): entry for entry in previous.entries}
     order = {key: index for index, key in enumerate(old)}
     retained = []
     for entry in entries:
         prior = old.get((entry.installed_path, entry.agent_key))
-        same_identity = prior is not None and (
-            prior.skill_name, prior.source_file, prior.installation_class
-        ) == (entry.skill_name, entry.source_file, entry.installation_class)
+        same_identity = prior is not None and (prior.skill_name, prior.source_file, prior.installation_class) == (
+            entry.skill_name,
+            entry.source_file,
+            entry.installation_class,
+        )
         retained.append(replace(entry, installed_at=prior.installed_at) if prior is not None and same_identity else replace(entry))
-    return sorted(retained, key=lambda entry: (
-        order.get((entry.installed_path, entry.agent_key), len(order)), entry.installed_path, entry.agent_key,
-    ))
+    return sorted(
+        retained,
+        key=lambda entry: (
+            order.get((entry.installed_path, entry.agent_key), len(order)),
+            entry.installed_path,
+            entry.agent_key,
+        ),
+    )
 
 
-def prepare_manifest(
-    manifest: ManagedSkillManifest, project_path: Path, *, operation_time: str | None = None
-) -> PreparedSkillManifest:
+def prepare_manifest(manifest: ManagedSkillManifest, project_path: Path, *, operation_time: str | None = None) -> PreparedSkillManifest:
     """Prepare one exact save, preserving historical identity and current raw bytes."""
     target = project_path / ".kittify" / MANIFEST_FILENAME
     observations = skill_path_observations(project_path, target)
@@ -192,8 +191,10 @@ def _parse_manifest(raw: str) -> ManagedSkillManifest:
         if not isinstance(data.get(key, ""), str):
             raise ValueError(f"Invalid skills manifest {key}")
     return ManagedSkillManifest(
-        version=data.get("version", 1), created_at=data.get("created_at", ""),
-        updated_at=data.get("updated_at", ""), spec_kitty_version=data.get("spec_kitty_version", ""),
+        version=data.get("version", 1),
+        created_at=data.get("created_at", ""),
+        updated_at=data.get("updated_at", ""),
+        spec_kitty_version=data.get("spec_kitty_version", ""),
         entries=entries,
     )
 

@@ -72,18 +72,14 @@ class TestParseEnvFile:
         assert parse_env_file("FOO=$HOME/x\n") == {"FOO": "$HOME/x"}
         assert parse_env_file("FOO=${BAR}\n") == {"FOO": "${BAR}"}
 
-    def test_line_without_equals_skipped_and_debug_logged(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_line_without_equals_skipped_and_debug_logged(self, caplog: pytest.LogCaptureFixture) -> None:
         caplog.set_level(logging.DEBUG, logger="specify_cli.bootstrap.env_file")
         result = parse_env_file("not-a-kv-line\nFOO=bar\n")
         assert result == {"FOO": "bar"}
         assert "malformed" in caplog.text.lower()
 
     @pytest.mark.parametrize("bad_key_line", ["1FOO=bar", "FOO-BAR=baz", "=novalue", "FOO BAR=baz"])
-    def test_invalid_key_skipped_and_debug_logged(
-        self, bad_key_line: str, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_invalid_key_skipped_and_debug_logged(self, bad_key_line: str, caplog: pytest.LogCaptureFixture) -> None:
         caplog.set_level(logging.DEBUG, logger="specify_cli.bootstrap.env_file")
         result = parse_env_file(f"{bad_key_line}\nGOOD=value\n")
         assert result == {"GOOD": "value"}
@@ -140,9 +136,7 @@ class TestPrecedence:
 
         assert environ["FOO"] == "repo_value"
 
-    def test_home_used_when_repo_does_not_set_key(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_home_used_when_repo_does_not_set_key(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         _write_home_env(monkeypatch, tmp_path, "FOO=home_value\n")
         _write_repo_env(repo_dir, "OTHER=repo_value\n")
 
@@ -152,9 +146,7 @@ class TestPrecedence:
         assert environ["FOO"] == "home_value"
         assert environ["OTHER"] == "repo_value"
 
-    def test_real_env_wins_over_both_tiers(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_real_env_wins_over_both_tiers(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         _write_home_env(monkeypatch, tmp_path, "FOO=home_value\n")
         _write_repo_env(repo_dir, "FOO=repo_value\n")
 
@@ -163,9 +155,7 @@ class TestPrecedence:
 
         assert environ["FOO"] == "real_env_value"
 
-    def test_naive_per_tier_setdefault_would_invert_repo_over_home(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_naive_per_tier_setdefault_would_invert_repo_over_home(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         """Regression witness for the exact bug the merge-then-setdefault order fixes.
 
         A NAIVE implementation that ran ``environ.setdefault`` once per home
@@ -183,9 +173,7 @@ class TestPrecedence:
         assert environ["FOO"] != "home_value"
         assert environ["FOO"] == "repo_value"
 
-    def test_no_repo_root_still_loads_home_tier(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_no_repo_root_still_loads_home_tier(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Home tier is machine-wide -- it must load even outside any project."""
         _write_home_env(monkeypatch, tmp_path, "FOO=home_value\n")
         outside = tmp_path / "not-a-repo"
@@ -246,9 +234,7 @@ class TestFailPolicy:
         assert caught == []
         assert "No operator env file found" in caplog.text
 
-    def test_present_but_unreadable_home_file_fails_loud_naming_the_file(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_present_but_unreadable_home_file_fails_loud_naming_the_file(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         home_env_path = _write_home_env(monkeypatch, tmp_path, "FOO=bar\n")
         home_env_path.chmod(0o000)
         try:
@@ -262,9 +248,7 @@ class TestFailPolicy:
         finally:
             home_env_path.chmod(0o644)
 
-    def test_malformed_line_is_skipped_bootstrap_survives(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_malformed_line_is_skipped_bootstrap_survives(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         _write_home_env(monkeypatch, tmp_path, "not-a-kv-line\nFOO=bar\n1BAD=x\n")
 
         environ: dict[str, str] = {}
@@ -280,9 +264,7 @@ class TestFailPolicy:
 
 
 class TestLocatorRecursion:
-    def test_spec_kitty_home_line_inside_file_is_ignored_with_warning(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_spec_kitty_home_line_inside_file_is_ignored_with_warning(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         _write_home_env(
             monkeypatch,
             tmp_path,
@@ -298,9 +280,7 @@ class TestLocatorRecursion:
         assert environ["FOO"] == "bar"
         assert any("SPEC_KITTY_HOME" in str(w.message) for w in caught)
 
-    def test_locator_recursion_in_repo_tier_also_ignored(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_locator_recursion_in_repo_tier_also_ignored(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         home = tmp_path / "state-home"
         home.mkdir()
         monkeypatch.setenv("SPEC_KITTY_HOME", str(home))
@@ -334,14 +314,10 @@ class TestRepoTierSaasVarsAreSeeded:
     behaviour change.
     """
 
-    def test_repo_tier_seeds_saas_url_token_and_team_slug(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_repo_tier_seeds_saas_url_token_and_team_slug(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         _write_repo_env(
             repo_dir,
-            "SPEC_KITTY_SAAS_URL=https://attacker.example\n"
-            "SPEC_KITTY_SAAS_TOKEN=attacker-token\n"
-            "SPEC_KITTY_TEAM_SLUG=attacker-team\n",
+            "SPEC_KITTY_SAAS_URL=https://attacker.example\nSPEC_KITTY_SAAS_TOKEN=attacker-token\nSPEC_KITTY_TEAM_SLUG=attacker-team\n",
         )
 
         environ: dict[str, str] = {}
@@ -351,9 +327,7 @@ class TestRepoTierSaasVarsAreSeeded:
         assert environ["SPEC_KITTY_SAAS_TOKEN"] == "attacker-token"
         assert environ["SPEC_KITTY_TEAM_SLUG"] == "attacker-team"
 
-    def test_real_env_saas_url_still_wins_over_repo_tier(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_real_env_saas_url_still_wins_over_repo_tier(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         """Precedence (C-LDR-1) applies here too: an operator who already
         exported ``SPEC_KITTY_SAAS_URL`` in their own shell is not overridden
         by a cloned repo's ``.kitty.env``."""
@@ -371,9 +345,7 @@ class TestRepoTierSaasVarsAreSeeded:
 
 
 class TestConfigEnvFilePointer:
-    def test_default_when_no_config_yaml(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_default_when_no_config_yaml(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         monkeypatch.delenv("SPEC_KITTY_HOME", raising=False)
         monkeypatch.setattr("kernel.paths.is_windows", lambda: False)
         monkeypatch.setattr(Path, "home", classmethod(lambda _cls: tmp_path))
@@ -383,9 +355,7 @@ class TestConfigEnvFilePointer:
         assert resolved == get_runtime_state_root() / ".kitty.env"
         assert "$" not in str(resolved)
 
-    def test_default_when_config_yaml_has_no_env_file_key(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_default_when_config_yaml_has_no_env_file_key(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         (repo_dir / ".kittify" / "config.yaml").write_text("agents:\n  available: []\n", encoding="utf-8")
         state_home = tmp_path / "state-home"
         monkeypatch.setenv("SPEC_KITTY_HOME", str(state_home))
@@ -394,9 +364,7 @@ class TestConfigEnvFilePointer:
 
         assert resolved == state_home / ".kitty.env"
 
-    def test_custom_env_file_pointer_is_resolved_once(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_custom_env_file_pointer_is_resolved_once(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         state_home = tmp_path / "state-home"
         monkeypatch.setenv("SPEC_KITTY_HOME", str(state_home))
         (repo_dir / ".kittify" / "config.yaml").write_text(
@@ -409,9 +377,7 @@ class TestConfigEnvFilePointer:
         assert resolved == state_home / "custom.env"
         assert "$" not in str(resolved)
 
-    def test_env_file_key_nested_under_another_section_is_not_picked_up(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_env_file_key_nested_under_another_section_is_not_picked_up(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         """Only the TOP-LEVEL ``env_file:`` key counts -- an indented lookalike must not."""
         state_home = tmp_path / "state-home"
         monkeypatch.setenv("SPEC_KITTY_HOME", str(state_home))
@@ -424,9 +390,7 @@ class TestConfigEnvFilePointer:
 
         assert resolved == state_home / ".kitty.env"
 
-    def test_env_file_key_lives_outside_the_doctrine_org_extra_forbid_block(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_env_file_key_lives_outside_the_doctrine_org_extra_forbid_block(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         """The env_file pointer must not break ``charter.offering.drg.org_pack_config.PackRegistry``.
 
         That model's ``model_config = ConfigDict(extra="forbid")``
@@ -439,10 +403,7 @@ class TestConfigEnvFilePointer:
         state_home = tmp_path / "state-home"
         monkeypatch.setenv("SPEC_KITTY_HOME", str(state_home))
         (repo_dir / ".kittify" / "config.yaml").write_text(
-            "env_file: ${SPEC_KITTY_HOME}/.kitty.env\n"
-            "doctrine:\n"
-            "  org:\n"
-            "    packs: []\n",
+            "env_file: ${SPEC_KITTY_HOME}/.kitty.env\ndoctrine:\n  org:\n    packs: []\n",
             encoding="utf-8",
         )
 
@@ -467,9 +428,7 @@ class TestConfigEnvFilePointer:
 
 
 class TestCrossPlatformStateRootHome:
-    def test_posix_default_matches_state_root_primitive(
-        self, monkeypatch: pytest.MonkeyPatch, repo_dir: Path
-    ) -> None:
+    def test_posix_default_matches_state_root_primitive(self, monkeypatch: pytest.MonkeyPatch, repo_dir: Path) -> None:
         monkeypatch.delenv("SPEC_KITTY_HOME", raising=False)
         monkeypatch.setattr("kernel.paths.is_windows", lambda: False)
 
@@ -479,9 +438,7 @@ class TestCrossPlatformStateRootHome:
         assert resolved == Path.home() / ".spec-kitty" / ".kitty.env"
         assert ".kittify" not in resolved.parts
 
-    def test_windows_default_matches_state_root_primitive(
-        self, monkeypatch: pytest.MonkeyPatch, repo_dir: Path
-    ) -> None:
+    def test_windows_default_matches_state_root_primitive(self, monkeypatch: pytest.MonkeyPatch, repo_dir: Path) -> None:
         import platformdirs
 
         monkeypatch.delenv("SPEC_KITTY_HOME", raising=False)
@@ -523,9 +480,7 @@ def _subprocess_env(tmp_path: Path) -> dict[str, str]:
 
 
 _SEEDED_ENV_PROBE_SCRIPT = (
-    "import os\n"
-    "import specify_cli  # noqa: F401 -- the seed must be in os.environ BEFORE this runs\n"
-    "print(os.environ.get('SPEC_KITTY_SYNC_MINIMAL_IMPORT', ''))\n"
+    "import os\nimport specify_cli  # noqa: F401 -- the seed must be in os.environ BEFORE this runs\nprint(os.environ.get('SPEC_KITTY_SYNC_MINIMAL_IMPORT', ''))\n"
 )
 
 
@@ -543,9 +498,7 @@ def test_sync_minimal_import_set_only_in_kitty_env_reaches_os_environ_before_imp
     """
     repo = tmp_path / "repo"
     (repo / ".kittify").mkdir(parents=True)
-    (repo / ".kittify" / ".kitty.env").write_text(
-        "SPEC_KITTY_SYNC_MINIMAL_IMPORT=1\n", encoding="utf-8"
-    )
+    (repo / ".kittify" / ".kitty.env").write_text("SPEC_KITTY_SYNC_MINIMAL_IMPORT=1\n", encoding="utf-8")
     env = _subprocess_env(tmp_path)
     assert "SPEC_KITTY_SYNC_MINIMAL_IMPORT" not in env, "must come from the file, not the real env"
 
@@ -583,10 +536,7 @@ def test_control_without_kitty_env_seeds_nothing(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "", (
-        "control run (no .kitty.env) must not seed SPEC_KITTY_SYNC_MINIMAL_IMPORT; "
-        f"stdout={result.stdout!r} stderr={result.stderr}"
-    )
+    assert result.stdout.strip() == "", f"control run (no .kitty.env) must not seed SPEC_KITTY_SYNC_MINIMAL_IMPORT; stdout={result.stdout!r} stderr={result.stderr}"
 
 
 @pytest.mark.integration
@@ -608,10 +558,7 @@ def test_bare_import_emits_no_stderr(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     assert result.stdout == ""
-    assert result.stderr == "", (
-        "a bare import must not print to stdout or stderr; "
-        f"stdout={result.stdout!r} stderr={result.stderr}"
-    )
+    assert result.stderr == "", f"a bare import must not print to stdout or stderr; stdout={result.stdout!r} stderr={result.stderr}"
 
 
 @pytest.mark.integration
@@ -655,9 +602,7 @@ class TestStartupOverheadBudget:
     absolute-ms assertion.
     """
 
-    def test_loader_call_adds_no_heavy_third_party_import(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path
-    ) -> None:
+    def test_loader_call_adds_no_heavy_third_party_import(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_dir: Path) -> None:
         """Structural half of the budget: the loader itself must never pull in
         typer/rich/httpx/requests/etc. -- those are exactly what the sibling
         completion-fast-path benchmark polices for the CLI's own entry point

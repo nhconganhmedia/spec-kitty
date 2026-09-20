@@ -190,10 +190,7 @@ def test_tasks_status_p95_within_nfr005_budget(
     # in-process invocation, not a subprocess spawn). CI gets 2x slack for
     # runner noise/variance, matching test_loader_perf.py's convention.
     threshold = 3.0 if os.environ.get("CI") != "true" else 6.0
-    assert p95 < threshold, (
-        f"p95={p95 * 1000:.1f}ms exceeds {threshold * 1000:.0f}ms "
-        f"(samples ms: {[round(t * 1000, 1) for t in times]})"
-    )
+    assert p95 < threshold, f"p95={p95 * 1000:.1f}ms exceeds {threshold * 1000:.0f}ms (samples ms: {[round(t * 1000, 1) for t in times]})"
 
 
 def test_capture_raw_timing_series(

@@ -475,10 +475,13 @@ def test_assert_baseline_on_target_raises_when_baseline_absent(tmp_path: Path) -
     _write_meta(feature_dir, "021-test")
     committed_meta = json.dumps({"mission_slug": "021-test"})  # no baseline_merge_commit
 
-    with patch(
-        "specify_cli.merge.baseline.run_command",
-        return_value=(0, committed_meta, ""),
-    ), pytest.raises(BaselineMergeCommitError):
+    with (
+        patch(
+            "specify_cli.merge.baseline.run_command",
+            return_value=(0, committed_meta, ""),
+        ),
+        pytest.raises(BaselineMergeCommitError),
+    ):
         _assert_baseline_merge_commit_on_target(
             tmp_path,
             "021-test",
@@ -494,10 +497,13 @@ def test_assert_baseline_on_target_raises_when_baseline_mismatches(tmp_path: Pat
     _write_meta(feature_dir, "021-test")
     committed_meta = json.dumps({"baseline_merge_commit": "other999"})
 
-    with patch(
-        "specify_cli.merge.baseline.run_command",
-        return_value=(0, committed_meta, ""),
-    ), pytest.raises(BaselineMergeCommitError):
+    with (
+        patch(
+            "specify_cli.merge.baseline.run_command",
+            return_value=(0, committed_meta, ""),
+        ),
+        pytest.raises(BaselineMergeCommitError),
+    ):
         _assert_baseline_merge_commit_on_target(
             tmp_path,
             "021-test",
@@ -512,10 +518,13 @@ def test_assert_baseline_on_target_raises_when_git_show_fails(tmp_path: Path) ->
     feature_dir = tmp_path / "kitty-specs" / "021-test"
     _write_meta(feature_dir, "021-test")
 
-    with patch(
-        "specify_cli.merge.baseline.run_command",
-        return_value=(128, "", "fatal: path does not exist"),
-    ), pytest.raises(BaselineMergeCommitError):
+    with (
+        patch(
+            "specify_cli.merge.baseline.run_command",
+            return_value=(128, "", "fatal: path does not exist"),
+        ),
+        pytest.raises(BaselineMergeCommitError),
+    ):
         _assert_baseline_merge_commit_on_target(
             tmp_path,
             "021-test",
@@ -590,10 +599,13 @@ def test_assert_baseline_on_target_raises_when_committed_differs_from_recorded(
     _write_meta(feature_dir, "021-test", baseline_merge_commit="recorded_sha_a")
     committed_meta = json.dumps({"baseline_merge_commit": "drifted_sha_c"})
 
-    with patch(
-        "specify_cli.merge.baseline.run_command",
-        return_value=(0, committed_meta, ""),
-    ), pytest.raises(BaselineMergeCommitError):
+    with (
+        patch(
+            "specify_cli.merge.baseline.run_command",
+            return_value=(0, committed_meta, ""),
+        ),
+        pytest.raises(BaselineMergeCommitError),
+    ):
         _assert_baseline_merge_commit_on_target(
             tmp_path,
             "021-test",
@@ -629,21 +641,18 @@ def test_assert_merged_wps_reads_coord_surface_when_coord_branch_set(
     primary_dir = tmp_path / "kitty-specs" / mission_slug
     primary_dir.mkdir(parents=True)
     (primary_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": mission_id,
-            "mission_slug": mission_slug,
-            "coordination_branch": f"kitty/mission-{mission_slug}-{mid8}",
-        }),
+        json.dumps(
+            {
+                "mission_id": mission_id,
+                "mission_slug": mission_slug,
+                "coordination_branch": f"kitty/mission-{mission_slug}-{mid8}",
+            }
+        ),
         encoding="utf-8",
     )
 
     # Coordination worktree: status.events.jsonl with a done event for WP01
-    coord_dir = (
-        tmp_path / ".worktrees"
-        / f"{mission_slug}-{mid8}-coord"
-        / "kitty-specs"
-        / f"{mission_slug}-{mid8}"
-    )
+    coord_dir = tmp_path / ".worktrees" / f"{mission_slug}-{mid8}-coord" / "kitty-specs" / f"{mission_slug}-{mid8}"
     coord_dir.mkdir(parents=True)
     done_event = {
         "event_id": "01KTDVHZ000000000000000001",
@@ -660,9 +669,7 @@ def test_assert_merged_wps_reads_coord_surface_when_coord_branch_set(
         "evidence": None,
         "policy_metadata": None,
     }
-    (coord_dir / "status.events.jsonl").write_text(
-        json.dumps(done_event) + "\n", encoding="utf-8"
-    )
+    (coord_dir / "status.events.jsonl").write_text(json.dumps(done_event) + "\n", encoding="utf-8")
 
     # The primary checkout has meta.json but NO status.events.jsonl, while the
     # coordination worktree carries the done event. _assert_merged_wps_reached_done
@@ -693,23 +700,22 @@ def coord_branch_mission(tmp_path: Path) -> dict:
     primary_dir = tmp_path / "kitty-specs" / _COORD_SLUG
     primary_dir.mkdir(parents=True)
     (primary_dir / "meta.json").write_text(
-        json.dumps({
-            "mission_id": _COORD_MISSION_ID,
-            "mission_slug": _COORD_SLUG,
-            "slug": _COORD_SLUG,
-            "coordination_branch": coord_branch,
-            "target_branch": "main",
-        }),
+        json.dumps(
+            {
+                "mission_id": _COORD_MISSION_ID,
+                "mission_slug": _COORD_SLUG,
+                "slug": _COORD_SLUG,
+                "coordination_branch": coord_branch,
+                "target_branch": "main",
+            }
+        ),
         encoding="utf-8",
     )
 
     # Coord worktree path matches what surface_resolver.py derives:
     #   .worktrees/<slug>-<mid8>-coord/kitty-specs/<slug>-<mid8>/
     coord_dir_name = f"{_COORD_SLUG}-{mid8}"
-    coord_specs = (
-        tmp_path / ".worktrees" / f"{coord_dir_name}-coord"
-        / "kitty-specs" / coord_dir_name
-    )
+    coord_specs = tmp_path / ".worktrees" / f"{coord_dir_name}-coord" / "kitty-specs" / coord_dir_name
     coord_specs.mkdir(parents=True)
     coord_events = coord_specs / "status.events.jsonl"
     coord_events.write_text("", encoding="utf-8")
@@ -889,15 +895,7 @@ def test_project_status_bookkeeping_rejects_paths_outside_primary_surface(
     """Projected bookkeeping must stay under kitty-specs/<slug>/ in primary checkout."""
     repo_root = tmp_path
     mission_slug = "outside-surface"
-    escaped_coord_specs = (
-        tmp_path
-        / ".worktrees"
-        / "outside-surface-coord"
-        / "kitty-specs"
-        / ".."
-        / ".."
-        / ".."
-    )
+    escaped_coord_specs = tmp_path / ".worktrees" / "outside-surface-coord" / "kitty-specs" / ".." / ".." / ".."
 
     # The claimed topology (``.worktrees`` segment) does not match the resolved
     # location (escapes above the worktrees root), so the topology guard rejects

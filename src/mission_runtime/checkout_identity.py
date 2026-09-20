@@ -22,6 +22,7 @@ This module is the ONE authority for that refusal. Two design constraints shape 
   SC-008) is a pure ``.worktrees`` segment inspection so a foreign lane nested
   physically under the primary checkout is still refused (the NESTED case holds).
 """
+
 from __future__ import annotations
 
 from pathlib import Path

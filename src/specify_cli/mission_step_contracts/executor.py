@@ -187,18 +187,14 @@ class StepContractExecutor:
         """Execute a contract's steps in order through ``ProfileInvocationExecutor``."""
         selected_contract = contract or self._contracts.get_by_action(context.mission, context.action)
         if selected_contract is None:
-            raise StepContractExecutionError(
-                f"No step contract found for mission/action {context.mission}/{context.action}"
-            )
+            raise StepContractExecutionError(f"No step contract found for mission/action {context.mission}/{context.action}")
 
         profile_hint = self._resolve_profile_hint(context, selected_contract)
         # #3525 Fold B: resolve the FULL declaration-ordered org-pack chain
         # (mirrors charter/action_doctrine_bundle.py:_resolve_action_bundle),
         # not just the first configured pack.
         effective_org_roots = resolve_existing_org_roots(context.repo_root)
-        graph = self._graph or self._load_graph_degrading_malformed_org_pack(
-            context.repo_root, effective_org_roots
-        )
+        graph = self._graph or self._load_graph_degrading_malformed_org_pack(context.repo_root, effective_org_roots)
         # FR-031, FR-033 (WP08): apply activation filter before resolving context.
         pack_context = self._resolve_pack_context(context.repo_root)
         if pack_context is not None:
@@ -250,9 +246,7 @@ class StepContractExecutor:
                 raise
             else:
                 # outcome describes the composition-step trail only; not host-LLM generation status.
-                self._invocation_executor.complete_invocation(
-                    payload.invocation_id, outcome="done", closed_by="agent"
-                )
+                self._invocation_executor.complete_invocation(payload.invocation_id, outcome="done", closed_by="agent")
 
         return StepContractExecutionResult(
             contract_id=selected_contract.id,
@@ -273,10 +267,7 @@ class StepContractExecutor:
         default = _ACTION_PROFILE_DEFAULTS.get((contract.mission, contract.action))
         if default is not None:
             return self._resolve_available_default(contract, default)
-        raise StepContractExecutionError(
-            "profile_hint is required when no action default exists for "
-            f"{contract.mission}/{contract.action}"
-        )
+        raise StepContractExecutionError(f"profile_hint is required when no action default exists for {contract.mission}/{contract.action}")
 
     def _resolve_available_default(
         self,
@@ -328,8 +319,7 @@ class StepContractExecutor:
                 fallback_id: str = chosen.profile_id
                 fallback_priority: int = chosen.routing_priority
                 logger.warning(
-                    "Built-in default profile %r is not available for %s/%s; "
-                    "dispatching through %r instead (role %r, routing-priority %d).",
+                    "Built-in default profile %r is not available for %s/%s; dispatching through %r instead (role %r, routing-priority %d).",
                     default,
                     contract.mission,
                     contract.action,
@@ -347,9 +337,7 @@ class StepContractExecutor:
         )
 
     @staticmethod
-    def _select_role_fallback(
-        catalog: list[AgentProfile], role: str
-    ) -> AgentProfile | None:
+    def _select_role_fallback(catalog: list[AgentProfile], role: str) -> AgentProfile | None:
         """Return the deterministic same-role fallback from *catalog*, or None.
 
         Highest ``routing_priority`` first (the router's own tie-break
@@ -372,17 +360,13 @@ class StepContractExecutor:
         is empty". The catalog is the same ``ProfileRegistry`` the real
         ``ProfileInvocationExecutor`` resolves ``profile_hint`` against.
         """
-        list_profiles: Callable[[], list[AgentProfile]] | None = getattr(
-            self._invocation_executor, "list_available_profiles", None
-        )
+        list_profiles: Callable[[], list[AgentProfile]] | None = getattr(self._invocation_executor, "list_available_profiles", None)
         if list_profiles is None:
             return None
         return list_profiles()
 
     @staticmethod
-    def _load_graph_degrading_malformed_org_pack(
-        repo_root: Path, org_roots: list[Path]
-    ) -> DRGGraph:
+    def _load_graph_degrading_malformed_org_pack(repo_root: Path, org_roots: list[Path]) -> DRGGraph:
         """Load the merged DRG, degrading any malformed root in *org_roots* to
         "no contribution from that pack" instead of letting it crash
         composition.
@@ -454,9 +438,7 @@ class StepContractExecutor:
         # return type without a suppression (matches the pattern in
         # :meth:`_load_org_fragments_degrading`).
         if not org_roots:
-            no_root_graph: DRGGraph = load_validated_graph(
-                repo_root, org_roots=[], org_fragments=org_fragments
-            )
+            no_root_graph: DRGGraph = load_validated_graph(repo_root, org_roots=[], org_fragments=org_fragments)
             return no_root_graph
 
         healthy_roots: list[Path] = []
@@ -468,9 +450,7 @@ class StepContractExecutor:
                 continue
             healthy_roots.append(root)
 
-        merged: DRGGraph = load_validated_graph(
-            repo_root, org_roots=healthy_roots, org_fragments=org_fragments
-        )
+        merged: DRGGraph = load_validated_graph(repo_root, org_roots=healthy_roots, org_fragments=org_fragments)
         return merged
 
     @staticmethod
@@ -517,9 +497,7 @@ class StepContractExecutor:
             # Typed local absorbs the ``charter.drg`` facade re-export (mypy sees
             # the facade symbol as ``Any``); the annotation restores the concrete
             # return type without a suppression.
-            fragments: list[OrgDRGFragment] = load_org_drg(
-                repo_root, strict=False, degrade_malformed=True
-            )
+            fragments: list[OrgDRGFragment] = load_org_drg(repo_root, strict=False, degrade_malformed=True)
             return fragments
         except NotImplementedError as exc:
             logger.warning(
@@ -548,16 +526,12 @@ class StepContractExecutor:
         """
         if StepContractExecutor._org_root_folds_fragment(root):
             logger.debug(
-                "Org pack DRG at %s ships a drg/fragment.yaml and no root "
-                "*.graph.yaml; folding it via the org-fragment layer rather "
-                "than the root-graph loop.",
+                "Org pack DRG at %s ships a drg/fragment.yaml and no root *.graph.yaml; folding it via the org-fragment layer rather than the root-graph loop.",
                 root,
             )
             return
         logger.warning(
-            "Org pack DRG at %s failed to load (%s: %s); composing this "
-            "step with the remaining doctrine layers, without this "
-            "org pack's contribution.",
+            "Org pack DRG at %s failed to load (%s: %s); composing this step with the remaining doctrine layers, without this org pack's contribution.",
             root,
             type(exc).__name__,
             exc,
@@ -671,11 +645,7 @@ class StepContractExecutor:
             if directive_node is not None and directive_node.kind == node_kind:
                 return directive_urn
 
-        matches: list[str] = [
-            str(node.urn)
-            for node in graph.nodes
-            if node.kind == node_kind and node.urn.split(":", 1)[1] == candidate
-        ]
+        matches: list[str] = [str(node.urn) for node in graph.nodes if node.kind == node_kind and node.urn.split(":", 1)[1] == candidate]
         if len(matches) == 1:
             return matches[0]
         return None
@@ -710,9 +680,7 @@ class StepContractExecutor:
             lines.append(f"Declared command: {self._render_declared_command(step)}")
             lines.append("Command status: declared only; the host/operator owns execution.")
         elif step.inputs:
-            joined = " ".join(
-                self._format_step_input(input_spec) for input_spec in step.inputs
-            )
+            joined = " ".join(self._format_step_input(input_spec) for input_spec in step.inputs)
             lines.append(f"Declared step inputs: {joined}")
         if resolved_delegations:
             joined = ", ".join(delegation.urn for delegation in resolved_delegations)
@@ -727,9 +695,7 @@ class StepContractExecutor:
     def _render_declared_command(self, step: MissionStepContractStep) -> str:
         if not step.command or not step.inputs:
             return step.command or ""
-        joined = " ".join(
-            self._format_step_input(input_spec) for input_spec in step.inputs
-        )
+        joined = " ".join(self._format_step_input(input_spec) for input_spec in step.inputs)
         return f"{step.command} {joined}"
 
     @staticmethod

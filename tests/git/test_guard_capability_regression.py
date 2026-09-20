@@ -91,11 +91,7 @@ def _capabilities_at_call_sites(path: Path, callee: str) -> list[GuardCapability
         if not isinstance(node, ast.Call):
             continue
         func = node.func
-        name = (
-            func.id
-            if isinstance(func, ast.Name)
-            else func.attr if isinstance(func, ast.Attribute) else None
-        )
+        name = func.id if isinstance(func, ast.Name) else func.attr if isinstance(func, ast.Attribute) else None
         if name != callee:
             continue
         capability = GuardCapability.STANDARD
@@ -104,8 +100,7 @@ def _capabilities_at_call_sites(path: Path, callee: str) -> list[GuardCapability
                 continue
             value = keyword.value
             assert isinstance(value, ast.Attribute) and isinstance(value.value, ast.Name) and value.value.id == "GuardCapability", (
-                f"{path.name}:{node.lineno} passes a non-literal capability; "
-                "this parity test needs the asserted-at-the-surface literal"
+                f"{path.name}:{node.lineno} passes a non-literal capability; this parity test needs the asserted-at-the-surface literal"
             )
             capability = GuardCapability[value.attr]
         capabilities.append(capability)
@@ -145,9 +140,7 @@ def _capabilities_at_call_sites(path: Path, callee: str) -> list[GuardCapability
         ("cli/commands/agent/tasks_finalize.py", "bootstrap_canonical_state", 1),
     ],
 )
-def test_status_bookkeeping_call_sites_are_refused_on_protected_destination(
-    module_rel: str, callee: str, expected_sites: int
-) -> None:
+def test_status_bookkeeping_call_sites_are_refused_on_protected_destination(module_rel: str, callee: str, expected_sites: int) -> None:
     """No ordinary bookkeeping call site may assert a protected-flow capability.
 
     Drives ``commit_guard.evaluate`` with the exact capability each production
@@ -159,9 +152,7 @@ def test_status_bookkeeping_call_sites_are_refused_on_protected_destination(
     module_path = _SPECIFY_CLI_SRC / module_rel
     capabilities = _capabilities_at_call_sites(module_path, callee)
     assert len(capabilities) == expected_sites, (
-        f"expected {expected_sites} {callee} call site(s) in {module_rel}, "
-        f"found {len(capabilities)} — update this parity test alongside the "
-        "call-site change"
+        f"expected {expected_sites} {callee} call site(s) in {module_rel}, found {len(capabilities)} — update this parity test alongside the call-site change"
     )
 
     target = CommitTarget(ref="main")
@@ -201,9 +192,7 @@ def test_status_bookkeeping_call_sites_are_refused_on_protected_destination(
         ({"dry_run": False, "capability": GuardCapability.STANDARD}, GuardCapability.STANDARD),
     ],
 )
-def test_bootstrap_wrapper_forwards_call_site_capability(
-    call_kwargs: dict[str, object], expected_capability: GuardCapability
-) -> None:
+def test_bootstrap_wrapper_forwards_call_site_capability(call_kwargs: dict[str, object], expected_capability: GuardCapability) -> None:
     """``_bootstrap_canonical_state_via_mission`` must not cross the capability.
 
     The wrapper routes through the ``mission`` patch seam; we replace the seam's
@@ -231,7 +220,9 @@ def test_bootstrap_wrapper_forwards_call_site_capability(
 
     with patch.object(_mission, "bootstrap_canonical_state", _spy):
         result = _bootstrap_canonical_state_via_mission(
-            Path("/nonexistent/planning"), "001-guard-regression", **call_kwargs  # type: ignore[arg-type]
+            Path("/nonexistent/planning"),
+            "001-guard-regression",
+            **call_kwargs,  # type: ignore[arg-type]
         )
 
     assert result is sentinel
@@ -270,9 +261,7 @@ def test_legacy_workflow_commit_refused_on_protected_target(
         )
 
     assert _head_sha(repo.repo_root) == head_before, (
-        "the legacy workflow safe_commit path landed a commit on the "
-        "protected target with zero env — the TEST_MODE capability waiver "
-        "regressed (PR #1850 M1)"
+        "the legacy workflow safe_commit path landed a commit on the protected target with zero env — the TEST_MODE capability waiver regressed (PR #1850 M1)"
     )
 
 
@@ -298,13 +287,9 @@ def test_status_commit_prechecks_ignore_test_mode_env(
     monkeypatch.setenv("SPEC_KITTY_TEST_MODE", "1")
 
     assert tasks_precheck(repo.target_branch, repo.repo_root, "spec-kitty agent tasks mark-status") is not None, (
-        "SPEC_KITTY_TEST_MODE waived the tasks-command protected-branch "
-        "pre-check (PR #1850 M2)"
+        "SPEC_KITTY_TEST_MODE waived the tasks-command protected-branch pre-check (PR #1850 M2)"
     )
-    assert implement_precheck(repo.target_branch, repo.repo_root) is not None, (
-        "SPEC_KITTY_TEST_MODE waived the implement protected-branch "
-        "pre-check (PR #1850 M2)"
-    )
+    assert implement_precheck(repo.target_branch, repo.repo_root) is not None, "SPEC_KITTY_TEST_MODE waived the implement protected-branch pre-check (PR #1850 M2)"
 
 
 def test_status_commit_prechecks_honor_operator_hatch(
@@ -356,12 +341,8 @@ def test_mark_status_test_mode_env_lands_no_commit_on_protected_target(
     slug = "001-guard-regression"
     mission_dir = repo.repo_root / "kitty-specs" / slug
     mission_dir.mkdir(parents=True)
-    (mission_dir / "meta.json").write_text(
-        json.dumps({"mission_id": "01GUARDREGRESSIONMISSION00"}), encoding="utf-8"
-    )
-    (mission_dir / "tasks.md").write_text(
-        "# Tasks\n\n## WP01\nSubtasks: T001\n", encoding="utf-8"
-    )
+    (mission_dir / "meta.json").write_text(json.dumps({"mission_id": "01GUARDREGRESSIONMISSION00"}), encoding="utf-8")
+    (mission_dir / "tasks.md").write_text("# Tasks\n\n## WP01\nSubtasks: T001\n", encoding="utf-8")
 
     monkeypatch.setenv("SPEC_KITTY_TEST_MODE", "true")
     head_before = _head_sha(repo.repo_root)
@@ -392,9 +373,7 @@ def test_mark_status_test_mode_env_lands_no_commit_on_protected_target(
         )
 
     assert result.exit_code == 0, result.output
-    assert _head_sha(repo.repo_root) == head_before, (
-        "event-only mark-status landed a commit on the protected target"
-    )
+    assert _head_sha(repo.repo_root) == head_before, "event-only mark-status landed a commit on the protected target"
 
 
 # ---------------------------------------------------------------------------
@@ -425,9 +404,7 @@ def test_coordination_gate_refuses_standard_on_protected_destination_env_clean(
     from specify_cli.coordination.policy import WorkflowMutationPolicy
     from specify_cli.coordination.types import Refused
 
-    verdict = WorkflowMutationPolicy.assert_allowed(
-        _legacy_bookkeeping_change_set(protected_target_repo)
-    )
+    verdict = WorkflowMutationPolicy.assert_allowed(_legacy_bookkeeping_change_set(protected_target_repo))
     assert isinstance(verdict, Refused)
     assert verdict.error_code == "PROTECTED_BRANCH_REFUSED"
 
@@ -448,9 +425,7 @@ def test_coordination_gate_honors_operator_hatch_on_protection_state(
     from specify_cli.coordination.types import Allowed
 
     monkeypatch.setenv("SPEC_KITTY_ALLOW_PROTECTED_BRANCH_COMMITS", "1")
-    verdict = WorkflowMutationPolicy.assert_allowed(
-        _legacy_bookkeeping_change_set(protected_target_repo)
-    )
+    verdict = WorkflowMutationPolicy.assert_allowed(_legacy_bookkeeping_change_set(protected_target_repo))
     assert isinstance(verdict, Allowed), (
         f"gate refused despite the operator hatch: {verdict!r} — the "
         "pre-flight ProtectionState input must honor the ONE retained "
@@ -504,6 +479,5 @@ def test_decision_log_refusal_preserves_event_and_lands_no_commit(
     assert decisions_file.exists(), "the decision event write must survive the refusal"
     assert len(decisions_file.read_text(encoding="utf-8").splitlines()) == 1
     assert _head_sha(repo.repo_root) == head_before, (
-        "a decision-record commit landed on the protected ref — the "
-        "MERGE_BOOKKEEPING capability misassertion regressed (PR #1850)"
+        "a decision-record commit landed on the protected ref — the MERGE_BOOKKEEPING capability misassertion regressed (PR #1850)"
     )

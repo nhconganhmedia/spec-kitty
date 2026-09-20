@@ -22,6 +22,7 @@ from specify_cli.skills import command_installer, manifest_store
 pytestmark = [pytest.mark.integration, pytest.mark.non_sandbox]  # non_sandbox: subprocess CLI invocation
 runner = CliRunner()
 
+
 def _write_config(tmp_path: Path, agents: list[str]) -> None:
     kittify = tmp_path / ".kittify"
     kittify.mkdir(parents=True, exist_ok=True)
@@ -30,10 +31,7 @@ def _write_config(tmp_path: Path, agents: list[str]) -> None:
 
 
 def _expected_command_skill_paths() -> set[str]:
-    return {
-        f".agents/skills/spec-kitty.{command}/SKILL.md"
-        for command in command_installer.CANONICAL_COMMANDS
-    }
+    return {f".agents/skills/spec-kitty.{command}/SKILL.md" for command in command_installer.CANONICAL_COMMANDS}
 
 
 # ---------------------------------------------------------------------------
@@ -114,9 +112,7 @@ def test_remove_vibe_only(tmp_path: Path) -> None:
 
     # Manifest must be empty
     manifest_after = manifest_store.load(tmp_path)
-    assert len(manifest_after.entries) == 0, (
-        f"Expected empty manifest after remove vibe; got {len(manifest_after.entries)} entries"
-    )
+    assert len(manifest_after.entries) == 0, f"Expected empty manifest after remove vibe; got {len(manifest_after.entries)} entries"
 
     # Skill dirs must be gone
     skills_root = tmp_path / ".agents" / "skills"
@@ -164,23 +160,18 @@ def test_remove_vibe_leaves_codex_entries(tmp_path: Path) -> None:
     # Manifest must still have all command-skill entries — codex still owns them
     manifest_after = manifest_store.load(tmp_path)
     assert {entry.path for entry in manifest_after.entries} == expected_paths, (
-        "Expected codex-owned command-skill entries to remain; got "
-        f"{[entry.path for entry in manifest_after.entries]}"
+        f"Expected codex-owned command-skill entries to remain; got {[entry.path for entry in manifest_after.entries]}"
     )
 
     # All entries must be codex-only now
     for entry in manifest_after.entries:
-        assert entry.agents == ("codex",), (
-            f"Entry {entry.path} has agents={entry.agents}, expected ('codex',)"
-        )
+        assert entry.agents == ("codex",), f"Entry {entry.path} has agents={entry.agents}, expected ('codex',)"
 
     # Files must be byte-identical (no rewrite)
     for entry in manifest_after.entries:
         abs_path = tmp_path / entry.path
         assert abs_path.exists(), f"File missing: {entry.path}"
-        assert abs_path.read_bytes() == snapshots[entry.path], (
-            f"File content changed after removing vibe: {entry.path}"
-        )
+        assert abs_path.read_bytes() == snapshots[entry.path], f"File content changed after removing vibe: {entry.path}"
 
     # Config must not contain vibe but must still contain codex
     config = load_agent_config(tmp_path)

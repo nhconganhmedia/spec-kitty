@@ -34,9 +34,7 @@ from specify_cli.compat._detect.runtime import PackageSource, UvRequirement
 # outside this set is flagged ``is_supported=False`` so the remediation
 # planner refuses to reconstruct a (lossy) command from it — preserving
 # provenance instead of clobbering the user's real source (issue #1358).
-_SUPPORTED_REQUIREMENT_KEYS = frozenset(
-    {"name", "specifier", "directory", "editable", "path", "git", "url"}
-)
+_SUPPORTED_REQUIREMENT_KEYS = frozenset({"name", "specifier", "directory", "editable", "path", "git", "url"})
 
 
 # ---------------------------------------------------------------------------
@@ -300,9 +298,7 @@ class UvReceiptReader:
             requirements_raw = tool_dict.get("requirements", [])
             requirements = _parse_requirements(requirements_raw)
 
-            package_source = _derive_package_source(
-                requirements_raw if isinstance(requirements_raw, list) else []
-            )
+            package_source = _derive_package_source(requirements_raw if isinstance(requirements_raw, list) else [])
 
             return UvReceiptResult(
                 receipt_path=receipt_path,

@@ -30,10 +30,7 @@ class FixOrchestratorApiSkillMigration(BaseMigration):
     """Expand orchestrator-api skill with output examples and internals."""
 
     migration_id = "2.1.2_fix_orchestrator_api_skill"
-    description = (
-        "Expand orchestrator-api skill with JSON output examples, error codes, "
-        "idempotency behavior, and preflight details"
-    )
+    description = "Expand orchestrator-api skill with JSON output examples, error codes, idempotency behavior, and preflight details"
     target_version = "2.1.2"
 
     def detect(self, project_path: Path) -> bool:
@@ -54,18 +51,10 @@ class FixOrchestratorApiSkillMigration(BaseMigration):
 
         try:
             doctrine_root = files("charter.offering")
-            canonical_path = doctrine_root.joinpath(
-                "skills", _SKILL_NAME, "SKILL.md"
-            )
+            canonical_path = doctrine_root.joinpath("skills", _SKILL_NAME, "SKILL.md")
             new_content = canonical_path.read_text(encoding="utf-8")
         except Exception:
-            fallback = (
-                Path(__file__).resolve().parents[3]
-                / "doctrine"
-                / "skills"
-                / _SKILL_NAME
-                / "SKILL.md"
-            )
+            fallback = Path(__file__).resolve().parents[3] / "doctrine" / "skills" / _SKILL_NAME / "SKILL.md"
             if fallback.is_file():
                 new_content = fallback.read_text(encoding="utf-8")
             else:
@@ -82,9 +71,7 @@ class FixOrchestratorApiSkillMigration(BaseMigration):
                 changes.append(f"Would replace {rel}")
             else:
                 try:
-                    wrote, warning = write_skill_text(
-                        info.path, new_content, project_path
-                    )
+                    wrote, warning = write_skill_text(info.path, new_content, project_path)
                     if wrote:
                         changes.append(f"Replaced {rel}")
                     elif warning is not None:

@@ -93,10 +93,7 @@ def list_cmd(
     console.print("[bold]Built-in charter packs:[/bold]")
     for pack in packs:
         console.print(f"  [cyan]{pack['name']}[/cyan] — {pack['description']}")
-    console.print(
-        "\n[dim]Resolve a path with `spec-kitty charter pack path <name>`, "
-        "apply one with `spec-kitty charter pack apply <name>`.[/dim]"
-    )
+    console.print("\n[dim]Resolve a path with `spec-kitty charter pack path <name>`, apply one with `spec-kitty charter pack apply <name>`.[/dim]")
 
 
 def _resolve_pack_path_or_exit(name: str, *, json_output: bool) -> Path:
@@ -224,9 +221,7 @@ def _compile_bundle_after_merge(repo_root: Path, *, pack_name: str) -> list[str]
     return list(bundle_result.files_written)
 
 
-def _apply_compile_bridge(
-    repo_root: Path, compile_bundle: bool, *, json_output: bool, pack_name: str
-) -> list[str]:
+def _apply_compile_bridge(repo_root: Path, compile_bundle: bool, *, json_output: bool, pack_name: str) -> list[str]:
     """Run the ``--compile`` bridge when requested, else return no files.
 
     Isolates the ``--compile`` branch (including its git-worktree error
@@ -322,9 +317,7 @@ def apply_cmd(
         with config_path.open("w", encoding="utf-8") as fh:
             yaml.dump(data, fh)
 
-    compiled_files = _apply_compile_bridge(
-        repo_root, compile_bundle, json_output=json_output, pack_name=name
-    )
+    compiled_files = _apply_compile_bridge(repo_root, compile_bundle, json_output=json_output, pack_name=name)
 
     result = {
         "pack": name,
@@ -341,19 +334,11 @@ def apply_cmd(
         return
 
     if keys_written:
-        console.print(
-            f"[green]Applied charter pack '{name}':[/green] wrote {', '.join(keys_written)}"
-        )
+        console.print(f"[green]Applied charter pack '{name}':[/green] wrote {', '.join(keys_written)}")
     else:
-        console.print(
-            f"[yellow]No keys written for pack '{name}'.[/yellow] All target keys "
-            "already present in config.yaml; pass --force to overwrite them."
-        )
+        console.print(f"[yellow]No keys written for pack '{name}'.[/yellow] All target keys already present in config.yaml; pass --force to overwrite them.")
     if keys_skipped:
-        console.print(
-            f"[dim]Skipped (already present; use --force to overwrite):[/dim] "
-            f"{', '.join(keys_skipped)}"
-        )
+        console.print(f"[dim]Skipped (already present; use --force to overwrite):[/dim] {', '.join(keys_skipped)}")
 
     if compile_bundle:
         written = ", ".join(compiled_files) if compiled_files else ".kittify/charter/charter.yaml"

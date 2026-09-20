@@ -139,9 +139,7 @@ def _drive_engine(prg: Any, scope: Any, run_result: Any, baseline: Any) -> Any:
     original = prg.run_scoped_tests_at_head
     prg.run_scoped_tests_at_head = lambda *a, **k: run_result  # noqa: E731 (local shim)
     try:
-        return prg.evaluate_with_scope(
-            scope, repo_root=Path("."), baseline=baseline
-        )
+        return prg.evaluate_with_scope(scope, repo_root=Path("."), baseline=baseline)
     finally:
         prg.run_scoped_tests_at_head = original
 
@@ -171,9 +169,7 @@ def _failure(baseline_mod: Any) -> Any:
 
 def _build_no_coverage(prg: Any, _baseline_mod: Any) -> Any:
     # Empty scope -> incumbent short-circuits to NO_COVERAGE (no run).
-    return prg.evaluate_with_scope(
-        _scope(prg, ()), repo_root=Path("."), baseline=None
-    )
+    return prg.evaluate_with_scope(_scope(prg, ()), repo_root=Path("."), baseline=None)
 
 
 def _build_no_new_failures(prg: Any, baseline_mod: Any) -> Any:
@@ -307,20 +303,12 @@ def verdict_to_dict(verdict: Any) -> dict[str, Any]:
             "empty_cone_composite_dirs": list(scope.empty_cone_composite_dirs),
             "excluded_scope_files": list(scope.excluded_scope_files),
         },
-        "new_failures": [
-            {"test": f.test, "error": f.error, "file": f.file}
-            for f in verdict.new_failures
-        ],
-        "pre_existing_failures": [
-            {"test": f.test, "error": f.error, "file": f.file}
-            for f in verdict.pre_existing_failures
-        ],
+        "new_failures": [{"test": f.test, "error": f.error, "file": f.file} for f in verdict.new_failures],
+        "pre_existing_failures": [{"test": f.test, "error": f.error, "file": f.file} for f in verdict.pre_existing_failures],
     }
 
 
-def _capture_case(
-    tmt: Any, verdict: Any, *, block_enabled: bool, force: bool, base_sha: str
-) -> dict[str, Any]:
+def _capture_case(tmt: Any, verdict: Any, *, block_enabled: bool, force: bool, base_sha: str) -> dict[str, Any]:
     """Run the incumbent metadata/console/decision derivation for one matrix cell."""
     outcome = verdict.outcome
     would_block = block_enabled and outcome is tmt.pre_review_gate.GateOutcome.NEW_FAILURES
@@ -343,10 +331,7 @@ def _capture_case(
     exit_code = 1 if (terminal or blocked) else None
     return {
         "base_commit": base_sha,  # machine-emitted from the running worktree
-        "oracle_provenance": (
-            f"captured from base commit {base_sha} against the incumbent "
-            "_mt_run_pre_review_gate (never regenerated from HEAD)"
-        ),
+        "oracle_provenance": (f"captured from base commit {base_sha} against the incumbent _mt_run_pre_review_gate (never regenerated from HEAD)"),
         "block_enabled": block_enabled,
         "force": force,
         "verdict": verdict_to_dict(verdict),
@@ -375,9 +360,7 @@ def capture(out_dir: Path) -> list[Path]:
     for scenario in _SCENARIOS:
         verdict = scenario.build(prg, baseline_mod)
         for block_enabled, force in scenario.matrix:
-            case = _capture_case(
-                tmt, verdict, block_enabled=block_enabled, force=force, base_sha=base_sha
-            )
+            case = _capture_case(tmt, verdict, block_enabled=block_enabled, force=force, base_sha=base_sha)
             name = f"{scenario.name}__block{int(block_enabled)}__force{int(force)}.json"
             path = out_dir / name
             path.write_text(json.dumps(case, indent=2, sort_keys=True) + "\n", encoding="utf-8")

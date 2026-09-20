@@ -27,6 +27,7 @@ from specify_cli.cli.commands.init import register_init_command
 
 pytestmark = [pytest.mark.integration, pytest.mark.git_repo]
 
+
 def _make_app(monkeypatch: pytest.MonkeyPatch) -> Typer:
     out = io.StringIO()
     console = Console(file=out, force_terminal=False, highlight=False)
@@ -85,6 +86,7 @@ def _setup_git_repo_with_commit(repo_path: Path) -> str:
 # T1.6: init inside existing repo does not touch git state
 # ---------------------------------------------------------------------------
 
+
 def test_init_does_not_touch_git_state_in_existing_repo(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -97,9 +99,7 @@ def test_init_does_not_touch_git_state_in_existing_repo(
     head_before = _setup_git_repo_with_commit(repo)
     assert head_before, "HEAD hash should be non-empty after initial commit"
 
-    commit_count_before = len(
-        _git("log", "--oneline", cwd=repo).splitlines()
-    )
+    commit_count_before = len(_git("log", "--oneline", cwd=repo).splitlines())
     assert commit_count_before == 1, "Should have exactly 1 commit before init"
 
     # Run init inside the existing repo
@@ -114,35 +114,28 @@ def test_init_does_not_touch_git_state_in_existing_repo(
 
     # HEAD hash must be unchanged
     head_after = _git("rev-parse", "HEAD", cwd=repo)
-    assert head_after == head_before, (
-        f"HEAD changed after init!\n  before: {head_before}\n  after:  {head_after}\n"
-        "init must not create any commits."
-    )
+    assert head_after == head_before, f"HEAD changed after init!\n  before: {head_before}\n  after:  {head_after}\ninit must not create any commits."
 
     # Commit count must be unchanged
-    commit_count_after = len(
-        _git("log", "--oneline", cwd=repo).splitlines()
-    )
+    commit_count_after = len(_git("log", "--oneline", cwd=repo).splitlines())
     assert commit_count_after == commit_count_before, (
-        f"Commit count changed from {commit_count_before} to {commit_count_after}.\n"
-        "init must not create any git commits."
+        f"Commit count changed from {commit_count_before} to {commit_count_after}.\ninit must not create any git commits."
     )
 
     # Existing tracked files must be unmodified (README.md should be clean)
     porcelain = _git("status", "--porcelain", cwd=repo)
     modified_tracked = [
-        line for line in porcelain.splitlines()
+        line
+        for line in porcelain.splitlines()
         if not line.startswith("?? ")  # untracked new files are expected
     ]
-    assert modified_tracked == [], (
-        "init modified existing tracked files:\n"
-        + "\n".join(modified_tracked)
-    )
+    assert modified_tracked == [], "init modified existing tracked files:\n" + "\n".join(modified_tracked)
 
 
 # ---------------------------------------------------------------------------
 # #4146: init installs the merge-driver git-config half, not just .gitattributes
 # ---------------------------------------------------------------------------
+
 
 def test_init_registers_merge_driver_git_config_in_existing_repo(
     monkeypatch: pytest.MonkeyPatch,
@@ -173,9 +166,7 @@ def test_init_registers_merge_driver_git_config_in_existing_repo(
         text=True,
         check=False,
     )
-    assert probe.returncode == 1 and probe.stdout.strip() == "", (
-        "test precondition: fresh repo must start with no merge.spec-kitty config"
-    )
+    assert probe.returncode == 1 and probe.stdout.strip() == "", "test precondition: fresh repo must start with no merge.spec-kitty config"
 
     app = _make_app(monkeypatch)
     monkeypatch.chdir(repo)
@@ -190,20 +181,10 @@ def test_init_registers_merge_driver_git_config_in_existing_repo(
     assert "kitty-specs/**/status.events.jsonl merge=spec-kitty-event-log" in attributes
 
     for spec in _MERGE_DRIVERS:
-        name = _git(
-            "config", "--local", "--get", f"merge.{spec.config_key}.name", cwd=repo
-        )
-        driver = _git(
-            "config", "--local", "--get", f"merge.{spec.config_key}.driver", cwd=repo
-        )
-        assert name == spec.name, (
-            f"init did not register merge.{spec.config_key}.name "
-            f"(got {name!r}, expected {spec.name!r})"
-        )
-        assert driver == spec.command, (
-            f"init did not register merge.{spec.config_key}.driver "
-            f"(got {driver!r}, expected {spec.command!r})"
-        )
+        name = _git("config", "--local", "--get", f"merge.{spec.config_key}.name", cwd=repo)
+        driver = _git("config", "--local", "--get", f"merge.{spec.config_key}.driver", cwd=repo)
+        assert name == spec.name, f"init did not register merge.{spec.config_key}.name (got {name!r}, expected {spec.name!r})"
+        assert driver == spec.command, f"init did not register merge.{spec.config_key}.driver (got {driver!r}, expected {spec.command!r})"
 
 
 def test_init_without_git_repo_does_not_fail_on_merge_driver_config(

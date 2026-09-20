@@ -77,9 +77,7 @@ def _seed_committed_mission(repo_root: Path) -> Path:
     (feature_dir / "spec.md").write_text("# Spec\n\nFR-003.\n", encoding="utf-8")
     provenance = repo_root / ".kittify" / "encoding-provenance"
     provenance.mkdir(parents=True)
-    (provenance / "global.jsonl").write_text(
-        '{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n', encoding="utf-8"
-    )
+    (provenance / "global.jsonl").write_text('{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n', encoding="utf-8")
     _git(repo_root, "add", "-A")
     _git(repo_root, "commit", "-q", "-m", "seed mission")
     return feature_dir
@@ -119,9 +117,7 @@ class TestSelfBookkeepingPredicate:
         self,
     ) -> None:
         """Repo-relative prefix before ``kitty-ops/`` is handled (path component)."""
-        assert is_self_bookkeeping_churn(
-            "some/prefix/kitty-ops/01KWD0V5ABCDEFGHJKMNPQRSTV.jsonl"
-        )
+        assert is_self_bookkeeping_churn("some/prefix/kitty-ops/01KWD0V5ABCDEFGHJKMNPQRSTV.jsonl")
 
     def test_kitty_ops_non_ulid_basename_is_not_self_bookkeeping(self) -> None:
         """G-5: ``kitty-ops/notes.txt`` (non-ULID) is NOT self-bookkeeping."""
@@ -150,14 +146,11 @@ class TestSelfBookkeepingPredicate:
 def _modify_self_bookkeeping(feature_dir: Path, repo_root: Path) -> None:
     """Make the self-bookkeeping files dirty (the false-block trigger)."""
     (feature_dir / "meta.json").write_text(
-        (feature_dir / "meta.json").read_text(encoding="utf-8").replace(
-            "Gate Read Surface Completion", "Gate Read Surface Completion (touched)"
-        ),
+        (feature_dir / "meta.json").read_text(encoding="utf-8").replace("Gate Read Surface Completion", "Gate Read Surface Completion (touched)"),
         encoding="utf-8",
     )
     (repo_root / ".kittify" / "encoding-provenance" / "global.jsonl").write_text(
-        '{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n'
-        '{"path": "kitty-specs/y/plan.md", "encoding": "utf-8"}\n',
+        '{"path": "kitty-specs/x/spec.md", "encoding": "utf-8"}\n{"path": "kitty-specs/y/plan.md", "encoding": "utf-8"}\n',
         encoding="utf-8",
     )
 

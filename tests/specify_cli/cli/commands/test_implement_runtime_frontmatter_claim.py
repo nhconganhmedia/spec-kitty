@@ -178,9 +178,7 @@ def test_body_change_alongside_runtime_field_still_blocks(tmp_path: Path) -> Non
 
     dropped = _is_self_write_only_diff(tmp_path, repo_rel, None)
 
-    assert dropped is False, (
-        "a body edit must still block even alongside a runtime-only frontmatter change"
-    )
+    assert dropped is False, "a body edit must still block even alongside a runtime-only frontmatter change"
 
 
 def test_non_runtime_frontmatter_change_still_blocks(tmp_path: Path) -> None:
@@ -216,9 +214,7 @@ def test_auto_commit_true_is_byte_identical_noop(tmp_path: Path) -> None:
     working["shell_pid"] = "999999"
     wp_path.write_text(_render_wp(working), encoding="utf-8")
 
-    plan = resolve_planning_artifact_staging(
-        tmp_path, tmp_path / "kitty-specs" / _MISSION_SLUG, None, [], auto_commit=True
-    )
+    plan = resolve_planning_artifact_staging(tmp_path, tmp_path / "kitty-specs" / _MISSION_SLUG, None, [], auto_commit=True)
 
     assert repo_rel in plan.files_to_commit, "auto_commit=True must be a byte-identical no-op (NFR-001)"
 
@@ -260,10 +256,7 @@ def test_is_runtime_frontmatter_only_wp_diff_truth_table(
     working_tail: str,
     expected: bool,
 ) -> None:
-    assert (
-        _is_runtime_frontmatter_only_wp_diff(committed_front, working_front, committed_tail, working_tail)
-        is expected
-    )
+    assert _is_runtime_frontmatter_only_wp_diff(committed_front, working_front, committed_tail, working_tail) is expected
 
 
 # ---------------------------------------------------------------------------
@@ -378,10 +371,7 @@ def _build_multi_wp_mission_repo(tmp_path: Path, wp_ids: list[str]) -> Path:
     )
     for index, wp_id in enumerate(wp_ids):
         _write_wp_prompt(tasks_dir, wp_id, f"src/{chr(ord('a') + index)}/**")
-    events = "".join(
-        json.dumps(_seed_event(_MISSION_SLUG, wp_id, f"S{index:02d}"), sort_keys=True) + "\n"
-        for index, wp_id in enumerate(wp_ids)
-    )
+    events = "".join(json.dumps(_seed_event(_MISSION_SLUG, wp_id, f"S{index:02d}"), sort_keys=True) + "\n" for index, wp_id in enumerate(wp_ids))
     (feature_dir / "status.events.jsonl").write_text(events, encoding="utf-8")
 
     _git(tmp_path, "init", "-b", "main")
@@ -425,9 +415,7 @@ def _claim_through_guard(tmp_path: Path, feature_dir: Path, lane_id: str) -> Ite
         yield create_mock
 
 
-def test_sequential_n_lane_allocation_writes_zero_wp_file_bytes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sequential_n_lane_allocation_writes_zero_wp_file_bytes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """SC-004 / NFR-003 (#2816 cutover): N sequential dependency-free root claims
     under ``auto_commit=False`` each write **0 bytes** to their WP prompt file.
 
@@ -451,19 +439,14 @@ def test_sequential_n_lane_allocation_writes_zero_wp_file_bytes(
         ):
             implement(wp_id, mission=feature_dir.name, auto_commit=False, recover=False)
 
-        assert create_mock.called, (
-            f"{wp_id} (lane {index + 1} of {len(wp_ids)}) was blocked before "
-            "reaching workspace allocation"
-        )
+        assert create_mock.called, f"{wp_id} (lane {index + 1} of {len(wp_ids)}) was blocked before reaching workspace allocation"
 
     # Byte-stability (SC-004): the claim wrote 0 runtime bytes to any WP prompt
     # file — every WP##.md is byte-identical to its pre-claim content, so the
     # working tree carries no WP##.md change at all.
     for wp_id in wp_ids:
         after = (tasks_dir / f"{wp_id}-plan.md").read_bytes()
-        assert after == before[wp_id], (
-            f"{wp_id}'s prompt file must be byte-identical across its claim (0 runtime bytes)"
-        )
+        assert after == before[wp_id], f"{wp_id}'s prompt file must be byte-identical across its claim (0 runtime bytes)"
 
     status = subprocess.run(
         ["git", "status", "--porcelain"],
@@ -473,6 +456,4 @@ def test_sequential_n_lane_allocation_writes_zero_wp_file_bytes(
         check=True,
     ).stdout
     for wp_id in wp_ids:
-        assert f"{wp_id}-plan.md" not in status, (
-            f"{wp_id}'s prompt file must stay unmodified after a byte-stable claim"
-        )
+        assert f"{wp_id}-plan.md" not in status, f"{wp_id}'s prompt file must stay unmodified after a byte-stable claim"

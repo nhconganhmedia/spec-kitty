@@ -84,9 +84,7 @@ def _lane(lane_id: str, *, depends: tuple[str, ...] = (), group: int = 0) -> Exe
     )
 
 
-def _manifest(
-    lanes: list[ExecutionLane], *, planning_commit_sha: str | None = None
-) -> LanesManifest:
+def _manifest(lanes: list[ExecutionLane], *, planning_commit_sha: str | None = None) -> LanesManifest:
     return LanesManifest(
         version=1,
         mission_slug=MISSION_SLUG,
@@ -120,14 +118,10 @@ def test_allocator_routes_through_worktree_path_seam(tmp_path: Path) -> None:
     _make_git_repo(repo)
 
     manifest = _manifest([_lane("lane-a")])
-    wt_path, _branch = allocate_lane_worktree(
-        repo, MISSION_SLUG, "WP-lane-a", manifest
-    )
+    wt_path, _branch = allocate_lane_worktree(repo, MISSION_SLUG, "WP-lane-a", manifest)
 
     # Routed name is byte-identical to the WP01 seam with mission_id=None …
-    assert wt_path == worktree_path(
-        repo, MISSION_SLUG, mission_id=None, lane_id="lane-a"
-    )
+    assert wt_path == worktree_path(repo, MISSION_SLUG, mission_id=None, lane_id="lane-a")
     # … and to the legacy f-string the old call site composed (no mid8) …
     assert wt_path == repo / ".worktrees" / f"{MISSION_SLUG}-lane-a"
     # … which the shared golden table fixes for an embedded slug (no churn).
@@ -219,8 +213,7 @@ def test_1915_later_dep_conflict_rolls_back_earlier_dep_merge(tmp_path: Path) ->
     # merge was rolled back, not orphaned on the lane.
     head_after = _git(lane_c_wt, "rev-parse", "HEAD").stdout.strip()
     assert head_after == pre_loop_head, (
-        "lane worktree HEAD advanced past its pre-loop ref — the earlier clean "
-        "dependency merge survived a later-dep conflict (#1915)."
+        "lane worktree HEAD advanced past its pre-loop ref — the earlier clean dependency merge survived a later-dep conflict (#1915)."
     )
     # The earlier dep's file must NOT linger in the working tree.
     assert not (lane_c_wt / "from_lane_a.txt").exists()
@@ -239,12 +232,8 @@ def test_1915_all_clean_deps_still_merge(tmp_path: Path) -> None:
     lane_c = _lane("lane-c", depends=("lane-a", "lane-b"), group=2)
     manifest = _manifest([dep_a, dep_b, lane_c])
 
-    _commit_on_branch(
-        repo, lane_branch_name(MISSION_SLUG, "lane-a"), "main", "a.txt", "a\n"
-    )
-    _commit_on_branch(
-        repo, lane_branch_name(MISSION_SLUG, "lane-b"), "main", "b.txt", "b\n"
-    )
+    _commit_on_branch(repo, lane_branch_name(MISSION_SLUG, "lane-a"), "main", "a.txt", "a\n")
+    _commit_on_branch(repo, lane_branch_name(MISSION_SLUG, "lane-b"), "main", "b.txt", "b\n")
 
     lane_c_branch = lane_branch_name(MISSION_SLUG, "lane-c")
     lane_c_wt = repo / ".worktrees" / f"{MISSION_SLUG}-lane-c"
@@ -323,21 +312,14 @@ def test_3281_fresh_path_conflict_leaves_no_registered_worktree(
 
     # Atomicity: no worktree remains registered for the lane's predicted path.
     expected_path = worktree_path(repo, MISSION_SLUG, mission_id=None, lane_id="lane-a")
-    assert not expected_path.exists(), (
-        "a conflicting fresh-path planning-commit merge left a registered "
-        f"worktree behind at {expected_path} (#3281 FR-006)."
-    )
+    assert not expected_path.exists(), f"a conflicting fresh-path planning-commit merge left a registered worktree behind at {expected_path} (#3281 FR-006)."
     registered = _git(repo, "worktree", "list", "--porcelain").stdout
     assert str(expected_path) not in registered, (
-        "the lane worktree is still registered in `git worktree list` after "
-        "the fresh-path conflict was supposed to roll it back atomically."
+        "the lane worktree is still registered in `git worktree list` after the fresh-path conflict was supposed to roll it back atomically."
     )
 
     # The branch is intentionally KEPT (not removed) so a retry resolves via
     # the allocator's crash-recovery route rather than failing identically.
     lane_branch = lane_branch_name(MISSION_SLUG, "lane-a")
     branches = _git(repo, "branch", "--list", lane_branch).stdout
-    assert lane_branch in branches, (
-        "the lane branch must survive the atomic worktree removal so a "
-        "retry can re-attach via crash-recovery (#3281 decision #2)."
-    )
+    assert lane_branch in branches, "the lane branch must survive the atomic worktree removal so a retry can re-attach via crash-recovery (#3281 decision #2)."

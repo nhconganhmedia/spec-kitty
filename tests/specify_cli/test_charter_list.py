@@ -147,9 +147,7 @@ class TestListAllLayers:
         assert result.exit_code == 0, result.output
         assert "Available (all layers)" in result.output
 
-    def test_all_supersedes_show_available_column_header(
-        self, layered_project: Path
-    ) -> None:
+    def test_all_supersedes_show_available_column_header(self, layered_project: Path) -> None:
         # --all wins even when --show-available is also passed.
         result = _invoke(layered_project, "--show-available", "--all")
         assert result.exit_code == 0, result.output
@@ -163,9 +161,7 @@ class TestListAllLayers:
         # Layer annotation present.
         assert "(org)" in result.output
 
-    def test_project_artifact_shown_with_project_layer(
-        self, layered_project: Path
-    ) -> None:
+    def test_project_artifact_shown_with_project_layer(self, layered_project: Path) -> None:
         result = _invoke(layered_project, "--all")
         assert result.exit_code == 0, result.output
         assert "950-project-only-directive" in result.output
@@ -231,9 +227,7 @@ class TestListAllOrgTierReporting:
         assert result.exit_code == 0, result.output
         assert "acme-mission/org-spec-template.md" in result.output
 
-    def test_org_template_at_nested_path_not_discovered(
-        self, layered_project: Path
-    ) -> None:
+    def test_org_template_at_nested_path_not_discovered(self, layered_project: Path) -> None:
         """A template at the OLD nested ``<org_root>/doctrine/missions/`` path
 
         is not what the fixed code reads -- reinforcing that the fix moved the
@@ -264,9 +258,7 @@ class TestTemplateTierRootsOrgBranch:
 
     def test_org_branch_reports_org_tier_at_flat_path(self, tmp_path: Path) -> None:
         org_root = tmp_path / "org-pack"
-        _write_template(
-            org_root / "missions", "acme-mission", "spec-template.md", "# tpl\n"
-        )
+        _write_template(org_root / "missions", "acme-mission", "spec-template.md", "# tpl\n")
         repo_root = tmp_path / "repo"
         repo_root.mkdir()
 
@@ -283,9 +275,7 @@ class TestTemplateTierRootsOrgBranch:
 
         assert all(tr.tier is not ResolutionTier.ORG for tr in tier_roots)
 
-    def test_org_branch_absent_when_flat_missions_dir_missing(
-        self, tmp_path: Path
-    ) -> None:
+    def test_org_branch_absent_when_flat_missions_dir_missing(self, tmp_path: Path) -> None:
         """An org root with no ``missions/`` dir contributes no ORG tier root."""
         org_root = tmp_path / "org-pack"
         org_root.mkdir()

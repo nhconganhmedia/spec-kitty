@@ -67,8 +67,7 @@ def test_scanned_file_floor_is_met() -> None:
     scanned = scan.iter_python_files()
 
     assert len(scanned) > scan.MIN_SCANNED_FILES, (
-        f"only {len(scanned)} files scanned under {[str(r) for r in scan.SCAN_ROOTS]} -- "
-        "the import-ban gate would otherwise pass vacuously."
+        f"only {len(scanned)} files scanned under {[str(r) for r in scan.SCAN_ROOTS]} -- the import-ban gate would otherwise pass vacuously."
     )
 
 
@@ -83,17 +82,14 @@ def test_no_raw_datetime_import_outside_the_door() -> None:
     scanned = scan.iter_python_files()
     exemptions = load_import_exemptions()
 
-    violations = [
-        (path, lineno) for path, lineno in collect_import_ban_violations(scanned) if scan.relpath(path) not in exemptions
-    ]
+    violations = [(path, lineno) for path, lineno in collect_import_ban_violations(scanned) if scan.relpath(path) not in exemptions]
 
     assert violations == [], (
         "Raw stdlib `datetime` imports are banned outside src/kernel/clock.py "
         "(the single door, FR-012(a)). Import from kernel.clock instead, or add "
         "the (repo-relative path, IMPORT:) to your package's "
         "tests/architectural/_exemptions/<owner>.txt if this is a currently-"
-        "tracked, not-yet-remediated site.\nViolations:\n"
-        + "\n".join(f"  {scan.relpath(p)}:{lineno}" for p, lineno in violations)
+        "tracked, not-yet-remediated site.\nViolations:\n" + "\n".join(f"  {scan.relpath(p)}:{lineno}" for p, lineno in violations)
     )
 
 
@@ -167,9 +163,7 @@ def test_stale_exemption_removal_reds_the_gate(tmp_path: Path, monkeypatch: pyte
     assert (sample_path, sample_lineno) not in with_exemption
 
     isolated_dir.joinpath("isolated_owner.txt").write_text("", encoding="utf-8")
-    without_exemption = [
-        (p, ln) for p, ln in all_violations if scan.relpath(p) not in exemptions_module.load_import_exemptions()
-    ]
+    without_exemption = [(p, ln) for p, ln in all_violations if scan.relpath(p) not in exemptions_module.load_import_exemptions()]
 
     assert (sample_path, sample_lineno) in without_exemption
 
@@ -240,11 +234,5 @@ def test_exemption_union_is_empty() -> None:
     import_exemptions = load_import_exemptions()
     call_exemptions = load_call_exemptions()
 
-    assert import_exemptions == frozenset(), (
-        "SC-003 not met: the IMPORT exemption union is not empty. Remaining "
-        f"entries: {sorted(import_exemptions)}"
-    )
-    assert call_exemptions == frozenset(), (
-        "SC-003 not met: the CALL exemption union is not empty. Remaining "
-        f"entries: {sorted(call_exemptions)}"
-    )
+    assert import_exemptions == frozenset(), f"SC-003 not met: the IMPORT exemption union is not empty. Remaining entries: {sorted(import_exemptions)}"
+    assert call_exemptions == frozenset(), f"SC-003 not met: the CALL exemption union is not empty. Remaining entries: {sorted(call_exemptions)}"

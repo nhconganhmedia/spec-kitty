@@ -64,6 +64,4 @@ def test_declared_charter_authority_paths_resolve() -> None:
             if not (REPO_ROOT / declared).exists():
                 unresolved.append(f"{charter_file}: {declared}")
 
-    assert unresolved == [], (
-        "Charter authority_paths must resolve on disk; unresolved: " f"{unresolved}"
-    )
+    assert unresolved == [], f"Charter authority_paths must resolve on disk; unresolved: {unresolved}"

@@ -70,9 +70,7 @@ def _git_show(repo: Path, ref: str, path: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def test_incomplete_triple_coord_topology_fails_loud_never_reaches_legacy(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_incomplete_triple_coord_topology_fails_loud_never_reaches_legacy(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A coord-routed topology with an INCOMPLETE identity triple fails loud.
 
     RED-first: pre-guard, ``_commit_workflow_change`` falls through to
@@ -103,9 +101,7 @@ def test_incomplete_triple_coord_topology_fails_loud_never_reaches_legacy(
 
     monkeypatch.setattr(mission_runtime, "placement_seam", _StubSeam)
     # Coord topology declared, but identity is incomplete (id/mid8 unresolved).
-    monkeypatch.setattr(
-        workflow, "_load_coord_branch_meta", lambda _fd: ("kitty/mission-demo-coord", None, None)
-    )
+    monkeypatch.setattr(workflow, "_load_coord_branch_meta", lambda _fd: ("kitty/mission-demo-coord", None, None))
 
     legacy_calls: list[dict[str, object]] = []
 
@@ -139,9 +135,7 @@ def test_incomplete_triple_coord_topology_fails_loud_never_reaches_legacy(
     )
 
 
-def test_complete_triple_still_routes_modern_not_guarded(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_complete_triple_still_routes_modern_not_guarded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The guard is narrow: a COMPLETE coord triple still routes to the modern
     transaction path (the guard only fires on the incomplete-triple misroute)."""
     import mission_runtime
@@ -217,9 +211,7 @@ def test_resolve_legacy_porcelain_root_absent_coord_worktree_returns_repo_root(t
 
 
 @pytest.mark.git_repo
-def test_legacy_porcelain_precheck_sees_coord_file_dirty_in_resolved_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_legacy_porcelain_precheck_sees_coord_file_dirty_in_resolved_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """FR-002(b): a gitignored ``.worktrees/`` coord file reads CLEAN from
     repo_root (the phantom "already committed" bug) but DIRTY from the resolved
     coord worktree — proving the pre-check must run in the resolved root.
@@ -258,13 +250,11 @@ def test_legacy_porcelain_precheck_sees_coord_file_dirty_in_resolved_root(
 
     # Phantom: from repo_root the coord file is invisible (registered worktree).
     assert _porcelain(repo_root).strip() == "", (
-        "expected the coord file to read CLEAN from repo_root (the phantom this "
-        "fix closes); if it is already dirty here the fixture changed"
+        "expected the coord file to read CLEAN from repo_root (the phantom this fix closes); if it is already dirty here the fixture changed"
     )
     # Correct: from the resolved coord worktree it is seen as dirty.
     assert _porcelain(resolved).strip() != "", (
-        "the coord file must read DIRTY from the resolved worktree root — the "
-        "porcelain pre-check would otherwise phantom-early-return 'already committed'"
+        "the coord file must read DIRTY from the resolved worktree root — the porcelain pre-check would otherwise phantom-early-return 'already committed'"
     )
 
 
@@ -307,9 +297,7 @@ def test_safe_commit_rejects_worktree_destination_mismatch(tmp_path: Path) -> No
 
 
 @pytest.mark.git_repo
-def test_status_event_commits_to_coord_not_target_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_status_event_commits_to_coord_not_target_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Modern-path regression (NO code change): a coord-topology status
     transition commits to the COORD worktree/branch — proving the modern
     transaction threads the coord worktree root — and is ABSENT on the target
@@ -351,11 +339,9 @@ def test_status_event_commits_to_coord_not_target_branch(
 
     assert coord_events is not None, "status.events.jsonl must exist on the coord branch"
     assert "in_review" in coord_events, (
-        "the review claim's in_review transition must be committed to the COORD "
-        "branch (modern path threads the coord worktree root)"
+        "the review claim's in_review transition must be committed to the COORD branch (modern path threads the coord worktree root)"
     )
     assert target_events is not None, "the seeded events file exists on the target branch"
     assert "in_review" not in target_events, (
-        "the coord status transition leaked onto the target branch — the modern "
-        "path must commit status state to the coord worktree only"
+        "the coord status transition leaked onto the target branch — the modern path must commit status state to the coord worktree only"
     )

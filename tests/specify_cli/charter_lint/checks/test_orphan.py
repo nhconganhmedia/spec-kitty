@@ -20,6 +20,7 @@ from specify_cli.charter_runtime.lint.checks.orphan import OrphanChecker
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_node(urn: str, kind: str, label: str | None = None) -> SimpleNamespace:
     return SimpleNamespace(urn=urn, kind=kind, label=label)
 
@@ -176,9 +177,7 @@ class TestOrphanCheckerBuiltInGraphExactSet:
         drg = load_built_in_graph()
         findings = OrphanChecker().run(drg)
 
-        orphaned_directive_ids = {
-            f.id.removeprefix("directive:") for f in findings if f.type == "orphaned_directive"
-        }
+        orphaned_directive_ids = {f.id.removeprefix("directive:") for f in findings if f.type == "orphaned_directive"}
 
         assert orphaned_directive_ids == {"DIRECTIVE_035", "DIRECTIVE_039"}
 

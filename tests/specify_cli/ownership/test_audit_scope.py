@@ -34,6 +34,7 @@ from specify_cli.ownership.validation import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _manifest(
     mode: WorkProductKind = WorkProductKind.CODE_CHANGE,
     owned: tuple[str, ...] = ("src/foo/**",),
@@ -211,6 +212,7 @@ class TestCodebaseWideSkipsExecutionModeConsistency:
         warnings = validate_execution_mode_consistency(m)
         assert warnings == []
 
+
 class TestMixedScopeMission:
     """test_mixed_scope_mission:
     Mission with both narrow and codebase-wide WPs validates correctly."""
@@ -264,9 +266,7 @@ class TestAuditTemplateTargets:
 
         for agent_root, subdir in AGENT_DIRS:
             target = f"{agent_root}/{subdir}/"
-            assert target in AUDIT_TEMPLATE_TARGETS, (
-                f"Missing agent target: {target}"
-            )
+            assert target in AUDIT_TEMPLATE_TARGETS, f"Missing agent target: {target}"
 
     def test_includes_docs(self) -> None:
         assert "docs/" in AUDIT_TEMPLATE_TARGETS

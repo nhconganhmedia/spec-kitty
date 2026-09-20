@@ -194,11 +194,7 @@ _BASELINE: dict[str, frozenset[str]] = {
 #: Derived, never re-typed: :func:`TestRatchetTargetsAreWellFormed.
 #: test_the_registered_member_slots_match_the_baseline` pins the two together, so
 #: this cannot become a second, driftable authority for the permitted members.
-BASELINE_MEMBER_SLOTS: frozenset[str] = frozenset(
-    f"{definition_key}:{member}"
-    for definition_key, members in _BASELINE.items()
-    for member in members
-)
+BASELINE_MEMBER_SLOTS: frozenset[str] = frozenset(f"{definition_key}:{member}" for definition_key, members in _BASELINE.items() for member in members)
 
 
 def _enum_members(schema_path: Path, definition_key: str) -> frozenset[str]:
@@ -267,18 +263,13 @@ class TestRatchetTargetsAreWellFormed:
             "tactic_reference",
             "procedure_reference",
             "paradigm_reference",
-        }, (
-            "two targets share a definition key, or one is misspelled — a "
-            "misspelled key resolves to zero members in a schema that is then "
-            "never checked"
-        )
+        }, "two targets share a definition key, or one is misspelled — a misspelled key resolves to zero members in a schema that is then never checked"
         # A wholesale swap (`directive.schema.yaml` paired with
         # `tactic_reference` and vice versa) keeps both sets above intact while
         # every enum is read out of the wrong file, so pin the pairing too.
-        assert all(
-            key == f"{filename.removesuffix('.schema.yaml')}_reference"
-            for filename, key in _REFERENCE_TARGETS
-        ), f"a target pairs a schema file with another kind's key: {_REFERENCE_TARGETS}"
+        assert all(key == f"{filename.removesuffix('.schema.yaml')}_reference" for filename, key in _REFERENCE_TARGETS), (
+            f"a target pairs a schema file with another kind's key: {_REFERENCE_TARGETS}"
+        )
 
     def test_the_registered_member_slots_match_the_baseline(self) -> None:
         """The registry-facing flat set must be a view of ``_BASELINE``, not a copy.
@@ -288,21 +279,15 @@ class TestRatchetTargetsAreWellFormed:
         which is exactly the single-authority failure the registration exists to
         prevent.
         """
-        recomputed = frozenset(
-            f"{key}:{member}" for key, members in _BASELINE.items() for member in members
-        )
+        recomputed = frozenset(f"{key}:{member}" for key, members in _BASELINE.items() for member in members)
         assert recomputed == BASELINE_MEMBER_SLOTS
         assert len(BASELINE_MEMBER_SLOTS) == sum(len(m) for m in _BASELINE.values()), (
-            "two targets permit the same member under the same key -- the flattening "
-            "collapsed slots and the registered size under-counts the real surface"
+            "two targets permit the same member under the same key -- the flattening collapsed slots and the registered size under-counts the real surface"
         )
 
     def test_baseline_has_an_entry_for_every_target(self) -> None:
         target_keys = {key for _, key in _REFERENCE_TARGETS}
-        assert set(_BASELINE) == target_keys, (
-            f"baseline keys {sorted(_BASELINE)} do not match ratchet targets "
-            f"{sorted(target_keys)}"
-        )
+        assert set(_BASELINE) == target_keys, f"baseline keys {sorted(_BASELINE)} do not match ratchet targets {sorted(target_keys)}"
 
 
 class TestShippedEnumsAreFrozen:
@@ -316,9 +301,7 @@ class TestShippedEnumsAreFrozen:
         assert current, f"{filename}::{definition_key} resolved to zero enum members"
 
     @pytest.mark.parametrize("filename, definition_key", _REFERENCE_TARGETS)
-    def test_enum_has_not_grown_past_the_frozen_baseline(
-        self, filename: str, definition_key: str
-    ) -> None:
+    def test_enum_has_not_grown_past_the_frozen_baseline(self, filename: str, definition_key: str) -> None:
         current = _enum_members(_SCHEMAS_DIR / filename, definition_key)
         baseline = _BASELINE[definition_key]
         grown = _grown_members(current, baseline)
@@ -358,9 +341,7 @@ class TestGeneratorFreezeIsStructural:
         )
 
     @pytest.mark.parametrize("filename, definition_key", _REFERENCE_TARGETS)
-    def test_shipped_enum_equals_the_generator_table(
-        self, filename: str, definition_key: str
-    ) -> None:
+    def test_shipped_enum_equals_the_generator_table(self, filename: str, definition_key: str) -> None:
         """The committed schema, the frozen table and the baseline must be one set.
 
         Three copies of the same fact drift pairwise; ``--check`` only compares the
@@ -440,9 +421,7 @@ class TestRatchetNonVacuity:
     def test_planted_smuggled_member_is_flagged_as_growth(self, tmp_path: Path) -> None:
         definition_key = "directive_reference"
         baseline = _BASELINE[definition_key]
-        planted = self._write_schema(
-            tmp_path, definition_key, [*sorted(baseline), "smuggled_kind"]
-        )
+        planted = self._write_schema(tmp_path, definition_key, [*sorted(baseline), "smuggled_kind"])
         current = _enum_members(planted, definition_key)
         assert _grown_members(current, baseline) == frozenset({"smuggled_kind"})
 

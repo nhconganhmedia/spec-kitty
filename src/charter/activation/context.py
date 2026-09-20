@@ -148,9 +148,7 @@ def _action_node_declared(bundle: _ActionDoctrineBundle, action: str) -> bool:
     below) live here, and this predicate is inseparable from the two gate
     sites it backs.
     """
-    return bundle.merged is not None and (
-        f"action:{bundle.mission}/{action}" in bundle.merged.node_urns()
-    )
+    return bundle.merged is not None and (f"action:{bundle.mission}/{action}" in bundle.merged.node_urns())
 
 
 def build_charter_context(
@@ -317,9 +315,7 @@ def build_charter_context(
     # depended on charter.md/charter.yaml existing (``_non_bootstrap_context_result``
     # sources project directives from ``.kittify/config.yaml``/charter.yaml
     # directly and degrades gracefully when absent).
-    if normalized not in BOOTSTRAP_ACTIONS and not _action_node_declared(
-        doctrine_bundle, normalized
-    ):
+    if normalized not in BOOTSTRAP_ACTIONS and not _action_node_declared(doctrine_bundle, normalized):
         return _non_bootstrap_context_result(
             repo_root,
             normalized,
@@ -438,13 +434,9 @@ def build_charter_context_include(
         ArtifactKind.AGENT_PROFILE.value,
         ArtifactKind.GLOSSARY_PACK.value,
     ):
-        gated_service = _build_activation_aware_doctrine_service(
-            repo_root, org_roots=org_roots
-        )
+        gated_service = _build_activation_aware_doctrine_service(repo_root, org_roots=org_roots)
         if canonical_kind == ArtifactKind.AGENT_PROFILE.value:
-            return _render_agent_profile_include_selector(
-                gated_service, canonical_kind, identifier, selector
-            )
+            return _render_agent_profile_include_selector(gated_service, canonical_kind, identifier, selector)
 
     # Shared catalog render/return. ``service`` is the gated service for the
     # glossary-pack branch and the plain service (built here — the sole call
@@ -454,13 +446,9 @@ def build_charter_context_include(
     # (a gated ``dict``) off the gated service, so it is structurally
     # sufficient.
     service = (
-        cast("_doctrine_service_module.DoctrineService", gated_service)
-        if gated_service is not None
-        else _build_doctrine_service(repo_root, org_roots=org_roots)
+        cast("_doctrine_service_module.DoctrineService", gated_service) if gated_service is not None else _build_doctrine_service(repo_root, org_roots=org_roots)
     )
-    result = _render_catalog_kind_include_selector(
-        service, canonical_kind, identifier, selector
-    )
+    result = _render_catalog_kind_include_selector(service, canonical_kind, identifier, selector)
     if result is not None:
         return result
 
@@ -534,9 +522,7 @@ def build_charter_context_json(
         "directives_source": directives_source,
         "references": [],
         "project_charter": _project_charter_json_block(repo_root),
-        "org_charter": (
-            dict(org_charter_block) if org_charter_block is not None else dict(_EMPTY_ORG_CHARTER)
-        ),
+        "org_charter": (dict(org_charter_block) if org_charter_block is not None else dict(_EMPTY_ORG_CHARTER)),
         "governance_references": [],
     }
     selection = _load_doctrine_selection(repo_root)
@@ -579,9 +565,7 @@ def build_charter_context_json(
     # consulting the predicate (AC-1, unchanged). Every other action gates on
     # node-URN membership -- NOT empty-grain (see
     # `_action_node_declared`'s docstring for the activation-starved case).
-    if normalized not in BOOTSTRAP_ACTIONS and not _action_node_declared(
-        bundle, normalized
-    ):
+    if normalized not in BOOTSTRAP_ACTIONS and not _action_node_declared(bundle, normalized):
         # WP11 (B-6) — non-bootstrap, undeclared actions carry no action
         # grain; ruled OUT explicitly (empty typed arrays), not an
         # early-return before a bundle -- the bundle above already resolved.

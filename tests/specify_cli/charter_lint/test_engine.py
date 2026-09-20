@@ -28,6 +28,7 @@ from specify_cli.gitignore_manager import GitignoreManager
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_node(urn: str, kind: str, label: str | None = None, **kwargs) -> SimpleNamespace:
     return SimpleNamespace(urn=urn, kind=kind, label=label, **kwargs)
 
@@ -109,10 +110,7 @@ class TestLintEngineAllChecks:
         ):
             report = LintEngine(tmp_path).run()
 
-        assert len(report.findings) >= 4, (
-            f"Expected at least 4 findings, got {len(report.findings)}: "
-            + str([f.category for f in report.findings])
-        )
+        assert len(report.findings) >= 4, f"Expected at least 4 findings, got {len(report.findings)}: " + str([f.category for f in report.findings])
         categories = {f.category for f in report.findings}
         assert "orphan" in categories
         assert "contradiction" in categories
@@ -181,9 +179,7 @@ class TestSingleCheckFilter:
         ):
             report = LintEngine(tmp_path).run(checks={"orphans"})
 
-        assert all(f.category == "orphan" for f in report.findings), (
-            f"Expected only orphan findings, got: {[(f.category, f.type) for f in report.findings]}"
-        )
+        assert all(f.category == "orphan" for f in report.findings), f"Expected only orphan findings, got: {[(f.category, f.type) for f in report.findings]}"
         non_orphan_categories = {"contradiction", "staleness", "reference_integrity"}
         found_categories = {f.category for f in report.findings}
         assert found_categories.isdisjoint(non_orphan_categories)
@@ -201,9 +197,7 @@ class TestSeverityFilter:
             report = LintEngine(tmp_path).run(min_severity="high")
 
         low_or_medium = [f for f in report.findings if f.severity in {"low", "medium"}]
-        assert low_or_medium == [], (
-            f"Expected no low/medium findings, got: {[(f.severity, f.type) for f in low_or_medium]}"
-        )
+        assert low_or_medium == [], f"Expected no low/medium findings, got: {[(f.severity, f.type) for f in low_or_medium]}"
 
 
 class TestMissingDRG:
@@ -248,9 +242,7 @@ class TestGraphStateTriState:
             report = LintEngine(tmp_path).run()
         assert report.graph_state is GraphState.MERGED
 
-    def test_lint_built_in_only_returns_built_in_only_state(
-        self, tmp_path: Path
-    ) -> None:
+    def test_lint_built_in_only_returns_built_in_only_state(self, tmp_path: Path) -> None:
         """FR-002: when the project DRG is absent but the built-in graph
         resolves, the engine scans the built-in graph and the report carries
         ``graph_state == built_in_only``.
@@ -292,9 +284,7 @@ class TestGraphStateTriState:
         ):
             report = LintEngine(tmp_path).run()
         payload = json.loads(report.to_json())
-        assert "graph_state" in payload, (
-            "FR-004: top-level 'graph_state' key MUST be present"
-        )
+        assert "graph_state" in payload, "FR-004: top-level 'graph_state' key MUST be present"
         assert payload["graph_state"] == "built_in_only"
 
     def test_decay_report_default_graph_state_is_missing(self) -> None:
@@ -318,32 +308,24 @@ class TestNoLLMCalls:
     def test_no_anthropic_import_in_charter_lint(self) -> None:
         """Verify that the charter_lint package does not import anthropic."""
         import sys
+
         # Check that anthropic is not imported as part of charter_lint loading
-        charter_lint_modules = [
-            name for name in sys.modules
-            if name.startswith("specify_cli.charter_runtime.lint")
-        ]
+        charter_lint_modules = [name for name in sys.modules if name.startswith("specify_cli.charter_runtime.lint")]
         for mod_name in charter_lint_modules:
             mod = sys.modules[mod_name]
             # Module should not have anthropic in its globals
             mod_globals = getattr(mod, "__dict__", {})
-            assert "anthropic" not in mod_globals, (
-                f"Module {mod_name} imported 'anthropic'"
-            )
+            assert "anthropic" not in mod_globals, f"Module {mod_name} imported 'anthropic'"
 
     def test_no_openai_import_in_charter_lint(self) -> None:
         """Verify that the charter_lint package does not import openai."""
         import sys
-        charter_lint_modules = [
-            name for name in sys.modules
-            if name.startswith("specify_cli.charter_runtime.lint")
-        ]
+
+        charter_lint_modules = [name for name in sys.modules if name.startswith("specify_cli.charter_runtime.lint")]
         for mod_name in charter_lint_modules:
             mod = sys.modules[mod_name]
             mod_globals = getattr(mod, "__dict__", {})
-            assert "openai" not in mod_globals, (
-                f"Module {mod_name} imported 'openai'"
-            )
+            assert "openai" not in mod_globals, f"Module {mod_name} imported 'openai'"
 
 
 class TestPerformance:
@@ -395,15 +377,11 @@ class TestLintReportDoesNotDirtyTree:
     @staticmethod
     def _init_repo_with_gitignore(repo: Path) -> None:
         subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
-        subprocess.run(
-            ["git", "config", "user.email", "t@example.com"], cwd=repo, check=True
-        )
+        subprocess.run(["git", "config", "user.email", "t@example.com"], cwd=repo, check=True)
         subprocess.run(["git", "config", "user.name", "T"], cwd=repo, check=True)
         GitignoreManager(repo).protect_all_agents()
         subprocess.run(["git", "add", ".gitignore"], cwd=repo, check=True)
-        subprocess.run(
-            ["git", "commit", "-qm", "init gitignore"], cwd=repo, check=True
-        )
+        subprocess.run(["git", "commit", "-qm", "init gitignore"], cwd=repo, check=True)
 
     @staticmethod
     def _porcelain(repo: Path) -> str:
@@ -412,7 +390,10 @@ class TestLintReportDoesNotDirtyTree:
         # control test can see the file, and the honesty assertion is exact.
         return subprocess.run(
             ["git", "status", "--porcelain", "--untracked-files=all"],
-            cwd=repo, check=True, capture_output=True, text=True,
+            cwd=repo,
+            check=True,
+            capture_output=True,
+            text=True,
         ).stdout
 
     def test_lint_write_leaves_inited_tree_clean(self, tmp_path: Path) -> None:
@@ -430,9 +411,7 @@ class TestLintReportDoesNotDirtyTree:
         # ignore entry covers it, so no dirty-tree guard downstream trips.
         assert "lint-report.json" not in self._porcelain(tmp_path)
 
-    def test_report_would_show_dirty_without_the_ignore_entry(
-        self, tmp_path: Path
-    ) -> None:
+    def test_report_would_show_dirty_without_the_ignore_entry(self, tmp_path: Path) -> None:
         # Control proving the guard above is meaningful: with NO gitignore, the
         # very same write surfaces as an untracked file — i.e. the clean-tree
         # assertion is earned by the ignore entry, not by the file being absent.

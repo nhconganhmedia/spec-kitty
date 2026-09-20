@@ -1,4 +1,5 @@
 """Tests for the Role half-open value object and AgentProfile model updates."""
+
 import json
 import warnings
 
@@ -9,6 +10,7 @@ from charter.offering.agent_profiles.profile import AgentProfile, Role
 
 
 pytestmark = [pytest.mark.doctrine, pytest.mark.fast]
+
 
 class TestRoleConstruction:
     def test_known_constant_is_role_instance(self):
@@ -28,21 +30,27 @@ class TestRoleConstruction:
 
     def test_constant_equality_with_plain_string(self):
         assert Role.IMPLEMENTER == "implementer"
-        assert Role.REVIEWER    == "reviewer"
-        assert Role.ARCHITECT   == "architect"
-        assert Role.DESIGNER    == "designer"
-        assert Role.PLANNER     == "planner"
-        assert Role.RESEARCHER  == "researcher"
-        assert Role.CURATOR     == "curator"
-        assert Role.MANAGER     == "manager"
+        assert Role.REVIEWER == "reviewer"
+        assert Role.ARCHITECT == "architect"
+        assert Role.DESIGNER == "designer"
+        assert Role.PLANNER == "planner"
+        assert Role.RESEARCHER == "researcher"
+        assert Role.CURATOR == "curator"
+        assert Role.MANAGER == "manager"
 
     def test_constant_equality_with_self(self):
         assert Role("implementer") == Role.IMPLEMENTER
 
     def test_all_eight_constants_exist(self):
         for constant in (
-            Role.IMPLEMENTER, Role.REVIEWER, Role.ARCHITECT, Role.DESIGNER,
-            Role.PLANNER, Role.RESEARCHER, Role.CURATOR, Role.MANAGER,
+            Role.IMPLEMENTER,
+            Role.REVIEWER,
+            Role.ARCHITECT,
+            Role.DESIGNER,
+            Role.PLANNER,
+            Role.RESEARCHER,
+            Role.CURATOR,
+            Role.MANAGER,
         ):
             assert isinstance(constant, Role)
 
@@ -65,8 +73,14 @@ class TestRoleIsKnown:
 
     def test_all_known_constants_are_known(self):
         for constant in (
-            Role.IMPLEMENTER, Role.REVIEWER, Role.ARCHITECT, Role.DESIGNER,
-            Role.PLANNER, Role.RESEARCHER, Role.CURATOR, Role.MANAGER,
+            Role.IMPLEMENTER,
+            Role.REVIEWER,
+            Role.ARCHITECT,
+            Role.DESIGNER,
+            Role.PLANNER,
+            Role.RESEARCHER,
+            Role.CURATOR,
+            Role.MANAGER,
         ):
             assert Role.is_known(constant), f"Expected {constant!r} to be known"
 
@@ -84,13 +98,15 @@ class TestRoleSerialization:
         assert Role(json.loads(json.dumps(r))) == r
 
     def test_pydantic_serialises_as_string(self):
-        p = AgentProfile(**{
-            "profile-id": "test",
-            "name": "Test",
-            "purpose": "Test purpose",
-            "specialization": {"primary-focus": "Testing"},
-            "roles": ["implementer"],
-        })
+        p = AgentProfile(
+            **{
+                "profile-id": "test",
+                "name": "Test",
+                "purpose": "Test purpose",
+                "specialization": {"primary-focus": "Testing"},
+                "roles": ["implementer"],
+            }
+        )
         dumped = p.model_dump()
         assert dumped["roles"] == ["implementer"]
         assert isinstance(dumped["roles"][0], str)
@@ -143,8 +159,7 @@ class TestAgentProfileModel:
                 AgentProfile(**{**_BASE, "roles": ["architect"], "role": "implementer"})
 
     def test_avatar_present(self):
-        p = AgentProfile(**_BASE, roles=["implementer"],
-                         **{"avatar-image": "agent_profiles/avatars/test.png"})
+        p = AgentProfile(**_BASE, roles=["implementer"], **{"avatar-image": "agent_profiles/avatars/test.png"})
         assert p.avatar_image == "agent_profiles/avatars/test.png"
 
     def test_avatar_absent(self):

@@ -113,6 +113,7 @@ from runtime.next._internal_runtime.significance import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _write_simple_mission(root: Path, key: str = "cov-mission") -> Path:
     """Write a minimal mission template at ``<root>/<key>/mission.yaml``."""
     mission_dir = root / key
@@ -155,9 +156,7 @@ def _make_simple_template() -> MissionTemplate:
         mission=MissionMeta(key="t", name="T", version="1.0.0"),
         steps=[
             PromptStep(id="s1", title="Step 1", prompt="Do 1."),
-            PromptStep(
-                id="s2", title="Step 2", depends_on=["s1"], prompt="Do 2."
-            ),
+            PromptStep(id="s2", title="Step 2", depends_on=["s1"], prompt="Do 2."),
         ],
         audit_steps=[],
     )
@@ -172,10 +171,7 @@ def test_emitter_module_re_exports() -> None:
     assert emitter_mod.NullEmitter is events_mod.NullEmitter
     assert emitter_mod.RuntimeEventEmitter is events_mod.RuntimeEventEmitter
     assert emitter_mod.runtime_emitter_for_mission is events_mod.runtime_emitter_for_mission
-    assert (
-        emitter_mod.register_runtime_emitter_factory
-        is events_mod.register_runtime_emitter_factory
-    )
+    assert emitter_mod.register_runtime_emitter_factory is events_mod.register_runtime_emitter_factory
     assert emitter_mod.reset_runtime_emitter_factory is events_mod.reset_runtime_emitter_factory
     assert set(emitter_mod.__all__) == {
         "NullEmitter",
@@ -230,9 +226,7 @@ def test_factory_honors_registered_factory(tmp_path: Path) -> None:
     result = events_mod.runtime_emitter_for_mission(feature_dir=tmp_path, **_SEAM_KWARGS)
 
     assert result is sentinel
-    assert received == [
-        {"feature_dir": tmp_path, "mission_slug": "m", "mission_type": "software-dev"}
-    ]
+    assert received == [{"feature_dir": tmp_path, "mission_slug": "m", "mission_type": "software-dev"}]
 
 
 @pytest.mark.usefixtures("clean_emitter_factory")
@@ -240,10 +234,7 @@ def test_factory_reset_restores_default(tmp_path: Path) -> None:
     # S4
     sentinel = object()
     events_mod.register_runtime_emitter_factory(lambda **_: sentinel)
-    assert (
-        events_mod.runtime_emitter_for_mission(feature_dir=tmp_path, **_SEAM_KWARGS)
-        is sentinel
-    )
+    assert events_mod.runtime_emitter_for_mission(feature_dir=tmp_path, **_SEAM_KWARGS) is sentinel
 
     events_mod.reset_runtime_emitter_factory()
     result = events_mod.runtime_emitter_for_mission(feature_dir=tmp_path, **_SEAM_KWARGS)
@@ -261,9 +252,7 @@ def test_factory_reset_restores_default(tmp_path: Path) -> None:
     ],
 )
 @pytest.mark.parametrize("gate_value", ["1", "true", "yes"])
-def test_factory_moment_handler_gate_wins(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, gate_var: str, gate_value: str
-) -> None:
+def test_factory_moment_handler_gate_wins(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, gate_var: str, gate_value: str) -> None:
     # S2: env gate read at call time; registered factory must not be called.
     # #3980: the seam consumes the canonical moment-handler gate, so its own
     # name, the kill switch, and the deprecated alias all disarm it.
@@ -280,9 +269,7 @@ def test_factory_moment_handler_gate_wins(
 
 
 @pytest.mark.usefixtures("clean_emitter_factory")
-def test_factory_gate_off_value_does_not_shadow_registered_factory(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_factory_gate_off_value_does_not_shadow_registered_factory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # S2 complement: a falsy gate value leaves the registry in charge (S3)
     sentinel = object()
     events_mod.register_runtime_emitter_factory(lambda **_: sentinel)
@@ -328,18 +315,13 @@ def test_register_runtime_emitter_factory_classmethod_reregistration_is_idempote
             self.mission_type = mission_type
 
         @classmethod
-        def for_mission(
-            cls, *, feature_dir: Path, mission_slug: str, mission_type: str
-        ) -> ZeitgeistRuntimeEmitterProducer:
+        def for_mission(cls, *, feature_dir: Path, mission_slug: str, mission_type: str) -> ZeitgeistRuntimeEmitterProducer:
             del feature_dir
             return cls(mission_slug=mission_slug, mission_type=mission_type)
 
     # Sanity check on the premise: repeated attribute access on a classmethod
     # is never the same object.
-    assert (
-        ZeitgeistRuntimeEmitterProducer.for_mission
-        is not ZeitgeistRuntimeEmitterProducer.for_mission
-    )
+    assert ZeitgeistRuntimeEmitterProducer.for_mission is not ZeitgeistRuntimeEmitterProducer.for_mission
 
     events_mod.register_runtime_emitter_factory(ZeitgeistRuntimeEmitterProducer.for_mission)
     # A second import tail re-running the same registration line must not raise.
@@ -372,17 +354,13 @@ def test_register_runtime_emitter_factory_rejects_a_conflicting_classmethod_regi
 
     class FirstProducer:
         @classmethod
-        def for_mission(
-            cls, *, feature_dir: Path, mission_slug: str, mission_type: str
-        ) -> FirstProducer:
+        def for_mission(cls, *, feature_dir: Path, mission_slug: str, mission_type: str) -> FirstProducer:
             del feature_dir, mission_slug, mission_type
             return cls()
 
     class SecondProducer:
         @classmethod
-        def for_mission(
-            cls, *, feature_dir: Path, mission_slug: str, mission_type: str
-        ) -> SecondProducer:
+        def for_mission(cls, *, feature_dir: Path, mission_slug: str, mission_type: str) -> SecondProducer:
             del feature_dir, mission_slug, mission_type
             return cls()
 
@@ -399,9 +377,7 @@ def test_register_runtime_emitter_factory_rejects_a_non_callable() -> None:
 
 
 @pytest.mark.usefixtures("clean_emitter_factory")
-def test_runtime_emitter_for_mission_degrades_to_null_when_factory_raises(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_runtime_emitter_for_mission_degrades_to_null_when_factory_raises(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """A registered factory whose constructor raises must degrade to the
     null seam instead of propagating and killing the caller (e.g.
     ``spec-kitty next``); the failure is logged at WARNING, not silent."""
@@ -421,9 +397,7 @@ def test_runtime_emitter_for_mission_degrades_to_null_when_factory_raises(
 
 def test_for_mission_resolves_mission_id_from_meta(tmp_path: Path) -> None:
     # S5 success path
-    (tmp_path / "meta.json").write_text(
-        '{"mission_id":"' + _MISSION_ULID + '"}', encoding="utf-8"
-    )
+    (tmp_path / "meta.json").write_text('{"mission_id":"' + _MISSION_ULID + '"}', encoding="utf-8")
 
     emitter = NullEmitter.for_mission(feature_dir=tmp_path, **_SEAM_KWARGS)
 
@@ -446,9 +420,7 @@ def test_for_mission_degrades_on_corrupt_meta(tmp_path: Path) -> None:
 def test_null_emitter_seed_and_emits_never_raise() -> None:
     # S6: every method is a no-op that tolerates arbitrary input
     emitter = NullEmitter()
-    emit_methods = [
-        name for name in dir(events_mod.RuntimeEventEmitter) if name.startswith("emit_")
-    ]
+    emit_methods = [name for name in dir(events_mod.RuntimeEventEmitter) if name.startswith("emit_")]
     assert len(emit_methods) == 8  # (R-2: the Protocol is exactly the eight emit_* methods)
 
     emitter.seed_from_snapshot(object())
@@ -478,9 +450,7 @@ def test_null_emitter_for_mission_not_on_protocol() -> None:
     assert "for_mission" not in protocol_names
     assert "seed_from_snapshot" not in protocol_names
     # R-7: ``for_mission`` is the only named constructor; no legacy alias exists.
-    classmethods = {
-        name for name, value in vars(NullEmitter).items() if isinstance(value, classmethod)
-    }
+    classmethods = {name for name, value in vars(NullEmitter).items() if isinstance(value, classmethod)}
     assert classmethods == {"for_mission"}
 
 
@@ -512,9 +482,7 @@ def test_remediation_missing_default_metadata() -> None:
 
 
 def test_remediation_missing_with_metadata() -> None:
-    payload = RemediationPayload.missing(
-        "feature_binding", resolver_metadata={"resolver": "explicit_inputs"}
-    )
+    payload = RemediationPayload.missing("feature_binding", resolver_metadata={"resolver": "explicit_inputs"})
     assert payload.resolver_metadata == {"resolver": "explicit_inputs"}
 
 
@@ -547,9 +515,7 @@ def test_remediation_invalid_with_validation_failures() -> None:
 
 
 def test_remediation_invalid_without_validation_failures() -> None:
-    payload = RemediationPayload.invalid(
-        "spec_artifact", candidates=[{"source": "fs"}]
-    )
+    payload = RemediationPayload.invalid("spec_artifact", candidates=[{"source": "fs"}])
     assert "failed validation against declared rules" in payload.remediation_hint
 
 
@@ -644,9 +610,7 @@ def test_discover_missions_with_warnings_collects_load_failures(tmp_path: Path) 
     bad_mission = tmp_path / "bad" / "mission.yaml"
     bad_mission.parent.mkdir(parents=True)
     bad_mission.write_text("not: yaml: but {valid}? [\n", encoding="utf-8")
-    ctx = DiscoveryContext(
-        explicit_paths=[bad_mission], user_home=tmp_path / "home"
-    )
+    ctx = DiscoveryContext(explicit_paths=[bad_mission], user_home=tmp_path / "home")
     result = discover_missions_with_warnings(ctx)
     assert isinstance(result, DiscoveryResult)
     assert result.warnings, "Expected at least one DiscoveryWarning"
@@ -887,27 +851,11 @@ def test_null_emitter_methods_are_no_ops() -> None:
     )
 
     null = NullEmitter(correlation_id="test")
-    actor = RuntimeActorIdentity(
-        actor_id="a", actor_type="service", provider=None, model=None, tool=None
-    )
-    null.emit_mission_run_started(
-        MissionRunStartedPayload(run_id="r", mission_type="m", actor=actor)
-    )
-    null.emit_next_step_issued(
-        NextStepIssuedPayload(
-            run_id="r", step_id="s", agent_id="agent-1", actor=actor
-        )
-    )
-    null.emit_next_step_auto_completed(
-        NextStepAutoCompletedPayload(
-            run_id="r", step_id="s", agent_id="agent-1", result="success", actor=actor
-        )
-    )
-    null.emit_decision_input_requested(
-        DecisionInputRequestedPayload(
-            run_id="r", step_id="s", decision_id="d", question="q?", actor=actor
-        )
-    )
+    actor = RuntimeActorIdentity(actor_id="a", actor_type="service", provider=None, model=None, tool=None)
+    null.emit_mission_run_started(MissionRunStartedPayload(run_id="r", mission_type="m", actor=actor))
+    null.emit_next_step_issued(NextStepIssuedPayload(run_id="r", step_id="s", agent_id="agent-1", actor=actor))
+    null.emit_next_step_auto_completed(NextStepAutoCompletedPayload(run_id="r", step_id="s", agent_id="agent-1", result="success", actor=actor))
+    null.emit_decision_input_requested(DecisionInputRequestedPayload(run_id="r", step_id="s", decision_id="d", question="q?", actor=actor))
     null.emit_decision_input_answered(
         DecisionInputAnsweredPayload(
             run_id="r",
@@ -916,9 +864,7 @@ def test_null_emitter_methods_are_no_ops() -> None:
             actor=actor,
         )
     )
-    null.emit_mission_run_completed(
-        MissionRunCompletedPayload(run_id="r", mission_type="m", actor=actor)
-    )
+    null.emit_mission_run_completed(MissionRunCompletedPayload(run_id="r", mission_type="m", actor=actor))
     # Assertions: just checking these don't raise; correlation_id stored.
     assert null.correlation_id == "test"
 
@@ -952,13 +898,9 @@ def test_plan_next_template_drift_blocks(tmp_path: Path) -> None:
         template_path=str(live),
         template_hash="0" * 64,  # bogus hash -> drift
     )
-    decision = plan_next(
-        snap, template, MissionPolicySnapshot(), live_template_path=live
-    )
+    decision = plan_next(snap, template, MissionPolicySnapshot(), live_template_path=live)
     assert decision.kind == "blocked"
-    assert "drift" in (decision.reason or "").lower() or "Template changed" in (
-        decision.reason or ""
-    )
+    assert "drift" in (decision.reason or "").lower() or "Template changed" in (decision.reason or "")
 
 
 def test_plan_next_template_drift_skipped_when_live_missing(tmp_path: Path) -> None:
@@ -970,9 +912,7 @@ def test_plan_next_template_drift_skipped_when_live_missing(tmp_path: Path) -> N
         template_path=str(live),
         template_hash="0" * 64,
     )
-    decision = plan_next(
-        snap, template, MissionPolicySnapshot(), live_template_path=live
-    )
+    decision = plan_next(snap, template, MissionPolicySnapshot(), live_template_path=live)
     # No drift error because live file doesn't exist
     assert decision.kind == "step"
 
@@ -985,9 +925,7 @@ def test_plan_next_pending_decision_audit_branch() -> None:
             "step_id": "s1",
             "question": "Audit ok?",
             "options": ["approve", "reject"],
-            "requested_by": ActorIdentity(
-                actor_id="x", actor_type="human", provider=None, model=None, tool=None
-            ).model_dump(mode="json"),
+            "requested_by": ActorIdentity(actor_id="x", actor_type="human", provider=None, model=None, tool=None).model_dump(mode="json"),
             "requested_at": now_utc_iso(),
         }
     }
@@ -1012,9 +950,7 @@ def test_plan_next_pending_decision_input_branch() -> None:
             "step_id": "s1",
             "question": "Topic?",
             "options": [],
-            "requested_by": ActorIdentity(
-                actor_id="x", actor_type="human", provider=None, model=None, tool=None
-            ).model_dump(mode="json"),
+            "requested_by": ActorIdentity(actor_id="x", actor_type="human", provider=None, model=None, tool=None).model_dump(mode="json"),
             "requested_at": now_utc_iso(),
         }
     }
@@ -1110,11 +1046,7 @@ def test_plan_next_audit_advisory_returns_step() -> None:
 def test_plan_next_step_with_missing_input_emits_input_decision() -> None:
     template = MissionTemplate(
         mission=MissionMeta(key="t", name="T", version="1.0.0"),
-        steps=[
-            PromptStep(
-                id="s1", title="S1", requires_inputs=["topic"], prompt="Do."
-            )
-        ],
+        steps=[PromptStep(id="s1", title="S1", requires_inputs=["topic"], prompt="Do.")],
     )
     snap = MissionRunSnapshot(
         run_id="r1",
@@ -1145,9 +1077,7 @@ def test_plan_next_step_default_prompt_falls_back() -> None:
 
 
 def test_serialize_decision_is_canonical() -> None:
-    decision = NextDecision(
-        kind="terminal", run_id="r", mission_key="t", reason="done"
-    )
+    decision = NextDecision(kind="terminal", run_id="r", mission_key="t", reason="done")
     serialized = serialize_decision(decision)
     assert '"kind":"terminal"' in serialized
     assert '"run_id":"r"' in serialized
@@ -1167,9 +1097,7 @@ def test_infer_raci_for_prompt_step() -> None:
 
 
 def test_infer_raci_for_audit_blocking() -> None:
-    step = AuditStep(
-        id="a1", title="A1", audit=AuditConfig(trigger_mode="manual", enforcement="blocking")
-    )
+    step = AuditStep(id="a1", title="A1", audit=AuditConfig(trigger_mode="manual", enforcement="blocking"))
     binding = infer_raci(step, MissionPolicySnapshot())
     assert binding.responsible.actor_type == "human"
     assert binding.accountable.actor_type == "human"
@@ -1177,9 +1105,7 @@ def test_infer_raci_for_audit_blocking() -> None:
 
 
 def test_infer_raci_for_audit_advisory() -> None:
-    step = AuditStep(
-        id="a1", title="A1", audit=AuditConfig(trigger_mode="manual", enforcement="advisory")
-    )
+    step = AuditStep(id="a1", title="A1", audit=AuditConfig(trigger_mode="manual", enforcement="advisory"))
     binding = infer_raci(step, MissionPolicySnapshot())
     assert binding.responsible.actor_type == "llm"
     assert binding.inferred_rule == "audit_advisory"
@@ -1201,9 +1127,7 @@ def test_validate_raci_assignment_blocks_audit_with_llm_responsible() -> None:
         responsible=RACIRoleBinding(actor_type="llm"),
         accountable=RACIRoleBinding(actor_type="human"),
     )
-    audit_step = AuditStep(
-        id="a1", title="A1", audit=AuditConfig(trigger_mode="manual", enforcement="blocking")
-    )
+    audit_step = AuditStep(id="a1", title="A1", audit=AuditConfig(trigger_mode="manual", enforcement="blocking"))
     ok, errors = validate_raci_assignment(assignment, audit_step)
     assert not ok
     assert any("responsible must be human" in e for e in errors)
@@ -1252,9 +1176,7 @@ def test_resolve_raci_optional_consulted_passthrough() -> None:
         raci=explicit,
         raci_override_reason="reason",
     )
-    binding = resolve_raci(
-        step, {"service_id": "audit-bot"}, MissionPolicySnapshot()
-    )
+    binding = resolve_raci(step, {"service_id": "audit-bot"}, MissionPolicySnapshot())
     assert binding.consulted[0].actor_id == "audit-bot"
 
 
@@ -1263,10 +1185,7 @@ def test_actor_type_to_input_key_unknown_falls_through() -> None:
 
 
 def test_lookup_actor_id_strips_whitespace() -> None:
-    assert (
-        raci_mod._lookup_actor_id("human", {"mission_owner_id": "  joe  "})
-        == "joe"
-    )
+    assert raci_mod._lookup_actor_id("human", {"mission_owner_id": "  joe  "}) == "joe"
     assert raci_mod._lookup_actor_id("human", {"mission_owner_id": "   "}) is None
     assert raci_mod._lookup_actor_id("human", {"mission_owner_id": 42}) is None
 
@@ -1314,23 +1233,17 @@ def test_validate_band_cutoffs_rejects_missing_band() -> None:
 
 def test_validate_band_cutoffs_rejects_overlap() -> None:
     with pytest.raises(ValueError, match="Overlap"):
-        validate_band_cutoffs(
-            {"low": [0, 8], "medium": [7, 11], "high": [12, 18]}
-        )
+        validate_band_cutoffs({"low": [0, 8], "medium": [7, 11], "high": [12, 18]})
 
 
 def test_validate_band_cutoffs_rejects_non_pair() -> None:
     with pytest.raises(ValueError, match="must be a"):
-        validate_band_cutoffs(
-            {"low": [0], "medium": [7, 11], "high": [12, 18]}
-        )
+        validate_band_cutoffs({"low": [0], "medium": [7, 11], "high": [12, 18]})
 
 
 def test_validate_band_cutoffs_rejects_min_gt_max() -> None:
     with pytest.raises(ValueError, match="min_score"):
-        validate_band_cutoffs(
-            {"low": [6, 0], "medium": [7, 11], "high": [12, 18]}
-        )
+        validate_band_cutoffs({"low": [6, 0], "medium": [7, 11], "high": [12, 18]})
 
 
 def test_make_routing_bands_returns_default_when_none() -> None:
@@ -1339,9 +1252,7 @@ def test_make_routing_bands_returns_default_when_none() -> None:
 
 
 def test_make_routing_bands_uses_custom_cutoffs() -> None:
-    bands = make_routing_bands(
-        {"low": [0, 5], "medium": [6, 10], "high": [11, 18]}
-    )
+    bands = make_routing_bands({"low": [0, 5], "medium": [6, 10], "high": [11, 18]})
     assert len(bands) == 3
     band_names = {b.name for b in bands}
     assert band_names == {"low", "medium", "high"}
@@ -1456,24 +1367,18 @@ def test_parse_timeout_from_policy_returns_default_when_absent() -> None:
 
 
 def test_parse_timeout_from_policy_extracts_seconds() -> None:
-    policy = MissionPolicySnapshot(
-        extras={"significance_default_timeout_seconds": 120}
-    )
+    policy = MissionPolicySnapshot(extras={"significance_default_timeout_seconds": 120})
     assert parse_timeout_from_policy(policy) == 120
 
 
 def test_parse_timeout_from_policy_rejects_non_int() -> None:
-    policy = MissionPolicySnapshot(
-        extras={"significance_default_timeout_seconds": "120"}
-    )
+    policy = MissionPolicySnapshot(extras={"significance_default_timeout_seconds": "120"})
     with pytest.raises(ValueError, match="must be int"):
         parse_timeout_from_policy(policy)
 
 
 def test_parse_timeout_from_policy_rejects_non_positive() -> None:
-    policy = MissionPolicySnapshot(
-        extras={"significance_default_timeout_seconds": 0}
-    )
+    policy = MissionPolicySnapshot(extras={"significance_default_timeout_seconds": 0})
     with pytest.raises(ValueError, match="> 0"):
         parse_timeout_from_policy(policy)
 
@@ -1519,9 +1424,7 @@ def test_context_type_registry_lists_builtins() -> None:
 
 def test_step_context_contract_rejects_unknown_type_without_resolver() -> None:
     with pytest.raises(ValidationError):
-        StepContextContract(
-            requires=[ContextType(type="zzz_unknown_xyz")]
-        )
+        StepContextContract(requires=[ContextType(type="zzz_unknown_xyz")])
 
 
 def test_step_context_contract_validate_contract_detects_overlap() -> None:
@@ -1549,9 +1452,7 @@ def test_load_mission_template_file_rejects_non_mapping(tmp_path: Path) -> None:
 def test_load_mission_template_file_rejects_no_steps(tmp_path: Path) -> None:
     bad = tmp_path / "mission.yaml"
     bad.write_text(
-        yaml.safe_dump(
-            {"mission": {"key": "x", "name": "X", "version": "1.0.0"}}
-        ),
+        yaml.safe_dump({"mission": {"key": "x", "name": "X", "version": "1.0.0"}}),
         encoding="utf-8",
     )
     with pytest.raises(MissionRuntimeError, match="no steps"):
@@ -1657,25 +1558,19 @@ def test_validate_binding_path_exists_fail(tmp_path: Path) -> None:
 
 
 def test_validate_binding_slug_format_pass() -> None:
-    ctx = ContextType(
-        type="feature_binding", validation={"slug_format": r"[a-z0-9-]+"}
-    )
+    ctx = ContextType(type="feature_binding", validation={"slug_format": r"[a-z0-9-]+"})
     ok, err = validate_binding("my-feature-01", ctx)
     assert ok
 
 
 def test_validate_binding_slug_format_fail() -> None:
-    ctx = ContextType(
-        type="feature_binding", validation={"slug_format": r"[a-z0-9-]+"}
-    )
+    ctx = ContextType(type="feature_binding", validation={"slug_format": r"[a-z0-9-]+"})
     ok, err = validate_binding("INVALID Slug!", ctx)
     assert not ok
 
 
 def test_validate_binding_unknown_rule_returns_error() -> None:
-    ctx = ContextType(
-        type="feature_binding", validation={"made_up_rule": True}
-    )
+    ctx = ContextType(type="feature_binding", validation={"made_up_rule": True})
     ok, err = validate_binding("x", ctx)
     assert not ok
     assert err is not None
@@ -1683,9 +1578,7 @@ def test_validate_binding_unknown_rule_returns_error() -> None:
 
 
 def test_validate_binding_artifact_exists_disabled() -> None:
-    ctx = ContextType(
-        type="spec_artifact", validation={"artifact_exists": False}
-    )
+    ctx = ContextType(type="spec_artifact", validation={"artifact_exists": False})
     # Disabled rule -> always passes.
     ok, err = validate_binding("/no/such/path", ctx)
     assert ok
@@ -1778,9 +1671,7 @@ def test_provide_decision_answer_without_pending_raises(tmp_path: Path) -> None:
 def test_next_step_failed_result_blocks_run(tmp_path: Path) -> None:
     yaml_path = _write_simple_mission(tmp_path / "missions")
     run_store = tmp_path / "runs"
-    ctx = DiscoveryContext(
-        explicit_paths=[yaml_path], builtin_roots=[yaml_path], user_home=tmp_path / "home"
-    )
+    ctx = DiscoveryContext(explicit_paths=[yaml_path], builtin_roots=[yaml_path], user_home=tmp_path / "home")
     run_ref = start_mission_run(
         template_key=str(yaml_path),
         inputs={"topic": "x"},
@@ -1792,9 +1683,7 @@ def test_next_step_failed_result_blocks_run(tmp_path: Path) -> None:
     # Issue first step (success path).
     next_step(run_ref, agent_id="a", emitter=NullEmitter())
     # Mark current step as failed -> blocked.
-    decision = next_step(
-        run_ref, agent_id="a", result="failed", emitter=NullEmitter()
-    )
+    decision = next_step(run_ref, agent_id="a", result="failed", emitter=NullEmitter())
     assert decision.kind == "blocked"
     assert "failed" in (decision.reason or "").lower()
 
@@ -1802,9 +1691,7 @@ def test_next_step_failed_result_blocks_run(tmp_path: Path) -> None:
 def test_next_step_blocked_result_blocks_run(tmp_path: Path) -> None:
     yaml_path = _write_simple_mission(tmp_path / "missions")
     run_store = tmp_path / "runs"
-    ctx = DiscoveryContext(
-        explicit_paths=[yaml_path], builtin_roots=[yaml_path], user_home=tmp_path / "home"
-    )
+    ctx = DiscoveryContext(explicit_paths=[yaml_path], builtin_roots=[yaml_path], user_home=tmp_path / "home")
     run_ref = start_mission_run(
         template_key=str(yaml_path),
         inputs={"topic": "x"},
@@ -1814,9 +1701,7 @@ def test_next_step_blocked_result_blocks_run(tmp_path: Path) -> None:
         emitter=NullEmitter(),
     )
     next_step(run_ref, agent_id="a", emitter=NullEmitter())
-    decision = next_step(
-        run_ref, agent_id="a", result="blocked", emitter=NullEmitter()
-    )
+    decision = next_step(run_ref, agent_id="a", result="blocked", emitter=NullEmitter())
     assert decision.kind == "blocked"
     assert "blocked" in (decision.reason or "").lower()
 
@@ -1829,9 +1714,7 @@ def test_next_step_blocked_result_blocks_run(tmp_path: Path) -> None:
 def test_notify_decision_timeout_raises_for_unknown_decision(tmp_path: Path) -> None:
     yaml_path = _write_simple_mission(tmp_path / "missions")
     run_store = tmp_path / "runs"
-    ctx = DiscoveryContext(
-        explicit_paths=[yaml_path], builtin_roots=[yaml_path], user_home=tmp_path / "home"
-    )
+    ctx = DiscoveryContext(explicit_paths=[yaml_path], builtin_roots=[yaml_path], user_home=tmp_path / "home")
     run_ref = start_mission_run(
         template_key=str(yaml_path),
         inputs={"topic": "x", "mission_owner_id": "owner-9"},
@@ -1870,6 +1753,4 @@ def test_internal_runtime_does_not_import_quarantined_runtime() -> None:
                 continue
             if "spec_kitty_runtime" in stripped:
                 offenders.append(f"{py_file.name}: {stripped}")
-    assert offenders == [], (
-        "_internal_runtime must not import spec_kitty_runtime: " + "; ".join(offenders)
-    )
+    assert offenders == [], "_internal_runtime must not import spec_kitty_runtime: " + "; ".join(offenders)

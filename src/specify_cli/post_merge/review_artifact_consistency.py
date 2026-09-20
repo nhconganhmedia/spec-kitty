@@ -15,9 +15,7 @@ from specify_cli.status import ReviewOverride
 from specify_cli.status import is_changes_requested, review_result_from_state
 
 REJECTED_REVIEW_ARTIFACT_CONFLICT = "REJECTED_REVIEW_ARTIFACT_CONFLICT"
-REJECTED_REVIEW_ARTIFACT_INVARIANT = (
-    "terminal_wp_latest_review_artifact_must_not_be_rejected"
-)
+REJECTED_REVIEW_ARTIFACT_INVARIANT = "terminal_wp_latest_review_artifact_must_not_be_rejected"
 REJECTED_REVIEW_ARTIFACT_REMEDIATION = [
     "Run another review cycle that writes an approved review-cycle artifact.",
     "Or move the WP out of approved/done before merge.",
@@ -277,18 +275,11 @@ def format_review_artifact_conflict(
     """Render one finding with a stable path for operator diagnostics."""
     path = finding.artifact_path
     if path is None:
-        return (
-            f"{finding.wp_id} is lane '{finding.lane}', but the event-sourced "
-            f"review verdict is '{finding.verdict}' and no on-disk review "
-            "artifact exists."
-        )
+        return f"{finding.wp_id} is lane '{finding.lane}', but the event-sourced review verdict is '{finding.verdict}' and no on-disk review artifact exists."
     if repo_root is not None:
         with suppress(ValueError):
             path = path.relative_to(repo_root)
-    return (
-        f"{finding.wp_id} is lane '{finding.lane}', but latest review artifact "
-        f"{path} has verdict '{finding.verdict}' (cycle {finding.cycle_number})."
-    )
+    return f"{finding.wp_id} is lane '{finding.lane}', but latest review artifact {path} has verdict '{finding.verdict}' (cycle {finding.cycle_number})."
 
 
 def format_review_artifact_finding(
@@ -351,10 +342,7 @@ class ReviewArtifactPreflightResult:
         repo_root: Path | None = None,
     ) -> list[dict[str, object]]:
         """Return the stable diagnostic payloads, one per finding."""
-        return [
-            review_artifact_finding_diagnostic(finding, repo_root=repo_root)
-            for finding in self.findings
-        ]
+        return [review_artifact_finding_diagnostic(finding, repo_root=repo_root) for finding in self.findings]
 
 
 def run_review_artifact_consistency_preflight(

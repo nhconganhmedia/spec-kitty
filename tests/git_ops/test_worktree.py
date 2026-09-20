@@ -22,6 +22,7 @@ pytestmark = pytest.mark.git_repo
 TEST_MISSION_ID = "01KNXQS9ATWWFXS3K5ZJ9E5008"
 TEST_MID8 = TEST_MISSION_ID[:8]
 
+
 class TestAssignNextMissionNumber:
     """Tests for merge-time display-number allocation."""
 
@@ -571,11 +572,7 @@ class TestValidateFeatureStructure:
         from specify_cli.mission import get_mission_by_name
 
         mission = get_mission_by_name("software-dev")
-        writer_files = [
-            name
-            for name in (*mission.get_required_artifacts(), *mission.get_optional_artifacts())
-            if not name.endswith("/")
-        ]
+        writer_files = [name for name in (*mission.get_required_artifacts(), *mission.get_optional_artifacts()) if not name.endswith("/")]
         assert writer_files, "writer metadata must declare at least one file artifact"
 
         feature_dir = tmp_path / "001-test"
@@ -586,10 +583,7 @@ class TestValidateFeatureStructure:
         result = validate_feature_structure(feature_dir, check_tasks=True)
 
         for name in writer_files:
-            assert name in result["available_docs"], (
-                f"writer-declared artifact {name!r} missing from inventory "
-                "(inventory drifted from mission writer metadata)"
-            )
+            assert name in result["available_docs"], f"writer-declared artifact {name!r} missing from inventory (inventory drifted from mission writer metadata)"
 
 
 class TestVCSAbstraction:
@@ -980,10 +974,7 @@ class TestComposeWorktreeFeatureDir:
         after = _compose_worktree_feature_dir(worktree_path, branch_name)
 
         # NFR-004 before/after assertion: the placement path is byte-identical.
-        assert before == after, (
-            f"Idempotency violation (NFR-004): placement path changed between "
-            f"calls — before={before!r}, after={after!r}"
-        )
+        assert before == after, f"Idempotency violation (NFR-004): placement path changed between calls — before={before!r}, after={after!r}"
 
     def test_reuse_arm_equals_create_arm(self, tmp_path: Path) -> None:
         """Both worktree arms (reuse :384, create :396) resolve the same path.
@@ -1002,10 +993,7 @@ class TestComposeWorktreeFeatureDir:
         create_arm = _compose_worktree_feature_dir(worktree_path, branch_name)
 
         # The two arms must be byte-identical (idempotency NFR-004 / C-PLACEMENT).
-        assert reuse_arm == create_arm, (
-            f"Arm divergence (C-PLACEMENT violation): reuse={reuse_arm!r}, "
-            f"create={create_arm!r}"
-        )
+        assert reuse_arm == create_arm, f"Arm divergence (C-PLACEMENT violation): reuse={reuse_arm!r}, create={create_arm!r}"
         # Verify the exact expected path so the assertion is not vacuously true.
         expected = worktree_path / "kitty-specs" / branch_name
         assert reuse_arm == expected

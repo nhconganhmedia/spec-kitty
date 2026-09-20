@@ -40,9 +40,7 @@ def _write_gitignore(project_root: Path, *entries: str) -> None:
 
 
 def _write_metadata(project_root: Path, version: str) -> None:
-    ProjectMetadata(version=version, initialized_at=now_utc()).save(
-        project_root / ".kittify"
-    )
+    ProjectMetadata(version=version, initialized_at=now_utc()).save(project_root / ".kittify")
 
 
 def _read_gitignore(project_root: Path) -> str:
@@ -145,9 +143,7 @@ def test_backfill_fires_on_already_current_3_2_4_project(tmp_path: Path) -> None
     result = MigrationRunner(tmp_path).upgrade("3.2.4", include_worktrees=False)
 
     assert result.success
-    assert (
-        RuntimeDirsGitignoreBackfillMigration.migration_id in result.migrations_applied
-    )
+    assert RuntimeDirsGitignoreBackfillMigration.migration_id in result.migrations_applied
     text = _read_gitignore(tmp_path)
     assert ".kittify/migrations/" in text
     assert ".kittify/logs/" in text

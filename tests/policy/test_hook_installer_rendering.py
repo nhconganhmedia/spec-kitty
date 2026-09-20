@@ -17,6 +17,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def test_hook_rendering_shape(tmp_path: Path) -> None:
     """Install into a fake repo .git dir and assert the rendered hook shape."""
     # Fake repo with .git dir (not a real git repo — install() only needs the dir)
@@ -40,10 +41,7 @@ def test_hook_rendering_shape(tmp_path: Path) -> None:
     # the hook takes when the pinned interpreter has gone stale (e.g. a
     # pipx -> uv migration moved it). Exactly one of the two ever runs.
     exec_lines = [line for line in lines if line.strip().startswith("exec ")]
-    assert len(exec_lines) == 2, (
-        f"Expected exactly two 'exec ' lines (primary + fallback), "
-        f"found {len(exec_lines)}: {exec_lines}"
-    )
+    assert len(exec_lines) == 2, f"Expected exactly two 'exec ' lines (primary + fallback), found {len(exec_lines)}: {exec_lines}"
     primary_line, fallback_line = exec_lines
 
     # Interpreter must appear in double quotes (handles paths with spaces).
@@ -51,29 +49,19 @@ def test_hook_rendering_shape(tmp_path: Path) -> None:
     # keep their sys.prefix — so we expect the abspath of sys.executable, not its
     # resolved target.
     expected = os.path.abspath(sys.executable)
-    assert f'"{expected}"' in primary_line, (
-        f'Expected quoted interpreter "{expected}" in exec line: {primary_line!r}'
-    )
-    assert "-m specify_cli.policy.commit_guard_hook" in primary_line, (
-        f"Expected module invocation in exec line: {primary_line!r}"
-    )
+    assert f'"{expected}"' in primary_line, f'Expected quoted interpreter "{expected}" in exec line: {primary_line!r}'
+    assert "-m specify_cli.policy.commit_guard_hook" in primary_line, f"Expected module invocation in exec line: {primary_line!r}"
     assert '"$@"' in primary_line, f'Expected "$@" in exec line: {primary_line!r}'
 
     # Fallback (#254): PATH-resolved `spec-kitty commit-guard-hook`, guarded
     # by `command -v` so it's only reached when the primary path is gone.
-    assert "spec-kitty commit-guard-hook" in fallback_line, (
-        f"Expected the install-agnostic fallback in the second exec line: {fallback_line!r}"
-    )
+    assert "spec-kitty commit-guard-hook" in fallback_line, f"Expected the install-agnostic fallback in the second exec line: {fallback_line!r}"
     assert '"$@"' in fallback_line, f'Expected "$@" in fallback exec line: {fallback_line!r}'
-    assert "command -v spec-kitty" in content, (
-        "Fallback exec must be guarded by a PATH check ('command -v spec-kitty')"
-    )
+    assert "command -v spec-kitty" in content, "Fallback exec must be guarded by a PATH check ('command -v spec-kitty')"
 
     # A remedy naming an actual command must be present for the case where
     # BOTH the pinned interpreter and the PATH fallback are unavailable (#254).
-    assert "spec-kitty migrate repin-hooks" in content, (
-        "Hook must name a concrete remedy when both entrypoints are unavailable"
-    )
+    assert "spec-kitty migrate repin-hooks" in content, "Hook must name a concrete remedy when both entrypoints are unavailable"
 
     # No PATH-based python/python3/py literals (the whole point of this WP)
     assert "python3 " not in content, "Hook must not contain bare 'python3 ' lookup"

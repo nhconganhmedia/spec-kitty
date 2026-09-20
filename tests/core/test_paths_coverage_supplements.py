@@ -32,6 +32,7 @@ from specify_cli.core.paths import (
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 def _make_main_repo(root: Path) -> Path:
     """Mark *root* as a main-repo by creating a ``.git`` directory."""
     root.mkdir(parents=True, exist_ok=True)

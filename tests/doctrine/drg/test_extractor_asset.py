@@ -33,9 +33,7 @@ def test_discover_built_in_artifact_nodes_registers_assets(tmp_path: Path) -> No
     """A ``*.asset.yaml`` file under ``assets/built-in`` becomes an ASSET node."""
     assets_dir = tmp_path / "assets" / "built-in"
     assets_dir.mkdir(parents=True)
-    (assets_dir / "brand-logo.asset.yaml").write_text(
-        "id: brand-logo\nname: Brand Logo\n", encoding="utf-8"
-    )
+    (assets_dir / "brand-logo.asset.yaml").write_text("id: brand-logo\nname: Brand Logo\n", encoding="utf-8")
 
     nodes_by_urn: dict[str, DRGNode] = {}
     _discover_built_in_artifact_nodes(tmp_path, nodes_by_urn)

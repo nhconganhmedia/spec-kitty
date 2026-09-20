@@ -116,9 +116,7 @@ class SharedLaneContext:
             "lane_id": self.lane_id,
             "active_work_package_id": self.active_work_package_id,
             "lane_work_package_ids": list(self.lane_work_package_ids),
-            "owned_files_by_work_package": {
-                key: list(value) for key, value in self.owned_files_by_work_package.items()
-            },
+            "owned_files_by_work_package": {key: list(value) for key, value in self.owned_files_by_work_package.items()},
             "lane_worktree": str(self.lane_worktree) if self.lane_worktree is not None else None,
         }
 

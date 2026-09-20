@@ -28,6 +28,7 @@ Single-derivation invariants (T009 / FR-012 / C-CTX-3): ``mid8`` is derived
 ``target_branch`` is resolved **exactly once** (carried on
 :class:`BranchRefFragment`); no other call site recomputes either value.
 """
+
 from __future__ import annotations
 
 import enum
@@ -49,9 +50,9 @@ class MissionTopology(enum.Enum):
     SINGLE_BRANCH/LANES + a `flattened` provenance mark (see spec Domain Language).
     """
 
-    SINGLE_BRANCH = "single_branch"        # no coord, no lanes
-    LANES = "lanes"                        # no coord, lanes
-    COORD = "coord"                        # coord, no lanes
+    SINGLE_BRANCH = "single_branch"  # no coord, no lanes
+    LANES = "lanes"  # no coord, lanes
+    COORD = "coord"  # coord, no lanes
     LANES_WITH_COORD = "lanes_with_coord"  # coord, lanes
 
 
@@ -99,9 +100,7 @@ class CommitTarget:
 # SINGLE definition: ``resolution.py`` / ``surface_resolver.py`` /
 # ``runtime_bridge.py`` / ``status_transition.py`` import it rather than restating
 # the literal ``{COORD, LANES_WITH_COORD}`` set.
-_COORD_ROUTING_TOPOLOGIES: frozenset[MissionTopology] = frozenset(
-    {MissionTopology.COORD, MissionTopology.LANES_WITH_COORD}
-)
+_COORD_ROUTING_TOPOLOGIES: frozenset[MissionTopology] = frozenset({MissionTopology.COORD, MissionTopology.LANES_WITH_COORD})
 
 
 def is_single_branch(topology: MissionTopology | None) -> bool:
@@ -160,9 +159,7 @@ class IdentityFragment:
         expected = self.mission_id[:8]
         if self.mid8 != expected:
             raise ValueError(
-                "IdentityFragment.mid8 must be mission_id[:8] "
-                f"(got mid8={self.mid8!r}, mission_id={self.mission_id!r}); "
-                "mid8 is single-derived (FR-012 / C-CTX-3)."
+                f"IdentityFragment.mid8 must be mission_id[:8] (got mid8={self.mid8!r}, mission_id={self.mission_id!r}); mid8 is single-derived (FR-012 / C-CTX-3)."
             )
 
     @classmethod

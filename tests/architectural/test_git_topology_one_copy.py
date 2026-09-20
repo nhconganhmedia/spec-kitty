@@ -13,6 +13,7 @@ the consolidation hard to silently undo:
 * SC-008 — the toplevel-mismatch classifier (``--show-toplevel``) has one
   authority: the primitive. The two classifier consumers carry no raw probe.
 """
+
 from __future__ import annotations
 
 import ast
@@ -45,10 +46,7 @@ def _count_function_defs(module: Path, name: str) -> list[Path]:
     hits: list[Path] = []
     for py in module.rglob("*.py"):
         tree = ast.parse(py.read_text(encoding="utf-8"))
-        if any(
-            isinstance(node, ast.FunctionDef) and node.name == name
-            for node in ast.walk(tree)
-        ):
+        if any(isinstance(node, ast.FunctionDef) and node.name == name for node in ast.walk(tree)):
             hits.append(py)
     return hits
 
@@ -74,36 +72,29 @@ def _count_calls(path: Path, callee: str) -> int:
 
 def test_exactly_one_git_common_dir_primitive() -> None:
     defs = _count_function_defs(_SRC, "git_common_dir")
-    assert defs == [_PRIMITIVE], (
-        f"Expected exactly one git_common_dir definition (the primitive); found {defs}."
-    )
+    assert defs == [_PRIMITIVE], f"Expected exactly one git_common_dir definition (the primitive); found {defs}."
 
 
 def test_exactly_one_git_toplevel_primitive() -> None:
     defs = _count_function_defs(_SRC, "git_toplevel")
-    assert defs == [_PRIMITIVE], (
-        f"Expected exactly one git_toplevel definition (the primitive); found {defs}."
-    )
+    assert defs == [_PRIMITIVE], f"Expected exactly one git_toplevel definition (the primitive); found {defs}."
 
 
 def test_migrated_call_sites_carry_no_raw_topology_probe() -> None:
     for consumer in _MIGRATED_CONSUMERS:
         text = consumer.read_text(encoding="utf-8")
         assert _COMMON_DIR_FLAG not in text, (
-            f"{consumer} still shells out to `rev-parse --git-common-dir`; it must "
-            "consume the git_topology primitive instead (WP01 #3373)."
+            f"{consumer} still shells out to `rev-parse --git-common-dir`; it must consume the git_topology primitive instead (WP01 #3373)."
         )
         assert _TOPLEVEL_FLAG not in text, (
-            f"{consumer} still shells out to `rev-parse --show-toplevel`; it must "
-            "consume the git_topology primitive instead (WP01 #3373)."
+            f"{consumer} still shells out to `rev-parse --show-toplevel`; it must consume the git_topology primitive instead (WP01 #3373)."
         )
 
 
 def test_primitive_owns_both_probe_flags() -> None:
     text = _PRIMITIVE.read_text(encoding="utf-8")
     assert _COMMON_DIR_FLAG in text and _TOPLEVEL_FLAG in text, (
-        "The git_topology primitive must be the single owner of the "
-        "--git-common-dir / --show-toplevel probe flags."
+        "The git_topology primitive must be the single owner of the --git-common-dir / --show-toplevel probe flags."
     )
 
 
@@ -114,9 +105,7 @@ def test_primitive_owns_both_probe_flags() -> None:
 
 def test_exactly_one_read_dir_for() -> None:
     defs = _count_function_defs(_SRC, "read_dir_for")
-    assert defs == [_RESOLUTION], (
-        f"Expected exactly one read_dir_for definition (the fork authority); found {defs}."
-    )
+    assert defs == [_RESOLUTION], f"Expected exactly one read_dir_for definition (the fork authority); found {defs}."
 
 
 def test_meta_read_fork_compose_call_is_single_copy() -> None:
@@ -144,6 +133,5 @@ def test_nested_classifier_has_single_toplevel_authority() -> None:
     )
     for consumer in classifier_consumers:
         assert _TOPLEVEL_FLAG not in consumer.read_text(encoding="utf-8"), (
-            f"{consumer} must classify nested/toplevel mismatch via the "
-            "git_topology primitive, not a raw --show-toplevel probe (WP01 SC-008)."
+            f"{consumer} must classify nested/toplevel mismatch via the git_topology primitive, not a raw --show-toplevel probe (WP01 SC-008)."
         )

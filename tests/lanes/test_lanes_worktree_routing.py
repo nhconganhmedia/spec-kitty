@@ -49,14 +49,10 @@ def test_worktree_path_mission_id_none_matches_golden(
     ``worktree_path(repo_root, mission_slug, mission_id=None, lane_id=…)``
     instead of ``repo_root / ".worktrees" / f"{mission_slug}-{lane_id}"``.
     """
-    seam_path = worktree_path(
-        tmp_path, row.mission_slug, mission_id=None, lane_id=row.lane_id
-    )
+    seam_path = worktree_path(tmp_path, row.mission_slug, mission_id=None, lane_id=row.lane_id)
     # The expected path is the old f-string, unchanged:
     expected = tmp_path / ".worktrees" / f"{row.mission_slug}-{row.lane_id}"
-    assert seam_path == expected, (
-        f"[{row.label}] worktree_path mismatch: {seam_path!r} != {expected!r}"
-    )
+    assert seam_path == expected, f"[{row.label}] worktree_path mismatch: {seam_path!r} != {expected!r}"
 
 
 @pytest.mark.parametrize("row", GOLDEN_ROWS, ids=lambda r: r.label)
@@ -68,9 +64,7 @@ def test_worktree_path_mission_id_none_matches_worktree_dir(
 
     Proves the two seam functions are consistent with each other.
     """
-    path = worktree_path(
-        tmp_path, row.mission_slug, mission_id=None, lane_id=row.lane_id
-    )
+    path = worktree_path(tmp_path, row.mission_slug, mission_id=None, lane_id=row.lane_id)
     dir_name = worktree_dir_name(row.mission_slug, mission_id=None, lane_id=row.lane_id)
     assert path.name == dir_name
 
@@ -92,13 +86,9 @@ def test_worktree_dir_name_mission_id_none_matches_context_name_fstring(
     The seam call ``worktree_dir_name(mission_slug, mission_id=None, lane_id=lane_id)``
     must return the SAME string.
     """
-    seam_name = worktree_dir_name(
-        row.mission_slug, mission_id=None, lane_id=row.lane_id
-    )
+    seam_name = worktree_dir_name(row.mission_slug, mission_id=None, lane_id=row.lane_id)
     expected = f"{row.mission_slug}-{row.lane_id}"
-    assert seam_name == expected, (
-        f"[{row.label}] context_name mismatch: {seam_name!r} != {expected!r}"
-    )
+    assert seam_name == expected, f"[{row.label}] context_name mismatch: {seam_name!r} != {expected!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -111,10 +101,7 @@ def test_legacy_row_worktree_dir_is_slug_dash_lane() -> None:
     row = _legacy_row()
     assert row.worktree_dir == f"{row.mission_slug}-{row.lane_id}"
     # And the seam agrees:
-    assert (
-        worktree_dir_name(row.mission_slug, mission_id=None, lane_id=row.lane_id)
-        == row.worktree_dir
-    )
+    assert worktree_dir_name(row.mission_slug, mission_id=None, lane_id=row.lane_id) == row.worktree_dir
 
 
 # ---------------------------------------------------------------------------

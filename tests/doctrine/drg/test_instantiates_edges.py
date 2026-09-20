@@ -103,11 +103,7 @@ class TestShippedGraphCarriesInstantiatesEdges:
         graph = generate_graph(DOCTRINE_ROOT, tmp_path / "graph.yaml")
 
         node_urns = {node.urn for node in graph.nodes}
-        actual_edges = {
-            (edge.source, edge.target)
-            for edge in graph.edges
-            if edge.relation is Relation.INSTANTIATES
-        }
+        actual_edges = {(edge.source, edge.target) for edge in graph.edges if edge.relation is Relation.INSTANTIATES}
 
         expected = _expected_edges()
         assert actual_edges == expected
@@ -123,9 +119,7 @@ class TestShippedGraphCarriesInstantiatesEdges:
         # nodes-only for this pass).
         graph = generate_graph(DOCTRINE_ROOT, tmp_path / "graph.yaml")
 
-        instantiates_edges = [
-            edge for edge in graph.edges if edge.relation is Relation.INSTANTIATES
-        ]
+        instantiates_edges = [edge for edge in graph.edges if edge.relation is Relation.INSTANTIATES]
         assert instantiates_edges, "expected at least one instantiates edge"
         for edge in instantiates_edges:
             assert edge.source.startswith("action:")
@@ -139,26 +133,14 @@ class TestBareTemplateExemplarsUntouched:
     def test_bare_exemplar_node_count_unchanged(self, tmp_path: Path) -> None:
         graph = generate_graph(DOCTRINE_ROOT, tmp_path / "graph.yaml")
 
-        bare_template_urns = {
-            node.urn
-            for node in graph.nodes
-            if node.kind is NodeKind.TEMPLATE and "/" not in node.urn.split(":", 1)[1]
-        }
+        bare_template_urns = {node.urn for node in graph.nodes if node.kind is NodeKind.TEMPLATE and "/" not in node.urn.split(":", 1)[1]}
         assert len(bare_template_urns) == 16
 
-    def test_bare_exemplars_are_never_an_instantiates_target(
-        self, tmp_path: Path
-    ) -> None:
+    def test_bare_exemplars_are_never_an_instantiates_target(self, tmp_path: Path) -> None:
         graph = generate_graph(DOCTRINE_ROOT, tmp_path / "graph.yaml")
 
-        bare_template_urns = {
-            node.urn
-            for node in graph.nodes
-            if node.kind is NodeKind.TEMPLATE and "/" not in node.urn.split(":", 1)[1]
-        }
-        instantiates_targets = {
-            edge.target for edge in graph.edges if edge.relation is Relation.INSTANTIATES
-        }
+        bare_template_urns = {node.urn for node in graph.nodes if node.kind is NodeKind.TEMPLATE and "/" not in node.urn.split(":", 1)[1]}
+        instantiates_targets = {edge.target for edge in graph.edges if edge.relation is Relation.INSTANTIATES}
         assert bare_template_urns.isdisjoint(instantiates_targets)
 
     def test_shipped_template_fragment_has_no_edges(self) -> None:

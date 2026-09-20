@@ -120,12 +120,7 @@ def render_auth_guidance(
             except Exception:  # noqa: BLE001 — defensive fallback
                 # Minimal inline fallback preserving the canonical format.
                 try:
-                    sys.stderr.write(
-                        "spec-kitty: logged_out_on_connected_teamspace "
-                        f"teamspace={handle} "
-                        f"command={cmd} "
-                        "action=run-spec-kitty-auth-login\n"
-                    )
+                    sys.stderr.write(f"spec-kitty: logged_out_on_connected_teamspace teamspace={handle} command={cmd} action=run-spec-kitty-auth-login\n")
                     sys.stderr.flush()
                 except Exception:  # noqa: BLE001
                     pass

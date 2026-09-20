@@ -57,9 +57,7 @@ class MissionSelectorAmbiguous(Exception):
         self.handle = handle
         self.candidates = candidates
         super().__init__(
-            f"Mission handle {handle!r} matches multiple missions: "
-            f"{', '.join(candidates)}. Re-run with a more specific handle "
-            f"(full slug or full mission_id)."
+            f"Mission handle {handle!r} matches multiple missions: {', '.join(candidates)}. Re-run with a more specific handle (full slug or full mission_id)."
         )
 
 
@@ -87,11 +85,7 @@ class StatusReadPathNotFound(Exception):
         self.mid8 = mid8
         self.coord_candidate = coord_candidate
         self.primary_candidate = primary_candidate
-        super().__init__(
-            f"Status read path not found for {mission_slug!r} "
-            f"(mid8={mid8!r}): checked {coord_candidate} and "
-            f"{primary_candidate}"
-        )
+        super().__init__(f"Status read path not found for {mission_slug!r} (mid8={mid8!r}): checked {coord_candidate} and {primary_candidate}")
 
 
 def _declares_coordination_branch(path: Path) -> bool:
@@ -138,9 +132,7 @@ def stored_topology_from_meta(meta: Mapping[str, object]) -> MissionTopology | N
         return None
 
 
-def classify_from_meta(
-    meta: Mapping[str, object], feature_dir: Path
-) -> MissionTopology | None:
+def classify_from_meta(meta: Mapping[str, object], feature_dir: Path) -> MissionTopology | None:
     """Acquire a **concrete** :class:`MissionTopology` from an in-hand primary meta.
 
     The read-path BOUNDARY **absorbing** API (FR-004 / T015): it converts the
@@ -247,9 +239,7 @@ def coord_feature_dir(repo_root: Path, mission_slug: str, mid8: str) -> Path:
     # explicitly so the join's return narrows back to ``Path`` (the same pattern
     # as ``_compose_mission_dir``'s cast in this module).
     coord_root: Path = CoordinationWorkspace.worktree_path(repo_root, mission_slug, mid8)
-    feature_dir: Path = (
-        coord_root / KITTY_SPECS_DIR / _compose_mission_dir(mission_slug, mid8)
-    )
+    feature_dir: Path = coord_root / KITTY_SPECS_DIR / _compose_mission_dir(mission_slug, mid8)
     return feature_dir
 
 
@@ -399,12 +389,7 @@ def _resolve_existing_for_slug(
         if coord_state is CoordState.MATERIALIZED:
             return coord_feature_dir(repo_root, mission_slug, mid8)
     if primary_candidate.exists():
-        if (
-            topology is None
-            and has_coord_candidate
-            and coord_worktree_materialized
-            and _declares_coordination_branch(primary_candidate)
-        ):
+        if topology is None and has_coord_candidate and coord_worktree_materialized and _declares_coordination_branch(primary_candidate):
             # Corrupt-meta fail-closed (C-004): ``topology is None`` is now reached
             # ONLY for a corrupt/unreadable primary meta (WP06/WP17 absorb the absent
             # FIELD into a concrete shape at every boundary). Without a classifiable
@@ -417,9 +402,7 @@ def _resolve_existing_for_slug(
     return None
 
 
-def _canonicalize_bare_modern_handle(
-    repo_root: Path, handle: str, *, resolver: MissionResolver | None = None
-) -> str:
+def _canonicalize_bare_modern_handle(repo_root: Path, handle: str, *, resolver: MissionResolver | None = None) -> str:
     """Rewrite a bare human slug to its composed ``<slug>-<mid8>`` dir name.
 
     The shared FR-004 bare-human-slug fold: when the operator typed a bare human
@@ -474,9 +457,7 @@ def _canonicalize_bare_modern_handle(
     return bare_dir_name if bare_dir_name is not None else handle
 
 
-def _canonicalize_handle(
-    repo_root: Path, handle: str, *, resolver: MissionResolver | None = None
-) -> tuple[str, str, Path] | None:
+def _canonicalize_handle(repo_root: Path, handle: str, *, resolver: MissionResolver | None = None) -> tuple[str, str, Path] | None:
     """Resolve a mission *handle* to its canonical ``(slug, mid8, feature_dir)``.
 
     A *handle* is whatever the operator typed into ``--mission``: a full
@@ -606,9 +587,7 @@ def _resolve_mission_read_path(
     # so the surface leg (via ``candidate_feature_dir_for_mission``) and the guarded
     # seam converge on the composed name. When the slug is rewritten, re-derive the
     # mid8 from the composed name so the empty bare-slug mid8 does not persist.
-    canonical_bare = _canonicalize_bare_modern_handle(
-        repo_root, mission_slug, resolver=resolver
-    )
+    canonical_bare = _canonicalize_bare_modern_handle(repo_root, mission_slug, resolver=resolver)
     if canonical_bare != mission_slug:
         mission_slug = canonical_bare
         if not mid8:
@@ -617,9 +596,7 @@ def _resolve_mission_read_path(
     # First attempt: treat ``mission_slug`` as a literal directory name. This is
     # the pure-path happy path — when the canonical ``<slug>-<mid8>`` directory
     # exists we never touch the (heavier) handle resolver.
-    literal = _resolve_existing_for_slug(
-        repo_root, mission_slug, mid8, topology=topology
-    )
+    literal = _resolve_existing_for_slug(repo_root, mission_slug, mid8, topology=topology)
     if literal is not None:
         return literal
 
@@ -632,15 +609,10 @@ def _resolve_mission_read_path(
     if canonical is not None:
         canonical_slug, canonical_mid8, canonical_dir = canonical
         if (canonical_slug, canonical_mid8) != (mission_slug, mid8):
-            resolved = _resolve_existing_for_slug(
-                repo_root, canonical_slug, canonical_mid8, topology=topology
-            )
+            resolved = _resolve_existing_for_slug(repo_root, canonical_slug, canonical_mid8, topology=topology)
             if resolved is not None:
                 return resolved
-        if (
-            _compose_mission_dir(canonical_slug, canonical_mid8) != canonical_dir.name
-            and canonical_dir.exists()
-        ):
+        if _compose_mission_dir(canonical_slug, canonical_mid8) != canonical_dir.name and canonical_dir.exists():
             # Backfilled mission: the directory name lacks the ``-<mid8>``
             # suffix, so the recomposed ``<slug>-<mid8>`` candidate above
             # double-suffixes and misses. The handle resolver already located
@@ -783,11 +755,7 @@ def _resolve_not_found(
     # non-gated path keeps the historical fail-closed raise below so existing
     # ``candidate_feature_dir_for_mission`` callers (e.g. the ``mission run``
     # boundary's raw-passthrough on ``StatusReadPathNotFound``) are unchanged.
-    if (
-        require_exists
-        and coord_state is CoordState.EMPTY
-        and primary_candidate.exists()
-    ):
+    if require_exists and coord_state is CoordState.EMPTY and primary_candidate.exists():
         return primary_candidate
 
     # Fail-closed: primary exists but declares a coord branch whose materialised
@@ -799,11 +767,7 @@ def _resolve_not_found(
     # ``_declares_coordination_branch`` husk read; a concrete stored topology has
     # ALREADY decided the shape, so the husk is not the deciding signal.
     fail_closed = (
-        topology is None
-        and primary_candidate.exists()
-        and bool(mid8)
-        and coord_state is CoordState.EMPTY
-        and _declares_coordination_branch(primary_candidate)
+        topology is None and primary_candidate.exists() and bool(mid8) and coord_state is CoordState.EMPTY and _declares_coordination_branch(primary_candidate)
     )
     if fail_closed or require_exists:
         raise StatusReadPathNotFound(
@@ -819,9 +783,7 @@ def _resolve_not_found(
     return primary_candidate
 
 
-def read_primary_meta(
-    repo_root: Path, handle: str
-) -> tuple[dict[str, object], bool]:
+def read_primary_meta(repo_root: Path, handle: str) -> tuple[dict[str, object], bool]:
     """Return ``(primary_meta, declares_coordination)`` from the primary mission meta.
 
     Shared read-side primitive (FR-001): ``meta.json`` lives on the **primary
@@ -985,9 +947,7 @@ def resolve_handle_to_read_path(
     # stale-coord husk (the #2062 / NFR-002 close, extended to un-backfilled
     # missions). C-004 boundary discipline: only the absent FIELD is absorbed here;
     # the corrupt/unreadable-meta arm stays the callers' separate typed path.
-    stored_topology = classify_from_meta(
-        primary_meta, _compose_primary_feature_dir(repo_root, handle)
-    )
+    stored_topology = classify_from_meta(primary_meta, _compose_primary_feature_dir(repo_root, handle))
     # A concrete coord-routing topology consults the coord husk; an absorbed
     # coord-less topology resolves PRIMARY (the #2062 close). ``None`` is the
     # absent/unreadable-meta legacy arm — preserve the historical husk-consulting
@@ -997,9 +957,7 @@ def resolve_handle_to_read_path(
     # a stored coord-routing classification).
     from mission_runtime import routes_through_coordination
 
-    consults_coord_husk = stored_topology is None or routes_through_coordination(
-        stored_topology
-    )
+    consults_coord_husk = stored_topology is None or routes_through_coordination(stored_topology)
 
     # 4. M5 fail-closed: a coord-declared topology with an unprovable identity
     #    must not silently read a stale primary view. FR-006: only a stored
@@ -1018,11 +976,7 @@ def resolve_handle_to_read_path(
         )
 
     raw_coord_branch = primary_meta.get("coordination_branch")
-    coordination_branch = (
-        str(raw_coord_branch).strip()
-        if isinstance(raw_coord_branch, str) and raw_coord_branch.strip()
-        else None
-    )
+    coordination_branch = str(raw_coord_branch).strip() if isinstance(raw_coord_branch, str) and raw_coord_branch.strip() else None
 
     # 4b. DELETED hard-fail (WP05 / T022, FR-005): the coord worktree is absent AND
     #     the declared coordination branch has been DELETED from git. Probe the
@@ -1036,22 +990,12 @@ def resolve_handle_to_read_path(
     #     unmerged status) is gone (#1848 data-loss carve-out). Gated on
     #     ``require_exists`` so the lenient ``candidate_feature_dir_for_mission``
     #     diagnostic path keeps its primary-candidate return.
-    if (
-        require_exists
-        and mid8
-        and coordination_branch is not None
-        and consults_coord_husk
-    ):
+    if require_exists and mid8 and coordination_branch is not None and consults_coord_husk:
         from specify_cli.coordination.surface_resolver import (
             CoordinationBranchDeleted,
         )
 
-        if (
-            probe_coord_state(
-                repo_root, handle, mid8, coordination_branch=coordination_branch
-            )
-            is CoordState.DELETED
-        ):
+        if probe_coord_state(repo_root, handle, mid8, coordination_branch=coordination_branch) is CoordState.DELETED:
             # #4403: the payload is built by the ONE ``for_mission`` factory
             # (it composes the coord candidate; the primary candidate stays
             # this site's composed primary dir).
@@ -1153,9 +1097,7 @@ def resolve_surface_dir_or_typed_error(
     return surface.parent
 
 
-def candidate_feature_dir_for_mission(
-    repo_root: Path, mission_slug: str, *, resolver: MissionResolver | None = None
-) -> Path:
+def candidate_feature_dir_for_mission(repo_root: Path, mission_slug: str, *, resolver: MissionResolver | None = None) -> Path:
     """Return the topology-aware mission-dir candidate without requiring it exist.
 
     This is the **single read primitive** (C-005 / FR-002): it delegates to
@@ -1215,9 +1157,7 @@ def candidate_feature_dir_for_mission(
     # (the C-004 corrupt-meta path), preserving the historical contract that this
     # primitive never raised on a bad ``meta.json`` (the diagnostic belongs to each
     # caller, not to dir resolution).
-    stored_topology = _stored_topology_best_effort(
-        repo_root, mission_slug, resolver=resolver
-    )
+    stored_topology = _stored_topology_best_effort(repo_root, mission_slug, resolver=resolver)
 
     return _resolve_mission_read_path(
         repo_root,
@@ -1228,9 +1168,7 @@ def candidate_feature_dir_for_mission(
     )
 
 
-def _stored_topology_best_effort(
-    repo_root: Path, mission_slug: str, *, resolver: MissionResolver | None = None
-) -> MissionTopology | None:
+def _stored_topology_best_effort(repo_root: Path, mission_slug: str, *, resolver: MissionResolver | None = None) -> MissionTopology | None:
     """Read the WP02 **stored** topology from primary meta, degrading on error.
 
     The resilient topology read for :func:`candidate_feature_dir_for_mission` (the
@@ -1262,9 +1200,7 @@ def _stored_topology_best_effort(
     from specify_cli.core.paths import MissionMetaReadError
 
     try:
-        canonical_handle = _canonicalize_bare_modern_handle(
-            repo_root, mission_slug, resolver=resolver
-        )
+        canonical_handle = _canonicalize_bare_modern_handle(repo_root, mission_slug, resolver=resolver)
         primary_meta, _ = read_primary_meta(repo_root, canonical_handle)
     except (ValueError, OSError, MissionMetaReadError):
         return None
@@ -1321,9 +1257,7 @@ def _compose_primary_feature_dir(repo_root: Path, mission_slug: str) -> Path:
     return primary_dir
 
 
-def _canonicalize_primary_read_handle(
-    repo_root: Path, handle: str, *, resolver: MissionResolver | None = None
-) -> str:
+def _canonicalize_primary_read_handle(repo_root: Path, handle: str, *, resolver: MissionResolver | None = None) -> str:
     """Fold a mission *handle* to its canonical on-disk dir NAME for a PRIMARY read.
 
     The caller-side companion that keeps :func:`primary_feature_dir_for_mission`
@@ -1469,9 +1403,7 @@ def resolve_planning_read_dir(
         # PRIMARY-partition kind back through THIS function — so calling the
         # wrapper here would recurse forever (Ledger M16 — the exact cliff this
         # WP's Half A/Half B split exists to cross safely).
-        canonical = _canonicalize_primary_read_handle(
-            repo_root, mission_slug, resolver=resolver
-        )
+        canonical = _canonicalize_primary_read_handle(repo_root, mission_slug, resolver=resolver)
         return _compose_primary_feature_dir(repo_root, canonical)
     # STATUS-partition read → topology-aware seam (C-001 / C-005 transients intact).
     return candidate_feature_dir_for_mission(repo_root, mission_slug, resolver=resolver)
@@ -1520,21 +1452,15 @@ def resolve_subtasks_gate_dir(
     if effective_root is not None:
         from mission_runtime import placement_seam
 
-        return placement_seam(
-            primary_root, mission_slug, effective_root=effective_root
-        ).read_dir(MissionArtifactKind.TASKS_INDEX)
+        return placement_seam(primary_root, mission_slug, effective_root=effective_root).read_dir(MissionArtifactKind.TASKS_INDEX)
     # resolve_planning_read_dir is defined in this same module, so its
     # declared `-> Path` return type is visible to mypy directly (no
     # follow_imports=skip boundary crossed here) — a cast was redundant
     # (#2675 WP07 T062).
-    return resolve_planning_read_dir(
-        primary_root, mission_slug, kind=MissionArtifactKind.TASKS_INDEX
-    )
+    return resolve_planning_read_dir(primary_root, mission_slug, kind=MissionArtifactKind.TASKS_INDEX)
 
 
-def resolve_bare_modern_mission_dir_name(
-    repo_root: Path, mission_slug: str
-) -> str | None:
+def resolve_bare_modern_mission_dir_name(repo_root: Path, mission_slug: str) -> str | None:
     """Resolve a *bare* modern slug to its on-disk ``<slug>-<mid8>`` dir NAME.
 
     The canonical home for the "bare human slug names a composed primary dir"
@@ -1577,11 +1503,7 @@ def resolve_bare_modern_mission_dir_name(
     if not specs_dir.is_dir():
         return None
 
-    matches: list[str] = [
-        meta_path.parent.name
-        for meta_path in sorted(specs_dir.glob(f"{mission_slug}-*/meta.json"))
-        if mid8_from_slug(meta_path.parent.name)
-    ]
+    matches: list[str] = [meta_path.parent.name for meta_path in sorted(specs_dir.glob(f"{mission_slug}-*/meta.json")) if mid8_from_slug(meta_path.parent.name)]
     if len(matches) > 1:
         # #4723: never collapse >1 match onto the same ``None`` the 0-match case
         # returns — that silent collapse is exactly the no-silent-fallback

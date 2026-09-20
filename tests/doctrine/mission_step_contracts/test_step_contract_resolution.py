@@ -54,9 +54,7 @@ class TestGetByMission:
         assert {c.id for c in contracts} == {"sd-review", "sd-implement", "sd-plan"}
         assert all(c.mission == "software-dev" for c in contracts)
 
-    def test_orders_by_action_deterministically(
-        self, multi_mission_repo: MissionStepContractRepository
-    ) -> None:
+    def test_orders_by_action_deterministically(self, multi_mission_repo: MissionStepContractRepository) -> None:
         actions = [c.action for c in multi_mission_repo.get_by_mission("software-dev")]
         assert actions == ["implement", "plan", "review"]
 
@@ -65,18 +63,14 @@ class TestGetByMission:
 
 
 class TestResolveStepContractIds:
-    def test_returns_action_ordered_ids(
-        self, multi_mission_repo: MissionStepContractRepository
-    ) -> None:
+    def test_returns_action_ordered_ids(self, multi_mission_repo: MissionStepContractRepository) -> None:
         assert resolve_step_contract_ids("software-dev", repository=multi_mission_repo) == [
             "sd-implement",
             "sd-plan",
             "sd-review",
         ]
 
-    def test_unknown_type_is_empty(
-        self, multi_mission_repo: MissionStepContractRepository
-    ) -> None:
+    def test_unknown_type_is_empty(self, multi_mission_repo: MissionStepContractRepository) -> None:
         assert resolve_step_contract_ids("no-such-mission", repository=multi_mission_repo) == []
 
     def test_default_repository_reads_shipped_software_dev_contracts(self) -> None:

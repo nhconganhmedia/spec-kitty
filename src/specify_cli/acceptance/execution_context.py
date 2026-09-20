@@ -170,9 +170,7 @@ class GateExecutionContext:
                 actual_ref=actual_ref,
             )
 
-    def not_applicable_below(
-        self, minimum_phase: LifecyclePhase
-    ) -> CannotEvaluate | None:
+    def not_applicable_below(self, minimum_phase: LifecyclePhase) -> CannotEvaluate | None:
         """PH-1: refuse (not pass/fail) when below the gate's declared floor.
 
         Returns a :class:`CannotEvaluate` naming ``NOT_APPLICABLE_IN_PHASE`` when
@@ -183,18 +181,13 @@ class GateExecutionContext:
         if self.phase < minimum_phase:
             return CannotEvaluate(
                 reason=CannotEvaluateReason.BELOW_MINIMUM_PHASE,
-                detail=(
-                    f"Gate is not applicable at phase {self.phase.name}: its subject "
-                    f"cannot exist before {minimum_phase.name}."
-                ),
+                detail=(f"Gate is not applicable at phase {self.phase.name}: its subject cannot exist before {minimum_phase.name}."),
                 surface_kind=self.surface_kind,
                 ref=self.ref,
             )
         return None
 
-    def surface_cannot_hold(
-        self, declared_home: TopologySurface
-    ) -> CannotEvaluate | None:
+    def surface_cannot_hold(self, declared_home: TopologySurface) -> CannotEvaluate | None:
         """GEC-5 / C2: a stamp is not permission.
 
         When the kind's ``declared_home`` is ``COORD`` but this context's surface
@@ -210,10 +203,7 @@ class GateExecutionContext:
         branch on this type (GEC-4). ``declared_home`` is computed once, upstream,
         by :func:`declared_home_surface` from the canonical partition authority.
         """
-        if (
-            declared_home is TopologySurface.COORD
-            and self.surface_kind is TopologySurface.PRIMARY
-        ):
+        if declared_home is TopologySurface.COORD and self.surface_kind is TopologySurface.PRIMARY:
             return CannotEvaluate(
                 reason=CannotEvaluateReason.SURFACE_CANNOT_HOLD_FACT,
                 detail=(
@@ -264,7 +254,10 @@ def declared_home_surface(
     predicate, two consumers — never a second competing guard.
     """
     return declared_read_surface(
-        repo_root, mission_slug, kind, resolver=resolver,
+        repo_root,
+        mission_slug,
+        kind,
+        resolver=resolver,
         **effective_root_kwargs(effective_root),
     )
 
@@ -296,9 +289,7 @@ def _git_head_of(surface: Path) -> str:
     """
     from specify_cli.task_utils import run_git
 
-    result = run_git(
-        ["symbolic-ref", "--short", "HEAD"], cwd=surface, check=False
-    )
+    result = run_git(["symbolic-ref", "--short", "HEAD"], cwd=surface, check=False)
     if result.returncode != 0:
         return _DETACHED_HEAD_SENTINEL
     # ``result.stdout`` widens to ``Any`` across the subprocess boundary; bind
@@ -334,7 +325,10 @@ def build_gate_execution_context(
             deleted from git (propagated from the resolver, C3 fail-loud).
     """
     resolved = resolve_artifact_surface(
-        repo_root, mission_slug, kind, resolver=resolver,
+        repo_root,
+        mission_slug,
+        kind,
+        resolver=resolver,
         **effective_root_kwargs(effective_root),
     )
     return GateExecutionContext(

@@ -27,6 +27,7 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
+
 class TestComputeSnapshotDeterministic:
     """T023: Deterministic snapshot computation"""
 
@@ -581,13 +582,7 @@ class TestSnapshotPersistence:
 
         save_snapshot(snapshot, tmp_path)
 
-        expected_file = (
-            tmp_path
-            / ".kittify"
-            / "dossiers"
-            / "042-local-mission-dossier"
-            / "snapshot-latest.json"
-        )
+        expected_file = tmp_path / ".kittify" / "dossiers" / "042-local-mission-dossier" / "snapshot-latest.json"
         assert expected_file.exists()
 
     def test_snapshot_loads_from_json(self, tmp_path: Path) -> None:
@@ -623,9 +618,7 @@ class TestSnapshotPersistence:
             optional_artifacts=3,
             optional_present=2,
             parity_hash_components=["b" * 64, "c" * 64],
-            artifact_summaries=[
-                {"artifact_key": "test", "artifact_class": "input", "is_present": True}
-            ],
+            artifact_summaries=[{"artifact_key": "test", "artifact_class": "input", "is_present": True}],
         )
 
         save_snapshot(snapshot, tmp_path)
@@ -971,17 +964,18 @@ class TestSnapshotTraversalGuard:
         # Force the mission_slug field to the bad slug so it goes through the sink
         return snap.model_copy(update={"mission_slug": mission_slug})
 
-    @pytest.mark.parametrize("bad_slug", [
-        "../escaped",
-        "../../etc/passwd",
-        "foo/bar",
-        ".hidden",
-        "a..b",
-        "",
-    ])
-    def test_save_snapshot_rejects_traversal_slug(
-        self, tmp_path: Path, bad_slug: str
-    ) -> None:
+    @pytest.mark.parametrize(
+        "bad_slug",
+        [
+            "../escaped",
+            "../../etc/passwd",
+            "foo/bar",
+            ".hidden",
+            "a..b",
+            "",
+        ],
+    )
+    def test_save_snapshot_rejects_traversal_slug(self, tmp_path: Path, bad_slug: str) -> None:
         """save_snapshot with a traversal slug must raise ValueError."""
         snapshot = self._make_snapshot(bad_slug)
         with pytest.raises(ValueError):
@@ -989,17 +983,18 @@ class TestSnapshotTraversalGuard:
         # Nothing may have been written under the feature_dir
         assert not any(tmp_path.rglob("snapshot-latest.json"))
 
-    @pytest.mark.parametrize("bad_slug", [
-        "../escaped",
-        "../../etc/passwd",
-        "foo/bar",
-        ".hidden",
-        "a..b",
-        "",
-    ])
-    def test_load_snapshot_rejects_traversal_slug(
-        self, tmp_path: Path, bad_slug: str
-    ) -> None:
+    @pytest.mark.parametrize(
+        "bad_slug",
+        [
+            "../escaped",
+            "../../etc/passwd",
+            "foo/bar",
+            ".hidden",
+            "a..b",
+            "",
+        ],
+    )
+    def test_load_snapshot_rejects_traversal_slug(self, tmp_path: Path, bad_slug: str) -> None:
         """load_snapshot with a traversal slug must raise ValueError."""
         with pytest.raises(ValueError):
             load_snapshot(tmp_path, bad_slug)

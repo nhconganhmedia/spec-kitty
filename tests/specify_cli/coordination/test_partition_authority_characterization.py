@@ -64,9 +64,7 @@ _COORD_REF = _COORD_BRANCH
 _COORD_CALLER_KIND = MissionArtifactKind.STATUS_STATE
 
 
-def _fake_resolve_placement_only(
-    _repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind
-) -> CommitTarget:
+def _fake_resolve_placement_only(_repo_root: Path, _mission_slug: str, *, kind: MissionArtifactKind) -> CommitTarget:
     """Kind-aware placement stub matching ``test_commit_router_partition.py``'s
     convention: PRIMARY kinds -> the primary ref, everything else -> coord."""
     if is_primary_artifact_kind(kind):
@@ -82,9 +80,7 @@ class TestThreeSitesCurrentPartitionDecisions:
         """Site 1 (write): ``implement.py::_partition_files_for_commit``."""
         from specify_cli.cli.commands.implement import _partition_files_for_commit
 
-        primary, coord = _partition_files_for_commit(
-            [_COORD_RESIDUE_PATH, _PRIMARY_PATH, _META_PATH, _UNRECOGNIZED_PATH]
-        )
+        primary, coord = _partition_files_for_commit([_COORD_RESIDUE_PATH, _PRIMARY_PATH, _META_PATH, _UNRECOGNIZED_PATH])
         assert coord == [_COORD_RESIDUE_PATH]
         assert primary == [_PRIMARY_PATH, _META_PATH, _UNRECOGNIZED_PATH]
 
@@ -97,9 +93,7 @@ class TestThreeSitesCurrentPartitionDecisions:
         assert resolve_precondition_ref(_META_PATH, _COORD_BRANCH) == "HEAD"
         assert resolve_precondition_ref(_UNRECOGNIZED_PATH, _COORD_BRANCH) == "HEAD"
 
-    def test_write_side_group_files_by_partition_agrees_on_recognized_paths(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_write_side_group_files_by_partition_agrees_on_recognized_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Site 3 (write): ``commit_router._group_files_by_partition``, under
         a COORD-kind caller -- the RECOGNIZED paths (coord-residue, PRIMARY)
         already agree with the residue predicate: each lands on its OWN
@@ -109,12 +103,8 @@ class TestThreeSitesCurrentPartitionDecisions:
         coord_residue = Path(_COORD_RESIDUE_PATH)
         primary = Path(_PRIMARY_PATH)
 
-        groups = commit_router._group_files_by_partition(
-            tmp_path, (coord_residue, primary), "m", kind=_COORD_CALLER_KIND
-        )
-        ref_by_kind = {
-            kind: commit_router.resolve_placement_only(tmp_path, "m", kind=kind).ref for kind, _files in groups
-        }
+        groups = commit_router._group_files_by_partition(tmp_path, (coord_residue, primary), "m", kind=_COORD_CALLER_KIND)
+        ref_by_kind = {kind: commit_router.resolve_placement_only(tmp_path, "m", kind=kind).ref for kind, _files in groups}
         files_by_kind = dict(groups)
         assert coord_residue in files_by_kind[MissionArtifactKind.STATUS_STATE]
         assert ref_by_kind[MissionArtifactKind.STATUS_STATE] == _COORD_REF
@@ -153,14 +143,11 @@ class TestDisagreementSetRoutesPrimaryOnResidueButCoordUnderCommitRouter:
     @pytest.mark.parametrize("kind_none_path", [_META_PATH, _UNRECOGNIZED_PATH])
     def test_residue_authority_routes_kind_none_to_primary(self, kind_none_path: str) -> None:
         assert is_coord_residue_churn(kind_none_path) is False, (
-            f"{kind_none_path!r} is kind=None (not in the coord-residue kind "
-            f"set) -- the residue authority must route it PRIMARY"
+            f"{kind_none_path!r} is kind=None (not in the coord-residue kind set) -- the residue authority must route it PRIMARY"
         )
 
     @pytest.mark.parametrize("kind_none_path", [_META_PATH, _UNRECOGNIZED_PATH])
-    def test_commit_router_kind_none_now_routes_primary_not_the_coord_caller(
-        self, kind_none_path: str
-    ) -> None:
+    def test_commit_router_kind_none_now_routes_primary_not_the_coord_caller(self, kind_none_path: str) -> None:
         """Post-WP05 (#2650 T023): under a COORD-kind caller, a ``kind=None``
         path no longer joins the caller's COORD group -- it routes PRIMARY,
         agreeing with the residue authority above. ``commit_router``'s
@@ -168,9 +155,7 @@ class TestDisagreementSetRoutesPrimaryOnResidueButCoordUnderCommitRouter:
         ``mission_runtime.is_coordination_artifact_residue_path`` instead of
         falling back to the caller's own kind, closing the #2533-class hole
         this class documents."""
-        groups = commit_router._group_files_by_partition(
-            Path("/tmp"), (Path(kind_none_path),), "m", kind=_COORD_CALLER_KIND
-        )
+        groups = commit_router._group_files_by_partition(Path("/tmp"), (Path(kind_none_path),), "m", kind=_COORD_CALLER_KIND)
         assert len(groups) == 1  # (single-partition; kind asserted below)
         group_kind, group_files = groups[0]
         assert is_primary_artifact_kind(group_kind), (

@@ -39,6 +39,7 @@ from tests.integration.retrospective.conftest import (
 
 pytestmark = [pytest.mark.integration]
 
+
 def _setup_hic_repo(tmp_path: Path, slug: str) -> tuple[Path, str]:
     """Create a minimal repo for HiC tests.
 
@@ -109,9 +110,7 @@ def test_hic_run_emits_correct_event_sequence(
     # requested event must carry actor.kind=human.
     events = read_events(feature_dir)
     requested = next(e for e in events if e["event_name"] == "retrospective.requested")
-    assert requested["actor"]["kind"] == "human", (
-        f"Expected actor.kind='human' on requested event, got: {requested['actor']}"
-    )
+    assert requested["actor"]["kind"] == "human", f"Expected actor.kind='human' on requested event, got: {requested['actor']}"
     assert requested["actor"]["id"] == HUMAN_ACTOR.id
 
     # retrospective.yaml must exist with status=completed.

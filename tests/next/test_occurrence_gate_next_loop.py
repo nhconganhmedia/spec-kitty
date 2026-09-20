@@ -126,8 +126,7 @@ def _scaffold_finalize_ready_feature(
     tasks_dir = feature_dir / "tasks"
     tasks_dir.mkdir()
     (tasks_dir / "WP01.md").write_text(
-        "---\nwork_package_id: WP01\ntitle: WP01\ndependencies: []\n"
-        "requirement_refs: [FR-001]\n---\n# WP01\nDo something.\n",
+        "---\nwork_package_id: WP01\ntitle: WP01\ndependencies: []\nrequirement_refs: [FR-001]\n---\n# WP01\nDo something.\n",
         encoding="utf-8",
     )
 
@@ -144,18 +143,14 @@ def _scaffold_finalize_ready_feature(
 
 class TestOccurrenceGateFailuresHelper:
     def test_non_bulk_edit_is_noop(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode=None, occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode=None, occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _occurrence_gate_failures
 
         assert _occurrence_gate_failures(feature_dir) == []
 
     def test_bulk_edit_missing_map_returns_canonical_error(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _occurrence_gate_failures
 
@@ -164,9 +159,7 @@ class TestOccurrenceGateFailuresHelper:
         assert "Occurrence map required" in failures[0]
 
     def test_bulk_edit_valid_admissible_map_is_noop(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=VALID_OCCURRENCE_MAP
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=VALID_OCCURRENCE_MAP)
 
         from runtime.next.runtime_bridge import _occurrence_gate_failures
 
@@ -180,9 +173,7 @@ class TestOccurrenceGateFailuresHelper:
 
 class TestCheckCliGuardsOccurrenceGate:
     def test_blocks_bulk_edit_missing_map(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_cli_guards
 
@@ -191,9 +182,7 @@ class TestCheckCliGuardsOccurrenceGate:
         assert "Occurrence map required" in failures[0]
 
     def test_blocks_bulk_edit_schema_invalid_map(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=SCHEMA_INVALID_OCCURRENCE_MAP
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=SCHEMA_INVALID_OCCURRENCE_MAP)
 
         from runtime.next.runtime_bridge import _check_cli_guards
 
@@ -204,23 +193,17 @@ class TestCheckCliGuardsOccurrenceGate:
         assert any("target" in f.lower() for f in failures), failures
 
     def test_blocks_bulk_edit_inadmissible_map(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=INADMISSIBLE_OCCURRENCE_MAP
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=INADMISSIBLE_OCCURRENCE_MAP)
 
         from runtime.next.runtime_bridge import _check_cli_guards
 
         failures = _check_cli_guards("tasks_finalize", feature_dir)
         # Provenance-pinned: the failure must be the admissibility error from
         # the occurrence gate (too few / missing standard categories).
-        assert any(
-            "at least" in f.lower() or "categor" in f.lower() for f in failures
-        ), failures
+        assert any("at least" in f.lower() or "categor" in f.lower() for f in failures), failures
 
     def test_passes_bulk_edit_valid_admissible_map(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=VALID_OCCURRENCE_MAP
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=VALID_OCCURRENCE_MAP)
 
         from runtime.next.runtime_bridge import _check_cli_guards
 
@@ -228,9 +211,7 @@ class TestCheckCliGuardsOccurrenceGate:
         assert failures == []
 
     def test_noop_non_bulk_edit_mission(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode=None, occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode=None, occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_cli_guards
 
@@ -239,9 +220,7 @@ class TestCheckCliGuardsOccurrenceGate:
 
     def test_tasks_outline_and_tasks_packages_are_not_gated(self, tmp_path: Path) -> None:
         """Regression guard: the occurrence gate fires only at tasks_finalize."""
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_cli_guards
 
@@ -256,9 +235,7 @@ class TestCheckCliGuardsOccurrenceGate:
 
 class TestCheckComposedActionGuardOccurrenceGate:
     def test_blocks_bulk_edit_missing_map_composition_only(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_composed_action_guard
 
@@ -267,22 +244,16 @@ class TestCheckComposedActionGuardOccurrenceGate:
         assert "Occurrence map required" in failures[0]
 
     def test_blocks_bulk_edit_missing_map_legacy_tasks_finalize(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_composed_action_guard
 
-        failures = _check_composed_action_guard(
-            "tasks", feature_dir, legacy_step_id="tasks_finalize"
-        )
+        failures = _check_composed_action_guard("tasks", feature_dir, legacy_step_id="tasks_finalize")
         assert len(failures) == 1
         assert "Occurrence map required" in failures[0]
 
     def test_passes_bulk_edit_valid_admissible_map(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=VALID_OCCURRENCE_MAP
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=VALID_OCCURRENCE_MAP)
 
         from runtime.next.runtime_bridge import _check_composed_action_guard
 
@@ -290,9 +261,7 @@ class TestCheckComposedActionGuardOccurrenceGate:
         assert failures == []
 
     def test_noop_non_bulk_edit_mission(self, tmp_path: Path) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode=None, occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode=None, occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_composed_action_guard
 
@@ -302,20 +271,14 @@ class TestCheckComposedActionGuardOccurrenceGate:
     def test_tasks_outline_and_tasks_packages_substeps_are_not_gated(self, tmp_path: Path) -> None:
         """Regression guard: composition substeps prior to tasks_finalize must
         not run the occurrence gate, matching `_check_cli_guards` semantics."""
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode="bulk_edit", occurrence_map_content=None
-        )
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode="bulk_edit", occurrence_map_content=None)
 
         from runtime.next.runtime_bridge import _check_composed_action_guard
 
-        outline_failures = _check_composed_action_guard(
-            "tasks", feature_dir, legacy_step_id="tasks_outline"
-        )
+        outline_failures = _check_composed_action_guard("tasks", feature_dir, legacy_step_id="tasks_outline")
         assert not any("Occurrence map required" in failure for failure in outline_failures)
 
-        packages_failures = _check_composed_action_guard(
-            "tasks", feature_dir, legacy_step_id="tasks_packages"
-        )
+        packages_failures = _check_composed_action_guard("tasks", feature_dir, legacy_step_id="tasks_packages")
         assert not any("Occurrence map required" in failure for failure in packages_failures)
 
 
@@ -335,12 +298,8 @@ class TestOccurrenceGateParityAcrossDispatchPaths:
             (None, None),
         ],
     )
-    def test_both_guards_agree_and_no_duplicate_error(
-        self, tmp_path: Path, change_mode: str | None, occurrence_map_content: str | None
-    ) -> None:
-        feature_dir = _scaffold_finalize_ready_feature(
-            tmp_path, change_mode=change_mode, occurrence_map_content=occurrence_map_content
-        )
+    def test_both_guards_agree_and_no_duplicate_error(self, tmp_path: Path, change_mode: str | None, occurrence_map_content: str | None) -> None:
+        feature_dir = _scaffold_finalize_ready_feature(tmp_path, change_mode=change_mode, occurrence_map_content=occurrence_map_content)
 
         from runtime.next.runtime_bridge import (
             _check_cli_guards,
@@ -348,15 +307,12 @@ class TestOccurrenceGateParityAcrossDispatchPaths:
         )
 
         legacy_failures = _check_cli_guards("tasks_finalize", feature_dir)
-        composed_failures = _check_composed_action_guard(
-            "tasks", feature_dir, legacy_step_id=None
-        )
+        composed_failures = _check_composed_action_guard("tasks", feature_dir, legacy_step_id=None)
 
         legacy_blocked = len(legacy_failures) > 0
         composed_blocked = len(composed_failures) > 0
         assert legacy_blocked == composed_blocked, (
-            "Both dispatch paths must agree on block/pass for the same fixture "
-            f"(legacy={legacy_failures!r}, composed={composed_failures!r})"
+            f"Both dispatch paths must agree on block/pass for the same fixture (legacy={legacy_failures!r}, composed={composed_failures!r})"
         )
 
         # No duplicate occurrence-gate error within a single guard's own
