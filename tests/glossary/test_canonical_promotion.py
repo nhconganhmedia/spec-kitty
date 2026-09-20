@@ -14,6 +14,7 @@ from __future__ import annotations
 import functools
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -166,6 +167,25 @@ WP02_CONTEXT_SOURCES_CONSOLIDATION_REFERRERS = frozenset(
     }
 )
 
+#: Referrers whose sanctioned post-WP02 history includes the #4506
+#: formatter-debt drain (release-owner ruling on
+#: spec-kitty/spec-kitty-planning#2433, 2026-09-20): the whole-repo
+#: ``ruff format`` sweep reflowed the file (481 -> 468 lines for the
+#: doctrine-paths gate, mostly joined string literals), so a line-by-line
+#: shape check can no longer model the diff. The expected content is
+#: instead reconstructed byte-exactly -- the WP02 base with the same
+#: sanctioned token flips and later-wave replacements applied, then passed
+#: through the repo's pinned ``ruff format`` (``--stdin-filename``, the
+#: invocation shape ``tests/architectural/test_ruff_format_enforcement.py``
+#: uses) -- and compared byte-for-byte against the live file. A *new*
+#: unsanctioned edit still reds: only the formatter's own reflow of
+#: exactly the sanctioned content is excused.
+WP02_FORMAT_SWEEP_REFERRERS = frozenset(
+    {
+        "tests/architectural/test_no_dead_doctrine_paths.py",
+    }
+)
+
 
 def _git_show(rel_path: str, base_commit: str) -> str:
     """Return historical content for *rel_path* at WP02's pre-rename base.
@@ -233,6 +253,35 @@ def _context_sources_consolidation_expected(rel_path: str, old_lines: list[str])
             "its `directive-references` name specific directives",
         )
     return text.splitlines()
+
+
+def _format_sweep_expected(rel_path: str, old_text: str) -> str:
+    """Byte-exact expected content for a #4506 format-swept referrer.
+
+    Applies the same sanctioned token flips and later-wave replacements the
+    line-by-line check below allows (whole-text form: they are plain string
+    substitutions), then the repo's pinned ``ruff format`` over the result,
+    using ``--stdin-filename`` so the formatter resolves exactly the config
+    that applies at *rel_path*'s real path. Raises on a formatter failure --
+    the gate never silently skips its own oracle.
+    """
+    text = old_text.replace(_OLD_GLOSSARY_PATH, "context/charter.md")
+    allow_source_topology = rel_path.startswith("src/charter/offering/") or rel_path in WP02_FORMAT_SWEEP_REFERRERS
+    if allow_source_topology:
+        text = text.replace("src/doctrine/", "src/charter/offering/")
+        text = text.replace("from doctrine", "from charter.offering")
+    for old, new in _LATER_WAVE_DOC_REPLACEMENTS.get(rel_path, ()):
+        text = text.replace(old, new)
+    proc = subprocess.run(
+        [sys.executable, "-m", "ruff", "format", "--stdin-filename", rel_path, "-"],
+        input=text,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, f"ruff format probe failed for {rel_path} (the #4506 format-sweep oracle cannot run): {proc.stderr}"
+    return proc.stdout
 
 
 def _flip_path_token(line: str, *, allow_source_topology: bool) -> str:
@@ -326,13 +375,24 @@ def test_wp02_referrer_diffs_are_exactly_the_path_token() -> None:
         pytest.skip("WP02 base commit unavailable in this checkout (likely a shallow clone) -- cannot diff against the pre-rename base")
     violations: list[str] = []
     for rel_path in WP02_PATH_TOKEN_ONLY_REFERRERS:
-        old_lines = _git_show(rel_path, base_commit).splitlines()
+        old_text = _git_show(rel_path, base_commit)
+        old_lines = old_text.splitlines()
         new_lines = (REPO_ROOT / rel_path).read_text(encoding="utf-8").splitlines()
         if rel_path in WP02_CONTEXT_SOURCES_CONSOLIDATION_REFERRERS:
             expected_lines = _context_sources_consolidation_expected(rel_path, old_lines)
             if _mask_updated_dates(new_lines) == _mask_updated_dates(expected_lines):
                 continue
             violations.append(f"{rel_path}: diff is not the sanctioned context-sources consolidation")
+            continue
+        if rel_path in WP02_FORMAT_SWEEP_REFERRERS:
+            # The #4506 formatter-debt drain reflowed this referrer (481 ->
+            # 468 lines), so the line-by-line shape check below cannot model
+            # it; the byte-exact reconstruction above is the sanctioned
+            # oracle for exactly this file (see WP02_FORMAT_SWEEP_REFERRERS).
+            new_text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+            if _format_sweep_expected(rel_path, old_text) == new_text:
+                continue
+            violations.append(f"{rel_path}: diff is not the sanctioned path-token flip plus the #4506 formatter drain")
             continue
         if len(old_lines) != len(new_lines):
             violations.append(f"{rel_path}: line count changed ({len(old_lines)} -> {len(new_lines)})")
