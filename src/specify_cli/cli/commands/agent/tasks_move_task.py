@@ -3515,6 +3515,58 @@ def _detect_arbiter_override(
     return bool(_is_arbiter_override(feature_dir, task_id, old_lane, target_canonical, force))
 
 
+#: The codec's per-attr UTF-8 byte bound for ``review_ref`` (mirrored from
+#: ``spec_kitty_events.zeitgeist_attrs``) and the fixed 3-UTF-8-byte cost of
+#: its truncation marker — the collapsed-prose path below stays byte-identical
+#: to the codec's own ``_truncate_utf8`` (same marker, same 237-byte budget,
+#: same ``errors="ignore"`` codepoint-safe decode).
+_REVIEW_REF_WIRE_BYTES = 240
+_REVIEW_REF_ELLIPSIS = "…"
+
+
+def _wire_safe_legacy_review_ref(value: str | None) -> str | None:
+    """Bound a re-emitted legacy ``review_ref`` to the codec's wire contract.
+
+    #4327 makes ``review_ref`` pointer-only at every producer, but a WP
+    rejected BEFORE that fix can still hold the operator's ``--note`` prose in
+    its persisted ``review_ref`` — and ``_run_arbiter_override`` is the one
+    site that re-emits a persisted ref onto the wire. Re-emitted raw, a
+    newline-bearing or over-bound legacy ref would make the codec drop the
+    whole moment (#3954's regression class), so the legacy value is collapsed
+    to one line and — only when still over the codec's 240-UTF-8-byte bound —
+    truncated on a codepoint boundary with the codec's own ``…`` marker (a
+    truncation is logged at INFO; the full note is untouched in the rejecting
+    event's own durable record). Pointer-shaped values — the pointer families
+    this fix writes, or any real pointer a pre-fix rejection already carried
+    (``review-cycle://``/``feedback://``, a URI, a path) — ride verbatim,
+    NEVER truncated: an over-bound pointer still fails closed loudly at the
+    codec (``_broadcast_moment``'s ``ZeitgeistAttrsError`` handling).
+    """
+    if not value:
+        return value
+    # Pointer-biased structural classification (KISS, no sentence detection):
+    # a path separator without a line break, or a colon-shaped token without
+    # any whitespace, is a pointer. Everything else is legacy prose.
+    if "/" in value and "\n" not in value:
+        return value
+    if ":" in value and not any(ch.isspace() for ch in value):
+        return value
+    collapsed = " ".join(value.split())
+    encoded = collapsed.encode("utf-8")
+    if len(encoded) <= _REVIEW_REF_WIRE_BYTES:
+        return collapsed
+    budget = _REVIEW_REF_WIRE_BYTES - len(_REVIEW_REF_ELLIPSIS.encode("utf-8"))
+    bounded = encoded[:budget].decode("utf-8", errors="ignore") + _REVIEW_REF_ELLIPSIS
+    logging.getLogger(__name__).info(
+        "Arbiter override re-emitted a legacy prose review_ref bounded to the"
+        " 240-UTF-8-byte wire limit (%d -> %d bytes); the full note stays in the"
+        " rejecting event's status.events.jsonl record",
+        len(encoded),
+        len(bounded.encode("utf-8")),
+    )
+    return bounded
+
+
 def _run_arbiter_override(
     *,
     feature_dir: Path,
@@ -3563,7 +3615,10 @@ def _run_arbiter_override(
     )
     _arb_wp_events = [e for e in _arb_events if e.wp_id == task_id]
     _arb_latest = _arb_wp_events[-1] if _arb_wp_events else None
-    _arb_review_ref = _arb_latest.review_ref if _arb_latest else None
+    # The rejection's review_ref is re-emitted onto the wire by this override —
+    # a pre-#4327 rejection can carry the operator's --note prose there, so it
+    # is bounded to the codec's wire contract before re-emission (#3954).
+    _arb_review_ref = _wire_safe_legacy_review_ref(_arb_latest.review_ref) if _arb_latest else None
 
     _arb_category, _arb_explanation = parse_category_from_note(note_text)
     _arb_actor = agent or "operator"

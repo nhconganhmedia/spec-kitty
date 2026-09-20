@@ -67,6 +67,20 @@ assert "\n" in _LONG_PROSE_NOTE
 _POINTER_SHAPED_RE = re.compile(r"^((auto-)?approval:WP\d+(:\d{8})?|review:WP\d+)$")
 
 
+def _bounded_prose_oracle(value: str, max_bytes: int = 240) -> str:
+    """Golden oracle for the re-emission bound (#4327 fix round): same marker,
+    same budget, same codepoint-safe decode as the codec's own truncation —
+    applied to the whitespace-collapsed value, mirroring
+    ``tasks_move_task._wire_safe_legacy_review_ref``'s prose path."""
+    collapsed = " ".join(value.split())
+    encoded = collapsed.encode("utf-8")
+    if len(encoded) <= max_bytes:
+        return collapsed
+    marker = "…"
+    budget = max_bytes - len(marker.encode("utf-8"))
+    return encoded[:budget].decode("utf-8", errors="ignore") + marker
+
+
 def _build_wp_file(tmp_path: Path, mission_slug: str, wp_id: str) -> Path:
     """Seed a minimal, production-shaped WP file + mission scaffold."""
     feature_dir = tmp_path / "kitty-specs" / mission_slug
@@ -204,10 +218,13 @@ def test_approval_with_overlong_prose_broadcasts_pointer_ref_and_persists_full_n
 def test_multihop_transition_offers_exactly_once_per_emitted_event(tmp_path: Path, offer_recorder: OfferRecorder) -> None:
     """#4327 T2: a genuine multi-hop ``move-task`` call (walking several lane
     hops in one invocation) offers exactly one moment PER emitted status
-    event -- not exactly one overall. Before the fix, the hop whose
-    review_ref carried the operator's overlong prose note silently dropped
-    while the other hops offered fine, so offers fell short of the event
-    count; with pointer-only refs every hop offers."""
+    event -- not exactly one overall -- and every offered ``review_ref`` is
+    pointer-shaped (or absent): no hop carries the operator's prose note into
+    the pointer slot. Before the fix, the hop whose review_ref carried the
+    operator's overlong prose note filled the slot with prose (and, on the
+    pre-interim base, silently dropped while the other hops offered fine, so
+    offers fell short of the event count); with pointer-only refs every hop
+    offers and every ref is a pointer."""
     feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=_MISSION, wp_id="WP01", lane="in_progress")
 
     result = _invoke(
@@ -234,6 +251,17 @@ def test_multihop_transition_offers_exactly_once_per_emitted_event(tmp_path: Pat
 
     moments = offer_recorder.moment_offers()
     assert len(moments) == len(emitted_this_call), f"expected one offer per emitted event ({len(emitted_this_call)}), got {len(moments)}"
+
+    # The pointer-only half, asserted PER HOP: every offered review_ref is a
+    # pointer/synthetic token (or the hop carries no ref at all) -- never the
+    # operator's prose, never a newline.
+    for _op, args in moments:
+        wire_review_ref = args["attrs"].get("review_ref")
+        if wire_review_ref is None:
+            continue
+        assert _POINTER_SHAPED_RE.match(wire_review_ref), f"every hop's wire review_ref must be pointer-shaped, got: {wire_review_ref!r}"
+        assert _LONG_PROSE_NOTE not in wire_review_ref
+        assert "\n" not in wire_review_ref
 
 
 @pytest.mark.regression
@@ -307,3 +335,123 @@ def test_direct_emission_with_overlong_prose_review_ref_fails_loud_not_silent(
 
     persisted = _persisted_events(feature_dir, "WP01")
     assert [e for e in persisted if e.review_ref == _LONG_PROSE_NOTE], "the canonical local log keeps the explicitly-written review_ref verbatim"
+
+
+@pytest.mark.regression
+def test_arbiter_override_rebroadcasts_legacy_prose_ref_bounded_not_dropped(
+    tmp_path: Path, offer_recorder: OfferRecorder, caplog: pytest.LogCaptureFixture
+) -> None:
+    """#4327 fix round (squad pass-2 MAJOR): an arbiter override re-emits the
+    REJECTION's persisted ``review_ref`` onto the wire. A pre-#4327 rejection
+    wrote the operator's ``--note`` prose into that slot, so the one live
+    re-emission site must bound the legacy value to the codec's wire contract
+    (one line, <=240 UTF-8 bytes) -- otherwise the codec's non-printable
+    guard drops the whole moment (#3954's regression class returning for
+    every repo holding a pre-fix prose rejection). The rejecting event's own
+    durable record keeps the full prose byte-for-byte."""
+    caplog.set_level(logging.WARNING, logger="specify_cli.status.zeitgeist_bridge")
+    feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=_MISSION, wp_id="WP01", lane="for_review")
+    # The pre-fix rejection shape: the operator's --note prose in review_ref.
+    append_event(
+        feature_dir,
+        StatusEvent(
+            event_id="seed-WP01-rejection",
+            mission_slug=_MISSION,
+            wp_id="WP01",
+            from_lane=Lane.FOR_REVIEW,
+            to_lane=Lane.PLANNED,
+            at="2026-01-01T00:01:00+00:00",
+            actor="test",
+            force=False,
+            execution_mode="worktree",
+            reason="rejection",
+            review_ref=_LONG_PROSE_NOTE,
+        ),
+    )
+
+    result = _invoke(
+        tmp_path,
+        _MISSION,
+        [
+            "move-task",
+            "WP01",
+            "--to",
+            "for_review",
+            "--force",
+            "--note",
+            "override the rejection",
+            "--agent",
+            "arb",
+            "--mission",
+            _MISSION,
+            "--no-auto-commit",
+        ],
+    )
+
+    assert result.exit_code == 0, f"move-task failed:\n{result.output}"
+
+    # The forward moment broadcasts -- it is NOT dropped by the codec.
+    moments = offer_recorder.moment_offers()
+    assert len(moments) == 1, f"expected exactly one moment offer, got {len(moments)}: {moments}"
+    assert "not broadcast" not in caplog.text
+
+    wire_review_ref = moments[0][1]["attrs"]["review_ref"]
+    expected = _bounded_prose_oracle(_LONG_PROSE_NOTE)
+    assert wire_review_ref == expected, f"wire review_ref must be the collapsed/bounded legacy value, got: {wire_review_ref!r}"
+    assert "\n" not in wire_review_ref
+    assert len(wire_review_ref.encode("utf-8")) <= 240
+
+    # The rejecting event's own durable record is untouched: the full
+    # multi-line prose stays byte-for-byte in the canonical local log.
+    persisted = _persisted_events(feature_dir, "WP01")
+    assert [e for e in persisted if e.review_ref == _LONG_PROSE_NOTE], "the pre-fix rejection event must keep its full prose review_ref verbatim"
+
+
+@pytest.mark.regression
+def test_arbiter_override_rebroadcasts_pointer_ref_verbatim_never_truncated(tmp_path: Path, offer_recorder: OfferRecorder) -> None:
+    """#4327 fix round, pointer half: when the overridden rejection's
+    ``review_ref`` is already pointer-shaped (a real review-cycle pointer a
+    pre-fix rejection could carry), the re-emission rides it VERBATIM -- the
+    legacy bound never truncates a pointer."""
+    feature_dir = _seed_wp_in_lane(tmp_path, mission_slug=_MISSION, wp_id="WP01", lane="for_review")
+    append_event(
+        feature_dir,
+        StatusEvent(
+            event_id="seed-WP01-rejection",
+            mission_slug=_MISSION,
+            wp_id="WP01",
+            from_lane=Lane.FOR_REVIEW,
+            to_lane=Lane.PLANNED,
+            at="2026-01-01T00:01:00+00:00",
+            actor="test",
+            force=False,
+            execution_mode="worktree",
+            reason="rejection",
+            review_ref="review-cycle://review-ref-bound-3954/WP01/1",
+        ),
+    )
+
+    result = _invoke(
+        tmp_path,
+        _MISSION,
+        [
+            "move-task",
+            "WP01",
+            "--to",
+            "for_review",
+            "--force",
+            "--note",
+            "override the rejection",
+            "--agent",
+            "arb",
+            "--mission",
+            _MISSION,
+            "--no-auto-commit",
+        ],
+    )
+
+    assert result.exit_code == 0, f"move-task failed:\n{result.output}"
+
+    moments = offer_recorder.moment_offers()
+    assert len(moments) == 1, f"expected exactly one moment offer, got {len(moments)}: {moments}"
+    assert moments[0][1]["attrs"]["review_ref"] == "review-cycle://review-ref-bound-3954/WP01/1"

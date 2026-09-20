@@ -252,6 +252,9 @@ _TASKS_MOVE_TASK: tuple[str, ...] = (
     "_detect_reviewer_name",
     "_detect_arbiter_override",
     "_run_arbiter_override",
+    # #4327 fix round: the arbiter-override re-emission bound for legacy
+    # pre-fix prose review_refs (squad pass-2 MAJOR on #4801).
+    "_wire_safe_legacy_review_ref",
     "_mt_run_pre_review_gate",
     # WP09 (doctrine-controlled-transition-gates-01KY51Z7): the inverted,
     # doctrine-resolved transition gate + its thin-orchestrator helpers. Barrel
@@ -596,4 +599,4 @@ def test_guard_covers_full_167_symbol_surface() -> None:
     # low incremental regression-catch value over the identity-re-export guard
     # alone. Revisit whether this file's own hardcoded-count guard should be
     # relaxed or dropped (see M4 #3578 integration, which paid this tax for 4 helpers).
-    assert len(SYMBOL_TO_MODULE) == 184  # golden-count: cardinality-is-contract
+    assert len(SYMBOL_TO_MODULE) == 185  # golden-count: cardinality-is-contract (#4327 fix round: +_wire_safe_legacy_review_ref)

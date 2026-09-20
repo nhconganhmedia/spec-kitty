@@ -524,6 +524,9 @@ from specify_cli.cli.commands.agent.tasks_move_task import (
     _pre_review_gate_composite_routing as _pre_review_gate_composite_routing,
     _pre_review_gate_filter_groups as _pre_review_gate_filter_groups,
     _run_arbiter_override as _run_arbiter_override,
+    # #4327 fix round: the arbiter-override re-emission bound for legacy
+    # pre-fix prose review_refs (squad pass-2 MAJOR on #4801).
+    _wire_safe_legacy_review_ref as _wire_safe_legacy_review_ref,
     _status_event_result_fields as _status_event_result_fields,
     # WP10 (wp-runtime-state-eviction, closeout reconciliation): the
     # event-sourcing helpers WP06/WP07 added to ``tasks_move_task`` when the

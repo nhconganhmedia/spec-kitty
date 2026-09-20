@@ -36,6 +36,7 @@ Seam checklist (per-symbol evidence):
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -1091,3 +1092,92 @@ def test_run_arbiter_override_delegates_persist_to_verdict_seam(tmp_path: Path) 
     assert call_kwargs["json_output"] is False
     assert call_kwargs["main_repo_root"] == other_root
     assert result == "review-cycle://034-feature/WP01/1"
+
+
+# --- _wire_safe_legacy_review_ref (#4327 fix round, squad pass-2 MAJOR) -----
+
+
+def test_wire_safe_legacy_review_ref_none_and_empty_are_unchanged() -> None:
+    assert tasks_move_task._wire_safe_legacy_review_ref(None) is None
+    assert tasks_move_task._wire_safe_legacy_review_ref("") == ""
+
+
+def test_wire_safe_legacy_review_ref_pointer_families_ride_verbatim() -> None:
+    """Every pointer family a persisted rejection ref can legitimately carry
+    -- review-cycle/feedback pointers, URIs, synthetic tokens, and filesystem
+    paths (including ones containing spaces) -- rides verbatim, never
+    truncated and never collapsed."""
+    pointers = [
+        "review-cycle://034-feature/WP01/1",
+        "feedback://034-feature/WP01/2",
+        "review:WP04",
+        "approval:WP04",
+        "auto-approval:WP04:2026-09-17",
+        "https://example.invalid/pr/42",
+        "/var/reviews/wp 04 note.md",
+    ]
+    for value in pointers:
+        assert tasks_move_task._wire_safe_legacy_review_ref(value) == value
+
+
+def test_wire_safe_legacy_review_ref_short_prose_collapses_to_one_line() -> None:
+    assert (
+        tasks_move_task._wire_safe_legacy_review_ref("Looks good.\nShip it.")
+        == "Looks good. Ship it."
+    )
+
+
+def test_wire_safe_legacy_review_ref_over_bound_prose_truncates_codepoint_safe(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A >240-byte legacy prose ref is truncated to a 237-byte codepoint-safe
+    prefix plus the codec's own ``…`` marker (byte-identical to the codec's
+    ``_truncate_utf8``), and the truncation is logged at INFO."""
+    caplog.set_level(logging.INFO, logger="specify_cli.cli.commands.agent.tasks_move_task")
+    prose = "ä" * 130 + "\n" + "b" * 130  # 260 body bytes + 1 newline
+    bounded = tasks_move_task._wire_safe_legacy_review_ref(prose)
+    encoded = bounded.encode("utf-8")
+    # <= 240, not == 240: when the 237-byte cut lands mid-codepoint the
+    # ``errors="ignore"`` decode drops the partial byte (here 118 two-byte
+    # "ä" survive = 236 bytes + the 3-byte marker = 239) -- the same
+    # codepoint-safe policy the codec's own ``_truncate_utf8`` uses.
+    assert len(encoded) == 239
+    assert encoded.endswith("…".encode())
+    assert encoded[:237].decode("utf-8", errors="ignore") + "…" == bounded
+    assert "\n" not in bounded
+    assert "bounded" in caplog.text
+
+
+def test_wire_safe_legacy_review_ref_over_bound_pointer_rides_verbatim() -> None:
+    """The bound is prose-only: an over-240-byte POINTER-shaped legacy ref
+    (a path) rides verbatim and stays the codec's loud fail-closed problem,
+    never silently truncated here."""
+    overlong_path = "/var/reviews/" + ("wp-04-note-" * 20) + "with spaces in the filename too.md"
+    assert len(overlong_path.encode("utf-8")) > 240
+    assert tasks_move_task._wire_safe_legacy_review_ref(overlong_path) == overlong_path
+
+
+def test_run_arbiter_override_bounds_legacy_prose_ref_before_remission(
+    tmp_path: Path,
+) -> None:
+    """The re-emission site itself: a latest persisted rejection carrying
+    pre-#4327 note prose in ``review_ref`` is bounded before it is threaded
+    into the persist and the returned forward-event ref (the squad pass-2
+    MAJOR -- raw prose re-emitted verbatim made the codec drop the moment)."""
+    prose = "Needs rework.\nSee the review note for the full reasoning across every acceptance criterion."
+    fake_event = SimpleNamespace(wp_id="WP01", review_ref=prose)
+    with (
+        patch(f"{_TASKS}.read_events_transactional", return_value=[fake_event]),
+        patch(f"{tasks_move_task.__name__}.persist_arbiter_override_decision") as persist_mock,
+    ):
+        result = tasks_move_task._run_arbiter_override(
+            feature_dir=tmp_path,
+            mission_slug="034-feature",
+            main_repo_root=tmp_path,
+            task_id="WP01",
+            note_text="override",
+            agent="claude",
+            json_output=False,
+        )
+    assert result == " ".join(prose.split())
+    assert persist_mock.call_args.kwargs["review_ref"] == " ".join(prose.split())
