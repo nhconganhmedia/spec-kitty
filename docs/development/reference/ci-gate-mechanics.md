@@ -191,29 +191,33 @@ project's dead-symbol hash-refresh tool, which is fail-closed — it only refres
 entries that are still genuinely dead and never adds new ones. Never weaken the
 gate to get past it.
 
-### The `ruff format` exclude ratchet has a twin
+### The formatter gate has no debt list anymore
 
-`[tool.ruff.format].exclude` in `pyproject.toml` is a large, shrink-only
-formatter-debt allowlist (that is why a whole-repo `ruff format --check .` passes
-on `main` — excluded files are skipped). Two distinct architectural tests guard
-it, and checking only one misses failures:
+`[tool.ruff.format].exclude` in `pyproject.toml` — the large shrink-only
+formatter-debt allowlist that used to explain why a whole-repo
+`ruff format --check .` passed on `main` — was drained to zero and deleted
+(#4506): every live entry was reformatted, so the whole-repo check now passes
+because the whole repo is actually formatted. What remains is guarded by
+`tests/architectural/test_ruff_format_enforcement.py`:
 
-- `tests/architectural/test_ruff_format_enforcement.py` — asserts
-  `ruff format --check .` exits 0 and every exclude entry names a live file.
-- `tests/architectural/test_ruff_format_exclude_ratchet.py` — asserts every
-  exclude entry **still genuinely reformats**, and that the entry count stays
-  under a shrink-only ceiling.
+- `ruff format --check .` must exit 0 (unchanged — issue #473's gate).
+- the debt list may not be recreated: `[tool.ruff.format]` must stay absent
+  from `pyproject.toml`, so a new unformatted file must be **formatted**,
+  not appended to a reborn exclusion.
+- `ruff.toml`'s `extend-exclude` must stay exactly the governed
+  `kitty-specs/*/research/**` subtree plus the five immutable archive files
+  enumerated by the spec-kitty-planning#2433 ruling (2026-09-20): archive
+  bytes stay immutable, so those five files are permanently excluded rather
+  than reformatted, and the enumeration may not grow.
 
-Two changes trip the ratchet, and both are caught only at the integration/merge
-gate, not by a per-WP subset run:
+Two changes trip these guards:
 
-1. You run `ruff format` on an excluded file (making it clean) → its entry no
-   longer reformats → red.
-2. You delete an excluded file's source → its entry names a missing file → red.
-
-Fix both by **removing** the now-dead entries (this only shrinks the list, so no
-ceiling bump is needed). Remove entries only for files your branch actually
-formats or deletes.
+1. You add an unformatted file (or reintroduce `[tool.ruff.format]`) → the
+   whole-repo check (or the no-regrowth guard) reds. Fix by formatting the
+   file, never by excluding it.
+2. You widen `ruff.toml`'s `extend-exclude` past the ruled enumeration →
+   the exact-surface guard reds. Fix by formatting the file instead; a new
+   permanent exclusion needs a new ruling, not a list edit.
 
 ### Router path filters are the tail of a guarded SSOT chain
 

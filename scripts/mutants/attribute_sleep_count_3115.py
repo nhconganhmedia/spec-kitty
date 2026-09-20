@@ -576,7 +576,8 @@ def pytest_sessionfinish(session: pytest.Session) -> None:  # noqa: ARG001
 
 def pytest_terminal_summary(
     terminalreporter: Any,
-    exitstatus: int,
+    exitstatus: int,  # noqa: ARG001 -- unused hook arg; this noqa was line-scoped over the
+    # whole signature pre-#4506, and the formatter split it onto this line
     config: pytest.Config,  # noqa: ARG001
 ) -> None:
     """Print the per-site/per-thread report; write loudly if it proves nothing.

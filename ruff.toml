@@ -7,7 +7,28 @@ extend = "pyproject.toml"
 # test code, are not meant to be edited after the fact, and were never held
 # to repo lint conventions. Exclude the whole research/ subtree rather than
 # per-file-ignores so future mission research directories don't reopen this.
-extend-exclude = ["kitty-specs/*/research/**"]
+extend-exclude = [
+    "kitty-specs/*/research/**",
+
+    # Immutable archived mission artifacts (release-owner ruling 2026-09-20,
+    # spec-kitty/spec-kitty-planning#2433, option 2): these five exact files
+    # were the only pre-existing kitty-specs/ entries still carried by the
+    # formatter-debt exclude list that #4506 drained. Archive bytes stay
+    # immutable (tests/architectural/test_archive_root_byte_identical.py
+    # remains authoritative), so instead of reformatting them they move to
+    # this permanent, exactly-enumerated exclusion. Unlike the research glob
+    # above, these are exact paths, not a pattern: the enumeration may not
+    # grow -- a new unformatted file must be formatted, not appended here
+    # (enforced by tests/architectural/test_ruff_format_enforcement.py).
+    # Note: extend-exclude covers `ruff check` too, so these five archive
+    # files leave lint coverage as well as format coverage; that is the
+    # sanctioned shape of the ruling, not an accident.
+    "kitty-specs/010-workspace-per-work-package-for-parallel-development/tests/integration/test_planning_workflow.py",
+    "kitty-specs/phase-3-charter-synthesizer-pipeline-01KPE222/contracts/adapter.py",
+    "kitty-specs/refactor-stable-gate-substrate-01KWK3FY/doctrine_content_check.py",
+    "kitty-specs/refactor-stable-gate-substrate-01KWK3FY/freeze_converter.py",
+    "kitty-specs/unified-charter-bundle-chokepoint-01KP5Q2G/baseline/capture.py",
+]
 
 # Generated Ruff baseline for the legacy lint debt present on origin/main as of 2026-05-01.
 # Keep new files under the existing Ruff rule set while allowing cleanup to happen file-by-file.
