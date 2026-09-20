@@ -43,5 +43,5 @@ surface to `ENROLMENT_SURFACES` and re-freshen from the tool output.
 | src/specify_cli/coordination/transaction.py:910 | BookkeepingTransaction._rollback | self . _snapshot_path . write_bytes ( | .write_bytes() | enrolled |
 | src/specify_cli/merge/bookkeeping_projection.py:177 | _restore_optional_bytes | path . write_bytes ( original ) | .write_bytes() | pending-owner |
 | src/specify_cli/merge/bookkeeping_projection.py:304 | _project_status_bookkeeping_to_target | trusted_target_events_path . write_bytes ( union_events_byte… | .write_bytes() | pending-owner |
-| src/specify_cli/merge/bookkeeping_projection.py:305 | _project_status_bookkeeping_to_target | trusted_target_status_path . write_bytes ( | .write_bytes() | pending-owner |
+| src/specify_cli/merge/bookkeeping_projection.py:332 | _project_status_bookkeeping_to_target | trusted_target_status_path . write_bytes ( _rematerialize_st… | .write_bytes() | pending-owner |
 | src/specify_cli/merge/bookkeeping_projection.py:311 | _project_status_bookkeeping_to_target | trusted_target_status_path . write_bytes ( source_status_byt… | .write_bytes() | pending-owner |

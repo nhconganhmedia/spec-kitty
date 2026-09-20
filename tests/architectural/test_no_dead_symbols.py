@@ -219,7 +219,7 @@ _CATEGORY_A_SLICE_F_DEFERRED: frozenset[SymbolKey] = frozenset(
         ),
         # charter.activation.activations::ALLOWED_MISSION_TYPES (body_hash refreshed WP03/#2669: derived from builtin_mission_type_id_set())
         SymbolKey(
-            "ALLOWED_MISSION_TYPES", "66f78adc4726573209f4e4eba6c766601762ead6492b8a86131ef45184ef69fd", source_module="charter.activation.activations"
+            "ALLOWED_MISSION_TYPES", "c7ad0d05f8059663ec27eba6e2316fbebccf42ffe8eb620916c5b74104a9d0ae", source_module="charter.activation.activations"
         ),  # charter.activation.activations::ALLOWED_MISSION_TYPES
         SymbolKey(
             "REGISTERED_TRIGGERS", "4582c6fc202160e4708ef2cec5b63a041e7331f9dc704abd9020800abe042c0f", source_module="charter.activation.activations"
@@ -244,7 +244,7 @@ _CATEGORY_A_SLICE_F_DEFERRED: frozenset[SymbolKey] = frozenset(
         # suites exercise these meanwhile. Operator-confirmed deferred-API landing.
         # charter.activation.synthesizer.manifest::compute_manifest_hash
         SymbolKey(
-            "compute_manifest_hash", "976c4625daa4d8bc9612ad055b4076e879ab68aa5df7cba27c16ce90f5c51ef4", source_module="charter.activation.synthesizer.manifest"
+            "compute_manifest_hash", "1509d3d20de502bfc55bc97f7d081633009e4c7feb382113f608701461f2b5a8", source_module="charter.activation.synthesizer.manifest"
         ),
         SymbolKey(
             "ensure_pack_identity", "ca9b5b99abe23a15555eca6452a326aede2faf85c70518c1a17b8dc345b349bb", source_module="charter.offering.drg.org_pack_config"
@@ -263,7 +263,7 @@ _CATEGORY_A_SLICE_F_DEFERRED: frozenset[SymbolKey] = frozenset(
             "enumerate_constituents", "d063e2da3dc64d421fb3a141db384b7515a09939629c536376de32c4ac42bfab", source_module="specify_cli.doctrine.builtin_manifest"
         ),
         # specify_cli.doctrine.pack_lineage::PackLineageCycleError
-        SymbolKey("PackLineageCycleError", "0e7c672a0f7e02520fb8b8dcb5e48c08c6745831760be28b3eec4277ce7635d1", source_module="specify_cli.doctrine.pack_lineage"),
+        SymbolKey("PackLineageCycleError", "a06da507c2eccd4182c7c2d48272ff4dfb4ce6a28168f7a53bca87fd2287c8d2", source_module="specify_cli.doctrine.pack_lineage"),
         # specify_cli.doctrine.pack_lineage::UnresolvedDoctrinePackError
         SymbolKey(
             "UnresolvedDoctrinePackError", "606f77e976b58a6cdc360bdc40a563b024e6598f01ad6866e1ca48477a60f097", source_module="specify_cli.doctrine.pack_lineage"
@@ -280,19 +280,19 @@ _CATEGORY_A_SLICE_F_DEFERRED: frozenset[SymbolKey] = frozenset(
         ),
         # specify_cli.doctrine.pack_lineage::resolve_pack_lineage_order
         SymbolKey(
-            "resolve_pack_lineage_order", "f9b3114c48e1e4ad07968ce4e752d697bd5272f58f40626b6ff363b2517102c9", source_module="specify_cli.doctrine.pack_lineage"
+            "resolve_pack_lineage_order", "13e5dfc3dca49fdce77059e483229e04f4694729ede95d5fb83a8c77f4deac46", source_module="specify_cli.doctrine.pack_lineage"
         ),
         SymbolKey(
             "CharterProfile", "e819b8ef6ee1d90a233d35df96668e478d793c8edcf11a3320587042e9e58377", source_module="specify_cli.doctrine.pack_manifest"
         ),  # specify_cli.doctrine.pack_manifest::CharterProfile
         # specify_cli.doctrine.pack_manifest::HASH_EXCLUDED_FIELDS
-        SymbolKey("HASH_EXCLUDED_FIELDS", "3c3581a0092e43f9586c79cf55dccee76fa9d480fa58e469fd3118c5e47747e3", source_module="specify_cli.doctrine.pack_manifest"),
+        SymbolKey("HASH_EXCLUDED_FIELDS", "a03a1e7a11365a5ea23852ac61fbc8ad28074d243f6c453d617f3086b517b859", source_module="specify_cli.doctrine.pack_manifest"),
         SymbolKey(
             "SCHEMA_VERSION", "d5eae924852db12511f61d775992ee1a06e6d9021b5a9623c442e387b873f9db", source_module="specify_cli.doctrine.pack_manifest"
         ),  # specify_cli.doctrine.pack_manifest::SCHEMA_VERSION
         # specify_cli.doctrine.pack_manifest::absorb_synthesis_manifest
         SymbolKey(
-            "absorb_synthesis_manifest", "00945ab34f76cd761d46fb785c6bd556bc4804a61935760698d83877c9886693", source_module="specify_cli.doctrine.pack_manifest"
+            "absorb_synthesis_manifest", "a86d2464d344dc558ef56a8dfb9cc0a0a28635fb92041c54f99dc83cdf4d938d", source_module="specify_cli.doctrine.pack_manifest"
         ),
         # Public deferred hash API from #3500-#3503; body changed during #3165 hardening.
         SymbolKey(
@@ -546,7 +546,7 @@ _CATEGORY_B_GRANDFATHERED_LEGACY: frozenset[SymbolKey] = frozenset(
         # specify_cli.dashboard.lifecycle::_write_dashboard_file
         SymbolKey("_write_dashboard_file", "ef82e6e8e295ed1b746ebbc8983b3fee53ab6f31b6d4bd143be6bfcc4a82017e", source_module="specify_cli.dashboard.lifecycle"),
         SymbolKey(
-            "get_dashboard_html", "41f3d112537b05d8865266e06e50b3d7301d5340c91b9e539cd1a56e801d79ad", source_module="specify_cli.dashboard.templates"
+            "get_dashboard_html", "68bbb47d405b2681037e2eff349bdb7173ed102ed25d2b6a55be0531cf002ac0", source_module="specify_cli.dashboard.templates"
         ),  # specify_cli.dashboard.templates::get_dashboard_html
         # ^ body_hash refreshed for #66: the mission-context injection moved
         # into an inert <script type="application/json"> data island, so the
@@ -583,7 +583,7 @@ _CATEGORY_B_GRANDFATHERED_LEGACY: frozenset[SymbolKey] = frozenset(
             "ArtifactListResponse", "4cdb7c9d4c499dff5f7554bbea3b107ff0ecd7cf192d5ce93015f247ccd02542", source_module="specify_cli.dossier.api"
         ),  # specify_cli.dossier.api::ArtifactListResponse
         SymbolKey(
-            "DossierHandlerAdapter", "02cde998eec8166a25ef083d57f52df460389227a595fe92253b069949338f5a", source_module="specify_cli.dossier.api"
+            "DossierHandlerAdapter", "861928ea78a361f9deea8dd3c949ac661aa1a4de2258d75c6fb1a6216aef1a5f", source_module="specify_cli.dossier.api"
         ),  # specify_cli.dossier.api::DossierHandlerAdapter
         # specify_cli.dossier.api::DossierOverviewResponse
         SymbolKey("DossierOverviewResponse", "c0eea0f2e556ff61a368cb4f3b41b870d439b890c082c04da5a1572b5f6a330f", source_module="specify_cli.dossier.api"),
@@ -641,7 +641,7 @@ _CATEGORY_B_GRANDFATHERED_LEGACY: frozenset[SymbolKey] = frozenset(
         # specify_cli.git.sparse_checkout_remediation::SparseCheckoutRemediationReport
         SymbolKey(
             "SparseCheckoutRemediationReport",
-            "20b509762a8f1e2e9302ab37b6d1bd4467aa88843c96005d7774bde676261859",
+            "03267e3c2d2a48a70726a246f7cf60af97a3a63ea0d7fab2d5931ea6785d8602",
             source_module="specify_cli.git.sparse_checkout_remediation",
         ),
         # specify_cli.intake.brief_writer::CrossFilesystemWriteError
@@ -670,24 +670,24 @@ _CATEGORY_B_GRANDFATHERED_LEGACY: frozenset[SymbolKey] = frozenset(
             "Resolution", "7bc793f726da67f4273d0f5ac82d13ed3141e7a53c9c2a42bbab390b64ff46b1", source_module="specify_cli.merge.conflict_classifier"
         ),  # specify_cli.merge.conflict_classifier::Resolution
         # specify_cli.merge.conflict_classifier::r_default_manual
-        SymbolKey("r_default_manual", "729111cef2a3601de1948651817b84123bea90eed651a9cd3b458377486e6d18", source_module="specify_cli.merge.conflict_classifier"),
+        SymbolKey("r_default_manual", "b6f85999e9180cc11c34753d405122046c0806e33334b0987ebe308f4129482e", source_module="specify_cli.merge.conflict_classifier"),
         # specify_cli.merge.conflict_classifier::r_init_imports_union
         SymbolKey(
-            "r_init_imports_union", "d72fa8545eb4e8df7dc80288ea3bcd1994adfb4d4e5ab1d18144aec8f4a29de1", source_module="specify_cli.merge.conflict_classifier"
+            "r_init_imports_union", "764d0b6e132ef0914763e77962d7794980c0970e559123fb888c88bad9a1f1e4", source_module="specify_cli.merge.conflict_classifier"
         ),
         # specify_cli.merge.conflict_classifier::r_pyproject_deps_union
         SymbolKey(
-            "r_pyproject_deps_union", "e3633e4ef609408e8a9d8433c080edad3cf595dac30db1ca7dba0a12cc852e64", source_module="specify_cli.merge.conflict_classifier"
+            "r_pyproject_deps_union", "3e7f481b2f02d5386d73095047afe73019342d8c18d801219f655528cc63decd", source_module="specify_cli.merge.conflict_classifier"
         ),
         # specify_cli.merge.conflict_classifier::r_urls_list_union
-        SymbolKey("r_urls_list_union", "483a7c2e4e5c7ec6829ed411b4f485ae141a40ff6aaaa2d07fa588c461463bfd", source_module="specify_cli.merge.conflict_classifier"),
+        SymbolKey("r_urls_list_union", "7158a5f20514aa07567c6f6474f1cbb563c2998b0cbc782ff7a3bd1b09ae2e28", source_module="specify_cli.merge.conflict_classifier"),
         # specify_cli.merge.conflict_classifier::r_uvlock_regenerate
-        SymbolKey("r_uvlock_regenerate", "00c7c15c6ac3c4eebd8a6a071b3c6157953733f7dcdcdf0f8c9b29d11fbf4b94", source_module="specify_cli.merge.conflict_classifier"),
+        SymbolKey("r_uvlock_regenerate", "d9e4fcfb0defa4d3ed98f8b6f431a184e39baa7818def0c5131cb1e08353bb13", source_module="specify_cli.merge.conflict_classifier"),
         SymbolKey(
             "display_merge_order", "305ac620b2ebbb6568c8aef92428d3c8326cbca533039995280ad367fd35dd67", source_module="specify_cli.merge.ordering"
         ),  # specify_cli.merge.ordering::display_merge_order
         # specify_cli.merge.state::MergeAmbiguousStateError
-        SymbolKey("MergeAmbiguousStateError", "d69fb84bf96a1edbfa84500b1c49c6eaf6c30fce35ce95659504abff5221d7c5", source_module="specify_cli.merge.state"),
+        SymbolKey("MergeAmbiguousStateError", "8cd8372b816b4d9832d81b923bb132c5a28ab45a9d64c31e8ae27356f8e87f38", source_module="specify_cli.merge.state"),
         SymbolKey(
             "detect_git_merge_state", "1ebb0846821cef8d19a05382e249a78a78e602af5c6568fcf47746664b27e1f6", source_module="specify_cli.merge.state"
         ),  # specify_cli.merge.state::detect_git_merge_state
@@ -709,16 +709,16 @@ _CATEGORY_B_GRANDFATHERED_LEGACY: frozenset[SymbolKey] = frozenset(
         SymbolKey("SRC_FALLBACK_WARNING", "bf26744e04d9f2a94ff9647ec65de398875b3bdbfcb74764ba9081379e54c223", source_module="specify_cli.ownership.inference"),
         # specify_cli.ownership.validation::validate_authoritative_surface
         SymbolKey(
-            "validate_authoritative_surface", "987d09f98ff07d79a1de805e4e088add4719c804056cf500b37e843c201a9357", source_module="specify_cli.ownership.validation"
+            "validate_authoritative_surface", "2a95c14c668ef09c4c2238d1590c7e2907482fec90a8b263e03c51edb10fecc0", source_module="specify_cli.ownership.validation"
         ),
         # specify_cli.ownership.validation::validate_execution_mode_consistency
         SymbolKey(
             "validate_execution_mode_consistency",
-            "a357e210abed737248ce70127facb98551595178974cbdb00b39d9bafb48eee1",
+            "9e50a0acd4e392467b668ffa9255d8fc90b3718e7cab5a2ad00a734cbf287545",
             source_module="specify_cli.ownership.validation",
         ),
         # specify_cli.ownership.validation::validate_no_overlap
-        SymbolKey("validate_no_overlap", "53fd8afa15dbb6f34b94541da3a2e4b183cf91a4c3170fbd0ed77223918cacd5", source_module="specify_cli.ownership.validation"),
+        SymbolKey("validate_no_overlap", "6760dd85d5aea45da1b0aba837ea6c9ea0f84978d79d49fde6e1d3d351a7ab45", source_module="specify_cli.ownership.validation"),
         SymbolKey(
             "detect_unfilled_plan", "a939602c9997240b49616668817fffbab7af31432e65813252b4afccbff57424", source_module="specify_cli.plan_validation"
         ),  # specify_cli.plan_validation::detect_unfilled_plan
@@ -818,7 +818,7 @@ _CATEGORY_B_GRANDFATHERED_LEGACY: frozenset[SymbolKey] = frozenset(
         # satisfied_by field (the candidate source root that satisfied a build
         # path), refreshing this content-hash exactly as #811's
         # missing_artifact_tokens field did (#470)
-        SymbolKey("PathValidationResult", "cdc4bcabb30ad9c1b4db8ac3413d2b0b55b950eb7f08bd2b1b43f94c726b1ca3", source_module="specify_cli.validators.paths"),
+        SymbolKey("PathValidationResult", "c9aa4c2dcfc163dbdca940b05f3e713fa2c95c73b6bcc729328de4e87cf0058f", source_module="specify_cli.validators.paths"),
         # specify_cli.validators.paths::suggest_directory_creation
         SymbolKey("suggest_directory_creation", "43ab52fd99963aff65a61cac707bfa4e7460fb71e515f636c9e79960290f90f7", source_module="specify_cli.validators.paths"),
         SymbolKey(
@@ -903,7 +903,7 @@ _CATEGORY_C_WP_IN_FLIGHT_CHARTER_SCOPE: frozenset[SymbolKey] = frozenset(
         # value), matching this file's own CharterYamlCorruptError precedent.
         # charter.activation.invocation_context::ContextPreconditionError
         SymbolKey(
-            "ContextPreconditionError", "ed270fe330c24f71db20d7c033d1246499b83b3bad558fc526fc4620bddd67af", source_module="charter.activation.invocation_context"
+            "ContextPreconditionError", "6acf93b802c4521a2c60d86941985a383f96d21fbcdef1b711c01acc5c0541a0", source_module="charter.activation.invocation_context"
         ),
     }
 )
@@ -1075,11 +1075,11 @@ _CATEGORY_C_ORG_DOCTRINE_CLOSEOUT: frozenset[SymbolKey] = frozenset(
             "AUGMENTATION_RELATIONS", "724f4741d69125ccfd2bb664f8f05739fb4a2372220636958b84476741738af0", source_module="charter.offering.drg.org_pack_loader"
         ),
         SymbolKey(
-            "TOPOLOGY_KINDS", "eb1deec7b602719bb1ada5074ee99c1bf01b1df4faa1370845f9e8f65b341e9e", source_module="charter.offering.drg.org_pack_loader"
+            "TOPOLOGY_KINDS", "7c2496868867abc91333168fa208f2d549aa4c5f827a03ad38b70d77265c07cd", source_module="charter.offering.drg.org_pack_loader"
         ),  # charter.offering.drg.org_pack_loader::TOPOLOGY_KINDS
         # charter.offering.drg.org_pack_loader::merge_topology_artifact
         SymbolKey(
-            "merge_topology_artifact", "8b3946b11d7220f921e402afa6152d2d33907b8743465c34a56e681e676539e9", source_module="charter.offering.drg.org_pack_loader"
+            "merge_topology_artifact", "9521653608e0fdac2ccdb83206833bd78633157011265dedd4302bae5cc3ab39", source_module="charter.offering.drg.org_pack_loader"
         ),
         # ``template_id_for`` and ``template_urn`` left the allowlist in
         # mission-step-creatability-01KXQA6R WP06 (S-C / #2724): the DRG
@@ -1095,7 +1095,7 @@ _CATEGORY_C_ORG_DOCTRINE_CLOSEOUT: frozenset[SymbolKey] = frozenset(
             "template_nodes", "84573a47cbf040c8d00b413ada1f52225e2131371dd580393fbc88ac226404dd", source_module="charter.offering.template_catalog"
         ),  # charter.offering.template_catalog::template_nodes
         SymbolKey(
-            "PackHealth", "82268603b58f8a1449a0bf97456ddf08c217c11de4d66d85a41afc56819f7eee", source_module="specify_cli.cli.commands._doctrine_health"
+            "PackHealth", "d9f807ee0a8f2d045a0f43f05663bf94d815898b39e2d155f2352b6a1805a97c", source_module="specify_cli.cli.commands._doctrine_health"
         ),  # specify_cli.cli.commands._doctrine_health::PackHealth
     }
 )
@@ -1151,7 +1151,7 @@ _CATEGORY_C_QUALITY_DEBT_1928: frozenset[SymbolKey] = frozenset(
 _CATEGORY_C_OPERATOR_CONFIG_PUBLIC_API: frozenset[SymbolKey] = frozenset(
     {
         # kernel.env_expand::UnresolvedEnvTokenError
-        SymbolKey("UnresolvedEnvTokenError", "f412b46e47e99106738049c8591d9ea8b15465c31a052bb7d547384e137f810e", source_module="kernel.env_expand"),
+        SymbolKey("UnresolvedEnvTokenError", "7f1ad65f15aa0501102b6635418efe26a2e9a15d57faafcd68ca192d4e4679d8", source_module="kernel.env_expand"),
         # specify_cli.bootstrap.env_file::OperatorEnvFileUnreadableError
         SymbolKey(
             "OperatorEnvFileUnreadableError", "ac46a6871a178702eda203f7e033f223c04d010efe92e84ca2a5c7f9bc669d8c", source_module="specify_cli.bootstrap.env_file"
@@ -1182,7 +1182,7 @@ _CATEGORY_C_MISSION_TYPE_UNCAUGHT_PROPAGATION_SURFACE: frozenset[SymbolKey] = fr
         # charter.activation.mission_type_profiles::MissionTypeEmptyActionSequenceError
         SymbolKey(
             "MissionTypeEmptyActionSequenceError",
-            "2565e0c8bd07c667a3aa3bec9b8b768a99d1c4e7cc2c0e416e83e5eead3421fe",
+            "d9cefe40c612104399d2b132de68d9dc54c79f3327c2b173d0f9ad0c532bed82",
             source_module="charter.activation.mission_type_profiles",
         ),
     }
@@ -1214,7 +1214,7 @@ _CATEGORY_C_DOCTOR_AUTO_DISCOVERY_SEAM: frozenset[SymbolKey] = frozenset(
         SymbolKey("register", "3e40fc6641735900c4b86d367c7daf205425df768e6a63e9be1e789ee6fb3da7", source_module="specify_cli.cli.commands._channel_doctor"),
         # specify_cli.cli.commands._channel_doctor::run_channel_report
         SymbolKey(
-            "run_channel_report", "7b85d1bda9aae6c822e97bf6fdcf592fddc365a48710197d103e836fdfd71333", source_module="specify_cli.cli.commands._channel_doctor"
+            "run_channel_report", "cea3426a61e3fc8039eb30fe42ebbb55f7bf62926ef3c0fc30fa2aa185a92a4e", source_module="specify_cli.cli.commands._channel_doctor"
         ),
         # specify_cli.cli.commands._env_file_doctor::register -- body_hash
         # refreshed (cli-boundary-robustness #4600): the ``register`` shell's
@@ -1225,7 +1225,7 @@ _CATEGORY_C_DOCTOR_AUTO_DISCOVERY_SEAM: frozenset[SymbolKey] = frozenset(
         SymbolKey("register", "d2dde051e8ad116fa7498dc07207edca65b50b6d4b5bc698997ed8e3106494b2", source_module="specify_cli.cli.commands._env_file_doctor"),
         # specify_cli.cli.commands._env_file_doctor::run_env_file_health
         SymbolKey(
-            "run_env_file_health", "a01d73dc1ffe6ecc2db7561a3707c98e425a77aee9b722a8687f0f9601f97fb9", source_module="specify_cli.cli.commands._env_file_doctor"
+            "run_env_file_health", "00a4b2564705a07fb11274b0bb2005379f664ab36d692020c5d160b2875f6ede", source_module="specify_cli.cli.commands._env_file_doctor"
         ),
         # specify_cli.cli.commands._provenance_doctor::register -- body_hash
         # refreshed (cli-boundary-robustness #4600): the ``register`` shell's
@@ -1235,7 +1235,7 @@ _CATEGORY_C_DOCTOR_AUTO_DISCOVERY_SEAM: frozenset[SymbolKey] = frozenset(
         SymbolKey("register", "5e4f0244801fa7826875fe6345c9917612a3753b6719ea6f4762130212f1f7eb", source_module="specify_cli.cli.commands._provenance_doctor"),
         # specify_cli.cli.commands._provenance_doctor::run_provenance_audit
         SymbolKey(
-            "run_provenance_audit", "a657b0dbc7e8d2b82fc80e005592413230902a240d550c1b12be39cd4cd66b2e", source_module="specify_cli.cli.commands._provenance_doctor"
+            "run_provenance_audit", "2742ebf67a087e304d3d070e66c063bf86c284d38a478a7714e63cd62bfadad3", source_module="specify_cli.cli.commands._provenance_doctor"
         ),
     }
 )
@@ -1321,7 +1321,7 @@ _CATEGORY_C_MERGE_DECOMP_SHIM_REEXPORT_2057: frozenset[SymbolKey] = frozenset(
         # specify_cli.merge.ordering::_mark_mission_number_baked
         SymbolKey("_mark_mission_number_baked", "aa2e64b018e1d7ecc47f73211c291d16934d659b8f4b07b472e200225d99e72b", source_module="specify_cli.merge.ordering"),
         SymbolKey(
-            "check_push_safety", "893124ff3029dec30c538fd54577881f4afa05002067b4f1033ce550f52e0460", source_module="specify_cli.merge.push_preflight"
+            "check_push_safety", "b1234ed9bc7bbbeb8e9768fec11377303e67a404e2da86800eaaad29d4df876b", source_module="specify_cli.merge.push_preflight"
         ),  # specify_cli.merge.push_preflight::check_push_safety
         SymbolKey(
             "_extract_mission_slug", "834a3e235860c64046504604c6f21d21f5a8c2e8443ef33b8c4ad6ad07c2e934", source_module="specify_cli.merge.resolve"
@@ -1351,7 +1351,7 @@ _CATEGORY_B_T001_UNBLINDED: frozenset[SymbolKey] = frozenset(
             "AuthRefreshFailed", "ceaa6c4e7772ec4cf012512c1fa9504f988aa3522df697264ecbb6025bc0367d", source_module="specify_cli.auth.transport"
         ),  # specify_cli.auth.transport::AuthRefreshFailed
         SymbolKey(
-            "AuthenticatedClient", "fdca768debf63f3f84eb7a9119b9b1e219094c9210840fdd433cf2a5bd3d0fc9", source_module="specify_cli.auth.transport"
+            "AuthenticatedClient", "c58baf2015a7874ca71d992fc4876403b39d1d36e411ef0f5ef481d55edd3268", source_module="specify_cli.auth.transport"
         ),  # specify_cli.auth.transport::AuthenticatedClient
         SymbolKey(
             "get_async_client", "784e28c299d00ac9210b69146d666fec3d77103b9475c9306bf9350d458a2f5a", source_module="specify_cli.auth.transport"
@@ -1638,7 +1638,7 @@ _CATEGORY_C_LIFECYCLE_GATE_EXECUTION_CONTEXT_2841: frozenset[SymbolKey] = frozen
         ),
         # specify_cli.acceptance.post_consolidation::PostConsolidationResult
         SymbolKey(
-            "PostConsolidationResult", "d657817ba43238e2bbae83261e6acb8eb65a28de60a15496087166021594fb30", source_module="specify_cli.acceptance.post_consolidation"
+            "PostConsolidationResult", "44dca2094120bd08e976747e7100898db42d29f452b109b9c99014e7cc2a289e", source_module="specify_cli.acceptance.post_consolidation"
         ),
         # specify_cli.acceptance.post_consolidation::PostConsolidationViolation
         SymbolKey(
@@ -1649,7 +1649,7 @@ _CATEGORY_C_LIFECYCLE_GATE_EXECUTION_CONTEXT_2841: frozenset[SymbolKey] = frozen
         # specify_cli.acceptance.post_consolidation::verify_deferred_invariants
         SymbolKey(
             "verify_deferred_invariants",
-            "e1c30bf407aa9a48fe5dfe0870f00f47cb0fb61367f2ad8f292f608ca2661c9d",
+            "4ef898a39712a4293870521651edd3b3612a99680bbefbc650519cce9018f43d",
             source_module="specify_cli.acceptance.post_consolidation",
         ),
     }
@@ -1747,7 +1747,7 @@ _CATEGORY_C_DELIVERY_RAIL_FORWARD_API: frozenset[SymbolKey] = frozenset(
         # prose comment, not an import/call — so it stays allowlisted, hash-refreshed.)
         # charter.offering.drg.reachability::PROFILE_CHANNEL_RELATIONS
         SymbolKey(
-            "PROFILE_CHANNEL_RELATIONS", "17b05fe56e1ba52f5efca0f1cebe40e0ed1ab3232b80111f8e47e51176203fb5", source_module="charter.offering.drg.reachability"
+            "PROFILE_CHANNEL_RELATIONS", "b5e80a26038f371fa255c9d17e0a7577f409f1f7c0150974214ec752121fade2", source_module="charter.offering.drg.reachability"
         ),
         # charter.offering.drg.reachability::action_channel_reachable
         SymbolKey(

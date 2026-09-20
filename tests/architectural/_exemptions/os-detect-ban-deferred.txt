@@ -9,7 +9,7 @@
 src/specify_cli/__init__.py:353
 src/specify_cli/__init__.py:521
 #
-# paths/windows_paths.py:128 (`sys.platform.startswith("win")` inside
+# paths/windows_paths.py:127 (`sys.platform.startswith("win")` inside
 # `_current_platform()`): a CENSUS GAP discovered while landing WP01 -- this
 # routable site is not named in any WP01-05 task file's owned_files and is
 # not claimed by WP03/WP04 either. Seeded fail-closed here rather than
@@ -17,4 +17,4 @@ src/specify_cli/__init__.py:521
 # ungated (would make the gate vacuous for this site). Tracked as follow-up
 # #4727 to assign an owner and route it (it is a 3-way win32/darwin/linux
 # normalizer, so it needs the kernel seam extended, not a boolean route-through).
-src/specify_cli/paths/windows_paths.py:128
+src/specify_cli/paths/windows_paths.py:127

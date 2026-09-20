@@ -242,7 +242,7 @@ _ALLOWLIST: dict[str, str] = {
         "fetch+reset consistency story for a throwaway doctrine-pack clone, "
         "unrelated to the operator checkout the guard protects."
     ),
-    "src/specify_cli/merge/git_probes.py:239:reset_hard": (
+    "src/specify_cli/merge/git_probes.py:232:reset_hard": (
         "guarded by WP03/T011 (#4752): refuses via assert_checkout_on_target "
         "before this reset runs whenever expected_branch is supplied; the "
         "live merge preflight always supplies it."
@@ -273,10 +273,10 @@ _ALLOWLIST: dict[str, str] = {
     "src/specify_cli/merge/workspace.py:113:worktree_remove_force": (
         "merge scratch workspace (C-006) -- always removed unconditionally by design, out of the guard's scope."
     ),
-    "src/specify_cli/review/baseline.py:294:worktree_remove_force": (
+    "src/specify_cli/review/baseline.py:298:worktree_remove_force": (
         "detached temp baseline-comparison worktree, torn down in the same context manager that created it."
     ),
-    "src/specify_cli/cli/commands/mission_type.py:1181:worktree_remove_force": (
+    "src/specify_cli/cli/commands/mission_type.py:1118:worktree_remove_force": (
         "reached only via `--discard` (_discard_mission): an operator-requested, intentional mission abandonment -- not an implicit/accidental destroy."
     ),
     "src/specify_cli/git/destructive_guard.py:229:worktree_remove_force": (
@@ -289,7 +289,7 @@ _ALLOWLIST: dict[str, str] = {
         "half-merge -- the tree is clean by construction; best-effort, "
         "reports a warning rather than raising on failure."
     ),
-    "src/specify_cli/coordination/workspace.py:204:worktree_remove_force": (
+    "src/specify_cli/coordination/workspace.py:205:worktree_remove_force": (
         "_remove_worktree_registration: prunes a registration whose "
         "worktree directory is already ABSENT from disk -- the guard "
         "cannot run here even in principle (it resolves the repo root by "
@@ -306,7 +306,7 @@ _ALLOWLIST: dict[str, str] = {
     "src/specify_cli/lanes/merge.py:918:merge_abort": ("scoped to the ephemeral lane-merge tmp worktree (merge-conflict rollback), never repo_root."),
     "src/specify_cli/lanes/worktree_allocator.py:674:merge_abort": ("scoped to the lane worktree (planning-commit merge-conflict rollback), never repo_root."),
     "src/specify_cli/lanes/worktree_allocator.py:848:merge_abort": ("scoped to the lane worktree (dependency-lane merge-conflict rollback), never repo_root."),
-    "src/specify_cli/lanes/auto_rebase.py:739:merge_abort": ("scoped to the lane worktree (auto-rebase conflict rollback), never repo_root."),
+    "src/specify_cli/lanes/auto_rebase.py:686:merge_abort": ("scoped to the lane worktree (auto-rebase conflict rollback), never repo_root."),
 }
 
 

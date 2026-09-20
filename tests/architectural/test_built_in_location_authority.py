@@ -226,7 +226,10 @@ _KNOWN_JOIN_ALLOWLIST: frozenset[tuple[Path, int]] = frozenset(
         # the sibling AGENTS.md sniff line above it now reads
         # `src/charter/offering/templates/AGENTS.md` (relocated from
         # `src/doctrine/templates/`), pushing this join down one line.
-        (Path("src/specify_cli/template/manager.py"), 166),
+        # FRESHENED (#4506 ruff-format drain): line 166 -> 165; the canonical
+        # formatter reflowed the two-line AGENTS.md sniff onto one line; the
+        # join itself is unchanged.
+        (Path("src/specify_cli/template/manager.py"), 165),
         # src/charter/activation/neutrality/lint.py::_default_scan_roots -- scans a
         # caller-supplied `repo_root` (tmp_path-rooted in tests; see
         # tests/charter/test_neutrality_lint.py::test_default_scan_roots_include_relocated_builtin_missions),
@@ -234,7 +237,10 @@ _KNOWN_JOIN_ALLOWLIST: frozenset[tuple[Path, int]] = frozenset(
         # class 2.
         # FRESHENED (charter-activation-split-01M16ZSE M2b landing): line 362 -> 379;
         # behaviour-preserving, same caller-supplied-root join.
-        (Path("src/charter/activation/neutrality/lint.py"), 379),
+        # FRESHENED (#4506 ruff-format drain): line 379 -> 375; the canonical
+        # formatter collapsed multi-line scan-root extends; the join itself
+        # is unchanged.
+        (Path("src/charter/activation/neutrality/lint.py"), 375),
     }
 )
 

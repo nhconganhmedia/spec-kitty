@@ -612,14 +612,21 @@ class _EffectivenessCase:
 #: never by hand-counting. The producer/state identities are unchanged
 #: (`missing` remains `missing` — only the number of DISTINCT remediation
 #: commands the state can emit changed, from 1 to 2, per producer).
+#: Re-pinned a fifth time (#4506 ruff-format drain, 2026-09-20): the
+#: canonical formatter reflowed ``computer.py`` (line-joins only), pulling
+#: every remediation-emitting keyword up: 525 -> 518, 531 -> 524,
+#: 612 -> 605, 618 -> 611, 723 -> 716, 754 -> 747, 767 -> 760. Pure
+#: positional re-pin — re-derived by running
+#: ``_discover_remediation_emitting_states_full()`` against the current
+#: file, never by hand-counting; producer/state identities unchanged.
 _CASES: tuple[_EffectivenessCase, ...] = (
-    _EffectivenessCase("charter_source", 525, _fixture_charter_source_missing),
-    _EffectivenessCase("charter_source", 531, _fixture_charter_source_missing_f1),
-    _EffectivenessCase("synced_bundle", 612, _fixture_charter_source_missing),
-    _EffectivenessCase("synced_bundle", 618, _fixture_charter_source_missing_f1),
-    _EffectivenessCase("synthesized_drg", 723, _fixture_drg_missing),
-    _EffectivenessCase("synthesized_drg", 754, _fixture_drg_stale_bundle_not_fresh),
-    _EffectivenessCase("synthesized_drg", 767, _fixture_drg_stale_hash_mismatch),
+    _EffectivenessCase("charter_source", 518, _fixture_charter_source_missing),
+    _EffectivenessCase("charter_source", 524, _fixture_charter_source_missing_f1),
+    _EffectivenessCase("synced_bundle", 605, _fixture_charter_source_missing),
+    _EffectivenessCase("synced_bundle", 611, _fixture_charter_source_missing_f1),
+    _EffectivenessCase("synthesized_drg", 716, _fixture_drg_missing),
+    _EffectivenessCase("synthesized_drg", 747, _fixture_drg_stale_bundle_not_fresh),
+    _EffectivenessCase("synthesized_drg", 760, _fixture_drg_stale_hash_mismatch),
 )
 
 

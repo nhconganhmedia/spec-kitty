@@ -152,10 +152,10 @@ charter_path_literals:
   rationale: "Characterization-pinned md-only status shape (research.md D10 / WP04): the collector reports whether the prose file was materialized; it is a sync-status readout, not an authority gate."
 - file: src/specify_cli/cli/commands/charter/_status_collectors.py
   qualname: _collect_charter_sync_status
-  line: 82
+  line: 81
   literal: "charter.md"
   clause: "b"
-  token: "if charter_md_path . exists ( )"
+  token: "charter_path = charter_md_path if charter_md_path . exists ( ) else output_dir / CHARTER_YAML_FILENAME"
   rationale: "Paired with :74 — reports charter.md materialization in the sync-status readout; C-001 authority for the same collector is carried by CHARTER_YAML_FILENAME, pinned as a characterization test by WP04."
 - file: src/specify_cli/cli/commands/charter/_status_collectors.py
   qualname: _collect_charter_sync_status
