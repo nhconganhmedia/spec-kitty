@@ -52,8 +52,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from scripts.ci.gate_selection import GateSelection, Router, select_gates  # noqa: E402
-from specify_cli.core.vcs.git import merge_base_changed_files  # noqa: E402
+from scripts.ci.gate_selection import GateSelection, PyBlobs, Router, select_gates  # noqa: E402
+from specify_cli.core.vcs.git import git_merge_base, merge_base_changed_files  # noqa: E402
 
 __all__ = [
     "DEFAULT_BASE_REF_CANDIDATES",
@@ -61,6 +61,7 @@ __all__ = [
     "build_report",
     "format_report",
     "local_changed_paths",
+    "local_py_blobs",
     "main",
     "resolve_selection",
 ]
@@ -81,16 +82,68 @@ class ParityReport:
     selection: GateSelection
 
 
-def resolve_selection(changed_paths: Iterable[str], *, router: Router | None = None) -> GateSelection:
+def resolve_selection(
+    changed_paths: Iterable[str],
+    *,
+    router: Router | None = None,
+    py_blobs: PyBlobs | None = None,
+) -> GateSelection:
     """Resolve the gate/shard selection for *changed_paths*.
 
     A thin, intentional pass-through to
     :func:`scripts.ci.gate_selection.select_gates` — the single authority
     (#2476). This function carries no routing logic of its own; it exists so
     the local entrypoint (and its tests) have one obvious, importable seam
-    proving that reuse rather than a second parser.
+    proving that reuse rather than a second parser. *py_blobs* (spec-kitty
+    #4842) is the same evidence the authority's prose-only down-route
+    consumes; forwarding it here keeps the local preview in lockstep with
+    CI's content-aware routing instead of silently answering the pre-#4842
+    question.
     """
-    return select_gates(changed_paths, router=router)
+    return select_gates(changed_paths, router=router, py_blobs=py_blobs)
+
+
+def _blob_text(repo_root: Path, rev_path: str) -> str | None:
+    """One blob's text (``git show <rev>:<path>``); ``None`` on any doubt.
+
+    ``None`` — unfetchable blob, git failure, undecodable text — is the
+    fail-closed signal the authority reads as "not prose-only".
+    """
+    proc = subprocess.run(
+        ["git", "show", rev_path],
+        cwd=repo_root,
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return None
+    try:
+        return proc.stdout.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
+def local_py_blobs(repo_root: Path, base_ref: str, changed_paths: Iterable[str]) -> dict[str, tuple[str | None, str | None]]:
+    """Base/head blob text for every changed ``.py`` (spec-kitty#4842 evidence).
+
+    Gathers the same evidence CI's prose-only consumers gather — each changed
+    ``.py``'s base (merge-base) and head (HEAD) blob text — so the local
+    parity answer applies the authority's prose-only down-route exactly as
+    the router and module matrix do. The base SHA comes from the canonical
+    ``git_merge_base`` helper (the same idiom
+    :func:`local_changed_paths` composes through
+    ``merge_base_changed_files``); this module still never re-implements the
+    changed-path idiom itself. Any failure returns blobs that read as
+    fail-closed ``None`` pairs — the full-routing answer, never a skip.
+    """
+    py_paths = [str(path) for path in changed_paths if str(path).endswith(".py")]
+    if not py_paths:
+        return {}
+    base_sha = git_merge_base(repo_root, "HEAD", base_ref)
+    if base_sha is None:
+        return {}
+    return {path: (_blob_text(repo_root, f"{base_sha}:{path}"), _blob_text(repo_root, f"HEAD:{path}")) for path in py_paths}
 
 
 def _resolve_base_ref(repo_root: Path, candidates: Iterable[str]) -> str:
@@ -140,7 +193,8 @@ def build_report(
     repo = repo_root or _REPO_ROOT
     ref = base_ref or _resolve_base_ref(repo, DEFAULT_BASE_REF_CANDIDATES)
     changed = local_changed_paths(repo, ref)
-    selection = resolve_selection(changed, router=router)
+    py_blobs = local_py_blobs(repo, ref, changed)
+    selection = resolve_selection(changed, router=router, py_blobs=py_blobs)
     return ParityReport(base_ref=ref, changed_paths=changed, selection=selection)
 
 
@@ -155,6 +209,8 @@ def format_report(report: ParityReport) -> str:
         lines.append("  (none)")
     if report.selection.unmatched_src:
         lines.append("Unmatched src/** change -> fail-closed run-all (FR-004): every group is selected.")
+    if report.selection.prose_only:
+        lines.append("Proven prose-only (.py comment/docstring-only) diff -> down-routed off the code matrix (spec-kitty#4842).")
     lines.append(f"Selected jobs ({len(report.selection.selected_jobs)}):")
     lines.extend(f"  - {job}" for job in sorted(report.selection.selected_jobs))
     lines.append(f"Selected code shards ({len(report.selection.selected_code_shards)}):")

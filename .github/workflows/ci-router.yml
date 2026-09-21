@@ -54,33 +54,43 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      merge: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.merge }}
-      auth: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.auth }}
-      missions: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.missions }}
-      post_merge: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.post_merge }}
-      release: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.release }}
-      status: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.status }}
-      review: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.review }}
-      next: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.next }}
-      lanes: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.lanes }}
-      dashboard: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.dashboard }}
-      upgrade: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.upgrade }}
-      cli: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.cli }}
-      charter: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.charter }}
-      agent: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.agent }}
-      kernel: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.kernel }}
-      glossary: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.glossary }}
-      execution_context: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.execution_context }}
-      core_misc: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.core_misc }}
+      # spec-kitty#4842 — the prose-only fold. When the `prose` step above
+      # PROVED the whole diff comment/docstring-only, every SRC-BACKED group
+      # output is forced 'false' (a proven prose diff cannot flip any runtime
+      # gate: no module-test matrix, no heavy architectural battery, no code
+      # shard) and the `docs` output is forced 'true' (a docstring change runs
+      # the documentation lane — the inversion fix). corpus/e2e/ci are data /
+      # CI-infrastructure groups, not src-backed, and stay exactly as the
+      # dorny filter computed them. The fold mirrors what the single authority
+      # (scripts/ci/gate_selection.py select_gates(py_blobs=...)) answers for
+      # the same diff — pinned by tests/ci/test_gate_selection_prose_only.py.
+      merge: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.merge) }}
+      auth: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.auth) }}
+      missions: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.missions) }}
+      post_merge: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.post_merge) }}
+      release: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.release) }}
+      status: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.status) }}
+      review: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.review) }}
+      next: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.next) }}
+      lanes: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.lanes) }}
+      dashboard: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.dashboard) }}
+      upgrade: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.upgrade) }}
+      cli: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.cli) }}
+      charter: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.charter) }}
+      agent: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.agent) }}
+      kernel: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.kernel) }}
+      glossary: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.glossary) }}
+      execution_context: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.execution_context) }}
+      core_misc: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.core_misc) }}
       # Test-inventory groups (mission sonar-per-pr-coverage-reuse-01M2FR32,
       # WP02): src-backed like every row above -- their roots are a verbatim
       # SUBSET of globs other groups already own, so they add no new path->group
       # match and belong in the unmatched union and the heavy battery's `if:`.
-      unit: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.unit }}
-      specify_cli_runtime: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.specify_cli_runtime }}
+      unit: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.unit) }}
+      specify_cli_runtime: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'false' || steps.filter.outputs.specify_cli_runtime) }}
       # Non-src groups (data, not code): docs/corpus/e2e mirror the src rows'
       # fold shape but are DELIBERATELY excluded from the unmatched loop below.
-      docs: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.docs }}
+      docs: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || (steps.prose.outputs.prose-only == 'true' && 'true' || steps.filter.outputs.docs) }}
       corpus: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.corpus }}
       e2e: ${{ (inputs.mode == 'full' || steps.unmatched.outputs.unmatched == 'true') && 'true' || steps.filter.outputs.e2e }}
       # CI-infrastructure group (spec-kitty#4386): non-src, like docs/corpus/e2e
@@ -199,10 +209,56 @@ jobs:
             # Never gate a job on `any_src` directly (contract Invariant 1).
             any_src:
               - 'src/**'
+      # -------------------------------------------------------------------------
+      # spec-kitty#4842 — prose-only proof step. A path router is content-blind:
+      # PR #4841 (docstring-only correction, no code lines changed) fanned out
+      # the whole code matrix + the heavy architectural battery (~2h of shard
+      # compute) because a .py path IS a code path. This step asks the single
+      # gate-selection authority (scripts/ci/prose_only_step.py ->
+      # prose_only_verdict) to PROVE the diff comment/docstring-only from base
+      # + head blob content; only that proof down-routes (below). Fail-closed:
+      # any doubt prints false, and false routes exactly as today.
+      # -------------------------------------------------------------------------
+      - name: Prove a comment/docstring-only (prose-only) diff (spec-kitty#4842)
+        id: prose
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -uo pipefail
+          prose_only=false
+          base=""
+          case "$EVENT_NAME" in
+            pull_request) base="$BASE_SHA" ;;
+            push) base="$PUSH_BEFORE" ;;
+          esac
+          # No base (dispatch), null base (first push / force push), or an
+          # unfetchable base all leave prose_only=false: fail closed.
+          if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ] \
+             && git fetch --depth=1 origin "$base" 2>/dev/null; then
+            # gate_selection imports yaml (it parses this very workflow); the
+            # changes job installs nothing by default, so pin it like
+            # ci-modules.yml's matrix-generation step does.
+            pip install --quiet --disable-pip-version-check --only-binary=:all: "pyyaml==6.0.2"
+            if verdict="$(python3 scripts/ci/prose_only_step.py "$base" "$HEAD_SHA")"; then
+              if [ "$verdict" = "true" ]; then
+                prose_only=true
+              fi
+            fi
+          fi
+          echo "prose-only=$prose_only" >> "$GITHUB_OUTPUT"
       - name: Compute fail-closed catch-all unmatched signal
         id: unmatched
         env:
           ANY_SRC: ${{ steps.filter.outputs.any_src }}
+          # spec-kitty#4842: a PROVEN prose-only diff is not the unmapped src/**
+          # CODE this sensor exists to catch — prose cannot flip a runtime
+          # gate, so a proven-prose-only unmapped src change must not force
+          # run-all (the fold below would otherwise undo the down-route).
+          PROSE_ONLY: ${{ steps.prose.outputs.prose-only }}
         run: |
           matched=false
           # Union of the SRC-BACKED filter groups ONLY (docs/corpus/e2e are non-src,
@@ -232,7 +288,7 @@ jobs:
               matched=true
             fi
           done
-          if [ "$ANY_SRC" = "true" ] && [ "$matched" = "false" ]; then
+          if [ "$ANY_SRC" = "true" ] && [ "$matched" = "false" ] && [ "$PROSE_ONLY" != "true" ]; then
             echo "::warning::src/** change matched by NO named filter group — forcing run-all (FR-004 fail-closed catch-all). Add a named group for this directory."
             echo "unmatched=true" >> "$GITHUB_OUTPUT"
           else

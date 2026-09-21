@@ -14,15 +14,27 @@ answer, no drift.
 
 Public API:
     ``load_router(path=None) -> Router``   parse the two authorities.
-    ``select_gates(changed_paths, *, router=None, mode="pr") -> GateSelection``
+    ``select_gates(changed_paths, *, router=None, mode="pr", py_blobs=None)
+                                            -> GateSelection``
                                             answer the selection question.
+    ``select_modules(changed_paths, *, router=None, registry_path=None,
+                     mode="pr", py_blobs=None) -> frozenset[str]``
+                                            answer the module-matrix twin.
+    ``python_diff_is_prose_only(base_text, head_text) -> bool``
+                                            prove a ``.py`` blob pair differs
+                                            only in comments/docstrings.
+    ``prose_only_verdict(changed_paths, py_blobs, *, router=None) -> bool``
+                                            the all-or-nothing per-PR verdict.
 """
 
 from __future__ import annotations
 
+import ast
 import fnmatch
+import io
 import re
-from collections.abc import Iterable
+import tokenize
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -33,9 +45,13 @@ __all__ = [
     "DEFAULT_REGISTRY_PATH",
     "DEFAULT_ROUTER_PATH",
     "PROBE_GROUPS",
+    "PyBlobPair",
+    "PyBlobs",
     "GateSelection",
     "Router",
     "load_router",
+    "prose_only_verdict",
+    "python_diff_is_prose_only",
     "select_gates",
     "select_modules",
 ]
@@ -50,6 +66,179 @@ DEFAULT_REGISTRY_PATH = _REPO_ROOT / ".github" / "ci-module-registry.yml"
 PROBE_GROUPS = frozenset({"any_src"})
 
 _GROUP_REF = re.compile(r"needs\.changes\.outputs\.([A-Za-z0-9_]+)")
+
+# ---------------------------------------------------------------------------
+# spec-kitty#4842 — prose-only (comment/docstring-only) ``.py`` diff proof.
+#
+# The router routes on file PATHS, so a diff that edits only comments and
+# docstrings inside ``src/**.py`` is classified as a full code change and
+# fans out the entire code test matrix + the heavy architectural battery —
+# none of which a prose-only diff can flip (PR #4841 burned ~2h of aggregate
+# shard compute on a docstring-only correction). The detector below PROVES
+# prose-only-ness from blob content; the routing refinement (the ``py_blobs``
+# parameter of :func:`select_gates` / :func:`select_modules`) down-routes ONLY
+# on that proof, and every form of doubt — missing blob, undecodable text,
+# parse error, any structural difference, any ``# type:`` comment delta —
+# fails closed to today's path-based routing. Never skip the code matrix
+# without proof; the safe failure is "run everything", which is no worse than
+# today.
+# ---------------------------------------------------------------------------
+
+#: ``# type:`` comments feed mypy, so an AST compare (which cannot see
+#: comments at all) is not enough to prove a diff inert: any change in the
+#: ``# type:`` comment stream keeps the diff classified as code.
+_TYPE_COMMENT = re.compile(r"#\s*type:")
+
+#: A changed ``.py`` file's two blob texts: ``base`` is the pre-diff blob,
+#: ``head`` the post-diff blob. ``None`` marks an unreadable side (added or
+#: deleted file, unfetchable blob, undecodable text) and always fails closed.
+PyBlobPair = tuple[str | None, str | None]
+
+#: The per-PR evidence map a caller supplies to enable the #4842 down-route:
+#: changed ``.py`` path -> ``(base_text, head_text)``. ``None`` (the default
+#: everywhere) disables the refinement entirely — today's routing, exactly.
+PyBlobs = Mapping[str, PyBlobPair]
+
+#: A synthetic documentation probe path: the routing group(s) it matches are
+#: the documentation lane a proven prose-only diff routes into (derived by
+#: matching through the parsed router — never a hand-encoded group name).
+_PROSE_DOCS_PROBE = "docs/__ci_prose_only_probe__.md"
+
+
+class _DocstringStripper(ast.NodeTransformer):
+    """Remove docstring nodes from a parsed tree (both sides of a compare).
+
+    A docstring is a bare string-expression statement (``Expr`` wrapping a
+    ``str`` ``Constant``) at the head of a module/class/function body — the
+    same nodes :func:`ast.get_docstring` reads. Comments never appear in an
+    AST at all, so stripping docstrings from both trees makes an
+    ``ast.dump`` equality a proof that every non-docstring statement is
+    structurally identical.
+    """
+
+    def visit_Module(self, node: ast.Module) -> ast.Module:
+        return self._strip(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> ast.ClassDef:
+        return self._strip(node)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
+        return self._strip(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AsyncFunctionDef:
+        return self._strip(node)
+
+    def _strip(self, node: ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef) -> Any:
+        body = node.body
+        if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) and isinstance(body[0].value.value, str):
+            node.body = body[1:]
+        self.generic_visit(node)
+        return node
+
+
+def _docstring_stripped_ast(text: str) -> ast.Module | None:
+    """Parse *text* and strip docstrings, or ``None`` on any parse failure."""
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError):
+        return None
+    _DocstringStripper().visit(tree)
+    return tree
+
+
+def _type_comments(text: str) -> tuple[str, ...] | None:
+    """The ordered ``# type:`` comment texts, or ``None`` on tokenize failure.
+
+    mypy reads ``# type:`` comments the AST cannot see, so a prose-only proof
+    requires this stream to be byte-identical on both sides. The ordered
+    sequence (not a set) is compared so a type comment moved to a different
+    line, without any code change, is still a change mypy could observe.
+    """
+    try:
+        return tuple(
+            token.string for token in tokenize.generate_tokens(io.StringIO(text).readline) if token.type == tokenize.COMMENT and _TYPE_COMMENT.search(token.string)
+        )
+    except (tokenize.TokenError, SyntaxError, ValueError, IndentationError):
+        return None
+
+
+def python_diff_is_prose_only(base_text: str | None, head_text: str | None) -> bool:
+    """Prove a ``.py`` blob pair differs only in comments/docstrings (#4842).
+
+    True ONLY on proof; every doubt returns False (fail closed — the caller
+    then routes the diff as code, which is never worse than today):
+
+    * either side missing — an added or deleted file is new/removed code
+      surface, not prose;
+    * either side failing to parse — an unfamiliar construct is not proof;
+    * any structural difference between the docstring-stripped ASTs — real
+      code (a flipped default, an added branch, a changed string constant
+      that is not a docstring);
+    * any difference in the ``# type:`` comment stream — mypy reads those,
+      so the AST alone cannot prove the diff inert.
+    """
+    if base_text is None or head_text is None:
+        return False
+    base_ast = _docstring_stripped_ast(base_text)
+    head_ast = _docstring_stripped_ast(head_text)
+    if base_ast is None or head_ast is None:
+        return False
+    if ast.dump(base_ast) != ast.dump(head_ast):
+        return False
+    base_types = _type_comments(base_text)
+    head_types = _type_comments(head_text)
+    return base_types is not None and head_types is not None and base_types == head_types
+
+
+def _documentation_groups(router: Router) -> frozenset[str]:
+    """The routing group(s) a documentation probe matches (today: ``docs``).
+
+    Derived by feeding the probe through the parsed router's own filter
+    block — never a hand-encoded group name (the #2476 hazard).
+    """
+    return _match_groups([_PROSE_DOCS_PROBE], router)
+
+
+def _is_documentation_path(path: str, *, router: Router) -> bool:
+    """Whether a non-``.py`` changed path is documentation (#4842).
+
+    Documentation is any Markdown file (``*.md``) or any path the router's
+    documentation group globs already claim (``docs/**``, ``tests/docs/**``,
+    ``scripts/docs/**`` — derived, never re-listed here).
+    """
+    if path.endswith(".md"):
+        return True
+    return any(fnmatch.fnmatch(path, glob) for group in _documentation_groups(router) for glob in router.filters[group])
+
+
+def prose_only_verdict(
+    changed_paths: Iterable[str | Path],
+    py_blobs: PyBlobs,
+    *,
+    router: Router | None = None,
+) -> bool:
+    """The all-or-nothing per-PR prose-only verdict (#4842).
+
+    True only when EVERY changed path is either a documentation path or a
+    ``.py`` whose blob pair :func:`python_diff_is_prose_only` proves differs
+    only in comments/docstrings. Any real code change anywhere, any file the
+    detector cannot prove, any non-documentation non-``.py`` file (a
+    ``pyproject.toml``, a workflow, a lockfile) ⇒ False ⇒ today's full
+    routing. A diff with no ``.py`` file at all is also False: it needs no
+    proof, because a docs/data-only diff already routes as docs/data.
+    """
+    router = router or load_router()
+    paths = [str(path) for path in changed_paths]
+    py_changed = [path for path in paths if path.endswith(".py")]
+    if not py_changed:
+        return False
+    for path in py_changed:
+        pair = py_blobs.get(path)
+        if pair is None:
+            return False
+        if not python_diff_is_prose_only(pair[0], pair[1]):
+            return False
+    return all(_is_documentation_path(path, router=router) for path in paths if not path.endswith(".py"))
 
 
 @dataclass(frozen=True)
@@ -93,6 +282,10 @@ class GateSelection:
     unmatched_src: bool
     selected_jobs: frozenset[str]
     selected_code_shards: frozenset[str]
+    #: The #4842 prose-only verdict this selection applied: True only when the
+    #: caller supplied ``py_blobs`` proving every changed ``.py`` differs only
+    #: in comments/docstrings (and every other changed path is documentation).
+    prose_only: bool = False
 
 
 def _dorny_filters(workflow: dict[str, Any]) -> dict[str, tuple[str, ...]]:
@@ -136,6 +329,7 @@ def select_gates(
     *,
     router: Router | None = None,
     mode: str = "pr",
+    py_blobs: PyBlobs | None = None,
 ) -> GateSelection:
     """Return which jobs / code shards a changed-path set selects.
 
@@ -143,16 +337,42 @@ def select_gates(
     catch-all) forces run-all: every routing group is selected. Otherwise only
     the groups the paths matched are selected. Always-on jobs (no filter group)
     are always included; ``selected_code_shards`` is the src-backed subset.
+
+    ``py_blobs`` (spec-kitty#4842) optionally supplies base/head blob text for
+    the changed ``.py`` files. When it PROVES the whole diff is prose-only
+    (comment/docstring-only — :func:`prose_only_verdict`), the src-backed
+    (code) group matches are dropped and the documentation lane is selected
+    instead, and a proven-prose-only unmapped ``src/**`` change no longer
+    forces run-all: prose cannot flip any runtime gate, so the code matrix and
+    the heavy architectural battery are skipped while every always-on lane
+    (ruff, terminology, regen/CLI-reference drift, ...) still runs. Non-src
+    group matches (``docs``/``corpus``/``e2e``/``ci``) are untouched by the
+    refinement. ``py_blobs=None`` (the default) is fail-closed: no proof, no
+    down-route — exactly today's routing. ``mode="full"`` always wins over the
+    down-route: an explicit run-all is run-all.
     """
     router = router or load_router()
     paths = [str(path) for path in changed_paths]
     matched = _match_groups(paths, router)
+    prose_only = py_blobs is not None and prose_only_verdict(paths, py_blobs, router=router)
 
     any_src = any(path.startswith("src/") for path in paths)
     unmatched_src = any_src and not (matched & router.src_backed_groups)
 
-    run_all = mode == "full" or unmatched_src
-    selected_groups = router.routing_groups if run_all else matched
+    run_all = mode == "full" or (unmatched_src and not prose_only)
+    if run_all:
+        selected_groups = router.routing_groups
+    elif prose_only:
+        # #4842 down-route: under the all-or-nothing verdict, src-backed
+        # matches can only come from proven-prose-only .py paths (a
+        # documentation path cannot match a src/ glob), so dropping them is
+        # exactly "drop what the prose files contributed". Non-src matches
+        # stay, and the documentation lane is selected in the prose files'
+        # place — the inversion fix: a docstring change runs the docs lane,
+        # not the code matrix.
+        selected_groups = (matched - router.src_backed_groups) | _documentation_groups(router)
+    else:
+        selected_groups = matched
 
     gated_selected = frozenset(job for job, groups in router.job_gates.items() if groups and (groups & selected_groups))
     return GateSelection(
@@ -160,6 +380,7 @@ def select_gates(
         unmatched_src=unmatched_src,
         selected_jobs=router.always_on_jobs | gated_selected,
         selected_code_shards=gated_selected & router.code_shard_jobs,
+        prose_only=prose_only,
     )
 
 
@@ -273,6 +494,7 @@ def select_modules(
     router: Router | None = None,
     registry_path: Path | None = None,
     mode: str = "pr",
+    py_blobs: PyBlobs | None = None,
 ) -> frozenset[str]:
     """Return which module-registry rows (``.github/ci-module-registry.yml``
     ``modules[].module``) a changed-path set selects.
@@ -305,13 +527,26 @@ def select_modules(
     from the registry (:func:`_modules_for_test_paths`) and unioned in, so a
     tests-only diff selects the SAME module set the corresponding src change
     selects (mirror, never narrow).
+
+    ``py_blobs`` (spec-kitty#4842) applies the prose-only down-route to the
+    module matrix: a PROVEN comment/docstring-only diff selects no module
+    shard — prose cannot flip a test — while fail-closed defaults (no blobs,
+    any unproven file, any real code change) select exactly as today. The
+    #4454 tests-mirror is deliberately still computed for proven-prose-only
+    test files: "never narrower than the src twin" is the mirror's own
+    contract, and over-routing a prose-only tests diff is the safe direction.
     """
     router = router or load_router()
     modules = _registry_module_names(registry_path)
     paths = [str(path) for path in changed_paths]
-    selection = select_gates(paths, router=router, mode=mode)
-    if mode == "full" or selection.unmatched_src:
+    selection = select_gates(paths, router=router, mode=mode, py_blobs=py_blobs)
+    if mode == "full" or (selection.unmatched_src and not selection.prose_only):
         return modules
-    src_selected = selection.matched_groups & modules
+    # #4842 down-route: src-backed matches are dropped (they can only come from
+    # proven-prose-only .py paths under the all-or-nothing verdict); non-src
+    # matches (e.g. the `ci` module via a prose scripts/ci/*.py) keep selecting
+    # their module — over-routing, never under.
+    matched_groups = selection.matched_groups - router.src_backed_groups if selection.prose_only else selection.matched_groups
+    src_selected = matched_groups & modules
     test_selected = _modules_for_test_paths(paths, router=router, registry_path=registry_path, modules=modules)
     return src_selected | test_selected

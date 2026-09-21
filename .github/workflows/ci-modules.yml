@@ -162,6 +162,44 @@ jobs:
           if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ]; then
             if diff_output="$(git diff --name-only "$base" "$HEAD_SHA" 2>/dev/null)"; then
               files_json="$(printf '%s\n' "$diff_output" | python3 -c "import json, sys; print(json.dumps([line for line in sys.stdin.read().splitlines() if line]))")"
+              # spec-kitty#4842: gather base/head blob text for every changed
+              # .py so the single gate-selection authority can PROVE a
+              # comment/docstring-only diff before any module is deselected.
+              # Any per-file doubt (unfetchable blob, undecodable text) is
+              # stored as a null pair, which the authority reads as
+              # fail-closed "not prose-only" -- full routing, never a skip.
+              # A missing/invalid file in the build step below is the same
+              # fail-closed default (py_blobs=None -> today's routing).
+              if ! DIFF_PATHS="$diff_output" BLOB_BASE="$base" BLOB_HEAD="$HEAD_SHA" \
+                   python3 - <<'PYBLOBS'
+          import json
+          import os
+          import subprocess
+
+          paths = [line for line in os.environ.get("DIFF_PATHS", "").splitlines() if line]
+          base = os.environ["BLOB_BASE"]
+          head = os.environ["BLOB_HEAD"]
+
+
+          def blob(rev, path):
+              proc = subprocess.run(
+                  ["git", "show", f"{rev}:{path}"], capture_output=True, timeout=60, check=False
+              )
+              if proc.returncode != 0:
+                  return None
+              try:
+                  return proc.stdout.decode("utf-8")
+              except UnicodeDecodeError:
+                  return None
+
+
+          blobs = {p: [blob(base, p), blob(head, p)] for p in paths if p.endswith(".py")}
+          with open("changed-py-blobs.json", "w", encoding="utf-8") as fh:
+              json.dump(blobs, fh)
+          PYBLOBS
+              then
+                rm -f changed-py-blobs.json
+              fi
               outcome="success"
             fi
           fi
@@ -201,6 +239,23 @@ jobs:
           except json.JSONDecodeError:
               changed_files = []
 
+          # spec-kitty#4842: the changed-files step wrote base/head blob text
+          # for every changed .py (changed-py-blobs.json). Missing (skipped
+          # step), unreadable, or shape-invalid evidence is py_blobs=None --
+          # the fail-closed default that routes exactly as before #4842.
+          py_blobs = None
+          try:
+              with open("changed-py-blobs.json", encoding="utf-8") as fh:
+                  raw_blobs = json.load(fh)
+              if isinstance(raw_blobs, dict):
+                  py_blobs = {
+                      str(path): (pair[0], pair[1])
+                      for path, pair in raw_blobs.items()
+                      if isinstance(pair, list) and len(pair) == 2
+                  }
+          except (OSError, json.JSONDecodeError):
+              py_blobs = None
+
           # A changed-files step that ran but didn't succeed (or produced no
           # parseable output) is a degenerate diff -- fail closed to run-all,
           # never a silent empty selection (FR-004 fail-closed twin).
@@ -212,7 +267,7 @@ jobs:
           with open(".github/ci-module-registry.yml", encoding="utf-8") as fh:
               registry = yaml.safe_load(fh)
 
-          selected = select_modules(changed_files, mode=selection_mode)
+          selected = select_modules(changed_files, mode=selection_mode, py_blobs=py_blobs)
           all_modules = {row["module"] for row in registry["modules"]}
           effective_selected = all_modules if selection_mode == "full" else (selected & all_modules)
 
