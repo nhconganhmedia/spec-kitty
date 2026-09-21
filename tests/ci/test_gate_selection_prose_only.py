@@ -1,19 +1,26 @@
-"""spec-kitty#4842 — prose-only (comment/docstring-only) ``.py`` diff down-routing.
+"""spec-kitty#4842 — prose-only (comment-only) ``.py`` diff down-routing.
 
 The CI path router routes on file PATHS, so a diff that edits only comments
-and docstrings inside ``src/**.py`` is classified as a full code change and
-fans out the entire code test matrix + the heavy architectural battery (PR
-#4841 burned ~2h of aggregate shard compute on a docstring-only correction;
-the ``tests (docs)`` lane — the one a documentation change should run — was
+inside ``src/**.py`` is classified as a full code change and fans out the
+entire code test matrix + the heavy architectural battery (PR #4841 burned
+~2h of aggregate shard compute on a docstring-only correction; the
+``tests (docs)`` lane — the one a documentation change should run — was
 skipped). These tests pin the whole #4842 contract:
 
 * **Detector** (:func:`scripts.ci.gate_selection.python_diff_is_prose_only`)
-  — a docstring/comment-only blob pair is prose-only; every real-code shape
-  (flipped default, added branch, mixed docstring+code), every doubt shape
-  (missing blob side, parse error, ``# type:`` comment delta) is NOT.
+  — a docstring/comment-only blob pair is prose-only at the CONTENT level;
+  every real-code shape (flipped default, added branch, mixed
+  docstring+code), every doubt shape (missing blob side, parse error,
+  ``# type:`` comment delta) is NOT.
 * **Verdict** (:func:`prose_only_verdict`) — all-or-nothing per PR: any code
   change anywhere, any unprovable file, any non-documentation non-``.py``
-  file blocks the down-route.
+  file blocks the down-route — and (squad pass-2 MAJORs) so do BOTH
+  prose shapes that are not provably inert: a docstring delta in a ``.py``
+  under ``src/`` (Typer renders those docstrings as ``--help`` text; the
+  completion manifest and the ``--help`` golden snapshots pin it) and a
+  non-``.py`` path under ``src/`` (shipped ``.md`` payloads whose owning
+  code lanes police them). The proven-inert set is comment-only diffs
+  (docstrings byte-identical) plus any prose diff outside ``src/``.
 * **Routing** (:func:`select_gates` / :func:`select_modules` ``py_blobs``) —
   a PROVEN prose-only diff runs the always-on + docs lanes and skips the
   module-test matrix and the architectural battery; ``py_blobs=None`` (the
@@ -55,6 +62,11 @@ _CI_MODULES = _REPO_ROOT / ".github" / "workflows" / "ci-modules.yml"
 # Shared fixtures: a module whose base/head blob pairs exercise every
 # detector shape. The paths are real router paths (src/specify_cli/cli/**)
 # so the routing tests below select real groups.
+#
+# _PROSE_HEAD_PY rewords DOCSTRINGS (a content-level prose diff — inert
+# outside src/, NOT provably inert under src/); _COMMENT_ONLY_HEAD_PY edits
+# comments only, leaving every docstring byte-identical — the one shape that
+# is proven inert under src/ (squad pass-2 MAJOR 2).
 # ---------------------------------------------------------------------------
 _BASE_PY = '''"""Module summary."""
 
@@ -81,6 +93,20 @@ def f(x):
     return x  # trailing (clarified)
 '''
 
+_COMMENT_ONLY_HEAD_PY = '''"""Module summary."""
+
+DEFAULT = 1
+
+
+def f(x):
+    """Doc of f.
+
+    Long form.
+    """
+    # a clarified comment
+    return x  # trailing (reworded)
+'''
+
 _CODE_HEAD_PY = '''"""Module summary."""
 
 DEFAULT = 2
@@ -96,7 +122,11 @@ def f(x):
 '''
 
 _PROSE_SRC_PATH = "src/specify_cli/cli/commands/status.py"
-_PROSE_BLOBS = {_PROSE_SRC_PATH: (_BASE_PY, _PROSE_HEAD_PY)}
+#: src/**.py pair with identical docstrings and comment-only edits — PROVEN.
+_COMMENT_BLOBS = {_PROSE_SRC_PATH: (_BASE_PY, _COMMENT_ONLY_HEAD_PY)}
+#: src/**.py pair with a docstring delta — content-level prose, but under
+#: src/ it is NOT provably inert (Typer renders it as --help text).
+_DOCSTRING_BLOBS = {_PROSE_SRC_PATH: (_BASE_PY, _PROSE_HEAD_PY)}
 _CODE_BLOBS = {_PROSE_SRC_PATH: (_BASE_PY, _CODE_HEAD_PY)}
 
 
@@ -110,7 +140,9 @@ def router() -> Router:
 # ---------------------------------------------------------------------------
 @pytest.mark.fast
 def test_docstring_and_comment_only_change_is_prose_only() -> None:
-    """The #4842 motivating shape: docstring rewording + comment edits, zero code lines."""
+    """CONTENT-level proof: docstring rewording + comment edits, zero code
+    lines. Under ``src/`` the VERDICT refuses this shape (docstrings feed
+    ``--help``); outside ``src/`` it is the proven prose shape."""
     assert python_diff_is_prose_only(_BASE_PY, _PROSE_HEAD_PY)
 
 
@@ -220,14 +252,14 @@ def test_type_comment_unchanged_alongside_docstring_change_is_prose_only() -> No
 # Verdict: all-or-nothing per PR
 # ---------------------------------------------------------------------------
 @pytest.mark.fast
-def test_all_prose_py_plus_markdown_is_prose_only(router: Router) -> None:
-    assert prose_only_verdict([_PROSE_SRC_PATH, "docs/context/team-kitty.md"], _PROSE_BLOBS, router=router)
+def test_comment_only_src_py_plus_markdown_is_prose_only(router: Router) -> None:
+    assert prose_only_verdict([_PROSE_SRC_PATH, "docs/context/team-kitty.md"], _COMMENT_BLOBS, router=router)
 
 
 @pytest.mark.fast
 def test_any_code_py_blocks_the_verdict(router: Router) -> None:
     """All-or-nothing: one real-code .py anywhere blocks the down-route."""
-    blobs = {**_PROSE_BLOBS, "src/kernel/thing.py": (_BASE_PY, _CODE_HEAD_PY)}
+    blobs = {**_COMMENT_BLOBS, "src/kernel/thing.py": (_BASE_PY, _CODE_HEAD_PY)}
     assert not prose_only_verdict([_PROSE_SRC_PATH, "src/kernel/thing.py"], blobs, router=router)
 
 
@@ -235,23 +267,23 @@ def test_any_code_py_blocks_the_verdict(router: Router) -> None:
 def test_unprovable_py_blocks_the_verdict(router: Router) -> None:
     """A .py with no blob entry is unproven — fail closed."""
     assert not prose_only_verdict([_PROSE_SRC_PATH], {}, router=router)
-    assert not prose_only_verdict([_PROSE_SRC_PATH], {_PROSE_SRC_PATH: (None, _PROSE_HEAD_PY)}, router=router)
+    assert not prose_only_verdict([_PROSE_SRC_PATH], {_PROSE_SRC_PATH: (None, _COMMENT_ONLY_HEAD_PY)}, router=router)
 
 
 @pytest.mark.fast
 def test_non_documentation_non_py_file_blocks_the_verdict(router: Router) -> None:
     """A workflow/manifest/lockfile change is not documentation — fail closed."""
     for other in ("pyproject.toml", ".github/workflows/ci-router.yml", "uv.lock", "package-lock.json"):
-        assert not prose_only_verdict([_PROSE_SRC_PATH, other], _PROSE_BLOBS, router=router)
+        assert not prose_only_verdict([_PROSE_SRC_PATH, other], _COMMENT_BLOBS, router=router)
 
 
 @pytest.mark.fast
 def test_documentation_group_paths_count_as_documentation(router: Router) -> None:
     """Non-markdown paths the router's docs group already claims (docs/**,
-    scripts/docs/**) are documentation, just like any *.md."""
-    assert prose_only_verdict([_PROSE_SRC_PATH, "docs/diagram.png"], _PROSE_BLOBS, router=router)
-    assert prose_only_verdict([_PROSE_SRC_PATH, "scripts/docs/reference.yml"], _PROSE_BLOBS, router=router)
-    assert prose_only_verdict([_PROSE_SRC_PATH, "README.md"], _PROSE_BLOBS, router=router)
+    scripts/docs/**) are documentation, just like any *.md outside src/."""
+    assert prose_only_verdict([_PROSE_SRC_PATH, "docs/diagram.png"], _COMMENT_BLOBS, router=router)
+    assert prose_only_verdict([_PROSE_SRC_PATH, "scripts/docs/reference.yml"], _COMMENT_BLOBS, router=router)
+    assert prose_only_verdict([_PROSE_SRC_PATH, "README.md"], _COMMENT_BLOBS, router=router)
 
 
 @pytest.mark.fast
@@ -260,15 +292,101 @@ def test_no_py_files_is_not_a_prose_verdict(router: Router) -> None:
     assert not prose_only_verdict(["docs/x.md", "packs/built-in/missions/m/spec.md"], {}, router=router)
 
 
+# --- squad pass-2 MAJOR 1: no path under src/ is documentation ----------------
+@pytest.mark.fast
+def test_src_backed_markdown_is_not_documentation(router: Router) -> None:
+    """A shipped .md payload under a src-backed glob (the CLI's
+    src/charter/offering/skills/*/SKILL.md, matched by `charter` and
+    `core_misc`) is NOT documentation: classifying it as such would let a
+    prose-only verdict drop the code lanes that police it (tests/doctrine's
+    generic-artifact language-bias guard runs in the `charter` lane)."""
+    skill_md = "src/charter/offering/skills/x/SKILL.md"
+    assert not prose_only_verdict([skill_md, _PROSE_SRC_PATH], _COMMENT_BLOBS, router=router)
+
+
+@pytest.mark.fast
+def test_src_markdown_keeps_its_owning_code_lanes(router: Router) -> None:
+    """The MAJOR-1 end-to-end: a src-backed .md riding a proven comment-only
+    .py diff routes exactly as today — charter/core_misc/cli modules, the
+    heavy battery, and the cli shard all stay selected."""
+    skill_md = "src/charter/offering/skills/adversarial-squad/SKILL.md"
+    paths = [skill_md, _PROSE_SRC_PATH]
+    selection = select_gates(paths, router=router, py_blobs=_COMMENT_BLOBS)
+    assert selection.prose_only is False
+    assert selection.selected_code_shards == frozenset({"architectural-heavy", "tests-cli"})
+    assert select_modules(paths, router=router, py_blobs=_COMMENT_BLOBS) >= frozenset({"charter", "core_misc", "cli"})
+
+
+# --- squad pass-2 MAJOR 2: a docstring delta under src/ is never proven ------
+@pytest.mark.fast
+def test_src_docstring_delta_is_not_prose_only(router: Router) -> None:
+    """Typer renders command docstrings as --help text and the completion
+    manifest pins it, so a docstring delta under src/** is unproven — even
+    though the content-level detector proves it differs only in prose."""
+    assert python_diff_is_prose_only(_BASE_PY, _PROSE_HEAD_PY)  # content level: prose
+    assert not prose_only_verdict([_PROSE_SRC_PATH], _DOCSTRING_BLOBS, router=router)  # verdict: fail closed
+
+
+@pytest.mark.fast
+def test_src_docstring_only_edit_keeps_the_cli_module_selected(router: Router) -> None:
+    """Squad pass-2 MAJOR 2 repro: a docstring-only edit under
+    src/specify_cli/cli/commands/ (the doctor.py --help shape) keeps the cli
+    module lane selected and routes exactly as today — the heavy battery
+    (whose completion-manifest freshness gate pins help text) still runs."""
+    selection = select_gates([_PROSE_SRC_PATH], router=router, py_blobs=_DOCSTRING_BLOBS)
+    assert selection.prose_only is False
+    assert selection == select_gates([_PROSE_SRC_PATH], router=router)
+    assert selection.selected_code_shards == frozenset({"architectural-heavy", "tests-cli"})
+    assert select_modules([_PROSE_SRC_PATH], router=router, py_blobs=_DOCSTRING_BLOBS) == frozenset({"cli"})
+
+
+@pytest.mark.fast
+def test_unmapped_src_docstring_delta_still_forces_run_all(router: Router) -> None:
+    """The help surface is NOT just src/specify_cli/cli/**: the root Typer
+    app lives at src/specify_cli/__init__.py (an UNMATCHED src path), so a
+    docstring delta there must keep the FR-004 catch-all standing — the
+    run-all it forces is what runs the battery that pins the manifest."""
+    root_path = "src/specify_cli/__init__.py"
+    blobs = {root_path: ('"""Spec Kitty CLI."""\napp = None\n', '"""Spec Kitty CLI (reworded)."""\napp = None\n')}
+    selection = select_gates([root_path], router=router, py_blobs=blobs)
+    assert selection.unmatched_src is True
+    assert selection.prose_only is False
+    assert selection.selected_code_shards == router.code_shard_jobs
+    assert select_modules([root_path], router=router, py_blobs=blobs)  # every module
+
+
+@pytest.mark.fast
+def test_src_docstring_pure_move_fails_closed(router: Router) -> None:
+    """A docstring MOVED between bodies (same text, stripped ASTs identical)
+    is a delta: the (line, text) pairing catches it, exactly like a moved
+    ``# type:`` comment."""
+    base = '"""D."""\ndef f():\n    return 1\n'
+    head = 'def f():\n    """D."""\n    return 1\n'
+    assert python_diff_is_prose_only(base, head)  # content level: prose
+    blobs = {_PROSE_SRC_PATH: (base, head)}
+    assert not prose_only_verdict([_PROSE_SRC_PATH], blobs, router=router)
+
+
+@pytest.mark.fast
+def test_docstring_delta_outside_src_is_prose_only(router: Router) -> None:
+    """Deliberate residue, pinned: outside src/ no lane pins docstrings as
+    user-visible text, so a docstring-only diff there still down-routes."""
+    e2e_path = "tests/e2e/test_cli_flow.py"
+    blobs = {e2e_path: (_BASE_PY, _PROSE_HEAD_PY)}
+    assert prose_only_verdict([e2e_path], blobs, router=router)
+    script_path = "scripts/ci/gate_selection.py"
+    assert prose_only_verdict([script_path], {script_path: (_BASE_PY, _PROSE_HEAD_PY)}, router=router)
+
+
 # ---------------------------------------------------------------------------
 # Routing: the down-route and its fail-closed default
 # ---------------------------------------------------------------------------
 @pytest.mark.fast
 def test_prose_only_src_diff_down_routes_off_the_code_matrix(router: Router) -> None:
-    """GOLDEN lane set: a proven prose-only src/**.py diff keeps every
+    """GOLDEN lane set: a PROVEN comment-only src/**.py diff keeps every
     always-on lane + the docs lane, and skips the module-test matrix, the
     heavy architectural battery, and every code shard."""
-    selection = select_gates([_PROSE_SRC_PATH], router=router, py_blobs=_PROSE_BLOBS)
+    selection = select_gates([_PROSE_SRC_PATH], router=router, py_blobs=_COMMENT_BLOBS)
     assert selection.prose_only is True
     # matched_groups stays the RAW path match (the paths DID match cli)...
     assert selection.matched_groups == frozenset({"cli"})
@@ -279,12 +397,12 @@ def test_prose_only_src_diff_down_routes_off_the_code_matrix(router: Router) -> 
     # The always-on lanes survive — including the CLI-reference drift lane
     # (regen-check) and the fast arch poles the #4842 issue names as "keep".
     assert {"ruff", "terminology", "layer-rules", "regen-check"} <= selection.selected_jobs
-    # The inversion fix: the docs lane runs for the docstring change.
+    # The inversion fix: the docs lane runs for the comment change.
     assert "tests-docs" in selection.selected_jobs
     # Exactly always-on + docs-dependent jobs, nothing else.
     assert selection.selected_jobs == router.always_on_jobs | {"tests-docs"}
     # The module-test matrix selects zero modules.
-    assert select_modules([_PROSE_SRC_PATH], router=router, py_blobs=_PROSE_BLOBS) == frozenset()
+    assert select_modules([_PROSE_SRC_PATH], router=router, py_blobs=_COMMENT_BLOBS) == frozenset()
 
 
 @pytest.mark.fast
@@ -317,11 +435,11 @@ def test_unproven_blob_entry_routes_as_today(router: Router) -> None:
 
 @pytest.mark.fast
 def test_prose_only_unmapped_src_no_longer_forces_run_all(router: Router) -> None:
-    """FR-004 refinement: a PROVEN prose-only unmapped src/** change is not
+    """FR-004 refinement: a PROVEN comment-only unmapped src/** change is not
     the unmapped CODE the catch-all exists to catch — it down-routes instead
     of forcing run-all (the raw unmatched_src signal stays honest)."""
     paths = ["src/specify_cli/__unmapped_probe__/thing.py"]
-    blobs = {paths[0]: (_BASE_PY, _PROSE_HEAD_PY)}
+    blobs = {paths[0]: (_BASE_PY, _COMMENT_ONLY_HEAD_PY)}
     selection = select_gates(paths, router=router, py_blobs=blobs)
     assert selection.unmatched_src is True
     assert selection.prose_only is True
@@ -343,9 +461,9 @@ def test_unmapped_src_code_change_still_forces_run_all(router: Router) -> None:
 @pytest.mark.fast
 def test_full_mode_wins_over_the_down_route(router: Router) -> None:
     """An explicit run-all is run-all, even for a proven prose-only diff."""
-    selection = select_gates([_PROSE_SRC_PATH], router=router, mode="full", py_blobs=_PROSE_BLOBS)
+    selection = select_gates([_PROSE_SRC_PATH], router=router, mode="full", py_blobs=_COMMENT_BLOBS)
     assert selection.selected_code_shards == router.code_shard_jobs
-    assert select_modules([_PROSE_SRC_PATH], router=router, mode="full", py_blobs=_PROSE_BLOBS)
+    assert select_modules([_PROSE_SRC_PATH], router=router, mode="full", py_blobs=_COMMENT_BLOBS)
 
 
 @pytest.mark.fast
@@ -354,13 +472,14 @@ def test_prose_only_keeps_non_src_group_matches(router: Router) -> None:
     survive a prose-only verdict exactly as the dorny filter computed them."""
     # corpus: a kitty-specs spec.md alongside the prose .py keeps the corpus lane.
     paths = [_PROSE_SRC_PATH, "kitty-specs/034-x/spec.md"]
-    selection = select_gates(paths, router=router, py_blobs=_PROSE_BLOBS)
+    selection = select_gates(paths, router=router, py_blobs=_COMMENT_BLOBS)
     assert "corpus" in selection.matched_groups
     assert "tests-corpus" in selection.selected_jobs
     assert "tests-docs" in selection.selected_jobs
     assert selection.selected_code_shards == frozenset()
 
-    # e2e: a proven prose-only tests/e2e/**.py still selects the e2e lane.
+    # e2e: a proven prose-only tests/e2e/**.py — docstring delta included,
+    # outside src/ — still selects the e2e lane.
     e2e_path = "tests/e2e/test_cli_flow.py"
     e2e_blobs = {e2e_path: (_BASE_PY, _PROSE_HEAD_PY)}
     e2e = select_gates([e2e_path], router=router, py_blobs=e2e_blobs)
@@ -371,9 +490,10 @@ def test_prose_only_keeps_non_src_group_matches(router: Router) -> None:
 
 @pytest.mark.fast
 def test_prose_only_scripts_ci_keeps_the_ci_module(router: Router) -> None:
-    """Fail-closed over-route pin: a prose-only scripts/ci/*.py still selects
-    the `ci` module (its group is non-src, so the refinement does not drop
-    it) — over-routing a prose diff is the safe direction, never under."""
+    """Fail-closed over-route pin: a prose-only scripts/ci/*.py — docstring
+    delta included, outside src/ — still selects the `ci` module (its group
+    is non-src, so the refinement does not drop it) — over-routing a prose
+    diff is the safe direction, never under."""
     path = "scripts/ci/gate_selection.py"
     blobs = {path: (_BASE_PY, _PROSE_HEAD_PY)}
     assert select_modules([path], router=router, py_blobs=blobs) == frozenset({"ci"})
@@ -514,15 +634,18 @@ def test_router_output_fold_answers_what_the_authority_answers(router: Router) -
         return frozenset(always_on | gated)
 
     cases: list[tuple[list[str], dict[str, tuple[str | None, str | None]] | None]] = [
-        ([_PROSE_SRC_PATH], _PROSE_BLOBS),  # prose-only src diff -> down-route
+        ([_PROSE_SRC_PATH], _COMMENT_BLOBS),  # comment-only src diff -> down-route
+        ([_PROSE_SRC_PATH], _DOCSTRING_BLOBS),  # src docstring delta -> today's routing (squad pass-2 MAJOR 2)
         ([_PROSE_SRC_PATH], _CODE_BLOBS),  # code diff -> today's routing
         ([_PROSE_SRC_PATH], None),  # no evidence -> fail-closed today's routing
+        # src-backed .md riding a proven prose diff -> today's routing (MAJOR 1)
+        (["src/charter/offering/skills/x/SKILL.md", _PROSE_SRC_PATH], _COMMENT_BLOBS),
         # prose unmapped src: the catch-all stands down for PROVEN prose
         (
             ["src/specify_cli/__unmapped_probe__/thing.py"],
-            {"src/specify_cli/__unmapped_probe__/thing.py": (_BASE_PY, _PROSE_HEAD_PY)},
+            {"src/specify_cli/__unmapped_probe__/thing.py": (_BASE_PY, _COMMENT_ONLY_HEAD_PY)},
         ),
-        ([_PROSE_SRC_PATH, "kitty-specs/034-x/spec.md"], _PROSE_BLOBS),  # prose + corpus data
+        ([_PROSE_SRC_PATH, "kitty-specs/034-x/spec.md"], _COMMENT_BLOBS),  # prose + corpus data
         (["docs/architecture/status-model.md"], {}),  # docs-only, no proof needed
     ]
     for paths, blobs in cases:
@@ -587,11 +710,20 @@ def test_prose_only_step_prints_the_authoritys_verdict(tmp_path: Path, capsys: p
     (tmp_path / "docs" / "x.md").write_text("docs\n", encoding="utf-8")
     base_sha = _commit_all(tmp_path, "base")
 
-    # Prose-only change: docstring rewording + comment edits.
-    (src_dir / "status.py").write_text(_PROSE_HEAD_PY, encoding="utf-8")
+    # Prose-only change under src/: comment edits ONLY (a docstring delta
+    # would fail closed — see the next block).
+    (src_dir / "status.py").write_text(_COMMENT_ONLY_HEAD_PY, encoding="utf-8")
     head_sha = _commit_all(tmp_path, "prose")
     assert prose_main([base_sha, head_sha], repo_root=tmp_path) == 0
     assert capsys.readouterr().out.strip() == "true"
+
+    # Docstring-only change under src/ (squad pass-2 MAJOR 2): --help text is
+    # user-visible, so the step must print false — the code matrix and the
+    # battery stay selected exactly as today.
+    (src_dir / "status.py").write_text(_PROSE_HEAD_PY, encoding="utf-8")
+    docstring_sha = _commit_all(tmp_path, "docstring")
+    assert prose_main([base_sha, docstring_sha], repo_root=tmp_path) == 0
+    assert capsys.readouterr().out.strip() == "false"
 
     # Real code change: fail closed.
     (src_dir / "status.py").write_text(_CODE_HEAD_PY, encoding="utf-8")
@@ -616,12 +748,12 @@ def test_prose_only_step_prints_the_authoritys_verdict(tmp_path: Path, capsys: p
 @pytest.mark.fast
 def test_resolve_selection_forwards_the_prose_evidence(router: Router) -> None:
     """Parity proof (#2476/#4842): the local consumer forwards py_blobs to the
-    same authority, so its answer for a prose-only diff is the down-route."""
+    same authority, so its answer for a comment-only diff is the down-route."""
     from scripts.ci.local_gate_parity import resolve_selection
 
     paths = [_PROSE_SRC_PATH]
-    local = resolve_selection(paths, router=router, py_blobs=_PROSE_BLOBS)
-    ci = select_gates(paths, router=router, py_blobs=_PROSE_BLOBS)
+    local = resolve_selection(paths, router=router, py_blobs=_COMMENT_BLOBS)
+    ci = select_gates(paths, router=router, py_blobs=_COMMENT_BLOBS)
     assert local == ci
     assert local.prose_only is True
     assert local.selected_code_shards == frozenset()
@@ -655,7 +787,7 @@ def test_local_py_blobs_collects_merge_base_and_head_evidence(tmp_path: Path) ->
 
 @pytest.mark.git_repo
 def test_build_report_down_routes_a_prose_only_local_diff(tmp_path: Path) -> None:
-    """End-to-end local parity: a docstring-only working diff previews as the
+    """End-to-end local parity: a comment-only working diff previews as the
     down-route (docs lane + always-on, no code shards) — matching what the
     router will actually do for that PR."""
     from scripts.ci.local_gate_parity import build_report
@@ -667,7 +799,7 @@ def test_build_report_down_routes_a_prose_only_local_diff(tmp_path: Path) -> Non
     (src_dir / "status.py").write_text(_BASE_PY, encoding="utf-8")
     _commit_all(tmp_path, "base")
     subprocess.run(["git", "checkout", "-q", "-b", "topic"], cwd=tmp_path, capture_output=True, check=True)
-    (src_dir / "status.py").write_text(_PROSE_HEAD_PY, encoding="utf-8")
+    (src_dir / "status.py").write_text(_COMMENT_ONLY_HEAD_PY, encoding="utf-8")
     _commit_all(tmp_path, "prose")
 
     report = build_report(repo_root=tmp_path, base_ref="main")
