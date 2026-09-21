@@ -196,7 +196,12 @@ def test_type_comment_delta_fails_closed() -> None:
     assert not python_diff_is_prose_only(base, "x = []  # type: list[int]\n")  # added
     assert not python_diff_is_prose_only("x = []  # type: list[int]\n", base)  # removed
     assert not python_diff_is_prose_only("x = []  # type: list[int]\n", "x = []  # type: list[str]\n")  # edited
-    assert not python_diff_is_prose_only("y = 1  # type: ignore\n", "x = 1  # type: ignore\n")  # moved to another line
+    assert not python_diff_is_prose_only("y = 1  # type: ignore\n", "x = 1  # type: ignore\n")  # moved to another line (with a code rename)
+    # Pure position move (squad pass-1 MINOR): same texts, same order, same
+    # code — only the comment's line changed, which moves the annotation from
+    # x's line to y's and is observable to mypy. The AST is identical, so only
+    # the (line, text) pairing catches it.
+    assert not python_diff_is_prose_only("x = 1  # type: int\ny = 2\n", "x = 1\ny = 2  # type: int\n")
 
 
 @pytest.mark.fast
@@ -205,6 +210,10 @@ def test_type_comment_unchanged_alongside_docstring_change_is_prose_only() -> No
     base = '"""D."""\nx = []  # type: list[int]\n'
     head = '"""D2."""\nx = []  # type: list[int]\n'
     assert python_diff_is_prose_only(base, head)
+    # A docstring edit that changes line COUNT shifts the (line, text) pairs
+    # below it, so the proof fails closed — over-routing is the safe direction.
+    grown = '"""D2.\n\nLonger."""\nx = []  # type: list[int]\n'
+    assert not python_diff_is_prose_only(base, grown)
 
 
 # ---------------------------------------------------------------------------

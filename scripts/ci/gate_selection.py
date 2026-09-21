@@ -146,17 +146,23 @@ def _docstring_stripped_ast(text: str) -> ast.Module | None:
     return tree
 
 
-def _type_comments(text: str) -> tuple[str, ...] | None:
-    """The ordered ``# type:`` comment texts, or ``None`` on tokenize failure.
+def _type_comments(text: str) -> tuple[tuple[int, str], ...] | None:
+    """The ``(line, text)`` pairs of ``# type:`` comments, or ``None`` on tokenize failure.
 
     mypy reads ``# type:`` comments the AST cannot see, so a prose-only proof
-    requires this stream to be byte-identical on both sides. The ordered
-    sequence (not a set) is compared so a type comment moved to a different
-    line, without any code change, is still a change mypy could observe.
+    requires this stream to be identical on both sides. Each comment is paired
+    with its line number (not compared as a bare ordered text sequence) so a
+    type comment moved to a different line — even a pure position move with
+    the same text and order and no code change at all — is still a change
+    mypy could observe. A docstring edit that grows or shrinks line count
+    shifts the pairs below it and likewise fails closed: over-routing a
+    prose diff is the safe direction, never under.
     """
     try:
         return tuple(
-            token.string for token in tokenize.generate_tokens(io.StringIO(text).readline) if token.type == tokenize.COMMENT and _TYPE_COMMENT.search(token.string)
+            (token.start[0], token.string)
+            for token in tokenize.generate_tokens(io.StringIO(text).readline)
+            if token.type == tokenize.COMMENT and _TYPE_COMMENT.search(token.string)
         )
     except (tokenize.TokenError, SyntaxError, ValueError, IndentationError):
         return None
