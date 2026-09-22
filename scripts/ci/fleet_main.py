@@ -13,12 +13,14 @@ import argparse
 import fnmatch
 import json
 import re
+import time
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeAlias, cast
 
 import yaml
 
 from scripts.ci.fleet_verdict import AGGREGATE, PR_WORKFLOWS, GitHub, automatic_aggregate, classify, comment_body
+from scripts.ci.reconcile_retry import retry_with_backoff
 
 INCIDENT = "<!-- spec-kitty-main-ci-incident-v1 -->"
 
@@ -96,12 +98,41 @@ def body(repository: str, evidence: dict[str, Any], reporter_id: int, attempt: i
     )
 
 
-def report(api: GitHub, root: Path, ids: dict[str, int], reporter_id: int, attempt: int, *, dry_run: bool = False) -> None:
-    evidence = snapshot(api, root, ids)
-    text = body(api.repository, evidence, reporter_id, attempt)
-    if dry_run:
-        print(text, end="")
-        return
+_MAX_ATTEMPTS = 4
+
+
+def _backoff_seconds(attempt: int) -> float:
+    """2s -> 4s -> 8s (plan.md's Retry Budget Rationale for the fleet-verdict pair)."""
+    return float(2.0 * (2 ** (attempt - 1)))
+
+
+class _AlreadyReported:
+    """The existing dedupe short-circuit fired; nothing to publish."""
+
+
+class _NothingToReport:
+    """The pre-existing `evidence["state"] != "red"` early return fired.
+
+    Condition and action are unchanged from the pre-fix code (same check, same
+    print-and-return behavior) -- this outcome only marks that it now runs inside
+    _attempt(), evaluated fresh on every retry attempt using that attempt's own
+    snapshot, distinct from both _Ready (ready to publish) and None (retry-worthy).
+    """
+
+
+class _Ready:
+    """The two snapshots agreed; ready to publish this stabilized evidence."""
+
+    def __init__(self, text: str, head: str, incident_number: int | None) -> None:
+        self.text = text
+        self.head = head
+        self.incident_number = incident_number
+
+
+_Outcome: TypeAlias = _AlreadyReported | _NothingToReport | _Ready | None
+
+
+def _open_incidents(api: GitHub) -> list[dict[str, Any]]:
     incidents = [
         issue
         for issue in api.pages("issues?state=open&labels=from%3Aci")
@@ -109,30 +140,78 @@ def report(api: GitHub, root: Path, ids: dict[str, int], reporter_id: int, attem
     ]
     if len(incidents) > 1:
         raise ValueError("multiple active main CI incidents; fleet must reconcile ownership")
-    incident = incidents[0] if incidents else None
+    return incidents
+
+
+def _already_reported_to_incident(api: GitHub, incident: dict[str, Any], evidence: dict[str, Any]) -> bool:
+    comments = api.pages(f"issues/{incident['number']}/comments")
+    latest = next(
+        (comment for comment in reversed(comments) if comment.get("user", {}).get("type") == "Bot" and "<!-- evidence:" in comment.get("body", "")), incident
+    )
     fingerprint = "<!-- evidence: " + json.dumps(evidence, sort_keys=True) + " -->"
+    return fingerprint in latest.get("body", "")
+
+
+def _attempt(api: GitHub, root: Path, ids: dict[str, int], reporter_id: int, attempt: int) -> _Outcome:
+    """One full snapshot -> incident-lookup -> re-snapshot -> compare cycle.
+
+    Retries the WHOLE pair as one unit (FR-003/FR-007): the two snapshot reads below are
+    never partially reused across attempts, and a disagreement here converts to ``None``
+    (a retry signal), never a fall-through publish of stale evidence. Performs its own
+    fresh snapshot() call(s) -- it never reuses report()'s pre-loop evidence.
+    """
+    evidence = snapshot(api, root, ids)
+    text = body(api.repository, evidence, reporter_id, attempt)
+    incidents = _open_incidents(api)
+    incident = incidents[0] if incidents else None
     if incident:
-        comments = api.pages(f"issues/{incident['number']}/comments")
-        latest = next(
-            (comment for comment in reversed(comments) if comment.get("user", {}).get("type") == "Bot" and "<!-- evidence:" in comment.get("body", "")), incident
-        )
-        if fingerprint in latest.get("body", ""):
-            return
+        if _already_reported_to_incident(api, incident, evidence):
+            return _AlreadyReported()
     elif evidence["state"] != "red":
         print(text, end="")
-        return
+        return _NothingToReport()
     if snapshot(api, root, ids) != evidence:
-        raise ValueError("main head or CI attempts changed before publication; later event will reconcile")
-    if incident:
-        if api.request(f"issues/{incident['number']}")["state"] != "open":
+        return None
+    return _Ready(text, evidence["head"], incident["number"] if incident else None)
+
+
+def report(api: GitHub, root: Path, ids: dict[str, int], reporter_id: int, attempt: int, *, dry_run: bool = False) -> None:
+    evidence = snapshot(api, root, ids)
+    text = body(api.repository, evidence, reporter_id, attempt)
+    if dry_run:
+        print(text, end="")
+        return
+
+    def attempt_once() -> _AlreadyReported | _NothingToReport | _Ready | None:
+        return _attempt(api, root, ids, reporter_id, attempt)
+
+    # mypy cannot solve T for Callable[[], T | None] against a Union-returning callback
+    # (it joins to `object` instead of the real outcome union); attempt_once()'s own
+    # signature above is the real, checked contract, so this narrows what mypy could not.
+    outcome = cast(
+        "_AlreadyReported | _NothingToReport | _Ready | None",
+        retry_with_backoff(
+            attempt_once,
+            max_attempts=_MAX_ATTEMPTS,
+            backoff_seconds=_backoff_seconds,
+            sleep=time.sleep,
+        ),
+    )
+    if outcome is None:
+        print(f"[ci] deferred @{evidence['head']}: evidence did not stabilize within retry budget")
+        return
+    if isinstance(outcome, (_AlreadyReported, _NothingToReport)):
+        return
+    if outcome.incident_number is not None:
+        if api.request(f"issues/{outcome.incident_number}")["state"] != "open":
             raise ValueError("main CI incident closed before publication; later event will reconcile")
-        api.request(f"issues/{incident['number']}/comments", {"body": text})
+        api.request(f"issues/{outcome.incident_number}/comments", {"body": outcome.text})
     else:
         api.request(
             "issues",
             {
-                "title": f"main-push CI is red at {evidence['head'][:12]}",
-                "body": INCIDENT + "\n\n" + text,
+                "title": f"main-push CI is red at {outcome.head[:12]}",
+                "body": INCIDENT + "\n\n" + outcome.text,
                 "labels": ["type:fix", "priority:P0", "from:ci", "status:triage"],
             },
         )

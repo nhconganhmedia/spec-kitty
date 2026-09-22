@@ -228,14 +228,30 @@ def test_mismatched_push_run_never_supplies_evidence(field, value) -> None:
     assert evidence["state"] == "running"
 
 
-def test_main_move_before_publication_refuses_obsolete_p0() -> None:
-
+def test_main_move_before_publication_refuses_obsolete_p0(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Re-pin (Standing Order #4). Pre-fix, a head move between the single snapshot pair
+    made report() raise immediately. Traced against the new retry contract: report()'s
+    own pre-loop snapshot() (added this WP to fix the dry_run boundary) consumes the
+    FIRST "git/ref/heads/main" read (unmoved, since MainAPI's `move_on_second_read`
+    trigger is `head_reads > 1`). _attempt()'s own fresh evidence-read then becomes the
+    SECOND overall read -- already moved. The moved head ("c"*40) matches no mocked run's
+    fixed head_sha ("a"*40), so this attempt's own evidence is immediately "running", and
+    with no open incident yet, the pre-existing (unchanged) `evidence["state"] != "red"`
+    branch fires right there -- an informational print, no publish, no retry needed (this
+    is NOT the binding two-attempt-coverage test; that is
+    test_attempt_change_during_publication_refuses_stale_verdict below). This still
+    protects the original invariant -- no obsolete/stale P0 is ever opened -- just via
+    _NothingToReport() instead of a raise.
+    """
+    monkeypatch.setattr(fleet_main.time, "sleep", lambda seconds: None)
     api = MainAPI()
     api.runs["ci-quality.yml"][0]["conclusion"] = "failure"
     api.move_on_second_read = True
-    with pytest.raises(ValueError, match="main head or CI attempts changed"):
-        fleet_main.report(api, ROOT, IDS, 123, 1)
+
+    fleet_main.report(api, ROOT, IDS, 123, 1)
+
     assert not api.mutations
+    assert api.head_reads == 2, "expected 1 pre-loop read + 1 _attempt() own-evidence read (no retry, no recheck)"
 
 
 def test_aggregate_must_match_current_modules_attempt() -> None:
@@ -303,18 +319,45 @@ def test_dry_run_never_creates_incident(capsys) -> None:
     assert not api.mutations
 
 
-def test_attempt_change_during_publication_refuses_stale_verdict() -> None:
+def test_attempt_change_during_publication_refuses_stale_verdict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Re-pin (Standing Order #4; operator ruling #2 / TASKS-FRESH3-001 remediation (b) --
+    binding: this test MUST genuinely exercise _attempt() across at least two attempts).
+
+    Traced empirically against the live mock and the new pre-loop-snapshot call order:
+    the ORIGINAL `head_reads == 1` trigger no longer produces two-attempt coverage --
+    report()'s own new pre-loop snapshot() now consumes the first "git/ref/heads/main"
+    read, so the mutation lands on _attempt() attempt 1's OWN evidence-gathering read
+    (not its recheck), and that mutation (status="in_progress", conclusion=None) flips
+    state away from "red" before any incident exists -- the pre-existing not-red elif
+    fires immediately and resolves on attempt 1 alone. That does not satisfy the binding
+    requirement, so per the operator ruling the mock/test setup is adjusted here: the
+    trigger point moves to `head_reads == 2` (attempt 1's OWN recheck read, not its
+    evidence read), and the mutation is narrowed to bump only `run_attempt` (conclusion
+    stays "failure") so the evidence classifies "red" throughout -- exercising a genuine
+    disagreement WITHIN attempt 1 (its own read vs. its recheck), forcing a real retry
+    (None), with attempt 2's own read and recheck then both landing on the
+    already-mutated, now-stable state and agreeing -- _Ready. No raise: a successful
+    incident IS created, using the STABILIZED (run_attempt=2) evidence, never the stale
+    original (run_attempt=1).
+    """
+
     class RerunAPI(MainAPI):
         def request(self, path, payload=None):
-            if path == "git/ref/heads/main" and self.head_reads == 1:
-                self.runs["ci-quality.yml"][0].update(run_attempt=2, status="in_progress", conclusion=None)
+            if path == "git/ref/heads/main" and self.head_reads == 2:
+                self.runs["ci-quality.yml"][0].update(run_attempt=2)
             return super().request(path, payload)
 
+    monkeypatch.setattr(fleet_main.time, "sleep", lambda seconds: None)
     api = RerunAPI()
     api.runs["ci-quality.yml"][0]["conclusion"] = "failure"
-    with pytest.raises(ValueError, match="main head or CI attempts changed"):
-        fleet_main.report(api, ROOT, IDS, 123, 1)
-    assert not api.mutations
+
+    fleet_main.report(api, ROOT, IDS, 123, 1)
+
+    assert len(api.mutations) == 1
+    assert api.mutations[0][0] == "issues"
+    assert f"[ci] red @{HEAD}" in api.mutations[0][1]["body"]
+    assert '"run_attempt": 2' in api.mutations[0][1]["body"]
+    assert api.head_reads == 5, "expected 1 pre-loop read + 2 _attempt() calls (2 reads each): a genuine retry"
 
 
 def test_duplicate_open_incidents_refuse_ambiguous_ownership() -> None:
