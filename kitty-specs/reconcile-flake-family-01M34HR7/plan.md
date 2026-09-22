@@ -425,18 +425,31 @@ Scenario reasoning in spec.md does not ask for it).
 
 **`fleet_main.py::report()` rewiring** (FR-003/FR-004/FR-007): identical shape, importing
 `retry_with_backoff` from `reconcile_retry` and wrapping its own snapshot→incident-lookup→
-re-snapshot→compare body the same way. Its terminal behavior differs slightly from
-`fleet_verdict.py`'s in ONE pre-existing way this mission preserves, not changes: when there is no
-existing open incident and the (now-stabilized) evidence is not `red`, it already prints and
-returns without raising (`elif evidence["state"] != "red": print(text, end=""); return`). That
-branch's CONDITION and ACTION are unchanged — same check, same print-and-return behavior — but it
-sits structurally inside `_attempt()`'s wrapped body, between the incident lookup and the
-second/re-check `snapshot()` call. `evidence` is the variable bound by `_attempt()`'s own first
-`snapshot()` call, so it is rebound fresh on every retry attempt by construction; the `elif` is
-therefore necessarily re-evaluated on every attempt too, each time against that attempt's own
-`evidence`. This is not an optional design choice the retry loop happens to make — it is forced
-by `evidence` being rebound per attempt, since a branch cannot be held "outside" a retry that
-redefines the variable it tests.
+re-snapshot→compare body the same way. Its terminal behavior differs from `fleet_verdict.py`'s in
+TWO pre-existing ways this mission preserves, not changes.
+
+First, when there is no existing open incident and the (now-stabilized) evidence is not `red`, it
+already prints and returns without raising (`elif evidence["state"] != "red": print(text,
+end=""); return`). That branch's CONDITION and ACTION are unchanged — same check, same
+print-and-return behavior — but it sits structurally inside `_attempt()`'s wrapped body, between
+the incident lookup and the second/re-check `snapshot()` call. `evidence` is the variable bound by
+`_attempt()`'s own first `snapshot()` call, so it is rebound fresh on every retry attempt by
+construction; the `elif` is therefore necessarily re-evaluated on every attempt too, each time
+against that attempt's own `evidence`. This is not an optional design choice the retry loop
+happens to make — it is forced by `evidence` being rebound per attempt, since a branch cannot be
+held "outside" a retry that redefines the variable it tests.
+
+Second, `report()` keeps its own single pre-loop `snapshot()` call and `dry_run` check entirely
+OUTSIDE `retry_with_backoff`/`_attempt()` (`scripts/ci/fleet_main.py:99-104`: `evidence =
+snapshot(...)`; `text = body(...)`; `if dry_run: print(text, end=""); return`) — `_attempt()` is
+never called on a dry run, and when it is called (non-dry-run path), it performs its own fresh
+`snapshot()` call(s) per attempt rather than reusing this pre-loop `evidence`. This exists
+specifically so `dry_run` stays read-only with no retry sleeps: a dry run short-circuits before
+`retry_with_backoff` is ever entered, off a single un-retried snapshot. `fleet_verdict.py`'s
+`report()` takes a different shape here — its `dry_run` check sits at the very end, after the
+(now-wrapped) snapshot→dedupe→re-snapshot→compare sequence has already run, where it only chooses
+print-vs-post for an already-computed `body`, rather than gating entry into the retry-wrapped body
+at all.
 
 **FR-009 (no cross-run coupling)**: both `_attempt` closures capture only their own call's local
 `api`/`root`/`number`(or head)/`workflow_ids` arguments — no module-level mutable state, no shared
