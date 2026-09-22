@@ -17,12 +17,20 @@ part of that decision and must never become one.
 
 from __future__ import annotations
 
+import os
 import sys
 import time
 from collections.abc import Callable
 
 from scripts.ci.fleet_verdict import GitHub
-from scripts.ci.reconcile_shards import RegistryShard
+from scripts.ci.reconcile_retry import retry_with_backoff
+from scripts.ci.reconcile_shards import (
+    DEFAULT_REGISTRY_PATH,
+    DEFAULT_SELECTED_PATH,
+    RegistryShard,
+    parse_registry,
+    read_selected_modules,
+)
 from scripts.ci.select_source_artifacts import ARTIFACT
 
 __all__ = [
@@ -95,24 +103,57 @@ def poll_for_artifacts(
     backoff_seconds: Callable[[int], float] = _backoff_seconds,
     sleep: Callable[[float], None] = time.sleep,
 ) -> tuple[dict[ShardKey, str], frozenset[ShardKey]]:
-    """T011 STUB -- single, UNRETRIED poll (the eventual signature is already
-    final so T012 changes only the body, never the call sites or tests).
+    """Poll up to ``max_attempts`` times (WP01's ``retry_with_backoff``),
+    stopping the moment every required shard's artifact is visible.
 
-    ``max_attempts``/``backoff_seconds``/``sleep`` are accepted but ignored: a
-    must-be-fresh shard whose artifact becomes visible only on a later poll is
-    therefore reported missing here even though it would eventually appear --
-    this is exactly the "fails once, passes on retry no longer reliably
-    holds" defect #4675 describes, and it is the red-first anchor T012
-    resolves by wrapping this call in ``retry_with_backoff``.
+    On budget exhaustion, returns whatever was found on the LAST attempt plus
+    the still-missing keys -- this is a WIDENED WINDOW, never a completeness
+    decision. Callers (``main()`` below) must always exit 0 regardless of the
+    outcome; ``reconcile_shards.py::main()`` alone decides completeness
+    (FR-006).
     """
-    del max_attempts, backoff_seconds, sleep  # unused until T012's retry wiring
-    artifacts = api.pages(f"actions/runs/{run_id}/artifacts", field="artifacts")
-    found = match_artifacts(artifacts, run_attempt, required)
+    last_found: dict[ShardKey, str] = {}
+
+    def _attempt() -> dict[ShardKey, str] | None:
+        nonlocal last_found
+        artifacts = api.pages(f"actions/runs/{run_id}/artifacts", field="artifacts")
+        last_found = match_artifacts(artifacts, run_attempt, required)
+        return dict(last_found) if required <= last_found.keys() else None
+
+    outcome = retry_with_backoff(_attempt, max_attempts=max_attempts, backoff_seconds=backoff_seconds, sleep=sleep)
+    found = outcome if outcome is not None else last_found
     return found, required - found.keys()
 
 
-def main() -> int:  # pragma: no cover - CLI edge, completed in T012
-    raise NotImplementedError("wait_for_artifacts.py CLI edge is completed in T012")
+def main() -> int:
+    """Thin CLI edge: resolve env vars, compute the must-be-fresh set, poll,
+    and ALWAYS exit 0 -- never raise, never set a failing exit code (spec
+    US3 Acceptance Scenario 2 / FR-006). ``GH_TOKEN`` is consumed implicitly
+    by ``GitHub.request()``; this function never reads it directly.
+    """
+    run_id = os.environ["SOURCE_RUN_ID"]
+    run_attempt = int(os.environ["SOURCE_RUN_ATTEMPT"])
+    repository = os.environ["SOURCE_REPOSITORY"]
+
+    registry_shards = parse_registry(DEFAULT_REGISTRY_PATH)
+    selected = read_selected_modules(DEFAULT_SELECTED_PATH)
+    fresh_shards = must_be_fresh_shards(registry_shards, selected)
+    required = required_keys(fresh_shards)
+
+    if not required:
+        print("wait-for-artifacts: no must-be-fresh shards selected for this run; nothing to wait for")
+        return 0
+
+    api = GitHub(repository)
+    _found, missing = poll_for_artifacts(api, run_id=run_id, run_attempt=run_attempt, required=required)
+
+    if missing:
+        missing_names = sorted(f"module-tests-{module}-shard-{index}-of-{count}-attempt-<={run_attempt}-reports" for module, index, count in missing)
+        print(f"::warning::wait-for-artifacts: budget exhausted ({MAX_ATTEMPTS} attempts); {len(missing)} shard artefact(s) still not visible: {missing_names}")
+        print("::warning::wait-for-artifacts: falling through to the existing download steps -- reconcile_shards.py's unmodified guard still applies")
+    else:
+        print(f"wait-for-artifacts: all {len(required)} must-be-fresh shard artefact(s) visible")
+    return 0
 
 
 if __name__ == "__main__":
