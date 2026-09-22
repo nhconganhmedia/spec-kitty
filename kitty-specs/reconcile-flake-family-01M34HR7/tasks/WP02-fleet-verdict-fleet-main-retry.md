@@ -139,10 +139,18 @@ def report(api, root, ids, reporter_id, attempt, *, dry_run=False) -> None:
   whole sequence from the FIRST `snapshot()` call through the comparison against the
   re-check `snapshot()` call is what must be retried as one unit (FR-002/FR-003/FR-007/C-003
   — "never catch the disagreement and fall through to publishing the first/stale snapshot").
-- `fleet_main.py`'s `elif evidence["state"] != "red": print(text, end=""); return` early
-  exit is a **pre-existing, already-benign** early return for a non-red first snapshot — it
-  is untouched by this WP. Only the later `if snapshot(...) != evidence: raise ...` path
-  (the actual instability-detection point) is what gets wrapped in retry.
+- `fleet_main.py`'s `elif evidence["state"] != "red": print(text, end=""); return` branch
+  is **pre-existing and already-benign** — its CONDITION and ACTION are unchanged by this
+  WP (same check, same print-and-return behavior; no new retry-awareness is added to the
+  decision itself). It sits structurally BETWEEN the incident lookup and the re-check
+  `snapshot()` call in the live code, and is therefore textually inside the body plan.md's
+  "snapshot→incident-lookup→re-snapshot→compare" enumeration describes `_attempt()` as
+  wrapping for this file — so it moves into `_attempt()` along with everything else and is
+  evaluated FRESH, using that attempt's own first snapshot, on every retry attempt. What is
+  untouched is its logic, not its location: the elif branch is never itself the retry
+  trigger. Only the later `if snapshot(...) != evidence: raise ...` path (the actual
+  instability-detection point) converts to the retry signal (`None`); when the elif fires
+  instead, `_attempt()` returns its own terminal, non-retried outcome (see T009).
 - The `dry_run` / `replay` handling in both files stays exactly where it is, outside the
   retry loop — replay is an explicit, exact-revision operator action, not part of the
   raciness this mission targets.
@@ -396,14 +404,35 @@ green. Complexity check on `_attempt()` and any new helpers `<= 15`.
 **Purpose**: Make T006's tests pass; implement FR-003/FR-004/FR-007 for the main-push
 surface.
 
-**Steps**: Mirror T008 exactly for `fleet_main.py::report()`. Critical difference to
-preserve: the `elif evidence["state"] != "red": print(text, end=""); return` early exit
-happens BEFORE the retry-worthy instability check and is untouched — only the
-`if snapshot(...) != evidence: raise ...` path (and the subsequent incident-open/closed
-check) is wrapped in retry logic. `fleet_main.py::report()` itself measures complexity 18
-pre-extraction (plan.md's own measurement) — this is the one violation plan.md does NOT
-freeze as baseline debt, since this WP already restructures it; hit the `<=15` target for
-`_attempt()` the same way as T008.
+**Steps**: Mirror T008 exactly for `fleet_main.py::report()`, with one point that needs
+precise handling. `_attempt()` wraps the ENTIRE existing body — from the first
+`evidence = snapshot(...)` call, through the incident lookup, through the
+dedupe-check-if-incident-else-`elif`-not-red-check decision, through the re-check
+`snapshot()` call, through the comparison — matching plan.md's
+"snapshot→incident-lookup→re-snapshot→compare" enumeration for this file exactly. In the
+live code the `elif evidence["state"] != "red"` branch sits structurally BETWEEN the
+incident lookup and the re-check `snapshot()` call, so it is textually inside the body
+plan.md describes `_attempt()` as wrapping — it is NOT outside `_attempt()`/the retry loop,
+and it is NOT evaluated once against a frozen first snapshot. This means a FRESH first
+`snapshot()` call and a FRESH evaluation of the `elif` condition happen on EVERY retry
+attempt, each using that attempt's own snapshot.
+
+Critical difference to preserve, precisely stated: the `elif evidence["state"] != "red":
+print(text, end=""); return` branch's CONDITION and ACTION are unchanged by this WP — same
+check, same behavior (print the informational text and return), no new retry-awareness
+added to the decision itself. What changes is only that it now executes inside `_attempt()`
+instead of inline in `report()`. When this branch fires, represent it as its own terminal
+`_attempt()` outcome — an immediate, non-retried SUCCESS (print text, return) — distinct
+from both `_Ready(body)` (ready to publish) and `None` (unstable evidence, retry-worthy).
+Name it analogously to the existing dedupe short-circuit, e.g. `_NothingToReport()`. Only
+the later `if snapshot(...) != evidence` mismatch (and the subsequent incident-open/closed
+check) converts to `None`/retry — the elif branch itself must never be treated as the
+unstable/retry signal, even though it now lives inside `_attempt()`.
+
+`fleet_main.py::report()` itself measures complexity 18 pre-extraction (plan.md's own
+measurement) — this is the one violation plan.md does NOT freeze as baseline debt, since
+this WP already restructures it; hit the `<=15` target for `_attempt()` the same way as
+T008.
 
 **Files**: `scripts/ci/fleet_main.py` (modified — extraction + retry wiring).
 
@@ -493,8 +522,11 @@ Verify the red-first commit ordering literally (checkout the red-first commit, r
 tests, confirm they fail the OLD way — an unretried `raise ValueError`). Verify the two
 re-pinned tests' new assertions actually match the live mock's traced behavior (re-derive the
 trace yourself rather than trusting the diff). Verify `_attempt()`'s complexity in both files
-with a real measurement. Verify `fleet_main.py`'s benign early-return branch
-(`evidence["state"] != "red"`) is untouched and NOT inside the retry loop. Verify the FR-009
+with a real measurement. Verify `fleet_main.py`'s benign early-return branch (`evidence["state"] != "red"`) has its
+condition and action unchanged (same check, same print-and-return) — it now runs INSIDE
+`_attempt()`, evaluated fresh on every retry attempt using that attempt's own snapshot, and
+when it fires it returns as its own terminal `_attempt()` outcome (not `None`/retry, and
+not `_Ready`). Verify the FR-009
 isolation test genuinely exercises two concurrent/interleaved subjects, not two sequential
 calls that happen not to share obvious state by accident.
 
