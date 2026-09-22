@@ -214,12 +214,31 @@ def test_truncated_files_and_deferred_pr_never_green() -> None:
     assert classify({}, set()) == "running"
 
 
-def test_publication_rechecks_head_and_never_mutates_existing_comments() -> None:
+def test_publication_rechecks_head_and_never_mutates_existing_comments(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-002/FR-007/C-003 re-pin (Standing Order #4: judge the test, not git-blame).
+
+    Pre-fix, `move_on_second_read` moved the PR head SHA once (on the second `pulls/7`
+    read) and it stayed moved -- report()'s single snapshot pair disagreed and it raised
+    immediately. Traced against the new retry contract: attempt 1's own read (pr_reads=1,
+    unmoved) and its recheck (pr_reads=2, moved) disagree -> _attempt() returns None
+    (retry). Attempt 2's own read (pr_reads=3) and its recheck (pr_reads=4) both land on
+    the now-permanently-moved head -> they agree -> _Ready. The moved head ("c"*40) no
+    longer matches any mocked run's fixed `head_sha` ("a"*40), so the stabilized evidence
+    classifies as "running" (no matching runs), not "green" -- verified empirically
+    against the live mock, not assumed from a prediction. So the new contract is: no
+    raise, and a successful post IS made -- but using the evidence for the NEW, stabilized
+    head ("c"*40), never the stale original HEAD. This still proves invariant (a) (never
+    publish from a stale/first snapshot), just via retry-then-publish instead of raise.
+    """
+    monkeypatch.setattr(fleet_verdict.time, "sleep", lambda seconds: None)
     api = API()
     api.move_on_second_read = True
-    with pytest.raises(ValueError, match="changed before publication"):
-        report(api, ROOT, 7, IDS, 123, 1)
-    assert api.posts == []
+    report(api, ROOT, 7, IDS, 123, 1)
+    assert len(api.posts) == 1
+    stabilized_head = "c" * 40
+    assert api.posts[0]["body"].startswith(f"[ci] running @{stabilized_head}")
+    assert HEAD not in api.posts[0]["body"]
+    assert api.pr_reads == 4, "expected 2 _attempt() calls (2 pulls/7 reads each)"
     api = API()
     report(api, ROOT, 7, IDS, 123, 1)
     assert len(api.posts) == 1
@@ -482,23 +501,36 @@ def test_manual_replay_cli_dry_run_never_posts(tmp_path: Path, monkeypatch: pyte
     assert selected == [wrapper_path]
 
 
-def test_replay_rechecks_aggregate_attempt_before_publication(tmp_path: Path) -> None:
+def test_replay_rechecks_aggregate_attempt_before_publication(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-002/FR-007/C-003 re-pin, replay path (Standing Order #4).
+
+    Pre-fix, the aggregate run mutating between the two `actions/runs/` reads made the
+    single snapshot pair disagree and report() raised immediately. Traced against the new
+    retry contract: attempt 1's own read (reads=1, unmutated) and its recheck (reads=2,
+    mutated) disagree -> _attempt() returns None (retry). Attempt 2's own read (reads=3)
+    and its recheck (reads=4) both land on the now-permanently-mutated aggregate -> they
+    agree -> _Ready. So the new contract is: no raise, and a successful post IS made --
+    using the STABILIZED (mutated) aggregate evidence, never the stale original.
+    """
+    monkeypatch.setattr(fleet_verdict.time, "sleep", lambda seconds: None)
     api, checkout, replay = replay_fixture(tmp_path)
     original = api.request
-    reads = 0
+    counter = {"reads": 0}
 
     def changing_request(path: str, payload: dict[str, Any] | None = None) -> Any:
-        nonlocal reads
         if path.startswith("actions/runs/"):
-            reads += 1
-            if reads > 1:
+            counter["reads"] += 1
+            if counter["reads"] > 1:
                 api.runs[AGGREGATE][0].update(run_attempt=2, status="in_progress", conclusion=None)
         return original(path, payload)
 
     api.request = changing_request
-    with pytest.raises(ValueError, match="changed before publication"):
-        report(api, checkout, 7, IDS, 123, 1, replay=replay)
-    assert not api.posts
+
+    report(api, checkout, 7, IDS, 123, 1, replay=replay)
+
+    assert len(api.posts) == 1
+    assert '"run_attempt": 2' in api.posts[0]["body"]
+    assert counter["reads"] == 4, "expected 2 _attempt() calls (2 actions/runs/ reads each)"
 
 
 def test_gh_transport_uses_existing_proxy_and_stdin_for_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
