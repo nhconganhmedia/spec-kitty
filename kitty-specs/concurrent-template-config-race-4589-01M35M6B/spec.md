@@ -23,8 +23,9 @@ imports only `specify_cli.core.mission_creation.create_mission_core`, unrelated
 to PR #4585's actual diff (`src/specify_cli/status/work_package_lifecycle.py`
 and its tests only) — hence "flake-suspect," not a PR regression.
 
-**This is a latent production-side thread-safety defect, not (yet) an
-empirically reproduced one.** Prior investigation (readiness pass, cited
+**This is a *suspected* latent production-side thread-safety defect — not
+yet empirically reproduced, and the causal mechanism itself is an unproven
+hypothesis (see CL-002).** Prior investigation (readiness pass, cited
 below) ran 0/300 cold-subprocess reruns of the real test and 0/2000
 `Barrier`-synchronized, cache-cleared in-process trials without reproducing
 the race naturally. The mission's job is therefore to (a) determine, through
@@ -135,11 +136,11 @@ On every failure path, the fixed code must raise `TemplateConfigurationError`
 (or an equivalent explicit, typed exception) with a reason string precise
 enough to diagnose. It must never return `None`, an empty mapping, or a
 partial/silently-degraded `template_set` in place of raising. This applies to
-both the existing raise sites in `src/specify_cli/runtime/resolver.py`
-(`_resolve_template_filename`, `TemplateConfigurationError` construction
-around lines 474–526) and any new cache/lock code this mission adds — a lock
-timeout, a corrupted-cache detection, or a retry-exhaustion path must all
-raise, not degrade.
+both the existing raise sites inside `resolve_configured_template` in
+`src/specify_cli/runtime/resolver.py` (function defined at line 440;
+`TemplateConfigurationError` construction around lines 474–526) and any new
+cache/lock code this mission adds — a lock timeout, a corrupted-cache
+detection, or a retry-exhaustion path must all raise, not degrade.
 
 ### CL-007 — Reflexivity: mission creation is the machinery this mission runs on
 
@@ -181,6 +182,16 @@ substitute for it (see CL-002).
   `MissionTypeRepository.default()` is itself `@functools.cache`-memoized
   (line 68) and its docstring documents a `cache_clear()` test seam (NFR-007
   contract) that must survive this mission's changes.
+- `src/charter/offering/missions/mission_step_repository.py:324-333` —
+  `MissionStepRepository.cache_clear()`, a public `@staticmethod` test seam
+  (NFR-003 contract) that internally calls the private
+  `_resolve_all_for_mission_type_cached.cache_clear()` — never call the
+  private function's `.cache_clear()` directly from outside the module (its
+  own docstring at lines 464-465 forbids it). Its docstring carries the same
+  "production never mutates the bundled `mission-steps/` tree mid-process,
+  so the cache is safe there" cache-safety argument as
+  `mission_type_repository.py:68-96`; the plan phase must explicitly confirm
+  this still holds after the fix, or consciously revise it with rationale.
 - `src/charter/offering/missions/step_projection.py:105-126` —
   `project_template_set()` builds the `template_set` mapping from a single
   traversal of `iter_template_refs(steps)`; if a step's parse is corrupted or
@@ -213,14 +224,17 @@ not cite paths that do not exist here):
 These files carry NFR-002/NFR-003/CL-001-style cache-contract docstrings
 (see the `mission_type_repository.py:68-96` `default()` docstring, which
 documents both an NFR-007 memoization contract and a `cache_clear()` test
-seam used by other tests) and `cache_clear()` test seams used elsewhere in
-the suite. **This mission must preserve those contracts and seams** — the
-fix must not remove or weaken `cache_clear()`, must not de-memoize
-`MissionTypeRepository.default()` or `_resolve_all_for_mission_type_cached()`
-as a shortcut past the concurrency problem, and must keep the documented
-"production never mutates the bundled trees mid-process" cache-safety
-argument intact (or explicitly and consciously revise it, with rationale, if
-research shows it no longer holds).
+seam used by other tests, and the `mission_step_repository.py:324-333`
+`MissionStepRepository.cache_clear()` docstring, which documents the
+parallel NFR-003 contract for the mission-steps cache) and `cache_clear()`
+test seams used elsewhere in the suite. **This mission must preserve those
+contracts and seams** — the fix must not remove or weaken `cache_clear()`,
+must not de-memoize `MissionTypeRepository.default()` or
+`_resolve_all_for_mission_type_cached()` as a shortcut past the concurrency
+problem, and must keep the documented "production never mutates the bundled
+trees mid-process" cache-safety argument intact in both files (or explicitly
+and consciously revise it, with rationale, if research shows it no longer
+holds).
 
 **Corrected path note (charter "canonical sources, never improvise" / spec
 overlay rule — verify every cited path against the live checkout):** the
@@ -259,11 +273,15 @@ passes after the fix commit, with no reliance on natural timing.
 
 **Acceptance Scenarios**:
 
-1. **Given** the pre-fix code on this mission's `planning_base_branch`,
-   **When** the new Barrier-synchronized, instrumented regression test is run,
-   **Then** it fails, demonstrating the forced interleaving reaches the
-   unsafe code path (falsifiable: if it passes pre-fix, the test is invalid
-   per the CL-003 severity-4 bar).
+1. **Given** the commit on this mission's branch where the red-first
+   regression test has just been committed but the production-fix commit
+   has not yet landed (per CL-004's commit-ordering intent — the
+   test-first commit, not a fixed pre-mission baseline; `planning_base_branch`
+   is this mission's own single working branch and accumulates both commits),
+   **When** the new Barrier-synchronized, instrumented regression test is run
+   at that commit, **Then** it fails, demonstrating the forced interleaving
+   reaches the unsafe code path (falsifiable: if it passes at that commit,
+   the test is invalid per the CL-003 severity-4 bar).
 2. **Given** the post-fix code, **When** the same regression test is run,
    **Then** it passes (falsifiable: if it still fails, the fix did not close
    the interleaving the test forces).
@@ -300,10 +318,16 @@ regression test satisfies CL-003 and whether the fix preserves the
 1. **Given** this spec's Clarifications section, **When** a reviewer checks
    the PR's regression test against CL-003, **Then** the reviewer can confirm
    red-before/green-after without needing to ask the implementer what the
-   test "really" proves.
+   test "really" proves (falsifiable: if the reviewer must ask the
+   implementer to explain what the test demonstrates, or must re-derive the
+   red/green commits themselves because the PR does not make them checkable,
+   this scenario has failed).
 2. **Given** this spec's CL-007 reflexivity statement, **When** a reviewer
    checks the diff, **Then** the reviewer can confirm no on-disk schema,
-   `meta.json` contract, or persisted mission-metadata format changed.
+   `meta.json` contract, or persisted mission-metadata format changed
+   (falsifiable: any diff hunk touching the `step.yaml` format, the
+   `MissionType`/`MissionStep` schemas, or the `meta.json` shape fails this
+   scenario).
 
 ---
 
@@ -325,8 +349,13 @@ readable by a future mission without re-running the sweep.
 **Acceptance Scenarios**:
 
 1. **Given** this mission's research artifacts, **When** a future mission
-   investigates a similar flake, **Then** it can determine within minutes
-   whether this specific hypothesis was already tested and with what result.
+   investigates a similar flake, **Then** it can find, in `research.md` (or
+   the plan's research notes) and the tracer files, an explicit record of
+   the hypothesis tested, the reproduction protocol used (e.g., the N
+   cold-subprocess reruns and M Barrier-synchronized trial counts), and the
+   result, without re-running any part of the sweep (falsifiable: if
+   answering requires re-running the reproduction protocol or asking this
+   mission's original authors, this scenario has failed).
 
 ### Edge Cases
 
@@ -357,7 +386,7 @@ readable by a future mission without re-running the sweep.
 |----|-------|------------|----------|--------|
 | FR-001 | Research the causal hypothesis before fixing | As a mission implementer, I want the plan phase to investigate (not assume) whether the YAML-singleton-corruption theory explains the observed `TemplateConfigurationError`, including ruamel.yaml's actual thread-sharing behavior and functools.cache's cache-miss concurrency semantics, so that the fix targets a verified mechanism rather than a guess. | High | Open |
 | FR-002 | Make template/step cache population concurrency-safe | As a maintainer, I want concurrent `create_mission_core` calls to never race on shared cache/YAML-loader state, so that `TemplateConfigurationError` is never raised for a correctly-configured mission type/artifact-kind pair. | High | Open |
-| FR-003 | Preserve existing cache-contract seams | As a test author relying on `MissionTypeRepository.default.cache_clear()` and the `_resolve_all_for_mission_type_cached` cache seam, I want those seams to keep working exactly as documented (NFR-002/NFR-003/NFR-007 contracts), so that unrelated tests that depend on cache-clearing are not broken by this fix. | High | Open |
+| FR-003 | Preserve existing cache-contract seams | As a test author relying on `MissionTypeRepository.default.cache_clear()` and `MissionStepRepository.cache_clear()` (mission_step_repository.py:324-333) — the public seam that internally calls the private `_resolve_all_for_mission_type_cached.cache_clear()`, which must never be called directly from outside the module per that private function's own docstring — I want those seams to keep working exactly as documented (NFR-002/NFR-003/NFR-007 contracts), so that unrelated tests that depend on cache-clearing are not broken by this fix. | High | Open |
 | FR-004 | Land a red-first, Barrier-synchronized regression test before the fix | As a reviewer, I want a deterministic, by-construction regression test committed before the production fix commit, so that red→green is directly demonstrable (ATDD, charter C-011). | High | Open |
 | FR-005 | Reproduce through the pre-existing entry point | As a reviewer, I want the regression test to exercise `create_mission_core` (or the resolver path it drives) as its outer call, so that the test proves the production entry point is affected, not just an internal helper. | High | Open |
 | FR-006 | Fail loudly on every cache/lock error path | As a maintainer, I want any new lock-timeout, corrupted-cache, or retry-exhaustion path introduced by the fix to raise `TemplateConfigurationError` (or an equivalent explicit exception), never to return `None` or a partial template mapping. | High | Open |
@@ -370,7 +399,7 @@ readable by a future mission without re-running the sweep.
 |----|-------|-------------|----------|----------|--------|
 | NFR-001 | No natural-timing-only regression test | The new regression test must force the unsafe interleaving deterministically (Barrier + instrumented hook or equivalent); a test whose pass/fail depends on natural OS thread scheduling alone does not satisfy FR-004. Falsifiable: run the new test 50 times in a row — it must produce the same red/green verdict every time relative to the code under test. | Reliability | High | Open |
 | NFR-002 | No CLI performance regression | `spec-kitty agent mission create` (or an equivalent single-threaded `create_mission_core` call) must still complete in under 2 seconds for a typical project after the fix, per the charter's existing CLI performance standard. Falsifiable: time a single-threaded mission-create call before and after; a regression beyond the 2s bar fails this requirement. | Performance | Medium | Open |
-| NFR-003 | Cache-clear seam determinism preserved | `MissionTypeRepository.default.cache_clear()` and `_resolve_all_for_mission_type_cached.cache_clear()` must remain synchronous, side-effect-free w.r.t. any new lock state (i.e., clearing the cache must not leave a lock held or in an inconsistent state), and must be callable repeatedly without error. Falsifiable: a test that calls `cache_clear()` mid-population and asserts no deadlock/exception. | Reliability | High | Open |
+| NFR-003 | Cache-clear seam determinism preserved | `MissionTypeRepository.default.cache_clear()` and `MissionStepRepository.cache_clear()` (mission_step_repository.py:324-333 — the public `@staticmethod` wrapper; it internally calls the private `_resolve_all_for_mission_type_cached.cache_clear()`, which that private function's own docstring forbids calling directly from outside the module) must remain synchronous, side-effect-free w.r.t. any new lock state (i.e., clearing the cache must not leave a lock held or in an inconsistent state), and must be callable repeatedly without error. Falsifiable: a test that calls `MissionStepRepository.cache_clear()` mid-population and asserts no deadlock/exception. | Reliability | High | Open |
 
 ### Constraints
 
@@ -426,3 +455,9 @@ readable by a future mission without re-running the sweep.
 - **SC-005**: The GitHub issue #4589 is relabelled `type:fix` by the
   orchestrator at PR time (not by a mission agent) once the fix and its
   regression test are accepted.
+- **SC-006**: A dedicated test forces a lock-timeout, corrupted-cache, or
+  retry-exhaustion condition in the new concurrency-safety code and asserts
+  that it raises `TemplateConfigurationError` (or an equivalent explicit,
+  typed exception) — never returns `None`, an empty mapping, or a partial
+  `template_set` (CL-006, FR-006) — verified by that test failing if the
+  raise is replaced with a silent-degrade return.
