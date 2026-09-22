@@ -228,7 +228,7 @@ def test_mismatched_push_run_never_supplies_evidence(field, value) -> None:
     assert evidence["state"] == "running"
 
 
-def test_main_move_before_publication_refuses_obsolete_p0(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_head_move_before_attempt_read_yields_nothing_to_report(monkeypatch: pytest.MonkeyPatch) -> None:
     """Re-pin (Standing Order #4). Pre-fix, a head move between the single snapshot pair
     made report() raise immediately. Traced against the new retry contract: report()'s
     own pre-loop snapshot() (added this WP to fix the dry_run boundary) consumes the
@@ -357,6 +357,46 @@ def test_attempt_change_during_publication_refuses_stale_verdict(monkeypatch: py
     assert api.mutations[0][0] == "issues"
     assert f"[ci] red @{HEAD}" in api.mutations[0][1]["body"]
     assert '"run_attempt": 2' in api.mutations[0][1]["body"]
+    assert api.head_reads == 5, "expected 1 pre-loop read + 2 _attempt() calls (2 reads each): a genuine retry"
+
+
+def test_main_head_move_within_attempts_own_reads_forces_genuine_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Supplementary coverage for the gap
+    test_main_head_move_before_attempt_read_yields_nothing_to_report's rename gave up:
+    that test's rename means no test now pins a literal head-SHA-move-within-one-attempt
+    scenario. test_attempt_change_during_publication_refuses_stale_verdict covers the same
+    `snapshot(...) != evidence` guard, but only via a `run_attempt` mutation -- this test
+    mutates `head` specifically, while every matched run stays conclusion="failure" for
+    BOTH head values, so `state` stays "red" throughout and the not-red `elif` in
+    _attempt() never short-circuits it before the disagreement check runs.
+
+    main's head moves between _attempt()'s own two reads on attempt 1: its evidence read
+    (the 2nd overall read, after report()'s pre-loop snapshot()) still sees the original
+    head, but its own recheck (the 3rd overall read) sees the moved head -- a genuine
+    within-attempt disagreement on `head` alone, forcing a retry. Attempt 2's own two
+    reads then agree (both see the now-stable moved head), so report() publishes using
+    the STABILIZED (moved-head) evidence.
+    """
+    moved_head = "e" * 40
+
+    class HeadMoveAPI(MainAPI):
+        def request(self, path, payload=None):
+            if path == "git/ref/heads/main" and self.head_reads == 2:
+                self.head = moved_head
+            return super().request(path, payload)
+
+    monkeypatch.setattr(fleet_main.time, "sleep", lambda seconds: None)
+    api = HeadMoveAPI()
+    api.runs["ci-quality.yml"][0]["conclusion"] = "failure"
+    moved_run = copy.deepcopy(api.runs["ci-quality.yml"][0])
+    moved_run["head_sha"] = moved_head
+    api.runs["ci-quality.yml"].append(moved_run)
+
+    fleet_main.report(api, ROOT, IDS, 123, 1)
+
+    assert len(api.mutations) == 1
+    assert api.mutations[0][0] == "issues"
+    assert f"[ci] red @{moved_head}" in api.mutations[0][1]["body"]
     assert api.head_reads == 5, "expected 1 pre-loop read + 2 _attempt() calls (2 reads each): a genuine retry"
 
 
