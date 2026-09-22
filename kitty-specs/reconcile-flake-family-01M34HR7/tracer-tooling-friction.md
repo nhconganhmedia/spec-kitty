@@ -23,3 +23,30 @@ Seeded at plan phase (2026-09-22). Append entries during implementation; assess 
   be manually reconciled against the actual charter section names (the charter here says
   "Governing Principles" + "Quality & Tech-Debt Standing Orders", not "Constitution") — a small
   but real renaming translation step every planner has to redo by hand.
+
+## Analyze phase (2026-09-22)
+
+- `spec-kitty agent mission record-analysis` behaved correctly across every one of 5 fresh-sweep
+  rounds this phase — the literal `verdict` string it wrote always matched the carrier's own
+  computed verdict (`ready` ×3, `blocked` ×1 when 2 HIGH findings were live, `ready` again once
+  fixed). The live tracked defect this dispatch warned about (upstream #3133 / ledger SK-06:
+  `record-analysis` silently writing `verdict: unknown` for an explicitly-ready report) did
+  **not** reproduce on this mission, on this build (`spec_kitty_version: 4.0.0rc5`). Recorded here
+  per the dispatch's standing instruction to log the outcome either way, not just on failure.
+- Real, repeated friction: `wps.yaml` (the manifest) and `tasks/WP0N-*.md` (per-WP prompt-file
+  frontmatter) and `tasks.md` (the human-readable summary) are three independently-writable
+  copies of the same `requirement_refs` data, and nothing keeps them in sync automatically when a
+  fix round patches only the WP prompt files. Two full analyze rounds were spent chasing this:
+  round 1 fixed `requirement_refs` on the WP `.md` files only (commits `858bdfff0`, `0a68bd4d7`);
+  a subsequent fresh sweep then had to separately catch `wps.yaml` drifting out of sync (commit
+  `99dd3fa59`), and a further fresh sweep after THAT had to catch `tasks.md` drifting out of sync
+  from `wps.yaml` (fixed via the canonical `spec-kitty agent mission finalize-tasks` regeneration,
+  commit `ec4ceebb8` — not a hand-edit). `finalize-tasks --validate-only`'s own JSON response
+  (`tasks_md_stale: true`) and its command docstring (which names this exact gap as tracked issue
+  **#3221** — "tasks.md regeneration ... reported instead of repaired" in `--validate-only` mode)
+  confirm this is a known, tracked drift class, not something specific to this mission. Suggest a
+  future doctrine/tooling fix: either a single write path for `requirement_refs` (WP `.md`
+  frontmatter generated FROM wps.yaml, never hand-patched independently) or a lint that fails
+  fast when the three copies disagree, so an analyze fix round doesn't have to discover the drift
+  one file at a time across multiple rounds. Not fixed here (out of scope — mission targets CI
+  flake reconciliation, not spec-kitty's own tasks-authoring machinery).
