@@ -71,10 +71,11 @@ Governing Principles and Quality & Tech-Debt Standing Orders.
 | Single canonical authority (Governing Principles) | New retry primitive is ONE module reused by all three call sites, not three copies; `wait_for_artifacts.py` imports `reconcile_shards.py`'s existing `parse_registry`/`read_selected_modules` rather than re-deriving shard naming | PASS |
 | Architectural alignment (Governing Principles; DIRECTIVE_001) | Change lands on the already-decided seam: a new `ci-aggregate.yml` polling step ahead of `download-artifact`, not inside `reconcile_shards.py::main()` (spec's own architecture-seam finding); `scripts/ci/` stays a flat module set, consistent with existing layout | PASS |
 | ATDD-first / red-first (Standing Order #4, DIRECTIVE_041) | NFR-003 mandates every new retry test is first run against the unmodified surface and confirmed to fail the way it does today (existing `ValueError`, or non-zero exit with no retry) before the retry implementation lands | Planned — binding on implement phase |
+| ATDD-First Discipline (binding per charter.md C-011) | Each WP's first commit must be the failing retry test alone, committed separately, BEFORE the retry implementation commit(s) — a stricter, commit-history-level requirement than the red-first row above; the reviewer verifies red-on-`planning_base_branch`, green-on-final-commit | Planned — binding on implement phase (see tasks.md WP commit sequencing) |
 | Campsite cleaning (Standing Order #2, DIRECTIVE_025) | Scoped narrowly to the five touched files; see "Campsite-clean scope" below | PASS (narrow, justified) |
 | Mission tracer files (Standing Order #3) | Seeded now: `tracer-tooling-friction.md`, `tracer-approach.md`, `tracer-design-decisions.md` | DONE (seeded this phase) |
 | Git & workflow discipline (Standing Order #7, DIRECTIVE_045) | One PR onto `main`; operator/merge-agent merges; no direct push | Planned — binding on implement/review phases |
-| Red-main discipline (Standing Order #9) | N/A — this mission does not touch a red-main state; it changes CI-reporting tooling, not release gating | N/A |
+| Red-main discipline (Standing Order #9) | ENGAGED, not bypassed: `fleet_main.py::report()` — the exact function this mission modifies under FR-003/FR-004 — is the P0-incident-filing mechanism Standing Order #9 governs. The retry/skip-and-defer change only defers on unresolved snapshot disagreement; it never suppresses a stabilized/confirmed red result (Invariant (a)/FR-007), so the red-main safety guarantee is preserved | PASS (engaged and preserved, not N/A) |
 | Adversarial squad cadence (Standing Order #1) | Advisory; already run once post-spec (`kitty-specs/.../reviews/` — R1–R6 trail exists per `b089d6c34`). A post-plan pass is optional/advisory per the charter, left to the orchestrator to schedule | Advisory — orchestrator's call |
 
 No violations requiring the Complexity Tracking table below; it is left empty per the template's
@@ -100,9 +101,15 @@ gates it does not, with the reason for each:
   every PR (branch-protection-required per `protect-main.yml`'s own header comment). This mission
   adds no packaging surface change (no new dependency, no `pyproject.toml`/`uv.lock` edit), so it
   is expected to pass unaffected, but it is still a real gate this PR must clear.
-- `ci-modules.yml`'s `ci` shard (`tests/ci/`) — the actual test *executor* for this diff, reached
-  via `ci-router.yml`'s `ci` filter group (`scripts/ci/**` + `.github/workflows/**`), per
-  `.github/ci-module-registry.yml`'s `ci` module row (verified directly in that file).
+- `ci-modules.yml`'s `ci` shard (`tests/ci/`) — the actual test *executor* for this diff.
+  `ci-modules.yml` is triggered directly and independently by its own `pull_request`/`push`/
+  `workflow_call`/`workflow_dispatch` events, not routed through `ci-router.yml`: `ci-router.yml`'s
+  own `ci` filter group carries a header comment stating verbatim that "No job gates on this group
+  BY DESIGN" (verified at `ci-router.yml`'s `changes` job). `ci-modules.yml`'s own
+  `generate-matrix` job independently selects the `ci` module row (via
+  `scripts/ci/gate_selection.select_modules`, reading `git diff` directly, against
+  `.github/ci-module-registry.yml`'s `ci` module row — `roots: scripts/ci/**`,
+  `.github/workflows/**`, verified directly in that file) for a diff touching those paths.
 - `ci-aggregate.yml`'s `aggregate-gate` (`needs: [collect, diff-cover]`) — structurally reached
   by any PR, but `diff-cover`'s ≥90% floor does NOT apply to this diff (see below), so this gate
   is expected to pass with an empty/no-op scoring pass over this diff's changed lines.
@@ -242,11 +249,18 @@ smallest-viable-diff picks the file set first, Boy Scout Rule governs cleanup st
 that file set, Locality of Change is the brake on growing the file set. Scoped narrowly to the
 five files this mission's functional change actually touches:
 
-- **`scripts/ci/fleet_verdict.py`**: no dead code, duplicated literals, or obvious drift found in
-  the surrounding `report()`/`snapshot()` region during this reading — the module is already
-  tightly written (see e.g. `_http_failure`'s careful redaction, `pages()`'s bounded-pagination
-  refusal). **No opening campsite-clean commit content identified here.**
-- **`scripts/ci/fleet_main.py`**: same — no drift found in the touched region.
+- **`scripts/ci/fleet_verdict.py`**: no dead code, duplicated literals, or effect-free exception
+  handlers found in the surrounding `report()`/`snapshot()` region during this reading — the
+  module is already tightly written elsewhere (see e.g. `_http_failure`'s careful redaction,
+  `pages()`'s bounded-pagination refusal). **But `snapshot()` measures cyclomatic complexity 24
+  (radon grade D), directly inside the touched region** — it is called twice inside `report()`/the
+  planned `_attempt()` extraction, i.e. it is the literal double-snapshot body this mission wraps
+  in retry. This IS a complexity-15-ceiling violation in the touched region; see the ceiling
+  disposition below.
+- **`scripts/ci/fleet_main.py`**: same absence of dead code/duplicated-literal/effect-free-handler
+  drift, but **two complexity-15-ceiling violations sit directly in the touched region**:
+  `snapshot()` measures 22 (radon grade D), and `report()` itself — the exact function this
+  mission extracts into `_attempt()` — measures 18 (radon grade C) pre-extraction.
 - **`.github/workflows/ci-aggregate.yml`**: the step re-sequencing itself (moving
   "Download ... selected-module set" earlier) is FUNCTIONAL (it is required for the new polling
   step to have selection data available), not a behavior-preserving tidy-up, so it does **not**
@@ -255,16 +269,43 @@ five files this mission's functional change actually touches:
 - **`reconcile_shards.py`**: unchanged, so nothing to clean.
 - **`ci-fleet-verdict.yml`**: unchanged (expected), so nothing to clean.
 
-**Conclusion: no opening campsite-clean commit is needed for this mission.** All five candidate
-files were read in full during this planning pass and no domain-matched debt (dead code,
-duplicated ≥3x literals, effect-free exception handlers, functions over the complexity-15
-ceiling) was found in the regions this mission's functional change touches. This is stated
-explicitly per §2a.4's instruction to say so when none is needed, rather than inventing scope.
+**Complexity-15-ceiling disposition (Standing Order #2's two allowed outcomes):** three functions
+directly inside the touched region exceed the ceiling — `fleet_verdict.py::snapshot()` (24),
+`fleet_main.py::snapshot()` (22), and `fleet_main.py::report()` (18, pre-extraction). This mission
+does **not** scope an opening decomposition commit for them: `snapshot()` in both files is a
+read-only evidence-gathering routine whose signature and behavior spec.md's Key Entities require
+to stay unchanged, and decomposing it is a separate, non-trivial refactor disconnected from this
+mission's retry-wiring goal (Locality of Change would reject folding it in as an unrelated file
+extension). They are instead **frozen as baseline debt**: signature and behavior of `snapshot()`
+in both files are unchanged by this mission per spec.md Key Entities; their complexity-15
+decomposition is deferred and tracked separately, not silently absorbed into this mission's scope.
+`fleet_main.py::report()`'s violation is different — this mission already restructures it (the
+extraction into `_attempt()` is required anyway to make it retryable), so it is not left frozen.
+
+**Extraction into `_attempt()` relocates complexity; it does not by itself resolve it.** The
+Campsite-Clean Scope originally characterized the `_attempt()` extraction as "itself the
+complexity-reducing move," but that is only true for the thin `report()` wrapper left behind —
+`_attempt()` inherits most of `report()`'s existing branching (snapshot → dedupe-check →
+re-snapshot → compare → publish-decision), so complexity moves to a new name unless the extraction
+is done deliberately. This plan sets an explicit decomposition target for the WP that performs the
+extraction: `_attempt()` must itself land at or under complexity 15, by further splitting the
+evidence-comparison logic (snapshot agreement / disagreement classification) from the
+publish-decision logic (what to do with an already-reported vs. ready-to-publish vs. unstable
+outcome) into two smaller helpers, rather than moving `report()`'s entire body into `_attempt()`
+as one block. The same target applies to `fleet_verdict.py`'s equivalent `_attempt()` extraction.
+This converts the "no domain-matched debt was found" language below into an accurate, scoped
+statement rather than an unqualified claim contradicted by the measurements above.
+
+**Conclusion: no *opening* campsite-clean commit is needed for this mission** — the one
+in-scope, in-touched-region complexity violation this mission can address (`fleet_main.py::report()`,
+and `fleet_verdict.py::report()`'s equivalent shape) is addressed by the functional extraction
+itself, held to the explicit `_attempt() <= 15` target above; the `snapshot()` violations in both
+files are frozen as baseline debt per the disposition above, not "no domain-matched debt found."
 One thing to actively watch during implementation, not fix pre-emptively: `fleet_verdict.py::report()`
-is already a moderately long function: extracting its body into a private `_attempt()` helper (as
-this plan requires anyway, to make it retryable) is itself the complexity-reducing move, not an
-extra cleanup step — the functional change and the tidy-up are the same edit here, which is fine
-(Boy Scout Rule inside the touched file set, no added files).
+is already a moderately long function; extracting its body into a private `_attempt()` helper (as
+this plan requires anyway, to make it retryable) is the functional change and the tidy-up in the
+same edit (Boy Scout Rule inside the touched file set, no added files) — but only counts as
+tidy-up if `_attempt()` actually lands under the ceiling, per the target set above.
 
 ## Retry Budget Rationale (NFR-001)
 
@@ -286,10 +327,13 @@ stated rationale, not arbitrarily, and remain implement-phase-tunable within the
   total bounded wait**. Rationale: this is the surface #4675's own comment thread says is
   *worsening* ("fails once, passes on retry no longer reliably holds") — a single retry is
   explicitly insufficient per the spec's own framing, so this budget is deliberately wider than
-  the fleet-verdict pair's. GitHub Actions artifact-listing propagation lag (the actual race) is
-  typically observed on the order of single-digit-to-tens-of-seconds after upload completion, so
-  an 8-attempt/~2.6-minute budget covers a materially wider window than the "one retry" baseline
-  that is failing today, while staying under 3 minutes against the `collect` job's 15-minute
+  the fleet-verdict pair's. **Working hypothesis, not a measured figure** (no GitHub Actions
+  documentation citation, incident log, or measurement backs this): GitHub Actions artifact-listing
+  propagation lag (the actual race) is assumed to be on the order of single-digit-to-tens-of-seconds
+  after upload completion — SC-004's post-merge observation window is what validates or corrects
+  this assumption, not this plan. On that assumption, an 8-attempt/~2.6-minute budget covers a
+  materially wider window than the "one retry" baseline that is failing today, while staying under
+  3 minutes against the `collect` job's 15-minute
   timeout — leaving ample headroom for the job's other steps (checkout, source prep, actual
   download, reconcile). If real post-merge observation (SC-004) shows this budget is still
   insufficient, that is an implement-phase or follow-up tuning input, not a reason to make the
@@ -297,7 +341,12 @@ stated rationale, not arbitrarily, and remain implement-phase-tunable within the
 
 Both budgets are unit-tested for their bound itself (a mocked source that never stabilizes must
 still terminate after exactly the stated attempt count, per NFR-001's own testability clause) —
-this is independent of whether the *numbers* above survive implement-phase tuning.
+this is independent of whether the *numbers* above survive implement-phase tuning. That generic
+proof lives in `test_reconcile_retry.py` (the primitive's own test file, proving termination for
+any `max_attempts`) and is **not** by itself sufficient to catch a call-site wiring bug (e.g.
+`fleet_main.py` accidentally passing `max_attempts=3`). Each of the three call sites must therefore
+independently pin its own wired constant: see the Project Structure / NFR-003 test-plan requirement
+below.
 
 ## User Story 2 — `fleet_verdict.py` / `fleet_main.py`: retry-then-skip (FR-002/003/004/007/008/009)
 
@@ -329,6 +378,17 @@ what makes NFR-003's "mock the retry window" tests fast and deterministic), and 
 GitHub-specific or fleet-verdict-specific behavior — reused as-is by `wait_for_artifacts.py`
 (User Story 3 below). See `tracer-design-decisions.md` entry 1 for the FR-008-scope judgment call
 this generalization represents.
+
+**Compatibility contract (binding, protects the third caller's independence)**: because
+`retry_with_backoff` is shared across three call sites with two different terminal behaviors,
+`reconcile_retry.py` itself MUST remain fully caller-agnostic going forward — no GitHub-specific
+parameters (e.g. a PR-number or run-ID argument), no fleet-verdict-specific terminal-behavior
+knobs (e.g. a flag that changes what `None` means), and no optional hooks added for one caller's
+convenience. Any GitHub-specific or fleet-verdict-specific need belongs in that caller's own
+`attempt()` closure, or a caller-side wrapper around `retry_with_backoff`, never inside
+`reconcile_retry.py` itself. This is a constraint on future changes, not just a description of the
+current design, so a later reviewer can hold a proposed change to it — it exists specifically to
+protect `wait_for_artifacts.py`'s independence from the fleet-verdict pair's future evolution.
 
 **`fleet_verdict.py::report()` rewiring** (FR-002/FR-004/FR-007/C-003):
 
@@ -415,6 +475,14 @@ checkout
 → Upload reconciled coverage set                        (unchanged)
 ```
 
+**New step's own `env:` block**: the `collect` job carries no job-level `env:` key (verified by
+reading the full job) — every existing step in this job that needs `SOURCE_RUN_ID`/
+`SOURCE_RUN_ATTEMPT`/`SOURCE_REPOSITORY` re-declares them as a step-local `env:` block (e.g.
+`ci-aggregate.yml`'s "Prepare exact source registry and diff" and "Select reports from executions
+retained by the source attempt" steps). The new "Wait for selected shard artefact visibility" step
+must follow the same pattern and declare its own step-local `env:` block for these three variables
+— it cannot inherit them from anywhere else in the job.
+
 **`scripts/ci/wait_for_artifacts.py` (new)** — pure decision core + thin CLI edge, mirroring the
 existing `source_eligibility.py`/`select_source_artifacts.py` shape:
 
@@ -462,6 +530,31 @@ unreachable to regress from this change.
   state the test constructs) still exits 1 and still prints the `::error::` line, i.e. the two
   modules' unit tests compose to demonstrate the end-to-end floor without needing a real workflow
   run.
+
+## Red-First Application Across All NFR-003 Test Surfaces
+
+NFR-003's red-first clause ("run against the unmodified surface first, confirm it fails the way
+today's code does") is walked through concretely for every required test surface, not only the two
+pre-existing tests being re-pinned (see "Existing Test That Must Change" below):
+
+- **`wait_for_artifacts.py`'s new recovery/terminal tests** — there is no pre-fix entry point (the
+  module does not exist before this mission), so "red-first through the pre-existing entry point"
+  cannot apply literally. Red-first here means: write the new recovery/terminal tests first against
+  a stub single-attempt (no-loop) version of the polling function, confirm they fail the way a
+  single, unretried poll attempt fails today (a transiently-missing artifact is treated as
+  permanently missing), then add `retry_with_backoff` wiring and confirm the same tests pass.
+- **FR-009's cross-invocation isolation test** — explicitly **exempted** from red-first: there is
+  no pre-fix analog to run red against, because pre-fix code holds no retry state to leak in the
+  first place (the isolation property trivially holds before this mission, since there is nothing
+  stateful to isolate yet). This is an intentional, named exemption, not an oversight — it is
+  stated here so the implement phase does not skip it silently or try to force a red-first run that
+  cannot exist.
+- **The NEW (non-re-pinned) recovery-path tests inside `test_fleet_verdict.py`/`test_fleet_main.py`**
+  — distinct from the one existing test each file re-pins (below), these are brand-new tests
+  exercising the retry-then-publish and retry-then-skip paths. They are run red-first against the
+  *unmodified* `report()` (i.e. before `_attempt()`/`retry_with_backoff` wiring lands), where they
+  are expected to fail the old way — an unretried `ValueError` raise on the first snapshot
+  disagreement — then confirmed green once the retry wrapper is in place.
 
 ## Existing Test That Must Change, and Why That Is Not a Regression
 
@@ -522,6 +615,16 @@ tests/ci/
 ├── test_fleet_verdict.py        # MODIFIED — new retry tests + one re-pinned existing test
 └── test_fleet_main.py           # MODIFIED — new retry tests + one re-pinned existing test
 ```
+
+**NFR-003 exact-attempt-count requirement (per call site, not only the shared primitive)**: beyond
+`test_reconcile_retry.py`'s generic termination proof (any `max_attempts`), each of
+`test_fleet_verdict.py`, `test_fleet_main.py`, and `test_wait_for_artifacts.py` MUST additionally
+assert the mock's exact call count at that call site's exhausted-budget path — e.g.
+`assert mock_snapshot.call_count == 4` (or the equivalent attempt-counting assertion) for the
+`fleet_verdict.py`/`fleet_main.py` pair, `== 8` for `wait_for_artifacts.py`'s artifact poller. This
+pins this plan's stated budget numbers (Retry Budget Rationale, NFR-001) at each site where they
+are actually wired, catching a call-site wiring bug (e.g. an accidental `max_attempts=3`) that the
+shared primitive's own generic test cannot see.
 
 **Structure Decision**: Single project, `scripts/ci/` seam (see "Architecture Seam" above). This
 is the entire structure; no `src/`, `backend/`, `frontend/`, `ios/`, or `android/` options from the
