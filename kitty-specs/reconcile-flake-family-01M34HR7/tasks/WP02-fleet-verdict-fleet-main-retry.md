@@ -153,7 +153,15 @@ def report(api, root, ids, reporter_id, attempt, *, dry_run=False) -> None:
   instead, `_attempt()` returns its own terminal, non-retried outcome (see T009).
 - The `dry_run` / `replay` handling in both files stays exactly where it is, outside the
   retry loop — replay is an explicit, exact-revision operator action, not part of the
-  raciness this mission targets.
+  raciness this mission targets. This is unambiguous for `fleet_verdict.py` (`dry_run` is
+  checked once, after both snapshots, immediately before publish). For `fleet_main.py` it is
+  file-specific and must be read precisely, not assumed identical: the `dry_run` check stays
+  in `report()` ITSELF, evaluated immediately after `report()`'s own single pre-loop
+  `snapshot()` call and BEFORE `retry_with_backoff`/`_attempt()` is ever called — exactly as
+  the original code does today (`scripts/ci/fleet_main.py:100-104`: `evidence =
+  snapshot(...)`; `text = body(...)`; `if dry_run: print(text, end=""); return`).
+  `_attempt()`'s wrapped body begins only when `dry_run` is `False`; on a dry run,
+  `_attempt()`/`retry_with_backoff` are never invoked at all. See T009.
 - `snapshot()` itself is **not modified** by this WP. It measures cyclomatic complexity 24
   (`fleet_verdict.py`) and 22 (`fleet_main.py`) today — both above the repo's complexity-15
   ceiling — and plan.md's Campsite-Clean Scope explicitly freezes both as baseline debt,
@@ -162,14 +170,23 @@ def report(api, root, ids, reporter_id, attempt, *, dry_run=False) -> None:
 
 **The `_attempt()` extraction and its complexity-15 target (binding on this WP)**: extract
 each file's existing body (from the first `snapshot()` call through the
-compare-and-decide-to-publish logic) into a private `_attempt(...)` helper that returns a
-tri-state outcome — plan.md's suggested shape:
+compare-and-decide-to-publish logic) into a private `_attempt(...)` helper. For
+`fleet_verdict.py`, this returns a tri-state outcome — plan.md's suggested shape:
 - `_AlreadyReported()` — the existing dedupe short-circuit fired; nothing to publish, and the
   overall `report()` should return normally without invoking the retry loop's failure path.
 - `_Ready(body_text)` (or equivalent) — the two snapshots agreed; ready to publish this
   stabilized evidence.
 - `None` — the existing raise condition (snapshots disagree), converted from an exception
   into a retry signal.
+
+`fleet_main.py::_attempt()` is **four-state, not three** — see T009. In addition to the
+three outcomes above, it has a fourth, `_NothingToReport()`, for the pre-existing `elif
+evidence["state"] != "red"` early return (informational print, no publish, nothing to
+retry — see T009's boundary discussion and the terminal-outcome naming below). Do not
+collapse `fleet_main.py`'s outcome set back down to the `fleet_verdict.py` tri-state shape
+above: the fourth outcome is real and semantically distinct from `_AlreadyReported()` (a
+different pre-existing condition), even though `report()` handles both the same way —
+nothing further to do.
 
 `_attempt()` must itself land at or under complexity 15 in BOTH files — plan.md is explicit
 that naively moving `report()`'s entire body into `_attempt()` as one block only relocates
@@ -188,7 +205,11 @@ if isinstance(outcome, _Ready):
         print(outcome.body, end="")
     else:
         api.request(..., {"body": outcome.body})
-# _AlreadyReported: nothing further to do
+# _AlreadyReported: nothing further to do (fleet_verdict.py and fleet_main.py)
+# _NothingToReport (fleet_main.py only — the pre-existing
+# `elif evidence["state"] != "red"` early return; its own `print(text, end="")` already
+# ran inside `_attempt()`): falls through this same "nothing further to do" path as
+# _AlreadyReported above. No additional isinstance() branch is needed here.
 ```
 
 **Diagnostic line on exhausted budget (Acceptance Scenario 3, User Story 2)**: on skip, print
@@ -404,26 +425,38 @@ green. Complexity check on `_attempt()` and any new helpers `<= 15`.
 **Purpose**: Make T006's tests pass; implement FR-003/FR-004/FR-007 for the main-push
 surface.
 
-**Steps**: Mirror T008 exactly for `fleet_main.py::report()`, with one point that needs
-precise handling. `_attempt()` wraps the ENTIRE existing body — from the first
-`evidence = snapshot(...)` call, through the incident lookup, through the
+**Steps**: Mirror T008 exactly for `fleet_main.py::report()`, with two points that need
+precise handling.
+
+`dry_run` stays in `report()` itself, not in `_attempt()`: it is evaluated immediately after
+`report()`'s own single pre-loop `snapshot()` call and BEFORE `retry_with_backoff`/
+`_attempt()` is ever called — exactly as the original code does today
+(`scripts/ci/fleet_main.py:100-104`: `evidence = snapshot(...)`; `text = body(...)`; `if
+dry_run: print(text, end=""); return`). `_attempt()`'s wrapped body begins only when
+`dry_run` is `False` — on a dry run, `_attempt()`/`retry_with_backoff` are never invoked, and
+`_attempt()` performs its own fresh `snapshot()` call(s) per attempt rather than reusing
+`report()`'s pre-loop evidence.
+
+`_attempt()` wraps the rest of the existing body — from the incident lookup, through the
 dedupe-check-if-incident-else-`elif`-not-red-check decision, through the re-check
 `snapshot()` call, through the comparison — matching plan.md's
-"snapshot→incident-lookup→re-snapshot→compare" enumeration for this file exactly. In the
-live code the `elif evidence["state"] != "red"` branch sits structurally BETWEEN the
+"snapshot→incident-lookup→re-snapshot→compare" enumeration for this file (that enumeration
+covers what `_attempt()` retries per attempt, not `report()`'s one-time `dry_run` gate). In
+the live code the `elif evidence["state"] != "red"` branch sits structurally BETWEEN the
 incident lookup and the re-check `snapshot()` call, so it is textually inside the body
-plan.md describes `_attempt()` as wrapping — it is NOT outside `_attempt()`/the retry loop,
-and it is NOT evaluated once against a frozen first snapshot. This means a FRESH first
-`snapshot()` call and a FRESH evaluation of the `elif` condition happen on EVERY retry
-attempt, each using that attempt's own snapshot.
+`_attempt()` wraps — it is NOT outside `_attempt()`/the retry loop, and it is NOT evaluated
+once against a frozen first snapshot. This means a FRESH `snapshot()` call inside
+`_attempt()` and a FRESH evaluation of the `elif` condition happen on EVERY retry attempt,
+each using that attempt's own snapshot.
 
 Critical difference to preserve, precisely stated: the `elif evidence["state"] != "red":
 print(text, end=""); return` branch's CONDITION and ACTION are unchanged by this WP — same
 check, same behavior (print the informational text and return), no new retry-awareness
 added to the decision itself. What changes is only that it now executes inside `_attempt()`
 instead of inline in `report()`. When this branch fires, represent it as its own terminal
-`_attempt()` outcome — an immediate, non-retried SUCCESS (print text, return) — distinct
-from both `_Ready(body)` (ready to publish) and `None` (unstable evidence, retry-worthy).
+`_attempt()` outcome — an immediate, non-retried terminal outcome (informational print, no
+publish) — distinct from both `_Ready(body)` (ready to publish) and `None` (unstable
+evidence, retry-worthy).
 Name it analogously to the existing dedupe short-circuit, e.g. `_NothingToReport()`. Only
 the later `if snapshot(...) != evidence` mismatch (and the subsequent incident-open/closed
 check) converts to `None`/retry — the elif branch itself must never be treated as the
