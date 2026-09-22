@@ -423,9 +423,15 @@ Scenario reasoning in spec.md does not ask for it).
 re-snapshot→compare body the same way. Its terminal behavior differs slightly from
 `fleet_verdict.py`'s in ONE pre-existing way this mission preserves, not changes: when there is no
 existing open incident and the (now-stabilized) evidence is not `red`, it already prints and
-returns without raising (`elif evidence["state"] != "red": print(text, end=""); return`) — that
-branch is untouched; the retry loop only wraps the *unstable-evidence* path, not this
-already-benign early return.
+returns without raising (`elif evidence["state"] != "red": print(text, end=""); return`). That
+branch's CONDITION and ACTION are unchanged — same check, same print-and-return behavior — but it
+sits structurally inside `_attempt()`'s wrapped body, between the incident lookup and the
+second/re-check `snapshot()` call. `evidence` is the variable bound by `_attempt()`'s own first
+`snapshot()` call, so it is rebound fresh on every retry attempt by construction; the `elif` is
+therefore necessarily re-evaluated on every attempt too, each time against that attempt's own
+`evidence`. This is not an optional design choice the retry loop happens to make — it is forced
+by `evidence` being rebound per attempt, since a branch cannot be held "outside" a retry that
+redefines the variable it tests.
 
 **FR-009 (no cross-run coupling)**: both `_attempt` closures capture only their own call's local
 `api`/`root`/`number`(or head)/`workflow_ids` arguments — no module-level mutable state, no shared
