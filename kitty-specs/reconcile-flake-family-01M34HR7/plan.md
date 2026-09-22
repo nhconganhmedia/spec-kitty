@@ -195,8 +195,13 @@ seam is touched by this mission.
    outcome (already-reported / ready-to-publish / unstable), then wrapped by
    `reconcile_retry.retry_with_backoff`. No change to `snapshot()`, `classify()`, `comment_body()`,
    or any other existing public function's signature or behavior.
-4. **`scripts/ci/fleet_main.py`** (modified) — same shape as (3), importing `retry_with_backoff`
-   from `reconcile_retry` alongside its existing imports from `fleet_verdict`.
+4. **`scripts/ci/fleet_main.py`** (modified) — extends (3)'s tri-state shape with a fourth
+   outcome, `_NothingToReport()`, for the pre-existing `elif evidence["state"] != "red"` early
+   return (informational print, no publish — distinct from `_AlreadyReported()`, `_Ready(...)`,
+   and the retry-triggering `None`); see the "`fleet_main.py::report()` rewiring" paragraph
+   below and `tasks/WP02-fleet-verdict-fleet-main-retry.md` for the four-state contract and its
+   boundary discussion. Otherwise imports `retry_with_backoff` from `reconcile_retry` alongside
+   its existing imports from `fleet_verdict`.
 5. **`.github/workflows/ci-aggregate.yml`** (modified) — (a) move the existing "Download the
    triggering run's selected-module set" step earlier in the `collect` job (from after
    `download-previous` to immediately after `select-current`), and (b) add a new step
@@ -601,10 +606,19 @@ inverse direction from a brand-new test: this *existing* test already fails-the-
 design; the implement phase's job is to re-pin it to the new contract and confirm the new retry
 code makes it pass, not to leave it asserting behavior the mission is explicitly removing. The
 equivalent `fleet_main.py` test (`test_attempt_change_during_publication_refuses_stale_verdict`)
-needs the identical treatment. Flagged explicitly here so a reviewer does not mistake an edited
-assertion in these two pre-existing tests for weakened coverage — the replacement assertions must
-still prove invariant (a) holds (see previous section), just against the new retry contract
-instead of the old immediate-raise contract.
+needs the identical re-pinning treatment, but not necessarily the identical *outcome* shape:
+unlike `fleet_verdict.py`'s tri-state contract (where this section's "publish, or FR-004 skip"
+framing above is exhaustive), `fleet_main.py::_attempt()` is four-state (see the
+"`fleet_main.py::report()` rewiring" paragraph above and WP02's four-state contract), so this
+test's re-pin may land in a third, non-retried `_NothingToReport()` terminal path
+(informational print, no publish, no FR-004 diagnostic — the pre-existing not-red early
+return) instead of either "publish" or "FR-004 skip." This section's binary framing above
+describes `fleet_verdict.py`'s re-pin only; WP02 traces which of the three paths
+`fleet_main.py`'s actual mock behavior lands in. Flagged explicitly here so a reviewer does not
+mistake an edited assertion in these two pre-existing tests for weakened coverage — the
+replacement assertions must still prove invariant (a) holds (see previous section), just
+against the new retry contract instead of the old immediate-raise contract, whichever of the
+three terminal paths each re-pinned test's traced mock behavior actually lands in.
 
 ## Project Structure
 
