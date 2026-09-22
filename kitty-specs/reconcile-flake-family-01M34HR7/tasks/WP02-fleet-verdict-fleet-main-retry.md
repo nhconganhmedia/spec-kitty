@@ -276,16 +276,31 @@ the ci-quality workflow-run's `run_attempt`/`status`/`conclusion`, not `self.hea
 `True` anywhere in this test, so the `main`-head SHA is constant throughout — the instability
 this mock manufactures is entirely a CI-attempt-state change between the two `snapshot()`
 reads, not a moved head. This likely produces a different re-pin shape than
-`fleet_verdict.py`'s case: under retry, the SECOND `_attempt()` call's first `snapshot()`
-will likely already observe ci-quality as `status="in_progress"/conclusion=None` — evidence
-state becomes "running", not "red" — which likely routes into the untouched
-`elif evidence["state"] != "red": print(text, end=""); return` early-return branch, rather
-than a "stabilized, then publish" outcome analogous to `fleet_verdict.py`'s re-pin. Trace it
-yourself; do not assume it behaves identically to `fleet_verdict.py`'s `API` mock, and do not
-take this paragraph's prediction as a substitute for that trace. Re-pin to whatever the
-traced behavior actually implies, and add a separate purpose-built never-stabilizes mock for
-the FR-004 exhausted-budget path here too, matching `fleet_main.py`'s own terminal semantics
-(also no raise, no incident post/update, diagnostic print, per FR-004).
+`fleet_verdict.py`'s case — but do **not** assume which `_attempt()` call, or whether a retry
+fires at all, trips the `head_reads == 1` mutation: `report()`'s own new pre-loop `snapshot()`
+call (see the `dry_run` handling above, added this round to fix the dry_run boundary) consumes
+a head read of its own before `_attempt()` is ever invoked, which shifts which overall call is
+the "second" one relative to this mock's trigger point. The exact effect on `_attempt()`'s call
+count is an implementation-time question, settled against the real, live mock during this WP —
+not predicted here.
+
+**Binding requirement (Definition of Done, operator ruling #2 / TASKS-FRESH3-001, remediation
+(b)): the re-pinned `test_attempt_change_during_publication_refuses_stale_verdict` MUST
+exercise `_attempt()` across at least two attempts — the retry path must actually fire at
+least once for this test — not resolve on the first `_attempt()` call.** Verify this
+empirically against the real code before writing the final assertion: do not assume the
+current `head_reads == 1` trigger point without re-checking it against the actual call order
+after `report()`'s pre-loop snapshot is added. If the current mock setup, combined with
+`report()`'s new pre-loop `snapshot()` call, no longer produces genuine two-attempt coverage,
+the mock/test setup MUST be adjusted so it does — the exact mechanism by which two attempts
+are exercised (e.g. the mock's initial state, its trigger condition, or how many reads precede
+the mutation) is an implementation-time decision, verified against the live mock and real code,
+not prescribed here. A re-pin that resolves on the first `_attempt()` call does not satisfy
+this requirement and is not acceptable; accepting the coverage loss (remediation (a)) was
+explicitly rejected by the operator ruling. Once you have confirmed the actual traced
+behavior, re-pin to whatever it turns out to be, and add a separate purpose-built
+never-stabilizes mock for the FR-004 exhausted-budget path here too, matching `fleet_main.py`'s
+own terminal semantics (also no raise, no incident post/update, diagnostic print, per FR-004).
 
 **FR-009 cross-invocation isolation test (owned by this WP, not WP04)**: plan.md's round-2
 revision explicitly moved this test into WP02's own commit sequence, because it has no
@@ -513,6 +528,13 @@ green; `ruff check`/`ruff format --check` clean; no TID251 findings.
 - The two pre-existing tests (`test_publication_rechecks_head_and_never_mutates_existing_comments`,
   `test_attempt_change_during_publication_refuses_stale_verdict`) are re-pinned to the new
   contract, verified against the actual mock behavior you traced yourself, not assumed.
+- **Binding**: the re-pinned `test_attempt_change_during_publication_refuses_stale_verdict`
+  genuinely exercises `_attempt()` across at least two attempts — the retry path must actually
+  fire at least once for this test — verified empirically against the real code, not assumed
+  from the Context section's earlier prediction. A re-pin that resolves on the first
+  `_attempt()` call does not satisfy this WP's Definition of Done (operator ruling #2,
+  TASKS-FRESH3-001, remediation (b); the exact mechanism by which two attempts are exercised
+  is an implementation-time decision, not prescribed here).
 - New tests exist proving: recovery-within-budget publishes stabilized (not stale) evidence;
   exhausted-budget skips silently with the required diagnostic; the FR-009 cross-invocation
   isolation property.
@@ -534,10 +556,15 @@ green; `ruff check`/`ruff format --check` clean; no TID251 findings.
   moved; it does not flap. `fleet_main.py`'s `RerunAPI` mock is different: it never enables
   `move_on_second_read`, so the `main`-head SHA is constant throughout — instead it mutates
   the ci-quality workflow-run's `run_attempt`/`status`/`conclusion` on `head_reads == 1`,
-  which is a CI-attempt-state change, not a head move, and likely lands in a different branch
-  (the untouched `evidence["state"] != "red"` early return) than a "stabilized, then publish"
-  outcome. An implementer who assumes `RerunAPI` behaves like `fleet_verdict.py`'s mock — or
-  like a flapping mock — will write an incorrect re-pinned assertion. Trace each mock for
+  which is a CI-attempt-state change, not a head move. `report()`'s new pre-loop `snapshot()`
+  call (added this round to fix the `dry_run` boundary) consumes a head read of its own before
+  `_attempt()` starts, which shifts which overall call trips `head_reads == 1` relative to what
+  an earlier draft of this WP assumed — do not trust any prior guess about which branch or
+  which `_attempt()` call this lands on without re-tracing against the live call order.
+  Whatever the trace shows, the binding requirement above (genuine two-attempt coverage) still
+  governs: if the traced behavior does not produce it, the mock/test setup must be adjusted
+  until it does. An implementer who assumes `RerunAPI` behaves like `fleet_verdict.py`'s mock —
+  or like a flapping mock — will write an incorrect re-pinned assertion. Trace each mock for
   real before writing its assertion (Context section above walks through the exact reasoning
   for both; do not take that walkthrough as a substitute for tracing `fleet_main.py`'s mock
   yourself).
@@ -559,7 +586,12 @@ with a real measurement. Verify `fleet_main.py`'s benign early-return branch (`e
 condition and action unchanged (same check, same print-and-return) — it now runs INSIDE
 `_attempt()`, evaluated fresh on every retry attempt using that attempt's own snapshot, and
 when it fires it returns as its own terminal `_attempt()` outcome (not `None`/retry, and
-not `_Ready`). Verify the FR-009
+not `_Ready`). **Verify the re-pinned `test_attempt_change_during_publication_refuses_stale_verdict`
+genuinely exercises `_attempt()` across at least two attempts (the retry path fires at least
+once)** — the binding Definition-of-Done requirement above — and is not satisfied by a mock
+that resolves on the first `_attempt()` call; re-derive the call-order trace yourself against
+the live code (accounting for `report()`'s pre-loop `snapshot()` call) rather than trusting any
+prior attempt-count prediction in this file. Verify the FR-009
 isolation test genuinely exercises two concurrent/interleaved subjects, not two sequential
 calls that happen not to share obvious state by accident.
 
