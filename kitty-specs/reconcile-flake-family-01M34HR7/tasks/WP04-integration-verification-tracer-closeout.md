@@ -91,6 +91,15 @@ staged-ownership classification depends on `owned_files` staying confined to
 WP01–WP03's work, record it in the tracer files and flag it to the orchestrator rather than
 silently fixing it here.
 
+**C-007 (no SPEC-KITTY-LEDGER.md entry) — confirm at close-out, do not silently drop it.**
+spec.md's C-007 row records that the mission orchestration workspace's
+`SPEC-KITTY-LEDGER.md` (outside this checkout) was grepped for "reconcile", "fleet.verdict",
+"fleet_main", and "reconcile_shards" with no relevant hits at spec time. As part of T017,
+re-confirm this finding still holds — if the operator's copy of the ledger now has an entry
+for this defect family, note the drift in `tracer-tooling-friction.md` rather than silently
+ignoring it; if it still has none, record that confirmation explicitly rather than leaving
+C-007 as a name-only requirement ref.
+
 ## Subtask T016: Full baseline-plus-new-tests re-run (SC-001/SC-002/SC-003)
 
 **Purpose**: Confirm the merged WP01+WP02+WP03 diff, as a whole, satisfies SC-001 (unit test
@@ -156,7 +165,11 @@ implementation, assess at close).
 3. If T016 surfaced any finding you did NOT fix (per Context's instruction not to edit
    `scripts/ci/**`/`tests/ci/**` from this WP), record it here explicitly, with enough detail
    that the orchestrator can route it to the right WP or a follow-up.
-4. If nothing new surfaced, append a short, honest entry saying so — do not fabricate
+4. Re-confirm C-007 (per Context's "C-007" note above): check whether the operator's copy of
+   `SPEC-KITTY-LEDGER.md` now has an entry for this defect family. Append one line either way
+   — "still no ledger entry, confirmed at close-out" or, if one now exists, the drift noted
+   explicitly (do not silently ignore it).
+5. If nothing new surfaced, append a short, honest entry saying so — do not fabricate
    friction to fill the section, and do not skip the append.
 
 **Files**: `kitty-specs/reconcile-flake-family-01M34HR7/tracer-tooling-friction.md` (append).
@@ -243,6 +256,9 @@ in the file.
   (re-verified here, not just trusted from earlier WPs).
 - The pre-merge verification scope note (top of this file) is explicitly restated in
   `tracer-approach.md`, not merely implied.
+- C-007 is re-confirmed at close-out in `tracer-tooling-friction.md` — either "still no
+  `SPEC-KITTY-LEDGER.md` entry" or an explicit note of drift if one now exists — not left as
+  a name-only entry in `requirement_refs`.
 - The PR-shape recommendation (one PR, per plan.md's default) is explicitly confirmed or
   explicitly flagged for a split, in `tracer-approach.md`.
 - No `/home/<user>/...` absolute path appears in any file this WP writes.

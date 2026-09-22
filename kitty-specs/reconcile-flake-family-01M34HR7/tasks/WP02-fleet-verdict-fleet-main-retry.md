@@ -238,14 +238,25 @@ approximate it).
 
 The equivalent `fleet_main.py` test,
 `test_attempt_change_during_publication_refuses_stale_verdict`, needs the identical
-treatment: read its `RerunAPI` mock (`tests/ci/test_fleet_main.py`) carefully — it moves the
-head on `head_reads == 1` specifically (not "after the first read", check the exact
-condition), which may or may not re-stabilize on a later retry the same way. Trace it
-yourself; do not assume it behaves identically to `fleet_verdict.py`'s `API` mock. Re-pin to
-whatever the traced behavior actually implies, and add a separate purpose-built
-never-stabilizes mock for the FR-004 exhausted-budget path here too, matching
-`fleet_main.py`'s own terminal semantics (also no raise, no incident post/update, diagnostic
-print, per FR-004).
+treatment, but its mock does NOT move the head — read its `RerunAPI` mock
+(`tests/ci/test_fleet_main.py`) carefully before assuming otherwise. `RerunAPI.request()`
+fires `self.runs["ci-quality.yml"][0].update(run_attempt=2, status="in_progress",
+conclusion=None)` when `path == "git/ref/heads/main" and self.head_reads == 1` — it mutates
+the ci-quality workflow-run's `run_attempt`/`status`/`conclusion`, not `self.head`.
+`move_on_second_read` (the actual head-SHA mover, inherited from `MainAPI`) is never set
+`True` anywhere in this test, so the `main`-head SHA is constant throughout — the instability
+this mock manufactures is entirely a CI-attempt-state change between the two `snapshot()`
+reads, not a moved head. This likely produces a different re-pin shape than
+`fleet_verdict.py`'s case: under retry, the SECOND `_attempt()` call's first `snapshot()`
+will likely already observe ci-quality as `status="in_progress"/conclusion=None` — evidence
+state becomes "running", not "red" — which likely routes into the untouched
+`elif evidence["state"] != "red": print(text, end=""); return` early-return branch, rather
+than a "stabilized, then publish" outcome analogous to `fleet_verdict.py`'s re-pin. Trace it
+yourself; do not assume it behaves identically to `fleet_verdict.py`'s `API` mock, and do not
+take this paragraph's prediction as a substitute for that trace. Re-pin to whatever the
+traced behavior actually implies, and add a separate purpose-built never-stabilizes mock for
+the FR-004 exhausted-budget path here too, matching `fleet_main.py`'s own terminal semantics
+(also no raise, no incident post/update, diagnostic print, per FR-004).
 
 **FR-009 cross-invocation isolation test (owned by this WP, not WP04)**: plan.md's round-2
 revision explicitly moved this test into WP02's own commit sequence, because it has no
@@ -455,11 +466,19 @@ green; `ruff check`/`ruff format --check` clean; no TID251 findings.
 
 ## Risks
 
-- **Mock-behavior misreading risk**: the `move_on_second_read`/`RerunAPI` mocks are subtle —
-  the head moves ONCE and STAYS moved, it does not flap. An implementer who assumes it
-  behaves like a flapping mock will write an incorrect re-pinned assertion. Trace it for
-  real before writing the assertion (Context section above walks through the exact reasoning
-  for `fleet_verdict.py`'s mock; do the equivalent trace yourself for `fleet_main.py`'s).
+- **Mock-behavior misreading risk**: the two re-pin mocks are subtle and NOT the same
+  mechanism — do not assume one behaves like the other. `fleet_verdict.py`'s `API` mock
+  (`move_on_second_read`) moves the PR head SHA ONCE, on the second `pulls/7` read, and STAYS
+  moved; it does not flap. `fleet_main.py`'s `RerunAPI` mock is different: it never enables
+  `move_on_second_read`, so the `main`-head SHA is constant throughout — instead it mutates
+  the ci-quality workflow-run's `run_attempt`/`status`/`conclusion` on `head_reads == 1`,
+  which is a CI-attempt-state change, not a head move, and likely lands in a different branch
+  (the untouched `evidence["state"] != "red"` early return) than a "stabilized, then publish"
+  outcome. An implementer who assumes `RerunAPI` behaves like `fleet_verdict.py`'s mock — or
+  like a flapping mock — will write an incorrect re-pinned assertion. Trace each mock for
+  real before writing its assertion (Context section above walks through the exact reasoning
+  for both; do not take that walkthrough as a substitute for tracing `fleet_main.py`'s mock
+  yourself).
 - **Complexity relocation risk**: naively moving `report()`'s whole body into `_attempt()`
   satisfies "it compiles" but not the binding `<=15` target — verify with an actual
   complexity measurement, not by inspection alone.
