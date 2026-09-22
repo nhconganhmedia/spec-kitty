@@ -71,7 +71,7 @@ Governing Principles and Quality & Tech-Debt Standing Orders.
 | Single canonical authority (Governing Principles) | New retry primitive is ONE module reused by all three call sites, not three copies; `wait_for_artifacts.py` imports `reconcile_shards.py`'s existing `parse_registry`/`read_selected_modules` rather than re-deriving shard naming | PASS |
 | Architectural alignment (Governing Principles; DIRECTIVE_001) | Change lands on the already-decided seam: a new `ci-aggregate.yml` polling step ahead of `download-artifact`, not inside `reconcile_shards.py::main()` (spec's own architecture-seam finding); `scripts/ci/` stays a flat module set, consistent with existing layout | PASS |
 | ATDD-first / red-first (Standing Order #4, DIRECTIVE_041) | NFR-003 mandates every new retry test is first run against the unmodified surface and confirmed to fail the way it does today (existing `ValueError`, or non-zero exit with no retry) before the retry implementation lands | Planned — binding on implement phase |
-| ATDD-First Discipline (binding per charter.md C-011) | Each WP's first commit must be the failing retry test alone, committed separately, BEFORE the retry implementation commit(s) — a stricter, commit-history-level requirement than the red-first row above; the reviewer verifies red-on-`planning_base_branch`, green-on-final-commit | Planned — binding on implement phase (see tasks.md WP commit sequencing) |
+| ATDD-First Discipline (binding per charter.md C-011) | Binds WP1–WP3, each of which introduces new functional code: each such WP's first commit must be the failing test alone, committed separately, BEFORE the implementation commit(s) — a stricter, commit-history-level requirement than the red-first row above; the reviewer verifies red-on-`planning_base_branch`, green-on-final-commit. **WP4 introduces no new functional code** — FR-009's cross-invocation isolation test (the only test content WP4 would otherwise carry, and one this plan explicitly exempts from red-first below) is instead committed inside WP2's own red-first commit sequence, alongside WP2's other FR-002/003/004/007 tests, which do have valid red-first anchors; WP4 is re-scoped to be a pure integration/verification WP — final tracer-file append + SC-001/SC-002/SC-003 full-suite re-run — with no commit of its own that could be RED on `planning_base_branch`. C-011's per-WP failing-first-commit requirement therefore does not apply to WP4 (see "Parallel Work Analysis / Dependency Graph" below for the re-scoping) | Planned — binding on implement phase (see tasks.md WP commit sequencing) |
 | Campsite cleaning (Standing Order #2, DIRECTIVE_025) | Scoped narrowly to the five touched files; see "Campsite-clean scope" below | PASS (narrow, justified) |
 | Mission tracer files (Standing Order #3) | Seeded now: `tracer-tooling-friction.md`, `tracer-approach.md`, `tracer-design-decisions.md` | DONE (seeded this phase) |
 | Git & workflow discipline (Standing Order #7, DIRECTIVE_045) | One PR onto `main`; operator/merge-agent merges; no direct push | Planned — binding on implement/review phases |
@@ -432,7 +432,9 @@ already-benign early return.
 file, no lock. `retry_with_backoff` itself is a pure function with no global state. This is
 directly testable (and tested, per NFR-003(4)) by running two `report()` invocations for two
 different subjects with interleaved/concurrent mocked instability and asserting neither reads or
-mutates the other's `API` test double.
+mutates the other's `API` test double. This test is committed as part of **WP2's** own red-first
+commit sequence (not WP4's — see "Red-First Application Across All NFR-003 Test Surfaces" and the
+Constitution Check's C-011 row above for why).
 
 ## User Story 3 — `ci-aggregate.yml` artefact-visibility polling (FR-005/006)
 
@@ -476,12 +478,20 @@ checkout
 ```
 
 **New step's own `env:` block**: the `collect` job carries no job-level `env:` key (verified by
-reading the full job) — every existing step in this job that needs `SOURCE_RUN_ID`/
+reading the full job) — every existing `run:` (shell) step in this job that needs `SOURCE_RUN_ID`/
 `SOURCE_RUN_ATTEMPT`/`SOURCE_REPOSITORY` re-declares them as a step-local `env:` block (e.g.
 `ci-aggregate.yml`'s "Prepare exact source registry and diff" and "Select reports from executions
-retained by the source attempt" steps). The new "Wait for selected shard artefact visibility" step
-must follow the same pattern and declare its own step-local `env:` block for these three variables
-— it cannot inherit them from anywhere else in the job.
+retained by the source attempt" steps). The two `uses: actions/download-artifact` steps that
+bracket the insertion point (`download-current` at `ci-aggregate.yml:159-169` and
+`download-selected-modules` at `:214-222`, verified directly) do **not** follow this pattern: they
+consume the same `SOURCE_RUN_ID` value but inline the GitHub Actions expression
+`${{ github.event.workflow_run.id || inputs.source_run_id }}` directly into their `with: run-id:`
+input, with no `env:` block at all — the normal way an action input is wired, needing no `env:`
+indirection the way a `run:` shell script does. The new "Wait for selected shard artefact
+visibility" step is itself a `run: python3 scripts/ci/wait_for_artifacts.py ...` (shell) step, not
+a `uses:` step, so it must follow the `run:`-step pattern and declare its own step-local `env:`
+block for these three variables — it cannot inherit them from anywhere else in the job, and the
+`uses:`-step inlining pattern does not apply to it.
 
 **`scripts/ci/wait_for_artifacts.py` (new)** — pure decision core + thin CLI edge, mirroring the
 existing `source_eligibility.py`/`select_source_artifacts.py` shape:
@@ -548,7 +558,13 @@ pre-existing tests being re-pinned (see "Existing Test That Must Change" below):
   first place (the isolation property trivially holds before this mission, since there is nothing
   stateful to isolate yet). This is an intentional, named exemption, not an oversight — it is
   stated here so the implement phase does not skip it silently or try to force a red-first run that
-  cannot exist.
+  cannot exist. Because this test has no red-first anchor of its own, it is committed as part of
+  **WP2's** own red-first commit sequence — alongside WP2's other FR-002/003/004/007 tests, which
+  do have valid red-first anchors (see "Existing Test That Must Change" and the new-retry-test
+  bullet above) — rather than left as a standalone test obligation for WP4. This is how the plan
+  resolves this exemption against the new ATDD-First Discipline (C-011) row in the Constitution
+  Check table above: WP4 is re-scoped to carry no new-code test obligation at all (see "Parallel
+  Work Analysis / Dependency Graph" below).
 - **The NEW (non-re-pinned) recovery-path tests inside `test_fleet_verdict.py`/`test_fleet_main.py`**
   — distinct from the one existing test each file re-pins (below), these are brand-new tests
   exercising the retry-then-publish and retry-then-skip paths. They are run red-first against the
@@ -643,23 +659,32 @@ intentionally left empty per the template's own instruction.*
 WP1: scripts/ci/reconcile_retry.py + tests/ci/test_reconcile_retry.py
      (the shared primitive; both other waves import it)
         │
-        ├──────────────────────────────┐
-        ▼                              ▼
-WP2: fleet_verdict.py + fleet_main.py   WP3: wait_for_artifacts.py +
-     retry wiring + their tests              ci-aggregate.yml step reorder/add +
-     (FR-002/003/004/007/009)                its tests (FR-005/006)
-        │                              │
-        └──────────────┬───────────────┘
-                        ▼
-WP4: FR-009 cross-invocation isolation tests (spans WP2's two surfaces) +
-     final tracer-file append + SC-001/SC-002/SC-003 full-suite re-run
+        ├────────────────────────────────────┐
+        ▼                                    ▼
+WP2: fleet_verdict.py + fleet_main.py         WP3: wait_for_artifacts.py +
+     retry wiring + their tests                    ci-aggregate.yml step reorder/add +
+     (FR-002/003/004/007/009 — includes            its tests (FR-005/006)
+     FR-009's cross-invocation isolation
+     test, committed inside WP2's own
+     red-first commit sequence; see
+     "Red-First Application" above)
+        │                                    │
+        └──────────────────┬──────────────────┘
+                            ▼
+WP4: final tracer-file append + SC-001/SC-002/SC-003 full-suite re-run.
+     Pure integration/verification — introduces NO new functional code and
+     carries no test of its own, so charter C-011's per-WP red-first-commit
+     requirement does not apply to it (see Constitution Check above).
 ```
 
 ### Work Distribution
 
 - **Sequential work**: WP1 must land first (or at minimum its interface must be fixed) before WP2
-  and WP3 can import it. WP4 depends on WP2's completion (it tests both fleet-verdict-pair
-  invocations together).
+  and WP3 can import it. WP4 depends on both WP2 and WP3 completing — it runs the full-suite
+  re-run (which needs all WPs' code present to be meaningful) and appends the closing tracer
+  entries. WP4 is a pure integration/verification WP, not a new-code WP: it carries no test of its
+  own (FR-009's cross-invocation isolation test now lives inside WP2's own commit sequence — see
+  the re-scoping in the Dependency Graph above and the Constitution Check's C-011 row).
 - **Parallel streams**: WP2 and WP3 touch fully disjoint files (`fleet_verdict.py`/`fleet_main.py`/
   their tests vs. `wait_for_artifacts.py`/`ci-aggregate.yml`/its tests) and can run concurrently
   once WP1's `retry_with_backoff` signature is fixed.
@@ -670,8 +695,11 @@ WP4: FR-009 cross-invocation isolation tests (spans WP2's two surfaces) +
 
 - **Sync schedule**: WP2 and WP3 both re-run `tests/ci/test_reconcile_retry.py` (WP1's own tests)
   as part of their own validation before integrating, per the repo's blast-radius test policy.
-- **Integration tests**: WP4's cross-invocation isolation tests are the integration point that
-  proves WP2's two surfaces (fleet_verdict/fleet_main) don't share state — see FR-009 above.
+- **Integration tests**: FR-009's cross-invocation isolation test — committed inside WP2's own
+  red-first commit sequence, not WP4's (see the Dependency Graph re-scoping above) — is the
+  integration point that proves WP2's two surfaces (fleet_verdict/fleet_main) don't share state.
+  WP4's own integration step is the full-suite re-run (SC-001/SC-002/SC-003), which verifies that
+  WP1–WP3's work composes correctly.
 
 ## PR Shape (§2a.6)
 
