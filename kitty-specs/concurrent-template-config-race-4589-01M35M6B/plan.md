@@ -42,6 +42,31 @@ result). A deterministic, `threading.Barrier` + monkeypatch-forced regression
 test proves the fix closes the exact interleaving identified in
 `research.md`, committed before the fix per CL-004/ATDD (C-011).
 
+**Swallow-vs-raise asymmetry at the two fix sites, and why it does not
+change the fix's contract:** `_load_step_yaml`'s cache-miss body (primary
+site) swallows every parse exception via a blanket
+`except Exception: return None` (`mission_step_repository.py:134-135`),
+which is the exact mechanism that turns corruption into the observed
+`TemplateConfigurationError` symptom. `_load_layered_mission_type_file`
+(second site) only catches `ruamel.yaml.error.YAMLError` and re-raises it as
+a named `ValueError` (`mission_type_repository.py:388-391`); any other
+corrupted-but-not-`YAMLError` outcome (e.g. a parse that "succeeds" on
+garbled reader/scanner state and produces wrong-but-syntactically-valid
+data) is not swallowed there and propagates as whatever exception
+`MissionType.model_validate`/the id-mismatch check raises. **What
+corrupted-parse behavior is actually expected/observed at the second site
+pre-fix is an open question this plan does not resolve by static analysis
+alone** — it is exactly what the second red-first test (Section 8a-ii)
+must establish empirically, the same way Section 8a's primary-site test
+establishes the swallow-path outcome for the first site. Whichever way that
+test's pre-fix RED run actually fails (a raised `ValueError`/
+`pydantic.ValidationError` bubbling up uncaught, a silently wrong roster
+entry, or something else), the fix itself does not depend on the answer:
+6a/6b at both sites, and the raise-never-degrade contract (CL-006/FR-006,
+Section 6 "Both fix sites raise, never degrade"), are intended to hold
+identically at both sites regardless of which pre-fix failure shape the
+second site's corrupted-parse race actually takes.
+
 ## Research summary
 
 See `research.md` in full. Bottom line, restated for plan-readers who have
@@ -92,7 +117,7 @@ doctrine-data package:
 in `research.md` ("Ruled out / out of scope"): its `template_set` is the
 charter-selection scalar (e.g. `"software-dev-default"`), an unrelated
 domain object per `step_projection.py`'s own scope-fence docstring
-(lines 24-30). It imports nothing from `mission_step_repository.py` /
+(lines 21-30). It imports nothing from `mission_step_repository.py` /
 `step_projection.py` and shares no code path with this defect.
 
 `src/charter/activation/mission_type_profiles.py` is **read but not
@@ -102,12 +127,37 @@ the two singletons closes the race for every caller, including this one,
 with no change needed at the call site itself.
 
 No CLI command reaches past a service/repository seam into kernel
-internals for this fix. **`src/kernel/**` is not touched** — no caller in
-the traced `create_mission_core` → `resolve_mission_type_context` →
+internals for this fix. **This fix's own diff does not add, remove, or
+modify any `src/kernel/**` file or import.** The traced
+`create_mission_core` → `resolve_mission_type_context` →
 `_resolve_template_set_slot`/`_resolve_action_slot` →
-`MissionStepRepository`/`MissionTypeRepository` chain touches
-`src/kernel/` at any point (confirmed by the call-chain trace in
+`MissionStepRepository`/`MissionTypeRepository` chain does contain two
+pre-existing reads of `src/kernel/` primitives —
+`src/specify_cli/core/mission_creation.py:48`
+(`from kernel.clock import now_utc_iso`) and
+`src/charter/offering/missions/repository.py:13`
+(`from kernel.paths import MISSION_ASSETS_SIBLING_PATTERN`) — but both are
+legitimate, already-in-place service-to-kernel-primitives imports, unrelated
+to and untouched by this change (confirmed by the call-chain trace in
 `research.md`).
+
+**A recurring but currently dormant instance of the same singleton
+anti-pattern, acknowledged and out of scope:** three other module-level,
+unsynchronized `YAML(typ="safe")` singletons exist in this same
+`offering`/`activation` package tree —
+`src/charter/activation/neutrality/lint.py:66` (`_YAML`, consumed by
+`_load_banned_terms`), `src/charter/offering/agent_profiles/operating_procedures.py:41`
+(`_YAML`, consumed by `collect_operating_procedure_entries`), and
+`src/charter/offering/drg/migration/extractor.py:51` (`_yaml`) — sharing the
+first half of this mission's defect shape (a shared, non-thread-safe `YAML`
+instance reused across every call). None of their current callers run under
+`ThreadPoolExecutor`/`threading.Thread` in this checkout today, and none
+feeds a `functools.cache`-wrapped consumer, so none is a live concurrency
+defect right now; per the charter's smallest-viable-diff discipline this
+mission does not extract a shared thread-local-YAML helper or otherwise
+touch these three sites. Recorded here (and Section 11) so a follow-up
+tracker issue is the next step if any of them ever grows a threaded or
+memoized caller, rather than this anti-pattern silently reappearing.
 
 ## 2. Generated artifacts
 
@@ -145,7 +195,7 @@ CL-007.
 `MissionStepRepository.cache_clear()` (`mission_step_repository.py:323-333`
 — the public `@staticmethod` wrapper that internally calls the private
 `_resolve_all_for_mission_type_cached.cache_clear()`, which that private
-function's own docstring, lines 464-465, forbids calling directly from
+function's own docstring, lines 464-466, forbids calling directly from
 outside the module) remain present, callable, synchronous, and **unchanged
 in signature and observable behavior**. Concretely:
 
@@ -282,18 +332,54 @@ ever contended by two calls racing the *same* key at the *same* moment).
 
 ### Both fix sites raise, never degrade (CL-006/FR-006)
 
+**Resolved exception design (one concrete decision, not an either/or):**
+this mission defines exactly **one** new exception class,
+`MissionCacheLockError(ValueError)`, owned by
+`src/charter/offering/missions/` — defined in
+`mission_step_repository.py` (the primary fix site) alongside its
+`_lock_for`/thread-local-YAML additions (Section 6a/6b), following the
+same local-typed-exception pattern already established in this package
+(`MalformedManifestError(Exception)` at `repository.py:39`,
+`ActionIndexError(ValueError)` at `action_index.py:12` — both module-local,
+neither imported from `specify_cli`). `mission_type_repository.py` imports
+`MissionCacheLockError` from `.mission_step_repository`, mirroring the
+import it already has for that module
+(`from .mission_step_repository import MissionStepRepository,
+_PackContextLike`, `mission_type_repository.py:12`) — so both fix sites'
+new lock/cache-error raise paths (Section 6b's `_lock_for`-adjacent code
+at both singleton sites) raise this **same** exception type, never two
+different ones.
+
+**`TemplateConfigurationError` is never imported into `src/charter/**`.**
+It is defined at `src/specify_cli/runtime/resolver.py:71`
+(`class TemplateConfigurationError(ValueError)`) — one layer above
+`src/charter/**` in this project's documented dependency direction
+(`kernel <- doctrine <- charter <- glossary/runtime <- specify_cli`, per
+`tests/architectural/test_charter_no_specify_cli_import.py:3-5`). Raising
+it from inside `mission_step_repository.py` or `mission_type_repository.py`
+(both under `src/charter/`) would require a `charter -> specify_cli` import
+edge, which `tests/architectural/test_charter_no_specify_cli_import.py`'s
+`test_charter_never_imports_specify_cli`
+(`tests/architectural/test_charter_no_specify_cli_import.py:89-103`)
+asserts never exists, at any scope — an always-on, PR-blocking gate (the
+`architectural-heavy` job, Section 10). If a caller above the
+charter/specify_cli boundary ever needs to surface this failure to a
+consumer as `TemplateConfigurationError`, that translation belongs on the
+**specify_cli side** of the boundary (e.g. in
+`src/charter/activation/mission_type_profiles.py`'s caller once control
+returns to `specify_cli`, or in `src/specify_cli/runtime/resolver.py`
+itself) — never inside `src/charter/**`. This mission's own fix sites only
+ever raise `MissionCacheLockError`; they do not need to perform that
+translation themselves.
+
 If either lock acquisition needs a bound (see Section 7 — this plan does
 **not** add a blocking-forever wait; see the timeout discussion there), the
-timeout path raises `TemplateConfigurationError` (or, for
-`mission_type_repository.py`'s roster-level cache — which is one layer
-below and does not itself carry mission-type/artifact-kind context — a
-new, equally explicit typed exception, e.g. a `MissionStepCacheError`/
-reuse of `TemplateConfigurationError` with the caller supplying context),
-never returns `None`, an empty dict, or a partial result. This is a purely
-additive requirement on the *new* code this mission writes; it does not
-touch the existing `resolve_configured_template` raise sites in
+timeout path raises `MissionCacheLockError`, never returns `None`, an empty
+dict, or a partial result. This is a purely additive requirement on the
+*new* code this mission writes; it does not touch the existing
+`resolve_configured_template` raise sites in
 `src/specify_cli/runtime/resolver.py:474-531`, which already satisfy
-CL-006 and are left unmodified.
+CL-006 with `TemplateConfigurationError` and are left unmodified.
 
 ## 7. Performance (NFR-002)
 
@@ -392,17 +478,67 @@ ATDD entry point, alongside `test_concurrent_creates_no_collision`), e.g.
   satisfies "the test must clean up after itself so it does not
   destabilize unrelated tests in the same session."
 
+### 8a-ii. Red-first, Barrier-synchronized regression test — SECOND fix site (CL-003/CL-004/FR-004/FR-005)
+
+8a proves the interleave for the primary fix site only. This subsection is
+its mandatory counterpart for `resolve_layered_mission_types`/
+`_load_layered_mission_type_file` (`mission_type_repository.py`, Section
+1's second fix site) — shipping that site's lock/thread-local change
+without its own red-first evidence would only demonstrate the fix for half
+the defect. New test, same file
+(`tests/core/test_mission_creation_identity.py`), e.g.
+`test_concurrent_creates_force_layered_yaml_cache_miss_race`:
+
+- **Outer call**: `create_mission_core`, identical to 8a — the race is
+  reached via `resolve_mission_type_context` → `_resolve_action_slot` →
+  `resolve_layered_mission_types` (research.md's traced eager call chain),
+  not by calling `resolve_layered_mission_types` or
+  `_load_layered_mission_type_file` directly.
+- **Forced interleave construction**: monkeypatch the thread-local YAML
+  accessor at the second site (post-fix) — or, for the pre-fix RED run
+  only, the pre-fix shared `_LAYERED_YAML.load` at its call boundary in
+  `_load_layered_mission_type_file` (`mission_type_repository.py:389`,
+  inside the `try` block at `mission_type_repository.py:388-391`) — so the
+  **first** thread blocks on a `threading.Barrier(2)` immediately after
+  starting its `.load()` call and the **second** thread completes its own
+  `.load()` call for a **different mission-type YAML file** first, then
+  both are released together. This mirrors 8a's construction exactly, at
+  the second site's own call boundary.
+- **Two threads, one key**: two `threading.Thread`s drive
+  `resolve_layered_mission_types` (via `create_mission_core`) to a cache
+  miss on the **same** `(mission_types_dirs, pack_context)` key, racing
+  `.load()` on two distinct mission-type YAML files under that key (e.g.
+  two built-in mission types in the same `mission_types_dirs` root) — with
+  explicit `MissionStepRepository.cache_clear()` and
+  `MissionTypeRepository.default.cache_clear()` calls before the test body,
+  same cold-cache discipline as 8a.
+- **Pre-fix vs post-fix bookkeeping**: committed in the same red-first
+  commit as 8a (CL-004), before the production-fix commit. At that commit
+  it must fail; the plan's Summary section states explicitly that this
+  mission does not know in advance *how* it fails (a caught-and-swallowed
+  outcome the way 8a's primary site fails, or an uncaught exception
+  propagating through `_load_layered_mission_type_file`'s narrower
+  `except YAMLError` — see the swallow-vs-raise reconciliation paragraph)
+  — either failure mode satisfies CL-003's red-first bar, because the bar
+  is "fails pre-fix, passes post-fix through the real code path," not "fails
+  with a specific exception type." After the fix commit, the same test
+  (unmodified) must pass.
+- **Teardown hygiene**: identical discipline to 8a.
+
 ### 8b. SC-006 — dedicated lock/cache-failure test (CL-006/FR-006)
 
-A separate, new test that monkeypatches the per-key lock (Section 6b) or
-the cache-population body to simulate a lock-timeout, corrupted-cache, or
-retry-exhaustion condition, and asserts the call raises
-`TemplateConfigurationError` (or the equivalent explicit typed exception
-named in Section 6) — never returns `None`/empty/partial. The test also
-asserts that replacing the raise with a silent-degrade return makes the
-test fail (i.e., the test is itself checked against a deliberately
-weakened implementation during development, per SC-006's own falsifiability
-clause), so the assertion is proven non-vacuous before it is relied on.
+A separate, new test — one instance per fix site, or a single
+parametrized test covering both — that monkeypatches `_lock_for` (Section
+6b) at each site to return a lock whose `.acquire()` raises
+`MissionCacheLockError` (Section 6, the one new exception class this
+mission defines) directly, and asserts the call through
+`create_mission_core` (or the narrower resolver-path call, per FR-005)
+propagates `MissionCacheLockError` unmodified — never returns
+`None`/empty/partial. The test also asserts that replacing the raise with
+a silent-degrade return makes the test fail (i.e., the test is itself
+checked against a deliberately weakened implementation during development,
+per SC-006's own falsifiability clause), so the assertion is proven
+non-vacuous before it is relied on.
 
 ### 8c. Existing natural test must not regress (AC3/SC-002)
 
@@ -422,6 +558,31 @@ while it is paused, and asserts: no deadlock (the test itself completes
 within its normal timeout), no exception propagates from `cache_clear()`,
 and the paused thread's population still completes and returns a correct
 (not corrupted) result once released.
+
+### 8e. Per-key lock's own effect (Section 6b revert-discipline test)
+
+Section 8a/8a-ii prove 6a (thread-local YAML) closes the corruption
+mechanism; neither proves 6b (the per-key lock) is present, because both
+tests only assert the *result* is correct, not that redundant concurrent
+execution was prevented — once 6a lands, redundant concurrent execution is
+merely wasteful, not corrupting, so a test that only checks correctness
+cannot distinguish "6b present" from "6b silently reverted." This test
+closes that gap directly: instrument (e.g. via a module-level counter or a
+`monkeypatch`-wrapped call-counting shim around) the cache-miss
+filesystem-walk body — `_resolve_all_for_mission_type_uncached` for the
+primary site, `scan_mission_types_dir`'s `_load_layered_mission_type_file`
+loop for the second site — so the test can count invocations, then have
+two `threading.Thread`s race a cold miss (after the same
+`MissionStepRepository.cache_clear()`/
+`MissionTypeRepository.default.cache_clear()` cold-start discipline as 8a)
+on the **identical** cache key from both threads simultaneously (a
+`threading.Barrier(2)` pins both threads to enter the cache-miss body at
+the same instant), and asserts the instrumented body executed **exactly
+once**, not twice. This test must fail if `_lock_for` (Section 6b) is
+removed while 6a is kept — the two threads would then both observe the
+cache miss and both run the filesystem-walk body, producing a count of 2
+which fails the assertion — giving 6b its own red-if-reverted proof,
+independent of 6a's own tests.
 
 ## 9. Baseline (CL-005)
 
@@ -502,7 +663,8 @@ Derived directly from `.github/ci-module-registry.yml` (read in full,
   condition (a changed path can and does select more than one module here;
   this is not a bug to route around). `test_dirs` explicitly lists
   `tests/core` (`ci-module-registry.yml`), which is where the new red-first
-  regression test (Section 8a) and the failing-test's ATDD entry point live.
+  regression tests (Section 8a/8a-ii) and the failing-test's ATDD entry
+  point live.
   `shard_count: 5`.
 - **`next`** (`ci-module-registry.yml:80-90`, roots
   `src/specify_cli/runtime/**`, `shard_count: 2`) — **NOT selected by this
@@ -536,21 +698,21 @@ from the workflows (not assumed from any prior brief):
   against reconciled per-module coverage XML). **Applies** — every line
   this mission's fix commits changes is a changed critical-path line by
   construction.
-- **`import-linter` (TID251 banned-API lint)** (`ci-router.yml:418-433`,
+- **`import-linter` (TID251 banned-API lint)** (`ci-router.yml:420-433`,
   `ruff check --select TID251 .`) — **always runs, applies.** This fix adds
   no banned import; `threading` and `functools` are already used
   extensively elsewhere in `src/`.
-- **`uv-lock` (`uv lock --check`)** (`ci-router.yml:406-412`) — **does not
+- **`uv-lock` (`uv lock --check`)** (`ci-router.yml:409-418`) — **does not
   need to pass a *new* check specific to this PR** because this fix adds no
   dependency and changes no `pyproject.toml`/`uv.lock` entry; the existing,
   already-committed lockfile stays valid. (The job still runs per its own
   `on:` trigger — it is simply unaffected by this diff.)
-- **`markdownlint`** (`ci-router.yml:400-407`) — runs on `**/*.md`
+- **`markdownlint`** (`ci-router.yml:401-407`) — runs on `**/*.md`
   (`plan.md`, `research.md`, and `spec.md` already committed, all `.md`),
   but its own step is `npx --yes markdownlint-cli2 "**/*.md" || true` —
   **the `|| true` makes this job unconditionally non-blocking**, whatever
   it finds. Named here for completeness, not treated as an enforced gate.
-- **`commit-msg` ("commit message lint")** (`ci-router.yml:390-397`) — its
+- **`commit-msg` ("commit message lint")** (`ci-router.yml:391-399`) — its
   actual step body is `git log --format=%s origin/${{ github.base_ref ||
   'main' }}..HEAD || true`, i.e. it prints commit subjects and always
   succeeds. **This is not an enforced commitlint check in this checkout** —
@@ -558,6 +720,27 @@ from the workflows (not assumed from any prior brief):
   direct read of `ci-router.yml` shows no tool actually validates commit
   message format, only a non-blocking log dump. Stated as a finding, not
   papered over.
+- **`architectural-heavy` ("architectural battery (heavy, code-scoped)")**
+  (`ci-router.yml:510-560`) — **applies and is load-bearing for this
+  mission.** Its `if:` condition (`ci-router.yml:528`,
+  `needs.changes.outputs.charter == 'true'`, one arm of the OR-of-every-
+  src-backed-filter-group at `ci-router.yml:515-536`) evaluates `true` for
+  this diff, because it lands entirely under `src/charter/**`
+  (`src/charter/offering/missions/**`, Section 1). The job runs the full
+  `tests/architectural` tree (`ci-router.yml:554` onward), deselecting only
+  four unrelated files (`test_no_legacy_terminology.py`,
+  `test_layer_rules.py`, `test_pyproject_shape.py`,
+  `test_archive_root_byte_identical.py`) — **`tests/architectural/test_charter_no_specify_cli_import.py`
+  is not among the deselected files, so it runs.** That test
+  (`test_charter_never_imports_specify_cli`,
+  `tests/architectural/test_charter_no_specify_cli_import.py:89-103`,
+  docstring's binding direction statement at lines 3-5) is directly
+  load-bearing here given Section 6c's exception-design decision (below):
+  the new exception class this mission introduces must stay inside
+  `src/charter/**` and never import `specify_cli`, or this gate fails the
+  PR. `router-gate`'s own `needs:` list (`ci-router.yml:699-717`) includes
+  `architectural-heavy` under an `if: always() && !cancelled()` aggregation,
+  so a failed or timed-out `architectural-heavy` run fails `router-gate`.
 - **Bandit + pip-audit** — **searched for and not found anywhere in
   `.github/workflows/*.yml` in this checkout** (`grep -rln "bandit"
   .github/` and `grep -rln "pip-audit|pip_audit" .github/` both return no
@@ -599,6 +782,13 @@ behaviour-preserving campsite-clean step. Saying so explicitly rather than
 inventing a busywork commit: **no campsite-clean commit is planned for this
 mission.**
 
+The three dormant, out-of-scope `YAML(typ="safe")` singletons named in
+Section 1 (`lint.py:66`, `operating_procedures.py:41`, `extractor.py:51`)
+are a *different* surface from the lines this mission touches, so they are
+not folded in here either — named for the record as debt this mission
+observed but consciously left unfrozen (no current threaded/memoized
+caller makes them live), not silently missed.
+
 ## 12. Tracer files
 
 `kitty-specs/concurrent-template-config-race-4589-01M35M6B/traces/{approach,design-decisions,tooling-friction}.md`
@@ -618,24 +808,27 @@ One PR to `main` (the sk overlay default), in this order:
 
 1. ~~Campsite-clean commit~~ — **skipped** per Section 11 (no genuine debt
    found on the touched lines).
-2. **Red-first failing test commit** (CL-004): the Barrier-synchronized
-   regression test (Section 8a) and the SC-006 failure-path test (Section
-   8b), committed against pre-fix code, verified RED.
+2. **Red-first failing test commit** (CL-004): the two Barrier-synchronized
+   regression tests (Section 8a for the primary site, Section 8a-ii for the
+   second site), the SC-006 failure-path test (Section 8b), and the per-key
+   lock effect test (Section 8e), committed against pre-fix code, verified
+   RED.
 3. **Production-fix commit(s)**: the thread-local YAML accessor + per-key
-   lock at both sites (Section 6), verified the same tests now GREEN, plus
-   the existing `test_concurrent_creates_no_collision` and the two modules'
-   full suites (Section 9/10) still green.
+   lock at both sites (Section 6) plus the new `MissionCacheLockError`
+   exception class, verified the same tests now GREEN, plus the existing
+   `test_concurrent_creates_no_collision` and the two modules' full suites
+   (Section 9/10) still green.
 4. **Doc/tracer updates**: tracer-file appends (Section 12) and any
    research/plan corrections discovered during implementation.
 
 This mission ships as **one PR to `main`**. The diff stays reviewable in one
-sitting: two singleton replacements + two lock-guarded cache bodies + two to
-four new tests, all confined to three files in one package plus one test
-file. If implementation later discovers the `_LAYERED_YAML` site (Section
-6) needs materially different handling than mirrored here, or that
-`resolver.py` needs a change after all (Section 10's `next`-gate caveat),
-that is a signal to flag for a possible split — not a silent scope
-expansion.
+sitting: two singleton replacements + two lock-guarded cache bodies + one
+new exception class + five new tests (8a, 8a-ii, 8b, 8d, 8e), all confined
+to three files in one package plus one test file. If implementation later
+discovers the `_LAYERED_YAML` site (Section 6) needs materially different
+handling than mirrored here, or that `resolver.py` needs a change after all
+(Section 10's `next`-gate caveat), that is a signal to flag for a possible
+split — not a silent scope expansion.
 
 ## 14. Human-in-Charge approval
 
