@@ -481,8 +481,10 @@ checkout
 reading the full job) — every existing `run:` (shell) step in this job that needs `SOURCE_RUN_ID`/
 `SOURCE_RUN_ATTEMPT`/`SOURCE_REPOSITORY` re-declares them as a step-local `env:` block (e.g.
 `ci-aggregate.yml`'s "Prepare exact source registry and diff" and "Select reports from executions
-retained by the source attempt" steps). The two `uses: actions/download-artifact` steps that
-bracket the insertion point (`download-current` at `ci-aggregate.yml:159-169` and
+retained by the source attempt" steps). Both of those cited steps *also* declare a fourth variable,
+`GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}`, alongside the three `SOURCE_*` ones
+(`ci-aggregate.yml:107-112` and `:146-150`, verified directly). The two `uses: actions/download-artifact`
+steps that bracket the insertion point (`download-current` at `ci-aggregate.yml:159-169` and
 `download-selected-modules` at `:214-222`, verified directly) do **not** follow this pattern: they
 consume the same `SOURCE_RUN_ID` value but inline the GitHub Actions expression
 `${{ github.event.workflow_run.id || inputs.source_run_id }}` directly into their `with: run-id:`
@@ -490,8 +492,14 @@ input, with no `env:` block at all — the normal way an action input is wired, 
 indirection the way a `run:` shell script does. The new "Wait for selected shard artefact
 visibility" step is itself a `run: python3 scripts/ci/wait_for_artifacts.py ...` (shell) step, not
 a `uses:` step, so it must follow the `run:`-step pattern and declare its own step-local `env:`
-block for these three variables — it cannot inherit them from anywhere else in the job, and the
-`uses:`-step inlining pattern does not apply to it.
+block. That block must declare **four** variables — `GH_TOKEN`/`SOURCE_RUN_ID`/`SOURCE_RUN_ATTEMPT`/
+`SOURCE_REPOSITORY` — not just the three `SOURCE_*` ones: as documented a few lines below, the new
+step reuses `fleet_verdict.py`'s `GitHub`/`GitHubCLI` request/`pages()` boundary, and
+`GitHub.request()` reads `token = os.environ["GH_TOKEN"]` as a bare subscript
+(`scripts/ci/fleet_verdict.py:142`), which raises `KeyError` if the variable is absent — there is no
+fallback or degraded path. None of these four variables is available from anywhere else in the
+job — the job carries no job-level `env:` key, and the `uses:`-step inlining pattern does not apply
+to a `run:` step — so all four must be declared in this step's own `env:` block.
 
 **`scripts/ci/wait_for_artifacts.py` (new)** — pure decision core + thin CLI edge, mirroring the
 existing `source_eligibility.py`/`select_source_artifacts.py` shape:
@@ -747,3 +755,18 @@ the implement phase.**
    should sanity-check these against the job timeout budgets cited above and adjust at implement
    time if real observed GitHub Actions artifact-propagation latency (SC-004's post-merge watch)
    suggests otherwise.
+6. **WP4 was re-scoped in this revision to resolve a charter C-011 contradiction the prior review
+   round flagged**: FR-009's cross-invocation isolation test — originally WP4's only test content —
+   now lives inside WP2's own red-first commit sequence, alongside WP2's other FR-002/003/004/007
+   tests (which do have valid red-first anchors, unlike FR-009's test — see "Red-First Application"
+   above). With that test moved out, WP4 is re-scoped to a pure integration/verification WP: the
+   final tracer-file append plus the SC-001/SC-002/SC-003 full-suite re-run, introducing no new
+   functional code and carrying no test of its own. Rationale: charter C-011 requires each WP that
+   introduces new functional code to open with a failing-test-only commit that is RED on
+   `planning_base_branch`; FR-009's isolation test has no such red anchor (there is no pre-fix retry
+   state to leak, so the property trivially holds before this mission), so a WP built only around
+   that test could not satisfy C-011 on its own terms. Moving the test into WP2 (which does have
+   red-first anchors) and re-scoping WP4 to carry zero test obligations means C-011's per-WP
+   failing-first-commit requirement does not apply to WP4 at all, rather than being satisfied by it
+   vacuously. See the Constitution Check's C-011 row and the "Parallel Work Analysis / Dependency
+   Graph" section above for the detail.
