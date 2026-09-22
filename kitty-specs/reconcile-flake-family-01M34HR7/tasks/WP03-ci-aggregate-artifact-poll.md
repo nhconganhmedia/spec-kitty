@@ -170,10 +170,16 @@ existing `download-selected-modules` step's own `if:` condition and mirror it.
    `reconcile_shards.read_selected_modules(selected_path)` (imported) — default path is
    `reconcile_shards.DEFAULT_SELECTED_PATH`.
 3. Compute the must-be-fresh `RegistryShard` set using the **exact same predicate**
-   `reconcile_shards.reconcile()` applies later in the same job: `selected is None or
-   shard.module in selected` (read `reconcile()`'s own docstring/body in
-   `scripts/ci/reconcile_shards.py` to confirm this is still accurate before you copy it —
-   do not invent a second definition of "must-be-fresh").
+   `reconcile_shards.reconcile()` applies later in the same job — its named
+   `must_be_fresh` variable: `selected is not None and shard.module in selected` (read
+   `reconcile()`'s own docstring/body in `scripts/ci/reconcile_shards.py` to confirm this
+   is still accurate before you copy it — do not invent a second definition of
+   "must-be-fresh"). This is the boolean that decides whether a shard MUST show up as
+   fresh versus is backfill-eligible from `previous_available`; it is distinct from the
+   separate "is this shard required-if-absent at all" check in `reconcile()`'s own `elif`
+   chain (`elif selected is None or shard.module in selected: missing.append(shard)`),
+   which additionally treats `selected is None` (full/legacy mode) as "every shard
+   required" — do not conflate the two.
 4. For each must-be-fresh shard, compute its expected GitHub Actions **artifact name** using
    the exact same naming convention `scripts/ci/select_source_artifacts.py` already defines
    and matches: `ARTIFACT = re.compile(r"module-tests-([A-Za-z0-9._-]+)-shard-([1-9][0-9]*)-of-([1-9][0-9]*)-attempt-([1-9][0-9]*)-reports")`
