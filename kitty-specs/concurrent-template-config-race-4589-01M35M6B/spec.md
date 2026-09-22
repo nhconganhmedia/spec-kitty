@@ -123,10 +123,12 @@ bootstrap prewarm") is **CLOSED**. Its stale "23 known-red on main" baseline
 does not apply to this mission. Before making any change, this mission must
 capture its **own** fresh baseline: run the targeted test surface (at minimum
 `tests/core/test_mission_creation_identity.py`, plus any other suites the plan
-phase scopes in) against the mission's `planning_base_branch` and record the
-result. If pre-existing failures are found that are unrelated to this
-mission's change, filing a GitHub issue for them is the **orchestrator's**
-job, not any mission agent's — this spec states that explicitly so the plan
+phase scopes in) at the mission's scaffold commit — before either the
+red-first test commit (CL-004) or the production-fix commit has landed on
+`planning_base_branch` — and record the result. If pre-existing failures are
+found that are unrelated to this mission's change, filing a GitHub issue for
+them is the **orchestrator's** job, not any mission agent's — this spec
+states that explicitly so the plan
 phase does not schedule a mission agent to open tracker issues for unrelated
 pre-existing red.
 
@@ -178,7 +180,7 @@ substitute for it (see CL-002).
   but does **not** serialize execution of the wrapped function body on a
   cache miss — two threads that miss concurrently can both run the cache-miss
   body (including any use of the shared `_YAML` instance) at the same time.
-- `src/charter/offering/missions/mission_type_repository.py:68-96` —
+- `src/charter/offering/missions/mission_type_repository.py:68-101` —
   `MissionTypeRepository.default()` is itself `@functools.cache`-memoized
   (line 68) and its docstring documents a `cache_clear()` test seam (NFR-007
   contract) that must survive this mission's changes.
@@ -190,7 +192,7 @@ substitute for it (see CL-002).
   own docstring at lines 464-465 forbids it). Its docstring carries the same
   "production never mutates the bundled `mission-steps/` tree mid-process,
   so the cache is safe there" cache-safety argument as
-  `mission_type_repository.py:68-96`; the plan phase must explicitly confirm
+  `mission_type_repository.py:68-101`; the plan phase must explicitly confirm
   this still holds after the fix, or consciously revise it with rationale.
 - `src/charter/offering/missions/step_projection.py:105-126` —
   `project_template_set()` builds the `template_set` mapping from a single
@@ -222,7 +224,7 @@ not cite paths that do not exist here):
   neighbors; also the ATDD entry point per CL-004)
 
 These files carry NFR-002/NFR-003/CL-001-style cache-contract docstrings
-(see the `mission_type_repository.py:68-96` `default()` docstring, which
+(see the `mission_type_repository.py:68-101` `default()` docstring, which
 documents both an NFR-007 memoization contract and a `cache_clear()` test
 seam used by other tests, and the `mission_step_repository.py:324-333`
 `MissionStepRepository.cache_clear()` docstring, which documents the
@@ -420,7 +422,7 @@ readable by a future mission without re-running the sweep.
   function (line 446 of the same file) whose cache-miss body is the
   candidate race window.
 - **`MissionTypeRepository.default()`**: the memoized repository singleton
-  (`mission_type_repository.py:68-96`) that depends on the above and carries
+  (`mission_type_repository.py:68-101`) that depends on the above and carries
   its own documented `cache_clear()` test seam.
 - **`template_set`**: the `dict[str, str]` mapping from artifact kind (e.g.
   `"spec"`) to template filename, projected by `project_template_set()` in
