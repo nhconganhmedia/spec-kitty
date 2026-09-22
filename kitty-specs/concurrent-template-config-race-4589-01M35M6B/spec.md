@@ -444,11 +444,15 @@ readable by a future mission without re-running the sweep.
   both sides, or an equal-or-better rate if any pre-existing flakiness is
   found and documented).
 - **SC-003**: `MissionTypeRepository.default.cache_clear()` and
-  `_resolve_all_for_mission_type_cached.cache_clear()` remain present,
-  callable, and behave per their existing NFR-002/NFR-003/NFR-007
-  docstring contracts — verified by the existing tests that depend on
-  these seams continuing to pass unmodified (or modified only if the
-  contract itself intentionally changed, with rationale recorded).
+  `MissionStepRepository.cache_clear()` (mission_step_repository.py:324-333
+  — the public `@staticmethod` wrapper; it internally calls the private
+  `_resolve_all_for_mission_type_cached.cache_clear()`, which that private
+  function's own docstring forbids calling directly from outside the
+  module) remain present, callable, and behave per their existing
+  NFR-002/NFR-003/NFR-007 docstring contracts — verified by the existing
+  tests that depend on these seams continuing to pass unmodified (or
+  modified only if the contract itself intentionally changed, with
+  rationale recorded).
 - **SC-004**: Single-threaded `create_mission_core` (or equivalent
   `spec-kitty agent mission create`) completes in under 2 seconds after the
   fix, matching the charter's existing CLI performance standard.
