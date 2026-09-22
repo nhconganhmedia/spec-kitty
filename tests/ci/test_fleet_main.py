@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -104,6 +105,73 @@ def test_recovery_is_appended_without_closure_or_new_incident() -> None:
     assert set(payload) == {"body"}
     fleet_main.report(api, ROOT, IDS, 125, 1)
     assert len(api.mutations) == 2
+
+
+def test_main_recovery_within_budget_publishes_stabilized_evidence_not_stale(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-003/FR-007/C-003 recovery for fleet_main.py: the first snapshot PAIR inside
+    _attempt() disagrees (retry-worthy), the second pair agrees. report() must retry the
+    WHOLE pair -- never fall through on the first stale read -- and publish using the
+    stabilized (agreeing) evidence, never the original disagreeing one. RED against
+    unmodified report(): the current code raises ValueError on the first disagreement
+    instead of retrying."""
+    api = MainAPI()
+    monkeypatch.setattr(fleet_main.time, "sleep", lambda seconds: None)
+
+    def evidence(state: str) -> dict:
+        return {"head": HEAD, "state": state, "runs": {}, "scope": "continuous-main-push", "conditional_gates_not_observed": []}
+
+    sequence = iter(
+        [
+            evidence("red"),  # pre-loop read (report()'s own, unused when dry_run=False)
+            evidence("red"),  # attempt 1's own evidence read (red -> skip the not-red elif)
+            evidence("running"),  # attempt 1's recheck (disagrees with the read above -> retry)
+            evidence("red"),  # attempt 2's own evidence read (red -> skip the not-red elif)
+            evidence("red"),  # attempt 2's recheck (agrees -> stabilized, ready to publish)
+        ]
+    )
+    calls: list[int] = []
+
+    def fake_snapshot(api_: MainAPI, root_: Path, ids_: dict) -> dict:
+        calls.append(1)
+        return next(sequence)
+
+    monkeypatch.setattr(fleet_main, "snapshot", fake_snapshot)
+
+    fleet_main.report(api, ROOT, IDS, 123, 1)
+
+    assert len(calls) == 5, "expected 1 pre-loop read + 2 _attempt() calls (2 snapshot reads each)"
+    assert len(api.mutations) == 1
+    assert api.mutations[0][0] == "issues"
+    assert f"[ci] red @{HEAD}" in api.mutations[0][1]["body"]
+
+
+def test_main_exhausted_retry_budget_defers_silently_with_diagnostic(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """FR-004 terminal path for fleet_main.py: evidence that never stabilizes across the
+    full retry budget must not raise and must not post/update an incident -- it defers
+    silently (exit 0) with a diagnostic line naming the subject, "deferred"/"skipped",
+    and the stabilization failure reason. RED against unmodified report(): the current
+    code raises on the first disagreement."""
+    api = MainAPI()
+    monkeypatch.setattr(fleet_main.time, "sleep", lambda seconds: None)
+
+    def evidence(state: str) -> dict:
+        return {"head": HEAD, "state": state, "runs": {}, "scope": "continuous-main-push", "conditional_gates_not_observed": []}
+
+    # pre-loop (unused) + 4 attempts, each [own-read=red (skip elif), recheck=running (disagree)]
+    values = [evidence("running")] + [evidence("red"), evidence("running")] * 4
+    sequence = iter(values)
+
+    def fake_snapshot(api_: MainAPI, root_: Path, ids_: dict) -> dict:
+        return next(sequence)
+
+    monkeypatch.setattr(fleet_main, "snapshot", fake_snapshot)
+
+    fleet_main.report(api, ROOT, IDS, 123, 1)
+
+    assert api.mutations == []
+    out = capsys.readouterr().out
+    assert "deferred" in out or "skipped" in out
+    assert "evidence did not stabilize within retry budget" in out
 
 
 @pytest.mark.parametrize("conclusion,expected", [("cancelled", "infra-error"), ("skipped", "running"), (None, "running")])
@@ -264,3 +332,46 @@ def test_main_cli_dry_run_is_read_only(monkeypatch, capsys) -> None:
     fleet_main.main()
     assert f"[ci] green @{HEAD}" in capsys.readouterr().out
     assert not api.mutations
+
+
+def test_no_cross_run_coupling_between_concurrent_pr_and_main_invocations() -> None:
+    """FR-009: two different-subject reporter invocations (a PR report and a main-push
+    report) running concurrently must not read or mutate one another's state -- each
+    retry/backoff invocation's evidence is constructed fresh from its own call's local
+    arguments only, with no shared object, global, or filesystem path. Not exempt from
+    red-first per plan.md's "Red-First Application" section: there is no pre-fix retry
+    state to leak (the property trivially holds before this mission), so it is committed
+    alongside WP2's other red-first-anchored tests rather than left for WP4."""
+    pr_api = API()
+    main_api = MainAPI()
+    main_api.runs["ci-quality.yml"][0]["conclusion"] = "failure"
+    barrier = threading.Barrier(2)
+    errors: list[BaseException] = []
+
+    def run_pr() -> None:
+        try:
+            barrier.wait(timeout=5)
+            fleet_verdict.report(pr_api, ROOT, 7, IDS, 123, 1)
+        except BaseException as error:  # noqa: BLE001 - surfaced via `errors` for the assertion below
+            errors.append(error)
+
+    def run_main() -> None:
+        try:
+            barrier.wait(timeout=5)
+            fleet_main.report(main_api, ROOT, IDS, 456, 1)
+        except BaseException as error:  # noqa: BLE001 - surfaced via `errors` for the assertion below
+            errors.append(error)
+
+    pr_thread = threading.Thread(target=run_pr)
+    main_thread = threading.Thread(target=run_main)
+    pr_thread.start()
+    main_thread.start()
+    pr_thread.join(timeout=10)
+    main_thread.join(timeout=10)
+
+    assert not errors, errors
+    assert len(pr_api.posts) == 1
+    assert pr_api.posts[0]["body"].startswith(f"[ci] green @{HEAD}")
+    assert len(main_api.mutations) == 1
+    assert main_api.mutations[0][0] == "issues"
+    assert f"[ci] red @{HEAD}" in main_api.mutations[0][1]["body"]

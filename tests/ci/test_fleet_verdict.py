@@ -12,6 +12,7 @@ from typing import Any
 import pytest
 import yaml
 
+from scripts.ci import fleet_verdict
 from scripts.ci.fleet_verdict import (
     AGGREGATE,
     GitHub,
@@ -224,6 +225,67 @@ def test_publication_rechecks_head_and_never_mutates_existing_comments() -> None
     assert len(api.posts) == 1
     assert api.posts[0]["body"].startswith(f"[ci] green @{HEAD}")
     assert "Verdict-Account-Class: bot" in api.posts[0]["body"]
+
+
+def test_recovery_within_budget_publishes_stabilized_evidence_not_stale(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-002/FR-007/C-003 recovery: the first snapshot PAIR disagrees (retry-worthy),
+    the second pair agrees. report() must retry the WHOLE pair -- never fall through on
+    the first stale read -- and publish using the stabilized (agreeing) evidence, never
+    the original disagreeing one. RED against unmodified report(): the current code
+    raises ValueError on the very first disagreement instead of retrying."""
+    api = API()
+    monkeypatch.setattr(fleet_verdict.time, "sleep", lambda seconds: None)
+    unstable_a = {"head": HEAD, "state": "red", "runs": {}, "labels": []}
+    unstable_b = {"head": HEAD, "state": "running", "runs": {}, "labels": []}
+    stable = {"head": HEAD, "state": "green", "runs": {}, "labels": []}
+    sequence = iter(
+        [
+            (pull(), unstable_a),
+            (pull(), unstable_b),
+            (pull(), stable),
+            (pull(), stable),
+        ]
+    )
+    calls: list[int] = []
+
+    def fake_snapshot(api_: API, root_: Path, number_: int, workflow_ids_: dict, replay_: Any = None) -> Any:
+        calls.append(1)
+        return next(sequence)
+
+    monkeypatch.setattr(fleet_verdict, "snapshot", fake_snapshot)
+
+    report(api, ROOT, 7, IDS, 123, 1)
+
+    assert len(calls) == 4, "expected exactly two _attempt() calls (2 snapshot reads each)"
+    assert len(api.posts) == 1
+    assert api.posts[0]["body"].startswith(f"[ci] green @{HEAD}")
+
+
+def test_exhausted_retry_budget_defers_silently_with_diagnostic(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """FR-004 terminal path: evidence that never stabilizes across the full retry budget
+    must not raise and must not post -- it defers silently (exit 0) with a diagnostic
+    line naming the subject, "deferred"/"skipped", and the stabilization failure reason,
+    trusting ci-fleet-verdict.yml's repeated workflow_run firings to reconcile later.
+    RED against unmodified report(): the current code raises on the first disagreement."""
+    api = API()
+    monkeypatch.setattr(fleet_verdict.time, "sleep", lambda seconds: None)
+    toggle = {"n": 0}
+
+    def fake_snapshot(api_: API, root_: Path, number_: int, workflow_ids_: dict, replay_: Any = None) -> Any:
+        toggle["n"] += 1
+        state = "red" if toggle["n"] % 2 else "running"
+        return pull(), {"head": HEAD, "state": state, "runs": {}, "labels": []}
+
+    monkeypatch.setattr(fleet_verdict, "snapshot", fake_snapshot)
+
+    report(api, ROOT, 7, IDS, 123, 1)
+
+    assert api.posts == []
+    assert toggle["n"] == 8, "expected exactly 4 attempts x 2 snapshot reads each (budget exhausted)"
+    out = capsys.readouterr().out
+    assert "7" in out
+    assert "deferred" in out or "skipped" in out
+    assert "evidence did not stabilize within retry budget" in out
 
 
 def test_duplicate_latest_evidence_is_suppressed_but_newer_verdict_is_not() -> None:
