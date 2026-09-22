@@ -18,10 +18,13 @@ names across calls.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pytest
+import yaml
 
+from scripts.ci import reconcile_shards
 from scripts.ci.reconcile_shards import RegistryShard
 from scripts.ci.wait_for_artifacts import (
     MAX_ATTEMPTS,
@@ -149,3 +152,45 @@ def test_no_must_be_fresh_shards_never_polls() -> None:
     assert found == {}
     assert missing == frozenset()
     assert api.calls == 1
+
+
+# --- T014: composing test -- reconcile_shards.py's fail-closed floor -------
+
+
+def test_composing_reconcile_shards_still_fails_closed_when_poller_exhausts(tmp_path: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    """The poller WIDENS the window; it never DECIDES completeness.
+
+    Constructs the on-disk state ``actions/download-artifact`` would leave
+    behind when the poller exhausts its budget for a must-be-fresh shard that
+    is genuinely still absent (``out/aggregate/current/`` has nothing for
+    it), then invokes the REAL, untouched ``reconcile_shards.py::main()``
+    against that state -- proving invariant (b) (FR-006/C-002) end to end
+    without a real workflow run.
+    """
+    aggregate_root = tmp_path / "out" / "aggregate"
+    registry_path = aggregate_root / "source" / "ci-module-registry.yml"
+    selected_path = aggregate_root / "selected" / "selected-modules.json"
+    registry_path.parent.mkdir(parents=True)
+    selected_path.parent.mkdir(parents=True)
+    registry_path.write_text(yaml.safe_dump({"modules": [{"tier": "standard", "module": "merge", "shard_count": 1}]}))
+    selected_path.write_text(json.dumps(["merge"]))
+    # out/aggregate/current/ and out/aggregate/previous/ are left entirely
+    # absent -- the shard the poller was waiting for never became visible in
+    # either, exactly the exhausted-budget circumstance wait_for_artifacts.py
+    # falls through on.
+
+    exit_code = reconcile_shards.main(aggregate_root=aggregate_root, registry_path=registry_path, selected_path=selected_path)
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "refusing to silently treat this run as complete" in captured.out
+
+
+def test_reconcile_shards_module_is_untouched_by_this_wp() -> None:
+    """Key Entities item 3 / T015: reconcile_shards.py gains a new importer
+    only -- its public contract used by this WP is exactly what plan.md
+    pins, unmodified."""
+    assert hasattr(reconcile_shards, "parse_registry")
+    assert hasattr(reconcile_shards, "read_selected_modules")
+    assert hasattr(reconcile_shards, "reconcile")
+    assert hasattr(reconcile_shards, "main")
