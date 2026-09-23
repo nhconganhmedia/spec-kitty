@@ -84,17 +84,28 @@ __all__ = [
 # needed for this half of the fix at all.
 # ---------------------------------------------------------------------------
 
-_yaml_local = threading.local()
+class _YamlLocal(threading.local):
+    """Thread-local holder for this thread's own ``YAML(typ="safe")`` instance.
+
+    A genuine ``threading.local`` subclass (mirrors ``kernel.locks._ReentrancyState``,
+    src/kernel/locks.py:647) rather than a bare ``threading.local()`` instance, so
+    the ``instance`` attribute has a declared type and ``mypy --strict`` does not
+    infer ``Any`` on every access (PR-CONTRACT-001). ``threading.local`` calls
+    ``__init__`` once per thread on that thread's first attribute access, so this
+    keeps the exact same "build once per thread, lazily on first use" behavior as
+    the previous ``try/except AttributeError`` construction.
+    """
+
+    def __init__(self) -> None:
+        self.instance = YAML(typ="safe")
+
+
+_yaml_local = _YamlLocal()
 
 
 def _get_yaml() -> YAML:
     """Return this thread's own ``YAML(typ="safe")`` instance, building it once."""
-    try:
-        return _yaml_local.instance
-    except AttributeError:
-        instance = YAML(typ="safe")
-        _yaml_local.instance = instance
-        return instance
+    return _yaml_local.instance
 
 
 # ---------------------------------------------------------------------------

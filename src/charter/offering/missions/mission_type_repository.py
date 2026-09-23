@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import functools
 import threading
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
+
+if TYPE_CHECKING:
+    # Typeshed-only names describing functools.cache's forwarded introspection
+    # attributes (PR-CONTRACT-001) -- see _LayeredMissionTypesResolver below.
+    from functools import _CacheInfo, _CacheParameters
 
 # MissionCacheLockError: imported for completeness/future-proofing
 # (plan.md Section 6c) -- both fix sites' lock/cache-error raise paths
@@ -333,17 +339,29 @@ def builtin_mission_type_id_set() -> frozenset[str]:
 # across threads is not thread-safe (.load() mutates cross-call parser
 # state). A SEPARATE thread-local pair from the sibling module's -- each
 # site gets its own, never shared across the two modules.
-_layered_yaml_local = threading.local()
+class _LayeredYamlLocal(threading.local):
+    """Thread-local holder for this thread's own ``YAML(typ="safe")`` instance.
+
+    A genuine ``threading.local`` subclass (mirrors ``kernel.locks._ReentrancyState``,
+    src/kernel/locks.py:647, and the sibling ``mission_step_repository._YamlLocal``)
+    rather than a bare ``threading.local()`` instance, so the ``instance`` attribute
+    has a declared type and ``mypy --strict`` does not infer ``Any`` on every access
+    (PR-CONTRACT-001). ``threading.local`` calls ``__init__`` once per thread on that
+    thread's first attribute access, so this keeps the exact same "build once per
+    thread, lazily on first use" behavior as the previous ``try/except
+    AttributeError`` construction.
+    """
+
+    def __init__(self) -> None:
+        self.instance = YAML(typ="safe")
+
+
+_layered_yaml_local = _LayeredYamlLocal()
 
 
 def _get_layered_yaml() -> YAML:
     """Return this thread's own ``YAML(typ="safe")`` instance, building it once."""
-    try:
-        return _layered_yaml_local.instance
-    except AttributeError:
-        instance = YAML(typ="safe")
-        _layered_yaml_local.instance = instance
-        return instance
+    return _layered_yaml_local.instance
 
 #: Org-pack layout (CL-005, ADR 2026-08-13-1): flat, non-recursive
 #: ``<pack_root>/mission_types/*.yaml`` -- mirrors the sibling
@@ -648,7 +666,34 @@ def _resolve_layered_mission_types_cached(
     return _resolve_layered_mission_types_uncached(mission_types_dirs, pack_context)
 
 
-def resolve_layered_mission_types(
+class _LayeredMissionTypesResolver(Protocol):
+    """Structural type for the public ``resolve_layered_mission_types`` name.
+
+    ``functools.cache``'s own ``.cache_clear``/``.cache_info``/``.cache_parameters``
+    attributes are forwarded onto the plain ``resolve_layered_mission_types``
+    function by dynamic attribute assignment (plan.md Section 6b; see the
+    comment above the assignments below for why ``functools.update_wrapper``
+    cannot close this gap). A bare function's mypy-inferred type has no such
+    attributes, so ``--strict`` rejects both the assignment site and every
+    downstream call site (e.g. :meth:`MissionTypeRepository.cache_clear`)
+    without this Protocol. This is the smallest typed surface that describes
+    the wrapper's actual runtime shape -- its call signature plus the three
+    forwarded cache-introspection attributes -- so both sides type-check with
+    zero ``# type: ignore`` (PR-CONTRACT-001).
+    """
+
+    def __call__(
+        self,
+        mission_types_dirs: tuple[Path, ...],
+        pack_context: _PackContextLike | None,
+    ) -> dict[str, MissionType]: ...
+
+    cache_clear: Callable[[], None]
+    cache_info: Callable[[], _CacheInfo]
+    cache_parameters: Callable[[], _CacheParameters]
+
+
+def _resolve_layered_mission_types(
     mission_types_dirs: tuple[Path, ...],
     pack_context: _PackContextLike | None,
 ) -> dict[str, MissionType]:
@@ -693,6 +738,21 @@ def resolve_layered_mission_types(
 # -- it copies `__wrapped__`/`__doc__`/`__name__`/`__module__`/`__dict__`,
 # never these three cache-specific attributes -- so three explicit
 # assignments are used instead.
+#
+# `resolve_layered_mission_types` is bound here, at module scope, to the
+# `_LayeredMissionTypesResolver`-typed `cast()` of `_resolve_layered_mission_
+# types` (PR-CONTRACT-001) -- the SAME function object, just typed so the
+# three attribute assignments below and every downstream `.cache_clear()`/
+# `.cache_info()`/`.cache_parameters()` call site (including
+# `MissionTypeRepository.cache_clear()` above) type-check under `--strict`.
+# mypy does not allow rebinding a `def`-introduced name to a wider type in
+# place, so the implementation keeps its original name
+# (`_resolve_layered_mission_types`) and this is the one, single place the
+# public name is defined -- runtime identity, call behavior, and the
+# docstring above are all unchanged.
+resolve_layered_mission_types: _LayeredMissionTypesResolver = cast(
+    _LayeredMissionTypesResolver, _resolve_layered_mission_types
+)
 resolve_layered_mission_types.cache_clear = _resolve_layered_mission_types_cached.cache_clear
 resolve_layered_mission_types.cache_info = _resolve_layered_mission_types_cached.cache_info
 resolve_layered_mission_types.cache_parameters = _resolve_layered_mission_types_cached.cache_parameters
