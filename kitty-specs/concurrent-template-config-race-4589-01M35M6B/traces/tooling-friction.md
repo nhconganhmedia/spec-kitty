@@ -119,3 +119,74 @@
   block loudly (as it already does for a *malformed* v1 carrier) instead of
   silently downgrading it to legacy/`unknown` (C-FIND-3's current behavior
   makes "wrong key names" indistinguishable from "no carrier at all").
+- 2026-09-23 — WP01 claim (`spec-kitty agent action implement WP01 --mission
+  ... --agent claude`) failed with "the recorded planning commit
+  '...' is orphaned (no longer reachable from the mission's target-branch
+  tip)". Root cause: the orchestrator rebased this branch onto a fresher
+  `origin/main` before implementation started (29 commits moved), which
+  rewrote the SHA `lanes.json`'s `planning_commit_sha` pointed at. The CLI's
+  own error message named the exact recovery command: `spec-kitty agent
+  mission finalize-tasks --refresh-planning-commit --allow-orphaned`. Ran it
+  once, it re-pointed `lanes.json` to the current tip (one small commit,
+  `e7e862712`), and the claim succeeded on retry. Matches SK-245's own
+  corroboration entry (2026-09-23) exactly: a `topology: single_branch`
+  mission's `agent action implement` still allocates a per-WP lane worktree
+  (`.worktrees/<slug>-lane-a` on `kitty/mission-<slug>-lane-a`) that this
+  workflow never merges — implementation stayed entirely on the mission
+  branch (`fix/concurrent-template-config-race-4589`) in the primary
+  checkout per this run's own instructions, never in the lane worktree; the
+  lane worktree/branch were left untouched and confirmed inert
+  (`git log fix/concurrent-template-config-race-4589..kitty/mission-
+  concurrent-template-config-race-4589-01M35M6B-lane-a` empty) at close.
+- 2026-09-23 — Also hit the same transient "Global asset input changed:
+  ~/.agent/workflows/spec-kitty.analyze.md" error the
+  2026-09-23 entry above describes, at the very first `spec-kitty` CLI
+  invocation of this WP (even a bare `--help`) — confirms it is a real,
+  reproducible cross-agent-process contention on the shared `~/.agent/`
+  install, not a one-off. `SPEC_KITTY_NO_UPGRADE_CHECK=1
+  SPEC_KITTY_NO_NAG=1` (CONTRIBUTING.md's own documented env pair for
+  testing unreleased `main`) sidesteps the global-command-sync step
+  entirely and was used for every `spec-kitty` invocation this WP made
+  after the first failure.
+- 2026-09-23 — Two of `src/charter/offering/missions/mission_step_repository.py`,
+  `mission_type_repository.py`, and `tests/core/test_mission_creation_identity.py`
+  (all three, actually) are listed in `pyproject.toml`'s `[tool.ruff.format]
+  exclude` formatter-debt ratchet (issue #473) — `ruff format --check .`
+  (the real `make format-check` gate) silently skips all three. Running
+  `ruff format --check <exact-file-path>` DIRECTLY (bypassing the
+  directory-walk exclude) reports "Would reformat" for all three, which is
+  easy to misread as a gate failure. Actually running `ruff format` (write)
+  on the excluded test file reformatted several PRE-EXISTING, untouched
+  lines (a `purpose_context` string join, an `assert` message join) as a
+  side effect — reverted by hand before committing, since the real gate
+  never touches these files and a bystander reformat is unwanted diff
+  noise / could break the ratchet's own shrink-only test (`test_ruff_format_
+  exclude_ratchet.py`), which the file's continued non-compliance is
+  actually correct for its own ratchet entry to still exist. Lesson: check
+  `pyproject.toml`'s `[tool.ruff.format] exclude` list BEFORE running `ruff
+  format` (write) on any owned file, not just `ruff format --check`.
+- 2026-09-23 — A real, non-obvious test-isolation bug discovered only by
+  running the WP's OWN new tests alongside neighbouring, unrelated test
+  files (`tests/core` + `tests/specify_cli/core` together) rather than in
+  isolation: two of the new concurrency tests (OBL-2, both sites) had each
+  racing thread call the existing `_run_create` helper, which itself
+  enters/exits a process-global `unittest.mock.patch` via
+  `_patched_mission_creation_context`. Two threads concurrently
+  entering/exiting `mock.patch` on the SAME target attributes is not
+  thread-safe — each patcher snapshots "the current value" as ITS OWN
+  restore point, so overlapping enter/exit from two threads can leave the
+  WRONG value installed globally after both exit. This silently broke FOUR
+  unrelated tests in `tests/specify_cli/core/test_mission_creation_placement.py`
+  and `tests/core/test_mission_creation_unborn_head.py` (both pass cleanly
+  in isolation) whenever they ran AFTER the buggy construction in the same
+  pytest process — a genuinely hard-to-diagnose failure mode, since the
+  stack trace points entirely at the VICTIM test, with no hint the actual
+  cause is a DIFFERENT test file's thread-safety bug. Running each new test
+  file in isolation during initial red-first verification was not enough to
+  catch this; only running the FULL declared gate-set surface (as the WP's
+  own instructions require) surfaced it. Worth a general lesson for any
+  future concurrency-test authoring in this repo: never let two racing
+  threads both independently enter/exit the SAME `unittest.mock.patch`
+  target — patch once, outside the thread spawn, if both threads need the
+  same mocked environment (mirrors this file's own pre-existing OBL-4
+  test's shape, which was already correct).
