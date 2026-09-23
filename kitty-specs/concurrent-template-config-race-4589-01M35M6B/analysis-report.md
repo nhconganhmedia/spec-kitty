@@ -4,7 +4,7 @@ artifact_type: spec-kitty.analysis-report
 command: /spec-kitty.analyze
 mission_slug: concurrent-template-config-race-4589-01M35M6B
 mission_id: 01M35M6BYKHV6ZY3JVYD8BXWJC
-generated_at: '2026-09-23T12:31:44.169556+00:00'
+generated_at: '2026-09-23T12:32:39.934760+00:00'
 analyzer_agent: claude
 input_artifacts:
   spec.md:
@@ -21,17 +21,10 @@ input_artifacts:
     sha256: a2b2f62cf1c0fa8987b67f6759d18bcc18b2fb47a8d3ad2783f8fac68b192c77
 verdict: ready
 issue_counts:
+  high: 0
+  low: 0
   critical: 0
-  low: 0
   medium: 0
-  high: 0
-  info: 0
-findings: []
----
-
-  high: 0
-  medium: 0
-  low: 0
   info: 0
 findings: []
 ---
