@@ -27,6 +27,9 @@
       "last_event_id": "01M37EQZD417YA59EPXH64H0QA",
       "last_transition_at": "2026-09-23T15:39:27.524979+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "implementation committed on mission branch fix/concurrent-template-config-race-4589 (single_branch, one PR per mission, SK-245); head 057b05af7"
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
       "shell_pid": 460991,
