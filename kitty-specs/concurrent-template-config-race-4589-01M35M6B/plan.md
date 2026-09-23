@@ -396,6 +396,54 @@ Keyed on `(mission_types_dirs, pack_context)` — see Section 8a's fact table
 for why that key shape means the *default* case at this site is already
 same-key, not the narrow case.
 
+**Preserving the public `.cache_clear()` seam across the split
+(PLAN-FRESH4-ARCH-001, sev 4):** unlike the primary site, where
+`MissionStepRepository.cache_clear()` has always called the private
+`_resolve_all_for_mission_type_cached.cache_clear()` (so no public name's
+`.cache_clear()` attribute is being taken away by this fix), the second
+site's public name `resolve_layered_mission_types` is itself, today, the
+`@functools.cache`-decorated callable — so it is the thing that currently
+carries `.cache_clear()`, and at least 15+ call sites across three test
+files call `resolve_layered_mission_types.cache_clear()` directly
+(`tests/charter/test_mission_type_path_layout_ssot.py`,
+`tests/doctrine/missions/test_mission_type_repository.py`,
+`tests/charter/test_charter_import_time_io.py`), and
+`MissionTypeRepository.cache_clear()`'s own body
+(`mission_type_repository.py:207`) also calls it directly. Splitting the
+name without more would silently strip `.cache_clear` from the public
+`resolve_layered_mission_types` name — `functools.cache`'s `.cache_clear()`
+only exists on the decorated callable itself, and after the rename the
+decorated callable is `_resolve_layered_mission_types_cached`, not the
+public wrapper. **Binding requirement:** the new public
+`resolve_layered_mission_types` wrapper must expose a `.cache_clear`
+attribute that forwards to `_resolve_layered_mission_types_cached.cache_clear`,
+bound immediately after the wrapper's own definition —
+
+```python
+def resolve_layered_mission_types(
+    mission_types_dirs: tuple[Path, ...],
+    pack_context: _PackContextLike | None,
+) -> dict[str, MissionType]:
+    key = (mission_types_dirs, pack_context)
+    with _lock_for(key):
+        return _resolve_layered_mission_types_cached(mission_types_dirs, pack_context)
+
+
+resolve_layered_mission_types.cache_clear = _resolve_layered_mission_types_cached.cache_clear
+```
+
+— so every existing direct call site, including
+`MissionTypeRepository.cache_clear()`'s own body, keeps working unchanged,
+with **zero test-file edits**. This is mechanism (a) of the finding's two
+options, chosen over mechanism (b) (repointing >=3 test files' calls to
+`MissionTypeRepository.cache_clear()`) precisely because it keeps Section
+5's "no new `cache_clear()` coupling" claim and Section 14's "confined to
+... one test file" scope claim literally true: `MissionTypeRepository.cache_clear()`'s
+own body (`mission_type_repository.py:207`,
+`resolve_layered_mission_types.cache_clear()`) needs **no change** under
+this fix, since it already calls the still-public name, and that name's
+`.cache_clear` attribute now forwards correctly.
+
 **Why this delivers "exactly one population per key per cold episode"
 (the property 6b must guarantee):** two threads racing a cold miss for the
 same key both call `resolve_all_for_mission_type`. The first to acquire
@@ -581,14 +629,47 @@ serialization bottleneck"): this plan does **not** add a lock-acquisition
 timeout that would itself need a raise path for the *common* case — a
 bounded wait that fires under normal I/O latency would violate C-002's
 no-retry/no-bounded-degradation spirit by turning ordinary slow-disk I/O
-into a manufactured failure. Instead, the SC-006 obligation (Section 8,
-OBL-3) exercises the lock/cache-error raise via **fault injection** (forcing
-the per-key concurrency-control seam Section 6b adds to fail
-deterministically), not via a real wall-clock timeout in the production
-code — this keeps the production path simple (an ordinary blocking
-`Lock.acquire()`, no timeout argument, no new failure mode for the healthy
-case) while still exercising FR-006's raise contract under the
-injected-fault condition the test forces.
+into a manufactured failure.
+
+**CL-008 amendment, restated here for §7's own reasoning:** SC-006
+originally asked for a test forcing a lock-timeout, corrupted-cache, or
+retry-exhaustion condition — none of which this design introduces (the
+paragraph above confirms it: an ordinary blocking `Lock.acquire()`, no
+timeout, no corruption-detection, no retry). `reviews/plan.fresh-4-debbie.yaml`
+(PLAN-FRESH4-DEBBIE-001) established there was therefore no production
+code path any test could force to exercise a raise. The operator amended
+SC-006 (CL-008) to a satisfiable property instead: an exception raised
+during cache population — from any source, e.g. a fault injected into the
+step-loader or mission-type loader — propagates to the caller unchanged,
+nothing partial is cached as a result, and the next call re-attempts
+population and succeeds. The amended SC-006 obligation (Section 8, OBL-3)
+exercises this via **fault injection directly into a site's
+cache-population path** (the step-loader/mission-type-loader, or another
+point in that site's walk that is not itself inside the loader's own
+swallow catch — Section 8a's fact table; the concrete injection point is
+WP-level, Section 9), not via any lock/cache-error seam Section 6b adds —
+this plan defines no lock-timeout/corruption/retry raise path for OBL-3 to
+force in the first place.
+
+**This property holds by construction, independent of 6a/6b, at both
+sites — stated honestly rather than assumed:** `functools.cache` never
+stores a result for a call whose body raises (it only writes
+`cache[key] = result` after the wrapped call returns normally), and
+neither 6a (the thread-local YAML accessor) nor 6b (the
+`with _lock_for(key): return _cached_fn(...)` wrapper) adds any
+catch-and-degrade branch anywhere on either site's population path — a
+`with` block around a raising call does not suppress the exception, it
+only releases the lock on the way out. So the amended SC-006's
+propagate/no-partial-cache/successful-retry property is already true at
+Base (pre-fix), and stays true after 6a and/or 6b land. OBL-3 is therefore
+a **construction-invariant regression guard**, not a test that
+distinguishes 6a/6b's presence from absence the way OBL-1/OBL-2 do — its
+value is catching a *future* implementation mistake (most plausibly a
+defensive `try/except` accidentally added around 6b's lock-wrapped call)
+that would silently degrade instead of raising, exactly the falsifiability
+clause CL-008/SC-006 itself names ("fails if either (a) the propagation is
+replaced with a silent-degrade return, or (b) the failed population is
+cached"). Section 8b/8c restate this per-obligation.
 
 **A warm hit's lock touch, honestly stated (Section 6b's reconciliation):**
 under the round-4 single-flight design, every call — including a later,
@@ -654,7 +735,7 @@ table rather than restating these facts inline.
 |---|---|---|
 | Cache key shape | `(builtin_root, mission_type_id, pack_context)` — a 3-tuple (`_resolve_all_for_mission_type_cached`, `mission_step_repository.py:446-450`) | `(mission_types_dirs, pack_context)` — a 2-tuple (`resolve_layered_mission_types`, `mission_type_repository.py:477-481`) |
 | Do concurrent `create_mission_core` calls in one project share this key? | Only when both `mission_type_id` **and** `pack_context` match (two concurrent creates of the *same* mission type). Different mission types get different keys and never contend (Section 7). | **Yes, by default.** `_resolve_action_slot` always passes the identical, fixed `mission_types_dirs = (MissionTemplateRepository.default_missions_root() / "mission_types",)` (`mission_type_profiles.py:952-953`) regardless of mission type, so every concurrent `create_mission_core` call within one project (one `pack_context`) shares **one** key. Only calls from distinct `pack_context`s (different projects) get distinct keys (Section 7, ARCH-002). |
-| What does one cache-miss population contain? | The **whole** `_resolve_all_for_mission_type_uncached` walk (`mission_step_repository.py:335-364`) — every `step_id` across built-in + org + project layers for one mission type (every `step.yaml` that mission type has), never one file. | The **whole** per-key walk (the loop in `resolve_layered_mission_types`, `mission_type_repository.py:588-601`, over `mission_types_dirs` + org + project layers) — every `*.yaml` file `scan_mission_types_dir` finds in every scanned layer (4 built-in files today, sorted: `documentation.yaml`, `plan.yaml`, `research.yaml`, `software-dev.yaml`), never one file. DEBBIE-001/ARCH-003 (round 3): the round-3 plan named `_load_layered_mission_type_file` — a per-file function called once per `*.yaml` — as this site's "cache-miss body." That was wrong; the unit `functools.cache` actually memoizes is the walk, not the per-file loader (Section 9's binding note names the corrected counting unit). |
+| What does one cache-miss population contain? | The **whole** `_resolve_all_for_mission_type_uncached` walk (`mission_step_repository.py:335-364`) — every `step_id` across built-in + org + project layers for one mission type (every `step.yaml` that mission type has), never one file. | The **whole** per-key walk (the full body of `resolve_layered_mission_types`, `mission_type_repository.py:580-601` — the `index` init, the always-executed `mission_types_dirs` loop, and the `pack_context` org/project branch, over `mission_types_dirs` + org + project layers) — every `*.yaml` file `scan_mission_types_dir` finds in every scanned layer (4 built-in files today, sorted: `documentation.yaml`, `plan.yaml`, `research.yaml`, `software-dev.yaml`), never one file. DEBBIE-001/ARCH-003 (round 3): the round-3 plan named `_load_layered_mission_type_file` — a per-file function called once per `*.yaml` — as this site's "cache-miss body." That was wrong; the unit `functools.cache` actually memoizes is the walk, not the per-file loader (Section 9's binding note names the corrected counting unit). |
 | Loader's catch semantics | `_load_step_yaml` swallows **every** exception (`except Exception: return None`, `mission_step_repository.py:132-135`) — a corrupted parse is silently dropped as a missing step, never re-raised. | `_load_layered_mission_type_file` catches only `ruamel.yaml.error.YAMLError`, re-raising it as a named `ValueError` (`mission_type_repository.py:388-391`); any other corrupted-but-not-`YAMLError` outcome propagates uncaught (whatever `MissionType.model_validate`/the id-mismatch check raises), or, if the garbled parse happens to still validate with wrong-but-valid fields, raises nothing at all. |
 | Site's own cache-clear seam | `MissionStepRepository.cache_clear()` (staticmethod, `mission_step_repository.py:323-333`) → `_resolve_all_for_mission_type_cached.cache_clear()`. | `MissionTypeRepository.cache_clear()` (staticmethod, **not** `.default`, `mission_type_repository.py:188-206`) → `resolve_layered_mission_types.cache_clear()`. Deliberately independent from `MissionTypeRepository.default.cache_clear()` (Section 5). |
 | Other unguarded users of the site's YAML instance | None found in `src/`: the only caller of `MissionStepRepository.resolve()`/`_load_step_yaml` in this checkout is `_resolve_all_for_mission_type_uncached` itself (`mission_step_repository.py:361`) — already inside the cached/locked path. | `src/charter/activation/pack_manager.py:1014`, inside `CharterPackManager.list_available_detailed`'s mission-type branch, calls `scan_mission_types_dir(scan_dir)` **directly** — bypassing `resolve_layered_mission_types` (and therefore both `functools.cache` and Section 6b's per-key lock) entirely, reaching `_load_layered_mission_type_file` → the shared YAML accessor unguarded by anything this mission's fix adds (ARB-002 point 2). Noted here, and named again in OBL-1's second-site construction below as an alternate/backup 6a-proof path — reaching this site through `pack_manager` is *also* a configuration Section 6b's lock structurally cannot guard, since it never goes near `_lock_for` at all. |
@@ -667,8 +748,8 @@ obligations, per the ruling's disposition).
 | Test | Traces (AC/FR/NFR/SC) | Observable property asserted | Fix half isolated | Why RED at the red-first commit, per site | Revert-cell state |
 |---|---|---|---|---|---|
 | **OBL-1** — forced-interleave content-correctness, **distinct** cache keys ("6a proof") — was `8b` | FR-002/FR-004/FR-005, CL-003/CL-004, SC-001, User Story 1 AC1/AC2 | Two threads racing **distinct** cache keys at one site, driven through `create_mission_core` (PRIMARY_SITE) or the resolver path it drives (SECOND_SITE — CL-004's "or the resolver path it drives," required here per the WP caution below), never corrupt each other's captured result. | **6a** (thread-local YAML). Section 6b's per-key lock structurally cannot serialize this race (distinct keys → distinct `Lock` objects → no contention), so this obligation is unreachable by 6b alone — it isolates 6a. | PRIMARY_SITE: pre-fix, both threads' `.load()` calls share `_YAML` regardless of their distinct `mission_type_id` (research.md Q(a)); the "paused" thread's own captured `resolve_all_for_mission_type(...)` result, reached via `create_mission_core`, is corrupted or raises. SECOND_SITE: pre-fix, both threads' `.load()` calls share `_LAYERED_YAML` regardless of their distinct `pack_context`; the "paused" thread's own captured roster result is corrupted or raises. Both sites' swallow-vs-raise asymmetry (8a fact table) means the exact pre-fix failure shape differs (a dropped step vs. a raised `ValueError`/silently-wrong `MissionType` field) — the content-correctness assertion (field-by-field against a known-good reference, per-thread-captured, never a post-join re-read of the now-memoized cache) catches all shapes at both sites. | **Base**: red at both sites. **6a+6b**: green at both sites. **6a reverted, 6b kept**: red at both sites — 6b's lock never engages for a distinct-key race, so the corruption is unmasked exactly as pre-fix. **6b reverted, 6a kept**: green at both sites — 6a alone already removes the only shared mutable object. |
-| **OBL-2** — redundant-population count, **same** cache key ("6b proof") — was `8f` | FR-002 (defense-in-depth), spec.md Edge Cases ("same mission type and artifact kind concurrently"), SC-001 | Two threads racing the **identical** cache key cause the per-key walk unit (8a fact table: the whole walk, never a per-file helper) to execute exactly once, never twice. | **6b** (single-flight per-key lock). Not distinguishable from a passing correctness test once 6a is present (redundant execution is wasteful, not corrupting, post-6a) — this is the only test that can tell "6b present" from "6b silently reverted." | Both sites: pre-fix, nothing serializes the two threads (no lock exists yet), so the walk unit runs twice — red in the same trivial "the seam does not exist yet" sense as OBL-3, not because it demonstrates the corruption race (that is OBL-1's job). | **Base**: red at both sites (trivially — no lock exists). **6a+6b**: green at both sites, count == 1. **6a reverted, 6b kept**: green at both sites — 6b still serializes to exactly one population regardless of 6a's presence; the *result* may be corrupt (OBL-1's concern), but the *count* stays 1, which is exactly why OBL-1, not OBL-2, is the 6a-revert proof (ARB-002). **6b reverted, 6a kept**: red at both sites, count == 2. |
-| **OBL-3** — SC-006 lock/cache-failure raise contract — was `8c` | FR-006, CL-006, SC-006 | Forcing the per-key concurrency-control seam (Section 6b) to fail raises `MissionCacheLockError` through `create_mission_core`, never returns `None`/empty/partial; replacing the raise with a silent-degrade return makes the assertion fail (SC-006's own falsifiability clause). | 6b (the seam only exists once 6b lands) + 6c (raise-never-degrade). | Both sites: red only in the trivial "the seam this test patches does not exist yet" sense — not a race-detection test, so it is not expected to demonstrate the production race. | **Base**: red (seam absent) at both sites, trivially. **6a+6b(+6c)**: green at both sites. **6a reverted, 6b kept**: still green (independent of 6a). **6b reverted, 6a kept**: red at both sites (seam absent again). |
+| **OBL-2** — redundant-population count, **same** cache key ("6b proof") — was `8f` | FR-002 (defense-in-depth), spec.md Edge Cases ("same mission type and artifact kind concurrently"), SC-001 | Two threads racing the **identical** cache key cause the per-key walk unit (8a fact table: the whole walk, never a per-file helper) to execute exactly once, never twice. | **6b** (single-flight per-key lock). Not distinguishable from a passing correctness test once 6a is present (redundant execution is wasteful, not corrupting, post-6a) — this is the only test that can tell "6b present" from "6b silently reverted." | Both sites: pre-fix, nothing serializes the two threads (no lock exists yet), so the walk unit runs twice — red in the trivial "the seam does not exist yet" sense (OBL-3 is no longer a same-sense comparison here — see OBL-3's own row: it is green at Base, not red), not because it demonstrates the corruption race (that is OBL-1's job). | **Base**: red at both sites (trivially — no lock exists). **6a+6b**: green at both sites, count == 1. **6a reverted, 6b kept**: green at both sites — 6b still serializes to exactly one population regardless of 6a's presence; the *result* may be corrupt (OBL-1's concern), but the *count* stays 1, which is exactly why OBL-1, not OBL-2, is the 6a-revert proof (ARB-002). **6b reverted, 6a kept**: red at both sites, count == 2. |
+| **OBL-3** — amended-SC-006 raise-not-degrade regression guard — was `8c` | FR-006, CL-006, SC-006 (as amended by CL-008, 2026-09-23) | A fault injected into a site's cache-population path — the step-loader/mission-type-loader, or another point in that site's walk that is not itself inside the loader's own swallow catch (Section 8a fact table; concrete seam is WP-level, Section 9) — driven through `create_mission_core`, (1) propagates to the caller unchanged, never converted to `None`/empty/partial, (2) leaves nothing partial cached, and (3) a subsequent call re-attempts population and succeeds. Replacing the propagation with a silent-degrade return, or leaving the failed population cached, makes the assertion fail (CL-008's own falsifiability clause). | **None.** This is a construction-invariant property, not a fix-isolating one: `functools.cache` never stores a result for a call whose body raises, and neither 6a nor 6b adds a catch-and-degrade branch anywhere on either site's population path (a `with _lock_for(key):` block does not suppress an exception raised inside it). The property already holds at Base and continues to hold identically once 6a and/or 6b land — OBL-3 does not distinguish "6a present" from "6a absent," or "6b present" from "6b absent," the way OBL-1/OBL-2 do. | **Not red at the red-first commit — green from Base onward, at both sites**, since the fault-injection point named above (unlike OBL-1's/OBL-2's targets) is an already-existing function, unchanged by either 6a's rename/accessor swap or 6b's lock-wrapper/split, so the test needs no new production seam to run. Committed alongside the red obligations for review-diff cohesion (Section 14), as a falsifiable regression guard against a future implementation mistake (e.g. a defensive `try/except` accidentally added around 6b's lock-wrapped call), never as evidence of the corruption race. | **Base**: green at both sites (the property already holds — no fix code required). **6a+6b**: green at both sites (still holds — neither half adds a swallow). **6a reverted, 6b kept**: green at both sites (unaffected — the property does not depend on 6a). **6b reverted, 6a kept**: green at both sites (unaffected — the property does not depend on 6b's lock wrapper existing; the pre-split `resolve_layered_mission_types`/`_resolve_all_for_mission_type_cached` already don't swallow either). |
 | **OBL-4** — existing natural test must not regress — was `8d` | AC3/SC-002, NFR-001 (no new natural-timing test added in its place) | `test_concurrent_creates_no_collision` keeps passing, unmodified, both before and after the fix. | None specifically — a sanity net over both halves together, not a revert-discipline instrument. | Already green pre-fix (Section 10 baseline); this test's job is to *stay* green, never to turn red first. | **Base**: green. **6a+6b**: green. Either half reverted: still green — research.md's own reproduction protocol (0/300 cold-subprocess reruns, 0/2000 Barrier-synchronized cache-cleared in-process trials) is exactly why this test cannot be relied on for revert discipline. |
 | **OBL-5** — `cache_clear()` mid-population, no deadlock — was `8e` | NFR-003, spec.md Edge Cases | Calling the site's own `cache_clear()` while a population is in flight neither deadlocks nor raises, and the in-flight population still completes with a correct result once released (Section 5's edge-case walkthrough). | 6b (the per-key lock exists) interacting correctly with Section 5's cache-clear contract. | Both sites: not meaningfully checkable pre-fix (no lock exists to interact with `cache_clear()`); included in the red-first commit for review-diff cohesion (Section 14), not because it demonstrates the production race. | **Base**: not applicable (seam absent). **6a+6b**: green at both sites, no deadlock. **6a reverted, 6b kept**: green (Section 5's walkthrough does not depend on 6a). **6b reverted, 6a kept**: not applicable (nothing to race). |
 
@@ -693,10 +774,10 @@ the resolver-path construction proves unworkable in the WP.
 
 | State | Required result |
 |---|---|
-| Base | OBL-1 red at both sites (the 6a-revert-proof race, distinct keys); OBL-2 and OBL-3 red at both sites for the trivial "seam absent" reason (Section 14 states which reds are load-bearing and which are trivial) |
+| Base | OBL-1 red at both sites (the 6a-revert-proof race, distinct keys); OBL-2 red at both sites for the trivial "seam absent" reason (Section 14 states which reds are load-bearing and which are trivial); **OBL-3 already green at both sites** — the amended-SC-006 propagate/no-partial-cache property holds by construction before 6a/6b land (Section 8b) |
 | 6a+6b applied | OBL-1 through OBL-5 all green, both sites, no deadlock |
-| 6a reverted, 6b kept | OBL-1 red at both sites — 6b's lock never engages for a distinct-key race, so the corruption 6a exists to close is unmasked; OBL-2 through OBL-5 unaffected (still green) |
-| 6b reverted, 6a kept | OBL-2 red at both sites — the redundant-population count becomes 2; OBL-3 red at both sites — the seam OBL-3 patches is gone again; OBL-1, OBL-4, OBL-5 unaffected (still green) |
+| 6a reverted, 6b kept | OBL-1 red at both sites — 6b's lock never engages for a distinct-key race, so the corruption 6a exists to close is unmasked; OBL-2, OBL-3, OBL-4, OBL-5 unaffected (still green) |
+| 6b reverted, 6a kept | OBL-2 red at both sites — the redundant-population count becomes 2; OBL-1, OBL-3, OBL-4, OBL-5 unaffected (still green) — OBL-3 does not depend on 6b's lock wrapper existing (Section 8b) |
 
 6a **is** reachable outside Section 6b's lock at both sites under the
 chosen 6b design (OBL-1's distinct-key construction), so no fallback to a
@@ -753,8 +834,10 @@ these to the obligations in Section 8.
 assertion must instrument and count invocations of the whole per-key walk
 unit — `_resolve_all_for_mission_type_uncached` at PRIMARY_SITE (already
 correctly named, unchanged), and, at SECOND_SITE, a **new** name for the
-walk loop currently inline in `resolve_layered_mission_types`
-(`mission_type_repository.py:588-601`) — e.g. extracting it as
+walk body currently inline in `resolve_layered_mission_types`
+(`mission_type_repository.py:580-601` — the full function body: `index`
+init, the always-executed `mission_types_dirs` loop, the `pack_context`
+branch, and the return) — e.g. extracting it as
 `_resolve_layered_mission_types_uncached(mission_types_dirs,
 pack_context)`, mirroring the primary site's own uncached/cached split.
 Counting `_load_layered_mission_type_file` invocations is wrong (it runs
@@ -788,6 +871,26 @@ verdict" falsifiable check runs as N separate subprocess (or
 in-process loop — a single process keeps one hash seed for its lifetime
 and cannot detect a verdict that depends on the primary site's unsorted-
 `set` iteration order.
+
+**OBL-3's fault-injection seam, per site (amended SC-006/CL-008):**
+Section 8b/8c state the property at plan-level ("a fault injected into a
+site's cache-population path... that is not itself inside the loader's
+own swallow catch"); the concrete seam is WP-level. At SECOND_SITE, the
+loader itself already propagates (`_load_layered_mission_type_file`
+catches only `YAMLError`, re-raising as `ValueError`; Section 8a fact
+table), so patching `_load_layered_mission_type_file` (or
+`MissionType.model_validate`, which it calls unguarded) to raise a
+distinct forced exception is a direct, real construction. At PRIMARY_SITE,
+`_load_step_yaml`'s own `except Exception: return None` swallows
+everything raised inside it, so the fault must be injected **outside**
+that function — e.g. patching `_add_step_ids_from_dir`
+(`mission_step_repository.py:163-169`, called from
+`_resolve_all_for_mission_type_uncached` with no surrounding try/except)
+to raise, which is unchanged by both 6a (touches only the YAML
+singleton/accessor) and 6b (touches only the call site, not this
+step-id-collection helper) — a stable pin across the red and green
+commits, per DEBBIE-002's "the seam survives both commits" constraint
+(Section 8d item 2).
 
 **Illustrative sketch (non-normative — WPs may implement differently, so
 long as Section 8's obligations and Section 8d's constraints hold):**
@@ -909,6 +1012,99 @@ code failure, not attributable to this mission, and unrelated to the YAML/
 cache-concurrency defect. `tests/core` is one of `core_misc`'s several
 `test_dirs`.)
 
+**Round-5 extension (PLAN-FRESH3-ARCH-001 residual, sev 2,
+`reviews/plan.verify-4.yaml`): the remaining eight `core_misc`
+`test_dirs`.** `core_misc`'s registry row (`.github/ci-module-registry.yml:232-243`)
+lists **nine** `test_dirs`, not one; round 4's baseline above ran only
+`tests/core`. Re-confirmed before running anything further —
+
+```
+$ git diff --stat 288aef2f9 -- src tests
+```
+
+— still returns **empty**, so this checkout remains the pre-change
+baseline. This checkout's `.venv` was also missing the `test` extra (the
+`build` package — the exact cause of the three `test_packaging_parity.py`
+setup errors recorded above); it was installed once, in this checkout, via
+`uv sync --frozen --extra test` (no bare `uv run` was used for anything
+else this round; every run below invokes `.venv/bin/python -m pytest`
+directly, same `env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1` prefix as
+above for consistency). Each of the eight directories below was confirmed
+to exist via `ls` before running:
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/specify_cli/core -q
+544 passed, 1 skipped in 4.85s
+```
+Zero failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/coordination -q
+181 passed in 6.11s
+```
+Zero failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/specify_cli/coordination -q
+395 passed, 10 skipped in 26.04s
+```
+Zero failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/decisions -q
+17 passed in 5.17s
+```
+Zero failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/doctrine_synthesizer -q
+131 passed in 1.00s
+```
+Zero failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/specify_cli/tool_surface -q
+1098 passed, 3 warnings in 1009.74s (0:16:49)
+```
+Zero failures. The 3 warnings are pre-existing (`LegacyOrgPackDoctrineKeyWarning`
+on a legacy `.kittify/config.yaml` key, and `DoctrineLayerCollisionWarning`
+on an intentional org-overlay-precedence fixture) — unrelated to this
+mission's YAML/cache-concurrency surface, not failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/specify_cli/asset_preservation -q
+26 passed in 0.43s
+```
+Zero failures.
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/zeitgeist_client -q
+821 passed, 16 skipped, 1 warning in 105.91s (0:01:45)
+```
+Zero failures. The 1 warning is a pre-existing pydantic-settings
+`IncompleteFieldDefinitionWarning` on an unrelated `lifespan` field,
+unconnected to this mission's surface.
+
+All eight directories are clean. `core_misc`'s baseline is now **9/9
+`test_dirs` covered**, closing the PLAN-FRESH3-ARCH-001 residual gap
+(`reviews/plan.verify-4.yaml`).
+
+**`test_packaging_parity.py` re-run, post-`test`-extra-sync:**
+
+```
+$ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 .venv/bin/python -m pytest tests/doctrine/test_packaging_parity.py -q
+3 passed in 21.90s
+```
+The three setup errors recorded above were exactly the missing-`build`-
+package environment gap they were diagnosed as: installing the `test`
+extra clears them with no other change and no code touched (this mission
+still shows **zero** `src`/`tests` diff against `288aef2f9`). Read together
+with the `tests/doctrine` run above, `tests/doctrine`'s true baseline is
+**3204 passed** (the 3201 recorded above plus these 3), 13 skipped, 0
+errors — not the "3 errors" figure the round-4 text recorded, which
+reflected only the un-synced `.venv` that ad hoc invocation started with,
+not a real or attributable failure.
+
 ```
 $ env -u FORCE_COLOR NO_COLOR=1 PWHEADLESS=1 uv run --frozen pytest tests/doctrine -q
 3201 passed, 13 skipped, 90 warnings, 3 errors in 307.78s (0:05:07)
@@ -965,16 +1161,19 @@ Zero failures. `tests/specify_cli/runtime` is the `specify_cli_runtime`
 module's sole `test_dirs` entry — same reason as `unit` above.
 
 **Every module `select_modules` selects has been run at the pre-change
-baseline. The only pre-existing red is the three `test_packaging_parity.py`
-setup errors above, and it is attributable to a missing local `build`
-package, not to this mission's change** — stated plainly per CL-005's
-instruction not to invent hedging when a baseline is (almost entirely)
-clean, and not to attribute pre-existing red to this mission. Per C-003,
-filing a tracker issue for the missing `build` package is the
-**orchestrator's** job, not this mission's; this plan records it accurately
-and moves on. If the implementation phase's own fuller run (post-fix,
-across the same surfaces) turns up any *other* unrelated red, the same rule
-applies.
+baseline, and — per the round-5 extension above — every one of
+`core_misc`'s nine `test_dirs` is now individually covered, not just
+`tests/core`. Re-running `test_packaging_parity.py` after installing the
+missing `test` extra clears all three of its setup errors (3 passed, 0
+errors); there is no remaining pre-existing red anywhere in this
+baseline** — stated plainly per CL-005's instruction not to invent hedging
+when a baseline is clean, and not to attribute pre-existing red to this
+mission where none survives. The three setup errors were always an
+environment-provisioning gap (the `build` package, absent from this
+checkout's un-synced `.venv`), never a code defect; per C-003, no tracker
+issue is warranted for it now that installing the extra confirms this. If
+the implementation phase's own fuller run (post-fix, across the same
+surfaces) turns up any *other* unrelated red, the same rule applies.
 
 ## 11. Gate set
 
@@ -1193,14 +1392,20 @@ letters. One PR to `main` (the sk overlay default), in this order:
 2. **Red-first failing test commit** (CL-004): OBL-1 (the distinct-key,
    forced-interleave 6a-proof, both `PRIMARY_SITE` and `SECOND_SITE`
    cases), OBL-2 (the same-key, redundant-population-count 6b-proof, both
-   cases), and OBL-3 (the SC-006 lock/cache-failure test, both cases),
-   committed against pre-fix code. OBL-1 is verified RED for both cases
-   through the real forced interleave — this is the load-bearing red, the
-   one that demonstrates the production race. OBL-2 and OBL-3 are verified
-   RED only in the trivial "the seam this test patches does not exist yet"
-   sense (Section 8b's own note for each) — they are not themselves
-   race-detection tests, and their red-first status at this commit is
-   real but not evidence of the corruption mechanism.
+   cases), and OBL-3 (the amended-SC-006 raise-not-degrade regression
+   guard, both cases), committed against pre-fix code. OBL-1 is verified
+   RED for both cases through the real forced interleave — this is the
+   load-bearing red, the one that demonstrates the production race. OBL-2
+   is verified RED only in the trivial "the seam this test patches does
+   not exist yet" sense (Section 8b's own note) — it is not itself a
+   race-detection test, and its red-first status at this commit is real
+   but not evidence of the corruption mechanism. **OBL-3 is already GREEN
+   at this commit, not red** (Section 8b/8c): the amended SC-006's
+   propagate/no-partial-cache/successful-retry property holds by
+   construction before 6a/6b land, so OBL-3 is committed alongside the red
+   obligations for review-diff cohesion, not because it is red-first — it
+   is a falsifiable regression guard (CL-008), not evidence of the
+   corruption mechanism.
 3. **Production-fix commit(s)**: the thread-local YAML accessor (Section
    6a) + single-flight per-key lock (Section 6b) at both sites, plus the
    new `MissionCacheLockError` exception class (Section 6c), verified the
