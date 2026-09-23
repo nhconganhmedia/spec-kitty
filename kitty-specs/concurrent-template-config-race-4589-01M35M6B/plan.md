@@ -56,14 +56,16 @@ data) is not swallowed there and propagates as whatever exception
 `MissionType.model_validate`/the id-mismatch check raises. **What
 corrupted-parse behavior is actually expected/observed at the second site
 pre-fix is an open question this plan does not resolve by static analysis
-alone** — it is exactly what the second red-first test (Section 8a-ii)
-must establish empirically, the same way Section 8a's primary-site test
-establishes the swallow-path outcome for the first site. Whichever way that
-test's pre-fix RED run actually fails (a raised `ValueError`/
+alone** — it is exactly what the second-site (`SECOND_SITE`) case of the
+red-first regression test (Section 8b) must establish empirically, the same
+way that test's primary-site (`PRIMARY_SITE`) case establishes the
+swallow-path outcome for the first site. Whichever way `SECOND_SITE`'s
+pre-fix RED run actually fails (a raised `ValueError`/
 `pydantic.ValidationError` bubbling up uncaught, a silently wrong roster
-entry — guaranteed to be caught by Section 8a-ii's own explicit
-content-correctness assertion rather than assumed to fail some other way —
-or something else), the fix itself does not depend on the answer:
+entry — guaranteed to be caught by Section 8b's own explicit,
+per-thread-captured content-correctness assertion rather than assumed to
+fail some other way — or something else), the fix itself does not depend on
+the answer:
 6a/6b at both sites, and the raise-never-degrade contract (CL-006/FR-006,
 Section 6c "Both fix sites raise, never degrade"), are intended to hold
 identically at both sites regardless of which pre-fix failure shape the
@@ -202,11 +204,13 @@ outside the module) remain present, callable, synchronous, and **unchanged
 in signature and observable behavior**. Concretely:
 
 **Two same-named-looking but deliberately independent cache-clear seams
-(do not conflate them, Section 8a-ii/8e):** `MissionTypeRepository.default.cache_clear()`
+(do not conflate them — Section 8a's shared, single cold-cache list, used by
+every test in Section 8 that races either fix site, names both explicitly):**
+`MissionTypeRepository.default.cache_clear()`
 clears only `default()`'s own, separate, `cls`-keyed built-in-repository
 cache; it does **not** touch `resolve_layered_mission_types`'s cache. The
 seam that clears `resolve_layered_mission_types`'s cache (Section 1's
-second fix site, raced by Section 8a-ii/8e's second-site tests) is the
+second fix site, raced by every Section 8 test's `SECOND_SITE` case) is the
 sibling staticmethod `MissionTypeRepository.cache_clear()` — no `.default`
 — per that staticmethod's own docstring at
 `mission_type_repository.py:188-206` ("The two caches are deliberately
@@ -447,187 +451,300 @@ per-call bar. The implementation WP should still add or reuse an explicit
 single-call timing assertion per NFR-002's falsifiable bar, rather than
 relying solely on this aggregate baseline number as post-fix proof.
 
-## 8. Test strategy (per FR/AC)
+## 8. Test strategy (per FR/AC) — one parametrized design across both fix sites
 
 Every changed behaviour gets a test that fails when the change is reverted.
+**Round-3 rewrite** (`reviews/plan.fresh-2.yaml` PLAN-FRESH2-001/002/003):
+round 2 gave the second fix site its own hand-written near-duplicate
+subsections (old 8a-ii, and 8e's second-site prose paragraph) instead of one
+shared definition, and the duplication drifted — 8a's own cold-cache list
+forgot the second site's cache-clear seam (PLAN-FRESH2-001), 8a-ii's
+content-correctness assertion did not say which thread's own captured
+result to check even though the race it constructs is asymmetric
+(PLAN-FRESH2-002), and 8d (the NFR-003 `cache_clear()`-mid-population test)
+was never given a second-site counterpart at all (PLAN-FRESH2-003). This
+section replaces every hand-paired primary/second-site subsection with a
+**single shared parametrization** both sites' test instances run through,
+so a category that exists for one site exists for the other **by
+construction** — there is no longer a "did we remember the second site"
+question for any test below.
 
-### 8a. Red-first, Barrier-synchronized regression test (CL-003/CL-004/FR-004/FR-005)
+### 8a. Shared harness: parametrization table and the one cold-cache list
 
-New test in `tests/core/test_mission_creation_identity.py` (the existing
-ATDD entry point, alongside `test_concurrent_creates_no_collision`), e.g.
-`test_concurrent_creates_force_cache_miss_race`:
+A frozen dataclass, `_FixSiteCase`, names everything Sections 8b/8c/8e/8f
+below need to know about *one* fix site, so no test body hardcodes a
+site-specific name inline and no future edit can update one site's entry
+without the other's:
 
-- **Outer call**: `create_mission_core` (via the same
-  `_patched_mission_creation_context`/`_run_create` helpers already in that
-  file) — per CL-004, the monkeypatch forces *timing*, not the code path.
-- **Forced interleave construction**: monkeypatch the thread-local YAML
-  accessor (`_get_yaml`, Section 6a) — or, for the pre-fix RED run only
-  (see below), the pre-fix shared `_YAML.load` — so that the **first**
-  thread to enter the cache-miss body blocks on a `threading.Barrier(2)`
-  immediately *after* it has started its YAML `.load()` call (or, for the
-  pre-fix code, immediately after `self.reader.stream = stream` is set,
-  reachable by patching at the `_load_step_yaml`/`_YAML.load` call
-  boundary) and the **second** thread is released to run its own
-  `.load()` call for a *different* step file to completion first, then
-  both threads are released together to finish. This pins the exact
-  interleaving `research.md` identifies (`self.reader.stream` overwritten
-  mid-parse) instead of hoping natural OS scheduling produces it — per
-  CL-003, "by construction," not luck.
-- **Two threads**: mirrors the existing test's shape — two
-  `threading.Thread`s calling `create_mission_core` for two distinct
-  slugs/mission types (or, per spec.md's Edge Cases, a variant using the
-  **same** mission type + artifact kind to cover the narrower,
-  higher-contention case) — with an explicit `MissionStepRepository.cache_clear()`
-  and `MissionTypeRepository.default.cache_clear()` call before the test
-  body, per CL-003, so the test starts from a guaranteed-cold cache and
-  never depends on ambient test-ordering to produce a first-ever miss.
-- **Pre-fix vs post-fix bookkeeping**: this test is committed in its own
-  commit **before** the production-fix commit (CL-004). At that commit, it
-  must fail — demonstrating the forced interleaving reaches the unsafe
-  code path. After the fix commit, the same test (unmodified) must pass.
-  The WP's own record (task/review notes, not this plan) states the actual
-  red commit SHA and green commit SHA so a reviewer can check both without
-  re-deriving them (User Story 2, AC1).
+```python
+@dataclass(frozen=True)
+class _FixSiteCase:
+    site_id: str  # "primary" | "second" -- pytest.param(..., id=site_id)
+    # Forced-interleave monkeypatch targets (Barrier-pinned "paused" thread):
+    pre_fix_load_call: str    # the pre-fix shared-singleton `.load` call boundary
+    post_fix_accessor: str    # the post-fix thread-local accessor (Section 6a)
+    # Two distinct on-disk targets under ONE cache key, so both threads race
+    # the SAME functools.cache miss on the SAME shared pre-fix YAML state:
+    race_target_a: str        # the "paused" thread's file
+    race_target_b: str        # the "uncontended" thread's file
+    cache_miss_body: str      # instrumented for 8f's invocation-count assertion
+    site_cache_clear: str     # this site's OWN cache-clearing staticmethod (8e)
+    lock_helper: str          # "_lock_for" (Section 6b; same name at both sites)
+
+
+PRIMARY_SITE = _FixSiteCase(
+    site_id="primary",
+    pre_fix_load_call="charter.offering.missions.mission_step_repository._YAML.load",
+    post_fix_accessor="charter.offering.missions.mission_step_repository._get_yaml",
+    race_target_a="<software-dev>/specify/step.yaml",
+    race_target_b="<software-dev>/plan/step.yaml",
+    cache_miss_body="MissionStepRepository._resolve_all_for_mission_type_uncached",
+    site_cache_clear="MissionStepRepository.cache_clear",
+    lock_helper="_lock_for",
+)
+SECOND_SITE = _FixSiteCase(
+    site_id="second",
+    pre_fix_load_call="charter.offering.missions.mission_type_repository._LAYERED_YAML.load",
+    post_fix_accessor="charter.offering.missions.mission_type_repository._get_yaml",
+    race_target_a="<mission_types_dir>/software-dev.yaml",
+    race_target_b="<mission_types_dir>/documentation.yaml",
+    cache_miss_body="charter.offering.missions.mission_type_repository._load_layered_mission_type_file",
+    site_cache_clear="MissionTypeRepository.cache_clear",   # NOT .default -- Section 5
+    lock_helper="_lock_for",
+)
+```
+
+**One explicit, single, pre-test cold-cache list** (resolves
+PLAN-FRESH2-001 by construction): every test in 8b/8c/8e/8f — regardless of
+which `_FixSiteCase` it is parametrized with — calls the identical
+`_cold_cache()` reset before its body:
+
+```python
+def _cold_cache() -> None:
+    MissionStepRepository.cache_clear()
+    MissionTypeRepository.default.cache_clear()
+    MissionTypeRepository.cache_clear()  # no `.default` -- Section 5's second,
+                                          # independent seam. create_mission_core
+                                          # reaches resolve_layered_mission_types
+                                          # eagerly on EVERY call (research.md), so
+                                          # this cache must be provably cold too,
+                                          # not just the primary site's.
+```
+
+There is no longer a "which cache-clear list did this test use" question:
+every parametrized test below calls the same `_cold_cache()` helper,
+whichever `_FixSiteCase` it is instantiated with. (Section 8d, the
+pre-existing `test_concurrent_creates_no_collision`, is deliberately **not**
+part of this shared harness — see 8d's own note.)
+
+**Honesty, restated (CL-003, unchanged from round 2):** none of the tests
+below rely on natural OS thread scheduling. Every forced interleave in
+8b/8f is constructed with a `threading.Barrier(2)` plus a monkeypatch at
+`case.pre_fix_load_call` (pre-fix RED run) or `case.post_fix_accessor`
+(confirming the same interleaving point is still exercised post-fix) —
+never hoped for. The race has **not** been naturally reproduced (readiness
+pass: 0/300 cold-subprocess reruns, 0/2000 Barrier-synchronized
+cache-cleared in-process trials); this parametrization does not soften
+that into "usually reproduces" language anywhere below, for either case.
+
+### 8b. Red-first, Barrier-synchronized regression test (parametrized, CL-003/CL-004/FR-004/FR-005)
+
+One test function, `test_concurrent_creates_force_cache_miss_race`,
+`@pytest.mark.parametrize("case", [PRIMARY_SITE, SECOND_SITE], ids=lambda c: c.site_id)`,
+in `tests/core/test_mission_creation_identity.py` (the existing ATDD entry
+point, alongside `test_concurrent_creates_no_collision`) — replacing old
+8a (primary-only) and 8a-ii (second-only, hand-duplicated) with one
+definition both cases run through:
+
+- **Outer call (both cases)**: `create_mission_core`, via the existing
+  `_patched_mission_creation_context`/`_run_create` helpers
+  (`tests/core/test_mission_creation_identity.py:54-70`) — per CL-004,
+  `case`'s monkeypatch forces *timing* at `case.pre_fix_load_call`/
+  `case.post_fix_accessor`, never the code path. For `SECOND_SITE`, the
+  race is reached via `resolve_mission_type_context` → `_resolve_action_slot`
+  → `resolve_layered_mission_types` (research.md's traced eager call
+  chain, `mission_type_profiles.py:662-667`/`948-953`), not by calling
+  `resolve_layered_mission_types` directly.
+- **Cold cache (both cases)**: `_cold_cache()` (Section 8a) runs before
+  every parametrized instance, so both `PRIMARY_SITE`'s and
+  `SECOND_SITE`'s cache is provably cold at test start regardless of what
+  earlier tests in the session did — resolves PLAN-FRESH2-001.
+- **Forced interleave construction (both cases, same shape)**: the
+  **"paused"** thread is the first to enter the cache-miss body; it blocks
+  on a `threading.Barrier(2)` immediately *after* it has started its
+  `.load()` call on `case.race_target_a` (pre-fix patch boundary:
+  `_load_step_yaml`'s `_YAML.load` call at `mission_step_repository.py:133`
+  for `PRIMARY_SITE`; `_load_layered_mission_type_file`'s `_LAYERED_YAML.load`
+  call at `mission_type_repository.py:389` for `SECOND_SITE`). The
+  **"uncontended"** thread is released to run its own `.load()` call on
+  `case.race_target_b` — a *different* file under the *same* cache key —
+  to completion first. Both threads are then released together to finish.
+  This pins the exact interleaving `research.md` identifies (the shared
+  YAML instance's reader/parser state overwritten mid-parse) by
+  construction, not by hoping natural OS scheduling produces it (CL-003).
+- **Two threads, one key (both cases)**: mirrors
+  `test_concurrent_creates_no_collision`'s shape — two `threading.Thread`s
+  calling `create_mission_core`, both driving the SAME
+  `(mission_type_id, pack_context)` (`PRIMARY_SITE`) /
+  `(mission_types_dirs, pack_context)` (`SECOND_SITE`) cache key to a miss
+  (per spec.md's Edge Cases, the narrower same-key case, not just the
+  existing test's distinct-slug case).
+- **Content-correctness assertion — mechanically specified, per-thread-captured,
+  never a post-join re-read (resolves PLAN-FRESH2-002 by construction):**
+  each thread's own target function (mirroring `test_concurrent_creates_no_collision`'s
+  `create_and_capture`, `tests/core/test_mission_creation_identity.py:138-144`)
+  appends its own outcome into a shared `dict[str, tuple | Exception]` keyed
+  by that thread's label — `"paused"` / `"uncontended"` — inside a
+  `try/except Exception` that captures either the successful,
+  thread-specific return (the raced `MissionStep`/`MissionType` fields that
+  thread's own call resolved) or the raised exception. It never does a
+  bare `results.append(...)` with no per-thread identity. After both
+  threads join, the assertion:
+  1. Asserts **both** threads' captured slots are present (catches a
+     thread that silently died without capturing anything, which would
+     otherwise let the test vacuously "pass" by having nothing left to
+     check).
+  2. For a captured outcome that is an exception, that outcome IS this
+     case's RED signal at the pre-fix commit.
+  3. For a captured outcome that is a successful return, compares it
+     **field-by-field** against a known-good, un-raced reference computed
+     once *before* the race (`case.race_target_a`/`case.race_target_b`
+     resolved individually, outside any thread, before the test's racing
+     section) — for `PRIMARY_SITE`, every mapped `MissionStep` field
+     (not just presence/absence); for `SECOND_SITE`, every `MissionType`
+     field (not just `.id`), and that neither raced entry carries any
+     data belonging to the *other* file.
+  This assertion runs against **both** threads' own individually captured
+  outcomes — **never** against a subsequent `resolve_all_for_mission_type(...)`/
+  `resolve_layered_mission_types(...)` call made after both threads join
+  (which would read through the now-populated, memoized cache and could
+  observe whichever thread's write landed last, non-deterministically, per
+  research.md's cache-poisoning analysis — exactly the vacuous-pass risk
+  PLAN-FRESH2-002 identified). By this test's own asymmetric construction,
+  the **"paused" thread's own captured outcome is the one expected to turn
+  red pre-fix** — it is the thread whose `.load()` resumes onto state the
+  "uncontended" thread has since overwritten. The "uncontended" thread's
+  own captured outcome is asserted correct too (it must never regress),
+  but it is not the thread this test relies on to demonstrate the defect.
+- **Concrete pre-fix-failure reasoning, per case** (the two sites' swallow-vs-raise
+  behavior is NOT identical — Summary, PLAN-ARCH-001 — so each case's own
+  reasoning is stated separately, not blurred by the shared parametrization):
+  - **`PRIMARY_SITE`**: `_load_step_yaml`'s cache-miss body wraps
+    `_YAML.load(...)` in a blanket `except Exception: return None`
+    (`mission_step_repository.py:132-135`). When the "paused" thread
+    resumes onto reader/scanner state the "uncontended" thread has since
+    overwritten, the resulting parse either raises (caught and swallowed,
+    returning `None` — the step is silently dropped from the roster) or
+    "succeeds" on garbled state (a step with wrong-but-valid fields).
+    Either way, the "paused" thread's own captured
+    `resolve_all_for_mission_type(...)` result — reached through
+    `create_mission_core` — disagrees with the known-good reference (a
+    missing step id, assertion #1/#3 above), or, further downstream, the
+    "paused" thread's own captured outcome is a `TemplateConfigurationError`
+    when the resolver looks up the now-missing `template_set` key
+    (`resolver.py:499`). Both outcomes are RED pre-fix; post-fix, 6a's
+    thread-local YAML instance means the "paused" thread's `.load()` never
+    observes the "uncontended" thread's state at all, so its captured
+    outcome always matches the reference.
+  - **`SECOND_SITE`**: `_load_layered_mission_type_file` only catches
+    `ruamel.yaml.error.YAMLError`, re-raising it as `ValueError`
+    (`mission_type_repository.py:388-391`); any other corrupted-but-not-`YAMLError`
+    outcome propagates as whatever `MissionType.model_validate`/the
+    `mission_type.id != expected_id` check raises
+    (`mission_type_repository.py:394-404`) — or, the shape that raises
+    nothing at all, validates with a still-correct `id` but wrong-but-valid
+    other fields. The first two shapes are caught by the "paused" thread's
+    captured outcome being an exception; the field-by-field comparison
+    (not just `.id`) is what turns the third, silent shape RED. Post-fix,
+    6a removes the shared `_LAYERED_YAML` state the "paused" thread's
+    resumed `.load()` would otherwise read from, so its captured outcome
+    always matches the reference.
+- **Pre-fix vs post-fix bookkeeping**: both parametrized instances are
+  committed in the same red-first commit (CL-004), before the
+  production-fix commit; both must fail (via exception or
+  content-correctness assertion) at that commit and pass, unmodified,
+  after the fix commit. The WP's own record states both cases' actual
+  red/green commit SHAs (User Story 2, AC1).
 - **Teardown hygiene** (Edge Cases): the monkeypatch is applied via
-  `pytest`'s `monkeypatch` fixture (function-scoped, auto-reverted) or an
-  explicit `try/finally`, never a bare module-level patch left in place —
-  satisfies "the test must clean up after itself so it does not
-  destabilize unrelated tests in the same session."
+  `pytest`'s `monkeypatch` fixture (function-scoped, auto-reverted) for
+  both cases, never a bare module-level patch left in place — satisfies
+  "the test must clean up after itself so it does not destabilize
+  unrelated tests in the same session."
 
-### 8a-ii. Red-first, Barrier-synchronized regression test — SECOND fix site (CL-003/CL-004/FR-004/FR-005)
+### 8c. SC-006 — dedicated lock/cache-failure test (parametrized, CL-006/FR-006)
 
-8a proves the interleave for the primary fix site only. This subsection is
-its mandatory counterpart for `resolve_layered_mission_types`/
-`_load_layered_mission_type_file` (`mission_type_repository.py`, Section
-1's second fix site) — shipping that site's lock/thread-local change
-without its own red-first evidence would only demonstrate the fix for half
-the defect. New test, same file
-(`tests/core/test_mission_creation_identity.py`), e.g.
-`test_concurrent_creates_force_layered_yaml_cache_miss_race`:
+One test function, parametrized identically to 8b over
+`[PRIMARY_SITE, SECOND_SITE]` — replacing old 8b's unresolved
+"one-instance-per-site-or-parametrized" either/or with a concrete,
+single parametrized definition: `_cold_cache()` (Section 8a) runs first,
+then the test monkeypatches `case.lock_helper` (`_lock_for`, Section 6b —
+the same name at both sites per Section 6c) to return a lock whose
+`.acquire()` raises `MissionCacheLockError` (the one exception class this
+mission defines, Section 6c) directly, and asserts the call through
+`create_mission_core` (per FR-005, both cases reach their site through the
+real entry point) propagates `MissionCacheLockError` unmodified — never
+returns `None`/empty/partial. Both parametrized instances also assert that
+replacing the raise with a silent-degrade return makes that instance's own
+assertion fail (SC-006's own falsifiability clause), so neither case's
+assertion is relied on unproven. Unlike 8b, this test's meaningful RED
+state only exists once `_lock_for` exists (Section 6b is new code); it is
+committed in the red-first commit alongside 8b/8f (Section 13) for
+review-diff cohesion, not because it demonstrates the production race
+itself.
 
-- **Outer call**: `create_mission_core`, identical to 8a — the race is
-  reached via `resolve_mission_type_context` → `_resolve_action_slot` →
-  `resolve_layered_mission_types` (research.md's traced eager call chain),
-  not by calling `resolve_layered_mission_types` or
-  `_load_layered_mission_type_file` directly.
-- **Forced interleave construction**: monkeypatch the thread-local YAML
-  accessor at the second site (post-fix) — or, for the pre-fix RED run
-  only, the pre-fix shared `_LAYERED_YAML.load` at its call boundary in
-  `_load_layered_mission_type_file` (`mission_type_repository.py:389`,
-  inside the `try` block at `mission_type_repository.py:388-391`) — so the
-  **first** thread blocks on a `threading.Barrier(2)` immediately after
-  starting its `.load()` call and the **second** thread completes its own
-  `.load()` call for a **different mission-type YAML file** first, then
-  both are released together. This mirrors 8a's construction exactly, at
-  the second site's own call boundary.
-- **Two threads, one key**: two `threading.Thread`s drive
-  `resolve_layered_mission_types` (via `create_mission_core`) to a cache
-  miss on the **same** `(mission_types_dirs, pack_context)` key, racing
-  `.load()` on two distinct mission-type YAML files under that key (e.g.
-  two built-in mission types in the same `mission_types_dirs` root) — with
-  explicit `MissionStepRepository.cache_clear()` and
-  `MissionTypeRepository.cache_clear()` (the staticmethod with **no**
-  `.default`, which clears `resolve_layered_mission_types`'s own cache —
-  see Section 5's note on the two same-named-looking seams;
-  `MissionTypeRepository.default.cache_clear()` clears a different,
-  unrelated cache and would leave this exact test's target cache warm)
-  calls before the test body, same cold-cache discipline as 8a.
-- **Content-correctness assertion (mandatory, not optional)**: regardless
-  of which pre-fix failure shape actually manifests, the test body must
-  assert that **both** raced mission-type YAML files' resolved
-  `MissionType` entries in the returned roster have field values matching
-  a known-good, un-raced resolution of the same two files (e.g. resolve
-  each file individually, outside any race, before the test's racing
-  section, and compare every field the raced result returns for that id
-  against that reference) — or, equivalently, assert that neither entry's
-  fields contain any data belonging to the other file. This closes the
-  "silently wrong roster entry" failure shape's own gap: a
-  corrupted-but-schema-valid parse whose `id` field still happens to equal
-  the filename stem (`mission_type_repository.py:398-403`,
-  `mission_type.id != expected_id` only) would raise nothing and
-  `resolve_layered_mission_types` would return normally with a roster
-  entry carrying wrong-but-valid fields — without this assertion, that
-  specific pre-fix outcome would make the test pass, not fail, which would
-  violate CL-003/CL-004's red-first bar. With this assertion in place, that
-  outcome is caught directly (the corrupted entry's fields disagree with
-  the known-good reference) alongside the two exception-raising shapes
-  (a raised `ValueError`/`pydantic.ValidationError`, or an uncaught
-  exception propagating through `_load_layered_mission_type_file`'s
-  narrower `except YAMLError` — see the swallow-vs-raise reconciliation
-  paragraph), so **all three** candidate pre-fix failure shapes are now
-  guaranteed to turn the test red, not just the two that already raise.
-- **Pre-fix vs post-fix bookkeeping**: committed in the same red-first
-  commit as 8a (CL-004), before the production-fix commit. At that commit
-  it must fail — via a raised exception, or via the content-correctness
-  assertion above catching a silently-wrong entry, whichever shape the
-  forced interleave actually produces; the plan's Summary section states
-  explicitly that this mission does not know in advance *how* it fails.
-  After the fix commit, the same test (unmodified) must pass.
-- **Teardown hygiene**: identical discipline to 8a.
-
-### 8b. SC-006 — dedicated lock/cache-failure test (CL-006/FR-006)
-
-A separate, new test — one instance per fix site, or a single
-parametrized test covering both — that monkeypatches `_lock_for` (Section
-6b) at each site to return a lock whose `.acquire()` raises
-`MissionCacheLockError` (Section 6, the one new exception class this
-mission defines) directly, and asserts the call through
-`create_mission_core` (or the narrower resolver-path call, per FR-005)
-propagates `MissionCacheLockError` unmodified — never returns
-`None`/empty/partial. The test also asserts that replacing the raise with
-a silent-degrade return makes the test fail (i.e., the test is itself
-checked against a deliberately weakened implementation during development,
-per SC-006's own falsifiability clause), so the assertion is proven
-non-vacuous before it is relied on.
-
-### 8c. Existing natural test must not regress (AC3/SC-002)
+### 8d. Existing natural test must not regress (AC3/SC-002) — unchanged, unparametrized
 
 `test_concurrent_creates_no_collision` (already passing, Section 9
 baseline) continues to pass unmodified; the fix must not weaken or slow it
 down. No new natural-timing-only test is added in its place (NFR-001).
+This test is deliberately **not** folded into the Section 8a shared
+parametrization: it already exercises both fix sites together, through the
+real production entry point, with no forced interleave, and rewriting it
+into the parametrized harness would blur its distinct purpose (a
+natural-timing sanity check, not a by-construction proof).
 
-### 8d. `cache_clear()` mid-population (Edge Case, NFR-003)
+### 8e. `cache_clear()` mid-population (parametrized, Edge Case, NFR-003)
 
-A focused unit test (in `tests/missions/` or `tests/doctrine/missions/`,
-wherever the existing `MissionStepRepository`/`MissionTypeRepository` cache
-tests already live — confirmed present via the existing `cache_clear()`
-test seams cited in `spec.md`'s Readiness Findings) that starts a
-population in one thread (paused mid-flight via the same monkeypatch/
-Barrier instrumentation as 8a), calls `cache_clear()` from the main thread
-while it is paused, and asserts: no deadlock (the test itself completes
-within its normal timeout), no exception propagates from `cache_clear()`,
-and the paused thread's population still completes and returns a correct
-(not corrupted) result once released.
+One test function, parametrized over `[PRIMARY_SITE, SECOND_SITE]`
+(resolves PLAN-FRESH2-003 by construction — a second-site variant can no
+longer silently go missing the way old 8d's primary-site-only definition
+did): `_cold_cache()` runs first, then a population is started in one
+thread for `case`'s cache key, paused mid-flight via the same
+monkeypatch/Barrier instrumentation as 8b's `case.post_fix_accessor`
+boundary, `case.site_cache_clear()` is called from the main thread while
+the population thread is paused — `MissionStepRepository.cache_clear()`
+for `PRIMARY_SITE`, `MissionTypeRepository.cache_clear()` (no `.default`,
+per Section 5) for `SECOND_SITE` — and the test asserts: no deadlock (the
+test itself completes within its normal timeout), no exception propagates
+from `case.site_cache_clear()`, and the paused thread's population still
+completes and returns a correct (not corrupted) result once released,
+matching Section 5's Edge Case walkthrough, which now applies, by
+construction, to both `case.site_cache_clear()` seams — not just the
+primary site's.
 
-### 8e. Per-key lock's own effect (Section 6b revert-discipline test)
+### 8f. Per-key lock's own effect (parametrized, Section 6b revert-discipline test)
 
-Section 8a/8a-ii prove 6a (thread-local YAML) closes the corruption
-mechanism; neither proves 6b (the per-key lock) is present, because both
-tests only assert the *result* is correct, not that redundant concurrent
-execution was prevented — once 6a lands, redundant concurrent execution is
-merely wasteful, not corrupting, so a test that only checks correctness
-cannot distinguish "6b present" from "6b silently reverted." This test
-closes that gap directly: instrument (e.g. via a module-level counter or a
-`monkeypatch`-wrapped call-counting shim around) the cache-miss
-filesystem-walk body — `_resolve_all_for_mission_type_uncached` for the
-primary site, `scan_mission_types_dir`'s `_load_layered_mission_type_file`
-loop for the second site — so the test can count invocations, then have
-two `threading.Thread`s race a cold miss (after the same cold-start
-discipline as 8a for the primary-site variant —
-`MissionStepRepository.cache_clear()` — and as 8a-ii for the second-site
-variant — `MissionStepRepository.cache_clear()` **and**
-`MissionTypeRepository.cache_clear()`, the staticmethod with **no**
-`.default`, per Section 5's note distinguishing it from
-`MissionTypeRepository.default.cache_clear()`, which clears a different,
-unrelated cache and would leave this test's target cache warm) on the
-**identical** cache key from both threads simultaneously (a
-`threading.Barrier(2)` pins both threads to enter the cache-miss body at
-the same instant), and asserts the instrumented body executed **exactly
-once**, not twice. This test must fail if `_lock_for` (Section 6b) is
-removed while 6a is kept — the two threads would then both observe the
-cache miss and both run the filesystem-walk body, producing a count of 2
-which fails the assertion — giving 6b its own red-if-reverted proof,
-independent of 6a's own tests.
+One test function, parametrized over `[PRIMARY_SITE, SECOND_SITE]`,
+replacing old 8e's hand-paired primary/second-site prose with a single
+parametrized definition. 8b proves 6a (thread-local YAML) closes the
+corruption mechanism for both cases; neither 8b nor 8c proves 6b (the
+per-key lock) is present for either case, because both only assert the
+*result* is correct, not that redundant concurrent execution was
+prevented — once 6a lands, redundant concurrent execution is merely
+wasteful, not corrupting, so a correctness-only test cannot distinguish
+"6b present" from "6b silently reverted" at either site. This test closes
+that gap for both: `_cold_cache()` runs first, then `case.cache_miss_body`
+(`MissionStepRepository._resolve_all_for_mission_type_uncached` for
+`PRIMARY_SITE`, `_load_layered_mission_type_file` for `SECOND_SITE`) is
+instrumented with a call-counting wrapper, two `threading.Thread`s race a
+cold miss on the **identical** cache key from both threads simultaneously
+(a `threading.Barrier(2)` pins both threads to enter the cache-miss body
+at the same instant), and the test asserts the instrumented body executed
+**exactly once**, not twice, for that `case`. This test must fail, for
+either case, if `case.lock_helper` (`_lock_for`, Section 6b) is removed
+while 6a is kept — both threads would then observe the cache miss and both
+run the filesystem-walk body, producing a count of 2 — giving 6b its own
+red-if-reverted proof at both sites, independent of 6a's own tests.
 
 ## 9. Baseline (CL-005)
 
@@ -707,9 +824,9 @@ Derived directly from `.github/ci-module-registry.yml` (read in full,
   "overlapping glob ownership between groups" as an accepted, intentional
   condition (a changed path can and does select more than one module here;
   this is not a bug to route around). `test_dirs` explicitly lists
-  `tests/core` (`ci-module-registry.yml`), which is where the new red-first
-  regression tests (Section 8a/8a-ii) and the failing-test's ATDD entry
-  point live.
+  `tests/core` (`ci-module-registry.yml`), which is where the new
+  parametrized red-first regression test (Section 8b, both fix-site cases)
+  and the failing-test's ATDD entry point live.
   `shard_count: 5`.
 - **`next`** (`ci-module-registry.yml:80-90`, roots
   `src/specify_cli/runtime/**`, `shard_count: 2`) — **NOT selected by this
@@ -853,22 +970,30 @@ One PR to `main` (the sk overlay default), in this order:
 
 1. ~~Campsite-clean commit~~ — **skipped** per Section 11 (no genuine debt
    found on the touched lines).
-2. **Red-first failing test commit** (CL-004): the two Barrier-synchronized
-   regression tests (Section 8a for the primary site, Section 8a-ii for the
-   second site), the SC-006 failure-path test (Section 8b), and the per-key
-   lock effect test (Section 8e), committed against pre-fix code, verified
-   RED.
+2. **Red-first failing test commit** (CL-004): the shared parametrization
+   harness (Section 8a) plus the parametrized Barrier-synchronized
+   regression test (Section 8b, both the `PRIMARY_SITE` and `SECOND_SITE`
+   cases), the parametrized SC-006 failure-path test (Section 8c, both
+   cases), and the parametrized per-key lock effect test (Section 8f, both
+   cases), committed against pre-fix code — Section 8b/8f verified RED for
+   both cases through the real forced interleave; Section 8c verified RED
+   only in the trivial "the seam it patches (`_lock_for`) does not exist
+   yet" sense, per Section 8c's own note that it is not itself a
+   race-detection test.
 3. **Production-fix commit(s)**: the thread-local YAML accessor + per-key
    lock at both sites (Section 6) plus the new `MissionCacheLockError`
-   exception class, verified the same tests now GREEN, plus the existing
-   `test_concurrent_creates_no_collision` and the two modules' full suites
-   (Section 9/10) still green.
+   exception class, verified the same tests now GREEN for both cases, plus
+   the parametrized `cache_clear()`-mid-population test (Section 8e, both
+   cases), the existing `test_concurrent_creates_no_collision` (Section
+   8d), and the two modules' full suites (Section 9/10) still green.
 4. **Doc/tracer updates**: tracer-file appends (Section 12) and any
    research/plan corrections discovered during implementation.
 
 This mission ships as **one PR to `main`**. The diff stays reviewable in one
 sitting: two singleton replacements + two lock-guarded cache bodies + one
-new exception class + five new tests (8a, 8a-ii, 8b, 8d, 8e), all confined
+new exception class + one shared parametrization harness (Section 8a) +
+four new parametrized test functions (Section 8b/8c/8e/8f, each covering
+both fix sites by construction — eight test instances total), all confined
 to three files in one package plus one test file. If implementation later
 discovers the `_LAYERED_YAML` site (Section 6) needs materially different
 handling than mirrored here, or that `resolver.py` needs a change after all
