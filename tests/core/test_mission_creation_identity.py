@@ -532,16 +532,27 @@ def test_obl2_primary_site_redundant_population_count(
     def racer(name: str) -> None:
         try:
             barrier.wait(timeout=15)
-            _run_create(tmp_path, f"obl2-primary-{name}")
+            create_mission_core(tmp_path, f"obl2-primary-{name}", **_mission_summary(f"obl2-primary-{name}"))
         except BaseException as exc:  # noqa: BLE001
             errors[name] = exc
 
-    t1 = threading.Thread(target=racer, args=("a",))
-    t2 = threading.Thread(target=racer, args=("b",))
-    t1.start()
-    t2.start()
-    t1.join(timeout=30)
-    t2.join(timeout=30)
+    # A SINGLE _patched_mission_creation_context enclosing BOTH threads
+    # (never one entered/exited per racing thread, which is what
+    # _run_create would do here) -- unittest.mock.patch's enter/exit is not
+    # safe for two threads concurrently patching the SAME global targets
+    # (each patcher instance snapshots "the current value" as its own
+    # restore point; overlapping enter/exit from two threads can leave the
+    # wrong value installed after both exit, corrupting whichever test runs
+    # next in this process). Mirrors test_concurrent_creates_no_collision's
+    # own (pre-existing, OBL-4) proven-safe shape: patch once, spawn/join
+    # both threads inside that one active context.
+    with _patched_mission_creation_context(tmp_path):
+        t1 = threading.Thread(target=racer, args=("a",))
+        t2 = threading.Thread(target=racer, args=("b",))
+        t1.start()
+        t2.start()
+        t1.join(timeout=30)
+        t2.join(timeout=30)
 
     assert not errors, f"unexpected errors: {errors}"
     assert counter.count == 1, (
@@ -601,16 +612,21 @@ def test_obl2_second_site_redundant_population_count(
     def racer(name: str) -> None:
         try:
             barrier.wait(timeout=15)
-            _run_create(tmp_path, f"obl2-second-{name}")
+            create_mission_core(tmp_path, f"obl2-second-{name}", **_mission_summary(f"obl2-second-{name}"))
         except BaseException as exc:  # noqa: BLE001
             errors[name] = exc
 
-    t1 = threading.Thread(target=racer, args=("a",))
-    t2 = threading.Thread(target=racer, args=("b",))
-    t1.start()
-    t2.start()
-    t1.join(timeout=30)
-    t2.join(timeout=30)
+    # A SINGLE _patched_mission_creation_context enclosing BOTH threads --
+    # see the identical note in test_obl2_primary_site_redundant_population_count
+    # above (unittest.mock.patch enter/exit is not safe from two concurrent
+    # threads on the SAME global targets).
+    with _patched_mission_creation_context(tmp_path):
+        t1 = threading.Thread(target=racer, args=("a",))
+        t2 = threading.Thread(target=racer, args=("b",))
+        t1.start()
+        t2.start()
+        t1.join(timeout=30)
+        t2.join(timeout=30)
 
     assert not errors, f"unexpected errors: {errors}"
     assert counter.count == 1, (
@@ -693,3 +709,120 @@ def test_obl3_second_site_fault_propagates_never_degrades(
     monkeypatch.setattr(_mtr, "_load_layered_mission_type_file", original)
     _cold_cache()
     _run_create(tmp_path, "obl3-second-retry")  # must succeed once the fault is gone
+
+
+# ---------------------------------------------------------------------------
+# OBL-5 -- cache_clear() mid-population, no deadlock (NFR-003, spec.md Edge
+# Cases). Fix half isolated: 6b (the per-key lock existing) interacting
+# correctly with plan.md Section 5's cache-clear contract. Not applicable
+# pre-fix (no lock exists yet to interact with cache_clear()) -- added here,
+# in the production-fix commit, per the WP prompt's own deferral note (T002
+# step 6 lists OBL-5 in the fact table but defers its concrete
+# implementation to T004, since it needs 6b's lock to interact with).
+# ---------------------------------------------------------------------------
+
+
+def test_obl5_primary_site_cache_clear_mid_population_no_deadlock(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Calling ``MissionStepRepository.cache_clear()`` while a PRIMARY_SITE
+    population is in flight (paused mid-load, holding 6b's per-key lock)
+    neither deadlocks nor raises; the in-flight population still completes
+    with a correct result once released (plan.md Section 5's edge-case
+    walkthrough: ``cache_clear()`` only ever touches the ``functools.cache``
+    data dict, never the separate ``_locks`` structure 6b introduces)."""
+    _init_git_repo(tmp_path)
+    _cold_cache()
+
+    step_root = _builtin_steps_root()
+    pause_path = step_root / "software-dev" / "charter" / "step.yaml"
+    harness = _PauseHarness(monkeypatch, pause_path)
+    harness.pin_step_loader()
+
+    errors: dict[str, BaseException] = {}
+    result_holder: dict[str, Any] = {}
+
+    def populate() -> None:
+        try:
+            with _patched_mission_creation_context(tmp_path):
+                result_holder["result"] = create_mission_core(
+                    tmp_path, "obl5-primary", **_mission_summary("obl5-primary"),
+                )
+        except BaseException as exc:  # noqa: BLE001
+            errors["populate"] = exc
+
+    populate_thread = threading.Thread(target=populate)
+    populate_thread.start()
+    assert harness.entered.wait(timeout=15), "population thread never reached the pin"
+
+    clear_errors: dict[str, BaseException] = {}
+
+    def clear() -> None:
+        try:
+            MissionStepRepository.cache_clear()
+        except BaseException as exc:  # noqa: BLE001
+            clear_errors["clear"] = exc
+
+    clear_thread = threading.Thread(target=clear)
+    clear_thread.start()
+    clear_thread.join(timeout=5)
+    assert not clear_thread.is_alive(), "cache_clear() deadlocked while a population was in flight"
+    assert not clear_errors, f"cache_clear() raised: {clear_errors}"
+
+    harness.release.set()
+    populate_thread.join(timeout=30)
+
+    assert not errors, f"unexpected errors: {errors}"
+    assert "result" in result_holder, "the in-flight population never completed"
+
+
+def test_obl5_second_site_cache_clear_mid_population_no_deadlock(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Calling ``MissionTypeRepository.cache_clear()`` (NOT ``.default``) while
+    a SECOND_SITE population is in flight neither deadlocks nor raises; the
+    in-flight population still completes with a correct result once
+    released."""
+    provision_test_charter(tmp_path)
+    _cold_cache()
+
+    mission_types_dirs = _builtin_mission_types_dirs()
+    pause_path = mission_types_dirs[0] / "software-dev.yaml"
+    harness = _PauseHarness(monkeypatch, pause_path)
+    harness.pin_mission_type_loader()
+
+    errors: dict[str, BaseException] = {}
+    result_holder: dict[str, Any] = {}
+
+    def populate() -> None:
+        try:
+            bundle = resolve_mission_type_context(tmp_path, mission_type="software-dev")
+            result_holder["action_sequence"] = bundle.action_sequence
+        except BaseException as exc:  # noqa: BLE001
+            errors["populate"] = exc
+
+    populate_thread = threading.Thread(target=populate)
+    populate_thread.start()
+    assert harness.entered.wait(timeout=15), "population thread never reached the pin"
+
+    clear_errors: dict[str, BaseException] = {}
+
+    def clear() -> None:
+        try:
+            MissionTypeRepository.cache_clear()
+        except BaseException as exc:  # noqa: BLE001
+            clear_errors["clear"] = exc
+
+    clear_thread = threading.Thread(target=clear)
+    clear_thread.start()
+    clear_thread.join(timeout=5)
+    assert not clear_thread.is_alive(), "cache_clear() deadlocked while a population was in flight"
+    assert not clear_errors, f"cache_clear() raised: {clear_errors}"
+
+    harness.release.set()
+    populate_thread.join(timeout=30)
+
+    assert not errors, f"unexpected errors: {errors}"
+    assert "action_sequence" in result_holder, "the in-flight population never completed"
