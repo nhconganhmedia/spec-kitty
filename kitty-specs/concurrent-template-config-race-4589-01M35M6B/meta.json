@@ -11,5 +11,7 @@
   "purpose_tldr": "Concurrent create_mission_core TemplateConfigurationError race",
   "slug": "concurrent-template-config-race-4589-01M35M6B",
   "target_branch": "fix/concurrent-template-config-race-4589",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-09-23T14:41:27.978420+00:00"
 }
