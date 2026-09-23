@@ -383,7 +383,9 @@ def test_obl1_primary_site_forced_interleave_distinct_keys(
     t1.start()
     t2.start()
     t1.join(timeout=30)
+    assert not t1.is_alive(), "paused thread (t1) deadlocked and never finished within the join timeout"
     t2.join(timeout=30)
+    assert not t2.is_alive(), "racer thread (t2) deadlocked and never finished within the join timeout"
 
     assert not errors, f"unexpected errors: {errors}"
     assert t1.ident in captured, "paused thread's own resolve_all_for_mission_type call was never captured"
@@ -456,7 +458,9 @@ def test_obl1_second_site_forced_interleave_distinct_pack_contexts(
     t1.start()
     t2.start()
     t1.join(timeout=30)
+    assert not t1.is_alive(), "paused thread (t1) deadlocked and never finished within the join timeout"
     t2.join(timeout=30)
+    assert not t2.is_alive(), "racer thread (t2) deadlocked and never finished within the join timeout"
 
     assert not errors, f"unexpected errors: {errors}"
     assert t1.ident in captured, "paused thread's own action_sequence was never captured"
@@ -552,7 +556,9 @@ def test_obl2_primary_site_redundant_population_count(
         t1.start()
         t2.start()
         t1.join(timeout=30)
+        assert not t1.is_alive(), "racer thread 'a' (t1) deadlocked and never finished within the join timeout"
         t2.join(timeout=30)
+        assert not t2.is_alive(), "racer thread 'b' (t2) deadlocked and never finished within the join timeout"
 
     assert not errors, f"unexpected errors: {errors}"
     assert counter.count == 1, (
@@ -626,7 +632,9 @@ def test_obl2_second_site_redundant_population_count(
         t1.start()
         t2.start()
         t1.join(timeout=30)
+        assert not t1.is_alive(), "racer thread 'a' (t1) deadlocked and never finished within the join timeout"
         t2.join(timeout=30)
+        assert not t2.is_alive(), "racer thread 'b' (t2) deadlocked and never finished within the join timeout"
 
     assert not errors, f"unexpected errors: {errors}"
     assert counter.count == 1, (
