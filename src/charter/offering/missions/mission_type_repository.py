@@ -748,8 +748,16 @@ def _resolve_layered_mission_types(
 # mypy does not allow rebinding a `def`-introduced name to a wider type in
 # place, so the implementation keeps its original name
 # (`_resolve_layered_mission_types`) and this is the one, single place the
-# public name is defined -- runtime identity, call behavior, and the
-# docstring above are all unchanged.
+# public name is defined -- call behavior and the docstring above are
+# unchanged, but `__name__`/`__qualname__` are NOT: a plain `def`'s
+# `__name__`/`__qualname__` reflect the name it was defined under
+# (`_resolve_layered_mission_types`), and `cast()` is purely a static-typing
+# annotation -- it does not touch either attribute at runtime. The two
+# assignments below correct both, on the underlying function object, before
+# the cast, restoring the `resolve_layered_mission_types` identity this
+# public name had on `main` (PR-FRESH1-001).
+_resolve_layered_mission_types.__name__ = "resolve_layered_mission_types"
+_resolve_layered_mission_types.__qualname__ = "resolve_layered_mission_types"
 resolve_layered_mission_types: _LayeredMissionTypesResolver = cast(
     _LayeredMissionTypesResolver, _resolve_layered_mission_types
 )
