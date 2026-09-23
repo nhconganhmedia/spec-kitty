@@ -61,9 +61,11 @@ must establish empirically, the same way Section 8a's primary-site test
 establishes the swallow-path outcome for the first site. Whichever way that
 test's pre-fix RED run actually fails (a raised `ValueError`/
 `pydantic.ValidationError` bubbling up uncaught, a silently wrong roster
-entry, or something else), the fix itself does not depend on the answer:
+entry — guaranteed to be caught by Section 8a-ii's own explicit
+content-correctness assertion rather than assumed to fail some other way —
+or something else), the fix itself does not depend on the answer:
 6a/6b at both sites, and the raise-never-degrade contract (CL-006/FR-006,
-Section 6 "Both fix sites raise, never degrade"), are intended to hold
+Section 6c "Both fix sites raise, never degrade"), are intended to hold
 identically at both sites regardless of which pre-fix failure shape the
 second site's corrupted-parse race actually takes.
 
@@ -199,6 +201,20 @@ function's own docstring, lines 464-466, forbids calling directly from
 outside the module) remain present, callable, synchronous, and **unchanged
 in signature and observable behavior**. Concretely:
 
+**Two same-named-looking but deliberately independent cache-clear seams
+(do not conflate them, Section 8a-ii/8e):** `MissionTypeRepository.default.cache_clear()`
+clears only `default()`'s own, separate, `cls`-keyed built-in-repository
+cache; it does **not** touch `resolve_layered_mission_types`'s cache. The
+seam that clears `resolve_layered_mission_types`'s cache (Section 1's
+second fix site, raced by Section 8a-ii/8e's second-site tests) is the
+sibling staticmethod `MissionTypeRepository.cache_clear()` — no `.default`
+— per that staticmethod's own docstring at
+`mission_type_repository.py:188-206` ("The two caches are deliberately
+independent"). Any test that needs a cold `resolve_layered_mission_types`
+cache before racing it must call `MissionTypeRepository.cache_clear()`,
+not `MissionTypeRepository.default.cache_clear()`, which would leave that
+specific cache warm.
+
 - The chosen fix mechanism (Section 6) adds **no new lock that
   `cache_clear()` needs to know about, acquire, or release.** The per-key
   locks introduced live in a *separate* module-level structure (a plain
@@ -330,7 +346,7 @@ longer in the data cache are harmless (a `Lock` costs nothing to leave
 around, and stale entries do not affect correctness since a lock is only
 ever contended by two calls racing the *same* key at the *same* moment).
 
-### Both fix sites raise, never degrade (CL-006/FR-006)
+### 6c. Both fix sites raise, never degrade (CL-006/FR-006)
 
 **Resolved exception design (one concrete decision, not an either/or):**
 this mission defines exactly **one** new exception class,
@@ -510,19 +526,43 @@ the defect. New test, same file
   `.load()` on two distinct mission-type YAML files under that key (e.g.
   two built-in mission types in the same `mission_types_dirs` root) — with
   explicit `MissionStepRepository.cache_clear()` and
-  `MissionTypeRepository.default.cache_clear()` calls before the test body,
-  same cold-cache discipline as 8a.
+  `MissionTypeRepository.cache_clear()` (the staticmethod with **no**
+  `.default`, which clears `resolve_layered_mission_types`'s own cache —
+  see Section 5's note on the two same-named-looking seams;
+  `MissionTypeRepository.default.cache_clear()` clears a different,
+  unrelated cache and would leave this exact test's target cache warm)
+  calls before the test body, same cold-cache discipline as 8a.
+- **Content-correctness assertion (mandatory, not optional)**: regardless
+  of which pre-fix failure shape actually manifests, the test body must
+  assert that **both** raced mission-type YAML files' resolved
+  `MissionType` entries in the returned roster have field values matching
+  a known-good, un-raced resolution of the same two files (e.g. resolve
+  each file individually, outside any race, before the test's racing
+  section, and compare every field the raced result returns for that id
+  against that reference) — or, equivalently, assert that neither entry's
+  fields contain any data belonging to the other file. This closes the
+  "silently wrong roster entry" failure shape's own gap: a
+  corrupted-but-schema-valid parse whose `id` field still happens to equal
+  the filename stem (`mission_type_repository.py:398-403`,
+  `mission_type.id != expected_id` only) would raise nothing and
+  `resolve_layered_mission_types` would return normally with a roster
+  entry carrying wrong-but-valid fields — without this assertion, that
+  specific pre-fix outcome would make the test pass, not fail, which would
+  violate CL-003/CL-004's red-first bar. With this assertion in place, that
+  outcome is caught directly (the corrupted entry's fields disagree with
+  the known-good reference) alongside the two exception-raising shapes
+  (a raised `ValueError`/`pydantic.ValidationError`, or an uncaught
+  exception propagating through `_load_layered_mission_type_file`'s
+  narrower `except YAMLError` — see the swallow-vs-raise reconciliation
+  paragraph), so **all three** candidate pre-fix failure shapes are now
+  guaranteed to turn the test red, not just the two that already raise.
 - **Pre-fix vs post-fix bookkeeping**: committed in the same red-first
   commit as 8a (CL-004), before the production-fix commit. At that commit
-  it must fail; the plan's Summary section states explicitly that this
-  mission does not know in advance *how* it fails (a caught-and-swallowed
-  outcome the way 8a's primary site fails, or an uncaught exception
-  propagating through `_load_layered_mission_type_file`'s narrower
-  `except YAMLError` — see the swallow-vs-raise reconciliation paragraph)
-  — either failure mode satisfies CL-003's red-first bar, because the bar
-  is "fails pre-fix, passes post-fix through the real code path," not "fails
-  with a specific exception type." After the fix commit, the same test
-  (unmodified) must pass.
+  it must fail — via a raised exception, or via the content-correctness
+  assertion above catching a silently-wrong entry, whichever shape the
+  forced interleave actually produces; the plan's Summary section states
+  explicitly that this mission does not know in advance *how* it fails.
+  After the fix commit, the same test (unmodified) must pass.
 - **Teardown hygiene**: identical discipline to 8a.
 
 ### 8b. SC-006 — dedicated lock/cache-failure test (CL-006/FR-006)
@@ -572,10 +612,15 @@ closes that gap directly: instrument (e.g. via a module-level counter or a
 filesystem-walk body — `_resolve_all_for_mission_type_uncached` for the
 primary site, `scan_mission_types_dir`'s `_load_layered_mission_type_file`
 loop for the second site — so the test can count invocations, then have
-two `threading.Thread`s race a cold miss (after the same
-`MissionStepRepository.cache_clear()`/
-`MissionTypeRepository.default.cache_clear()` cold-start discipline as 8a)
-on the **identical** cache key from both threads simultaneously (a
+two `threading.Thread`s race a cold miss (after the same cold-start
+discipline as 8a for the primary-site variant —
+`MissionStepRepository.cache_clear()` — and as 8a-ii for the second-site
+variant — `MissionStepRepository.cache_clear()` **and**
+`MissionTypeRepository.cache_clear()`, the staticmethod with **no**
+`.default`, per Section 5's note distinguishing it from
+`MissionTypeRepository.default.cache_clear()`, which clears a different,
+unrelated cache and would leave this test's target cache warm) on the
+**identical** cache key from both threads simultaneously (a
 `threading.Barrier(2)` pins both threads to enter the cache-miss body at
 the same instant), and asserts the instrumented body executed **exactly
 once**, not twice. This test must fail if `_lock_for` (Section 6b) is
