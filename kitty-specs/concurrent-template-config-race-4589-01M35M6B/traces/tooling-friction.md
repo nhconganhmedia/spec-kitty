@@ -84,3 +84,38 @@
   Worth a tooling note: `ensure_global_agent_commands`'s freshness check
   appears not to be safe against concurrent invocations from independent
   agent processes sharing one `~/.agent/` install.
+- 2026-09-23 — **Confirmed live instance of the tracked `record-analysis`
+  verdict-drift defect (#3133, ledger SK-06).** `spec-kitty agent mission
+  record-analysis` silently wrote `verdict: unknown` on the first analyze
+  attempt for this mission even though the submitted report body explicitly
+  said "Verdict: READY" and carried zero findings. Root cause, read directly
+  from `src/specify_cli/analysis_report.py`
+  (`parse_structured_findings`/`_split_carrier`, lines ~320-463): the
+  recorder derives the verdict **only** from a leading YAML frontmatter
+  block whose top-level key is literally `schema: analysis-findings/v1`
+  (plus `findings: [...]` and, optionally, `counts`/`verdict_hint`) —
+  **never** from prose, and never from any other carrier field name. The
+  the orchestrator's design-pipeline guidance (external) §4a text this
+  mission followed says only "Produce an analysis report with the
+  analysis-findings/v1 YAML carrier" without giving the exact required key
+  names, and a real precedent report already committed in this repo
+  (`kitty-specs/doctrine-glossary-architecture-consolidation-01KTNWFC/analysis-report.md`)
+  uses a *different*, non-matching frontmatter shape (`schema_version: 1`,
+  `artifact_type: spec-kitty.analysis-report`, top-level `verdict:` and
+  `issue_counts:` keys) that also silently recorded as `verdict: unknown` —
+  confirming this is a repeatable trap, not a one-off authoring slip: an
+  agent copying the closest available precedent in-repo reproduces the same
+  silent-unknown outcome. Fix applied here: re-submitted with the literal
+  `schema: analysis-findings/v1` + `findings: []` + `counts: {...}` +
+  `verdict_hint: ready` shape; `record-analysis --json` then correctly
+  returned `"verdict": "ready"`. Two throwaway commits
+  (`d4c476655`, `87eb2397d`) recorded the wrong-schema/malformed-body
+  attempts before the clean one (`dd1c0fb9f`) landed — left in mission
+  history rather than rewritten, per this pipeline's no-amend discipline.
+  Worth a doctrine/tooling fix: either the design-pipeline references should
+  state the exact required carrier keys (`schema`, `findings`, `counts`,
+  `verdict_hint`) verbatim with a copy-pasteable example, or
+  `record-analysis` should reject an unrecognized-but-frontmatter-shaped
+  block loudly (as it already does for a *malformed* v1 carrier) instead of
+  silently downgrading it to legacy/`unknown` (C-FIND-3's current behavior
+  makes "wrong key names" indistinguishable from "no carrier at all").
