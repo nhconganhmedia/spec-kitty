@@ -57,3 +57,30 @@
   cannot tell the two apart without an outside process check. Worth a
   tooling improvement: a lighter-weight "is this background agent still
   alive" probe that doesn't require inspecting OS-level process lists.
+- 2026-09-23 — The design-pipeline doc's literal text for the tasks-finalize
+  step names the command `spec-kitty agent tasks finalize-tasks`. That is a
+  legacy command family that requires `tasks.md` to already exist on disk
+  (it errors `tasks.md not found` when it doesn't) — it does **not** generate
+  `tasks.md` from `wps.yaml`. The current, correct command for a mission
+  whose `tasks.md` does not yet exist is `spec-kitty agent mission
+  finalize-tasks` (confirmed via `--help` and its own docstring, matching
+  `packs/built-in/missions/mission-steps/software-dev/tasks-finalize/prompt.md`'s
+  own text): `--validate-only` first for preflight, then without the flag to
+  regenerate `tasks.md`, update WP frontmatter, compute lanes, and commit —
+  all in one call. This is a generally-useful, non-mission-specific finding:
+  any doc or prompt still citing the bare `agent tasks finalize-tasks` name
+  for first-time `tasks.md` generation is stale and should be corrected to
+  `agent mission finalize-tasks`.
+- 2026-09-23 — During the tasks-phase R4 round-2 fix, a `spec-kitty
+  safe-commit` invocation failed once with an unrelated transient error
+  ("Global asset input changed:
+  `~/.agent/workflows/spec-kitty.analyze.md`") surfaced from
+  the CLI's own global-agent-command sync step
+  (`ensure_global_agent_commands`) — most likely a concurrent-peer race
+  against another agent process in this multi-agent session touching the
+  same shared `~/.agent/` install surface at the same moment, not a defect
+  in this mission's own artifacts or branch. An immediate retry of the
+  identical `safe-commit` command succeeded cleanly with no other change.
+  Worth a tooling note: `ensure_global_agent_commands`'s freshness check
+  appears not to be safe against concurrent invocations from independent
+  agent processes sharing one `~/.agent/` install.
