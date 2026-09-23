@@ -4,7 +4,7 @@ artifact_type: spec-kitty.analysis-report
 command: /spec-kitty.analyze
 mission_slug: concurrent-template-config-race-4589-01M35M6B
 mission_id: 01M35M6BYKHV6ZY3JVYD8BXWJC
-generated_at: '2026-09-23T12:30:02.059496+00:00'
+generated_at: '2026-09-23T12:31:44.169556+00:00'
 analyzer_agent: claude
 input_artifacts:
   spec.md:
@@ -19,46 +19,16 @@ input_artifacts:
   charter:
     path: .kittify/charter/charter.yaml
     sha256: a2b2f62cf1c0fa8987b67f6759d18bcc18b2fb47a8d3ad2783f8fac68b192c77
-verdict: unknown
-issue_counts:
-  info:
-  high:
-  medium:
-  low:
-  critical:
-findings: []
----
-
----
-schema_version: 1
-artifact_type: spec-kitty.analysis-report
-command: /spec-kitty.analyze
-mission_slug: concurrent-template-config-race-4589-01M35M6B
-mission_id: 01M35M6BYKHV6ZY3JVYD8BXWJC
-generated_at: '2026-09-23T14:30:00+00:00'
-analyzer_agent: claude
-input_artifacts:
-  spec.md:
-    path: <checkout>/kitty-specs/concurrent-template-config-race-4589-01M35M6B/spec.md
-    sha256: cad68fcf7c78f68508fda2d1ea0fbfbdfb5d5f2209a0456483b5ac2327b8ef11
-  plan.md:
-    path: <checkout>/kitty-specs/concurrent-template-config-race-4589-01M35M6B/plan.md
-    sha256: 4d7a7a5b2b39aa95cb04a6a15bdf18f8cbde3052fb2fce7b1a2bf8258365b83e
-  tasks.md:
-    path: <checkout>/kitty-specs/concurrent-template-config-race-4589-01M35M6B/tasks.md
-    sha256: 04c9ef93402172fc3c4cf7e029e9fc75c46d8f0a5f54526dff582f86ffe5f4a0
-  wps.yaml:
-    path: <checkout>/kitty-specs/concurrent-template-config-race-4589-01M35M6B/wps.yaml
-    sha256: ce5518424acc497fd59e27c4f41c79eb88cdcd141adaae07a0cb055cb5a77da
-  tasks/WP01-concurrent-yaml-cache-race-fix.md:
-    path: <checkout>/kitty-specs/concurrent-template-config-race-4589-01M35M6B/tasks/WP01-concurrent-yaml-cache-race-fix.md
-    sha256: 95fb5d2944c26a21c3e52c84fa4af38faa2d143e9f66f7b0aa2996f9f8fc3ad
-  charter:
-    path: <checkout>/.kittify/charter/charter.md
-    sha256: 489b1923b9362e28670adc3f90d8ed82d81b69c4f8622d04344f96ea13d6df9
 verdict: ready
 issue_counts:
   critical: 0
+  low: 0
+  medium: 0
+  high: 0
+  info: 0
+findings: []
+---
+
   high: 0
   medium: 0
   low: 0
