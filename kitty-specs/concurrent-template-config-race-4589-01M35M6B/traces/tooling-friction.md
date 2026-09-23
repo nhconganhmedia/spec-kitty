@@ -190,3 +190,20 @@
   target — patch once, outside the thread spawn, if both threads need the
   same mocked environment (mirrors this file's own pre-existing OBL-4
   test's shape, which was already correct).
+
+- 2026-09-23 (orchestrator, implementation phase) — `spec-kitty agent status emit WP01 --to approved`
+  from `for_review` is refused ("Illegal transition: for_review -> approved"); the legal path is
+  `for_review -> in_review -> approved` (`src/specify_cli/status/wp_state.py`, review-claim guard).
+  The sk-implement doctrine's "approved -> record the lane transition with `status emit`" does not
+  mention the intermediate `in_review` hop. Recorded both hops through the CLI; no state hand-edit.
+- 2026-09-23 (orchestrator) — the `in_review -> approved` emit carrying `--review-result-json`
+  printed a pydantic `value_error` (errors.pydantic.dev/2.13/v/value_error) to the console, yet
+  reported `OK` and persisted a complete event (review_ref + review_result recorded, force=false).
+  A validation failure that is printed but does not fail the command is a silent-success shape;
+  the rejected payload/field was not identified by the output.
+- 2026-09-23 (orchestrator) — rebasing the mission branch onto current `main` before
+  implementation (29 upstream commits; branch carried only kitty-specs/ commits) orphaned the
+  planning commit `lanes.json` referenced; `agent action implement` then required the CLI's own
+  `finalize-tasks --refresh-planning-commit --allow-orphaned` recovery (commit `e7e862712`).
+  The recovery path worked, but a sanctioned pre-implementation rebase silently invalidates
+  lanes.json until an implement attempt fails.
