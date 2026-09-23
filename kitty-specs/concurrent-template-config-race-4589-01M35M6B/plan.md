@@ -391,33 +391,56 @@ to a private cached name (e.g. `_resolve_layered_mission_types_cached`),
 and `resolve_layered_mission_types` becomes the public, lock-wrapping entry
 point every caller (including `_resolve_action_slot` and any future
 caller) keeps using unchanged by name — mirroring the primary site's shape
-exactly, at the cost of one rename plus its `__all__`/import-site updates.
+exactly, at the cost of one internal rename (the previously-public cached
+function becomes the new private `_resolve_layered_mission_types_cached`
+name) plus the `.cache_clear`/`.cache_info`/`.cache_parameters`
+attribute-forwarding bindings detailed just below: no `__all__` change and
+no import-site update, since the public name `resolve_layered_mission_types`
+is preserved unchanged and every existing caller keeps working as-is.
 Keyed on `(mission_types_dirs, pack_context)` — see Section 8a's fact table
 for why that key shape means the *default* case at this site is already
 same-key, not the narrow case.
 
-**Preserving the public `.cache_clear()` seam across the split
-(PLAN-FRESH4-ARCH-001, sev 4):** unlike the primary site, where
-`MissionStepRepository.cache_clear()` has always called the private
-`_resolve_all_for_mission_type_cached.cache_clear()` (so no public name's
-`.cache_clear()` attribute is being taken away by this fix), the second
-site's public name `resolve_layered_mission_types` is itself, today, the
-`@functools.cache`-decorated callable — so it is the thing that currently
-carries `.cache_clear()`, and at least 15+ call sites across three test
-files call `resolve_layered_mission_types.cache_clear()` directly
+**Preserving the public `.cache_clear()`/`.cache_info()` seam across the
+split (PLAN-FRESH4-ARCH-001, sev 4; PLAN-FRESH5-001, sev 4):** unlike the
+primary site, where `MissionStepRepository.cache_clear()` has always
+called the private `_resolve_all_for_mission_type_cached.cache_clear()`
+(so no public name's `.cache_clear()` attribute is being taken away by
+this fix), the second site's public name `resolve_layered_mission_types`
+is itself, today, the `@functools.cache`-decorated callable — so it is the
+thing that currently carries `.cache_clear()`, `.cache_info()`, and
+`.cache_parameters()`, and at least 15+ call sites across three test files
+call `resolve_layered_mission_types.cache_clear()` directly
 (`tests/charter/test_mission_type_path_layout_ssot.py`,
 `tests/doctrine/missions/test_mission_type_repository.py`,
-`tests/charter/test_charter_import_time_io.py`), and
+`tests/charter/test_charter_import_time_io.py`),
 `MissionTypeRepository.cache_clear()`'s own body
-(`mission_type_repository.py:207`) also calls it directly. Splitting the
-name without more would silently strip `.cache_clear` from the public
-`resolve_layered_mission_types` name — `functools.cache`'s `.cache_clear()`
-only exists on the decorated callable itself, and after the rename the
-decorated callable is `_resolve_layered_mission_types_cached`, not the
-public wrapper. **Binding requirement:** the new public
-`resolve_layered_mission_types` wrapper must expose a `.cache_clear`
-attribute that forwards to `_resolve_layered_mission_types_cached.cache_clear`,
-bound immediately after the wrapper's own definition —
+(`mission_type_repository.py:207`) also calls it directly, and
+`tests/charter/test_charter_import_time_io.py`'s in-subprocess
+`_IMPORT_SPY_SCRIPT` (live call at `test_charter_import_time_io.py:231`,
+`layered_info = resolve_layered_mission_types.cache_info()`) calls
+`.cache_info()` directly on the same public name to assert NFR-004's
+"never called at charter-module import time" bound. Splitting the name
+without more would silently strip `.cache_clear`/`.cache_info` from the
+public `resolve_layered_mission_types` name — `functools.cache`'s
+`.cache_clear()`, `.cache_info()`, and `.cache_parameters()` only exist on
+the decorated callable itself, and after the rename the decorated callable
+is `_resolve_layered_mission_types_cached`, not the public wrapper; a
+`.cache_info()` call against the post-split public wrapper without this
+forwarding would raise `AttributeError`, turning the currently-green
+`test_charter_import_time_io.py` red for a reason unrelated to the NFR-004
+property it exists to guard. **Binding requirement:** the new public
+`resolve_layered_mission_types` wrapper must expose `.cache_clear`,
+`.cache_info`, and `.cache_parameters` attributes that forward to
+`_resolve_layered_mission_types_cached`'s own — i.e. every public
+attribute a `functools.cache`-decorated callable exposes, not `.cache_clear`
+alone — bound immediately after the wrapper's own definition. Three
+explicit binding lines are used, not `functools.update_wrapper`: that
+helper copies `__wrapped__`/`__doc__`/`__name__`/`__module__`/`__dict__`
+metadata, never `cache_clear`/`cache_info`/`cache_parameters` (those are
+attributes `functools.cache` itself sets on the decorated callable, not
+part of `__wrapped__`-style metadata), so it would not close this gap even
+if used —
 
 ```python
 def resolve_layered_mission_types(
@@ -430,19 +453,27 @@ def resolve_layered_mission_types(
 
 
 resolve_layered_mission_types.cache_clear = _resolve_layered_mission_types_cached.cache_clear
+resolve_layered_mission_types.cache_info = _resolve_layered_mission_types_cached.cache_info
+resolve_layered_mission_types.cache_parameters = _resolve_layered_mission_types_cached.cache_parameters
 ```
 
 — so every existing direct call site, including
-`MissionTypeRepository.cache_clear()`'s own body, keeps working unchanged,
-with **zero test-file edits**. This is mechanism (a) of the finding's two
-options, chosen over mechanism (b) (repointing >=3 test files' calls to
-`MissionTypeRepository.cache_clear()`) precisely because it keeps Section
-5's "no new `cache_clear()` coupling" claim and Section 14's "confined to
-... one test file" scope claim literally true: `MissionTypeRepository.cache_clear()`'s
-own body (`mission_type_repository.py:207`,
+`MissionTypeRepository.cache_clear()`'s own body and
+`test_charter_import_time_io.py`'s `.cache_info()` call, keeps working
+unchanged, with **zero test-file edits**. This is mechanism (a) of the
+finding's two options, chosen over mechanism (b) (repointing >=3 test
+files' calls to `MissionTypeRepository.cache_clear()`) precisely because
+it keeps Section 5's "no new `cache_clear()` coupling" claim and Section
+14's "confined to ... one test file" scope claim literally true:
+`MissionTypeRepository.cache_clear()`'s own body
+(`mission_type_repository.py:207`,
 `resolve_layered_mission_types.cache_clear()`) needs **no change** under
 this fix, since it already calls the still-public name, and that name's
-`.cache_clear` attribute now forwards correctly.
+`.cache_clear`/`.cache_info`/`.cache_parameters` attributes now forward
+correctly. This fix's own test-verification list explicitly includes
+`tests/charter/test_charter_import_time_io.py` (Section 14, production-fix
+commit step) — re-run to confirm the forwarded `.cache_info()` seam is
+exercised and green, not left to the module-suite run alone to discover.
 
 **Why this delivers "exactly one population per key per cold episode"
 (the property 6b must guarantee):** two threads racing a cold miss for the
@@ -1225,8 +1256,8 @@ print(sorted(select_modules(changed)))
   tests/charter, tests/doctrine`) — **selected**, not "NOT selected" as
   round 3 said. `src/charter/offering/missions/**` is a subset of
   `src/charter/**`. `shard_count: 5`. Baseline: Section 10 (`tests/charter`
-  2942 passed/22 skipped; `tests/doctrine` 3201 passed/13 skipped/3
-  environment-only setup errors).
+  2942 passed/22 skipped; `tests/doctrine` 3204 passed/13 skipped/0
+  errors).
 - **`unit`** (`:244-267`) — a TEST-INVENTORY module whose roots are a
   verbatim copy of surfaces other rows already own, including
   `src/charter/offering/missions/**`; `test_dirs: tests/unit`. **Not named
@@ -1338,9 +1369,9 @@ from the workflows (not assumed from any prior brief):
   promised for this mission's PR.
 - **Per-module test matrix** (`missions`, `core_misc`, `charter`, `unit`,
   `specify_cli_runtime`, above) — the real enforced correctness gate for
-  this change; all five are green in the pre-fix baseline (Section 10,
-  modulo the three environment-only `test_packaging_parity.py` setup
-  errors, unrelated to this mission) and must stay green (plus the new
+  this change; all five are fully green in the pre-fix baseline (Section
+  10 — there is no remaining pre-existing red anywhere in this baseline,
+  per Section 10's round-5 correction) and must stay green (plus the new
   red→green obligations, Section 8) post-fix.
 
 ## 12. Campsite-clean (Standing Order 2)
@@ -1411,8 +1442,11 @@ letters. One PR to `main` (the sk overlay default), in this order:
    new `MissionCacheLockError` exception class (Section 6c), verified the
    same tests now GREEN for both cases, plus OBL-5 (the
    `cache_clear()`-mid-population test, both cases), OBL-4 (the existing
-   `test_concurrent_creates_no_collision`), and all five selected modules'
-   full suites (Section 10/11) still green.
+   `test_concurrent_creates_no_collision`), `tests/charter/test_charter_import_time_io.py`
+   (PLAN-FRESH5-001: confirms the second site's forwarded
+   `.cache_clear`/`.cache_info`/`.cache_parameters` seam, Section 6b, stays
+   green under its live `.cache_info()` call), and all five selected
+   modules' full suites (Section 10/11) still green.
 4. **Doc/tracer updates**: tracer-file appends (Section 13) and any
    research/plan corrections discovered during implementation.
 
