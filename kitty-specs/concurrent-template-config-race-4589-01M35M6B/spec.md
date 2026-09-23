@@ -141,8 +141,13 @@ partial/silently-degraded `template_set` in place of raising. This applies to
 both the existing raise sites inside `resolve_configured_template` in
 `src/specify_cli/runtime/resolver.py` (function defined at line 440;
 `TemplateConfigurationError` construction around lines 474–526) and any new
-cache/lock code this mission adds — a lock timeout, a corrupted-cache
-detection, or a retry-exhaustion path must all raise, not degrade.
+cache/lock code this mission adds — including, but not limited to, a lock
+timeout, a corrupted-cache detection, or a retry-exhaustion path, should any
+of those specifically be introduced — must raise, not degrade, on any
+failure encountered during cache population (see CL-008: the approved
+design introduces none of those three named mechanisms, but the
+raise-not-degrade requirement applies to whatever failure the approved
+design's own code can actually produce, not only to those three).
 
 ### CL-007 — Reflexivity: mission creation is the machinery this mission runs on
 
@@ -161,6 +166,34 @@ explicitly, and the plan/implementation must confirm:
   on-disk `step.yaml` format, the `MissionType`/`MissionStep` schemas, or the
   `template_set` mapping's shape — only the concurrency safety of how those
   in-memory structures are built and cached.
+
+### CL-008 — Operator amendment: SC-006 corrected to a satisfiable silent-success guard (2026-09-23)
+
+On 2026-09-23 the operator amended **SC-006** (Success Criteria). The
+original SC-006 required a dedicated test to force one of three named
+failure conditions — a lock-timeout, a corrupted-cache condition, or a
+retry-exhaustion condition — in the new concurrency-safety code, and to
+assert that condition raises rather than silently degrades. A prior
+plan-round review (finding **PLAN-FRESH4-DEBBIE-001**, severity 4,
+`reviews/plan.fresh-4-debbie.yaml`) established that the approved plan
+design (§6b, a single-flight blocking-lock design built on an ordinary
+`threading.Lock` — no acquisition timeout, no corrupted-cache detection, and
+no retry logic) contains **none** of those three conditions. There is no
+production code path in the approved design that could raise on a lock
+timeout, a corrupted cache, or exhausted retries, so the original SC-006
+could never be satisfied by any implementation of that design — it named a
+test obligation the code has no way to exercise.
+
+**What changed:** SC-006 now requires a satisfiable silent-success guard
+instead: an exception raised during cache population (from any source, not
+limited to the three originally-named mechanisms — e.g., a fault injected
+into the step-loader or mission-type loader) must propagate to the caller
+unchanged, nothing partial may be cached as a result, and the next call
+after the fault must re-attempt population and succeed. The underlying
+prohibition on silent success (CL-006, FR-006) is unchanged; only the test
+mechanism SC-006 requires to verify it has been corrected to match the
+approved design, instead of describing mechanisms the design does not
+contain.
 
 ## Readiness Findings (cited, file:line-verified on this checkout)
 
@@ -391,7 +424,7 @@ readable by a future mission without re-running the sweep.
 | FR-003 | Preserve existing cache-contract seams | As a test author relying on `MissionTypeRepository.default.cache_clear()` and `MissionStepRepository.cache_clear()` (mission_step_repository.py:324-333) — the public seam that internally calls the private `_resolve_all_for_mission_type_cached.cache_clear()`, which must never be called directly from outside the module per that private function's own docstring — I want those seams to keep working exactly as documented (NFR-002/NFR-003/NFR-007 contracts), so that unrelated tests that depend on cache-clearing are not broken by this fix. | High | Open |
 | FR-004 | Land a red-first, Barrier-synchronized regression test before the fix | As a reviewer, I want a deterministic, by-construction regression test committed before the production fix commit, so that red→green is directly demonstrable (ATDD, charter C-011). | High | Open |
 | FR-005 | Reproduce through the pre-existing entry point | As a reviewer, I want the regression test to exercise `create_mission_core` (or the resolver path it drives) as its outer call, so that the test proves the production entry point is affected, not just an internal helper. | High | Open |
-| FR-006 | Fail loudly on every cache/lock error path | As a maintainer, I want any new lock-timeout, corrupted-cache, or retry-exhaustion path introduced by the fix to raise `TemplateConfigurationError` (or an equivalent explicit exception), never to return `None` or a partial template mapping. | High | Open |
+| FR-006 | Fail loudly on every cache/lock error path | As a maintainer, I want any exception encountered during cache population in the fix's new lock/cache code (e.g., a lock timeout, a corrupted-cache detection, or a retry-exhaustion path — if any such mechanism is ever introduced; the approved design (CL-008) introduces none of the three) to propagate as `TemplateConfigurationError` (or an equivalent explicit exception), never to return `None` or a partial template mapping, and never to leave a partial result cached for a subsequent call to inherit. | High | Open |
 | FR-007 | Capture a fresh baseline before changing code | As a reviewer, I want this mission's own before/after test run recorded (not issue #3284's stale numbers), so that any pre-existing failure is correctly attributed. | Medium | Open |
 | FR-008 | Record the operator's decision and the hypothesis caveat in the spec | As a reviewer, I want CL-001 through CL-007 present and substantively unchanged through plan/tasks/implement, so that downstream agents do not need to re-derive the decision from the GitHub issue. | Medium | Open |
 
@@ -461,9 +494,12 @@ readable by a future mission without re-running the sweep.
 - **SC-005**: The GitHub issue #4589 is relabelled `type:fix` by the
   orchestrator at PR time (not by a mission agent) once the fix and its
   regression test are accepted.
-- **SC-006**: A dedicated test forces a lock-timeout, corrupted-cache, or
-  retry-exhaustion condition in the new concurrency-safety code and asserts
-  that it raises `TemplateConfigurationError` (or an equivalent explicit,
-  typed exception) — never returns `None`, an empty mapping, or a partial
-  `template_set` (CL-006, FR-006) — verified by that test failing if the
-  raise is replaced with a silent-degrade return.
+- **SC-006**: An exception raised during cache population (e.g., a fault
+  injected into the step-loader or mission-type loader) propagates to the
+  caller unchanged — never converted into `None`, an empty mapping, or a
+  partial `template_set` — and nothing partial is cached as a result of that
+  failed population, so the next call re-attempts population and succeeds
+  rather than being poisoned by the prior failure (CL-006, FR-006, CL-008) —
+  verified by a test that fails if either (a) the propagation is replaced
+  with a silent-degrade return, or (b) the failed population is cached, i.e.,
+  a second call made after the fault does not re-attempt population.
