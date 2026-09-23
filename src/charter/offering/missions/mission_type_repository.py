@@ -3,13 +3,25 @@
 from __future__ import annotations
 
 import functools
+import threading
 from pathlib import Path
 from typing import Any
 
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
-from .mission_step_repository import MissionStepRepository, _PackContextLike
+# MissionCacheLockError: imported for completeness/future-proofing
+# (plan.md Section 6c) -- both fix sites' lock/cache-error raise paths
+# share this ONE exception type, defined at the primary fix site
+# (mission_step_repository.py). This design adds no lock-timeout/
+# corrupted-cache/retry-exhaustion path (CL-008), so THIS site has no
+# local raise call site for it today; unused import is intentional.
+from .mission_step_repository import (
+    MissionCacheLockError,  # noqa: F401
+    MissionStepRepository,
+    _lock_for,
+    _PackContextLike,
+)
 from .models import MissionType
 from .step_projection import project_action_sequence
 
@@ -315,7 +327,23 @@ def builtin_mission_type_id_set() -> frozenset[str]:
 # mirroring the sibling module's own already-live pattern:
 # mission_step_repository._resolve_all_for_mission_type_cached.
 
-_LAYERED_YAML = YAML(typ="safe")
+# Thread-local accessor (WP01, mission concurrent-template-config-race-4589-
+# 01M35M6B) -- mirrors mission_step_repository._get_yaml exactly, for the
+# identical reason: a single module-level YAML(typ="safe") instance shared
+# across threads is not thread-safe (.load() mutates cross-call parser
+# state). A SEPARATE thread-local pair from the sibling module's -- each
+# site gets its own, never shared across the two modules.
+_layered_yaml_local = threading.local()
+
+
+def _get_layered_yaml() -> YAML:
+    """Return this thread's own ``YAML(typ="safe")`` instance, building it once."""
+    try:
+        return _layered_yaml_local.instance
+    except AttributeError:
+        instance = YAML(typ="safe")
+        _layered_yaml_local.instance = instance
+        return instance
 
 #: Org-pack layout (CL-005, ADR 2026-08-13-1): flat, non-recursive
 #: ``<pack_root>/mission_types/*.yaml`` -- mirrors the sibling
@@ -386,7 +414,7 @@ def _load_layered_mission_type_file(
         The parsed document fails :class:`MissionType` validation.
     """
     try:
-        raw: Any = _LAYERED_YAML.load(yaml_file.read_text(encoding="utf-8"))
+        raw: Any = _get_layered_yaml().load(yaml_file.read_text(encoding="utf-8"))
     except YAMLError as exc:
         raise ValueError(f"Malformed YAML in mission-type file {yaml_file}: {exc}") from exc
     if not isinstance(raw, dict):
@@ -474,61 +502,16 @@ def scan_mission_types_dir(
     ]
 
 
-@functools.cache
-def resolve_layered_mission_types(
+def _resolve_layered_mission_types_uncached(
     mission_types_dirs: tuple[Path, ...],
     pack_context: _PackContextLike | None,
 ) -> dict[str, MissionType]:
-    """Resolve the layered mission-type roster for (*mission_types_dirs*, *pack_context*).
+    """Perform the actual layered directory walk (the per-key population unit).
 
-    FR-001: a new, SEPARATE, module-level ``functools.cache`` lookup --
-    sibling to, never a replacement for, :meth:`MissionTypeRepository.default`
-    (which stays built-in-only, untouched). See the module-level comment
-    above this function for the rejected project-dependent-``default()``
-    alternative (CL-001, ADR 2026-08-13-1).
-
-    Cache safety boundary (PR-CONTRACT-003, pre-merge squad, mission
-    up-mission-type-seam-01KZY1JB) -- READ BEFORE embedding this in a
-    long-lived process
-    -----------------------------------------------------------------
-    Unlike :meth:`MissionTypeRepository.default`'s cache (safe because
-    production never mutates the bundled, read-only built-in tree
-    mid-process), this cache ALSO indexes org and project mission-type
-    directories -- content that IS user-editable on disk during a process's
-    lifetime. The cache key is ``(mission_types_dirs, pack_context)``, so it
-    correctly avoids cross-PROJECT poisoning (NFR-001) -- but it does
-    **not** detect an on-disk edit to an already-cached org/project
-    ``mission_types/*.yaml`` file made *after* the first resolution for that
-    same key: the second call with the identical key returns the FIRST
-    (now-stale) result. ``tests/doctrine/missions/test_mission_type_repository.py``'s
-    ``TestLayeredMissionTypesCacheKeyAndClear.test_same_key_is_a_cache_hit``
-    pins this staleness directly (it mutates an org-layer YAML file after a
-    first resolution and asserts the second resolution still returns the
-    stale first result) -- it is a documented, accepted property of this
-    cache, not a bug.
-
-    This is safe for the **one-process-per-CLI-invocation** model every
-    current ``src/`` caller uses (each ``spec-kitty`` invocation is a fresh
-    process; the cache lives and dies with it, so no on-disk edit can ever
-    occur "during" a single resolution). It is **not** safe for a longer-
-    lived host (a persistent test-fixture process, a future daemon, or an
-    ``orchestrator-api`` consumer) that resolves mission types across
-    multiple on-disk states without restarting: such a host MUST call
-    :meth:`MissionTypeRepository.cache_clear` (which clears this cache
-    specifically, without touching :meth:`MissionTypeRepository.default`'s
-    separate built-in-only cache) at every point it wants a fresh read --
-    e.g. immediately before each resolution, or in response to a detected
-    filesystem change. No current ``src/`` call site does this (`grep`
-    confirms ``resolve_layered_mission_types.cache_clear()`` /
-    ``MissionTypeRepository.cache_clear()`` are invoked only from test code
-    today) because none needs to under the one-process-per-invocation
-    model; this paragraph is the explicit contract a future long-lived host
-    must honor, not an implementation left for later in this mission's
-    scope. Freshness-based invalidation (e.g. keying on a directory mtime)
-    was considered and rejected for this fix round as exceeding a
-    pre-merge-fix's scope -- it would need its own design (what counts as
-    "fresh", how deep to stat, cross-platform mtime granularity) and its own
-    red-first regression suite, not a documentation-round addendum.
+    Mirrors :meth:`MissionStepRepository._resolve_all_for_mission_type_uncached`'s
+    own uncached/cached split at the primary fix site (WP01). This is the
+    unit OBL-2's redundant-population-count obligation counts invocations of
+    (``tests/core/test_mission_creation_identity.py``).
 
     Layer precedence, full per-compound-key replacement (never a field-level
     merge -- ``MissionTypeRepository`` does not inherit
@@ -599,3 +582,117 @@ def resolve_layered_mission_types(
             index[mission_type.id] = mission_type  # project always wins
 
     return index
+
+
+@functools.cache
+def _resolve_layered_mission_types_cached(
+    mission_types_dirs: tuple[Path, ...],
+    pack_context: _PackContextLike | None,
+) -> dict[str, MissionType]:
+    """Module-level, cross-instance ``functools.cache`` lookup (the cache-miss path).
+
+    Private: never call ``.cache_clear()``/``.cache_info()`` on this function
+    directly from outside this module -- use the public
+    :func:`resolve_layered_mission_types` wrapper's forwarded attributes
+    (below), which is what every external caller already does by name.
+
+    FR-001: a new, SEPARATE, module-level ``functools.cache`` lookup --
+    sibling to, never a replacement for, :meth:`MissionTypeRepository.default`
+    (which stays built-in-only, untouched). See the module-level comment
+    above this function for the rejected project-dependent-``default()``
+    alternative (CL-001, ADR 2026-08-13-1).
+
+    Cache safety boundary (PR-CONTRACT-003, pre-merge squad, mission
+    up-mission-type-seam-01KZY1JB) -- READ BEFORE embedding this in a
+    long-lived process
+    -----------------------------------------------------------------
+    Unlike :meth:`MissionTypeRepository.default`'s cache (safe because
+    production never mutates the bundled, read-only built-in tree
+    mid-process), this cache ALSO indexes org and project mission-type
+    directories -- content that IS user-editable on disk during a process's
+    lifetime. The cache key is ``(mission_types_dirs, pack_context)``, so it
+    correctly avoids cross-PROJECT poisoning (NFR-001) -- but it does
+    **not** detect an on-disk edit to an already-cached org/project
+    ``mission_types/*.yaml`` file made *after* the first resolution for that
+    same key: the second call with the identical key returns the FIRST
+    (now-stale) result. ``tests/doctrine/missions/test_mission_type_repository.py``'s
+    ``TestLayeredMissionTypesCacheKeyAndClear.test_same_key_is_a_cache_hit``
+    pins this staleness directly (it mutates an org-layer YAML file after a
+    first resolution and asserts the second resolution still returns the
+    stale first result) -- it is a documented, accepted property of this
+    cache, not a bug.
+
+    This is safe for the **one-process-per-CLI-invocation** model every
+    current ``src/`` caller uses (each ``spec-kitty`` invocation is a fresh
+    process; the cache lives and dies with it, so no on-disk edit can ever
+    occur "during" a single resolution). It is **not** safe for a longer-
+    lived host (a persistent test-fixture process, a future daemon, or an
+    ``orchestrator-api`` consumer) that resolves mission types across
+    multiple on-disk states without restarting: such a host MUST call
+    :meth:`MissionTypeRepository.cache_clear` (which clears this cache
+    specifically, without touching :meth:`MissionTypeRepository.default`'s
+    separate built-in-only cache) at every point it wants a fresh read --
+    e.g. immediately before each resolution, or in response to a detected
+    filesystem change. No current ``src/`` call site does this (`grep`
+    confirms ``resolve_layered_mission_types.cache_clear()`` /
+    ``MissionTypeRepository.cache_clear()`` are invoked only from test code
+    today) because none needs to under the one-process-per-invocation
+    model; this paragraph is the explicit contract a future long-lived host
+    must honor, not an implementation left for later in this mission's
+    scope. Freshness-based invalidation (e.g. keying on a directory mtime)
+    was considered and rejected for this fix round as exceeding a
+    pre-merge-fix's scope -- it would need its own design (what counts as
+    "fresh", how deep to stat, cross-platform mtime granularity) and its own
+    red-first regression suite, not a documentation-round addendum.
+    """
+    return _resolve_layered_mission_types_uncached(mission_types_dirs, pack_context)
+
+
+def resolve_layered_mission_types(
+    mission_types_dirs: tuple[Path, ...],
+    pack_context: _PackContextLike | None,
+) -> dict[str, MissionType]:
+    """Resolve the layered mission-type roster for (*mission_types_dirs*, *pack_context*).
+
+    **Single-flight lock (6b, WP01):** this public entry point wraps the
+    ENTIRE cached call in this key's :func:`_lock_for` lock -- not just the
+    cache-miss body -- so a losing thread's call becomes a
+    :func:`_resolve_layered_mission_types_cached` HIT (the winner's result)
+    rather than a second, independent, redundant walk. Mirrors
+    :meth:`MissionStepRepository.resolve_all_for_mission_type`'s own
+    identical shape at the primary fix site, sharing the SAME ``_lock_for``
+    key-space (imported from that module) so the two sites never diverge on
+    lock semantics.
+
+    This function is the public, ``__all__``-exported, stable name every
+    caller (including :func:`charter.activation.mission_type_profiles._resolve_action_slot`)
+    keeps using unchanged; the actual ``functools.cache``-decorated
+    implementation lives at the private
+    :func:`_resolve_layered_mission_types_cached` name above (split out so
+    the lock can wrap the *whole* cached call, per the round-4 plan design
+    -- a lock only *inside* the cached body would let two threads each
+    independently run the walk, which does not close the redundant-
+    population window at all; see plan.md Section 6b).
+
+    See :func:`_resolve_layered_mission_types_uncached` for the full
+    parameter/return/raise contract this wrapper forwards unchanged.
+    """
+    key = (mission_types_dirs, pack_context)
+    with _lock_for(key):
+        return _resolve_layered_mission_types_cached(mission_types_dirs, pack_context)
+
+
+# `functools.cache`'s own `.cache_clear`/`.cache_info`/`.cache_parameters`
+# attributes live on the DECORATED callable -- `_resolve_layered_mission_
+# types_cached` above, not the public `resolve_layered_mission_types`
+# wrapper. 14 existing call sites depend on the public name still carrying
+# all three (12 direct `.cache_clear()` calls across three test files,
+# `MissionTypeRepository.cache_clear()`'s own body, and one `.cache_info()`
+# call inside `tests/charter/test_charter_import_time_io.py`'s in-subprocess
+# import-time-I/O spy). `functools.update_wrapper` would NOT close this gap
+# -- it copies `__wrapped__`/`__doc__`/`__name__`/`__module__`/`__dict__`,
+# never these three cache-specific attributes -- so three explicit
+# assignments are used instead.
+resolve_layered_mission_types.cache_clear = _resolve_layered_mission_types_cached.cache_clear
+resolve_layered_mission_types.cache_info = _resolve_layered_mission_types_cached.cache_info
+resolve_layered_mission_types.cache_parameters = _resolve_layered_mission_types_cached.cache_parameters
