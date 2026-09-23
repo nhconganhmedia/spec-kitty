@@ -359,7 +359,7 @@ def _lock_for(key: tuple) -> threading.Lock:
         return lock
 ```
 
-`_resolve_all_for_mission_type_cached` and `resolve_layered_mission_types`
+`_resolve_all_for_mission_type_cached` and `_resolve_layered_mission_types_cached`
 keep their `@functools.cache` decorator and their bodies unchanged in shape
 (still the plain, single uncached walk — Section 5's `cache_clear()`
 contract is untouched by this move, since it only ever calls the
@@ -409,8 +409,9 @@ called the private `_resolve_all_for_mission_type_cached.cache_clear()`
 this fix), the second site's public name `resolve_layered_mission_types`
 is itself, today, the `@functools.cache`-decorated callable — so it is the
 thing that currently carries `.cache_clear()`, `.cache_info()`, and
-`.cache_parameters()`, and at least 15+ call sites across three test files
-call `resolve_layered_mission_types.cache_clear()` directly
+`.cache_parameters()`, and 12 call sites across three test files
+call `resolve_layered_mission_types.cache_clear()` directly (13 including
+the one `.cache_info()` call site below)
 (`tests/charter/test_mission_type_path_layout_ssot.py`,
 `tests/doctrine/missions/test_mission_type_repository.py`,
 `tests/charter/test_charter_import_time_io.py`),
